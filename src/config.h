@@ -1,0 +1,7 @@
+#ifndef _CONFIG_H_
+#define _CONFIG_H_
+
+#define IMOBOT_SIM_VERSION_MAJOR @iMobot_Sim_VERSION_MAJOR@
+#define IMOBOT_SIM_VERSION_MINOR @iMobot_Sim_VERSION_MINOR@
+
+#endif
