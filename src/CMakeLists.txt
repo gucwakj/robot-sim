@@ -15,7 +15,14 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Add include directory for ODE
-include_directories("../opende/include")
+include_directories("opende/sys/include")
+
+# Add librobot subdirectory and stuff
+include_directories("librobot")
+add_subdirectory("librobot")
+set (EXTRA_LIBS ${EXTRA_LIBS} librobot)
+
 
 # Add the executable
 add_executable(imobot_simulation imobot_simulation.cpp)
+target_link_libraries(imobot_simulation ${EXTRA_LIBS})
