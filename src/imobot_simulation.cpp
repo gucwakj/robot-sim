@@ -1,5 +1,10 @@
 /* ODE includes */
+#include "config.h"
 #include <ode/ode.h>
+#ifdef ENABLE_DRAWSTUFF
+#include <drawstuff/drawstuff.h>
+#define DRAWSTUFF_TEXTURE_PATH "opende/drawstuff/textures"
+#endif
 /* C++ includes */
 #include <stdio.h>
 #include <time.h>
@@ -18,7 +23,14 @@ robots_t *g_robots;
 
 // simulation functions
 void nearCallback(void *data, dGeomID o1, dGeomID o2);
+#ifdef ENABLE_DRAWSTUFF
+static void start();
+void drawPart(dGeomID part);
+void command(int cmd);
+void simulationLoop(int pause);
+#else
 void simulationLoop(void);
+#endif
 
 int main(int argc, char **argv) {
 	// start timekeeping
@@ -31,6 +43,17 @@ int main(int argc, char **argv) {
 			ang[i][j] = D2R(ang[i][j]);
 		}
 	}
+
+#ifdef ENABLE_DRAWSTUFF
+  /* Drawstuff */
+  dsFunctions fn;
+  fn.version = DS_VERSION;
+  fn.start = &start;
+  fn.step = &simulationLoop;
+  fn.command = &command;
+  fn.stop = 0;
+  fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
+#endif
 
 	// create world
 	dInitODE2(0);
@@ -81,7 +104,11 @@ int main(int argc, char **argv) {
 	//g_robots->robots[4] = buildRobotAttached(&g_world, &g_space_robots[4], g_robots, 0, FACE5, FACE6);
 
 	// simulation
+#ifdef ENABLE_DRAWSTUFF
+	dsSimulationLoop(argc, argv, 352, 288, &fn);
+#else
 	simulationLoop();
+#endif
 
 	// free memory
 	for (int i = 0; i < NUM_ROBOTS; i++) {
@@ -107,6 +134,65 @@ int main(int argc, char **argv) {
 	
 	return 0;
 }
+
+#ifdef ENABLE_DRAWSTUFF
+static void start()
+{
+	dAllocateODEDataForThread(dAllocateMaskAll);
+
+	static float xyz[3] = {I2M(10), I2M(-10), I2M(10)};
+	static float hpr[3] = {135.0, -20.0, 0.0};	// defined in degrees
+	dsSetViewpoint(xyz, hpr);
+}
+
+/*
+ *	called when a key pressed
+ */
+void command(int cmd) {
+	switch (cmd) {
+		case 'q': case 'Q':
+			dsStop();
+	}
+}
+
+void drawPart(dGeomID geom) {
+	// make sure correct geom is passed to function
+	if (!geom) return;
+
+	// get pos, rot of body
+	const dReal *position = dGeomGetPosition(geom);
+	const dReal *rotation = dGeomGetRotation(geom);
+	
+	switch (dGeomGetClass(geom)) {
+		case dSphereClass:
+			{
+				dReal r = dGeomSphereGetRadius(geom);
+				dsDrawSphere(position, rotation, r);
+				break;
+			}
+		case dBoxClass:
+			{
+				dVector3 sides;
+				dGeomBoxGetLengths(geom, sides);
+				dsDrawBox(position, rotation, sides);
+				break;
+			}
+		case dCylinderClass:
+			{
+				dReal r, l;
+				dGeomCylinderGetParams(geom, &r, &l);
+				dsDrawCylinder(position, rotation, l, r);
+				break;
+			}
+		case dCapsuleClass:
+			{
+				dReal r, l;
+				dGeomCapsuleGetParams(geom, &r, &l);
+				dsDrawCapsule(position, rotation, l, r);
+			}
+	}
+}
+#endif
 
 /*
  *	check whether bodies are in contact
@@ -156,21 +242,28 @@ void nearCallback(void *data, dGeomID o1, dGeomID o2) {
 /*
  *	simulation loop
  */
-void simulationLoop(void) {
+#ifdef ENABLE_DRAWSTUFF
+void simulationLoop(int pause) 
+#else
+void simulationLoop(void) 
+#endif
+{
 	// time of simulation
-	double t = 0.0;
+	static double t = 0.0;
 	// time of each simulation step
 	double tStep = 0.004;			// tStep <= 0.006 to prevent overstepping interrupt in one time step
 	// time to completion counter
-	int tComp = 0;
+	static int tComp = 0;
 	// change on each new step
-	int newstep = 1;
+	static int newstep = 1;
 	// loop counters
 	int i = 0;
 	int j = 0;
-	int flags[NUM_ROBOTS] = {0};
+	static int flags[NUM_ROBOTS] = {0};
 
+#ifndef ENABLE_DRAWSTUFF
 	while (1) {
+#endif
 		if (newstep) {
 			newstep = 0;
 			for (i = 0; i < NUM_ROBOTS; i++) {
@@ -386,6 +479,7 @@ void simulationLoop(void) {
 		//}
 		printf("\n");
 
+#ifndef ENABLE_DRAWSTUFF
 		// stop simulation loop after set amount of time (failure)
 		if ( (TIME_TOTAL - t) < 0.0000000596047 ) {
 			printf("Failure: reached end of simulation time\n");
@@ -404,8 +498,28 @@ void simulationLoop(void) {
 				break;
 			}
 		}
+#endif
 
 		// increment time of simulation
 		t += tStep;
+#ifdef ENABLE_DRAWSTUFF
+    // draw the bodies
+    for (int i = 0; i < NUM_ROBOTS; i++) {
+      for (int j = 0; j < NUM_PARTS; j++) {
+        if (dBodyIsEnabled(g_robots->robots[i]->parts[j].bodyID)) {
+          dsSetColor(	g_robots->robots[i]->parts[j].color[0],
+              g_robots->robots[i]->parts[j].color[1],
+              g_robots->robots[i]->parts[j].color[2]);
+        }
+        else { dsSetColor(0.5,0.5,0.5); }
+        for (int k = 0; k < g_robots->robots[i]->parts[j].num_geomID; k++) {
+          drawPart(g_robots->robots[i]->parts[j].geomID[k]);
+        }
+      }
+    }
+#endif
+
+#ifndef ENABLE_DRAWSTUFF
 	}
+#endif
 }

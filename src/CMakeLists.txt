@@ -11,6 +11,10 @@ configure_file (
   "${PROJECT_BINARY_DIR}/config.h"
   )
 
+# Compilation options
+option (ENABLE_DRAWSTUFF 
+        "Enable usage of the ODE drawstuff routines for visualization." OFF)
+
 # Set up defines
 add_definitions(-DdSINGLE)
 
@@ -18,7 +22,9 @@ add_definitions(-DdSINGLE)
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Add ODE library
-include_directories("opende/sys/include")
+include_directories(
+  "opende/sys/include"
+  )
 link_directories("opende/sys/lib")
 set (EXTRA_LIBS ${EXTRA_LIBS} ode)
 
@@ -27,7 +33,14 @@ include_directories("librobot")
 add_subdirectory("librobot")
 set (EXTRA_LIBS ${EXTRA_LIBS} robot)
 
-# Add ODE library
+# If drawstuff is enabled, include drawstuff library
+if (ENABLE_DRAWSTUFF)
+  include_directories("opende/include")
+  link_directories("opende/drawstuff/src/.libs")
+  find_package(GLUT)
+  find_package(OpenGL)
+  set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
+endif (ENABLE_DRAWSTUFF)
 
 # Add the executable
 add_executable(imobot_simulation imobot_simulation.cpp)
