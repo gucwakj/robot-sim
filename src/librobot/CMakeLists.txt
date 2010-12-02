@@ -1,5 +1,5 @@
 # The ODE Library
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 include_directories(../opende/sys/include)
 add_definitions(-DdSINGLE)
 
