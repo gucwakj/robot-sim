@@ -1,6 +1,8 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
+//new comment line
+
 #define IMOBOT_SIM_VERSION_MAJOR @iMobot_Sim_VERSION_MAJOR@
 #define IMOBOT_SIM_VERSION_MINOR @iMobot_Sim_VERSION_MINOR@
 #cmakedefine ENABLE_DRAWSTUFF
