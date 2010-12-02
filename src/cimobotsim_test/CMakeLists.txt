@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 2.6)
-project (iMobot_Sim)
+project (CiMobot_Sim)
 
 # Set the version number
-set (iMobot_Sim_VERSION_MAJOR 0)
-set (iMobot_Sim_VERSION_MINOR 1)
+set (CiMobot_Sim_VERSION_MAJOR 0)
+set (CiMobot_Sim_VERSION_MINOR 1)
 
 # Set up a configure file
 configure_file (
@@ -14,17 +14,22 @@ configure_file (
 # Compilation options
 option (ENABLE_DRAWSTUFF 
         "Enable usage of the ODE drawstuff routines for visualization." OFF)
+
 option (ENABLE_DOUBLE
         "Enable double precision for simulation." ON)
-
 if (ENABLE_DOUBLE)
   add_definitions(-DdDOUBLE)
-else
+else (ENABLE_DOUBLE)
   add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 
 # Add the binary directory to include file search path
 include_directories("${PROJECT_BINARY_DIR}")
+
+# Add CiMobotSim library subdirectory and stuff
+include_directories("../CiMobotSim")
+link_directories("../CiMobotSim")
+set (EXTRA_LIBS ${EXTRA_LIBS} imobotsim)
 
 # Add ODE library
 include_directories(
@@ -38,6 +43,7 @@ include_directories("../librobot")
 link_directories("../librobot")
 set (EXTRA_LIBS ${EXTRA_LIBS} robot)
 
+
 # If drawstuff is enabled, include drawstuff library
 if (ENABLE_DRAWSTUFF)
   include_directories("../opende/include")
@@ -48,5 +54,5 @@ if (ENABLE_DRAWSTUFF)
 endif (ENABLE_DRAWSTUFF)
 
 # Add the executable
-add_executable(librobot_test librobot_test.cpp)
-target_link_libraries(librobot_test ${EXTRA_LIBS})
+add_executable(cimobotsim_test cimobotsim_test.cpp)
+target_link_libraries(cimobotsim_test ${EXTRA_LIBS})

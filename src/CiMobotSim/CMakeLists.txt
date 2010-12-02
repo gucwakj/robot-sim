@@ -11,6 +11,6 @@ else (ENABLE_DOUBLE)
   add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 
-add_library(robot
-  librobot.cpp
+add_library(imobotsim
+  imobotsim.cpp
   )
