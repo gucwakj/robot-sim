@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 project (iMobot_Sim)
-add_subdirectory(
-  "librobot"
-  "librobot_test"
-  )
+add_subdirectory("librobot")
+add_subdirectory("librobot_test")
+add_subdirectory("CiMobotSim")
+add_subdirectory("cimobotsim_test")

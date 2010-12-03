@@ -4,8 +4,8 @@ include_directories(../opende/sys/include)
 
 # Set up a configure file
 configure_file (
-  "${PROJECT_SOURCE_DIR}/config.h.in"
-  "${PROJECT_BINARY_DIR}/config.h"
+  "config.h.in"
+  "config.h"
   )
 
 option (ENABLE_DRAWSTUFF 

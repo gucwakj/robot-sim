@@ -12,6 +12,13 @@
 #include "librobot.h"
 #include "input.h"
 
+#ifdef dDOUBLE
+#define dsDrawSphere dsDrawSphereD
+#define dsDrawBox dsDrawBoxD
+#define dsDrawCylinder dsDrawCylinderD
+#define dsDrawCapsule dsDrawCapsuleD
+#endif
+
 // dynamics and collision objects
 static dWorldID g_world;
 static dSpaceID g_space;
