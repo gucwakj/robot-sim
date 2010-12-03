@@ -53,6 +53,8 @@ if (ENABLE_DRAWSTUFF)
   set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
 endif (ENABLE_DRAWSTUFF)
 
+message( ${EXTRA_LIBS} )
+
 # Add the executable
 add_executable(cimobotsim_test cimobotsim_test.cpp)
 target_link_libraries(cimobotsim_test ${EXTRA_LIBS})

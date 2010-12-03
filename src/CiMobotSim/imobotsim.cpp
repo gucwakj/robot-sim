@@ -1,6 +1,14 @@
+#include "config.h"
 #include <cmath>
 #include <iostream>
 #include "imobotsim.h"
+
+#ifdef dDOUBLE
+#define dsDrawSphere dsDrawSphereD
+#define dsDrawBox dsDrawBoxD
+#define dsDrawCylinder dsDrawCylinderD
+#define dsDrawCapsule dsDrawCapsuleD
+#endif
 
 using namespace std;
 
@@ -40,6 +48,13 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal m
 		this->bot[i]->bdyPts[CENTER].geomID = new dGeomID[3];
 		this->bot[i]->bdyPts[ENDCAP_L].geomID = new dGeomID[7];
 		this->bot[i]->bdyPts[ENDCAP_R].geomID = new dGeomID[7];
+#ifdef ENABLE_DRAWSTUFF
+		this->bot[i]->bdyPts[BODY_L].num_geomID = 5;
+		this->bot[i]->bdyPts[BODY_R].num_geomID = 5;
+		this->bot[i]->bdyPts[CENTER].num_geomID = 3;
+		this->bot[i]->bdyPts[ENDCAP_L].num_geomID = 7;
+		this->bot[i]->bdyPts[ENDCAP_R].num_geomID = 7;
+#endif
 		this->bot[i]->joints = new dJointID[6];
 		this->bot[i]->motors = new dJointID[4];
 		this->bot[i]->futAng = new dReal[NUM_DOF];
@@ -95,6 +110,16 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal m
 		this->flags[i] = false;
 		this->disable[i] = false;
 	}
+
+#ifdef ENABLE_DRAWSTUFF
+  /* Initialize drawstuff */
+  m_fn.version = DS_VERSION;
+  m_fn.start = (void (*)(void))&CiMobotSim::ds_start;
+  m_fn.step = (void (*)(int))&CiMobotSim::simulationLoop;
+  m_fn.command = (void (*)(int))&CiMobotSim::ds_command;
+  m_fn.stop = 0;
+  m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
+#endif
 
 	// create ODE simulation space
 	dInitODE2(0);
@@ -173,13 +198,28 @@ void CiMobotSim::printData() {
 		cout << this->bot[i]->vel[12] << "\t" << this->bot[i]->vel[13] << "\t" << this->bot[i]->vel[14] << "\t" << this->bot[i]->vel[15] << endl;
 	}
 }
+void CiMobotSim::run(int argc, char** argv)
+{
+#ifdef ENABLE_DRAWSTUFF
+  dsSimulationLoop(argc, argv, 352, 288, &m_fn);
+#else
+  simulationLoop();
+#endif
+}
 
-void CiMobotSim::simulationLoop(void) {
+#ifdef ENABLE_DRAWSTUFF
+void CiMobotSim::simulationLoop(int pause) 
+#else
+void CiMobotSim::simulationLoop(void) 
+#endif
+{
 	// initialize
 	bool loop = true;
 
 	// loop continuously until simulation is stopped
+#ifndef ENABLE_DRAWSTUFF
 	while (loop) {
+#endif
 		if ( this->newStp )
 			this->setAngles();		// set angles for new step
 		else
@@ -264,8 +304,31 @@ void CiMobotSim::simulationLoop(void) {
 		//cout << endl;
 
 		loop = this->endSimulation(this->tmeTot);		// check whether to end simulation
+#ifdef ENABLE_DRAWSTUFF
+    if(!loop) dsStop();
+#endif
 		this->incrementTime(this->tmeStp);				// increment time
+
+#ifdef ENABLE_DRAWSTUFF
+    // draw the bodies
+    for (int i = 0; i < numBot; i++) {
+      for (int j = 0; j < NUM_PARTS; j++) {
+        if (dBodyIsEnabled(bot[i]->bdyPts[j].bodyID)) {
+          dsSetColor(	bot[i]->bdyPts[j].color[0],
+              bot[i]->bdyPts[j].color[1],
+              bot[i]->bdyPts[j].color[2]);
+        }
+        else { dsSetColor(0.5,0.5,0.5); }
+        for (int k = 0; k < bot[i]->bdyPts[j].num_geomID; k++) {
+          ds_drawPart(bot[i]->bdyPts[j].geomID[k]);
+        }
+      }
+    }
+#endif
+
+#ifndef ENABLE_DRAWSTUFF
 	}
+#endif
 }
 
 void CiMobotSim::setAngles() {
@@ -1330,3 +1393,64 @@ dReal CiMobotSim::angMod(dReal pasAng, dReal curAng, dReal angRat) {
 
 	return newAng;
 }
+
+/* Drawstuff Functions */
+#ifdef ENABLE_DRAWSTUFF
+void CiMobotSim::ds_start()
+{
+	dAllocateODEDataForThread(dAllocateMaskAll);
+
+	static float xyz[3] = {I2M(10), I2M(-10), I2M(10)};
+	static float hpr[3] = {135.0, -20.0, 0.0};	// defined in degrees
+	dsSetViewpoint(xyz, hpr);
+}
+
+/*
+ *	called when a key pressed
+ */
+void CiMobotSim::ds_command(int cmd) {
+	switch (cmd) {
+		case 'q': case 'Q':
+			dsStop();
+	}
+}
+
+void CiMobotSim::ds_drawPart(dGeomID geom) {
+	// make sure correct geom is passed to function
+	if (!geom) return;
+
+	// get pos, rot of body
+	const dReal *position = dGeomGetPosition(geom);
+	const dReal *rotation = dGeomGetRotation(geom);
+	
+	switch (dGeomGetClass(geom)) {
+		case dSphereClass:
+			{
+				dReal r = dGeomSphereGetRadius(geom);
+				dsDrawSphere(position, rotation, r);
+				break;
+			}
+		case dBoxClass:
+			{
+				dVector3 sides;
+				dGeomBoxGetLengths(geom, sides);
+				dsDrawBox(position, rotation, sides);
+				break;
+			}
+		case dCylinderClass:
+			{
+				dReal r, l;
+				dGeomCylinderGetParams(geom, &r, &l);
+				dsDrawCylinder(position, rotation, l, r);
+				break;
+			}
+		case dCapsuleClass:
+			{
+				dReal r, l;
+				dGeomCapsuleGetParams(geom, &r, &l);
+				dsDrawCapsule(position, rotation, l, r);
+			}
+	}
+}
+#endif
+

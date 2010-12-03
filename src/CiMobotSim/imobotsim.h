@@ -2,6 +2,10 @@
 #define CIMOBOTSIM_H_
 
 #include <ode/ode.h>
+#ifdef ENABLE_DRAWSTUFF
+#include <drawstuff/drawstuff.h>
+#define DRAWSTUFF_TEXTURE_PATH "../opende/drawstuff/textures"
+#endif
 
 class CiMobotSim {
 	public:
@@ -55,10 +59,8 @@ class CiMobotSim {
 		void groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dMatrix3 R);
 		void groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz);
 
-		/*
-		 *	Simulation functions
-		 */
-		void simulationLoop();		// loop to complete simulation
+    /* Run the simulation */
+    void run(int argc, char** argv);
 
 		/*
 		 *	Utility functions
@@ -67,12 +69,28 @@ class CiMobotSim {
 		void replyMessage();		// reply message to send back to main program
 	private:
 		/*
+		 *	Simulation functions
+		 */
+#ifdef ENABLE_DRAWSTUFF
+    void ds_start();
+    void ds_drawPart(dGeomID part);
+    void ds_command(int cmd);
+		void simulationLoop(int pause);		// loop to complete simulation
+#else
+		void simulationLoop();		// loop to complete simulation
+#endif
+
+		/*
 		 *	Structs to store simulation data
 		 */
 		// information about each body part
 		typedef struct cimobotsimpart_s {
 			dBodyID bodyID;					// id of body part
 			dGeomID *geomID;				// ids of geoms which make up each body part
+#ifdef ENABLE_DRAWSTUFF
+      float color[3];
+      int num_geomID;
+#endif
 		} CiMobotSimPart;
 		// information about each iMobot module
 		typedef struct cimobotsimbot_s {
@@ -123,6 +141,9 @@ class CiMobotSim {
 		bool *flags;						// flag for each bot  - completed step
 		bool *disable;						// flag for each bot - disabled/enabled
 		bool newStp;						// flag for new step
+#ifdef ENABLE_DRAWSTUFF
+    dsFunctions m_fn;
+#endif
 
 		/*
 		 *	Enumerations for parts of iMobot
