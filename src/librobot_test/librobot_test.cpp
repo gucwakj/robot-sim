@@ -3,7 +3,7 @@
 #include <ode/ode.h>
 #ifdef ENABLE_DRAWSTUFF
 #include <drawstuff/drawstuff.h>
-#define DRAWSTUFF_TEXTURE_PATH "opende/drawstuff/textures"
+#define DRAWSTUFF_TEXTURE_PATH "../opende/drawstuff/textures"
 #endif
 /* C++ includes */
 #include <stdio.h>
