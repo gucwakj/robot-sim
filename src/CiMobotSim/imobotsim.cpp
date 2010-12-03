@@ -677,6 +677,11 @@ void CiMobotSim::buildLeftBody(dSpaceID *space, CiMobotSimPart *part, dReal x, d
 
 	// put into robot struct
 	part->bodyID = body;
+#ifdef ENABLE_DRAWSTUFF
+	part->color[0] = 1;
+	part->color[1] = 0;
+	part->color[2] = 0;
+#endif
 }
 
 void CiMobotSim::buildRightBody(dSpaceID *space, CiMobotSimPart *part, dReal x, dReal y, dReal z, dMatrix3 R) {
@@ -752,6 +757,11 @@ void CiMobotSim::buildRightBody(dSpaceID *space, CiMobotSimPart *part, dReal x, 
 
 	// put into robot struct
 	part->bodyID = body;
+#ifdef ENABLE_DRAWSTUFF
+	part->color[0] = 1;
+	part->color[1] = 1;
+	part->color[2] = 1;
+#endif
 }
 
 /*
@@ -809,6 +819,11 @@ void CiMobotSim::buildCenter(dSpaceID *space, CiMobotSimPart *part, dReal x, dRe
 
 	// put into robot struct
 	part->bodyID = body;
+#ifdef ENABLE_DRAWSTUFF
+	part->color[0] = 0;
+	part->color[1] = 1;
+	part->color[2] = 0;
+#endif
 }
 
 /*
@@ -890,6 +905,11 @@ void CiMobotSim::buildEndcap(dSpaceID *space, CiMobotSimPart *part, dReal x, dRe
 
 	// put into robot struct
 	part->bodyID = body;
+#ifdef ENABLE_DRAWSTUFF
+	part->color[0] = 0;
+	part->color[1] = 0;
+	part->color[2] = 1;
+#endif
 }
 
 /**********************************************************
