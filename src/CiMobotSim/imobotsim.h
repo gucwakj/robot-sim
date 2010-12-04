@@ -1,5 +1,6 @@
 #ifndef CIMOBOTSIM_H_
 #define CIMOBOTSIM_H_
+#include "config.h"
 
 #include <ode/ode.h>
 #ifdef ENABLE_DRAWSTUFF

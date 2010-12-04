@@ -19,7 +19,7 @@ option (ENABLE_DOUBLE
 
 if (ENABLE_DOUBLE)
   add_definitions(-DdDOUBLE)
-else (ENABLE_DOUBLE)
+else ()
   add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 

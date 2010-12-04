@@ -16,6 +16,13 @@ extern "C" {
 	//void *__dso_handle = NULL;
 }
 
+/* If drawstuff is enabled, we need a global pointer to an instantiated
+ * CiMobotSim class so that the callback functions can access the necessary
+ * data. */
+#ifdef ENABLE_DRAWSTUFF
+CiMobotSim* g_imobotsim;
+#endif
+
 CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal mu_g, dReal mu_b, dReal cor_g, dReal cor_b, dReal *ang, dReal *vel) {
 	// initialize parameters for simulation
 	int i, j;
@@ -140,6 +147,10 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal m
 	dWorldSetDamping(this->world, 0.1, 0.1);					// damping of all bodies in world
 	dWorldSetERP(this->world, 0.95);							// error reduction parameter (0-1) - how much error is corrected on each step
 	dWorldSetGravity(this->world, 0, 0, -9.81);					// gravity
+
+#ifdef ENABLE_DRAWSTUFF
+  g_imobotsim = this;
+#endif
 }
 
 CiMobotSim::~CiMobotSim() {
@@ -208,6 +219,11 @@ void CiMobotSim::run(int argc, char** argv)
 }
 
 #ifdef ENABLE_DRAWSTUFF
+/* If drawstuff is enabled, we cannot use any reference to 'this', because
+ * simulationLoop is called as a callback function and any reference to 'this'
+ * will be NULL. Instead, if we are using Drawstuff, we sholud reference the
+ * global variable, g_imobotsim */
+#define this g_imobotsim
 void CiMobotSim::simulationLoop(int pause) 
 #else
 void CiMobotSim::simulationLoop(void) 
@@ -311,16 +327,16 @@ void CiMobotSim::simulationLoop(void)
 
 #ifdef ENABLE_DRAWSTUFF
     // draw the bodies
-    for (int i = 0; i < numBot; i++) {
-      for (int j = 0; j < NUM_PARTS; j++) {
-        if (dBodyIsEnabled(bot[i]->bdyPts[j].bodyID)) {
-          dsSetColor(	bot[i]->bdyPts[j].color[0],
-              bot[i]->bdyPts[j].color[1],
-              bot[i]->bdyPts[j].color[2]);
+    for (int i = 0; i < this->numBot; i++) {
+      for (int j = 0; j < this->NUM_PARTS; j++) {
+        if (dBodyIsEnabled(this->bot[i]->bdyPts[j].bodyID)) {
+          dsSetColor(	this->bot[i]->bdyPts[j].color[0],
+              this->bot[i]->bdyPts[j].color[1],
+              this->bot[i]->bdyPts[j].color[2]);
         }
         else { dsSetColor(0.5,0.5,0.5); }
-        for (int k = 0; k < bot[i]->bdyPts[j].num_geomID; k++) {
-          ds_drawPart(bot[i]->bdyPts[j].geomID[k]);
+        for (int k = 0; k < this->bot[i]->bdyPts[j].num_geomID; k++) {
+          ds_drawPart(this->bot[i]->bdyPts[j].geomID[k]);
         }
       }
     }
@@ -328,6 +344,8 @@ void CiMobotSim::simulationLoop(void)
 
 #ifndef ENABLE_DRAWSTUFF
 	}
+#else
+#undef this
 #endif
 }
 
@@ -659,6 +677,11 @@ void CiMobotSim::buildLeftBody(dSpaceID *space, CiMobotSimPart *part, dReal x, d
 
 	// put into robot struct
 	part->bodyID = body;
+#ifdef ENABLE_DRAWSTUFF
+	part->color[0] = 1;
+	part->color[1] = 0;
+	part->color[2] = 0;
+#endif
 }
 
 void CiMobotSim::buildRightBody(dSpaceID *space, CiMobotSimPart *part, dReal x, dReal y, dReal z, dMatrix3 R) {
@@ -734,6 +757,11 @@ void CiMobotSim::buildRightBody(dSpaceID *space, CiMobotSimPart *part, dReal x, 
 
 	// put into robot struct
 	part->bodyID = body;
+#ifdef ENABLE_DRAWSTUFF
+	part->color[0] = 1;
+	part->color[1] = 1;
+	part->color[2] = 1;
+#endif
 }
 
 /*
@@ -791,6 +819,11 @@ void CiMobotSim::buildCenter(dSpaceID *space, CiMobotSimPart *part, dReal x, dRe
 
 	// put into robot struct
 	part->bodyID = body;
+#ifdef ENABLE_DRAWSTUFF
+	part->color[0] = 0;
+	part->color[1] = 1;
+	part->color[2] = 0;
+#endif
 }
 
 /*
@@ -872,6 +905,11 @@ void CiMobotSim::buildEndcap(dSpaceID *space, CiMobotSimPart *part, dReal x, dRe
 
 	// put into robot struct
 	part->bodyID = body;
+#ifdef ENABLE_DRAWSTUFF
+	part->color[0] = 0;
+	part->color[1] = 0;
+	part->color[2] = 1;
+#endif
 }
 
 /**********************************************************
@@ -884,168 +922,168 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
 }
 
 void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatrix3 R) {
-	// assign rotation matrix to variable
-	for (int i = 0; i < 12; i++) this->bot[botNum]->rot[i] = R[i];
+  // assign rotation matrix to variable
+  for (int i = 0; i < 12; i++) this->bot[botNum]->rot[i] = R[i];
 
-	// desired velocity of each body
-	this->bot[botNum]->jntVel[LE] = this->bot[botNum]->jntVelMax[LE];
-	this->bot[botNum]->jntVel[LB] = this->bot[botNum]->jntVelMax[LB];
-	this->bot[botNum]->jntVel[RB] = this->bot[botNum]->jntVelMax[RB];
-	this->bot[botNum]->jntVel[RE] = this->bot[botNum]->jntVelMax[RE];
+  // desired velocity of each body
+  this->bot[botNum]->jntVel[LE] = this->bot[botNum]->jntVelMax[LE];
+  this->bot[botNum]->jntVel[LB] = this->bot[botNum]->jntVelMax[LB];
+  this->bot[botNum]->jntVel[RB] = this->bot[botNum]->jntVelMax[RB];
+  this->bot[botNum]->jntVel[RE] = this->bot[botNum]->jntVelMax[RE];
 
-	// offset values for each body part[0-2] and joint[3-5] from center
-	dReal le[6] = {-2.865/2-1.55-0.2-0.125/2, 0, 0, -2.865/2 - 1.55 - 0.2, 0, 0};
-	dReal lb[6] = {-2.865/2-1.55-0.2/2, 0, 0, -2.865/2, 1.3, 0};
-	dReal ce[3] = {0, 0, 0};
-	dReal rb[6] = {2.865/2+1.55+0.2/2, 0, 0, 2.865/2, 1.3, 0};
-	dReal re[6] = {2.865/2+1.55+0.2+0.125/2, 0, 0, 2.865/2 + 1.55 + 0.2, 0, 0};
+  // offset values for each body part[0-2] and joint[3-5] from center
+  dReal le[6] = {-2.865/2-1.55-0.2-0.125/2, 0, 0, -2.865/2 - 1.55 - 0.2, 0, 0};
+  dReal lb[6] = {-2.865/2-1.55-0.2/2, 0, 0, -2.865/2, 1.3, 0};
+  dReal ce[3] = {0, 0, 0};
+  dReal rb[6] = {2.865/2+1.55+0.2/2, 0, 0, 2.865/2, 1.3, 0};
+  dReal re[6] = {2.865/2+1.55+0.2+0.125/2, 0, 0, 2.865/2 + 1.55 + 0.2, 0, 0};
 
-	// build pieces of robot
-	buildLeftBody(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[BODY_L]),	I2M(R[0]*lb[0] + R[1]*lb[1] + R[2]*lb[2] + x),
-																						I2M(R[4]*lb[0] + R[5]*lb[1] + R[6]*lb[2] + y),
-																						I2M(R[8]*lb[0] + R[9]*lb[1] + R[10]*lb[2] + z + 1.425), R);
-	buildCenter(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[CENTER]),	I2M(R[0]*ce[0] + R[1]*ce[1] + R[2]*ce[2] + x),
-																						I2M(R[4]*ce[0] + R[5]*ce[1] + R[6]*ce[2] + y),
-																						I2M(R[8]*ce[0] + R[9]*ce[1] + R[10]*ce[2] + z + 1.425), R);
-	buildRightBody(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[BODY_R]),	I2M(R[0]*rb[0] + R[1]*rb[1] + R[2]*rb[2] + x),
-																						I2M(R[4]*rb[0] + R[5]*rb[1] + R[6]*rb[2] + y),
-																						I2M(R[8]*rb[0] + R[9]*rb[1] + R[10]*rb[2] + z + 1.425), R);
-	buildEndcap(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[ENDCAP_L]),	I2M(R[0]*le[0] + R[1]*le[1] + R[2]*le[2] + x),
-																						I2M(R[4]*le[0] + R[5]*le[1] + R[6]*le[2] + y),
-																						I2M(R[8]*le[0] + R[9]*le[1] + R[10]*le[2] + z + 1.425), R);
-	buildEndcap(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[ENDCAP_R]),	I2M(R[0]*re[0] + R[1]*re[1] + R[2]*re[2] + x),
-																						I2M(R[4]*re[0] + R[5]*re[1] + R[6]*re[2] + y),
-																						I2M(R[8]*re[0] + R[9]*re[1] + R[10]*re[2] + z + 1.425), R);
-	this->bot[botNum]->pos[0] = I2M(R[0]*ce[0] + R[1]*ce[1] + R[2]*ce[2] + x);
-	this->bot[botNum]->pos[1] = I2M(R[4]*ce[0] + R[5]*ce[1] + R[6]*ce[2] + y);
-	this->bot[botNum]->pos[2] = I2M(R[8]*ce[0] + R[9]*ce[1] + R[10]*ce[2] + z);
+  // build pieces of robot
+  buildLeftBody(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[BODY_L]),	I2M(R[0]*lb[0] + R[1]*lb[1] + R[2]*lb[2] + x),
+      I2M(R[4]*lb[0] + R[5]*lb[1] + R[6]*lb[2] + y),
+      I2M(R[8]*lb[0] + R[9]*lb[1] + R[10]*lb[2] + z + 1.425), R);
+  buildCenter(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[CENTER]),	I2M(R[0]*ce[0] + R[1]*ce[1] + R[2]*ce[2] + x),
+      I2M(R[4]*ce[0] + R[5]*ce[1] + R[6]*ce[2] + y),
+      I2M(R[8]*ce[0] + R[9]*ce[1] + R[10]*ce[2] + z + 1.425), R);
+  buildRightBody(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[BODY_R]),	I2M(R[0]*rb[0] + R[1]*rb[1] + R[2]*rb[2] + x),
+      I2M(R[4]*rb[0] + R[5]*rb[1] + R[6]*rb[2] + y),
+      I2M(R[8]*rb[0] + R[9]*rb[1] + R[10]*rb[2] + z + 1.425), R);
+  buildEndcap(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[ENDCAP_L]),	I2M(R[0]*le[0] + R[1]*le[1] + R[2]*le[2] + x),
+      I2M(R[4]*le[0] + R[5]*le[1] + R[6]*le[2] + y),
+      I2M(R[8]*le[0] + R[9]*le[1] + R[10]*le[2] + z + 1.425), R);
+  buildEndcap(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[ENDCAP_R]),	I2M(R[0]*re[0] + R[1]*re[1] + R[2]*re[2] + x),
+      I2M(R[4]*re[0] + R[5]*re[1] + R[6]*re[2] + y),
+      I2M(R[8]*re[0] + R[9]*re[1] + R[10]*re[2] + z + 1.425), R);
+  this->bot[botNum]->pos[0] = I2M(R[0]*ce[0] + R[1]*ce[1] + R[2]*ce[2] + x);
+  this->bot[botNum]->pos[1] = I2M(R[4]*ce[0] + R[5]*ce[1] + R[6]*ce[2] + y);
+  this->bot[botNum]->pos[2] = I2M(R[8]*ce[0] + R[9]*ce[1] + R[10]*ce[2] + z);
 
-	// create joint
-	dJointID joint;
+  // create joint
+  dJointID joint;
 
-	// joint for left endcap to body
-	joint = dJointCreateHinge(this->world, 0);
-	dJointAttach(joint, this->bot[botNum]->bdyPts[BODY_L].bodyID, this->bot[botNum]->bdyPts[ENDCAP_L].bodyID);
-	dJointSetHingeAnchor(joint, I2M(R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x),
-								I2M(R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y),
-								I2M(R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z + 1.425) );
-	dJointSetHingeAxis(joint,	R[0]*1 + R[1]*0 + R[2]*0,
-								R[4]*1 + R[5]*0 + R[6]*0,
-								R[8]*1 + R[9]*0 + R[10]*0);
-	dJointSetHingeParam(joint, dParamCFM, 0);
-	this->bot[botNum]->joints[0] = joint;
+  // joint for left endcap to body
+  joint = dJointCreateHinge(this->world, 0);
+  dJointAttach(joint, this->bot[botNum]->bdyPts[BODY_L].bodyID, this->bot[botNum]->bdyPts[ENDCAP_L].bodyID);
+  dJointSetHingeAnchor(joint, I2M(R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x),
+      I2M(R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y),
+      I2M(R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z + 1.425) );
+  dJointSetHingeAxis(joint,	R[0]*1 + R[1]*0 + R[2]*0,
+      R[4]*1 + R[5]*0 + R[6]*0,
+      R[8]*1 + R[9]*0 + R[10]*0);
+  dJointSetHingeParam(joint, dParamCFM, 0);
+  this->bot[botNum]->joints[0] = joint;
 
-	// joint for left body 1 to center
-	joint = dJointCreateHinge(this->world, 0);
-	dJointAttach(joint, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_L].bodyID);
-	dJointSetHingeAnchor(joint, I2M(R[0]*lb[3] + R[1]*lb[4] + R[2]*lb[5] + x),
-								I2M(R[4]*lb[3] + R[5]*lb[4] + R[6]*lb[5] + y),
-								I2M(R[8]*lb[3] + R[9]*lb[4] + R[10]*lb[5] + z + 1.425) );
-	dJointSetHingeAxis(joint,	R[0]*0 + R[1]*-1 + R[2]*0,
-								R[4]*0 + R[5]*-1 + R[6]*0,
-								R[8]*0 + R[9]*-1 + R[10]*0);
-	dJointSetHingeParam(joint, dParamCFM, 0);
-	this->bot[botNum]->joints[1] = joint;
+  // joint for left body 1 to center
+  joint = dJointCreateHinge(this->world, 0);
+  dJointAttach(joint, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_L].bodyID);
+  dJointSetHingeAnchor(joint, I2M(R[0]*lb[3] + R[1]*lb[4] + R[2]*lb[5] + x),
+      I2M(R[4]*lb[3] + R[5]*lb[4] + R[6]*lb[5] + y),
+      I2M(R[8]*lb[3] + R[9]*lb[4] + R[10]*lb[5] + z + 1.425) );
+  dJointSetHingeAxis(joint,	R[0]*0 + R[1]*-1 + R[2]*0,
+      R[4]*0 + R[5]*-1 + R[6]*0,
+      R[8]*0 + R[9]*-1 + R[10]*0);
+  dJointSetHingeParam(joint, dParamCFM, 0);
+  this->bot[botNum]->joints[1] = joint;
 
-	// joint for left body 2 to center
-	joint = dJointCreateHinge(this->world, 0);
-	dJointAttach(joint, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_L].bodyID);
-	dJointSetHingeAnchor(joint, I2M(R[0]*lb[3] - R[1]*lb[4] + R[2]*lb[5] + x),
-								I2M(R[4]*lb[3] - R[5]*lb[4] + R[6]*lb[5] + y),
-								I2M(R[8]*lb[3] - R[9]*lb[4] + R[10]*lb[5] + z + 1.425) );
-	dJointSetHingeAxis(joint,	R[0]*0 + R[1]*1 + R[2]*0,
-								R[4]*0 + R[5]*1 + R[6]*0,
-								R[8]*0 + R[9]*1 + R[10]*0);
-	dJointSetHingeParam(joint, dParamCFM, 0);
-	this->bot[botNum]->joints[4] = joint;
+  // joint for left body 2 to center
+  joint = dJointCreateHinge(this->world, 0);
+  dJointAttach(joint, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_L].bodyID);
+  dJointSetHingeAnchor(joint, I2M(R[0]*lb[3] - R[1]*lb[4] + R[2]*lb[5] + x),
+      I2M(R[4]*lb[3] - R[5]*lb[4] + R[6]*lb[5] + y),
+      I2M(R[8]*lb[3] - R[9]*lb[4] + R[10]*lb[5] + z + 1.425) );
+  dJointSetHingeAxis(joint,	R[0]*0 + R[1]*1 + R[2]*0,
+      R[4]*0 + R[5]*1 + R[6]*0,
+      R[8]*0 + R[9]*1 + R[10]*0);
+  dJointSetHingeParam(joint, dParamCFM, 0);
+  this->bot[botNum]->joints[4] = joint;
 
-	// joint for center to right body 1
-	joint = dJointCreateHinge(this->world, 0);
-	dJointAttach(joint, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_R].bodyID);
-	dJointSetHingeAnchor(joint, I2M(R[0]*rb[3] + R[1]*rb[4] + R[2]*rb[5] + x),
-								I2M(R[4]*rb[3] + R[5]*rb[4] + R[6]*rb[5] + y),
-								I2M(R[8]*rb[3] + R[9]*rb[4] + R[10]*rb[5] + z + 1.425) );
-	dJointSetHingeAxis(joint,	R[0]*0 + R[1]*1 + R[2]*0,
-								R[4]*0 + R[5]*1 + R[6]*0,
-								R[8]*0 + R[9]*1 + R[10]*0);
-	dJointSetHingeParam(joint, dParamCFM, 0);
-	this->bot[botNum]->joints[2] = joint;
+  // joint for center to right body 1
+  joint = dJointCreateHinge(this->world, 0);
+  dJointAttach(joint, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_R].bodyID);
+  dJointSetHingeAnchor(joint, I2M(R[0]*rb[3] + R[1]*rb[4] + R[2]*rb[5] + x),
+      I2M(R[4]*rb[3] + R[5]*rb[4] + R[6]*rb[5] + y),
+      I2M(R[8]*rb[3] + R[9]*rb[4] + R[10]*rb[5] + z + 1.425) );
+  dJointSetHingeAxis(joint,	R[0]*0 + R[1]*1 + R[2]*0,
+      R[4]*0 + R[5]*1 + R[6]*0,
+      R[8]*0 + R[9]*1 + R[10]*0);
+  dJointSetHingeParam(joint, dParamCFM, 0);
+  this->bot[botNum]->joints[2] = joint;
 
-	// joint for center to right body 2
-	joint = dJointCreateHinge(this->world, 0);
-	dJointAttach(joint, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_R].bodyID);
-	dJointSetHingeAnchor(joint, I2M(R[0]*rb[3] - R[1]*rb[4] + R[2]*rb[5] + x),
-								I2M(R[4]*rb[3] - R[5]*rb[4] + R[6]*rb[5] + y),
-								I2M(R[8]*rb[3] - R[9]*rb[4] + R[10]*rb[5] + z + 1.425) );
-	dJointSetHingeAxis(joint,	R[0]*0 + R[1]*-1 + R[2]*0,
-								R[4]*0 + R[5]*-1 + R[6]*0,
-								R[8]*0 + R[9]*-1 + R[10]*0);
-	dJointSetHingeParam(joint, dParamCFM, 0);
-	this->bot[botNum]->joints[5] = joint;
+  // joint for center to right body 2
+  joint = dJointCreateHinge(this->world, 0);
+  dJointAttach(joint, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_R].bodyID);
+  dJointSetHingeAnchor(joint, I2M(R[0]*rb[3] - R[1]*rb[4] + R[2]*rb[5] + x),
+      I2M(R[4]*rb[3] - R[5]*rb[4] + R[6]*rb[5] + y),
+      I2M(R[8]*rb[3] - R[9]*rb[4] + R[10]*rb[5] + z + 1.425) );
+  dJointSetHingeAxis(joint,	R[0]*0 + R[1]*-1 + R[2]*0,
+      R[4]*0 + R[5]*-1 + R[6]*0,
+      R[8]*0 + R[9]*-1 + R[10]*0);
+  dJointSetHingeParam(joint, dParamCFM, 0);
+  this->bot[botNum]->joints[5] = joint;
 
-	// joint for right body to endcap
-	joint = dJointCreateHinge(this->world, 0);
-	dJointAttach(joint, this->bot[botNum]->bdyPts[BODY_R].bodyID, this->bot[botNum]->bdyPts[ENDCAP_R].bodyID);
-	dJointSetHingeAnchor(joint, I2M(R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x),
-								I2M(R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y),
-								I2M(R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z + 1.425) );
-	dJointSetHingeAxis(joint,	R[0]*-1 + R[1]*0 + R[2]*0,
-								R[4]*-1 + R[5]*0 + R[6]*0,
-								R[8]*-1 + R[9]*0 + R[10]*0);
-	dJointSetHingeParam(joint, dParamCFM, 0);
-	this->bot[botNum]->joints[3] = joint;
+  // joint for right body to endcap
+  joint = dJointCreateHinge(this->world, 0);
+  dJointAttach(joint, this->bot[botNum]->bdyPts[BODY_R].bodyID, this->bot[botNum]->bdyPts[ENDCAP_R].bodyID);
+  dJointSetHingeAnchor(joint, I2M(R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x),
+      I2M(R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y),
+      I2M(R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z + 1.425) );
+  dJointSetHingeAxis(joint,	R[0]*-1 + R[1]*0 + R[2]*0,
+      R[4]*-1 + R[5]*0 + R[6]*0,
+      R[8]*-1 + R[9]*0 + R[10]*0);
+  dJointSetHingeParam(joint, dParamCFM, 0);
+  this->bot[botNum]->joints[3] = joint;
 
-	// create motor
-	dJointID motor;
+  // create motor
+  dJointID motor;
 
-	// motor for left endcap to body joint
-	motor = dJointCreateAMotor(this->world, 0);
-	dJointAttach(motor, this->bot[botNum]->bdyPts[BODY_L].bodyID, this->bot[botNum]->bdyPts[ENDCAP_L].bodyID);
-	dJointSetAMotorMode(motor, dAMotorUser);
-	dJointSetAMotorNumAxes(motor, 1);
-	dJointSetAMotorAxis(motor, 0, 1, R[0], R[4], R[8]);
-	dJointSetAMotorAngle(motor, 0, 0);
-	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->frcMax[LE]);
-	this->bot[botNum]->motors[0] = motor;
+  // motor for left endcap to body joint
+  motor = dJointCreateAMotor(this->world, 0);
+  dJointAttach(motor, this->bot[botNum]->bdyPts[BODY_L].bodyID, this->bot[botNum]->bdyPts[ENDCAP_L].bodyID);
+  dJointSetAMotorMode(motor, dAMotorUser);
+  dJointSetAMotorNumAxes(motor, 1);
+  dJointSetAMotorAxis(motor, 0, 1, R[0], R[4], R[8]);
+  dJointSetAMotorAngle(motor, 0, 0);
+  dJointSetAMotorParam(motor, dParamCFM, 0);
+  dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->frcMax[LE]);
+  this->bot[botNum]->motors[0] = motor;
 
-	// motor for left body to center joint
-	motor = dJointCreateAMotor(this->world, 0);
-	dJointAttach(motor, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_L].bodyID);
-	dJointSetAMotorMode(motor, dAMotorUser);
-	dJointSetAMotorNumAxes(motor, 1);
-	dJointSetAMotorAxis(motor, 0, 1, -R[1], -R[5], -R[9]);
-	dJointSetAMotorAngle(motor, 0, 0);
-	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->frcMax[LB]);
-	this->bot[botNum]->motors[1] = motor;
+  // motor for left body to center joint
+  motor = dJointCreateAMotor(this->world, 0);
+  dJointAttach(motor, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_L].bodyID);
+  dJointSetAMotorMode(motor, dAMotorUser);
+  dJointSetAMotorNumAxes(motor, 1);
+  dJointSetAMotorAxis(motor, 0, 1, -R[1], -R[5], -R[9]);
+  dJointSetAMotorAngle(motor, 0, 0);
+  dJointSetAMotorParam(motor, dParamCFM, 0);
+  dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->frcMax[LB]);
+  this->bot[botNum]->motors[1] = motor;
 
-	// motor for center to right body 1 joint
-	motor = dJointCreateAMotor(this->world, 0);
-	dJointAttach(motor, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_R].bodyID);
-	dJointSetAMotorMode(motor, dAMotorUser);
-	dJointSetAMotorNumAxes(motor, 1);
-	dJointSetAMotorAxis(motor, 0, 1, R[1], R[5], R[9]);
-	dJointSetAMotorAngle(motor, 0, 0);
-	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->frcMax[RB]);
-	this->bot[botNum]->motors[2] = motor;
+  // motor for center to right body 1 joint
+  motor = dJointCreateAMotor(this->world, 0);
+  dJointAttach(motor, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_R].bodyID);
+  dJointSetAMotorMode(motor, dAMotorUser);
+  dJointSetAMotorNumAxes(motor, 1);
+  dJointSetAMotorAxis(motor, 0, 1, R[1], R[5], R[9]);
+  dJointSetAMotorAngle(motor, 0, 0);
+  dJointSetAMotorParam(motor, dParamCFM, 0);
+  dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->frcMax[RB]);
+  this->bot[botNum]->motors[2] = motor;
 
-	// motor for right body to endcap joint
-	motor = dJointCreateAMotor(this->world, 0);
-	dJointAttach(motor, this->bot[botNum]->bdyPts[BODY_R].bodyID, this->bot[botNum]->bdyPts[ENDCAP_R].bodyID);
-	dJointSetAMotorMode(motor, dAMotorUser);
-	dJointSetAMotorNumAxes(motor, 1);
-	dJointSetAMotorAxis(motor, 0, 1, -R[0], -R[4], -R[8]);
-	dJointSetAMotorAngle(motor, 0, 0);
-	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->frcMax[RE]);
-	this->bot[botNum]->motors[3] = motor;
+  // motor for right body to endcap joint
+  motor = dJointCreateAMotor(this->world, 0);
+  dJointAttach(motor, this->bot[botNum]->bdyPts[BODY_R].bodyID, this->bot[botNum]->bdyPts[ENDCAP_R].bodyID);
+  dJointSetAMotorMode(motor, dAMotorUser);
+  dJointSetAMotorNumAxes(motor, 1);
+  dJointSetAMotorAxis(motor, 0, 1, -R[0], -R[4], -R[8]);
+  dJointSetAMotorAngle(motor, 0, 0);
+  dJointSetAMotorParam(motor, dParamCFM, 0);
+  dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->frcMax[RE]);
+  this->bot[botNum]->motors[3] = motor;
 
-	// set damping on all bodies to 0.1
-	for (int i = 0; i < NUM_PARTS; i++) {
-		dBodySetDamping(this->bot[botNum]->bdyPts[i].bodyID, 0.1, 0.1);
-	}
+  // set damping on all bodies to 0.1
+  for (int i = 0; i < NUM_PARTS; i++) {
+    dBodySetDamping(this->bot[botNum]->bdyPts[i].bodyID, 0.1, 0.1);
+  }
 }
 
 void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {

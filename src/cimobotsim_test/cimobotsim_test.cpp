@@ -9,7 +9,7 @@ dReal vel[] = {	1,	1,	1,	1,
 				1,	1,	1,	1,
 				1,	1,	1,	1};
 int main(int argc, char* argv[]) {
-	CiMobotSim *sim = new CiMobotSim(1, 4, 1, 2.0, 0.3, 0.1, 0.45, 0.45, ang, vel);
+	CiMobotSim *sim = new CiMobotSim(1, 4, 1, 5.0, 0.3, 0.1, 0.45, 0.45, ang, vel);
 
 	sim->groundPlane(0, 0, 0, 1, 0);
 	sim->iMobotBuild(0, 0, -4, 0);
