@@ -180,12 +180,13 @@ CiMobotSim::~CiMobotSim() {
 		delete [] this->bot[i]->curEncCnt;
 		delete [] this->bot[i]->delEncCnt;
 		delete [] this->bot[i]->cmpStp;
-		delete [] this->bot[i];
+		delete this->bot[i];
 	}
 	delete [] this->bot;
 	delete [] this->flags;
 	delete [] this->disable;
 	delete [] this->ground;
+	delete this->reply;
 
 	// destroy all ODE objects
 	dJointGroupDestroy(group);
