@@ -23,6 +23,13 @@ else (ENABLE_DOUBLE)
   add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 
+option (ENABLE_GPROF
+	"Enable GNU Profiling capabilities for simulation." OFF)
+if (ENABLE_GPROF)
+  add_definitions(-Dpg)
+  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -pg)
+endif (ENABLE_GPROF)
+
 # Add the binary directory to include file search path
 include_directories("${PROJECT_BINARY_DIR}")
 
