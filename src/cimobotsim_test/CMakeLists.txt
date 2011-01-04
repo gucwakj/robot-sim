@@ -45,11 +45,6 @@ include_directories(
 link_directories("../opende/sys/lib")
 set (EXTRA_LIBS ${EXTRA_LIBS} ode)
 
-# Add librobot subdirectory and stuff
-include_directories("../librobot")
-link_directories("../librobot")
-set (EXTRA_LIBS ${EXTRA_LIBS} robot)
-
 
 # If drawstuff is enabled, include drawstuff library
 if (ENABLE_DRAWSTUFF)
