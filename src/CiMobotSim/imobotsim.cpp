@@ -251,15 +251,15 @@ void CiMobotSim::simulationLoop(void)
 		this->incrementStep();		// check whether to increment to next step
 
 		// print out intermediate data for analysis
-		//cout.width(3); cout << this->t / this->tmeStp;
+		cout.width(3); cout << this->t / this->tmeStp;
 		//cout.width(6); cout << this->t;
 		//cout.width(3); cout << this->newStp;
-		//cout.width(3); cout << this->curStp;
+		cout.width(3); cout << this->curStp;
 		//cout.width(3); cout << this->reply->success;
 		//cout.width(6); cout << this->reply->time;
-		//cout << "\t\t";
+		cout << "\t\t";
 		//const dReal *pos;
-		//for (int i = 0; i < this->numBot; i++) {
+		for (int i = 0; i < this->numBot; i++) {
 			//cout << this->bot[i]->futAng[LE] << " ";
 			//cout << this->bot[i]->curAng[LE] << " ";
 			//cout << this->bot[i]->pasAng[LE] << " ";
@@ -287,8 +287,8 @@ void CiMobotSim::simulationLoop(void)
 			//pos = dBodyGetPosition(this->bot[i]->bdyPts[CENTER].bodyID);
 			//printf("[%f %f %f]\t", M2I(pos[0]), M2I(pos[1]), M2I(pos[2]));
 			//
-			//cout << this->bot[i]->futAng[RB] << " ";
-			//cout << this->bot[i]->curAng[RB] << " ";
+			cout << this->bot[i]->futAng[RB] << " ";
+			cout << this->bot[i]->curAng[RB] << " ";
 			//cout << this->bot[i]->pasAng[RB] << " ";
 			//cout << this->bot[i]->futEncCnt[RB] << " ";
 			//cout << this->bot[i]->curEncCnt[RB] << " ";
@@ -310,7 +310,7 @@ void CiMobotSim::simulationLoop(void)
 			//cout << dJointGetAMotorParam(this->bot[i]->motors[RE], dParamVel) << " ";
 			//cout << dJointGetHingeAngle(this->bot[i]->joints[RE]) << " ";
 			//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RE]) << " ";
-		//}
+		}
 		/*for (int i = 0; i < this->numBot; i++) {
 			cout.width(2); cout << this->flags[i];
 		}*/
@@ -318,7 +318,7 @@ void CiMobotSim::simulationLoop(void)
 		//for (int i = 0; i < this->numBot; i++) {
 		//	cout << this->disable[i];
 		//}
-		//cout << endl;
+		cout << endl;
 
 		loop = this->endSimulation(this->tmeTot);		// check whether to end simulation
 #ifdef ENABLE_DRAWSTUFF
@@ -361,7 +361,7 @@ void CiMobotSim::setAngles() {
 		// each degree of freedom is checked individually
 		for (int j = 0; j < NUM_DOF; j++) {
 			// check if motor should be disabled for current step
-			if ( this->bot[i]->ang[NUM_DOF*step + j] == D2R(123456789) ) {
+			if ( (int)(this->bot[i]->ang[NUM_DOF*step + j]) == (int)(D2R(123456789)) ) {
 				// disable joint
 				dJointDisable(this->bot[i]->motors[j]);
 				// set future angle equal to current angle
@@ -615,14 +615,14 @@ void CiMobotSim::buildLeftBody(dSpaceID *space, CiMobotSimPart *part, dReal x, d
 	// set mass of body
 	dMassSetZero(&m);
 	// create mass 1
-	dMassSetBox(&m1, 2700, I2M(0.2), I2M(2.60), I2M(2.85) );
+	dMassSetBox(&m1, 1700, I2M(0.2), I2M(2.60), I2M(2.85) );
 	dMassAdd(&m, &m1);
 	// create mass 2
-	dMassSetBox(&m2, 2700, I2M(1.0), I2M(0.125), I2M(2.85) );
+	dMassSetBox(&m2, 700, I2M(1.0), I2M(0.125), I2M(2.85) );
 	dMassTranslate(&m2, I2M(0.5 + 0.1), -I2M(2.6/2 + 0.125/2), 0 );
 	dMassAdd(&m, &m2);
 	// create mass 3
-	dMassSetBox(&m3, 2700, I2M(1.0), I2M(0.125), I2M(2.85) );
+	dMassSetBox(&m3, 700, I2M(1.0), I2M(0.125), I2M(2.85) );
 	dMassTranslate(&m3, I2M(0.5 + 0.1), I2M(2.6/2 + 0.125/2), 0 );
 	dMassAdd(&m, &m3);
 	//dMassSetParameters( &m, 500, I2M(1), I2M(0), I2M(0), 0.5, 0.5, 0.5, 0, 0, 0);
