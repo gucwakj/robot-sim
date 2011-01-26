@@ -64,3 +64,14 @@ TODO File for ODE Simulations
 		Some of the functions could be simplified with some pass by reference
 		rather than pointers.  Not strictly necessary, but could it improve the
 		execution time?
+
+	Wind
+		Possibly add wind effects to the simulation.  A cross-wind would have an
+		adverse effect especially on larger robots.  Found a link that simulated
+		wind as a group of small spheres.
+			Genetic programming: 6th European Conference
+			EuroGP 2003, 
+			Essex ..., Volume 6
+			By Conor Ryan
+			http://books.google.com/books?id=pVhXLZKMF-YC&lpg=PA51&ots=ikZfL8Ztow&dq=open%20dynamics%20engine%20wind&pg=PA51#v=onepage&q=open%20dynamics%20engine%20wind&f=false
+
