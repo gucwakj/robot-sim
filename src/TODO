@@ -75,3 +75,8 @@ TODO File for ODE Simulations
 			By Conor Ryan
 			http://books.google.com/books?id=pVhXLZKMF-YC&lpg=PA51&ots=ikZfL8Ztow&dq=open%20dynamics%20engine%20wind&pg=PA51#v=onepage&q=open%20dynamics%20engine%20wind&f=false
 
+	Put distance moved into Reply struct
+		Need a means of knowing how far the iMobot moved during sim.  Is it
+		needed for all body parts of all modules?  Lots of information to
+		gather.  Could it be simplified with just the center?
+
