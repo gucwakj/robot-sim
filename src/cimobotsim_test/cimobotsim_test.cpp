@@ -11,7 +11,7 @@ dReal vel[] = {	1,	1,	1,	1,
 		1,	1,	1,	1};
 */
 /* video replication */
-dReal ang[] = {	0,	-60,		0,		0, // forward
+/*dReal ang[] = {	0,	-60,		0,		0, // forward
 				0,	-60,	-60,	0,
 				0,	0,		-60,	0,
 				0,	0,	0,	0,
@@ -31,10 +31,44 @@ dReal vel[] = {	1,	1,	1,	1,		// forward
 				1,	1,	1,	1,
 				1,	1,	0.1,	1,
 				1,	1,	1,	1};
+*/
+
+/* inchworm forward */
+/*dReal ang[] = {	0, -60, 0, 0,
+				0, -60, -60, 0,
+				0, 0, -60, 0,
+				0, 0, 0, 0,
+				0, -60, 0, 0,
+				0, -60, -60, 0,
+				0, 0, -60, 0,
+				0, 0, 0, 0,
+				0, -60, 0, 0,
+				0, -60, -60, 0,
+				0, 0, -60, 0,
+				0, 0, 0, 0};
+dReal vel[] = {	1,	1,	1,	1,
+				1,	1,	1,	1,
+				1,	1,	1,	1,
+				1,	1,	1,	1,
+				1,	1,	1,	1,
+				1,	1,	1,	1,
+				1,	1,	1,	1,
+				1,	1,	1,	1,
+				1,	1,	1,	1,
+				1,	1,	1,	1,
+				1,	1,	1,	1,
+				1,	1,	1,	1};
+*/
+/* rolling */
+dReal ang[] = {270, 0, 0, -270};
+dReal vel[] = {1, 1, 1, 1};
 
 int main(int argc, char* argv[]) {
 	/*CiMobotSim *sim = new CiMobotSim(1, 4, 1, 5.0, 0.3, 0.1, 0.45, 0.45, ang, vel);*/ /*test*/
-	CiMobotSim *sim = new CiMobotSim(1,10, 1, 10.0, 0.3, 0.1, 0.45, 0.45, ang,vel);		/*video*/
+	/*CiMobotSim *sim = new CiMobotSim(1,10, 1, 10.0, 0.3, 0.1, 0.45, 0.45,ang,vel);*/		/*video*/
+	/*CiMobotSim *sim = new CiMobotSim(1,12, 1, 12.0, 0.2, 0.1, 0.45,
+0.45,ang,vel); //inchworm */
+	CiMobotSim *sim = new CiMobotSim(1,1, 1, 12.0, 0.4, 0.1, 0.45,0.45,ang,vel);
 
 	sim->groundPlane(0, 0, 0, 1, 0);
 	sim->iMobotBuild(0, 0, 0, 0);
