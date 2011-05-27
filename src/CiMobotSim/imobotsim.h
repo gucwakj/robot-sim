@@ -13,8 +13,14 @@ class CiMobotSim {
 		/*
 		 *	Constructor and Destructor
 		 */
-		CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal mu_g, dReal mu_b, dReal cor_g, dReal cor_b, dReal *ang, dReal *vel);
+		CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *ang, dReal *vel);
 		~CiMobotSim();
+
+		/*
+		 *	Functions to input simulation variables
+		 */
+		void setMu(dReal mu_g, dReal mu_b);
+		void setCOR(dReal cor_g, dReal cor_b);
 
 		/*
 		 *	Variables to store simulation properties

@@ -23,17 +23,17 @@ extern "C" {
 CiMobotSim* g_imobotsim;
 #endif
 
-CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal mu_g, dReal mu_b, dReal cor_g, dReal cor_b, dReal *ang, dReal *vel) {
+CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *ang, dReal *vel) {
 	// initialize parameters for simulation
 	int i, j;
 	this->numBot = numBot;
 	this->numStp = numStp;
 	this->numGnd = numGnd;
 	this->tmeTot = tmeTot;
-	this->mu_g = mu_g;
-	this->mu_b = mu_b;
-	this->cor_g = cor_g;
-	this->cor_b = cor_b;
+	this->mu_g = 0.4;
+	this->mu_b = 0.4;
+	this->cor_g = 0.3;
+	this->cor_b = 0.3;
 	this->curStp = 1;
 	this->newStp = true;
 	this->tmeStp = 0.004;
@@ -196,6 +196,16 @@ CiMobotSim::~CiMobotSim() {
 	dSpaceDestroy(this->space);
 	dWorldDestroy(this->world);
 	dCloseODE();
+}
+
+void CiMobotSim::setMu(dReal mu_g, dReal mu_b) {
+	this->mu_g = mu_g;
+	this->mu_b = mu_b;
+}
+
+void CiMobotSim::setCOR(dReal cor_g, dReal cor_b) {
+	this->cor_g = cor_g;
+	this->cor_b = cor_b;
 }
 
 void CiMobotSim::printData() {

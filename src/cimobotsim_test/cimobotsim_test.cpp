@@ -34,7 +34,9 @@ dReal vel[] = {	1,	1,	1,	1,		// forward
 
 int main(int argc, char* argv[]) {
 	/*CiMobotSim *sim = new CiMobotSim(1, 4, 1, 5.0, 0.3, 0.1, 0.45, 0.45, ang, vel);*/ /*test*/
-	CiMobotSim *sim = new CiMobotSim(1,10, 1, 10.0, 0.3, 0.1, 0.45, 0.45, ang,vel);		/*video*/
+	CiMobotSim *sim = new CiMobotSim(1,10,1,10.0,ang,vel);		/*video*/
+	sim->setMu(0.3, 0.1);
+	sim->setCOR(0.45, 0.45);
 
 	sim->groundPlane(0, 0, 0, 1, 0);
 	sim->iMobotBuild(0, 0, 0, 0);
