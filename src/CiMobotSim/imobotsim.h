@@ -13,8 +13,14 @@ class CiMobotSim {
 		/*
 		 *	Constructor and Destructor
 		 */
-    CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal mu_g, dReal mu_b, dReal cor_g, dReal cor_b, dReal *ang, dReal *vel);
+		CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *ang, dReal *vel);
 		~CiMobotSim();
+
+		/*
+		 *	Functions to input simulation variables
+		 */
+		void setMu(dReal mu_g, dReal mu_b);
+		void setCOR(dReal cor_g, dReal cor_b);
 
 		/*
 		 *	Variables to store simulation properties
@@ -60,8 +66,8 @@ class CiMobotSim {
 		void groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dMatrix3 R);
 		void groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz);
 
-    /* Run the simulation */
-    void run(int argc, char** argv);
+		/* Run the simulation */
+		void run(int argc, char** argv);
 
 		/*
 		 *	Utility functions
@@ -72,14 +78,14 @@ class CiMobotSim {
 		/*
 		 *	Simulation functions
 		 */
-#ifdef ENABLE_DRAWSTUFF
-    void ds_start();
-    void ds_drawPart(dGeomID part);
-    void ds_command(int cmd);
+		#ifdef ENABLE_DRAWSTUFF
+		void ds_start();
+		void ds_drawPart(dGeomID part);
+		void ds_command(int cmd);
 		void simulationLoop(int pause);		// loop to complete simulation
-#else
-		void simulationLoop();		// loop to complete simulation
-#endif
+		#else
+		void simulationLoop();				// loop to complete simulation
+		#endif
 
 		/*
 		 *	Structs to store simulation data
@@ -88,10 +94,10 @@ class CiMobotSim {
 		typedef struct cimobotsimpart_s {
 			dBodyID bodyID;					// id of body part
 			dGeomID *geomID;				// ids of geoms which make up each body part
-#ifdef ENABLE_DRAWSTUFF
-      float color[3];
-      int num_geomID;
-#endif
+			#ifdef ENABLE_DRAWSTUFF
+			float color[3];
+			int num_geomID;
+			#endif
 		} CiMobotSimPart;
 		// information about each iMobot module
 		typedef struct cimobotsimbot_s {
@@ -142,9 +148,9 @@ class CiMobotSim {
 		bool *flags;						// flag for each bot  - completed step
 		bool *disable;						// flag for each bot - disabled/enabled
 		bool newStp;						// flag for new step
-#ifdef ENABLE_DRAWSTUFF
-    dsFunctions m_fn;
-#endif
+		#ifdef ENABLE_DRAWSTUFF
+		dsFunctions m_fn;
+		#endif
 
 		/*
 		 *	Enumerations for parts of iMobot
