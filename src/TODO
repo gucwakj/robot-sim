@@ -24,11 +24,6 @@ TODO File for ODE Simulations
 		are all in contact and therefore the results are off.  Need to create an
 		accurate set of aluminum pieces so that contacts mimic physical body.
 
-	Move enum outside class
-		Its what was done in CiMobot class.  Is there an advantage to this as
-		opposed to having them inside.  Only one isntance of the class is called
-		at a time so there wont be multiple copies.
-
 	Move jntVel to constructor
 		values within array are set within the build functions.  can be moved to
 		constructor to be together with other values set for the simulation.
