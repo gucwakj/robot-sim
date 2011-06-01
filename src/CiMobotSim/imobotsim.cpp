@@ -268,7 +268,7 @@ void CiMobotSim::simulationLoop(void)
 		//cout.width(3); cout << this->reply->success;
 		//cout.width(6); cout << this->reply->time;
 		cout << "\t\t";
-		//const dReal *pos;
+		const dReal *pos;
 		for (int i = 0; i < this->numBot; i++) {
 			//cout << this->bot[i]->futAng[LE] << " ";
 			//cout << this->bot[i]->curAng[LE] << " ";
@@ -294,11 +294,11 @@ void CiMobotSim::simulationLoop(void)
 			//cout << dJointGetHingeAngle(this->bot[i]->joints[LB]) << " ";
 			//cout << dJointGetHingeAngleRate(this->bot[i]->joints[LB]) << " ";
 			//			
-			//pos = dBodyGetPosition(this->bot[i]->bdyPts[CENTER].bodyID);
-			//printf("[%f %f %f]\t", M2I(pos[0]), M2I(pos[1]), M2I(pos[2]));
+			pos = dBodyGetPosition(this->bot[i]->bdyPts[CENTER].bodyID);
+			printf("[%f %f %f]\t", M2I(pos[0]), M2I(pos[1]), M2I(pos[2]));
 			//
-			cout << this->bot[i]->futAng[RB] << " ";
-			cout << this->bot[i]->curAng[RB] << " ";
+			//cout << this->bot[i]->futAng[RB] << " ";
+			//cout << this->bot[i]->curAng[RB] << " ";
 			//cout << this->bot[i]->pasAng[RB] << " ";
 			//cout << this->bot[i]->futEncCnt[RB] << " ";
 			//cout << this->bot[i]->curEncCnt[RB] << " ";

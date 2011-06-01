@@ -75,3 +75,14 @@ TODO File for ODE Simulations
 		needed for all body parts of all modules?  Lots of information to
 		gather.  Could it be simplified with just the center?
 
+	Add setXXX() functions
+		The constructor argument list is a bit unwieldy and hard to decipher
+		when looking at it again.  use setMu(), setCOR, etc
+
+	make world, space, space_robots, etc private
+		these are public right now, not sure why anymore.  can these
+		be made private?
+
+	change names of private variables to m_
+		small syntax thing which would make the code more readable
+
