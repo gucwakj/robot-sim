@@ -1,18 +1,12 @@
 #include "imobotsim.h"
 
 /* Test angles for simulation */
-/*dReal ang[] = {	0,	0,	-25,	0,
-		0,	-25,	123456789,	0,
-		0,	0,	0,	0,
-		0,	0,	0,	0};
-dReal vel[] = {	1,	1,	1,	1,
-		1,	1,	1,	1,
-		1,	1,	1,	1,
-		1,	1,	1,	1};
-*/
+dReal ang[] = {	0,	30,	0,	0};
+dReal vel[] = {	1,	0.9,	1,	1};
+
 /* video replication */
-dReal ang[] = {	0,	-30,		0,		0, // forward
-				0,	-30,	-30,	0,
+/*dReal ang[] = {	0,	30,		0,		0, // forward
+				0,	30,	-30,	0,
 				0,	0,		-30,	0,
 				0,	0,	0,	0,
 				360,	0,	0,	-360,		// right
@@ -21,7 +15,7 @@ dReal ang[] = {	0,	-30,		0,		0, // forward
 				0,	-85,	123456789,	45,
 				0,	-90,	10,		0,
 				0,	-90,	10,		180};
-dReal vel[] = {	1,	1,	1,	1,		// forward
+dReal vel[] = {	0.1,	1,	1,	1,		// forward
 				1,	1,	1,	1,
 				1,	1,	1,	1,
 				1,	1,	1,	1,
@@ -30,7 +24,7 @@ dReal vel[] = {	1,	1,	1,	1,		// forward
 				1,	1,	1,	1,
 				1,	1,	1,	1,
 				1,	1,	0.1,	1,
-				1,	1,	1,	1};
+				1,	1,	1,	1};*/
 
 /* inchworm forward */
 /*dReal ang[] = {	0, -30, 0, 0,
@@ -64,7 +58,7 @@ dReal ang[] = {270, 0, 0, -270};
 dReal vel[] = {1, 1, 1, 1};*/
 
 int main(int argc, char* argv[]) {
-	CiMobotSim *sim = new CiMobotSim(1,10,1,10.0,ang,vel);		/*video*/
+	CiMobotSim *sim = new CiMobotSim(1,1,1,1.0,ang,vel);		/*test*/
 	sim->setMu(0.3, 0.1);
 	sim->setCOR(0.45, 0.45);
 

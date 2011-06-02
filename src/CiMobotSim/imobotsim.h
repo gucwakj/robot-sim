@@ -55,7 +55,6 @@ class CiMobotSim {
 			// le,re:	rotation of endcaps about respective bodies (in degrees)
 			// lb,rb:	rotation of bodies about center (in degrees)
 		//void iMobotBuildPositioned(int botNum, dReal x, dReal y, dReal z, dMatrix3 R, dReal le, dReal lb, dReal rb, dReal re);
-		//void iMobotBuildRotated2(int botNum, dReal x, dReal y, dReal z, dMatrix3 R, dReal rle, dReal rlb, dReal rrb, dReal rre);
 
 		/*	
 		 *	Build ground out of simple objects
@@ -106,21 +105,11 @@ class CiMobotSim {
 			dJointID *motors;				// motors to drive body parts
 			dReal *futAng;					// future angle being driven toward
 			dReal *curAng;					// current angle of each body part
-			dReal *pasAng;					// past angle based on radPerInt
-			dReal *delAng;					// change in angle for each time step
 			dReal *jntVel;					// desired joint velocity
-			dReal *jntVelMax;				// maximum joint velocity possible
-			dReal *jntVelMin;				// minimum joint velocity possible
-			dReal *jntVelDel;				// range of joint velocities
-			dReal *radPerEnc;				// radians per encoder interrupt
-			dReal *frcMax;					// maximum force that can be applied to each body part
 			dReal *ang;						// array of angles
 			dReal *vel;						// array of velocities
 			dReal *pos;						// 3D position of center in world
 			dReal *rot;						// 3D rotation matrix of robot about center
-			int *futEncCnt;					// future encoder count when step is complete
-			int *curEncCnt;					// current encoder count
-			int *delEncCnt;					// change in encoder count for each time step
 			bool *cmpStp;					// flag to check if step is complete
 		} CiMobotSimBot;
 		// information on success to reply
@@ -141,6 +130,11 @@ class CiMobotSim {
 		dReal tmeStp;						// time of each step of simulation
 		dReal mu_g, mu_b;					// coefficient of friction of body_ground and body_body
 		dReal cor_g, cor_b;					// coefficient of restitution of body_ground and body_body
+		dReal mtrRes;						// motor angle resolution
+		dReal *jntVelMax;					// maximum joint velocity possible
+		dReal *jntVelMin;					// minimum joint velocity possible
+		dReal *jntVelDel;					// range of joint velocities
+		dReal *frcMax;						// maximum force that can be applied to each body part
 		int numBot;							// number of modules in simulation
 		int numGnd;							// number of pieces of ground
 		int numStp;							// total number of steps
