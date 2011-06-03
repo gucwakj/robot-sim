@@ -9,6 +9,24 @@
 #endif
 
 /*
+ *	iMobot dimension macros
+ */
+#define CENTER_LENGTH	2.865
+#define CENTER_WIDTH	1.05
+#define CENTER_HEIGHT	2.60
+#define CENTER_RADIUS	1.30
+#define BODY_LENGTH		1.55
+#define BODY_WIDTH		2.85
+#define BODY_HEIGHT		2.85
+#define BODY_RADIUS		1.425
+#define BODY_INNER_WIDTH 0.875
+#define BODY_END_DEPTH	0.2
+#define END_WIDTH		2.85
+#define END_HEIGHT		2.85
+#define END_DEPTH		0.125
+#define END_RADIUS		0.85
+
+/*
  *	Enumerations for parts of iMobot
  */
 // each body which has a degree of freedom
