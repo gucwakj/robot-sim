@@ -868,24 +868,16 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dReal re[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2, 0, 0, CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH, 0, 0};
 
 	// build pieces of robot
-	buildLeftBody(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[BODY_L]),	I2M(R[0]*lb[0] + R[1]*lb[1] + R[2]*lb[2] + x),
-				I2M(R[4]*lb[0] + R[5]*lb[1] + R[6]*lb[2] + y),
-				I2M(R[8]*lb[0] + R[9]*lb[1] + R[10]*lb[2] + z + BODY_HEIGHT/2), R);
-	buildCenter(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[CENTER]),	I2M(R[0]*ce[0] + R[1]*ce[1] + R[2]*ce[2] + x),
-				I2M(R[4]*ce[0] + R[5]*ce[1] + R[6]*ce[2] + y),
-				I2M(R[8]*ce[0] + R[9]*ce[1] + R[10]*ce[2] + z + BODY_HEIGHT/2), R);
-	buildRightBody(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[BODY_R]),	I2M(R[0]*rb[0] + R[1]*rb[1] + R[2]*rb[2] + x),
-				I2M(R[4]*rb[0] + R[5]*rb[1] + R[6]*rb[2] + y),
-				I2M(R[8]*rb[0] + R[9]*rb[1] + R[10]*rb[2] + z + BODY_HEIGHT/2), R);
-	buildEndcap(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[ENDCAP_L]),	I2M(R[0]*le[0] + R[1]*le[1] + R[2]*le[2] + x),
-				I2M(R[4]*le[0] + R[5]*le[1] + R[6]*le[2] + y),
-				I2M(R[8]*le[0] + R[9]*le[1] + R[10]*le[2] + z + BODY_HEIGHT/2), R);
-	buildEndcap(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[ENDCAP_R]),	I2M(R[0]*re[0] + R[1]*re[1] + R[2]*re[2] + x),
-				I2M(R[4]*re[0] + R[5]*re[1] + R[6]*re[2] + y),
-				I2M(R[8]*re[0] + R[9]*re[1] + R[10]*re[2] + z + BODY_HEIGHT/2), R);
-	this->bot[botNum]->pos[0] = I2M(R[0]*ce[0] + R[1]*ce[1] + R[2]*ce[2] + x);
-	this->bot[botNum]->pos[1] = I2M(R[4]*ce[0] + R[5]*ce[1] + R[6]*ce[2] + y);
-	this->bot[botNum]->pos[2] = I2M(R[8]*ce[0] + R[9]*ce[1] + R[10]*ce[2] + z);
+	buildEndcap(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[ENDCAP_L]), I2M(R[0]*le[0] + x), I2M(R[4]*le[0] + y), I2M(R[8]*le[0] + z + BODY_HEIGHT/2), R);
+	buildLeftBody(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[BODY_L]), I2M(R[0]*lb[0] + x), I2M(R[4]*lb[0] + y), I2M(R[8]*lb[0] + z + BODY_HEIGHT/2), R);
+	buildCenter(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[CENTER]), I2M(x), I2M(y), I2M(z + BODY_HEIGHT/2), R);
+	buildRightBody(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[BODY_R]), I2M(R[0]*rb[0] + x), I2M(R[4]*rb[0] + y), I2M(R[8]*rb[0] + z + BODY_HEIGHT/2), R);
+	buildEndcap(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[ENDCAP_R]), I2M(R[0]*re[0] + x), I2M(R[4]*re[0] + y), I2M(R[8]*re[0] + z + BODY_HEIGHT/2), R);
+	
+	// store position of center of body
+	this->bot[botNum]->pos[0] = I2M(x);
+	this->bot[botNum]->pos[1] = I2M(y);
+	this->bot[botNum]->pos[2] = I2M(z);
 
 	// create joint
 	dJointID joint;
@@ -896,9 +888,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dJointSetHingeAnchor(joint, I2M(R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x),
 								I2M(R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y),
 								I2M(R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z + BODY_HEIGHT/2) );
-	dJointSetHingeAxis(joint,	R[0]*1 + R[1]*0 + R[2]*0,
-								R[4]*1 + R[5]*0 + R[6]*0,
-								R[8]*1 + R[9]*0 + R[10]*0);
+	dJointSetHingeAxis(joint, R[0], R[4], R[8]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[0] = joint;
 
@@ -908,9 +898,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dJointSetHingeAnchor(joint, I2M(R[0]*lb[3] + R[1]*lb[4] + R[2]*lb[5] + x),
 								I2M(R[4]*lb[3] + R[5]*lb[4] + R[6]*lb[5] + y),
 								I2M(R[8]*lb[3] + R[9]*lb[4] + R[10]*lb[5] + z + BODY_HEIGHT/2) );
-	dJointSetHingeAxis(joint,	R[0]*0 + R[1]*-1 + R[2]*0,
-								R[4]*0 + R[5]*-1 + R[6]*0,
-								R[8]*0 + R[9]*-1 + R[10]*0);
+	dJointSetHingeAxis(joint, -R[1], -R[5], -R[9]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[1] = joint;
 
@@ -920,9 +908,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dJointSetHingeAnchor(joint, I2M(R[0]*lb[3] - R[1]*lb[4] + R[2]*lb[5] + x),
 								I2M(R[4]*lb[3] - R[5]*lb[4] + R[6]*lb[5] + y),
 								I2M(R[8]*lb[3] - R[9]*lb[4] + R[10]*lb[5] + z + BODY_HEIGHT/2) );
-	dJointSetHingeAxis(joint,	R[0]*0 + R[1]*1 + R[2]*0,
-								R[4]*0 + R[5]*1 + R[6]*0,
-								R[8]*0 + R[9]*1 + R[10]*0);
+	dJointSetHingeAxis(joint, R[1], R[5], R[9]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[4] = joint;
 
@@ -932,9 +918,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dJointSetHingeAnchor(joint, I2M(R[0]*rb[3] + R[1]*rb[4] + R[2]*rb[5] + x),
 								I2M(R[4]*rb[3] + R[5]*rb[4] + R[6]*rb[5] + y),
 								I2M(R[8]*rb[3] + R[9]*rb[4] + R[10]*rb[5] + z + BODY_HEIGHT/2) );
-	dJointSetHingeAxis(joint,	R[0]*0 + R[1]*1 + R[2]*0,
-								R[4]*0 + R[5]*1 + R[6]*0,
-								R[8]*0 + R[9]*1 + R[10]*0);
+	dJointSetHingeAxis(joint, R[1], R[5], R[9]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[2] = joint;
 
@@ -944,9 +928,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dJointSetHingeAnchor(joint, I2M(R[0]*rb[3] - R[1]*rb[4] + R[2]*rb[5] + x),
 								I2M(R[4]*rb[3] - R[5]*rb[4] + R[6]*rb[5] + y),
 								I2M(R[8]*rb[3] - R[9]*rb[4] + R[10]*rb[5] + z + BODY_HEIGHT/2) );
-	dJointSetHingeAxis(joint,	R[0]*0 + R[1]*-1 + R[2]*0,
-								R[4]*0 + R[5]*-1 + R[6]*0,
-								R[8]*0 + R[9]*-1 + R[10]*0);
+	dJointSetHingeAxis(joint, -R[1], -R[5], -R[9]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[5] = joint;
 
@@ -956,9 +938,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dJointSetHingeAnchor(joint, I2M(R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x),
 								I2M(R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y),
 								I2M(R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z + BODY_HEIGHT/2) );
-	dJointSetHingeAxis(joint,	R[0]*-1 + R[1]*0 + R[2]*0,
-								R[4]*-1 + R[5]*0 + R[6]*0,
-								R[8]*-1 + R[9]*0 + R[10]*0);
+	dJointSetHingeAxis(joint, -R[0], -R[4], -R[8]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[3] = joint;
 
