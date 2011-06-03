@@ -100,9 +100,10 @@ class CiMobotSim {
 		 *	Simulation functions
 		 */
 		#ifdef ENABLE_DRAWSTUFF
-		void ds_start();
-		void ds_drawPart(dGeomID part);
-		void ds_command(int cmd);
+		void ds_drawBodies();				// draw all of the bodies
+		void ds_start();					// initialization of drawstuff scene
+		void ds_drawPart(dGeomID part);		// draw each geometry of each body
+		void ds_command(int cmd);			// keyboard commands for ds
 		void simulationLoop(int pause);		// loop to complete simulation
 		#else
 		void simulationLoop();				// loop to complete simulation

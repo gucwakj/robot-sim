@@ -228,34 +228,17 @@ void CiMobotSim::simulationLoop(void) {
 		dWorldStep(this->world, this->tmeStp);							// step world time by one
 		dJointGroupEmpty(this->group);									// clear out all contact joints
 
-		this->setFlags();			// set flags for completion of steps
-		this->incrementStep();		// check whether to increment to next step
+		this->setFlags();					// set flags for completion of steps
+		this->incrementStep();				// check whether to increment to next step
 
-		this->printIntermediateData();
+		this->printIntermediateData();		// print out inremental data
 
 		loop = this->endSimulation(this->tmeTot);		// check whether to end simulation
-		#ifdef ENABLE_DRAWSTUFF
-			if(!loop) dsStop();
-		#endif
 		this->incrementTime(this->tmeStp);				// increment time
 
 		#ifdef ENABLE_DRAWSTUFF
-		// draw the bodies
-		for (int i = 0; i < this->numBot; i++) {
-			for (int j = 0; j < NUM_PARTS; j++) {
-				if (dBodyIsEnabled(this->bot[i]->bdyPts[j].bodyID)) {
-					dsSetColor(	this->bot[i]->bdyPts[j].color[0],
-								this->bot[i]->bdyPts[j].color[1],
-								this->bot[i]->bdyPts[j].color[2]);
-				}
-				else { 
-					dsSetColor(0.5,0.5,0.5);
-				}
-				for (int k = 0; k < this->bot[i]->bdyPts[j].num_geomID; k++) {
-					ds_drawPart(this->bot[i]->bdyPts[j].geomID[k]);
-				}
-			}
-		}
+		this->ds_drawBodies();
+		if (!loop) dsStop();
 		#endif
 
 #ifndef ENABLE_DRAWSTUFF
@@ -1389,10 +1372,30 @@ dReal CiMobotSim::angMod(dReal pasAng, dReal curAng, dReal angRat) {
 	return newAng;
 }
 
-/* Drawstuff Functions */
 #ifdef ENABLE_DRAWSTUFF
-void CiMobotSim::ds_start()
-{
+/**********************************************************
+	Drawstuff Functions
+ **********************************************************/
+void CiMobotSim::ds_drawBodies() {
+	// draw the bodies
+	for (int i = 0; i < this->numBot; i++) {
+		for (int j = 0; j < NUM_PARTS; j++) {
+			if (dBodyIsEnabled(this->bot[i]->bdyPts[j].bodyID)) {
+				dsSetColor(	this->bot[i]->bdyPts[j].color[0],
+							this->bot[i]->bdyPts[j].color[1],
+				this->bot[i]->bdyPts[j].color[2]);
+			}
+			else { 
+				dsSetColor(0.5,0.5,0.5);
+			}
+			for (int k = 0; k < this->bot[i]->bdyPts[j].num_geomID; k++) {
+				ds_drawPart(this->bot[i]->bdyPts[j].geomID[k]);
+			}
+		}
+	}
+}
+
+void CiMobotSim::ds_start() {
 	dAllocateODEDataForThread(dAllocateMaskAll);
 
 	static float xyz[3] = {I2M(10), I2M(-10), I2M(10)};
@@ -1400,9 +1403,6 @@ void CiMobotSim::ds_start()
 	dsSetViewpoint(xyz, hpr);
 }
 
-/*
- *	called when a key pressed
- */
 void CiMobotSim::ds_command(int cmd) {
 	switch (cmd) {
 		case 'q': case 'Q':
@@ -1448,4 +1448,3 @@ void CiMobotSim::ds_drawPart(dGeomID geom) {
 	}
 }
 #endif
-
