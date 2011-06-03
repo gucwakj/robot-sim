@@ -231,59 +231,7 @@ void CiMobotSim::simulationLoop(void) {
 		this->setFlags();			// set flags for completion of steps
 		this->incrementStep();		// check whether to increment to next step
 
-		// print out intermediate data for analysis
-		cout.width(3); cout << this->t / this->tmeStp;
-		cout.width(6); cout << this->t;
-		//cout.width(3); cout << this->newStp;
-		cout.width(3); cout << this->curStp;
-		//cout.width(3); cout << this->reply->success;
-		//cout.width(6); cout << this->reply->time;
-		cout << "\t\t";
-		//const dReal *pos;
-		for (int i = 0; i < this->numBot; i++) {
-			cout << this->bot[i]->futAng[LE] << " ";
-			cout << this->bot[i]->curAng[LE] << " ";
-			//cout << this->bot[i]->jntVel[LE] << " ";
-			//cout << this->bot[i]->cmpStp[LE] << " ";
-			//cout << dJointGetAMotorParam(this->bot[i]->motors[LE], dParamVel) << " ";
-			//cout << dJointGetHingeAngle(this->bot[i]->joints[LE]) << " ";
-			//cout << dJointGetHingeAngleRate(this->bot[i]->joints[LE]) << " ";
-			//
-			cout << this->bot[i]->futAng[LB] << " ";
-			cout << this->bot[i]->curAng[LB] << " ";
-			//cout << this->bot[i]->jntVel[LB] << " ";
-			//cout << this->bot[i]->cmpStp[LB] << " ";
-			//cout << dJointGetAMotorParam(this->bot[i]->motors[LB], dParamVel) << " ";
-			//cout << dJointGetHingeAngle(this->bot[i]->joints[LB]) << " ";
-			//cout << dJointGetHingeAngleRate(this->bot[i]->joints[LB]) << " ";
-			//			
-			//pos = dBodyGetPosition(this->bot[i]->bdyPts[CENTER].bodyID);
-			//printf("[%f %f %f]\t", M2I(pos[0]), M2I(pos[1]), M2I(pos[2]));
-			//
-			cout << this->bot[i]->futAng[RB] << " ";
-			cout << this->bot[i]->curAng[RB] << " ";
-			//cout << this->bot[i]->jntVel[RB] << " ";
-			//cout << this->bot[i]->cmpStp[RB] << " ";
-			//cout << dJointGetAMotorParam(this->bot[i]->motors[RB], dParamVel) << " ";
-			//cout << dJointGetHingeAngle(this->bot[i]->joints[RB]) << " ";
-			//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RB]) << " ";
-			//
-			cout << this->bot[i]->futAng[RE] << " ";
-			cout << this->bot[i]->curAng[RE] << " ";
-			//cout << this->bot[i]->jntVel[RE] << " ";
-			//cout << this->bot[i]->cmpStp[RE] << " ";
-			//cout << dJointGetAMotorParam(this->bot[i]->motors[RE], dParamVel) << " ";
-			//cout << dJointGetHingeAngle(this->bot[i]->joints[RE]) << " ";
-			//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RE]) << " ";
-		}
-		/*for (int i = 0; i < this->numBot; i++) {
-			cout.width(2); cout << this->flags[i];
-		}*/
-		//cout << " ";
-		//for (int i = 0; i < this->numBot; i++) {
-		//	cout << this->disable[i];
-		//}
-		cout << endl;
+		this->printIntermediateData();
 
 		loop = this->endSimulation(this->tmeTot);		// check whether to end simulation
 		#ifdef ENABLE_DRAWSTUFF
@@ -496,6 +444,58 @@ void CiMobotSim::incrementStep() {
 			k++;
 		}
 	}
+}
+
+void CiMobotSim::printIntermediateData() {
+	cout.width(3); cout << this->t / this->tmeStp;
+	cout.width(6); cout << this->t;
+	cout.width(3); cout << this->curStp;
+	cout << "\t\t";
+	//const dReal *pos;
+	for (int i = 0; i < this->numBot; i++) {
+		cout << this->bot[i]->futAng[LE] << " ";
+		cout << this->bot[i]->curAng[LE] << " ";
+		//cout << this->bot[i]->jntVel[LE] << " ";
+		//cout << this->bot[i]->cmpStp[LE] << " ";
+		//cout << dJointGetAMotorParam(this->bot[i]->motors[LE], dParamVel) << " ";
+		//cout << dJointGetHingeAngle(this->bot[i]->joints[LE]) << " ";
+		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[LE]) << " ";
+		//
+		cout << this->bot[i]->futAng[LB] << " ";
+		cout << this->bot[i]->curAng[LB] << " ";
+		//cout << this->bot[i]->jntVel[LB] << " ";
+		//cout << this->bot[i]->cmpStp[LB] << " ";
+		//cout << dJointGetAMotorParam(this->bot[i]->motors[LB], dParamVel) << " ";
+		//cout << dJointGetHingeAngle(this->bot[i]->joints[LB]) << " ";
+		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[LB]) << " ";
+		//			
+		//pos = dBodyGetPosition(this->bot[i]->bdyPts[CENTER].bodyID);
+		//printf("[%f %f %f]\t", M2I(pos[0]), M2I(pos[1]), M2I(pos[2]));
+		//
+		cout << this->bot[i]->futAng[RB] << " ";
+		cout << this->bot[i]->curAng[RB] << " ";
+		//cout << this->bot[i]->jntVel[RB] << " ";
+		//cout << this->bot[i]->cmpStp[RB] << " ";
+		//cout << dJointGetAMotorParam(this->bot[i]->motors[RB], dParamVel) << " ";
+		//cout << dJointGetHingeAngle(this->bot[i]->joints[RB]) << " ";
+		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RB]) << " ";
+		//
+		cout << this->bot[i]->futAng[RE] << " ";
+		cout << this->bot[i]->curAng[RE] << " ";
+		//cout << this->bot[i]->jntVel[RE] << " ";
+		//cout << this->bot[i]->cmpStp[RE] << " ";
+		//cout << dJointGetAMotorParam(this->bot[i]->motors[RE], dParamVel) << " ";
+		//cout << dJointGetHingeAngle(this->bot[i]->joints[RE]) << " ";
+		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RE]) << " ";
+	}
+	//for (int i = 0; i < this->numBot; i++) {
+	//	cout.width(2); cout << this->flags[i];
+	//}
+	//cout << " ";
+	//for (int i = 0; i < this->numBot; i++) {
+	//	cout << this->disable[i];
+	//}
+	cout << endl;
 }
 
 bool CiMobotSim::endSimulation(double totalTime) {

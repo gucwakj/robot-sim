@@ -188,6 +188,7 @@ class CiMobotSim {
 		void updateAngles();							// update struct with modified angles
 		void setFlags();								// set flags for complete/not-complete
 		void incrementStep();							// increment step to next set of angles
+		void printIntermediateData();					// print data out at each time step for analysis
 		bool endSimulation(double totalTime);			// check if simulation is complete and exit
 		void incrementTime(double tStep);				// update simulation time
 		void collision(dGeomID o1, dGeomID o2);			// callback function for contact of bodies
