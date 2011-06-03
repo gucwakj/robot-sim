@@ -43,13 +43,6 @@ class CiMobotSim {
 		void setMu(dReal mu_g, dReal mu_b);
 		void setCOR(dReal cor_g, dReal cor_b);
 
-		/*
-		 *	Variables to store simulation properties
-		 */
-		dWorldID world;
-		dSpaceID space;
-		dSpaceID *space_robots;
-		dJointGroupID group;
 
 		/*
 		 *	Functions to build models of iMobot
@@ -95,6 +88,14 @@ class CiMobotSim {
 		void printData();			// print data to the screen for testing purposes
 		void replyMessage();		// reply message to send back to main program
 	private:
+		/*
+		 *	Variables to store simulation properties
+		 */
+		dWorldID world;
+		dSpaceID space;
+		dSpaceID *space_robots;
+		dJointGroupID group;
+		
 		/*
 		 *	Simulation functions
 		 */
