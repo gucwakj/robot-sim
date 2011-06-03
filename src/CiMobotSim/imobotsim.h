@@ -164,7 +164,6 @@ class CiMobotSim {
 		int curStp;							// current step number
 		bool *flags;						// flag for each bot  - completed step
 		bool *disable;						// flag for each bot - disabled/enabled
-		bool newStp;						// flag for new step
 		#ifdef ENABLE_DRAWSTUFF
 		dsFunctions m_fn;
 		#endif
@@ -172,23 +171,20 @@ class CiMobotSim {
 		/*
 		 *	Utility functions
 		 */
-		// convert units
-		inline dReal I2M(dReal x);
-		inline dReal M2I(dReal x);
-		inline dReal D2R(dReal x);
-		inline dReal R2D(dReal x);
-		// check if all values in array are true
-		bool isTrue(bool *a, int length);
-		// modify angle from ODE for endcaps to count continuously
-		dReal angMod(dReal pasAng, dReal curAng, dReal angRat);
+		inline dReal I2M(dReal x);			// convert inch to meter
+		inline dReal M2I(dReal x);			// convert meter to inch
+		inline dReal D2R(dReal x);			// convert degree to radian
+		inline dReal R2D(dReal x);			// convert radian to degree
+		bool isTrue(bool *a, int length);	// check if all values in array are true
+		dReal angMod(dReal pasAng, dReal curAng, dReal angRat); // modify angle from ODE for endcaps to count continuously
 
 		/*
 		 *	Simulation functions
 		 */
-		void setAngles();								// set new angles for step of sim
 		void updateAngles();							// update struct with modified angles
 		void setFlags();								// set flags for complete/not-complete
 		void incrementStep();							// increment step to next set of angles
+		void setAngles();								// set new angles for step of sim
 		void printIntermediateData();					// print data out at each time step for analysis
 		bool endSimulation(double totalTime);			// check if simulation is complete and exit
 		void incrementTime(double tStep);				// update simulation time
