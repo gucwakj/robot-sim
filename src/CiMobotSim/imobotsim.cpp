@@ -82,14 +82,14 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *
 		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->futAng[j] = 0;
 		this->bot[i]->curAng = new dReal[NUM_DOF];
 		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->curAng[j] = 0;
-		this->bot[i]->jntVel = new dReal[NUM_DOF];
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->jntVel[j] = 0;
-		this->bot[i]->ang = new dReal[NUM_DOF*numStp*numBot];
-		this->bot[i]->vel = new dReal[NUM_DOF*numStp*numBot];
+		this->bot[i]->ang = new dReal[NUM_DOF*numStp];
+		this->bot[i]->vel = new dReal[NUM_DOF*numStp];
 		for ( j = 0; j < NUM_DOF*numStp; j++ ) {
 			this->bot[i]->ang[j] = D2R(ang[4*i + NUM_DOF*this->numBot*(j/NUM_DOF) + j%NUM_DOF]);
 			this->bot[i]->vel[j] = vel[4*i + NUM_DOF*this->numBot*(j/NUM_DOF) + j%NUM_DOF];
 		}
+		this->bot[i]->jntVel = new dReal[NUM_DOF];
+		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->jntVel[j] = vel[j];
 		this->bot[i]->pos = new dReal[3];
 		for ( j = 0; j < 3; j++ ) this->bot[i]->pos[j] = 0;
 		this->bot[i]->rot = new dReal[12];
