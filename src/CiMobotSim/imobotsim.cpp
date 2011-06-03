@@ -12,10 +12,6 @@
 
 using namespace std;
 
-extern "C" {
-	//void *__dso_handle = NULL;
-}
-
 /* If drawstuff is enabled, we need a global pointer to an instantiated
  * CiMobotSim class so that the callback functions can access the necessary
  * data. */
@@ -36,16 +32,16 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *
 	this->cor_b = 0.3;
 	this->mtrRes = D2R(0.5);
 	this->jntVelMax = new dReal[NUM_DOF];
-	this->jntVelMin = new dReal[NUM_DOF];
-	this->jntVelDel = new dReal[NUM_DOF];
 	this->jntVelMax[LE] = 6.70;
 	this->jntVelMax[LB] = 2.61;
 	this->jntVelMax[RB] = 2.61;
 	this->jntVelMax[RE] = 6.70;
+	this->jntVelMin = new dReal[NUM_DOF];
 	this->jntVelMin[LE] = 3.22;
 	this->jntVelMin[LB] = 1.25;
 	this->jntVelMin[RB] = 1.25;
 	this->jntVelMin[RE] = 3.22;
+	this->jntVelDel = new dReal[NUM_DOF];
 	for ( j = 0; j < NUM_DOF; j++ ) this->jntVelDel[j] = this->jntVelMax[j] - this->jntVelMin[j];
 	this->frcMax = new dReal[NUM_DOF];
 	this->frcMax[LE] = 0.260;
@@ -68,51 +64,51 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *
 	for ( i = 0; i < numBot; i++ ) {
 		this->bot[i] = new CiMobotSimBot;
 		this->bot[i]->bdyPts = new CiMobotSimPart[NUM_PARTS];
-		this->bot[i]->bdyPts[BODY_L].geomID = new dGeomID[5];
-		this->bot[i]->bdyPts[BODY_R].geomID = new dGeomID[5];
-		this->bot[i]->bdyPts[CENTER].geomID = new dGeomID[3];
 		this->bot[i]->bdyPts[ENDCAP_L].geomID = new dGeomID[7];
+		this->bot[i]->bdyPts[BODY_L].geomID = new dGeomID[5];
+		this->bot[i]->bdyPts[CENTER].geomID = new dGeomID[3];
+		this->bot[i]->bdyPts[BODY_R].geomID = new dGeomID[5];
 		this->bot[i]->bdyPts[ENDCAP_R].geomID = new dGeomID[7];
-#ifdef ENABLE_DRAWSTUFF
-		this->bot[i]->bdyPts[BODY_L].num_geomID = 5;
-		this->bot[i]->bdyPts[BODY_R].num_geomID = 5;
-		this->bot[i]->bdyPts[CENTER].num_geomID = 3;
+		#ifdef ENABLE_DRAWSTUFF
 		this->bot[i]->bdyPts[ENDCAP_L].num_geomID = 7;
+		this->bot[i]->bdyPts[BODY_L].num_geomID = 5;
+		this->bot[i]->bdyPts[CENTER].num_geomID = 3;
+		this->bot[i]->bdyPts[BODY_R].num_geomID = 5;
 		this->bot[i]->bdyPts[ENDCAP_R].num_geomID = 7;
-#endif
+		#endif
 		this->bot[i]->joints = new dJointID[6];
 		this->bot[i]->motors = new dJointID[4];
 		this->bot[i]->futAng = new dReal[NUM_DOF];
+		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->futAng[j] = 0;
 		this->bot[i]->curAng = new dReal[NUM_DOF];
+		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->curAng[j] = 0;
 		this->bot[i]->jntVel = new dReal[NUM_DOF];
+		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->jntVel[j] = 0;
 		this->bot[i]->ang = new dReal[NUM_DOF*numStp*numBot];
 		this->bot[i]->vel = new dReal[NUM_DOF*numStp*numBot];
-		this->bot[i]->pos = new dReal[3];
-		this->bot[i]->rot = new dReal[12];
-		this->bot[i]->cmpStp = new bool[NUM_DOF];
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->futAng[j] = 0;
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->curAng[j] = 0;
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->jntVel[j] = 0;
 		for ( j = 0; j < NUM_DOF*numStp; j++ ) {
 			this->bot[i]->ang[j] = D2R(ang[4*i + NUM_DOF*this->numBot*(j/NUM_DOF) + j%NUM_DOF]);
 			this->bot[i]->vel[j] = vel[4*i + NUM_DOF*this->numBot*(j/NUM_DOF) + j%NUM_DOF];
 		}
+		this->bot[i]->pos = new dReal[3];
 		for ( j = 0; j < 3; j++ ) this->bot[i]->pos[j] = 0;
+		this->bot[i]->rot = new dReal[12];
 		for ( j = 0; j < 12; j++ ) this->bot[i]->rot[j] = 0;
+		this->bot[i]->cmpStp = new bool[NUM_DOF];
 		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->cmpStp[j] = false;
 		this->flags[i] = false;
 		this->disable[i] = false;
 	}
 
-#ifdef ENABLE_DRAWSTUFF
-  /* Initialize drawstuff */
-  m_fn.version = DS_VERSION;
-  m_fn.start = (void (*)(void))&CiMobotSim::ds_start;
-  m_fn.step = (void (*)(int))&CiMobotSim::simulationLoop;
-  m_fn.command = (void (*)(int))&CiMobotSim::ds_command;
-  m_fn.stop = 0;
-  m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
-#endif
+	#ifdef ENABLE_DRAWSTUFF
+	/* Initialize drawstuff */
+	m_fn.version = DS_VERSION;
+	m_fn.start = (void (*)(void))&CiMobotSim::ds_start;
+	m_fn.step = (void (*)(int))&CiMobotSim::simulationLoop;
+	m_fn.command = (void (*)(int))&CiMobotSim::ds_command;
+	m_fn.stop = 0;
+	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
+	#endif
 
 	// create ODE simulation space
 	dInitODE2(0);
@@ -302,7 +298,7 @@ void CiMobotSim::simulationLoop(void)
 		#ifdef ENABLE_DRAWSTUFF
 		// draw the bodies
 		for (int i = 0; i < this->numBot; i++) {
-			for (int j = 0; j < this->NUM_PARTS; j++) {
+			for (int j = 0; j < NUM_PARTS; j++) {
 				if (dBodyIsEnabled(this->bot[i]->bdyPts[j].bodyID)) {
 					dsSetColor(	this->bot[i]->bdyPts[j].color[0],
 								this->bot[i]->bdyPts[j].color[1],

@@ -8,6 +8,27 @@
 #define DRAWSTUFF_TEXTURE_PATH "../opende/drawstuff/textures"
 #endif
 
+/*
+ *	Enumerations for parts of iMobot
+ */
+// each body which has a degree of freedom
+enum robot_bodies_e {
+	LE,
+	LB,
+	RB,
+	RE,
+	NUM_DOF
+};
+// each body part which is built
+enum robot_pieces_e {
+	BODY_L,
+	BODY_R,
+	CENTER,
+	ENDCAP_L,
+	ENDCAP_R,
+	NUM_PARTS
+};
+
 class CiMobotSim {
 	public:
 		/*
@@ -145,27 +166,6 @@ class CiMobotSim {
 		#ifdef ENABLE_DRAWSTUFF
 		dsFunctions m_fn;
 		#endif
-
-		/*
-		 *	Enumerations for parts of iMobot
-		 */
-		// each body which has a degree of freedom
-		enum robot_bodies_e {
-			LE,
-			LB,
-			RB,
-			RE,
-			NUM_DOF
-		};
-		// each body part which is built
-		enum robot_pieces_e {
-			BODY_L,
-			BODY_R,
-			CENTER,
-			ENDCAP_L,
-			ENDCAP_R,
-			NUM_PARTS
-		};
 
 		/*
 		 *	Utility functions
