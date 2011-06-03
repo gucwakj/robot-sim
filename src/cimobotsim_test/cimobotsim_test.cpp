@@ -1,8 +1,8 @@
 #include "imobotsim.h"
 
 /* Test angles for simulation */
-dReal ang[] = {	0,	30,	0,	0};
-dReal vel[] = {	1,	0.9,	1,	1};
+dReal ang[] = {	0,	5,	0,	0};
+dReal vel[] = {	1,	1,	1,	1};
 
 /* video replication */
 /*dReal ang[] = {	0,	30,		0,		0, // forward

@@ -210,11 +210,10 @@ void CiMobotSim::run(int argc, char** argv) {
  * will be NULL. Instead, if we are using Drawstuff, we sholud reference the
  * global variable, g_imobotsim */
 #define this g_imobotsim
-void CiMobotSim::simulationLoop(int pause) 
+void CiMobotSim::simulationLoop(int pause) {
 #else
-void CiMobotSim::simulationLoop(void) 
+void CiMobotSim::simulationLoop(void) {
 #endif
-{
 	// initialize
 	bool loop = true;
 
@@ -222,15 +221,12 @@ void CiMobotSim::simulationLoop(void)
 #ifndef ENABLE_DRAWSTUFF
 	while (loop) {
 #endif
-		if ( this->newStp )
-			this->setAngles();		// set angles for new step
-		else
-			this->updateAngles();	// update angles for current step
+		if ( this->newStp ) this->setAngles();		// set angles for new step
+		this->updateAngles();						// update angles for current step
 
-		// collide all geoms together
-		dSpaceCollide(this->space, this, &this->collisionWrapper);
-		dWorldStep(this->world, this->tmeStp);
-		dJointGroupEmpty(this->group);
+		dSpaceCollide(this->space, this, &this->collisionWrapper);		// collide all geometries together
+		dWorldStep(this->world, this->tmeStp);							// step world time by one
+		dJointGroupEmpty(this->group);									// clear out all contact joints
 
 		this->setFlags();			// set flags for completion of steps
 		this->incrementStep();		// check whether to increment to next step
@@ -329,35 +325,38 @@ void CiMobotSim::setAngles() {
 		// initialize step variable
 		int step = this->curStp - 1;
 
-		// each degree of freedom is checked individually
-		for (int j = 0; j < NUM_DOF; j++) {
-			// check if motor should be disabled for current step
+		// for two end cap joints
+		for (int j = 0; j < NUM_DOF; j+=3) {
 			if ( (int)(this->bot[i]->ang[NUM_DOF*step + j]) == (int)(D2R(123456789)) ) {
-				// disable joint
 				dJointDisable(this->bot[i]->motors[j]);
-				// set future angle equal to current angle
-				if ( j == LE || j == RE )
-					this->bot[i]->futAng[j] = angMod(this->bot[i]->curAng[j], dJointGetHingeAngle(this->bot[i]->joints[j]),	dJointGetHingeAngleRate(this->bot[i]->joints[j]));
-				else
-					this->bot[i]->futAng[j] = dJointGetHingeAngle(this->bot[i]->joints[j]);
-				this->bot[i]->curAng[j] = this->bot[i]->futAng[j];
+				this->bot[i]->futAng[j] = angMod(this->bot[i]->curAng[j], 
+												 dJointGetHingeAngle(this->bot[i]->joints[j]),
+												 dJointGetHingeAngleRate(this->bot[i]->joints[j]));
 				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
 				this->bot[i]->cmpStp[j] = true;
 			}
-			// set future values for motor to reach
 			else {
 				dJointEnable(this->bot[i]->motors[j]);
-				// endcaps get modified angle to count continuously
-				if ( j == LE || j == RE ) {
-					this->bot[i]->futAng[j] += this->bot[i]->ang[NUM_DOF*step + j];
-					this->bot[i]->curAng[j] = angMod(this->bot[i]->curAng[j], dJointGetHingeAngle(this->bot[i]->joints[j]), dJointGetHingeAngleRate(this->bot[i]->joints[j]));
-				}
-				else {
-					this->bot[i]->futAng[j] = this->bot[i]->ang[NUM_DOF*step + j];
-				}
-				// store values for new step into struct
+				this->bot[i]->futAng[j] += this->bot[i]->ang[NUM_DOF*step + j];
 				this->bot[i]->jntVel[j] = this->jntVelMin[j] + this->bot[i]->vel[NUM_DOF*step + j]*this->jntVelDel[j];
 				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
+				this->bot[i]->cmpStp[j] = false;
+			}
+		}
+		// for two body joints
+		for (int j = 1; j < NUM_DOF-1; j++) {
+			if ( (int)(this->bot[i]->ang[NUM_DOF*step + j]) == (int)(D2R(123456789)) ) {
+				dJointDisable(this->bot[i]->motors[j]);
+				this->bot[i]->futAng[j] = dJointGetHingeAngle(this->bot[i]->joints[j]);
+				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
+				this->bot[i]->cmpStp[j] = true;
+			}
+			else {
+				dJointEnable(this->bot[i]->motors[j]);
+				this->bot[i]->futAng[j] = this->bot[i]->ang[NUM_DOF*step + j];
+				this->bot[i]->jntVel[j] = this->jntVelMin[j] + this->bot[i]->vel[NUM_DOF*step + j]*this->jntVelDel[j];
+				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
+				this->bot[i]->cmpStp[j] = false;
 			}
 		}
 	}
@@ -370,15 +369,19 @@ void CiMobotSim::updateAngles() {
 		for (int j = 0; j < NUM_DOF; j++) {
 			// update current angle
 			if ( j == LE || j == RE )
-				this->bot[i]->curAng[j] = angMod(this->bot[i]->curAng[j], dJointGetHingeAngle(this->bot[i]->joints[j]),	dJointGetHingeAngleRate(this->bot[i]->joints[j]));
+				this->bot[i]->curAng[j] = angMod(this->bot[i]->curAng[j], 
+												 dJointGetHingeAngle(this->bot[i]->joints[j]),	
+												 dJointGetHingeAngleRate(this->bot[i]->joints[j]));
 			else
 				this->bot[i]->curAng[j] = dJointGetHingeAngle(this->bot[i]->joints[j]);
+			
+			// set motor angle to current angle
 			dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
-			// if joint is being driven for current step, set angles to current values
+			
+			// drive motor to get current angle to match future angle
 			if ( !dJointIsEnabled(this->bot[i]->motors[j]) ) {
 				this->bot[i]->futAng[j] = this->bot[i]->curAng[j];
 			}
-			// otherwise drive with motor
 			else {
 				if (this->bot[i]->curAng[j] < this->bot[i]->futAng[j] - this->mtrRes) {
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->jntVel[j]);
@@ -526,7 +529,7 @@ void CiMobotSim::replyMessage() {
 	if ( this->reply->message == 1 )
 		cout << "Failure: reached end of simulation time" << endl;
 	else if ( this->reply->message == 2 )
-		cout << "Success: all robots have completed all of their steps" << endl;
+		cout << "Success: all robots have completed all of their steps in " << this->reply->time << " seconds"<< endl;
 	else if ( this->reply->message == 3 )
 		cout << "Failure: all robots are stationary\n" << endl;
 }
