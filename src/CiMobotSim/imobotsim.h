@@ -141,11 +141,11 @@ class CiMobotSim {
 		} CiMobotSimPart;
 		// information about each iMobot module
 		typedef struct cimobotsimbot_s {
-			CiMobotSimPart *bdyPts;			// body parts
+			CiMobotSimPart *bodyParts;		// body parts
 			dJointID *joints;				// joints between body parts
 			dJointID *motors;				// motors to drive body parts
-			dReal *futAng;					// future angle being driven toward
 			dReal *curAng;					// current angle of each body part
+			dReal *futAng;					// future angle being driven toward
 			dReal *jntVel;					// desired joint velocity
 			dReal *ang;						// array of angles
 			dReal *vel;						// array of velocities
