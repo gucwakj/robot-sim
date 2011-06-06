@@ -111,7 +111,7 @@ class CiMobotSim {
 		 */
 		dWorldID world;
 		dSpaceID space;
-		dSpaceID *space_robots;
+		dSpaceID *space_bot;
 		dJointGroupID group;
 		
 		/*
@@ -212,10 +212,10 @@ class CiMobotSim {
 		/*
 		 *	Functions to build body parts of iMobot
 		 */
-		void buildLeftBody(dSpaceID *space, CiMobotSimPart *part, dReal x, dReal y, dReal z, dMatrix3 R);
-		void buildRightBody(dSpaceID *space, CiMobotSimPart *part, dReal x, dReal y, dReal z, dMatrix3 R);
-		void buildCenter(dSpaceID *space, CiMobotSimPart *part, dReal x, dReal y, dReal z, dMatrix3 R);
-		void buildEndcap(dSpaceID *space, CiMobotSimPart *part, dReal x, dReal y, dReal z, dMatrix3 R);
+		void buildLeftBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R);
+		void buildRightBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R);
+		void buildCenter(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R);
+		void buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R);
 };
 
 #endif	/* CIMOBOTSIM_H_ */
