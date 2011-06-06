@@ -873,7 +873,7 @@ void CiMobotSim::buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dRe
  **********************************************************/
 void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
 	dMatrix3 R;
-	dRFromAxisAndAngle(R,0,0,1,0);
+	dRSetIdentity(R);
 	this->iMobotBuildRotated(botNum, x, y, z, R);
 }
 
@@ -886,18 +886,18 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	// offset values for each body part[0-2] and joint[3-5] from center
 	dReal le[6] = {I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH/2), 0, 0, I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH), 0, 0};
 	dReal lb[6] = {I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH/2), 0, 0, I2M(-CENTER_LENGTH/2), I2M(CENTER_WIDTH/2), 0};
-	dReal ce[3] = {0, 0, I2M(BODY_HEIGHT/2)};
+	dReal ce[3] = {0, 0, 0};
 	dReal rb[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2), I2M(CENTER_WIDTH/2), 0};
 	dReal re[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH), 0, 0};
 
-	// build pieces of robot
+	// build pieces of module
 	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R);
 	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R);
 	buildCenter(this->space_bot[botNum], this->bot[botNum]->bodyParts[CENTER], x, y, z, R);
 	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R);
 	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 	
-	// store position and rotation of center of robot
+	// store position and rotation of center of module
 	this->bot[botNum]->pos[0] = x;
 	this->bot[botNum]->pos[1] = y;
 	this->bot[botNum]->pos[2] = z - I2M(BODY_HEIGHT/2);
@@ -914,7 +914,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[0] = joint;
 
-	// joint for left body 1 to center
+	// joint for center to left body 1
 	joint = dJointCreateHinge(this->world, 0);
 	dJointAttach(joint, this->bot[botNum]->bodyParts[CENTER].bodyID, this->bot[botNum]->bodyParts[BODY_L].bodyID);
 	dJointSetHingeAnchor(joint, R[0]*lb[3] + R[1]*lb[4] + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*lb[4] + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*lb[4] + R[10]*lb[5] + z);
@@ -922,7 +922,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[1] = joint;
 
-	// joint for left body 2 to center
+	// joint for center to left body 2
 	joint = dJointCreateHinge(this->world, 0);
 	dJointAttach(joint, this->bot[botNum]->bodyParts[CENTER].bodyID, this->bot[botNum]->bodyParts[BODY_L].bodyID);
 	dJointSetHingeAnchor(joint, R[0]*lb[3] - R[1]*lb[4] + R[2]*lb[5] + x, R[4]*lb[3] - R[5]*lb[4] + R[6]*lb[5] + y, R[8]*lb[3] - R[9]*lb[4] + R[10]*lb[5] + z);
@@ -957,7 +957,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	// create motor
 	dJointID motor;
 
-	// motor for left endcap to body joint
+	// motor for left endcap to body
 	motor = dJointCreateAMotor(this->world, 0);
 	dJointAttach(motor, this->bot[botNum]->bodyParts[BODY_L].bodyID, this->bot[botNum]->bodyParts[ENDCAP_L].bodyID);
 	dJointSetAMotorMode(motor, dAMotorUser);
@@ -968,7 +968,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dJointSetAMotorParam(motor, dParamFMax, this->frcMax[LE]);
 	this->bot[botNum]->motors[0] = motor;
 
-	// motor for left body to center joint
+	// motor for center to left body
 	motor = dJointCreateAMotor(this->world, 0);
 	dJointAttach(motor, this->bot[botNum]->bodyParts[CENTER].bodyID, this->bot[botNum]->bodyParts[BODY_L].bodyID);
 	dJointSetAMotorMode(motor, dAMotorUser);
@@ -979,7 +979,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dJointSetAMotorParam(motor, dParamFMax, this->frcMax[LB]);
 	this->bot[botNum]->motors[1] = motor;
 
-	// motor for center to right body 1 joint
+	// motor for center to right body
 	motor = dJointCreateAMotor(this->world, 0);
 	dJointAttach(motor, this->bot[botNum]->bodyParts[CENTER].bodyID, this->bot[botNum]->bodyParts[BODY_R].bodyID);
 	dJointSetAMotorMode(motor, dAMotorUser);
@@ -990,7 +990,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dJointSetAMotorParam(motor, dParamFMax, this->frcMax[RB]);
 	this->bot[botNum]->motors[2] = motor;
 
-	// motor for right body to endcap joint
+	// motor for right body to endcap
 	motor = dJointCreateAMotor(this->world, 0);
 	dJointAttach(motor, this->bot[botNum]->bodyParts[BODY_R].bodyID, this->bot[botNum]->bodyParts[ENDCAP_R].bodyID);
 	dJointSetAMotorMode(motor, dAMotorUser);
@@ -1002,9 +1002,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	this->bot[botNum]->motors[3] = motor;
 
 	// set damping on all bodies to 0.1
-	for (int i = 0; i < NUM_PARTS; i++) {
-		dBodySetDamping(this->bot[botNum]->bodyParts[i].bodyID, 0.1, 0.1);
-	}
+	for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->bot[botNum]->bodyParts[i].bodyID, 0.1, 0.1);
 }
 
 void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {

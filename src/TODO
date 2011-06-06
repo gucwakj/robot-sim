@@ -23,6 +23,7 @@ TODO File for ODE Simulations
 		building the modules, I went for simplicity.  However the large surfaces
 		are all in contact and therefore the results are off.  Need to create an
 		accurate set of aluminum pieces so that contacts mimic physical body.
+	 -> Calibration Function takes care of this.  possible with new imobot module
 
 	Weight distribution
 		Values are currently guessed.  Need a more accurate distribution of
@@ -35,6 +36,10 @@ TODO File for ODE Simulations
 		Values are guessed as well.  From a working RecurDyn model, need to get
 		the max force which can be applied by the motors for each joint.  These values
 		are set within ODE to stall a motor when it cant overcome a body.
+	
+	Max Joint Velocity
+		Values are based upon Graham's calculations in his thesis.  Need experimental
+		values true to the module.
 
 	More accurate completion check
 		Currently the code will only check if all of the joints have completed
@@ -49,12 +54,7 @@ TODO File for ODE Simulations
 
 	Function to get current state
 		When cutting a sim short possibly to start again with new parameters,
-		need to get current state of bodies and output to a file/arrayi
-
-	Add pass by reference
-		Some of the functions could be simplified with some pass by reference
-		rather than pointers.  Not strictly necessary, but could it improve the
-		execution time?
+		need to get current state of bodies and output to a file/array
 
 	Wind
 		Possibly add wind effects to the simulation.  A cross-wind would have an
