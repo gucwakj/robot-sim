@@ -2,7 +2,7 @@
 
 /* Test angles for simulation */
 dReal ang[] = {	0,	5,	0,	0};
-dReal vel[] = {	1,	1,	1,	1};
+dReal vel[] = {	1,	0.3,	1,	1};
 
 /* video replication */
 /*dReal ang[] = {	0,	30,		0,		0, // forward
@@ -58,9 +58,10 @@ dReal ang[] = {270, 0, 0, -270};
 dReal vel[] = {1, 1, 1, 1};*/
 
 int main(int argc, char* argv[]) {
-	CiMobotSim *sim = new CiMobotSim(1,1,1,1.0,ang,vel);		/*test*/
+	CiMobotSim *sim = new CiMobotSim(1,1,1,1.0,ang);		/*test*/
 	sim->setMu(0.3, 0.1);
 	sim->setCOR(0.45, 0.45);
+	//sim->setAngVel(vel);
 
 	sim->groundPlane(0, 0, 0, 1, 0);
 	sim->iMobotBuild(0, 0, 0, 0);

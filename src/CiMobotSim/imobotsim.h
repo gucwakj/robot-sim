@@ -52,7 +52,7 @@ class CiMobotSim {
 		/*
 		 *	Constructor and Destructor
 		 */
-		CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *ang, dReal *vel);
+		CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *ang);
 		~CiMobotSim();
 
 		/*
@@ -60,7 +60,7 @@ class CiMobotSim {
 		 */
 		void setMu(dReal mu_g, dReal mu_b);
 		void setCOR(dReal cor_g, dReal cor_b);
-
+		void setAngVel(dReal *vel);
 
 		/*
 		 *	Functions to build models of iMobot
