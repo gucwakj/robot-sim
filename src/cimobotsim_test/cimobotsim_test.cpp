@@ -1,7 +1,7 @@
 #include "imobotsim.h"
 
 /* Test angles for simulation */
-dReal ang[] = {	0,	5,	0,	0};
+dReal ang[] = {	0,	0,	45,	0};
 dReal vel[] = {	1,	0.3,	1,	1};
 
 /* video replication */
@@ -63,8 +63,11 @@ int main(int argc, char* argv[]) {
 	sim->setCOR(0.45, 0.45);
 	//sim->setAngVel(vel);
 
+	//dMatrix3 R;
+	//dRSetIdentity(R);
 	sim->groundPlane(0, 0, 0, 1, 0);
-	sim->iMobotBuild(0, 0, 0, 0);
+	//sim->iMobotBuild(0, 0, 0, 0);
+	sim->iMobotBuildPositioned(0, 0, 0, 0, 0, 0, 0, 0, 45, 45, 0);
 	sim->run(argc, argv);
 	sim->replyMessage();
 

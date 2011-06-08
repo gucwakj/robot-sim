@@ -86,7 +86,7 @@ class CiMobotSim {
 			// R:		rotation matrix of module about center point
 			// le,re:	rotation of endcaps about respective bodies (in degrees)
 			// lb,rb:	rotation of bodies about center (in degrees)
-		//void iMobotBuildPositioned(int botNum, dReal x, dReal y, dReal z, dMatrix3 R, dReal le, dReal lb, dReal rb, dReal re);
+		void iMobotBuildPositioned(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		/*	
 		 *	Build ground out of simple objects
@@ -212,10 +212,10 @@ class CiMobotSim {
 		/*
 		 *	Functions to build body parts of iMobot
 		 */
-		void buildLeftBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R);
-		void buildRightBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R);
-		void buildCenter(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R);
-		void buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R);
+		void buildLeftBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
+		void buildRightBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
+		void buildCenter(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
+		void buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
 };
 
 #endif	/* CIMOBOTSIM_H_ */
