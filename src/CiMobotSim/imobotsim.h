@@ -134,6 +134,7 @@ class CiMobotSim {
 		typedef struct cimobotsimpart_s {
 			dBodyID bodyID;					// id of body part
 			dGeomID *geomID;				// ids of geoms which make up each body part
+			dReal ang;						// initial angle of part about rotational axis
 			#ifdef ENABLE_DRAWSTUFF
 			float color[3];
 			int num_geomID;
@@ -141,7 +142,7 @@ class CiMobotSim {
 		} CiMobotSimPart;
 		// information about each iMobot module
 		typedef struct cimobotsimbot_s {
-			CiMobotSimPart *bodyParts;		// body parts
+			CiMobotSimPart *bodyPart;		// body parts
 			dJointID *joints;				// joints between body parts
 			dJointID *motors;				// motors to drive body parts
 			dReal *curAng;					// current angle of each body part
@@ -215,7 +216,7 @@ class CiMobotSim {
 		void buildLeftBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild);
 		void buildCenter(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
 		void buildRightBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild);
-		void buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_b, dReal r_e, int rebuild);
+		void buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_e, int rebuild);
 };
 
 #endif	/* CIMOBOTSIM_H_ */
