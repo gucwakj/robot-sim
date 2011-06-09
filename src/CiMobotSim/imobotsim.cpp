@@ -904,10 +904,10 @@ void CiMobotSim::buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dRe
 void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
 	dMatrix3 R;
 	dRSetIdentity(R);
-	this->iMobotBuildRotated(botNum, x, y, z, R);
+	this->iMobotBuild(botNum, x, y, z, R);
 }
 
-void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatrix3 R) {
+void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dMatrix3 R) {
 	// convert input positions to meters
 	x = I2M(x);
 	y = I2M(y);
@@ -1035,7 +1035,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->bot[botNum]->bodyPart[i].bodyID, 0.1, 0.1);
 }
 
-void CiMobotSim::iMobotBuildPositioned(int botNum, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// convert input positions to meters
 	x = I2M(x);
 	y = I2M(y);
@@ -1444,7 +1444,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 	z = R1[8]*m[0] + R1[9]*m[1] + R1[10]*m[2];
 
 	// build new module
-	this->iMobotBuildRotated(botNum, x, y, z, R1);
+	this->iMobotBuild(botNum, x, y, z, R1);
 
 	// add fixed joint to attach two modules
 	dJointID joint = dJointCreateFixed(this->world, 0);
