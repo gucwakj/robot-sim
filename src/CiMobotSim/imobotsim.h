@@ -96,10 +96,10 @@ class CiMobotSim {
 		/*	
 		 *	Build ground out of simple objects
 		 */
+		void groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
+		void groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
+		void groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
 		void groundPlane(int gndNum, dReal a, dReal b, dReal c, dReal d);
-		void groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dMatrix3 R);
-		void groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dMatrix3 R);
-		void groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dMatrix3 R);
 		void groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz);
 
 		/* Run the simulation */

@@ -531,20 +531,47 @@ void CiMobotSim::replyMessage() {
 /**********************************************************
 	Ground Functions
  **********************************************************/
-void CiMobotSim::groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dMatrix3 R) {
+void CiMobotSim::groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+	// create rotation matrix
+	dMatrix3 R, R_x, R_y, R_z, R_xy;
+	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+	dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+	dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+	dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+	// position box
 	this->ground[gndNum] = dCreateBox(this->space, lx, ly, lz);
 	dGeomSetPosition(this->ground[gndNum], px, py, pz);
 	dGeomSetRotation(this->ground[gndNum], R);
 }
 
-void CiMobotSim::groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dMatrix3 R) {
+void CiMobotSim::groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+	// create rotation matrix
+	dMatrix3 R, R_x, R_y, R_z, R_xy;
+	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+	dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+	dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+	dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+	// position capsule
 	this->ground[gndNum] = dCreateCapsule(this->space, r, l);
 	dGeomSetPosition(this->ground[gndNum], px, py, pz);
 	dGeomSetRotation(this->ground[gndNum], R);
 }
 
-void CiMobotSim::groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dMatrix3 R) {
-	this->ground[gndNum] = dCreateCapsule(this->space, r, l);
+void CiMobotSim::groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+	// create rotation matrix
+	dMatrix3 R, R_x, R_y, R_z, R_xy;
+	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+	dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+	dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+	dMultiply0(R, R_xy, R_z, 3, 3, 3);
+	
+	// position cylinder
+	this->ground[gndNum] = dCreateCylinder(this->space, r, l);
 	dGeomSetPosition(this->ground[gndNum], px, py, pz);
 	dGeomSetRotation(this->ground[gndNum], R);
 }
