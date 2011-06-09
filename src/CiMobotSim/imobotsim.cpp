@@ -921,11 +921,11 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dReal re[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH), 0, 0};
 
 	// build pieces of module
-	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, 0, 0);
-	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, 0);
-	buildCenter(this->space_bot[botNum], this->bot[botNum]->bodyPart[CENTER], x, y, z, R, 0);
-	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, 0);
-	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, 0, 0);
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, 0, BUILD);
+	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
+	buildCenter(this->space_bot[botNum], this->bot[botNum]->bodyPart[CENTER], x, y, z, R, BUILD);
+	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, 0, BUILD);
 	
 	// store position and rotation of center of module
 	this->bot[botNum]->pos[0] = x;
@@ -1059,11 +1059,11 @@ void CiMobotSim::iMobotBuildPositioned(int botNum, dReal x, dReal y, dReal z, dM
 	dReal re[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH), 0, 0};
 	
 	// build pieces of module
-	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, 0, 0);
-	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, 0);
-	buildCenter(this->space_bot[botNum], this->bot[botNum]->bodyPart[CENTER], x, y, z, R, 0);
-	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, 0);
-	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, 0, 0);
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, 0, BUILD);
+	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
+	buildCenter(this->space_bot[botNum], this->bot[botNum]->bodyPart[CENTER], x, y, z, R, BUILD);
+	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, 0, BUILD);
 	
 	// store position and rotation of center of module
 	this->bot[botNum]->pos[0] = x;
@@ -1121,7 +1121,7 @@ void CiMobotSim::iMobotBuildPositioned(int botNum, dReal x, dReal y, dReal z, dM
 	dJointSetHingeAxis(joint, -R[0], -R[4], -R[8]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[3] = joint;
-	
+
 	// create rotation matrices for each body part
 	dMatrix3 R_e, R_le, R_lb, R_rb, R_re;
 	dRFromAxisAndAngle(R_lb, R[1], R[5], R[9], r_lb);
@@ -1130,25 +1130,12 @@ void CiMobotSim::iMobotBuildPositioned(int botNum, dReal x, dReal y, dReal z, dM
 	dRFromAxisAndAngle(R_rb, -R[1], -R[5], -R[9], r_rb);
 	dRFromAxisAndAngle(R_e, R[0], R[4], R[8], r_re);
 	dMultiply0(R_re, R_rb, R_e, 3, 3, 3);
-	
-	// re-build pieces of module
-	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], x - I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_lb), y, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_lb) + z, R_le, r_le, 1);
-	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], x - I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_lb), y, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_lb) + z, R_lb, r_lb, 1);
-	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_rb) + x, y, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_rb) + z, R_rb, r_rb, 1);
-	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_rb) + x, y, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_rb) + z, R_re, r_re, 1);
 
-	//dVector3 anchor, anchor2, axis;
-	//const dReal *geomPos;
-	//dReal radius, length, aabb[6];
-	//geomPos = dGeomGetPosition(this->bot[botNum]->bodyPart[BODY_R].geomID[4]);
-	//dGeomCylinderGetParams(this->bot[botNum]->bodyPart[BODY_R].geomID[4], &radius, &length);
-	//dGeomGetAABB(this->bot[botNum]->bodyPart[BODY_R].geomID[4], aabb);
-	//dJointGetHingeAnchor(this->bot[botNum]->joints[RB], anchor);
-	//dJointGetHingeAnchor2(this->bot[botNum]->joints[RB], anchor2);
-	//dJointGetHingeAxis(this->bot[botNum]->joints[RB], axis);
-	//cout << " body parameters: [" << geomPos[0] << " " << geomPos[1] << " "<< geomPos[2] << "]; radius=" << radius << "; length=" << length << endl;
-	//cout << "    bounding box: " << aabb[0] << " " << aabb[1] << " " << aabb[2] << " " << aabb[3] << " " << aabb[4] << " " << aabb[5] << endl;
-	//cout << "joint parameters: " << anchor[0] << " " << anchor[1] << " "<< anchor[2] << "\t" << anchor2[0] << " " << anchor2[1] << " " << anchor2[2] << "\t" << axis[0] << " " << axis[1] << " " << axis[2] << endl;
+	// re-build pieces of module
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], x - I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_lb), y, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_lb) + z, R_le, r_le, REBUILD);
+	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], x - I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_lb), y, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_lb) + z, R_lb, r_lb, REBUILD);
+	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_rb) + x, y, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_rb) + z, R_rb, r_rb, REBUILD);
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_rb) + x, y, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_rb) + z, R_re, r_re, REBUILD);
 
 	// create motor
 	dJointID motor;

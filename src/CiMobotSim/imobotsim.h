@@ -46,6 +46,11 @@ enum robot_pieces_e {
 	ENDCAP_R,
 	NUM_PARTS
 };
+// build or rebuild a part
+enum robot_build_e {
+	BUILD,
+	REBUILD
+};
 
 class CiMobotSim {
 	public:
