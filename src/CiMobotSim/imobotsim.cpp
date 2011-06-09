@@ -275,15 +275,15 @@ void CiMobotSim::updateAngles() {
 		for (int j = 0; j < NUM_DOF; j++) {
 			// update current angle
 			if ( j == LE || j == RE )
-				this->bot[i]->curAng[j] = angMod(this->bot[i]->curAng[j], 
-												 dJointGetHingeAngle(this->bot[i]->joints[j]),	
+				this->bot[i]->curAng[j] = angMod(this->bot[i]->curAng[j],
+												 dJointGetHingeAngle(this->bot[i]->joints[j]),
 												 dJointGetHingeAngleRate(this->bot[i]->joints[j]));
 			else
 				this->bot[i]->curAng[j] = dJointGetHingeAngle(this->bot[i]->joints[j]);
-			
+
 			// set motor angle to current angle
 			dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
-			
+
 			// drive motor to get current angle to match future angle
 			if ( !dJointIsEnabled(this->bot[i]->motors[j]) ) {
 				this->bot[i]->futAng[j] = this->bot[i]->curAng[j];
@@ -446,6 +446,7 @@ void CiMobotSim::printIntermediateData() {
 	cout.width(3); cout << this->curStp;
 	cout << "\t\t";
 	//const dReal *pos;
+	cout.precision(4);
 	for (int i = 0; i < this->numBot; i++) {
 		cout << this->bot[i]->futAng[LE] << " ";
 		cout << this->bot[i]->curAng[LE] << " ";
@@ -561,43 +562,47 @@ void CiMobotSim::groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz)
 /**********************************************************
 	Build Body Parts Functions
  **********************************************************/
-void CiMobotSim::buildLeftBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
+void CiMobotSim::buildLeftBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild) {
 	// define parameters
-	dMass m, m1, m2, m3;
 	dBodyID body;
 	dGeomID geom;
-	dMatrix3 R1;
+	dMass m, m1, m2, m3;
+	dMatrix3 R1, R2, R3;
 
 	// set mass of body
 	dMassSetZero(&m);
 	// create mass 1
-	dMassSetBox(&m1, 1700, I2M(BODY_END_DEPTH), I2M(BODY_WIDTH - BODY_END_DEPTH), I2M(BODY_HEIGHT) );
+	dMassSetBox(&m1, 2700, I2M(0.2), I2M(2.60), I2M(2.85) );
 	dMassAdd(&m, &m1);
 	// create mass 2
-	dMassSetBox(&m2, 700, I2M(1.0), I2M(0.125), I2M(BODY_HEIGHT) );
-	dMassTranslate(&m2, I2M(0.5 + 0.1), -I2M(2.6/2 + 0.125/2), 0 );
+	dMassSetBox(&m2, 2700, I2M(1.0), I2M(0.125), I2M(2.85) );
+	dMassTranslate(&m2, -I2M(0.5 + 0.1), -I2M(2.6/2 + 0.125/2), 0 );
 	dMassAdd(&m, &m2);
 	// create mass 3
-	dMassSetBox(&m3, 700, I2M(1.0), I2M(0.125), I2M(BODY_HEIGHT) );
-	dMassTranslate(&m3, I2M(0.5 + 0.1), I2M(2.6/2 + 0.125/2), 0 );
+	dMassSetBox(&m3, 2700, I2M(1.0), I2M(0.125), I2M(2.85) );
+	dMassTranslate(&m3, -I2M(0.5 + 0.1), I2M(2.6/2 + 0.125/2), 0 );
 	dMassAdd(&m, &m3);
 	//dMassSetParameters( &m, 500, I2M(1), I2M(0), I2M(0), 0.5, 0.5, 0.5, 0, 0, 0);
 
 	// adjsut x,y,z to position center of mass correctly
-	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2] - m.c[0];
-	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2] - m.c[1];
-	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2] - m.c[2];
+	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
 	// create body
 	if ( !rebuild )
 		body = dBodyCreate(this->world);
 	else
 		body = part.bodyID;
-	dBodySetPosition(body, x + m.c[0], y + m.c[1], z + m.c[2]);
+
+	// set body parameters
+	dBodySetPosition(body, x, y, z);
 	dBodySetRotation(body, R);
 
 	// rotation matrix for curves of d-shapes
-	dRFromAxisAndAngle(R1,1,0,0,M_PI/2);
+	dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
+	dRFromAxisAndAngle(R3, 0, 0, 1, -r_lb);
+	dMultiply0(R2, R1, R3, 3, 3, 3);
 
 	// set geometry 1 - face
 	geom = dCreateBox( space, I2M(BODY_END_DEPTH), I2M(BODY_WIDTH), I2M(BODY_HEIGHT) );
@@ -621,14 +626,14 @@ void CiMobotSim::buildLeftBody(dSpaceID &space, CiMobotSimPart &part, dReal x, d
 	geom = dCreateCylinder( space, I2M(BODY_RADIUS), I2M(BODY_INNER_WIDTH) );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, I2M(BODY_LENGTH + BODY_END_DEPTH / 2) - m.c[0], -I2M(BODY_RADIUS - BODY_INNER_WIDTH / 2) - m.c[1], -m.c[2] );
-	dGeomSetOffsetRotation( geom, R1);
+	dGeomSetOffsetRotation( geom, R2);
 	part.geomID[3] = geom;
 
 	// set geometry 5 - side curve
 	geom = dCreateCylinder( space, I2M(BODY_RADIUS), I2M(BODY_INNER_WIDTH) );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, I2M(BODY_LENGTH + BODY_END_DEPTH / 2) - m.c[0], I2M(BODY_RADIUS - BODY_INNER_WIDTH / 2) - m.c[1], -m.c[2] );
-	dGeomSetOffsetRotation( geom, R1);
+	dGeomSetOffsetRotation( geom, R2);
 	part.geomID[4] = geom;
 
 	// set mass center to (0,0,0) of body
@@ -644,24 +649,24 @@ void CiMobotSim::buildLeftBody(dSpaceID &space, CiMobotSimPart &part, dReal x, d
 	#endif
 }
 
-void CiMobotSim::buildRightBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
+void CiMobotSim::buildRightBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild) {
 	// define parameters
-	dMass m, m1, m2, m3;
 	dBodyID body;
 	dGeomID geom;
-	dMatrix3 R1;
+	dMass m, m1, m2, m3;
+	dMatrix3 R1, R2, R3;
 
 	// set mass of body
 	dMassSetZero(&m);
 	// create mass 1
-	dMassSetBox(&m1, 3700, I2M(0.2), I2M(2.60), I2M(2.85) );
+	dMassSetBox(&m1, 2700, I2M(0.2), I2M(2.60), I2M(2.85) );
 	dMassAdd(&m, &m1);
 	// create mass 2
-	dMassSetBox(&m2, 1700, I2M(1.0), I2M(0.125), I2M(2.85) );
+	dMassSetBox(&m2, 2700, I2M(1.0), I2M(0.125), I2M(2.85) );
 	dMassTranslate(&m2, -I2M(0.5 + 0.1), -I2M(2.6/2 + 0.125/2), 0 );
 	dMassAdd(&m, &m2);
 	// create mass 3
-	dMassSetBox(&m3, 1700, I2M(1.0), I2M(0.125), I2M(2.85) );
+	dMassSetBox(&m3, 2700, I2M(1.0), I2M(0.125), I2M(2.85) );
 	dMassTranslate(&m3, -I2M(0.5 + 0.1), I2M(2.6/2 + 0.125/2), 0 );
 	dMassAdd(&m, &m3);
 	//dMassSetParameters( &m, 500, I2M(0.45), I2M(0), I2M(0), 0.5, 0.5, 0.5, 0, 0, 0);
@@ -676,14 +681,16 @@ void CiMobotSim::buildRightBody(dSpaceID &space, CiMobotSimPart &part, dReal x, 
 		body = dBodyCreate(this->world);
 	else
 		body = part.bodyID;
-	
+
 	// set body parameters
 	dBodySetPosition(body, x, y, z);
 	dBodySetRotation(body, R);
 
 	// rotation matrix for curves of d-shapes
-	dRFromAxisAndAngle(R1,1,0,0,M_PI/2);
-
+	dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
+	dRFromAxisAndAngle(R3, 0, 0, 1, -r_rb);
+	dMultiply0(R2, R1, R3, 3, 3, 3);
+	
 	// set geometry 1 - face
 	geom = dCreateBox( space, I2M(BODY_END_DEPTH), I2M(BODY_WIDTH), I2M(BODY_HEIGHT) );
 	dGeomSetBody( geom, body);
@@ -706,24 +713,15 @@ void CiMobotSim::buildRightBody(dSpaceID &space, CiMobotSimPart &part, dReal x, 
 	geom = dCreateCylinder( space, I2M(BODY_RADIUS), I2M(BODY_INNER_WIDTH) );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -I2M(BODY_LENGTH + BODY_END_DEPTH / 2) - m.c[0], -I2M(BODY_RADIUS - BODY_INNER_WIDTH / 2) - m.c[1], -m.c[2] );
-	dGeomSetOffsetRotation( geom, R1);
+	dGeomSetOffsetRotation( geom, R2);
 	part.geomID[3] = geom;
 
 	// set geometry 5 - side curve
 	geom = dCreateCylinder( space, I2M(BODY_RADIUS), I2M(BODY_INNER_WIDTH) );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -I2M(BODY_LENGTH + BODY_END_DEPTH / 2) - m.c[0], I2M(BODY_RADIUS - BODY_INNER_WIDTH / 2) - m.c[1], -m.c[2] );
-	dGeomSetOffsetRotation( geom, R1);
+	dGeomSetOffsetRotation( geom, R2);
 	part.geomID[4] = geom;
-	
-	const dReal *geomPos;
-	dReal radius, length;
-	dReal aabb[6];
-	geomPos = dGeomGetPosition(part.geomID[4]);
-	dGeomCylinderGetParams(part.geomID[4], &radius, &length);
-	dGeomGetAABB(part.geomID[4], aabb);
-	cout << " body parameters: ["<< geomPos[0] << " " << geomPos[1] << " "<< geomPos[2] << "]; radius=" << radius << "; length=" << length << endl;
-	cout << "    bounding box: " << aabb[0] << " " << aabb[1] << " " << aabb[2] << " " << aabb[3] << " " << aabb[4] << " " << aabb[5] << endl;
 
 	// set mass center to (0,0,0) of body
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -743,7 +741,13 @@ void CiMobotSim::buildCenter(dSpaceID &space, CiMobotSimPart &part, dReal x, dRe
 	dMass m;
 	dBodyID body;
 	dGeomID geom;
-	dMatrix3 R1;
+	dMatrix3 R_x, R_y, R_z, R1, R2;
+	
+	/*// create rotation matrix from supplied angles
+	dRFromAxisAndAngle(R_x, 1, 0, 0, r_x);
+	dRFromAxisAndAngle(R_y, R_x[1], R_x[5], R_x[9], r_y);
+	dRFromAxisAndAngle(R_z, R_y[2], R_y[6], R_y[10], r_z);
+	dRFromAxisAndAngle(R, R_z[1], R_z[5], R_z[9], 0);*/
 
 	// set mass of body
 	dMassSetZero(&m);
@@ -752,16 +756,16 @@ void CiMobotSim::buildCenter(dSpaceID &space, CiMobotSimPart &part, dReal x, dRe
 	//dMassSetParameters( &m, 500, I2M(0.45), I2M(0), I2M(0), 0.5, 0.5, 0.5, 0, 0, 0);
 
 	// adjsut x,y,z to position center of mass correctly
-	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2] - m.c[0];
-	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2] - m.c[1];
-	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2] - m.c[2];
+	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
 	// create body
 	if ( !rebuild )
 		body = dBodyCreate(this->world);
 	else
 		body = part.bodyID;
-	dBodySetPosition(body, x + m.c[0], y + m.c[1], z + m.c[2]);
+	dBodySetPosition(body, x, y, z);
 	dBodySetRotation(body, R);
 
 	// rotation matrix for curves of d-shapes
@@ -800,11 +804,11 @@ void CiMobotSim::buildCenter(dSpaceID &space, CiMobotSimPart &part, dReal x, dRe
 	#endif
 }
 
-void CiMobotSim::buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
+void CiMobotSim::buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_b, dReal r_e, int rebuild) {
 	// define parameters
-	dMass m;
 	dBodyID body;
 	dGeomID geom;
+	dMass m;
 	dMatrix3 R1;
 
 	// set mass of body
@@ -812,20 +816,22 @@ void CiMobotSim::buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dRe
 	//dMassSetParameters( &m, 500, I2M(0.45), I2M(0), I2M(0), 0.5, 0.5, 0.5, 0, 0, 0);
 
 	// adjust x,y,z to position center of mass correctly
-	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2] - m.c[0];
-	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2] - m.c[1];
-	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2] - m.c[2];
+	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
 	// create body
 	if ( !rebuild )
 		body = dBodyCreate(this->world);
 	else
 		body = part.bodyID;
-	dBodySetPosition(body, x + m.c[0], y + m.c[1], z + m.c[2]);
+	
+	// set body parameters
+	dBodySetPosition(body, x, y, z);
 	dBodySetRotation(body, R);
 
 	// rotation matrix for curves
-	dRFromAxisAndAngle(R1,0,1,0,M_PI/2);
+	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 
 	// set geometry 1 - center box
 	geom = dCreateBox( space, I2M(END_DEPTH), I2M(END_WIDTH - 2*END_RADIUS), I2M(END_HEIGHT) );
@@ -909,11 +915,11 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	dReal re[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH), 0, 0};
 
 	// build pieces of module
-	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, 0);
-	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0);
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, 0, 0, 0);
+	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, 0);
 	buildCenter(this->space_bot[botNum], this->bot[botNum]->bodyParts[CENTER], x, y, z, R, 0);
-	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0);
-	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, 0);
+	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, 0);
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, 0, 0, 0);
 	
 	// store position and rotation of center of module
 	this->bot[botNum]->pos[0] = x;
@@ -1023,7 +1029,7 @@ void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatr
 	for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->bot[botNum]->bodyParts[i].bodyID, 0.1, 0.1);
 }
 
-void CiMobotSim::iMobotBuildPositioned(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CiMobotSim::iMobotBuildPositioned(int botNum, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// convert input positions to meters
 	x = I2M(x);
 	y = I2M(y);
@@ -1032,6 +1038,10 @@ void CiMobotSim::iMobotBuildPositioned(int botNum, dReal x, dReal y, dReal z, dR
 	r_lb = D2R(r_lb);
 	r_rb = D2R(r_rb);
 	r_re = D2R(r_re);
+	
+	// store initial body angles into array
+	this->bot[botNum]->curAng[LE] = r_le;
+	this->bot[botNum]->curAng[RE] = r_re;
 
 	// offset values for each body part[0-2] and joint[3-5] from center
 	dReal le[6] = {-I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2), 0, 0, -I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH), 0, 0};
@@ -1041,11 +1051,11 @@ void CiMobotSim::iMobotBuildPositioned(int botNum, dReal x, dReal y, dReal z, dR
 	dReal re[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH), 0, 0};
 	
 	// build pieces of module
-	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, 0);
-	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0);
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, 0, 0, 0);
+	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, 0);
 	buildCenter(this->space_bot[botNum], this->bot[botNum]->bodyParts[CENTER], x, y, z, R, 0);
-	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0);
-	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, 0);
+	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, 0);
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, 0, 0, 0);
 	
 	// store position and rotation of center of module
 	this->bot[botNum]->pos[0] = x;
@@ -1105,38 +1115,31 @@ void CiMobotSim::iMobotBuildPositioned(int botNum, dReal x, dReal y, dReal z, dR
 	this->bot[botNum]->joints[3] = joint;
 	
 	// create rotation matrices for each body part
-	dMatrix3 R_lb, R_le, R_rb, R_re;
+	dMatrix3 R_e, R_le, R_lb, R_rb, R_re;
 	dRFromAxisAndAngle(R_lb, R[1], R[5], R[9], r_lb);
-	//dRFromAxisAndAngle(R_le, -R[0], -R[4], -R[8], r_le);
+	dRFromAxisAndAngle(R_e, -R[0], -R[4], -R[8], r_le);
+	dMultiply0(R_le, R_lb, R_e, 3, 3, 3);
 	dRFromAxisAndAngle(R_rb, -R[1], -R[5], -R[9], r_rb);
-	//dRFromAxisAndAngle(R_re, -R_rb[1], -R_rb[5], -R_rb[9], r_re);
-
-	//cout << R_rb[0] << " " << R_rb[4] << " " << R_rb[8] << endl;
-	//cout << R_re[0] << " " << R_re[4] << " " << R_re[8] << endl;
-	//dVector3 anchor, anchor2, axis;
-	//dJointGetHingeAnchor(this->bot[botNum]->joints[RB], anchor);
-	//dJointGetHingeAnchor2(this->bot[botNum]->joints[RB], anchor2);
-	//dJointGetHingeAxis(this->bot[botNum]->joints[RB], axis);
-	//cout <<"joint parameters: "<< anchor[0] << " " << anchor[1] << " "<< anchor[2] << "\t" << anchor2[0] << " " << anchor2[1] << " " << anchor2[2] << "\t" << axis[0] << " " << axis[1] << " " << axis[2] << endl;
+	dRFromAxisAndAngle(R_e, R[0], R[4], R[8], r_re);
+	dMultiply0(R_re, R_rb, R_e, 3, 3, 3);
 	
 	// re-build pieces of module
-	//buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_L], R_le[0]*le[0] + x, R_le[4]*le[0] + y, R_le[8]*le[0] + z, R_le, 1);
-	//buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_L], x - I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_rb), y, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_rb) + z, R_lb, 1);
-	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_R], I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_rb) + x, y, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_rb) + z, R_rb, 1);
-	//buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_R], I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_rb) + x, y, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_rb) + z, R_re, 1);
-	
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_L], x - I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_lb), y, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_lb) + z, R_le, r_lb, r_le, 1);
+	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_L], x - I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_lb), y, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_lb) + z, R_lb, r_lb, 1);
+	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyParts[BODY_R], I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_rb) + x, y, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_rb) + z, R_rb, r_rb, 1);
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyParts[ENDCAP_R], I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_rb) + x, y, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_rb) + z, R_re, r_rb, r_re, 1);
+
 	//dVector3 anchor, anchor2, axis;
-	const dReal *geomPos;
-	dReal radius, length;
-	dReal aabb[6];
-	geomPos = dGeomGetPosition(this->bot[botNum]->bodyParts[BODY_R].geomID[4]);
-	dGeomCylinderGetParams(this->bot[botNum]->bodyParts[BODY_R].geomID[4], &radius, &length);
-	dGeomGetAABB(this->bot[botNum]->bodyParts[BODY_R].geomID[4], aabb);
+	//const dReal *geomPos;
+	//dReal radius, length, aabb[6];
+	//geomPos = dGeomGetPosition(this->bot[botNum]->bodyParts[BODY_R].geomID[4]);
+	//dGeomCylinderGetParams(this->bot[botNum]->bodyParts[BODY_R].geomID[4], &radius, &length);
+	//dGeomGetAABB(this->bot[botNum]->bodyParts[BODY_R].geomID[4], aabb);
 	//dJointGetHingeAnchor(this->bot[botNum]->joints[RB], anchor);
 	//dJointGetHingeAnchor2(this->bot[botNum]->joints[RB], anchor2);
 	//dJointGetHingeAxis(this->bot[botNum]->joints[RB], axis);
-	cout << " body parameters: [" << geomPos[0] << " " << geomPos[1] << " "<< geomPos[2] << "]; radius=" << radius << "; length=" << length << endl;
-	cout << "    bounding box: " << aabb[0] << " " << aabb[1] << " " << aabb[2] << " " << aabb[3] << " " << aabb[4] << " " << aabb[5] << endl;
+	//cout << " body parameters: [" << geomPos[0] << " " << geomPos[1] << " "<< geomPos[2] << "]; radius=" << radius << "; length=" << length << endl;
+	//cout << "    bounding box: " << aabb[0] << " " << aabb[1] << " " << aabb[2] << " " << aabb[3] << " " << aabb[4] << " " << aabb[5] << endl;
 	//cout << "joint parameters: " << anchor[0] << " " << anchor[1] << " "<< anchor[2] << "\t" << anchor2[0] << " " << anchor2[1] << " " << anchor2[2] << "\t" << axis[0] << " " << axis[1] << " " << axis[2] << endl;
 
 	// create motor
@@ -1562,8 +1565,8 @@ void CiMobotSim::ds_drawBodies() {
 void CiMobotSim::ds_start() {
 	dAllocateODEDataForThread(dAllocateMaskAll);
 
-	static float xyz[3] = {I2M(0), I2M(-10), I2M(5)};
-	static float hpr[3] = {90.0, -10.0, 0.0};	// defined in degrees
+	static float xyz[3] = {I2M(5), I2M(-10), I2M(5)};
+	static float hpr[3] = {110.0, -10.0, 0.0};	// defined in degrees
 	dsSetViewpoint(xyz, hpr);
 }
 
