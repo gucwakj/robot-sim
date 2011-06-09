@@ -1,17 +1,5 @@
 TODO File for ODE Simulations
 
-	iMobot positioned build
-		be able to start a simulation with each motor at an arbitrary
-		rotation about its axis.  When ODE builds a joint it analyzes the angle betwen
-		the two bodies that it connects and sets that to zero angle.  Must create the
-		body first in 'home' position and then within the build function manipulate the
-		angles.  Might have to add check to see whether or not any body part is within
-		the ground and then move it out artificially.  In addition to positioning the
-		body parts, the check is needed for the robot to be positioned at any rotation
-		about any axis.  About z-axis works fine now but rotating about the others
-		causes the body to go into the ground.  With the check in place, the 3D rotation
-		will work as well.
-
 	Parallelize the code
 		The gumstix aren't as fast as desktops and the simulations take a few
 		seconds to run.  If not parallel, only one module can be doing work at a
@@ -73,4 +61,11 @@ TODO File for ODE Simulations
 
 	change names of private variables to m_
 		small syntax thing which would make the code more readable
+
+	Positioned build into ground
+		Positioned build doesn't check whether or not the body is rotated into ground
+		or not.  will bounce body once sim starts.  need to find a way to check the 
+		lowest point of the body
+
+
 
