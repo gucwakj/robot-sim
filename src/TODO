@@ -67,5 +67,6 @@ TODO File for ODE Simulations
 		or not.  will bounce body once sim starts.  need to find a way to check the 
 		lowest point of the body
 
-
+	Class functions for rotation matrix
+		add class functions to encapsulate ode rotation matrix functions
 

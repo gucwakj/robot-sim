@@ -118,35 +118,20 @@ class CiMobotSim {
 		dSpaceID space;
 		dSpaceID *space_bot;
 		dJointGroupID group;
-		
-		/*
-		 *	Simulation functions
-		 */
-		#ifdef ENABLE_DRAWSTUFF
-		void ds_drawBodies();				// draw all of the bodies
-		void ds_start();					// initialization of drawstuff scene
-		void ds_drawPart(dGeomID part);		// draw each geometry of each body
-		void ds_command(int cmd);			// keyboard commands for ds
-		void simulationLoop(int pause);		// loop to complete simulation
-		#else
-		void simulationLoop();				// loop to complete simulation
-		#endif
 
 		/*
 		 *	Structs to store simulation data
 		 */
-		// information about each body part
-		typedef struct cimobotsimpart_s {
+		typedef struct cimobotsimpart_s {	// information about each body part
 			dBodyID bodyID;					// id of body part
 			dGeomID *geomID;				// ids of geoms which make up each body part
 			dReal ang;						// initial angle of part about rotational axis
 			#ifdef ENABLE_DRAWSTUFF
-			float color[3];
-			int num_geomID;
+			float color[3];					// rgb color for each body part
+			int num_geomID;					// total number of geomID for part
 			#endif
 		} CiMobotSimPart;
-		// information about each iMobot module
-		typedef struct cimobotsimbot_s {
+		typedef struct cimobotsimbot_s {	// information about each iMobot module
 			CiMobotSimPart *bodyPart;		// body parts
 			dJointID *joints;				// joints between body parts
 			dJointID *motors;				// motors to drive body parts
@@ -159,8 +144,7 @@ class CiMobotSim {
 			dReal *rot;						// 3D rotation matrix of robot about center
 			bool *cmpStp;					// flag to check if step is complete
 		} CiMobotSimBot;
-		// information on success to reply
-		typedef struct cimobotsimreply_s {
+		typedef struct cimobotsimreply_s {	// information on success to reply
 			bool success;					// flag if simulation is successful
 			double time;					// time to successful completion
 			int message;					// reply message code
@@ -193,18 +177,17 @@ class CiMobotSim {
 		#endif
 
 		/*
-		 *	Utility functions
-		 */
-		inline dReal I2M(dReal x);			// convert inch to meter
-		inline dReal M2I(dReal x);			// convert meter to inch
-		inline dReal D2R(dReal x);			// convert degree to radian
-		inline dReal R2D(dReal x);			// convert radian to degree
-		bool isTrue(bool *a, int length);	// check if all values in array are true
-		dReal angMod(dReal pasAng, dReal curAng, dReal angRat); // modify angle from ODE for endcaps to count continuously
-
-		/*
 		 *	Simulation functions
 		 */
+		#ifdef ENABLE_DRAWSTUFF
+		void ds_drawBodies();				// draw all of the bodies
+		void ds_start();					// initialization of drawstuff scene
+		void ds_drawPart(dGeomID part);		// draw each geometry of each body
+		void ds_command(int cmd);			// keyboard commands for ds
+		void simulationLoop(int pause);		// loop to complete simulation
+		#else
+		void simulationLoop();				// loop to complete simulation
+		#endif
 		void updateAngles();							// update struct with modified angles
 		void setFlags();								// set flags for complete/not-complete
 		void incrementStep();							// increment step to next set of angles
@@ -222,6 +205,16 @@ class CiMobotSim {
 		void buildCenter(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
 		void buildRightBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild);
 		void buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_e, int rebuild);
+
+		/*
+		 *	Utility functions
+		 */
+		inline dReal I2M(dReal x);			// convert inch to meter
+		inline dReal M2I(dReal x);			// convert meter to inch
+		inline dReal D2R(dReal x);			// convert degree to radian
+		inline dReal R2D(dReal x);			// convert radian to degree
+		bool isTrue(bool *a, int length);	// check if all values in array are true
+		dReal angMod(dReal pasAng, dReal curAng, dReal angRat); // modify angle from ODE for endcaps to count continuously
 };
 
 #endif	/* CIMOBOTSIM_H_ */

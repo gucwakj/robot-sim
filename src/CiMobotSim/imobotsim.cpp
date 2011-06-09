@@ -108,16 +108,6 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *
 		this->disable[i] = false;
 	}
 
-	#ifdef ENABLE_DRAWSTUFF
-	/* Initialize drawstuff */
-	m_fn.version = DS_VERSION;
-	m_fn.start = (void (*)(void))&CiMobotSim::ds_start;
-	m_fn.step = (void (*)(int))&CiMobotSim::simulationLoop;
-	m_fn.command = (void (*)(int))&CiMobotSim::ds_command;
-	m_fn.stop = 0;
-	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
-	#endif
-
 	// create ODE simulation space
 	dInitODE2(0);
 	this->world  = dWorldCreate();
@@ -141,6 +131,14 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *
 	dWorldSetGravity(this->world, 0, 0, -9.81);					// gravity
 
 	#ifdef ENABLE_DRAWSTUFF
+	// initialize drawstuff
+	m_fn.version = DS_VERSION;
+	m_fn.start = (void (*)(void))&CiMobotSim::ds_start;
+	m_fn.step = (void (*)(int))&CiMobotSim::simulationLoop;
+	m_fn.command = (void (*)(int))&CiMobotSim::ds_command;
+	m_fn.stop = 0;
+	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
+	
 	g_imobotsim = this;
 	#endif
 }
@@ -148,9 +146,7 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *
 CiMobotSim::~CiMobotSim() {
 	// free all arrays created dynamically in constructor
 	for (int i = this->numBot - 1; i >= 0; i--) {
-		for (int j = 0; j < NUM_PARTS; j++) {
-			delete [] this->bot[i]->bodyPart[j].geomID;
-		}
+		for (int j = 0; j < NUM_PARTS; j++) delete [] this->bot[i]->bodyPart[j].geomID;
 		delete [] this->bot[i]->bodyPart;
 		delete [] this->bot[i]->joints;
 		delete [] this->bot[i]->motors;
@@ -176,9 +172,7 @@ CiMobotSim::~CiMobotSim() {
 
 	// destroy all ODE objects
 	dJointGroupDestroy(group);
-	for ( int i = 0; i < this->numBot; i++ ) {
-		dSpaceDestroy(this->space_bot[i]);
-	}
+	for ( int i = 0; i < this->numBot; i++ ) dSpaceDestroy(this->space_bot[i]);
 	dSpaceDestroy(this->space);
 	dWorldDestroy(this->world);
 	dCloseODE();
@@ -195,7 +189,10 @@ void CiMobotSim::setCOR(dReal cor_g, dReal cor_b) {
 }
 
 void CiMobotSim::setAngVel(dReal *vel) {
+	// initialize loop variables
 	int i, j;
+	
+	// loop through each robot and assign new array of vel values
 	for ( i = 0; i < this->numBot; i++ ) {
 		this->bot[i]->vel = new dReal[NUM_DOF*numStp];
 		for ( j = 0; j < NUM_DOF*numStp; j++ ) this->bot[i]->vel[j] = vel[4*i + NUM_DOF*this->numBot*(j/NUM_DOF) + j%NUM_DOF];
@@ -217,7 +214,7 @@ void CiMobotSim::printData() {
 	}
 }
 
-void CiMobotSim::run(int argc, char** argv) {
+void CiMobotSim::run(int argc, char **argv) {
 	#ifdef ENABLE_DRAWSTUFF
 		dsSimulationLoop(argc, argv, 352, 288, &m_fn);
 	#else
@@ -745,13 +742,7 @@ void CiMobotSim::buildCenter(dSpaceID &space, CiMobotSimPart &part, dReal x, dRe
 	dMass m;
 	dBodyID body;
 	dGeomID geom;
-	dMatrix3 R_x, R_y, R_z, R1, R2;
-	
-	/*// create rotation matrix from supplied angles
-	dRFromAxisAndAngle(R_x, 1, 0, 0, r_x);
-	dRFromAxisAndAngle(R_y, R_x[1], R_x[5], R_x[9], r_y);
-	dRFromAxisAndAngle(R_z, R_y[2], R_y[6], R_y[10], r_z);
-	dRFromAxisAndAngle(R, R_z[1], R_z[5], R_z[9], 0);*/
+	dMatrix3 R1;
 
 	// set mass of body
 	dMassSetZero(&m);
@@ -769,11 +760,13 @@ void CiMobotSim::buildCenter(dSpaceID &space, CiMobotSimPart &part, dReal x, dRe
 		body = dBodyCreate(this->world);
 	else
 		body = part.bodyID;
+
+	// set body parameters
 	dBodySetPosition(body, x, y, z);
 	dBodySetRotation(body, R);
 
 	// rotation matrix for curves of d-shapes
-	dRFromAxisAndAngle(R1,1,0,0,M_PI/2);
+	dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
 
 	// set geometry 1 - center rectangle
 	geom = dCreateBox( space, I2M(CENTER_LENGTH), I2M(CENTER_WIDTH), I2M(CENTER_HEIGHT) );
@@ -916,7 +909,6 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dMatrix3 R) 
 	// offset values for each body part[0-2] and joint[3-5] from center
 	dReal le[6] = {I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH/2), 0, 0, I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH), 0, 0};
 	dReal lb[6] = {I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH/2), 0, 0, I2M(-CENTER_LENGTH/2), I2M(CENTER_WIDTH/2), 0};
-	dReal ce[3] = {0, 0, 0};
 	dReal rb[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2), I2M(CENTER_WIDTH/2), 0};
 	dReal re[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH), 0, 0};
 
@@ -1054,7 +1046,6 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dMatrix3 R, 
 	// offset values for each body part[0-2] and joint[3-5] from center
 	dReal le[6] = {-I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2), 0, 0, -I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH), 0, 0};
 	dReal lb[6] = {-I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2), 0, 0, -I2M(CENTER_LENGTH/2), I2M(CENTER_WIDTH/2), 0};
-	dReal ce[3] = {0, 0, 0};
 	dReal rb[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2), I2M(CENTER_WIDTH/2), 0};
 	dReal re[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH), 0, 0};
 	
