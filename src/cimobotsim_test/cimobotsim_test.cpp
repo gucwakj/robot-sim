@@ -11,12 +11,10 @@ int main(int argc, char* argv[]) {
 	sim->setCOR(0.45, 0.45);
 	//sim->setAngVel(vel);
 
-	dMatrix3 R;
-	dRSetIdentity(R);
 	sim->groundPlane(0, 0, 0, 1, 0);
 	//sim->iMobotBuild(0, 0, 0, 0);
-	//sim->iMobotBuild(0, 0, 0, 0, R);
-	sim->iMobotBuild(0, 0, 0, 0, R, 45, 45, 45, 45);
+	sim->iMobotBuild(0, 0, 0, 0, 0, 0, 0);
+	//sim->iMobotBuild(0, 0, 0, 0, 0, 0, 0, 45, 45, 45, 45);
 	sim->run(argc, argv);
 	sim->replyMessage();
 

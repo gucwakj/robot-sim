@@ -895,16 +895,22 @@ void CiMobotSim::buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dRe
 	Build iMobot Functions
  **********************************************************/
 void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
-	dMatrix3 R;
-	dRSetIdentity(R);
-	this->iMobotBuild(botNum, x, y, z, R);
+	this->iMobotBuild(botNum, x, y, z, 0, 0, 0);
 }
 
-void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dMatrix3 R) {
+void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z) {
 	// convert input positions to meters
 	x = I2M(x);
 	y = I2M(y);
 	z = I2M(z + BODY_HEIGHT/2);
+
+	// create rotation matrix for robot
+	dMatrix3 R, R_x, R_y, R_z, R_xy;
+	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+	dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+	dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+	dMultiply0(R, R_xy, R_z, 3, 3, 3);
 
 	// offset values for each body part[0-2] and joint[3-5] from center
 	dReal le[6] = {I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH/2), 0, 0, I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH), 0, 0};
@@ -1027,7 +1033,7 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dMatrix3 R) 
 	for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->bot[botNum]->bodyPart[i].bodyID, 0.1, 0.1);
 }
 
-void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// convert input positions to meters
 	x = I2M(x);
 	y = I2M(y);
@@ -1036,6 +1042,14 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dMatrix3 R, 
 	r_lb = D2R(r_lb);
 	r_rb = D2R(r_rb);
 	r_re = D2R(r_re);
+
+	// create rotation matrix for robot
+	dMatrix3 R, R_x, R_y, R_z, R_xy;
+	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+	dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+	dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+	dMultiply0(R, R_xy, R_z, 3, 3, 3);
 	
 	// store initial body angles into array
 	this->bot[botNum]->curAng[LE] = r_le;
@@ -1435,7 +1449,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 	z = R1[8]*m[0] + R1[9]*m[1] + R1[10]*m[2];
 
 	// build new module
-	this->iMobotBuild(botNum, x, y, z, R1);
+	//this->iMobotBuild(botNum, x, y, z, R1);
 
 	// add fixed joint to attach two modules
 	dJointID joint = dJointCreateFixed(this->world, 0);

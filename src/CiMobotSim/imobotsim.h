@@ -78,14 +78,14 @@ class CiMobotSim {
 			// botNum:	number of module to build
 			// x,y,z:	global position of center of module
 			// R:		rotation matrix of module about center point
-		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dMatrix3 R);
+		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z);
 		// build a new module with predefined angles for body parts
 		// botNum:	number of module to build
 		// x,y,z:	global position of center of module
 		// R:		rotation matrix of module about center point
 		// le,re:	rotation of endcaps about respective bodies (in degrees)
 		// lb,rb:	rotation of bodies about center (in degrees)
-		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		// build a new module attached to a preexisting module
 			// botNum:	number of new module to build
 			// attNum:	number of module which to attach
