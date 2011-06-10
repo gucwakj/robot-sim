@@ -40,10 +40,6 @@ TODO File for ODE Simulations
 		Current list of data returned after execution is limited.  Need a bit
 		more especially when putting into optimization code.
 
-	Function to get current state
-		When cutting a sim short possibly to start again with new parameters,
-		need to get current state of bodies and output to a file/array
-
 	Wind
 		Possibly add wind effects to the simulation.  A cross-wind would have an
 		adverse effect especially on larger robots.  Found a link that simulated
@@ -54,19 +50,7 @@ TODO File for ODE Simulations
 			By Conor Ryan
 			http://books.google.com/books?id=pVhXLZKMF-YC&lpg=PA51&ots=ikZfL8Ztow&dq=open%20dynamics%20engine%20wind&pg=PA51#v=onepage&q=open%20dynamics%20engine%20wind&f=false
 
-	Put distance moved into Reply struct
-		Need a means of knowing how far the iMobot moved during sim.  Is it
-		needed for all body parts of all modules?  Lots of information to
-		gather.  Could it be simplified with just the center?
-
-	change names of private variables to m_
-		small syntax thing which would make the code more readable
-
 	Positioned build into ground
 		Positioned build doesn't check whether or not the body is rotated into ground
 		or not.  will bounce body once sim starts.  need to find a way to check the 
 		lowest point of the body
-
-	Class functions for rotation matrix
-		add class functions to encapsulate ode rotation matrix functions
-

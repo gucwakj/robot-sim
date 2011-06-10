@@ -70,30 +70,43 @@ class CiMobotSim {
 		/*
 		 *	Functions to build models of iMobot
 		 */
-		// default build function without rotation support
-			// botNum:	number of module to build
-			// x,y,z:	global position of center of module
+		/* default build function without rotation support
+			botNum:				number of module to build
+			x, y, z:			global position of center of module
+		 */
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z);
-		// rotate module about z-axis
-			// botNum:	number of module to build
-			// x,y,z:	global position of center of module
-			// R:		rotation matrix of module about center point
+		/* rotate module about z-axis
+			botNum:				number of module to build
+			x, y, z:			global position of center of module
+			r_x, r_y, r_z:		rotations about three principal axes
+		 */
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z);
-		// build a new module with predefined angles for body parts
-		// botNum:	number of module to build
-		// x,y,z:	global position of center of module
-		// R:		rotation matrix of module about center point
-		// le,re:	rotation of endcaps about respective bodies (in degrees)
-		// lb,rb:	rotation of bodies about center (in degrees)
+		/* build a new module with predefined angles for body parts
+			botNum:				number of module to build
+			x, y, z:			global position of center of module
+			r_x, r_y, r_z:		rotations about three principal axes
+			le, re:				rotation of endcaps about respective bodies (in degrees)
+			lb, rb:				rotation of bodies about center (in degrees)
+		 */
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		// build a new module attached to a preexisting module
-			// botNum:	number of new module to build
-			// attNum:	number of module which to attach
-			// face1:	face of attNum module
-			// face2:	face of new module to attach
+		/* build a new module attached to a preexisting module
+			botNum:				number of new module to build
+			attNum:				number of module which to attach
+			face1:				face of attNum module
+			face2:				face of new module to attach
+		 */
 		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2);
+		/* build a new module attached to a preexisting module
+			botNum:				number of new module to build
+			attNum:				number of module which to attach
+			face1:				face of attNum module
+			face2:				face of new module to attach
+			le, re:				rotation of endcaps about respective bodies (in degrees)
+			lb, rb:				rotation of bodies about center (in degrees)
+		 */
+		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
-		/*	
+		/*
 		 *	Build ground out of simple objects
 		 */
 		void groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
@@ -102,7 +115,9 @@ class CiMobotSim {
 		void groundPlane(int gndNum, dReal a, dReal b, dReal c, dReal d);
 		void groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz);
 
-		/* Run the simulation */
+		/*
+		 * 	Run the simulation 
+		 */
 		void run(int argc, char** argv);
 
 		/*
@@ -154,24 +169,26 @@ class CiMobotSim {
 		 *	Private variables to store general information about simulation
 		 */
 		CiMobotSimBot **bot;				// array of structs for each bot
-		CiMobotSimReply *reply;				// struct of data to return after finishing simulation
-		dGeomID *ground;					// array of ground objects
-		dReal t;							// current time of simulation
-		dReal tmeTot;						// total time for simulation to run
-		dReal tmeStp;						// time of each step of simulation
-		dReal mu_g, mu_b;					// coefficient of friction of body_ground and body_body
-		dReal cor_g, cor_b;					// coefficient of restitution of body_ground and body_body
-		dReal mtrRes;						// motor angle resolution
-		dReal *jntVelMax;					// maximum joint velocity possible
-		dReal *jntVelMin;					// minimum joint velocity possible
-		dReal *jntVelDel;					// range of joint velocities
-		dReal *frcMax;						// maximum force that can be applied to each body part
-		int numBot;							// number of modules in simulation
-		int numGnd;							// number of pieces of ground
-		int numStp;							// total number of steps
-		int curStp;							// current step number
-		bool *flags;						// flag for each bot  - completed step
-		bool *disable;						// flag for each bot - disabled/enabled
+		CiMobotSimReply *m_reply;				// struct of data to return after finishing simulation
+		dGeomID *m_ground;					// array of ground objects
+		dReal m_t;							// current time of simulation
+		dReal m_t_tot;						// total time for simulation to run
+		dReal m_t_step;						// time of each step of simulation
+		dReal m_mu_g;						// coefficient of friction of body_ground
+		dReal m_mu_b;						// coefficient of friction of body_body
+		dReal m_cor_g;						// coefficient of restitution of body_ground
+		dReal m_cor_b;						// coefficient of restitution of body_body
+		dReal m_motor_res;					// motor angle resolution
+		dReal *m_joint_vel_max;				// maximum joint velocity possible
+		dReal *m_joint_vel_min;				// minimum joint velocity possible
+		dReal *m_joint_vel_del;				// range of joint velocities
+		dReal *m_joint_frc_max;				// maximum force that can be applied to each body part
+		int m_num_bot;						// number of modules in simulation
+		int m_num_gnd;						// number of pieces of ground
+		int m_num_stp;						// total number of steps
+		int m_cur_stp;						// current step number
+		bool *m_flags;						// flag for each bot  - completed step
+		bool *m_disable;						// flag for each bot - disabled/enabled
 		#ifdef ENABLE_DRAWSTUFF
 		dsFunctions m_fn;
 		#endif
