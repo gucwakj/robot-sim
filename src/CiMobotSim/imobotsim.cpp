@@ -645,7 +645,7 @@ void CiMobotSim::buildLeftBody(dSpaceID &space, CiMobotSimPart &part, dReal x, d
 	// set geometry 3 - side square
 	geom = dCreateBox( space, I2M(BODY_LENGTH), I2M(BODY_INNER_WIDTH), I2M(BODY_HEIGHT) );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, I2M(BODY_INNER_WIDTH / 2 + BODY_END_DEPTH / 2) - m.c[0], I2M(BODY_RADIUS - BODY_INNER_WIDTH / 2) - m.c[1], -m.c[2] );
+	dGeomSetOffsetPosition( geom, I2M(BODY_LENGTH / 2 + BODY_END_DEPTH / 2) - m.c[0], I2M(BODY_RADIUS - BODY_INNER_WIDTH / 2) - m.c[1], -m.c[2] );
 	part.geomID[2] = geom;
 
 	// set geometry 4 - side curve
@@ -962,7 +962,6 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, d
 	this->bot[botNum]->rot[0] = r_x;
 	this->bot[botNum]->rot[1] = r_y;
 	this->bot[botNum]->rot[2] = r_z;
-	//for (int i = 0; i < 12; i++) this->bot[botNum]->rot[i] = R[i];
 
 	// create joint
 	dJointID joint;
@@ -1086,7 +1085,7 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, d
 	dRFromAxisAndAngle(R_z, 0, 0, 1, r_z);
 	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
 	dMultiply0(R, R_xy, R_z, 3, 3, 3);
-	
+
 	// store initial body angles into array
 	this->bot[botNum]->curAng[LE] = r_le;
 	this->bot[botNum]->curAng[RE] = r_re;
@@ -1098,8 +1097,7 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, d
 	dReal lb[6] = {-I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2), 0, 0, -I2M(CENTER_LENGTH/2), I2M(CENTER_WIDTH/2), 0};
 	dReal rb[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2), I2M(CENTER_WIDTH/2), 0};
 	dReal re[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH), 0, 0};
-	
-	// build pieces of module
+
 	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, 0, BUILD);
 	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
 	buildCenter(this->space_bot[botNum], this->bot[botNum]->bodyPart[CENTER], x, y, z, R, BUILD);
@@ -1113,7 +1111,6 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, d
 	this->bot[botNum]->rot[0] = r_x;
 	this->bot[botNum]->rot[1] = r_y;
 	this->bot[botNum]->rot[2] = r_z;
-	//for (int i = 0; i < 12; i++) this->bot[botNum]->rot[i] = R[i];
 	
 	// create joint
 	dJointID joint;
@@ -1167,19 +1164,27 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, d
 	this->bot[botNum]->joints[3] = joint;
 
 	// create rotation matrices for each body part
-	dMatrix3 R_e, R_le, R_lb, R_rb, R_re;
-	dRFromAxisAndAngle(R_lb, R[1], R[5], R[9], r_lb);
-	dRFromAxisAndAngle(R_e, -R[0], -R[4], -R[8], r_le);
-	dMultiply0(R_le, R_lb, R_e, 3, 3, 3);
-	dRFromAxisAndAngle(R_rb, -R[1], -R[5], -R[9], r_rb);
-	dRFromAxisAndAngle(R_e, R[0], R[4], R[8], r_re);
+	dMatrix3 R_e, R_b, R_le, R_lb, R_rb, R_re;
+	dRFromAxisAndAngle(R_b, 0, 1, 0, r_lb);
+	dMultiply0(R_lb, R, R_b, 3, 3, 3);
+	dRFromAxisAndAngle(R_le, -1, 0, 0, r_le);
+	dMultiply0(R_le, R_lb, R_le, 3, 3, 3);
+	dRFromAxisAndAngle(R_b, 0, -1, 0, r_rb);
+	dMultiply0(R_rb, R, R_b, 3, 3, 3);
+	dRFromAxisAndAngle(R_e, 1, 0, 0, r_re);
 	dMultiply0(R_re, R_rb, R_e, 3, 3, 3);
 
+	// offset values from center of robot
+	dReal le_r[3] = {-I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_lb), 0, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_lb)};
+	dReal lb_r[3] = {-I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_lb), 0, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_lb)};
+	dReal rb_r[3] = {I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_rb), 0, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_rb)};
+	dReal re_r[3] = {I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_rb), 0, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_rb)};
+
 	// re-build pieces of module
-	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], x - I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_lb), y, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_lb) + z, R_le, r_le, REBUILD);
-	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], x - I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_lb), y, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_lb) + z, R_lb, r_lb, REBUILD);
-	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_rb) + x, y, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_rb) + z, R_rb, r_rb, REBUILD);
-	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_rb) + x, y, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_rb) + z, R_re, r_re, REBUILD);
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le, r_le, REBUILD);
+	buildLeftBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb, REBUILD);
+	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb, REBUILD);
+	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re, r_re, REBUILD);
 
 	// create motor
 	dJointID motor;
@@ -1526,6 +1531,398 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 	// build new module
 	this->iMobotBuild(botNum, x, y, z, R2D(r_x), R2D(r_y), R2D(r_z));
 
+	// add fixed joint to attach two modules
+	dJointID joint = dJointCreateFixed(this->world, 0);
+	dJointAttach(joint, this->bot[attNum]->bodyPart[face1_part].bodyID, this->bot[botNum]->bodyPart[face2_part].bodyID);
+	dJointSetFixed(joint);
+	dJointSetFixedParam(joint, dParamCFM, 0);
+	dJointSetFixedParam(joint, dParamERP, 0.95);
+}
+
+void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	int face1_part, face2_part;
+	dReal x, y, z, r_x, r_y, r_z, r_e, r_b, m[3];
+	dMatrix3 R, R_x, R_y, R_z, R_e, R_b, R_xy, R_xyz, R_xyze;
+	
+	if ( face1 == 1 && face2 == 2 ) {
+		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
+		r_z = M_PI/2;
+		r_e = 0;
+		r_b = r_lb;
+		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
+		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
+		m[2] = 0;
+		face1_part = ENDCAP_L;
+		face2_part = BODY_L;
+	}
+	else if ( face1 == 1 && face2 == 3 ) {
+		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
+		r_z = -M_PI/2;
+		r_e = 0;
+		r_b = r_lb;
+		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
+		m[1] = -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - BODY_WIDTH/2;
+		m[2] = 0;
+		face1_part = ENDCAP_L;
+		face2_part = BODY_L;
+	}
+	else if ( face1 == 1 && face2 == 4 ) {
+		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
+		r_z = M_PI/2;
+		r_e = 0;
+		r_b = r_rb;
+		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
+		m[2] = 0;
+		face1_part = ENDCAP_L;
+		face2_part = BODY_R;
+	}
+	else if ( face1 == 1 && face2 == 5 ) {
+		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
+		r_z = -M_PI/2;
+		r_e = 0;
+		r_b = r_rb;
+		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		m[1] = -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - BODY_WIDTH/2;
+		m[2] = 0;
+		face1_part = ENDCAP_L;
+		face2_part = BODY_R;
+	}
+	else if ( face1 == 1 && face2 == 6 ) {
+		dRFromAxisAndAngle(R,0,0,1,0);
+		r_z = 0;
+		r_e = r_re;
+		r_b = r_rb;
+		m[0] = -2*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH);
+		m[1] = 0;
+		m[2] = 0;
+		face1_part = ENDCAP_L;
+		face2_part = ENDCAP_R;
+	}
+	else if ( face1 == 2 && face2 == 1 ) {
+		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
+		r_z = -M_PI/2;
+		r_e = r_le;
+		r_b = r_lb;
+		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
+		m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		m[2] = 0;
+		face1_part = BODY_L;
+		face2_part = ENDCAP_L;
+	}
+	else if ( face1 == 2 && face2 == 3 ) {
+		dRFromAxisAndAngle(R,0,0,1,0);
+		r_z = 0;
+		r_e = 0;
+		r_b = r_lb;
+		m[0] = 0;
+		m[1] = -BODY_WIDTH;
+		m[2] = 0;
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+	}
+	else if ( face1 == 2 && face2 == 4 ) {
+		dRFromAxisAndAngle(R,0,0,1,M_PI);
+		r_z = M_PI;
+		r_e = 0;
+		r_b = r_rb;
+		m[0] = 0;
+		m[1] = BODY_WIDTH;
+		m[2] = 0;
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+	}
+	else if ( face1 == 2 && face2 == 5 ) {
+		dRFromAxisAndAngle(R,0,0,1,0);
+		r_z = 0;
+		r_e = 0;
+		r_b = r_rb;
+		m[0] = -2*1.9025;
+		m[1] = -BODY_WIDTH;
+		m[2] = 0;
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+	}
+	else if ( face1 == 2 && face2 == 6 ) {
+		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
+		r_z = M_PI/2;
+		r_e = r_re;
+		r_b = r_rb;
+		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
+		m[1] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		m[2] = 0;
+		face1_part = BODY_L;
+		face2_part = ENDCAP_R;
+	}
+	else if ( face1 == 3 && face2 == 1 ) {
+		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
+		r_z = M_PI/2;
+		r_e = r_le;
+		r_b = r_lb;
+		m[0] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
+		m[1] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		m[2] = 0;
+		face1_part = BODY_L;
+		face2_part = ENDCAP_L;
+	}
+	else if ( face1 == 3 && face2 == 2 ) {
+		dRFromAxisAndAngle(R,0,0,1,0);
+		r_z = 0;
+		r_e = 0;
+		r_b = r_lb;
+		m[0] = 0;
+		m[1] = BODY_WIDTH;
+		m[2] = 0;
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+	}
+	else if ( face1 == 3 && face2 == 4 ) {
+		dRFromAxisAndAngle(R,0,0,1,0);
+		r_z = 0;
+		r_e = 0;
+		r_b = r_rb;
+		m[0] = -2*1.9025;
+		m[1] = BODY_WIDTH;
+		m[2] = 0;
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+	}
+	else if ( face1 == 3 && face2 == 5 ) {
+		dRFromAxisAndAngle(R,0,0,1,M_PI);
+		r_z = M_PI;
+		r_e = 0;
+		r_b = r_rb;
+		m[0] = 0;
+		m[1] = -BODY_WIDTH;
+		m[2] = 0;
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+	}
+	else if ( face1 == 3 && face2 == 6 ) {
+		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
+		r_z = -M_PI/2;
+		r_e = r_re;
+		r_b = r_rb;
+		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
+		m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		m[2] = 0;
+		face1_part = BODY_L;
+		face2_part = ENDCAP_R;
+	}
+	else if ( face1 == 4 && face2 == 1 ) {
+		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
+		r_z = -M_PI/2;
+		r_e = r_le;
+		r_b = r_lb;
+		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
+		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
+		m[2] = 0;
+		face1_part = BODY_R;
+		face2_part = ENDCAP_L;
+	}
+	else if ( face1 == 4 && face2 == 2 ) {
+		dRFromAxisAndAngle(R,0,0,1,M_PI);
+		r_z = M_PI;
+		r_e = 0;
+		r_b = r_rb;
+		m[0] = 0;
+		m[1] = BODY_WIDTH;
+		m[2] = 0;
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+	}
+	else if ( face1 == 4 && face2 == 3 ) {
+		dRFromAxisAndAngle(R,0,0,1,0);
+		r_z = 0;
+		r_e = 0;
+		r_b = r_lb;
+		m[0] = 2*1.9025;
+		m[1] = -BODY_WIDTH;
+		m[2] = 0;
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+	}
+	else if ( face1 == 4 && face2 == 5 ) {
+		dRFromAxisAndAngle(R,0,0,1,0);
+		r_z = 0;
+		r_e = 0;
+		r_b = r_rb;
+		m[0] = 0;
+		m[1] = -BODY_WIDTH;
+		m[2] = 0;
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+	}
+	else if ( face1 == 4 && face2 == 6 ) {
+		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
+		r_z = M_PI/2;
+		r_e = r_re;
+		r_b = r_rb;
+		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
+		m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		m[2] = 0;
+		face1_part = BODY_R;
+		face2_part = ENDCAP_R;
+	}
+	else if ( face1 == 5 && face2 == 1 ) {
+		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
+		r_z = M_PI/2;
+		r_e = r_le;
+		r_b = r_lb;
+		m[0] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
+		m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		m[2] = 0;
+		face1_part = BODY_R;
+		face2_part = ENDCAP_L;
+	}
+	else if ( face1 == 5 && face2 == 2 ) {
+		dRFromAxisAndAngle(R,0,0,1,0);
+		r_z = 0;
+		r_e = 0;
+		r_b = r_lb;
+		m[0] = 2*1.9025;
+		m[1] = BODY_WIDTH;
+		m[2] = 0;
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+	}
+	else if ( face1 == 5 && face2 == 3 ) {
+		dRFromAxisAndAngle(R,0,0,1,M_PI);
+		r_z = M_PI;
+		r_e = 0;
+		r_b = r_lb;
+		m[0] = 0;
+		m[1] = -BODY_WIDTH;
+		m[2] = 0;
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+	}
+	else if ( face1 == 5 && face2 == 4 ) {
+		dRFromAxisAndAngle(R,0,0,1,0);
+		r_z = 0;
+		r_e = 0;
+		r_b = r_rb;
+		m[0] = 0;
+		m[1] = BODY_WIDTH;
+		m[2] = 0;
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+	}
+	else if ( face1 == 5 && face2 == 6 ) {
+		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
+		r_z = -M_PI/2;
+		r_e = r_re;
+		r_b = r_rb;
+		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
+		m[1] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		m[2] = 0;
+		face1_part = BODY_R;
+		face2_part = ENDCAP_R;
+	}
+	else if ( face1 == 6 && face2 == 1 ) {
+		dRFromAxisAndAngle(R,0,0,1,0);
+		r_z = 0;
+		r_e = r_le;
+		r_b = r_lb;
+		m[0] = 2*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH);
+		m[1] = 0;
+		m[2] = 0;
+		face1_part = ENDCAP_R;
+		face2_part = ENDCAP_L;
+	}
+	else if ( face1 == 6 && face2 == 2 ) {
+		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
+		r_z = -M_PI/2;
+		r_e = 0;
+		r_b = r_lb;
+		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
+		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
+		m[2] = 0;
+		face1_part = ENDCAP_R;
+		face2_part = BODY_L;
+	}
+	else if ( face1 == 6 && face2 == 3 ) {
+		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
+		r_z = M_PI/2;
+		r_e = 0;
+		r_b = r_lb;
+		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
+		m[1] = -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - BODY_WIDTH/2;
+		m[2] = 0;
+		face1_part = ENDCAP_R;
+		face2_part = BODY_L;
+	}
+	else if ( face1 == 6 && face2 == 4 ) {
+		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
+		r_z = -M_PI/2;
+		r_e = 0;
+		r_b = r_rb;
+		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
+		m[2] = 0;
+		face1_part = ENDCAP_R;
+		face2_part = BODY_R;
+	}
+	else if ( face1 == 6 && face2 == 5 ) {
+		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
+		r_z = M_PI/2;
+		r_e = 0;
+		r_b = r_rb;
+		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		m[1] = -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - BODY_WIDTH/2;
+		m[2] = 0;
+		face1_part = ENDCAP_R;
+		face2_part = BODY_R;
+	}
+	
+	// rotation of body about fixed point
+	if ( face2 == 1 ) {
+		r_e = r_le;
+		r_b = r_lb;
+	}
+	else if ( face2 == 2 ) {
+		r_e = 0;
+		r_b = r_lb;
+	}
+	else if ( face2 == 3 ) {
+		r_e = 0;
+		r_b = r_lb;
+	}
+	else if ( face2 == 4 ) {
+		r_e = 0;
+		r_b = r_rb;
+	}
+	else if ( face2 == 5 ) {
+		r_e = 0;
+		r_b = r_rb;
+	}
+	else if ( face2 == 6 ) {
+		r_e = r_re;
+		r_b = r_rb;
+	}
+	
+	// create rotation matrix for robot
+	r_x = this->bot[attNum]->rot[0];
+	r_y = this->bot[attNum]->rot[1];
+	r_z += this->bot[attNum]->rot[2];
+	dRFromAxisAndAngle(R_x, 1, 0, 0, r_x);
+	dRFromAxisAndAngle(R_y, 0, 1, 0, r_y);
+	dRFromAxisAndAngle(R_z, 0, 0, 1, r_z);
+	dRFromAxisAndAngle(R_e, R_z[0], R_z[4], R_z[8], r_e);
+	dRFromAxisAndAngle(R_b, R_z[1], R_z[5], R_z[9], r_b);
+	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+	dMultiply0(R_xyz, R_xy, R_z, 3, 3, 3);
+	dMultiply0(R_xyze, R_xyz, R_e, 3, 3, 3);
+	dMultiply0(R, R_xyze, R_b, 3, 3, 3);
+	
+	// set x,y,z position for new module
+	x = M2I(this->bot[attNum]->pos[0]) + R[0]*m[0] + R[1]*m[1] + R[2]*m[2];
+	y = M2I(this->bot[attNum]->pos[1]) + R[4]*m[0] + R[5]*m[1] + R[6]*m[2];
+	z = R[8]*m[0] + R[9]*m[1] + R[10]*m[2];
+	
+	// build new module
+	this->iMobotBuild(botNum, x, y, z, R2D(r_x), R2D(r_y), R2D(r_z), r_le, r_lb, r_rb, r_re);
+	
 	// add fixed joint to attach two modules
 	dJointID joint = dJointCreateFixed(this->world, 0);
 	dJointAttach(joint, this->bot[attNum]->bodyPart[face1_part].bodyID, this->bot[botNum]->bodyPart[face2_part].bodyID);
