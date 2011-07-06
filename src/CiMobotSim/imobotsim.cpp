@@ -117,7 +117,7 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *
 		this->space_bot[i] = dHashSpaceCreate(this->space);
 		dSpaceSetCleanup(this->space_bot[i],1);
 	}
-	this->group  = dJointGroupCreate(1000000);
+	this->group  = dJointGroupCreate(0);
 	
 	// simulation parameters
 	dWorldSetAutoDisableFlag(this->world, 1);					// auto-disable bodies that are not moving
