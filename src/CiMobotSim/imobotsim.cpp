@@ -134,7 +134,7 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *
 	// initialize drawstuff
 	m_fn.version = DS_VERSION;
 	m_fn.start = (void (*)(void))&CiMobotSim::ds_start;
-	m_fn.step = (void (*)(int))&CiMobotSim::simulationLoop;
+	m_fn.step = (void (*)(int))&CiMobotSim::ds_simulation;
 	m_fn.command = (void (*)(int))&CiMobotSim::ds_command;
 	m_fn.stop = 0;
 	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
@@ -215,42 +215,49 @@ void CiMobotSim::run(int argc, char **argv) {
  * will be NULL. Instead, if we are using Drawstuff, we sholud reference the
  * global variable, g_imobotsim */
 #define this g_imobotsim
-void CiMobotSim::simulationLoop(int pause) {
+void CiMobotSim::ds_simulation(int pause) {
+	bool loop = true;													// initialize
+
+	this->updateAngles();												// update angles for current step
+
+	dSpaceCollide(this->space, this, &this->collisionWrapper);			// collide all geometries together
+	dWorldStep(this->world, this->m_t_step);							// step world time by one
+	dJointGroupEmpty(this->group);										// clear out all contact joints
+
+	this->printIntermediateData();										// print out incremental data
+
+	this->setFlags();													// set flags for completion of steps
+	this->incrementStep();												// check whether to increment to next step
+
+	loop = this->endSimulation(this->m_t_tot);							// check whether to end simulation
+	this->incrementTime(this->m_t_step);								// increment time
+
+	this->ds_drawBodies();
+	if (!loop) dsStop();
+
+	#undef this
+}
 #else
 void CiMobotSim::simulationLoop(void) {
-#endif
-	// initialize
-	bool loop = true;
+	bool loop = true;													// initialize
 
-	// loop continuously until simulation is stopped
-	#ifndef ENABLE_DRAWSTUFF
-	while (loop) {
-	#endif
+	while (loop) {														// loop continuously until simulation is stopped
 		this->updateAngles();											// update angles for current step
 
 		dSpaceCollide(this->space, this, &this->collisionWrapper);		// collide all geometries together
 		dWorldStep(this->world, this->m_t_step);							// step world time by one
 		dJointGroupEmpty(this->group);									// clear out all contact joints
-		
+
 		this->printIntermediateData();									// print out incremental data
 
 		this->setFlags();												// set flags for completion of steps
 		this->incrementStep();											// check whether to increment to next step
 
 		loop = this->endSimulation(this->m_t_tot);						// check whether to end simulation
-		this->incrementTime(this->m_t_step);								// increment time
-
-		#ifdef ENABLE_DRAWSTUFF
-		this->ds_drawBodies();
-		if (!loop) dsStop();
-		#endif
-
-	#ifndef ENABLE_DRAWSTUFF
+		this->incrementTime(this->m_t_step);							// increment time
 	}
-	#else
-	#undef this
-	#endif
 }
+#endif
 
 void CiMobotSim::updateAngles() {
 	// update stored data in struct with data from ODE

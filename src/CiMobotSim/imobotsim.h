@@ -196,7 +196,7 @@ class CiMobotSim {
 		void ds_start();							// initialization of drawstuff scene
 		void ds_drawPart(dGeomID part);				// draw each geometry of each body
 		void ds_command(int cmd);					// keyboard commands for ds
-		void simulationLoop(int pause);				// loop to complete simulation
+		void ds_simulation(int pause);				// callback function for simulation
 		#else
 		void simulationLoop();						// loop to complete simulation
 		#endif
