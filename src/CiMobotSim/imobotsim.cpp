@@ -201,19 +201,6 @@ void CiMobotSim::setAngVel(dReal *vel) {
 	}
 }
 
-void CiMobotSim::printData() {
-	for (int i = 0; i < this->m_num_bot; i++) {
-		cout << this->bot[i]->ang[0] << "\t" << this->bot[i]->ang[1] << "\t" << this->bot[i]->ang[2] << "\t" << this->bot[i]->ang[3] << endl;
-		cout << this->bot[i]->ang[4] << "\t" << this->bot[i]->ang[5] << "\t" << this->bot[i]->ang[6] << "\t" << this->bot[i]->ang[7] << endl;
-		cout << this->bot[i]->ang[8] << "\t" << this->bot[i]->ang[9] << "\t" << this->bot[i]->ang[10] << "\t" << this->bot[i]->ang[11] << endl;
-		cout << this->bot[i]->ang[12] << "\t" << this->bot[i]->ang[13] << "\t" << this->bot[i]->ang[14] << "\t" << this->bot[i]->ang[15] << endl;
-		cout << this->bot[i]->vel[0] << "\t" << this->bot[i]->vel[1] << "\t" << this->bot[i]->vel[2] << "\t" << this->bot[i]->vel[3] << endl;
-		cout << this->bot[i]->vel[4] << "\t" << this->bot[i]->vel[5] << "\t" << this->bot[i]->vel[6] << "\t" << this->bot[i]->vel[7] << endl;
-		cout << this->bot[i]->vel[8] << "\t" << this->bot[i]->vel[9] << "\t" << this->bot[i]->vel[10] << "\t" << this->bot[i]->vel[11] << endl;
-		cout << this->bot[i]->vel[12] << "\t" << this->bot[i]->vel[13] << "\t" << this->bot[i]->vel[14] << "\t" << this->bot[i]->vel[15] << endl;
-	}
-}
-
 void CiMobotSim::run(int argc, char **argv) {
 	#ifdef ENABLE_DRAWSTUFF
 		dsSimulationLoop(argc, argv, 352, 288, &m_fn);
@@ -1103,7 +1090,7 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, d
 	buildCenter(this->space_bot[botNum], this->bot[botNum]->bodyPart[CENTER], x, y, z, R, BUILD);
 	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
 	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, 0, BUILD);
-	
+
 	// store position and rotation of center of module
 	this->bot[botNum]->pos[0] = x;
 	this->bot[botNum]->pos[1] = y;
@@ -1111,10 +1098,10 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, d
 	this->bot[botNum]->rot[0] = r_x;
 	this->bot[botNum]->rot[1] = r_y;
 	this->bot[botNum]->rot[2] = r_z;
-	
+
 	// create joint
 	dJointID joint;
-	
+
 	// joint for left endcap to body
 	joint = dJointCreateHinge(this->world, 0);
 	dJointAttach(joint, this->bot[botNum]->bodyPart[BODY_L].bodyID, this->bot[botNum]->bodyPart[ENDCAP_L].bodyID);
@@ -1238,12 +1225,12 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, d
 }
 
 void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {
+	// initialize variables
 	int face1_part, face2_part;
 	dReal x, y, z, r_x, r_y, r_z, m[3];
 	dMatrix3 R, R_x, R_y, R_z, R_xy;
 
 	if ( face1 == 1 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
 		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
 		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
@@ -1252,7 +1239,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 1 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
 		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
 		m[1] = -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - BODY_WIDTH/2;
@@ -1261,7 +1247,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 1 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
@@ -1270,7 +1255,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 1 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[1] = -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - BODY_WIDTH/2;
@@ -1279,7 +1263,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 1 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
 		m[0] = -2*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH);
 		m[1] = 0;
@@ -1288,7 +1271,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_R;
 	}
 	else if ( face1 == 2 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
 		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
 		m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
@@ -1297,7 +1279,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_L;
 	}
 	else if ( face1 == 2 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
 		m[0] = 0;
 		m[1] = -BODY_WIDTH;
@@ -1306,7 +1287,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 2 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI);
 		r_z = M_PI;
 		m[0] = 0;
 		m[1] = BODY_WIDTH;
@@ -1315,7 +1295,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 2 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
 		m[0] = -2*1.9025;
 		m[1] = -BODY_WIDTH;
@@ -1324,7 +1303,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 2 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
 		m[1] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
@@ -1333,7 +1311,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_R;
 	}
 	else if ( face1 == 3 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
 		m[0] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
 		m[1] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
@@ -1342,7 +1319,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_L;
 	}
 	else if ( face1 == 3 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
 		m[0] = 0;
 		m[1] = BODY_WIDTH;
@@ -1351,7 +1327,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 3 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
 		m[0] = -2*1.9025;
 		m[1] = BODY_WIDTH;
@@ -1360,7 +1335,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 3 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI);
 		r_z = M_PI;
 		m[0] = 0;
 		m[1] = -BODY_WIDTH;
@@ -1369,7 +1343,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 3 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
 		m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
@@ -1378,7 +1351,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_R;
 	}
 	else if ( face1 == 4 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
 		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
 		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
@@ -1387,7 +1359,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_L;
 	}
 	else if ( face1 == 4 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI);
 		r_z = M_PI;
 		m[0] = 0;
 		m[1] = BODY_WIDTH;
@@ -1396,7 +1367,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 4 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
 		m[0] = 2*1.9025;
 		m[1] = -BODY_WIDTH;
@@ -1405,7 +1375,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 4 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
 		m[0] = 0;
 		m[1] = -BODY_WIDTH;
@@ -1414,7 +1383,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 4 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
 		m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
@@ -1423,7 +1391,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_R;
 	}
 	else if ( face1 == 5 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
 		m[0] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
 		m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
@@ -1432,7 +1399,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_L;
 	}
 	else if ( face1 == 5 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
 		m[0] = 2*1.9025;
 		m[1] = BODY_WIDTH;
@@ -1441,7 +1407,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 5 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI);
 		r_z = M_PI;
 		m[0] = 0;
 		m[1] = -BODY_WIDTH;
@@ -1450,7 +1415,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 5 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
 		m[0] = 0;
 		m[1] = BODY_WIDTH;
@@ -1459,7 +1423,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 5 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
 		m[1] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
@@ -1468,7 +1431,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_R;
 	}
 	else if ( face1 == 6 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
 		m[0] = 2*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH);
 		m[1] = 0;
@@ -1477,7 +1439,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_L;
 	}
 	else if ( face1 == 6 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
 		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
 		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
@@ -1486,7 +1447,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 6 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
 		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
 		m[1] = -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - BODY_WIDTH/2;
@@ -1495,7 +1455,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 6 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
@@ -1504,7 +1463,6 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 6 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[1] = -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - BODY_WIDTH/2;
@@ -1536,19 +1494,48 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 	dJointAttach(joint, this->bot[attNum]->bodyPart[face1_part].bodyID, this->bot[botNum]->bodyPart[face2_part].bodyID);
 	dJointSetFixed(joint);
 	dJointSetFixedParam(joint, dParamCFM, 0);
-	dJointSetFixedParam(joint, dParamERP, 0.95);
+	dJointSetFixedParam(joint, dParamERP, 0.9);
 }
 
 void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	// initialize variables
 	int face1_part, face2_part;
-	dReal x, y, z, r_x, r_y, r_z, r_e, r_b, m[3];
-	dMatrix3 R, R_x, R_y, R_z, R_e, R_b, R_xy, R_xyz, R_xyze;
-	
-	if ( face1 == 1 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
-		r_z = M_PI/2;
+	dReal x, y, z, r_x, r_y, r_z, r_e, r_b, m[3], s[3];
+	dMatrix3 R, R_x, R_y, R_z, R_xy;
+
+	//dReal le_r[3] = {-I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_lb), 0, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_lb)};
+	//dReal lb_r[3] = {-I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_lb), 0, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_lb)};
+	//dReal rb_r[3] = {I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_rb), 0, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_rb)};
+	//dReal re_r[3] = {I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_rb), 0, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_rb)};
+
+	// rotation of body about fixed point
+	if ( face2 == 1 ) {
+		r_e = D2R(r_le);
+		r_b = D2R(r_lb);
+	}
+	else if ( face2 == 2 ) {
 		r_e = 0;
-		r_b = r_lb;
+		r_b = D2R(r_lb);
+	}
+	else if ( face2 == 3 ) {
+		r_e = 0;
+		r_b = D2R(r_lb);
+	}
+	else if ( face2 == 4 ) {
+		r_e = 0;
+		r_b = D2R(r_rb);
+	}
+	else if ( face2 == 5 ) {
+		r_e = 0;
+		r_b = D2R(r_rb);
+	}
+	else if ( face2 == 6 ) {
+		r_e = D2R(r_re);
+		r_b = D2R(r_rb);
+	}
+
+	if ( face1 == 1 && face2 == 2 ) {
+		r_z = M_PI/2;
 		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
 		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
 		m[2] = 0;
@@ -1556,10 +1543,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 1 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
-		r_e = 0;
-		r_b = r_lb;
 		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
 		m[1] = -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - BODY_WIDTH/2;
 		m[2] = 0;
@@ -1567,10 +1551,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 1 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
-		r_e = 0;
-		r_b = r_rb;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
 		m[2] = 0;
@@ -1578,10 +1559,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 1 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
-		r_e = 0;
-		r_b = r_rb;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[1] = -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - BODY_WIDTH/2;
 		m[2] = 0;
@@ -1589,10 +1567,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 1 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
-		r_e = r_re;
-		r_b = r_rb;
 		m[0] = -2*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH);
 		m[1] = 0;
 		m[2] = 0;
@@ -1600,21 +1575,78 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_R;
 	}
 	else if ( face1 == 2 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
+		r_y = 0;
+		r_x = -this->bot[attNum]->bodyPart[BODY_L].ang;
 		r_z = -M_PI/2;
-		r_e = r_le;
-		r_b = r_lb;
-		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
-		m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		//m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
+		//m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
+		//m[2] = 0;
+		//m[0] = -CENTER_LENGTH/2 - (BODY_LENGTH + BODY_END_DEPTH - 1.28)*cos(this->bot[attNum]->bodyPart[BODY_L].ang);
+		//m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
+		//m[2] = (BODY_LENGTH + BODY_END_DEPTH - 1.28)*sin(this->bot[attNum]->bodyPart[BODY_L].ang);
+		//m[0] = 0.5*CENTER_LENGTH*cos(r_b) + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
+		//m[1] = -0.5*CENTER_LENGTH*cos(this->bot[attNum]->bodyPart[BODY_L].ang) - (BODY_LENGTH + BODY_END_DEPTH - 1.28)*cos(this->bot[attNum]->bodyPart[BODY_L].ang) + (0.5*CENTER_LENGTH)*sin(r_b)*sin(r_e);
+		//m[2] = 0.5*CENTER_LENGTH*sin(r_b) + (BODY_LENGTH + BODY_END_DEPTH - 1.28)*sin(this->bot[attNum]->bodyPart[BODY_L].ang);
+		
+		m[0] = -0.5*CENTER_LENGTH;
+		m[1] = 0;
 		m[2] = 0;
+		
+		s[0] = -BODY_LENGTH - BODY_END_DEPTH + 1.28;
+		s[1] = 0;
+		s[2] = 0;
+		
+		dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+		dRFromAxisAndAngle(R_y, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+		dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+		dMultiply0(R, R_xy, R_z, 3, 3, 3);
+		
+		m[0] += R[0]*s[0] + R[1]*s[1] + R[2]*s[2];
+		m[1] += R[4]*s[0] + R[5]*s[1] + R[6]*s[2];
+		m[2] += R[8]*s[0] + R[9]*s[1] + R[10]*s[2];
+		
+		m[1] += -END_DEPTH - 0.5*BODY_WIDTH;
+		
+		s[0] = 0;
+		s[1] = 0;
+		s[2] = 0;
+		
+		dRFromAxisAndAngle(R_x, 1, 0, 0, -r_e);
+		dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+		dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+		dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+		dMultiply0(R, R_xy, R_z, 3, 3, 3);
+		
+		m[0] += R[0]*s[0] + R[1]*s[1] + R[2]*s[2];
+		m[1] += R[4]*s[0] + R[5]*s[1] + R[6]*s[2];
+		m[2] += R[8]*s[0] + R[9]*s[1] + R[10]*s[2];
+		
+		m[1] += -BODY_END_DEPTH - BODY_LENGTH;
+		
+		s[0] = -0.5*CENTER_LENGTH;
+		s[1] = 0;
+		s[2] = 0;
+		
+		dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+		dRFromAxisAndAngle(R_y, 0, 1, 0, -r_b);
+		dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+		dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+		dMultiply0(R, R_xy, R_z, 3, 3, 3);
+		
+		m[0] += R[0]*s[0] + R[1]*s[1] + R[2]*s[2];
+		m[1] += R[4]*s[0] + R[5]*s[1] + R[6]*s[2];
+		m[2] += R[8]*s[0] + R[9]*s[1] + R[10]*s[2];
+
+		
 		face1_part = BODY_L;
 		face2_part = ENDCAP_L;
+		cout << r_x << "\t" << r_y << "\t" << r_z << endl;
+		cout << "case: 2,1" << endl;
+		cout << m[0] << "\t" << m[1] << "\t" << m[2] << endl;
 	}
 	else if ( face1 == 2 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
-		r_e = 0;
-		r_b = r_lb;
 		m[0] = 0;
 		m[1] = -BODY_WIDTH;
 		m[2] = 0;
@@ -1622,10 +1654,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 2 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI);
 		r_z = M_PI;
-		r_e = 0;
-		r_b = r_rb;
 		m[0] = 0;
 		m[1] = BODY_WIDTH;
 		m[2] = 0;
@@ -1633,21 +1662,15 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 2 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
-		r_e = 0;
-		r_b = r_rb;
-		m[0] = -2*1.9025;
+		m[0] = -2*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[1] = -BODY_WIDTH;
 		m[2] = 0;
 		face1_part = BODY_L;
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 2 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
-		r_e = r_re;
-		r_b = r_rb;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
 		m[1] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[2] = 0;
@@ -1655,10 +1678,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_R;
 	}
 	else if ( face1 == 3 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
-		r_e = r_le;
-		r_b = r_lb;
 		m[0] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
 		m[1] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[2] = 0;
@@ -1666,10 +1686,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_L;
 	}
 	else if ( face1 == 3 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
-		r_e = 0;
-		r_b = r_lb;
 		m[0] = 0;
 		m[1] = BODY_WIDTH;
 		m[2] = 0;
@@ -1677,21 +1694,15 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 3 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
-		r_e = 0;
-		r_b = r_rb;
-		m[0] = -2*1.9025;
+		m[0] = -2*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[1] = BODY_WIDTH;
 		m[2] = 0;
 		face1_part = BODY_L;
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 3 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI);
 		r_z = M_PI;
-		r_e = 0;
-		r_b = r_rb;
 		m[0] = 0;
 		m[1] = -BODY_WIDTH;
 		m[2] = 0;
@@ -1699,10 +1710,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 3 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
-		r_e = r_re;
-		r_b = r_rb;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
 		m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[2] = 0;
@@ -1710,10 +1718,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_R;
 	}
 	else if ( face1 == 4 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
-		r_e = r_le;
-		r_b = r_lb;
 		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
 		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
 		m[2] = 0;
@@ -1721,10 +1726,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_L;
 	}
 	else if ( face1 == 4 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI);
 		r_z = M_PI;
-		r_e = 0;
-		r_b = r_rb;
 		m[0] = 0;
 		m[1] = BODY_WIDTH;
 		m[2] = 0;
@@ -1732,21 +1734,15 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 4 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
-		r_e = 0;
-		r_b = r_lb;
-		m[0] = 2*1.9025;
+		m[0] = 2*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[1] = -BODY_WIDTH;
 		m[2] = 0;
 		face1_part = BODY_R;
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 4 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
-		r_e = 0;
-		r_b = r_rb;
 		m[0] = 0;
 		m[1] = -BODY_WIDTH;
 		m[2] = 0;
@@ -1754,10 +1750,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 4 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
-		r_e = r_re;
-		r_b = r_rb;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
 		m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[2] = 0;
@@ -1765,10 +1758,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_R;
 	}
 	else if ( face1 == 5 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
-		r_e = r_le;
-		r_b = r_lb;
 		m[0] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
 		m[1] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[2] = 0;
@@ -1776,21 +1766,15 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_L;
 	}
 	else if ( face1 == 5 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
-		r_e = 0;
-		r_b = r_lb;
-		m[0] = 2*1.9025;
+		m[0] = 2*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[1] = BODY_WIDTH;
 		m[2] = 0;
 		face1_part = BODY_R;
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 5 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI);
 		r_z = M_PI;
-		r_e = 0;
-		r_b = r_lb;
 		m[0] = 0;
 		m[1] = -BODY_WIDTH;
 		m[2] = 0;
@@ -1798,10 +1782,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 5 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
-		r_e = 0;
-		r_b = r_rb;
 		m[0] = 0;
 		m[1] = BODY_WIDTH;
 		m[2] = 0;
@@ -1809,10 +1790,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 5 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
-		r_e = r_re;
-		r_b = r_rb;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2);
 		m[1] = (CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[2] = 0;
@@ -1820,10 +1798,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_R;
 	}
 	else if ( face1 == 6 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
 		r_z = 0;
-		r_e = r_le;
-		r_b = r_lb;
 		m[0] = 2*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH);
 		m[1] = 0;
 		m[2] = 0;
@@ -1831,10 +1806,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_L;
 	}
 	else if ( face1 == 6 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
-		r_e = 0;
-		r_b = r_lb;
 		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
 		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
 		m[2] = 0;
@@ -1842,10 +1814,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 6 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
-		r_e = 0;
-		r_b = r_lb;
 		m[0] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28;
 		m[1] = -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - BODY_WIDTH/2;
 		m[2] = 0;
@@ -1853,10 +1822,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_L;
 	}
 	else if ( face1 == 6 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
 		r_z = -M_PI/2;
-		r_e = 0;
-		r_b = r_rb;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[1] = CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + BODY_WIDTH/2;
 		m[2] = 0;
@@ -1864,71 +1830,40 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = BODY_R;
 	}
 	else if ( face1 == 6 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
 		r_z = M_PI/2;
-		r_e = 0;
-		r_b = r_rb;
 		m[0] = -1*(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH - 1.28);
 		m[1] = -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - BODY_WIDTH/2;
 		m[2] = 0;
 		face1_part = ENDCAP_R;
 		face2_part = BODY_R;
 	}
-	
-	// rotation of body about fixed point
-	if ( face2 == 1 ) {
-		r_e = r_le;
-		r_b = r_lb;
-	}
-	else if ( face2 == 2 ) {
-		r_e = 0;
-		r_b = r_lb;
-	}
-	else if ( face2 == 3 ) {
-		r_e = 0;
-		r_b = r_lb;
-	}
-	else if ( face2 == 4 ) {
-		r_e = 0;
-		r_b = r_rb;
-	}
-	else if ( face2 == 5 ) {
-		r_e = 0;
-		r_b = r_rb;
-	}
-	else if ( face2 == 6 ) {
-		r_e = r_re;
-		r_b = r_rb;
-	}
-	
+
 	// create rotation matrix for robot
-	r_x = this->bot[attNum]->rot[0];
-	r_y = this->bot[attNum]->rot[1];
+	r_x += this->bot[attNum]->rot[0];
+	r_y += this->bot[attNum]->rot[1];
 	r_z += this->bot[attNum]->rot[2];
 	dRFromAxisAndAngle(R_x, 1, 0, 0, r_x);
 	dRFromAxisAndAngle(R_y, 0, 1, 0, r_y);
 	dRFromAxisAndAngle(R_z, 0, 0, 1, r_z);
-	dRFromAxisAndAngle(R_e, R_z[0], R_z[4], R_z[8], r_e);
-	dRFromAxisAndAngle(R_b, R_z[1], R_z[5], R_z[9], r_b);
 	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
-	dMultiply0(R_xyz, R_xy, R_z, 3, 3, 3);
-	dMultiply0(R_xyze, R_xyz, R_e, 3, 3, 3);
-	dMultiply0(R, R_xyze, R_b, 3, 3, 3);
-	
+	dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+	cout << r_x << "\t" << r_y << "\t" << r_z << endl;
+
 	// set x,y,z position for new module
 	x = M2I(this->bot[attNum]->pos[0]) + R[0]*m[0] + R[1]*m[1] + R[2]*m[2];
 	y = M2I(this->bot[attNum]->pos[1]) + R[4]*m[0] + R[5]*m[1] + R[6]*m[2];
-	z = R[8]*m[0] + R[9]*m[1] + R[10]*m[2];
+	z = M2I(this->bot[attNum]->pos[2]) + R[8]*m[0] + R[9]*m[1] + R[10]*m[2];
 	
 	// build new module
 	this->iMobotBuild(botNum, x, y, z, R2D(r_x), R2D(r_y), R2D(r_z), r_le, r_lb, r_rb, r_re);
 	
 	// add fixed joint to attach two modules
-	dJointID joint = dJointCreateFixed(this->world, 0);
+	/*dJointID joint = dJointCreateFixed(this->world, 0);
 	dJointAttach(joint, this->bot[attNum]->bodyPart[face1_part].bodyID, this->bot[botNum]->bodyPart[face2_part].bodyID);
 	dJointSetFixed(joint);
 	dJointSetFixedParam(joint, dParamCFM, 0);
-	dJointSetFixedParam(joint, dParamERP, 0.95);
+	dJointSetFixedParam(joint, dParamERP, 0.9);*/
 }
 
 /**********************************************************

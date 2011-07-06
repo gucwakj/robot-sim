@@ -1,7 +1,7 @@
 #ifndef CIMOBOTSIM_H_
 #define CIMOBOTSIM_H_
-#include "config.h"
 
+#include "config.h"
 #include <ode/ode.h>
 #ifdef ENABLE_DRAWSTUFF
 #include <drawstuff/drawstuff.h>
@@ -11,34 +11,32 @@
 /*
  *	iMobot dimension macros
  */
-#define CENTER_LENGTH	2.865
-#define CENTER_WIDTH	1.05
-#define CENTER_HEIGHT	2.60
-#define CENTER_RADIUS	1.30
-#define BODY_LENGTH		1.55
-#define BODY_WIDTH		2.85
-#define BODY_HEIGHT		2.85
-#define BODY_RADIUS		1.425
-#define BODY_INNER_WIDTH 0.875
-#define BODY_END_DEPTH	0.2
-#define END_WIDTH		2.85
-#define END_HEIGHT		2.85
-#define END_DEPTH		0.125
-#define END_RADIUS		0.85
+#define CENTER_LENGTH		2.865
+#define CENTER_WIDTH		1.05
+#define CENTER_HEIGHT		2.60
+#define CENTER_RADIUS		1.30
+#define BODY_LENGTH			1.55
+#define BODY_WIDTH			2.85
+#define BODY_HEIGHT			2.85
+#define BODY_RADIUS			1.425
+#define BODY_INNER_WIDTH	0.875
+#define BODY_END_DEPTH		0.2
+#define END_WIDTH			2.85
+#define END_HEIGHT			2.85
+#define END_DEPTH			0.125
+#define END_RADIUS			0.85
 
 /*
- *	Enumerations for parts of iMobot
+ *	enumerations for parts of iMobot
  */
-// each body which has a degree of freedom
-enum robot_bodies_e {
+enum robot_bodies_e {		// each body which has a degree of freedom
 	LE,
 	LB,
 	RB,
 	RE,
 	NUM_DOF
 };
-// each body part which is built
-enum robot_pieces_e {
+enum robot_pieces_e {		// each body part which is built
 	BODY_L,
 	BODY_R,
 	CENTER,
@@ -46,55 +44,53 @@ enum robot_pieces_e {
 	ENDCAP_R,
 	NUM_PARTS
 };
-// build or rebuild a part
-enum robot_build_e {
+enum robot_build_e {		// build or rebuild a part
 	BUILD,
 	REBUILD
 };
 
+/*
+ *	simulation class
+ */
 class CiMobotSim {
 	public:
 		/*
-		 *	Constructor and Destructor
+		 *	constructor and destructor
 		 */
 		CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *ang);
 		~CiMobotSim();
 
 		/*
-		 *	Functions to input simulation variables
+		 *	functions to input simulation variables
 		 */
 		void setMu(dReal mu_g, dReal mu_b);
 		void setCOR(dReal cor_g, dReal cor_b);
 		void setAngVel(dReal *vel);
 
 		/*
-		 *	Functions to build models of iMobot
+		 *	functions to build models of iMobot
 		 */
 		/* default build function without rotation support
 			botNum:				number of module to build
-			x, y, z:			global position of center of module
-		 */
+			x, y, z:			global position of center of module	*/
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z);
 		/* rotate module about z-axis
 			botNum:				number of module to build
 			x, y, z:			global position of center of module
-			r_x, r_y, r_z:		rotations about three principal axes
-		 */
+			r_x, r_y, r_z:		rotations about three principal axes	*/
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z);
 		/* build a new module with predefined angles for body parts
 			botNum:				number of module to build
 			x, y, z:			global position of center of module
 			r_x, r_y, r_z:		rotations about three principal axes
 			le, re:				rotation of endcaps about respective bodies (in degrees)
-			lb, rb:				rotation of bodies about center (in degrees)
-		 */
+			lb, rb:				rotation of bodies about center (in degrees)	*/
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		/* build a new module attached to a preexisting module
 			botNum:				number of new module to build
 			attNum:				number of module which to attach
 			face1:				face of attNum module
-			face2:				face of new module to attach
-		 */
+			face2:				face of new module to attach	*/
 		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2);
 		/* build a new module attached to a preexisting module
 			botNum:				number of new module to build
@@ -102,12 +98,11 @@ class CiMobotSim {
 			face1:				face of attNum module
 			face2:				face of new module to attach
 			le, re:				rotation of endcaps about respective bodies (in degrees)
-			lb, rb:				rotation of bodies about center (in degrees)
-		 */
+			lb, rb:				rotation of bodies about center (in degrees)	*/
 		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		/*
-		 *	Build ground out of simple objects
+		 *	build ground out of simple objects
 		 */
 		void groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
 		void groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
@@ -116,107 +111,107 @@ class CiMobotSim {
 		void groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz);
 
 		/*
-		 * 	Run the simulation 
+		 * 	run the simulation
 		 */
-		void run(int argc, char** argv);
+		void run(int argc, char **argv);			// run simulation
 
 		/*
-		 *	Utility functions
+		 *	return a message on the success of the simulation
 		 */
-		void printData();			// print data to the screen for testing purposes
-		void replyMessage();		// reply message to send back to main program
+		void replyMessage();						// reply message to send back to main program
+
 	private:
 		/*
-		 *	Variables to store simulation properties
+		 *	variables to store simulation properties
 		 */
-		dWorldID world;
-		dSpaceID space;
-		dSpaceID *space_bot;
-		dJointGroupID group;
+		dWorldID world;								// world in which simulation occurs
+		dSpaceID space;								// space for robots in which to live
+		dSpaceID *space_bot;						// space for each robot
+		dJointGroupID group;						// group to store joints
 
 		/*
-		 *	Structs to store simulation data
+		 *	structs to store simulation data
 		 */
-		typedef struct cimobotsimpart_s {	// information about each body part
-			dBodyID bodyID;					// id of body part
-			dGeomID *geomID;				// ids of geoms which make up each body part
-			dReal ang;						// initial angle of part about rotational axis
+		typedef struct cimobotsimpart_s {			// information about each body part
+			dBodyID bodyID;							// id of body part
+			dGeomID *geomID;						// ids of geoms which make up each body part
+			dReal ang;								// initial angle of part about rotational axis
 			#ifdef ENABLE_DRAWSTUFF
-			float color[3];					// rgb color for each body part
-			int num_geomID;					// total number of geomID for part
+			float color[3];							// rgb color for each body part
+			int num_geomID;							// total number of geomID for part
 			#endif
 		} CiMobotSimPart;
-		typedef struct cimobotsimbot_s {	// information about each iMobot module
-			CiMobotSimPart *bodyPart;		// body parts
-			dJointID *joints;				// joints between body parts
-			dJointID *motors;				// motors to drive body parts
-			dReal *curAng;					// current angle of each body part
-			dReal *futAng;					// future angle being driven toward
-			dReal *jntVel;					// desired joint velocity
-			dReal *ang;						// array of angles
-			dReal *vel;						// array of velocities
-			dReal *pos;						// 3D position of center in world
-			dReal *rot;						// 3D rotation matrix of robot about center
-			bool *cmpStp;					// flag to check if step is complete
+		typedef struct cimobotsimbot_s {			// information about each iMobot module
+			CiMobotSimPart *bodyPart;				// body parts
+			dJointID *joints;						// joints between body parts
+			dJointID *motors;						// motors to drive body parts
+			dReal *curAng;							// current angle of each body part
+			dReal *futAng;							// future angle being driven toward
+			dReal *jntVel;							// desired joint velocity
+			dReal *ang;								// array of angles
+			dReal *vel;								// array of velocities
+			dReal *pos;								// 3D position of center in world
+			dReal *rot;								// 3D rotation matrix of robot about center
+			bool *cmpStp;							// flag to check if step is complete
 		} CiMobotSimBot;
-		typedef struct cimobotsimreply_s {	// information on success to reply
-			bool success;					// flag if simulation is successful
-			double time;					// time to successful completion
-			int message;					// reply message code
+		typedef struct cimobotsimreply_s {			// information on success to reply
+			bool success;							// flag if simulation is successful
+			double time;							// time to successful completion
+			int message;							// reply message code
 		} CiMobotSimReply;
 
 		/*
-		 *	Private variables to store general information about simulation
+		 *	private variables to store general information about simulation
 		 */
-		CiMobotSimBot **bot;				// array of structs for each bot
-		CiMobotSimReply *m_reply;				// struct of data to return after finishing simulation
-		dGeomID *m_ground;					// array of ground objects
-		dReal m_t;							// current time of simulation
-		dReal m_t_tot;						// total time for simulation to run
-		dReal m_t_step;						// time of each step of simulation
-		dReal m_mu_g;						// coefficient of friction of body_ground
-		dReal m_mu_b;						// coefficient of friction of body_body
-		dReal m_cor_g;						// coefficient of restitution of body_ground
-		dReal m_cor_b;						// coefficient of restitution of body_body
-		dReal m_motor_res;					// motor angle resolution
-		dReal *m_joint_vel_max;				// maximum joint velocity possible
-		dReal *m_joint_vel_min;				// minimum joint velocity possible
-		dReal *m_joint_vel_del;				// range of joint velocities
-		dReal *m_joint_frc_max;				// maximum force that can be applied to each body part
-		int m_num_bot;						// number of modules in simulation
-		int m_num_gnd;						// number of pieces of ground
-		int m_num_stp;						// total number of steps
-		int m_cur_stp;						// current step number
-		bool *m_flags;						// flag for each bot  - completed step
-		bool *m_disable;						// flag for each bot - disabled/enabled
+		CiMobotSimBot **bot;						// array of structs for each bot
+		CiMobotSimReply *m_reply;					// struct of data to return after finishing simulation
+		dGeomID *m_ground;							// array of ground objects
+		dReal m_t;									// current time of simulation
+		dReal m_t_tot;								// total time for simulation to run
+		dReal m_t_step;								// time of each step of simulation
+		dReal m_mu_g;								// coefficient of friction of body_ground
+		dReal m_mu_b;								// coefficient of friction of body_body
+		dReal m_cor_g;								// coefficient of restitution of body_ground
+		dReal m_cor_b;								// coefficient of restitution of body_body
+		dReal m_motor_res;							// motor angle resolution
+		dReal *m_joint_vel_max;						// maximum joint velocity possible
+		dReal *m_joint_vel_min;						// minimum joint velocity possible
+		dReal *m_joint_vel_del;						// range of joint velocities
+		dReal *m_joint_frc_max;						// maximum force that can be applied to each body part
+		int m_num_bot;								// number of modules in simulation
+		int m_num_gnd;								// number of pieces of ground
+		int m_num_stp;								// total number of steps
+		int m_cur_stp;								// current step number
+		bool *m_flags;								// flag for each bot  - completed step
+		bool *m_disable;							// flag for each bot - disabled/enabled
 		#ifdef ENABLE_DRAWSTUFF
-		dsFunctions m_fn;
+		dsFunctions m_fn;							// struct to store drawstuff functions
 		#endif
 
 		/*
-		 *	Simulation functions
+		 *	simulation functions
 		 */
 		#ifdef ENABLE_DRAWSTUFF
-		void ds_drawBodies();				// draw all of the bodies
-		void ds_start();					// initialization of drawstuff scene
-		void ds_drawPart(dGeomID part);		// draw each geometry of each body
-		void ds_command(int cmd);			// keyboard commands for ds
-		void simulationLoop(int pause);		// loop to complete simulation
+		void ds_drawBodies();						// draw all of the bodies
+		void ds_start();							// initialization of drawstuff scene
+		void ds_drawPart(dGeomID part);				// draw each geometry of each body
+		void ds_command(int cmd);					// keyboard commands for ds
+		void simulationLoop(int pause);				// loop to complete simulation
 		#else
-		void simulationLoop();				// loop to complete simulation
+		void simulationLoop();						// loop to complete simulation
 		#endif
-		void updateAngles();							// update struct with modified angles
-		void setFlags();								// set flags for complete/not-complete
-		void incrementStep();							// increment step to next set of angles
-		void setAngles();								// set new angles for step of sim
-		void printIntermediateData();					// print data out at each time step for analysis
-		bool endSimulation(double totalTime);			// check if simulation is complete and exit
-		void incrementTime(double tStep);				// update simulation time
-		void collision(dGeomID o1, dGeomID o2);			// callback function for contact of bodies
+		void updateAngles();						// update struct with modified angles
+		void setFlags();							// set flags for complete/not-complete
+		void incrementStep();						// increment step to next set of angles
+		void setAngles();							// set new angles for step of sim
+		void printIntermediateData();				// print data out at each time step for analysis
+		bool endSimulation(double totalTime);		// check if simulation is complete and exit
+		void incrementTime(double tStep);			// update simulation time
+		void collision(dGeomID o1, dGeomID o2);		// callback function for contact of bodies
 		static void collisionWrapper(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 
 		/*
-		 *	Functions to build body parts of iMobot
+		 *	functions to build body parts of iMobot
 		 */
 		void buildLeftBody(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild);
 		void buildCenter(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
@@ -224,12 +219,12 @@ class CiMobotSim {
 		void buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_e, int rebuild);
 
 		/*
-		 *	Utility functions
+		 *	utility functions
 		 */
-		inline dReal I2M(dReal x);			// convert inch to meter
-		inline dReal M2I(dReal x);			// convert meter to inch
-		inline dReal D2R(dReal x);			// convert degree to radian
-		inline dReal R2D(dReal x);			// convert radian to degree
+		inline dReal I2M(dReal x);			// convert inches to meters
+		inline dReal M2I(dReal x);			// convert meters to inches
+		inline dReal D2R(dReal x);			// convert degrees to radians
+		inline dReal R2D(dReal x);			// convert radians to degrees
 		bool isTrue(bool *a, int length);	// check if all values in array are true
 		dReal angMod(dReal pasAng, dReal curAng, dReal angRat); // modify angle from ODE for endcaps to count continuously
 };
