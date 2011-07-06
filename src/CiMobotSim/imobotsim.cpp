@@ -109,16 +109,13 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *
 	}
 
 	// create ODE simulation space
-	dInitODE2(0);
-	this->world  = dWorldCreate();
-	this->space  = dHashSpaceCreate(0);
-	this->space_bot = new dSpaceID[numBot];
-	for ( int i = 0; i < numBot; i++ ) {
-		this->space_bot[i] = dHashSpaceCreate(this->space);
-		dSpaceSetCleanup(this->space_bot[i],1);
-	}
+	dInitODE2(0);												// initialized ode library
+	this->world  = dWorldCreate();								// create world for simulation
+	this->space  = dHashSpaceCreate(0);							// create space for robots
+	this->space_bot = new dSpaceID[numBot];						// create array of spaces for each robot
+	for ( i = 0; i < numBot; i++ ) this->space_bot[i] = dHashSpaceCreate(this->space);		// create each robot's space
 	this->group  = dJointGroupCreate(0);
-	
+
 	// simulation parameters
 	dWorldSetAutoDisableFlag(this->world, 1);					// auto-disable bodies that are not moving
 	dWorldSetAutoDisableAngularThreshold(this->world, 0.01);	// threshold velocity for defining movement
@@ -126,20 +123,17 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *
 	dWorldSetAutoDisableSteps(this->world, 10);					// number of steps below thresholds before stationary
 	dWorldSetCFM(this->world, 0.0000000001);					// constraint force mixing - how much a joint can be violated by excess force
 	dWorldSetContactSurfaceLayer(this->world, 0.001);			// depth each body can sink into another body before resting
-	dWorldSetDamping(this->world, 0.1, 0.1);					// damping of all bodies in world
 	dWorldSetERP(this->world, 0.95);							// error reduction parameter (0-1) - how much error is corrected on each step
 	dWorldSetGravity(this->world, 0, 0, -9.81);					// gravity
 
 	#ifdef ENABLE_DRAWSTUFF
-	// initialize drawstuff
-	m_fn.version = DS_VERSION;
-	m_fn.start = (void (*)(void))&CiMobotSim::ds_start;
-	m_fn.step = (void (*)(int))&CiMobotSim::ds_simulation;
-	m_fn.command = (void (*)(int))&CiMobotSim::ds_command;
-	m_fn.stop = 0;
-	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
-	
-	g_imobotsim = this;
+	m_fn.version = DS_VERSION;									// version of drawstuff
+	m_fn.start = (void (*)(void))&CiMobotSim::ds_start;			// initialization function
+	m_fn.step = (void (*)(int))&CiMobotSim::ds_simulation;		// function for each step of simulation
+	m_fn.command = (void (*)(int))&CiMobotSim::ds_command;		// keyboard commands to control simulation
+	m_fn.stop = 0;												// stopping parameter
+	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;				// path to texture files
+	g_imobotsim = this;											// pointer to class
 	#endif
 }
 
