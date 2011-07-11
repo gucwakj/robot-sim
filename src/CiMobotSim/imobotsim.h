@@ -21,6 +21,7 @@
 #define BODY_RADIUS			1.425
 #define BODY_INNER_WIDTH	0.875
 #define BODY_END_DEPTH		0.2
+#define BODY_MOUNT_CENTER	1.28
 #define END_WIDTH			2.85
 #define END_HEIGHT			2.85
 #define END_DEPTH			0.125
