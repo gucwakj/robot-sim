@@ -78,15 +78,15 @@ class CiMobotSim {
 		/* rotate module about z-axis
 			botNum:				number of module to build
 			x, y, z:			global position of center of module
-			r_x, r_y, r_z:		rotations about three principal axes	*/
-		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z);
+			theta, psi, phi:	Euler Angles in aircraft notation (in degrees)	*/
+		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal theta, dReal psi, dReal phi);
 		/* build a new module with predefined angles for body parts
 			botNum:				number of module to build
 			x, y, z:			global position of center of module
-			r_x, r_y, r_z:		rotations about three principal axes
+			theta, psi, phi:	Euler Angles in aircraft notation (in degrees)
 			le, re:				rotation of endcaps about respective bodies (in degrees)
 			lb, rb:				rotation of bodies about center (in degrees)	*/
-		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal theta, dReal psi, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		/* build a new module attached to a preexisting module
 			botNum:				number of new module to build
 			attNum:				number of module which to attach

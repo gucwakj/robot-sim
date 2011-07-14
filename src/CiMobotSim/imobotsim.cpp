@@ -913,22 +913,19 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
 	this->iMobotBuild(botNum, x, y, z, 0, 0, 0);
 }
 
-void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z) {
+void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal theta, dReal psi, dReal phi) {
 	// convert input positions to meters
 	x = I2M(x);
 	y = I2M(y);
 	z = I2M(z + BODY_HEIGHT/2);
-	r_x = D2R(r_x);
-	r_y = D2R(r_y);
-	r_z = D2R(r_z);
+	// convert input angles to radians
+	theta = D2R(theta);		// pitch: -y
+	psi = -D2R(psi);		// roll: x
+	phi = -D2R(phi);		// yaw: z
 
 	// create rotation matrix for robot
-	dMatrix3 R, R_x, R_y, R_z, R_xy;
-	dRFromAxisAndAngle(R_x, 1, 0, 0, r_x);
-	dRFromAxisAndAngle(R_y, 0, 1, 0, r_y);
-	dRFromAxisAndAngle(R_z, 0, 0, 1, r_z);
-	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
-	dMultiply0(R, R_xy, R_z, 3, 3, 3);
+	dMatrix3 R;
+	dRFromEulerAngles(R, psi, theta, phi);
 
 	// offset values for each body part[0-2] and joint[3-5] from center
 	dReal le[6] = {I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH/2), 0, 0, I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH), 0, 0};
@@ -947,9 +944,9 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, d
 	this->bot[botNum]->pos[0] = x;
 	this->bot[botNum]->pos[1] = y;
 	this->bot[botNum]->pos[2] = z - I2M(BODY_HEIGHT/2);
-	this->bot[botNum]->rot[0] = r_x;
-	this->bot[botNum]->rot[1] = r_y;
-	this->bot[botNum]->rot[2] = r_z;
+	this->bot[botNum]->rot[0] = theta;
+	this->bot[botNum]->rot[1] = psi;
+	this->bot[botNum]->rot[2] = phi;
 
 	// create joint
 	dJointID joint;
@@ -1053,26 +1050,23 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, d
 	for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->bot[botNum]->bodyPart[i].bodyID, 0.1, 0.1);
 }
 
-void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, dReal r_y, dReal r_z, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal theta, dReal psi, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// convert input positions to meters
 	x = I2M(x);
 	y = I2M(y);
 	z = I2M(z + BODY_HEIGHT/2);
-	r_x = D2R(r_x);
-	r_y = D2R(r_y);
-	r_z = D2R(r_z);
+	// convert input angles to radians
+	theta = D2R(theta);		// pitch: -y
+	psi = -D2R(psi);		// roll: x
+	phi = -D2R(phi);		// yaw: z
 	r_le = D2R(r_le);
 	r_lb = D2R(r_lb);
 	r_rb = D2R(r_rb);
 	r_re = D2R(r_re);
 
 	// create rotation matrix for robot
-	dMatrix3 R, R_x, R_y, R_z, R_xy;
-	dRFromAxisAndAngle(R_x, 1, 0, 0, r_x);
-	dRFromAxisAndAngle(R_y, 0, 1, 0, r_y);
-	dRFromAxisAndAngle(R_z, 0, 0, 1, r_z);
-	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
-	dMultiply0(R, R_xy, R_z, 3, 3, 3);
+	dMatrix3 R;
+	dRFromEulerAngles(R, psi, theta, phi);
 
 	// store initial body angles into array
 	this->bot[botNum]->curAng[LE] = r_le;
@@ -1092,16 +1086,13 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal r_x, d
 	buildRightBody(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
 	buildEndcap(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, 0, BUILD);
 
-	//const dReal *pos = dBodyGetPosition(this->bot[botNum]->bodyPart[CENTER].bodyID);
-	//cout << "[[" << M2I(pos[0]) << "\t" << M2I(pos[1]) << "\t" << M2I(pos[2]) << "]]" << endl;
-
 	// store position and rotation of center of module
 	this->bot[botNum]->pos[0] = x;
 	this->bot[botNum]->pos[1] = y;
 	this->bot[botNum]->pos[2] = z - I2M(BODY_HEIGHT/2);
-	this->bot[botNum]->rot[0] = r_x;
-	this->bot[botNum]->rot[1] = r_y;
-	this->bot[botNum]->rot[2] = r_z;
+	this->bot[botNum]->rot[0] = theta;
+	this->bot[botNum]->rot[1] = psi;
+	this->bot[botNum]->rot[2] = phi;
 
 	// create joint
 	dJointID joint;
@@ -1994,8 +1985,8 @@ void CiMobotSim::ds_drawBodies() {
 void CiMobotSim::ds_start() {
 	dAllocateODEDataForThread(dAllocateMaskAll);
 
-	static float xyz[3] = {I2M(0), I2M(0), I2M(10)};
-	static float hpr[3] = {90.0, -90.0, 0.0};	// defined in degrees
+	static float xyz[3] = {I2M(10), I2M(-10), I2M(5)};
+	static float hpr[3] = {135.0, -20.0, 0.0};	// defined in degrees
 	dsSetViewpoint(xyz, hpr);
 }
 
