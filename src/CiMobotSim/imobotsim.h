@@ -79,14 +79,14 @@ class CiMobotSim {
 			botNum:				number of module to build
 			x, y, z:			global position of center of module
 			theta, psi, phi:	Euler Angles in aircraft notation (in degrees)	*/
-		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal theta, dReal psi, dReal phi);
+		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		/* build a new module with predefined angles for body parts
 			botNum:				number of module to build
 			x, y, z:			global position of center of module
 			theta, psi, phi:	Euler Angles in aircraft notation (in degrees)
 			le, re:				rotation of endcaps about respective bodies (in degrees)
 			lb, rb:				rotation of bodies about center (in degrees)	*/
-		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal theta, dReal psi, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		/* build a new module attached to a preexisting module
 			botNum:				number of new module to build
 			attNum:				number of module which to attach
@@ -228,6 +228,7 @@ class CiMobotSim {
 		inline dReal R2D(dReal x);			// convert radians to degrees
 		bool isTrue(bool *a, int length);	// check if all values in array are true
 		dReal angMod(dReal pasAng, dReal curAng, dReal angRat); // modify angle from ODE for endcaps to count continuously
+		void rotMatrixFromEulerAngles(dMatrix3 R, dReal psi, dReal theta, dReal phi);	// create rotation matrix from euler angles
 };
 
 #endif	/* CIMOBOTSIM_H_ */

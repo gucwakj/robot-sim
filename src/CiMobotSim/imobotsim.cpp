@@ -913,19 +913,19 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
 	this->iMobotBuild(botNum, x, y, z, 0, 0, 0);
 }
 
-void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal theta, dReal psi, dReal phi) {
+void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	// convert input positions to meters
 	x = I2M(x);
 	y = I2M(y);
 	z = I2M(z + BODY_HEIGHT/2);
 	// convert input angles to radians
+	psi = D2R(psi);			// roll: x
 	theta = D2R(theta);		// pitch: -y
-	psi = -D2R(psi);		// roll: x
-	phi = -D2R(phi);		// yaw: z
+	phi = D2R(phi);			// yaw: z
 
 	// create rotation matrix for robot
 	dMatrix3 R;
-	dRFromEulerAngles(R, psi, theta, phi);
+	rotMatrixFromEulerAngles(R, psi, theta, phi);
 
 	// offset values for each body part[0-2] and joint[3-5] from center
 	dReal le[6] = {I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH/2), 0, 0, I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH), 0, 0};
@@ -944,8 +944,8 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal theta,
 	this->bot[botNum]->pos[0] = x;
 	this->bot[botNum]->pos[1] = y;
 	this->bot[botNum]->pos[2] = z - I2M(BODY_HEIGHT/2);
-	this->bot[botNum]->rot[0] = theta;
-	this->bot[botNum]->rot[1] = psi;
+	this->bot[botNum]->rot[0] = psi;
+	this->bot[botNum]->rot[1] = theta;
 	this->bot[botNum]->rot[2] = phi;
 
 	// create joint
@@ -1050,23 +1050,23 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal theta,
 	for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->bot[botNum]->bodyPart[i].bodyID, 0.1, 0.1);
 }
 
-void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal theta, dReal psi, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// convert input positions to meters
 	x = I2M(x);
 	y = I2M(y);
 	z = I2M(z + BODY_HEIGHT/2);
 	// convert input angles to radians
-	theta = D2R(theta);		// pitch: -y
-	psi = -D2R(psi);		// roll: x
-	phi = -D2R(phi);		// yaw: z
-	r_le = D2R(r_le);
-	r_lb = D2R(r_lb);
-	r_rb = D2R(r_rb);
-	r_re = D2R(r_re);
+	psi = D2R(psi);				// roll: x
+	theta = D2R(theta);			// pitch: -y
+	phi = D2R(phi);				// yaw: z
+	r_le = D2R(r_le);			// left end
+	r_lb = D2R(r_lb);			// left body
+	r_rb = D2R(r_rb);			// right body
+	r_re = D2R(r_re);			// right end
 
 	// create rotation matrix for robot
 	dMatrix3 R;
-	dRFromEulerAngles(R, psi, theta, phi);
+	rotMatrixFromEulerAngles(R, psi, theta, phi);
 
 	// store initial body angles into array
 	this->bot[botNum]->curAng[LE] = r_le;
@@ -1090,8 +1090,8 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal theta,
 	this->bot[botNum]->pos[0] = x;
 	this->bot[botNum]->pos[1] = y;
 	this->bot[botNum]->pos[2] = z - I2M(BODY_HEIGHT/2);
-	this->bot[botNum]->rot[0] = theta;
-	this->bot[botNum]->rot[1] = psi;
+	this->bot[botNum]->rot[0] = psi;
+	this->bot[botNum]->rot[1] = theta;
 	this->bot[botNum]->rot[2] = phi;
 
 	// create joint
@@ -1496,8 +1496,8 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 	// initialize variables
 	int face1_part, face2_part;
 	dReal x, y, z, theta, psi, phi, r_e, r_b, m[3], s[3];
-	dMatrix3 R;
-	dReal r_x, r_y, r_z;
+	dMatrix3 R, R_1, R_2, R_3, R_4, R_5, R_6;
+	dReal r_x, r_y, r_z, theta1, psi1, phi1, theta2, psi2, phi2;
 
 	//dReal le_r[3] = {-I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_lb), 0, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_lb)};
 	//dReal lb_r[3] = {-I2M(CENTER_LENGTH/2) - I2M(BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_lb), 0, I2M(BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_lb)};
@@ -1571,9 +1571,31 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		face2_part = ENDCAP_R;
 	}
 	else if ( face1 == 2 && face2 == 1 ) {
-		theta = 0 + r_b;
-		psi = -this->bot[attNum]->bodyPart[BODY_L].ang + r_e;
-		phi = -M_PI/2;
+		// generate rotation matrix
+		dRFromAxisAndAngle(R_1, 0, 0, 1, -M_PI/2);
+		dRFromAxisAndAngle(R_2, R_1[0], R_1[4], R_1[8], -this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R_3, R_2[0], R_2[4], R_2[8], r_e);
+		dRFromAxisAndAngle(R_4, R_3[1], R_3[5], R_3[9], -r_b);
+		dMultiply0(R_5, R_1, R_2, 3, 3, 3);
+		dMultiply0(R_6, R_5, R_3, 3, 3, 3);
+		dMultiply0(R, R_6, R_4, 3, 3, 3);
+
+		// extract Euler Angles from rotation matrix
+		if ( fabs(R[2]-1) < DBL_EPSILON ) {			// R_13 == 1; theta = -M_PI/2
+			psi = M_PI/2;
+			theta = atan2(-R[4], -R[8]);
+			phi = 0;
+		}
+		else if ( fabs(R[2]+1) < DBL_EPSILON ) {	// R_13 == -1; theta = M_PI/2
+			psi = -M_PI/2;
+			theta = atan2(R[4], R[8]);
+			phi = 0;
+		}
+		else {
+			psi = atan2(R[6]/cos(theta), R[10]/cos(theta));
+			theta = asin(R[2]);
+			phi = atan2(R[1]/cos(theta), R[0]/cos(theta));
+		}
 
 		m[0] = -0.5*CENTER_LENGTH;
 		m[1] = 0;
@@ -1825,7 +1847,7 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 	dRFromAxisAndAngle(R_z, 0, 0, 1, this->bot[attNum]->rot[2]);
 	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
 	dMultiply0(R, R_xy, R_z, 3, 3, 3);*/
-	dRFromEulerAngles(R, this->bot[attNum]->rot[1], this->bot[attNum]->rot[0], this->bot[attNum]->rot[2]);
+	rotMatrixFromEulerAngles(R, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
 
 	// set x,y,z position for new module
 	x = M2I(this->bot[attNum]->pos[0]) + R[0]*m[0] + R[1]*m[1] + R[2]*m[2];
@@ -1837,8 +1859,8 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 	//cout << "[" << R[8] << "\t" << R[9] << "\t" << R[10] << "] [" << m[2] << "] = [" << R[8]*m[0] + R[9]*m[1] + R[10]*m[2] << "]" << endl;
 
 	// build new module
-	//this->iMobotBuild(botNum, x, y, z, R2D(theta + this->bot[attNum]->rot[0]), R2D(psi + this->bot[attNum]->rot[1]), R2D(phi + this->bot[attNum]->rot[2]), r_le, r_lb, r_rb, r_re);
-	this->iMobotBuild(botNum, x-2, y-2, z+2, R2D(theta + this->bot[attNum]->rot[0]), R2D(psi + this->bot[attNum]->rot[1]), R2D(phi + this->bot[attNum]->rot[2]), r_le, r_lb, r_rb, r_re);
+	//this->iMobotBuild(botNum, x, y, z, R2D(psi + this->bot[attNum]->rot[0]), R2D(theta + this->bot[attNum]->rot[1]), R2D(phi + this->bot[attNum]->rot[2]), r_le, r_lb, r_rb, r_re);
+	this->iMobotBuild(botNum, x-2, y-2, z+2, R2D(psi), R2D(theta), R2D(phi), r_le, r_lb, r_rb, r_re);
 
 	// add fixed joint to attach two modules
 	/*dJointID joint = dJointCreateFixed(this->world, 0);
@@ -1926,6 +1948,22 @@ dReal CiMobotSim::angMod(dReal pasAng, dReal curAng, dReal angRat) {
 	}
 
 	return newAng;
+}
+
+void CiMobotSim::rotMatrixFromEulerAngles(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
+	// x' -> x
+	R[0] =  cos(phi)*cos(theta);
+	R[1] = -cos(phi)*sin(theta)*sin(psi) - sin(phi)*cos(psi);
+	R[2] = -cos(phi)*sin(theta)*cos(psi) + sin(phi)*sin(psi);
+	R[3] = 0;
+	R[4] =  sin(phi)*cos(theta);
+	R[5] = -sin(phi)*sin(theta)*sin(psi) + cos(phi)*cos(psi);
+	R[6] = -sin(phi)*sin(theta)*cos(psi) - cos(phi)*sin(psi);
+	R[7] = 0;
+	R[8] =  sin(theta);
+	R[9] =  cos(theta)*sin(psi);
+	R[10] = cos(theta)*cos(psi);
+	R[11] = 0;
 }
 
 #ifdef ENABLE_DRAWSTUFF
