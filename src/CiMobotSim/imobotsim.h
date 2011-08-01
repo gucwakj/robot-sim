@@ -220,6 +220,14 @@ class CiMobotSim {
 		void buildEndcap(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_e, int rebuild);
 
 		/*
+		 * functions to build attached imobots
+		 */
+		void imobot_build_attached_00(int botNum, int attNum, int face1, int face2);
+		void imobot_build_attached_10(int botNum, int attNum, int face1, int face2);
+		void imobot_build_attached_01(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void imobot_build_attached_11(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+
+		/*
 		 *	utility functions
 		 */
 		inline dReal I2M(dReal x);			// convert inches to meters
