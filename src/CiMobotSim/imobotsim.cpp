@@ -19,14 +19,14 @@ using namespace std;
 CiMobotSim *g_imobotsim;
 #endif
 
-CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal *ang) {
+CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 	// initialize parameters for simulation
 	int i, j;
 
 	// values for simulation passed into constructor
-	this->m_num_bot = numBot;
-	this->m_num_stp = numStp;
-	this->m_num_gnd = numGnd;
+	this->m_num_bot = num_bot;
+	this->m_num_stp = num_stp;
+	this->m_num_gnd = num_gnd;
 
 	// default simulation parameters
 	this->m_mu_g = 0.4;
@@ -59,17 +59,17 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal *ang) {
 	this->m_cur_stp = 0;
 	this->m_t = 0.0;
 	this->m_t_step = 0.004;
-	this->m_flags = new bool[numBot];
-	this->m_disable = new bool[numBot];
-	this->m_ground = new dGeomID[numGnd];
+	this->m_flags = new bool[num_bot];
+	this->m_disable = new bool[num_bot];
+	this->m_ground = new dGeomID[num_gnd];
 	this->m_reply = new CiMobotSimReply;
 	this->m_reply->success = false;
 	this->m_reply->time = 0.0;
 	this->m_reply->message = 0;
 
 	// create and populate struct for each module in simulation
-	this->bot = new CiMobotSimBot * [numBot];
-	for ( i = 0; i < numBot; i++ ) {
+	this->bot = new CiMobotSimBot * [num_bot];
+	for ( i = 0; i < num_bot; i++ ) {
 		this->bot[i] = new CiMobotSimBot;
 		this->bot[i]->bodyPart = new CiMobotSimPart[NUM_PARTS];
 		this->bot[i]->bodyPart[ENDCAP_L].geomID = new dGeomID[7];
@@ -86,10 +86,10 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal *ang) {
 		#endif
 		this->bot[i]->joints = new dJointID[6];
 		this->bot[i]->motors = new dJointID[4];
-		this->bot[i]->ang = new dReal[NUM_DOF*numStp];
-		this->bot[i]->vel = new dReal[NUM_DOF*numStp];
-		for ( j = 0; j < NUM_DOF*numStp; j++ ) {
-			this->bot[i]->ang[j] = D2R(ang[4*i + NUM_DOF*numBot*(j/NUM_DOF) + j%NUM_DOF]);
+		this->bot[i]->ang = new dReal[NUM_DOF*num_stp];
+		this->bot[i]->vel = new dReal[NUM_DOF*num_stp];
+		for ( j = 0; j < NUM_DOF*num_stp; j++ ) {
+			this->bot[i]->ang[j] = D2R(ang[4*i + NUM_DOF*num_bot*(j/NUM_DOF) + j%NUM_DOF]);
 			this->bot[i]->vel[j] = 1;
 		}
 		this->bot[i]->curAng = new dReal[NUM_DOF];
@@ -112,8 +112,8 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal *ang) {
 	dInitODE2(0);												// initialized ode library
 	this->world  = dWorldCreate();								// create world for simulation
 	this->space  = dHashSpaceCreate(0);							// create space for robots
-	this->space_bot = new dSpaceID[numBot];						// create array of spaces for each robot
-	for ( i = 0; i < numBot; i++ ) this->space_bot[i] = dHashSpaceCreate(this->space);		// create each robot's space
+	this->space_bot = new dSpaceID[num_bot];						// create array of spaces for each robot
+	for ( i = 0; i < num_bot; i++ ) this->space_bot[i] = dHashSpaceCreate(this->space);		// create each robot's space
 	this->group  = dJointGroupCreate(0);
 
 	// simulation parameters

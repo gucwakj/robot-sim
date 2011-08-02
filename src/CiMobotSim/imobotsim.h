@@ -58,7 +58,7 @@ class CiMobotSim {
 		/*
 		 *	constructor and destructor
 		 */
-		CiMobotSim(int numBot, int numStp, int numGnd, dReal *ang);
+		CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang);
 		~CiMobotSim();
 
 		/*
