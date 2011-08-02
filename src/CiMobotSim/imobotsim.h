@@ -58,15 +58,16 @@ class CiMobotSim {
 		/*
 		 *	constructor and destructor
 		 */
-		CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *ang);
+		CiMobotSim(int numBot, int numStp, int numGnd, dReal *ang);
 		~CiMobotSim();
 
 		/*
 		 *	functions to input simulation variables
 		 */
+		void setAngVel(dReal *vel);
 		void setMu(dReal mu_g, dReal mu_b);
 		void setCOR(dReal cor_g, dReal cor_b);
-		void setAngVel(dReal *vel);
+		void setTime(dReal time_total);
 
 		/*
 		 *	functions to build models of iMobot
@@ -168,7 +169,7 @@ class CiMobotSim {
 		CiMobotSimReply *m_reply;					// struct of data to return after finishing simulation
 		dGeomID *m_ground;							// array of ground objects
 		dReal m_t;									// current time of simulation
-		dReal m_t_tot;								// total time for simulation to run
+		dReal m_t_total;							// total time for simulation to run
 		dReal m_t_step;								// time of each step of simulation
 		dReal m_mu_g;								// coefficient of friction of body_ground
 		dReal m_mu_b;								// coefficient of friction of body_body

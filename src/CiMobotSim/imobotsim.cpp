@@ -19,22 +19,22 @@ using namespace std;
 CiMobotSim *g_imobotsim;
 #endif
 
-CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *ang) {
+CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal *ang) {
 	// initialize parameters for simulation
 	int i, j;
-	
+
 	// values for simulation passed into constructor
 	this->m_num_bot = numBot;
 	this->m_num_stp = numStp;
 	this->m_num_gnd = numGnd;
-	this->m_t_tot = tmeTot;
-	
+
 	// default simulation parameters
 	this->m_mu_g = 0.4;
 	this->m_mu_b = 0.4;
 	this->m_cor_g = 0.3;
 	this->m_cor_b = 0.3;
-	
+	this->m_t_total = 1.0;
+
 	// iMobot physical parameters
 	this->m_motor_res = D2R(0.5);
 	this->m_joint_vel_max = new dReal[NUM_DOF];
@@ -54,7 +54,7 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *
 	this->m_joint_frc_max[LB] = 1.059;
 	this->m_joint_frc_max[RB] = 1.059;
 	this->m_joint_frc_max[RE] = 0.260;
-	
+
 	// variables to keep track of progress of simulation
 	this->m_cur_stp = 0;
 	this->m_t = 0.0;
@@ -66,7 +66,7 @@ CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *
 	this->m_reply->success = false;
 	this->m_reply->time = 0.0;
 	this->m_reply->message = 0;
-	
+
 	// create and populate struct for each module in simulation
 	this->bot = new CiMobotSimBot * [numBot];
 	for ( i = 0; i < numBot; i++ ) {
@@ -172,16 +172,6 @@ CiMobotSim::~CiMobotSim() {
 	dCloseODE();
 }
 
-void CiMobotSim::setMu(dReal mu_g, dReal mu_b) {
-	this->m_mu_g = mu_g;
-	this->m_mu_b = mu_b;
-}
-
-void CiMobotSim::setCOR(dReal cor_g, dReal cor_b) {
-	this->m_cor_g = cor_g;
-	this->m_cor_b = cor_b;
-}
-
 void CiMobotSim::setAngVel(dReal *vel) {
 	// initialize loop variables
 	int i, j;
@@ -193,6 +183,20 @@ void CiMobotSim::setAngVel(dReal *vel) {
 		this->bot[i]->jntVel = new dReal[NUM_DOF];
 		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->jntVel[j] = this->m_joint_vel_min[j] + this->bot[i]->vel[j]*this->m_joint_vel_del[j];
 	}
+}
+
+void CiMobotSim::setCOR(dReal cor_g, dReal cor_b) {
+	this->m_cor_g = cor_g;
+	this->m_cor_b = cor_b;
+}
+
+void CiMobotSim::setMu(dReal mu_g, dReal mu_b) {
+	this->m_mu_g = mu_g;
+	this->m_mu_b = mu_b;
+}
+
+void CiMobotSim::setTime(dReal time_total) {
+	this->m_t_total = time_total;
 }
 
 void CiMobotSim::runSimulation(int argc, char **argv) {
@@ -223,7 +227,7 @@ void CiMobotSim::ds_simulation(int pause) {
 	this->setFlags();													// set flags for completion of steps
 	this->incrementStep();												// check whether to increment to next step
 
-	loop = this->endSimulation(this->m_t_tot);							// check whether to end simulation
+	loop = this->endSimulation(this->m_t_total);						// check whether to end simulation
 	this->incrementTime(this->m_t_step);								// increment time
 
 	this->ds_drawBodies();
