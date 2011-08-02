@@ -49,8 +49,3 @@ TODO File for ODE Simulations
 			Essex ..., Volume 6
 			By Conor Ryan
 			http://books.google.com/books?id=pVhXLZKMF-YC&lpg=PA51&ots=ikZfL8Ztow&dq=open%20dynamics%20engine%20wind&pg=PA51#v=onepage&q=open%20dynamics%20engine%20wind&f=false
-
-	Positioned build into ground
-		Positioned build doesn't check whether or not the body is rotated into ground
-		or not.  will bounce body once sim starts.  need to find a way to check the 
-		lowest point of the body
