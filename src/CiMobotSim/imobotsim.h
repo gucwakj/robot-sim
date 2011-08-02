@@ -115,12 +115,12 @@ class CiMobotSim {
 		/*
 		 * 	run the simulation
 		 */
-		void runSimulation(int argc, char **argv);			// run simulation
+		void runSimulation(int argc, char **argv);
 
 		/*
 		 *	return a message on the success of the simulation
 		 */
-		void replyMessage();						// reply message to send back to main program
+		void replyMessage();
 
 	private:
 		/*
@@ -202,15 +202,15 @@ class CiMobotSim {
 		#else
 		void simulationLoop();						// loop to complete simulation
 		#endif
-		void updateAngles();						// update struct with modified angles
-		void setFlags();							// set flags for complete/not-complete
-		void incrementStep();						// increment step to next set of angles
-		void setAngles();							// set new angles for step of sim
-		void printIntermediateData();				// print data out at each time step for analysis
-		bool endSimulation(double totalTime);		// check if simulation is complete and exit
-		void incrementTime(double tStep);			// update simulation time
+		void update_angles();						// update struct with modified angles
+		void set_flags();							// set flags for complete/not-complete
+		void increment_step();						// increment step to next set of angles
+		void set_angles();							// set new angles for step of sim
+		void print_intermediate_data();				// print data out at each time step for analysis
+		bool end_simulation(double total_time);		// check if simulation is complete and exit
+		void increment_time(double t_step);			// update simulation time
 		void collision(dGeomID o1, dGeomID o2);		// callback function for contact of bodies
-		static void collisionWrapper(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
+		static void collision_wrapper(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 
 		/*
 		 *	functions to build body parts of iMobot
@@ -235,9 +235,9 @@ class CiMobotSim {
 		inline dReal M2I(dReal x);			// convert meters to inches
 		inline dReal D2R(dReal x);			// convert degrees to radians
 		inline dReal R2D(dReal x);			// convert radians to degrees
-		bool isTrue(bool *a, int length);	// check if all values in array are true
-		dReal angMod(dReal pasAng, dReal curAng, dReal angRat); // modify angle from ODE for endcaps to count continuously
-		void rotMatrixFromEulerAngles(dMatrix3 R, dReal psi, dReal theta, dReal phi);	// create rotation matrix from euler angles
+		bool is_true(int length, bool *a);	// check if all values in array are true
+		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate); // modify angle from ODE for endcaps to count continuously
+		void rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi);	// create rotation matrix from euler angles
 };
 
 #endif	/* CIMOBOTSIM_H_ */

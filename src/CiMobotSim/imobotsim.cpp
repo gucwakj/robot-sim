@@ -216,19 +216,19 @@ void CiMobotSim::runSimulation(int argc, char **argv) {
 void CiMobotSim::ds_simulation(int pause) {
 	bool loop = true;													// initialize
 
-	this->updateAngles();												// update angles for current step
+	this->update_angles();												// update angles for current step
 
-	dSpaceCollide(this->space, this, &this->collisionWrapper);			// collide all geometries together
+	dSpaceCollide(this->space, this, &this->collision_wrapper);			// collide all geometries together
 	dWorldStep(this->world, this->m_t_step);							// step world time by one
 	dJointGroupEmpty(this->group);										// clear out all contact joints
 
-	this->printIntermediateData();										// print out incremental data
+	this->print_intermediate_data();									// print out incremental data
 
-	this->setFlags();													// set flags for completion of steps
-	this->incrementStep();												// check whether to increment to next step
+	this->set_flags();													// set flags for completion of steps
+	this->increment_step();												// check whether to increment to next step
 
-	loop = this->endSimulation(this->m_t_total);						// check whether to end simulation
-	this->incrementTime(this->m_t_step);								// increment time
+	loop = this->end_simulation(this->m_t_total);						// check whether to end simulation
+	this->increment_time(this->m_t_step);								// increment time
 
 	this->ds_drawBodies();
 	if (!loop) dsStop();
@@ -240,33 +240,31 @@ void CiMobotSim::simulationLoop(void) {
 	bool loop = true;													// initialize
 
 	while (loop) {														// loop continuously until simulation is stopped
-		this->updateAngles();											// update angles for current step
+		this->update_angles();											// update angles for current step
 
-		dSpaceCollide(this->space, this, &this->collisionWrapper);		// collide all geometries together
+		dSpaceCollide(this->space, this, &this->collision_wrapper);		// collide all geometries together
 		dWorldStep(this->world, this->m_t_step);							// step world time by one
 		dJointGroupEmpty(this->group);									// clear out all contact joints
 
-		this->printIntermediateData();									// print out incremental data
+		this->print_intermediate_data();								// print out incremental data
 
-		this->setFlags();												// set flags for completion of steps
-		this->incrementStep();											// check whether to increment to next step
+		this->set_flags();												// set flags for completion of steps
+		this->increment_step();											// check whether to increment to next step
 
-		loop = this->endSimulation(this->m_t_tot);						// check whether to end simulation
-		this->incrementTime(this->m_t_step);							// increment time
+		loop = this->end_simulation(this->m_t_tot);						// check whether to end simulation
+		this->increment_time(this->m_t_step);							// increment time
 	}
 }
 #endif
 
-void CiMobotSim::updateAngles() {
+void CiMobotSim::update_angles() {
 	// update stored data in struct with data from ODE
 	for (int i = 0; i < this->m_num_bot; i++) {
 		// must be done for each degree of freedom
 		for (int j = 0; j < NUM_DOF; j++) {
 			// update current angle
 			if ( j == LE || j == RE )
-				this->bot[i]->curAng[j] = angMod(this->bot[i]->curAng[j],
-												 dJointGetHingeAngle(this->bot[i]->joints[j]),
-												 dJointGetHingeAngleRate(this->bot[i]->joints[j]));
+				this->bot[i]->curAng[j] = mod_angle(this->bot[i]->curAng[j], dJointGetHingeAngle(this->bot[i]->joints[j]), dJointGetHingeAngleRate(this->bot[i]->joints[j]));
 			else
 				this->bot[i]->curAng[j] = dJointGetHingeAngle(this->bot[i]->joints[j]);
 
@@ -295,7 +293,7 @@ void CiMobotSim::updateAngles() {
 	}
 }
 
-void CiMobotSim::collisionWrapper(void *data, dGeomID o1, dGeomID o2) {
+void CiMobotSim::collision_wrapper(void *data, dGeomID o1, dGeomID o2) {
 	// cast void pointer to pointer to class
 	CiMobotSim *ptr;
 	ptr = (CiMobotSim *) data;
@@ -315,11 +313,11 @@ void CiMobotSim::collision(dGeomID o1, dGeomID o2) {
 
 	// special case for collision of spaces
 	if (dGeomIsSpace(o1) || dGeomIsSpace(o2)) {
-		dSpaceCollide2(o1, o2, this, &this->collisionWrapper);
+		dSpaceCollide2(o1, o2, this, &this->collision_wrapper);
 		if ( dGeomIsSpace(o1) )
-			dSpaceCollide( (dSpaceID)o1, this, &this->collisionWrapper);
+			dSpaceCollide( (dSpaceID)o1, this, &this->collision_wrapper);
 		if ( dGeomIsSpace(o2) )
-			dSpaceCollide( (dSpaceID)o2, this, &this->collisionWrapper);
+			dSpaceCollide( (dSpaceID)o2, this, &this->collision_wrapper);
 	}
 	// create contact point for two geoms
 	else {
@@ -346,11 +344,11 @@ void CiMobotSim::collision(dGeomID o1, dGeomID o2) {
 	}
 }
 
-void CiMobotSim::setFlags() {
+void CiMobotSim::set_flags() {
 	// set flags for each module in simulation
 	for (int i = 0; i < this->m_num_bot; i++) {
 		// all body parts of module finished
-		if ( this->isTrue(this->bot[i]->cmpStp, NUM_DOF) )
+		if ( this->is_true(NUM_DOF, this->bot[i]->cmpStp) )
 			this->m_flags[i] = true;
 		// module is disabled
 		if ( !dBodyIsEnabled(this->bot[i]->bodyPart[CENTER].bodyID) )
@@ -360,12 +358,12 @@ void CiMobotSim::setFlags() {
 	}
 }
 
-void CiMobotSim::incrementStep() {
+void CiMobotSim::increment_step() {
 	// initialize
 	static int k = 1;
 
 	// all robots have completed motion
-	if ( this->isTrue(this->m_flags, this->m_num_bot) ) {
+	if ( this->is_true(this->m_num_bot, this->m_flags) ) {
 		// increment to next step
 		this->m_cur_stp++;
 		// reached last step
@@ -379,7 +377,7 @@ void CiMobotSim::incrementStep() {
 				this->m_cur_stp = m_num_stp-1;
 				k++;
 		}
-		this->setAngles();
+		this->set_angles();
 		// reset all flags to zero
 		for (int i = 0; i < this->m_num_bot; i++) {
 			this->m_flags[i] = false;
@@ -390,15 +388,13 @@ void CiMobotSim::incrementStep() {
 	}
 }
 
-void CiMobotSim::setAngles() {
+void CiMobotSim::set_angles() {
 	for (int i = 0; i < this->m_num_bot; i++) {
 		// for two end cap joints
 		for (int j = 0; j < NUM_DOF; j+=3) {
 			if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
 				dJointDisable(this->bot[i]->motors[j]);
-				this->bot[i]->futAng[j] = angMod(this->bot[i]->curAng[j], 
-												 dJointGetHingeAngle(this->bot[i]->joints[j]),
-												 dJointGetHingeAngleRate(this->bot[i]->joints[j]));
+				this->bot[i]->futAng[j] = mod_angle(this->bot[i]->curAng[j], dJointGetHingeAngle(this->bot[i]->joints[j]), dJointGetHingeAngleRate(this->bot[i]->joints[j]));
 				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
 				this->bot[i]->cmpStp[j] = true;
 			}
@@ -430,7 +426,7 @@ void CiMobotSim::setAngles() {
 	}
 }
 
-void CiMobotSim::printIntermediateData() {
+void CiMobotSim::print_intermediate_data() {
 	cout.width(3); cout << this->m_t / this->m_t_step;
 	cout.width(6); cout << this->m_t;
 	cout.width(3); cout << this->m_cur_stp;
@@ -483,17 +479,17 @@ void CiMobotSim::printIntermediateData() {
 	cout << endl;
 }
 
-bool CiMobotSim::endSimulation(double totalTime) {
+bool CiMobotSim::end_simulation(double total_time) {
 	// initialize
 	bool loop = true;
 
 	// reached end of simulation time == FAIL
-	if ( (totalTime - this->m_t) < 0.0000000596047 ) {
+	if ( fabs(total_time - this->m_t) < DBL_EPSILON ) {
 		this->m_reply->message = 1;
 		loop = false;
 	}
 	// all modules are disabled
-	else if ( this->isTrue(this->m_disable, this->m_num_bot) ) {
+	else if ( this->is_true(this->m_num_bot, this->m_disable) ) {
 		// if all steps are completed == SUCCESS
 		if ( this->m_reply->success )
 			this->m_reply->message = 2;
@@ -502,12 +498,12 @@ bool CiMobotSim::endSimulation(double totalTime) {
 			this->m_reply->message = 3;
 		loop = false;
 	}
-	
+
 	return loop;
 }
 
-void CiMobotSim::incrementTime(double tStep) {
-		this->m_t += tStep;
+void CiMobotSim::increment_time(double t_step) {
+		this->m_t += t_step;
 }
 
 void CiMobotSim::replyMessage() {
@@ -928,7 +924,7 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, d
 
 	// create rotation matrix for robot
 	dMatrix3 R;
-	rotMatrixFromEulerAngles(R, psi, theta, phi);
+	rotation_matrix_from_euler_angles(R, psi, theta, phi);
 
 	// offset values for each body part[0-2] and joint[3-5] from center
 	dReal le[6] = {I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH/2), 0, 0, I2M(-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH), 0, 0};
@@ -1069,7 +1065,7 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, d
 
 	// create rotation matrix for robot
 	dMatrix3 R;
-	rotMatrixFromEulerAngles(R, psi, theta, phi);
+	rotation_matrix_from_euler_angles(R, psi, theta, phi);
 
 	// store initial body angles into array
 	this->bot[botNum]->curAng[LE] = r_le;
@@ -1245,7 +1241,7 @@ void CiMobotSim::imobot_build_attached_00(int botNum, int attNum, int face1, int
 	dMatrix3 R, R1, R_att;
 
 	// generate rotation matrix for base robot
-	rotMatrixFromEulerAngles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
+	rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
 
 	if ( face1 == 1 && face2 == 1 ) {
 		// set which body parts are to be connected
@@ -1756,7 +1752,7 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 	dMatrix3 R, R1, R2, R3, R4, R5, R_att;
 
 	// generate rotation matrix for base robot
-	rotMatrixFromEulerAngles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
+	rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
 
 	if ( face1 == 1 && face2 == 1 ) {
 		// set which body parts are to be connected
@@ -2443,7 +2439,7 @@ void CiMobotSim::imobot_build_attached_01(int botNum, int attNum, int face1, int
 	dMatrix3 R, R1, R2, R3, R4, R5, R_att;
 
 	// generate rotation matrix for base robot
-	rotMatrixFromEulerAngles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
+	rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
 
 	// rotation of body about fixed point
 	if ( face2 == 1 ) {
@@ -3158,7 +3154,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 	dMatrix3 R, R1, R2, R3, R4, R5, R6, R7, R8, R9, R_att;
 
 	// generate rotation matrix for base robot
-	rotMatrixFromEulerAngles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
+	rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
 
 	// rotation of body about fixed point
 	if ( face2 == 1 ) {
@@ -4072,7 +4068,7 @@ inline dReal CiMobotSim::R2D( dReal x ) {
 	return x/M_PI*180;
 }
 
-bool CiMobotSim::isTrue(bool *a, int length) {
+bool CiMobotSim::is_true(int length, bool *a) {
 	for (int i = 0; i < length; i++) {
 		if ( a[i] == false )
 			return false;
@@ -4080,66 +4076,66 @@ bool CiMobotSim::isTrue(bool *a, int length) {
 	return true;
 }
 
-dReal CiMobotSim::angMod(dReal pasAng, dReal curAng, dReal angRat) {
-	dReal newAng = 0;
-	int stp = (int)( fabs(pasAng) / M_PI );
-	dReal pasAngMod = fabs(pasAng) - stp*M_PI;
+dReal CiMobotSim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
+	dReal new_ang = 0;
+	int stp = (int)( fabs(past_ang) / M_PI );
+	dReal past_ang_mod = fabs(past_ang) - stp*M_PI;
 
-	if ( (int)angRat == 0 ) {
-		newAng = pasAng;
+	if ( (int)ang_rate == 0 ) {
+		new_ang = past_ang;
 	}
 	// positive angular velocity, positive angle
-	else if ( angRat > 0 && pasAng >= 0 ) {
+	else if ( ang_rate > 0 && past_ang >= 0 ) {
 		// cross 180
-		if ( curAng < 0 && !(stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod + 2*M_PI);	}
+		if ( cur_ang < 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod + 2*M_PI);	}
 		// negative
-		else if ( curAng < 0 && (stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod + M_PI);	}
+		else if ( cur_ang < 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);	}
 		// cross 0
-		else if ( curAng > 0 && (stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod + M_PI);	}
+		else if ( cur_ang > 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);	}
 		// positive
-		else if ( curAng > 0 && !(stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod);	}
+		else if ( cur_ang > 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod);	}
 	}
 	// positive angular velocity, negative angle
-	else if ( angRat > 0 && pasAng < 0 ) {
+	else if ( ang_rate > 0 && past_ang < 0 ) {
 		// cross 180
-		if ( curAng < 0 && (stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod + M_PI);	}
+		if ( cur_ang < 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod + M_PI);	}
 		// negative
-		else if ( curAng < 0 && !(stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod);	}
+		else if ( cur_ang < 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod);	}
 		// cross 0
-		else if ( curAng > 0 && !(stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod);	}
+		else if ( cur_ang > 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod);	}
 		// positive
-		else if ( curAng > 0 && (stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod - M_PI);	}
+		else if ( cur_ang > 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);	}
 	}
 	// negative angular velocity, positive angle
-	else if ( angRat < 0 && pasAng >= 0 ) {
+	else if ( ang_rate < 0 && past_ang >= 0 ) {
 		// cross 180
-		if ( curAng > 0 && (stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod - M_PI);	}
+		if ( cur_ang > 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod - M_PI);	}
 		// negative
-		else if ( curAng < 0 && (stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod + M_PI);	}
+		else if ( cur_ang < 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);	}
 		// cross 0
-		else if ( curAng < 0 && !(stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod);	}
+		else if ( cur_ang < 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod);	}
 		// positive
-		else if ( curAng > 0 && !(stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod);	}
+		else if ( cur_ang > 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod);	}
 	}
 	// negative angular velocity, negative angle
-	else if ( angRat < 0 && pasAng < 0 ) {
+	else if ( ang_rate < 0 && past_ang < 0 ) {
 		// cross 180
-		if ( curAng > 0 && !(stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod - 2*M_PI);	}
+		if ( cur_ang > 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod - 2*M_PI);	}
 		// negative
-		else if ( curAng < 0 && !(stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod);	}
+		else if ( cur_ang < 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod);	}
 		// cross 0
-		else if ( curAng < 0 && (stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod - M_PI);	}
+		else if ( cur_ang < 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);	}
 		// positive
-		else if ( curAng > 0 && (stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod - M_PI);	}
+		else if ( cur_ang > 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);	}
 	}
 
-	return newAng;
+	return new_ang;
 }
 
-void CiMobotSim::rotMatrixFromEulerAngles(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
-	dReal	sphi = sin(phi), cphi = cos(phi),
-			stheta = sin(theta), ctheta = cos(theta),
-			spsi = sin(psi), cpsi = cos(psi);
+void CiMobotSim::rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
+	dReal	sphi = sin(phi), 		cphi = cos(phi),
+			stheta = sin(theta),	ctheta = cos(theta),
+			spsi = sin(psi),		cpsi = cos(psi);
 
 	R[0] =  cphi*ctheta;
 	R[1] = -cphi*stheta*spsi - sphi*cpsi;
