@@ -114,7 +114,7 @@ class CiMobotSim {
 		/*
 		 * 	run the simulation
 		 */
-		void run(int argc, char **argv);			// run simulation
+		void runSimulation(int argc, char **argv);			// run simulation
 
 		/*
 		 *	return a message on the success of the simulation

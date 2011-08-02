@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 	//sim->iMobotBuildAttached(1, 0, 6, 5, 0, 0, 45, 0);
 	//sim->iMobotBuildAttached(1, 0, 6, 6, 0, 0, 45, 45);
 
-	sim->run(argc, argv);
+	sim->runSimulation(argc, argv);
 	sim->replyMessage();
 
 	delete sim;

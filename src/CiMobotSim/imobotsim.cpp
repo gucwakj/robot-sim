@@ -195,7 +195,7 @@ void CiMobotSim::setAngVel(dReal *vel) {
 	}
 }
 
-void CiMobotSim::run(int argc, char **argv) {
+void CiMobotSim::runSimulation(int argc, char **argv) {
 	#ifdef ENABLE_DRAWSTUFF
 		dsSimulationLoop(argc, argv, 352, 288, &m_fn);
 	#else
