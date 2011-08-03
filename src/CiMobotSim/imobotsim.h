@@ -2,6 +2,7 @@
 #define CIMOBOTSIM_H_
 
 #include "config.h"
+#include "pid.h"
 #include <ode/ode.h>
 #ifdef ENABLE_DRAWSTUFF
 #include <drawstuff/drawstuff.h>
@@ -145,6 +146,7 @@ class CiMobotSim {
 		} CiMobotSimPart;
 		typedef struct cimobotsimbot_s {			// information about each iMobot module
 			CiMobotSimPart *bodyPart;				// body parts
+			PID *pid;								// PID control for each joint
 			dJointID *joints;						// joints between body parts
 			dJointID *motors;						// motors to drive body parts
 			dReal *curAng;							// current angle of each body part

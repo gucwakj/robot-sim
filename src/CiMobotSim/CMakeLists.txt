@@ -25,4 +25,5 @@ endif (ENABLE_DOUBLE)
 
 add_library(imobotsim
   imobotsim.cpp
+  pid.cpp
   )
