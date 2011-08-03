@@ -519,7 +519,7 @@ void CiMobotSim::increment_time(double t_step) {
 		this->m_t += t_step;
 }
 
-void CiMobotSim::replyMessage() {
+void CiMobotSim::getReplyMessage() {
 	if ( this->m_reply->message == 1 )
 		cout << "Failure: reached end of simulation time" << endl;
 	else if ( this->m_reply->message == 2 )

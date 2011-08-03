@@ -121,7 +121,7 @@ class CiMobotSim {
 		/*
 		 *	return a message on the success of the simulation
 		 */
-		void replyMessage();
+		void getReplyMessage();
 
 	private:
 		/*
