@@ -185,8 +185,8 @@ class CiMobotSim {
 			m_num_gnd,								// number of pieces of ground
 			m_num_stp,								// total number of steps
 			m_cur_stp;								// current step number
-		bool	*m_flags,							// flag for each bot  - completed step
-				*m_disable;							// flag for each bot - disabled/enabled
+		bool	*m_flag_comp,						// flag for each bot - completed step
+				*m_flag_disable;					// flag for each bot - disabled/enabled
 		#ifdef ENABLE_DRAWSTUFF
 		dsFunctions m_fn;							// struct to store drawstuff functions
 		#endif

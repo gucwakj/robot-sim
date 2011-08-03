@@ -60,8 +60,8 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 	this->m_cur_stp = 0;
 	this->m_t = 0.0;
 	this->m_t_step = 0.004;
-	this->m_flags = new bool[num_bot];
-	this->m_disable = new bool[num_bot];
+	this->m_flag_comp = new bool[num_bot];
+	this->m_flag_disable = new bool[num_bot];
 	this->m_ground = new dGeomID[num_gnd];
 	this->m_reply = new CiMobotSimReply;
 	this->m_reply->success = false;
@@ -105,8 +105,8 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 		for ( j = 0; j < 3; j++ ) this->bot[i]->pos[j] = 0;
 		this->bot[i]->rot = new dReal[3];
 		for ( j = 0; j < 3; j++ ) this->bot[i]->rot[j] = 0;
-		this->m_flags[i] = false;
-		this->m_disable[i] = false;
+		this->m_flag_comp[i] = false;
+		this->m_flag_disable[i] = false;
 	}
 
 	// create ODE simulation space
@@ -156,8 +156,8 @@ CiMobotSim::~CiMobotSim() {
 		delete this->bot[i];
 	}
 	delete [] this->bot;
-	delete [] this->m_flags;
-	delete [] this->m_disable;
+	delete [] this->m_flag_comp;
+	delete [] this->m_flag_disable;
 	delete [] this->m_ground;
 	delete [] this->m_joint_vel_max;
 	delete [] this->m_joint_vel_min;
@@ -297,7 +297,7 @@ void CiMobotSim::update_angles() {
 			}
 		}
 		if (complete == 4)
-			this->m_flags[i] = true;
+			this->m_flag_comp[i] = true;
 	}
 }
 
@@ -357,9 +357,9 @@ void CiMobotSim::set_flags() {
 	for (int i = 0; i < this->m_num_bot; i++) {
 		// module is disabled
 		if ( dBodyIsEnabled(this->bot[i]->bodyPart[CENTER].bodyID) )
-			this->m_disable[i] = false;
+			this->m_flag_disable[i] = false;
 		else
-			this->m_disable[i] = true;
+			this->m_flag_disable[i] = true;
 	}
 }
 
@@ -368,12 +368,12 @@ void CiMobotSim::increment_step() {
 	static int k = 1;
 
 	// all robots have completed motion
-	if ( this->is_true(this->m_num_bot, this->m_flags) ) {
+	if ( this->is_true(this->m_num_bot, this->m_flag_comp) ) {
 		// increment to next step
 		this->m_cur_stp++;
 		// reached last step
 		if ( (this->m_cur_stp == this->m_num_stp) ) {
-			if ( this->is_true(this->m_num_bot, this->m_disable) ) {
+			if ( this->is_true(this->m_num_bot, this->m_flag_disable) ) {
 				// finished all steps
 				this->m_reply->success = true;
 				// record time to completion
@@ -387,7 +387,7 @@ void CiMobotSim::increment_step() {
 		this->set_angles();
 		// reset all flags to zero
 		for (int i = 0; i < this->m_num_bot; i++) {
-			this->m_flags[i] = false;
+			this->m_flag_comp[i] = false;
 			for (int j = 0; j < NUM_DOF; j++) {
 				//this->bot[i]->cmpStp[j] = false;
 				this->bot[i]->pid[j].Initialize(100, 1, 10, 0.1, this->m_t_step);
@@ -475,9 +475,9 @@ void CiMobotSim::print_intermediate_data() {
 		//cout << dJointGetHingeAngle(this->bot[i]->joints[RE]) << " ";
 		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RE]) << " ";
 	}
-	//for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flags[i] << " "; }
+	//for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flag_comp[i] << " "; }
 	//cout << " ";
-	//for (i = 0; i < this->m_num_bot; i++) { cout << this->m_disable[i] << " "; }
+	//for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flag_disable[i] << " "; }
 	cout << endl;
 }
 
@@ -491,7 +491,7 @@ bool CiMobotSim::end_simulation(double total_time) {
 		loop = false;
 	}
 	// all modules are disabled
-	else if ( this->is_true(this->m_num_bot, this->m_disable) ) {
+	else if ( this->is_true(this->m_num_bot, this->m_flag_disable) ) {
 		// if all steps are completed == SUCCESS
 		if ( this->m_reply->success )
 			this->m_reply->message = 2;
