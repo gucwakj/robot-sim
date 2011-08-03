@@ -147,15 +147,15 @@ class CiMobotSim {
 		typedef struct cimobotsimbot_s {			// information about each iMobot module
 			CiMobotSimPart *bodyPart;				// body parts
 			PID *pid;								// PID control for each joint
-			dJointID *joints;						// joints between body parts
-			dJointID *motors;						// motors to drive body parts
-			dReal *curAng;							// current angle of each body part
-			dReal *futAng;							// future angle being driven toward
-			dReal *jntVel;							// desired joint velocity
-			dReal *ang;								// array of angles
-			dReal *vel;								// array of velocities
-			dReal *pos;								// 3D position of center in world
-			dReal *rot;								// 3D rotation matrix of robot about center
+			dJointID	*joints,					// joints between body parts
+						*motors;					// motors to drive body parts
+			dReal	*curAng,						// current angle of each body part
+					*futAng,						// future angle being driven toward
+					*jntVel,						// desired joint velocity
+					*ang,							// array of angles
+					*vel,							// array of velocities
+					*pos,							// 3D position of center in world
+					*rot;							// 3D rotation matrix of robot about center
 			bool *cmpStp;							// flag to check if step is complete
 		} CiMobotSimBot;
 		typedef struct cimobotsimreply_s {			// information on success to reply
@@ -170,24 +170,24 @@ class CiMobotSim {
 		CiMobotSimBot **bot;						// array of structs for each bot
 		CiMobotSimReply *m_reply;					// struct of data to return after finishing simulation
 		dGeomID *m_ground;							// array of ground objects
-		dReal m_t;									// current time of simulation
-		dReal m_t_total;							// total time for simulation to run
-		dReal m_t_step;								// time of each step of simulation
-		dReal m_mu_g;								// coefficient of friction of body_ground
-		dReal m_mu_b;								// coefficient of friction of body_body
-		dReal m_cor_g;								// coefficient of restitution of body_ground
-		dReal m_cor_b;								// coefficient of restitution of body_body
-		dReal m_motor_res;							// motor angle resolution
-		dReal *m_joint_vel_max;						// maximum joint velocity possible
-		dReal *m_joint_vel_min;						// minimum joint velocity possible
-		dReal *m_joint_vel_del;						// range of joint velocities
-		dReal *m_joint_frc_max;						// maximum force that can be applied to each body part
-		int m_num_bot;								// number of modules in simulation
-		int m_num_gnd;								// number of pieces of ground
-		int m_num_stp;								// total number of steps
-		int m_cur_stp;								// current step number
-		bool *m_flags;								// flag for each bot  - completed step
-		bool *m_disable;							// flag for each bot - disabled/enabled
+		dReal	m_t,								// current time of simulation
+				m_t_total,							// total time for simulation to run
+				m_t_step,							// time of each step of simulation
+				m_mu_g,								// coefficient of friction of body_ground
+				m_mu_b,								// coefficient of friction of body_body
+				m_cor_g,							// coefficient of restitution of body_ground
+				m_cor_b,							// coefficient of restitution of body_body
+				m_motor_res,						// motor angle resolution
+				*m_joint_vel_max,					// maximum joint velocity possible
+				*m_joint_vel_min,					// minimum joint velocity possible
+				*m_joint_vel_del,					// range of joint velocities
+				*m_joint_frc_max;					// maximum force that can be applied to each body part
+		int	m_num_bot,								// number of modules in simulation
+			m_num_gnd,								// number of pieces of ground
+			m_num_stp,								// total number of steps
+			m_cur_stp;								// current step number
+		bool	*m_flags,							// flag for each bot  - completed step
+				*m_disable;							// flag for each bot - disabled/enabled
 		#ifdef ENABLE_DRAWSTUFF
 		dsFunctions m_fn;							// struct to store drawstuff functions
 		#endif
