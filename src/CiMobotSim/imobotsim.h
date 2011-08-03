@@ -156,7 +156,6 @@ class CiMobotSim {
 					*vel,							// array of velocities
 					*pos,							// 3D position of center in world
 					*rot;							// 3D rotation matrix of robot about center
-			bool *cmpStp;							// flag to check if step is complete
 		} CiMobotSimBot;
 		typedef struct cimobotsimreply_s {			// information on success to reply
 			bool success;							// flag if simulation is successful

@@ -105,8 +105,6 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 		for ( j = 0; j < 3; j++ ) this->bot[i]->pos[j] = 0;
 		this->bot[i]->rot = new dReal[3];
 		for ( j = 0; j < 3; j++ ) this->bot[i]->rot[j] = 0;
-		this->bot[i]->cmpStp = new bool[NUM_DOF];
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->cmpStp[j] = false;
 		this->m_flags[i] = false;
 		this->m_disable[i] = false;
 	}
@@ -155,7 +153,6 @@ CiMobotSim::~CiMobotSim() {
 		delete [] this->bot[i]->vel;
 		delete [] this->bot[i]->pos;
 		delete [] this->bot[i]->rot;
-		delete [] this->bot[i]->cmpStp;
 		delete this->bot[i];
 	}
 	delete [] this->bot;
@@ -264,6 +261,7 @@ void CiMobotSim::simulationLoop(void) {
 void CiMobotSim::update_angles() {
 	// update stored data in struct with data from ODE
 	for (int i = 0; i < this->m_num_bot; i++) {
+		int complete = 0;
 		// must be done for each degree of freedom
 		for (int j = 0; j < NUM_DOF; j++) {
 			// update current angle
@@ -282,26 +280,24 @@ void CiMobotSim::update_angles() {
 			else {
 				if (this->bot[i]->curAng[j] < this->bot[i]->futAng[j] - 10*this->m_motor_res) {
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->jntVel[j]);
-					this->bot[i]->cmpStp[j] = false;
 				}
 				else if (this->bot[i]->curAng[j] > this->bot[i]->futAng[j] + 10*this->m_motor_res) {
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, -this->bot[i]->jntVel[j]);
-					this->bot[i]->cmpStp[j] = false;
 				}
 				else if (this->bot[i]->futAng[j] - 10*this->m_motor_res < this->bot[i]->curAng[j] &&  this->bot[i]->curAng[j] < this->bot[i]->futAng[j] - this->m_motor_res) {
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->pid[j].Update(this->bot[i]->futAng[j] - this->bot[i]->curAng[j]));
-					this->bot[i]->cmpStp[j] = false;
 				}
 				else if (this->bot[i]->curAng[j] < this->bot[i]->futAng[j] + 10*this->m_motor_res && this->bot[i]->curAng[j] > this->bot[i]->futAng[j] + this->m_motor_res) {
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->pid[j].Update(this->bot[i]->curAng[j] - this->bot[i]->futAng[j]));
-					this->bot[i]->cmpStp[j] = false;
 				}
 				else {
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, 0);
-					this->bot[i]->cmpStp[j] = true;
+					complete++;
 				}
 			}
 		}
+		if (complete == 4)
+			this->m_flags[i] = true;
 	}
 }
 
@@ -359,9 +355,6 @@ void CiMobotSim::collision(dGeomID o1, dGeomID o2) {
 void CiMobotSim::set_flags() {
 	// set flags for each module in simulation
 	for (int i = 0; i < this->m_num_bot; i++) {
-		// all body parts of module finished
-		if ( this->is_true(NUM_DOF, this->bot[i]->cmpStp) )
-			this->m_flags[i] = true;
 		// module is disabled
 		if ( dBodyIsEnabled(this->bot[i]->bodyPart[CENTER].bodyID) )
 			this->m_disable[i] = false;
@@ -396,7 +389,7 @@ void CiMobotSim::increment_step() {
 		for (int i = 0; i < this->m_num_bot; i++) {
 			this->m_flags[i] = false;
 			for (int j = 0; j < NUM_DOF; j++) {
-				this->bot[i]->cmpStp[j] = false;
+				//this->bot[i]->cmpStp[j] = false;
 				this->bot[i]->pid[j].Initialize(100, 1, 10, 0.1, this->m_t_step);
 			}
 		}
@@ -411,7 +404,6 @@ void CiMobotSim::set_angles() {
 				dJointDisable(this->bot[i]->motors[j]);
 				this->bot[i]->futAng[j] = mod_angle(this->bot[i]->curAng[j], dJointGetHingeAngle(this->bot[i]->joints[j]), dJointGetHingeAngleRate(this->bot[i]->joints[j]));
 				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
-				this->bot[i]->cmpStp[j] = true;
 			}
 			else {
 				dJointEnable(this->bot[i]->motors[j]);
@@ -419,7 +411,6 @@ void CiMobotSim::set_angles() {
 				for ( int k = 0; k <= this->m_cur_stp; k++) { this->bot[i]->futAng[j] += this->bot[i]->ang[NUM_DOF*k + j]; }
 				this->bot[i]->jntVel[j] = this->m_joint_vel_min[j] + this->bot[i]->vel[NUM_DOF*this->m_cur_stp + j]*this->m_joint_vel_del[j];
 				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
-				this->bot[i]->cmpStp[j] = false;
 			}
 		}
 		// for two body joints
@@ -428,14 +419,12 @@ void CiMobotSim::set_angles() {
 				dJointDisable(this->bot[i]->motors[j]);
 				this->bot[i]->futAng[j] = dJointGetHingeAngle(this->bot[i]->joints[j]);
 				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
-				this->bot[i]->cmpStp[j] = true;
 			}
 			else {
 				dJointEnable(this->bot[i]->motors[j]);
 				this->bot[i]->futAng[j] = this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j];
 				this->bot[i]->jntVel[j] = this->m_joint_vel_min[j] + this->bot[i]->vel[NUM_DOF*this->m_cur_stp + j]*this->m_joint_vel_del[j];
 				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
-				this->bot[i]->cmpStp[j] = false;
 			}
 		}
 	}
