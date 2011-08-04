@@ -138,7 +138,6 @@ class CiMobotSim {
 		typedef struct cimobotsimpart_s {			// information about each body part
 			dBodyID bodyID;							// id of body part
 			dGeomID *geomID;						// ids of geoms which make up each body part
-			dReal ang;								// initial angle of part about rotational axis
 			#ifdef ENABLE_DRAWSTUFF
 			float color[3];							// rgb color for each body part
 			int num_geomID;							// total number of geomID for part
@@ -154,8 +153,9 @@ class CiMobotSim {
 					*jnt_vel,						// desired joint velocity
 					*ang,							// array of angles
 					*vel,							// array of velocities
-					*pos,							// 3D position of center in world
-					*rot;							// three Euler angles of robot about center
+					*pos,							// initial position of robot
+					*rot,							// initial rotation of robot by three Euler angles
+					*ori;							// initial orientation of body parts
 		} CiMobotSimBot;
 		typedef struct cimobotsimreply_s {			// information on success to reply
 			bool success;							// flag if simulation is successful
@@ -218,9 +218,9 @@ class CiMobotSim {
 		 *	functions to build body parts of iMobot
 		 */
 		void imobot_build_lb(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild);
-		void imobot_build_ce(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
 		void imobot_build_rb(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild);
-		void imobot_build_en(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_e, int rebuild);
+		void imobot_build_ce(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
+		void imobot_build_en(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
 
 		/*
 		 *	functions to build attached imobots

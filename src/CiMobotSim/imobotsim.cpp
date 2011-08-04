@@ -105,6 +105,8 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 		for ( j = 0; j < 3; j++ ) this->bot[i]->pos[j] = 0;
 		this->bot[i]->rot = new dReal[3];
 		for ( j = 0; j < 3; j++ ) this->bot[i]->rot[j] = 0;
+		this->bot[i]->ori = new dReal[4];
+		for ( j = 0; j < 4; j++ ) this->bot[i]->ori[j] = 0;
 		this->m_flag_comp[i] = false;
 		this->m_flag_disable[i] = false;
 	}
@@ -385,7 +387,7 @@ void CiMobotSim::increment_step() {
 		for (int i = 0; i < this->m_num_bot; i++) {
 			this->m_flag_comp[i] = false;
 			this->m_flag_disable[i] = false;
-			for (int j = 0; j < NUM_DOF; j++)	this->bot[i]->pid[j].Restart();
+			for (int j = 0; j < NUM_DOF; j++) this->bot[i]->pid[j].Restart();
 		}
 	}
 }
@@ -401,7 +403,7 @@ void CiMobotSim::set_angles() {
 			}
 			else {
 				dJointEnable(this->bot[i]->motors[j]);
-				this->bot[i]->fut_ang[j] = this->bot[i]->bodyPart[j<1?ENDCAP_L:ENDCAP_R].ang;
+				this->bot[i]->fut_ang[j] = this->bot[i]->ori[j];
 				for ( int k = 0; k <= this->m_cur_stp; k++) { this->bot[i]->fut_ang[j] += this->bot[i]->ang[NUM_DOF*k + j]; }
 				this->bot[i]->jnt_vel[j] = this->bot[i]->vel[NUM_DOF*this->m_cur_stp + j];
 				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
@@ -421,6 +423,8 @@ void CiMobotSim::set_angles() {
 				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
 			}
 		}
+		// re-enable robots for next step
+		dBodyEnable(this->bot[i]->bodyPart[CENTER].bodyID);
 	}
 }
 
@@ -436,7 +440,7 @@ void CiMobotSim::print_intermediate_data() {
 	for (i = 0; i < this->m_num_bot; i++) {
 		//cout << this->bot[i]->fut_ang[LE] << " ";
 		//cout << this->bot[i]->bodyPart[ENDCAP_L].ang << " ";
-		cout << this->bot[i]->cur_ang[LE] << " ";
+		//cout << this->bot[i]->cur_ang[LE] << " ";
 		//cout << this->bot[i]->jnt_vel[LE] << " ";
 		//cout << dJointGetAMotorParam(this->bot[i]->motors[LE], dParamVel) << " ";
 		//cout << dJointGetHingeAngle(this->bot[i]->joints[LE]) << " ";
@@ -444,7 +448,7 @@ void CiMobotSim::print_intermediate_data() {
 		//
 		//cout << this->bot[i]->fut_ang[LB] << " ";
 		//cout << this->bot[i]->bodyPart[BODY_L].ang << " ";
-		cout << this->bot[i]->cur_ang[LB] << " ";
+		//cout << this->bot[i]->cur_ang[LB] << " ";
 		//cout << this->bot[i]->jnt_vel[LB] << " ";
 		//cout << dJointGetAMotorParam(this->bot[i]->motors[LB], dParamVel) << " ";
 		//cout << dJointGetHingeAngle(this->bot[i]->joints[LB]) << " ";
@@ -456,16 +460,16 @@ void CiMobotSim::print_intermediate_data() {
 		//
 		//cout << this->bot[i]->fut_ang[RB] << " ";
 		//cout << this->bot[i]->bodyPart[BODY_R].ang << " ";
-		cout << this->bot[i]->cur_ang[RB] << " ";
+		//cout << this->bot[i]->cur_ang[RB] << " ";
 		//cout << this->bot[i]->jnt_vel[RB] << " ";
 		//cout << dJointGetAMotorParam(this->bot[i]->motors[RB], dParamVel) << " ";
 		//cout << dJointGetHingeAngle(this->bot[i]->joints[RB]) << " ";
 		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RB]) << " ";
 		//
-		//cout << this->bot[i]->fut_ang[RE] << " ";
+		cout << this->bot[i]->fut_ang[RE] << " ";
 		//cout << this->bot[i]->bodyPart[ENDCAP_R].ang << " ";
 		cout << this->bot[i]->cur_ang[RE] << " ";
-		//cout << this->bot[i]->jnt_vel[RE] << " ";
+		cout << this->bot[i]->jnt_vel[RE] << " ";
 		//cout << dJointGetAMotorParam(this->bot[i]->motors[RE], dParamVel) << " ";
 		//cout << dJointGetHingeAngle(this->bot[i]->joints[RE]) << " ";
 		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RE]) << " ";
@@ -641,7 +645,6 @@ void CiMobotSim::imobot_build_lb(dSpaceID &space, CiMobotSimPart &part, dReal x,
 
 	// put into robot struct
 	part.bodyID = body;
-	part.ang = r_lb;
 	#ifdef ENABLE_DRAWSTUFF
 	part.color[0] = 1;
 	part.color[1] = 0;
@@ -729,7 +732,6 @@ void CiMobotSim::imobot_build_rb(dSpaceID &space, CiMobotSimPart &part, dReal x,
 
 	// put into robot struct
 	part.bodyID = body;
-	part.ang = r_rb;
 	#ifdef ENABLE_DRAWSTUFF
 	part.color[0] = 1;
 	part.color[1] = 1;
@@ -794,7 +796,6 @@ void CiMobotSim::imobot_build_ce(dSpaceID &space, CiMobotSimPart &part, dReal x,
 
 	// put into robot struct
 	part.bodyID = body;
-	part.ang = 0;
 	#ifdef ENABLE_DRAWSTUFF
 	part.color[0] = 0;
 	part.color[1] = 1;
@@ -802,7 +803,7 @@ void CiMobotSim::imobot_build_ce(dSpaceID &space, CiMobotSimPart &part, dReal x,
 	#endif
 }
 
-void CiMobotSim::imobot_build_en(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_e, int rebuild) {
+void CiMobotSim::imobot_build_en(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
 	// define parameters
 	dBodyID body;
 	dGeomID geom;
@@ -883,7 +884,6 @@ void CiMobotSim::imobot_build_en(dSpaceID &space, CiMobotSimPart &part, dReal x,
 
 	// put into robot struct
 	part.bodyID = body;
-	part.ang = r_e;
 	#ifdef ENABLE_DRAWSTUFF
 	part.color[0] = 0;
 	part.color[1] = 0;
@@ -919,11 +919,11 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, d
 	dReal re[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH), 0, 0};
 
 	// build pieces of module
-	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, 0, BUILD);
+	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
 	imobot_build_lb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
 	imobot_build_ce(this->space_bot[botNum], this->bot[botNum]->bodyPart[CENTER], x, y, z, R, BUILD);
 	imobot_build_rb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
-	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, 0, BUILD);
+	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, BUILD);
 
 	// store position and rotation of center of module
 	this->bot[botNum]->pos[0] = x;
@@ -1041,13 +1041,13 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, d
 	y = I2M(y);
 	z = I2M(z + BODY_HEIGHT/2);
 	// convert input angles to radians
-	psi = D2R(psi);				// roll: x
-	theta = D2R(theta);			// pitch: -y
-	phi = D2R(phi);				// yaw: z
-	r_le = D2R(r_le);			// left end
-	r_lb = D2R(r_lb);			// left body
-	r_rb = D2R(r_rb);			// right body
-	r_re = D2R(r_re);			// right end
+	psi = D2R(psi);			// roll: x
+	theta = D2R(theta);		// pitch: -y
+	phi = D2R(phi);			// yaw: z
+	r_le = D2R(r_le);		// left end
+	r_lb = D2R(r_lb);		// left body
+	r_rb = D2R(r_rb);		// right body
+	r_re = D2R(r_re);		// right end
 
 	// create rotation matrix for robot
 	dMatrix3 R;
@@ -1067,11 +1067,11 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, d
 	dReal rb[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2), I2M(CENTER_WIDTH/2), 0};
 	dReal re[6] = {I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2), 0, 0, I2M(CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH), 0, 0};
 
-	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, 0, BUILD);
+	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
 	imobot_build_lb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
 	imobot_build_ce(this->space_bot[botNum], this->bot[botNum]->bodyPart[CENTER], x, y, z, R, BUILD);
 	imobot_build_rb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
-	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, 0, BUILD);
+	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, BUILD);
 
 	// store position and rotation of center of module
 	this->bot[botNum]->pos[0] = x;
@@ -1080,6 +1080,10 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, d
 	this->bot[botNum]->rot[0] = psi;
 	this->bot[botNum]->rot[1] = theta;
 	this->bot[botNum]->rot[2] = phi;
+	this->bot[botNum]->ori[0] = r_le;
+	this->bot[botNum]->ori[1] = r_lb;
+	this->bot[botNum]->ori[2] = r_rb;
+	this->bot[botNum]->ori[3] = r_re;
 
 	// create joint
 	dJointID joint;
@@ -1150,10 +1154,10 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, d
 	dReal re_r[3] = {I2M(CENTER_LENGTH/2) + I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_rb), 0, I2M(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_rb)};
 
 	// re-build pieces of module
-	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le, r_le, REBUILD);
+	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le, REBUILD);
 	imobot_build_lb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb, REBUILD);
 	imobot_build_rb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb, REBUILD);
-	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re, r_re, REBUILD);
+	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re, REBUILD);
 
 	// create motor
 	dJointID motor;
@@ -1748,14 +1752,14 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[0]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[4]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
@@ -1769,14 +1773,14 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
@@ -1790,14 +1794,14 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
@@ -1811,14 +1815,14 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
@@ -1832,14 +1836,14 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
@@ -1853,14 +1857,14 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[0]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[4]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
@@ -1874,11 +1878,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) 								+ R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH 	+ R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) 								+ R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
@@ -1891,11 +1895,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[8]*(-0.5*CENTER_LENGTH);
@@ -1906,11 +1910,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		face2_part = BODY_L;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		m[0] = -0.5*CENTER_LENGTH					+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 						- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =										+ R1[8]*(0.5*CENTER_LENGTH);
@@ -1923,11 +1927,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		m[0] = -0.5*CENTER_LENGTH					+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 						- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =										+ R1[8]*(0.5*CENTER_LENGTH);
@@ -1938,11 +1942,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		face2_part = BODY_R;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[8]*(-0.5*CENTER_LENGTH);
@@ -1955,11 +1959,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
@@ -1972,11 +1976,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
@@ -1987,11 +1991,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		face2_part = BODY_L;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		m[0] = -0.5*CENTER_LENGTH				+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 						BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =									+ R1[8]*(0.5*CENTER_LENGTH);
@@ -2004,11 +2008,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[8]*(-0.5*CENTER_LENGTH);
@@ -2019,11 +2023,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		face2_part = BODY_R;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[8]*(-0.5*CENTER_LENGTH);
@@ -2036,11 +2040,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		m[0] = -0.5*CENTER_LENGTH				+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 						BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =									+ R1[8]*(0.5*CENTER_LENGTH);
@@ -2053,11 +2057,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
@@ -2070,11 +2074,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	 							 R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
@@ -2087,11 +2091,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		m[0] = 0.5*CENTER_LENGTH				+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 						-BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
@@ -2102,11 +2106,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		face2_part = BODY_L;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[8]*(0.5*CENTER_LENGTH);
@@ -2119,11 +2123,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[8]*(0.5*CENTER_LENGTH);
@@ -2134,11 +2138,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		face2_part = BODY_R;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		m[0] = 0.5*CENTER_LENGTH					+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 						- BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =										+ R1[8]*(-0.5*CENTER_LENGTH);
@@ -2151,11 +2155,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	 							 R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
@@ -2168,11 +2172,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
@@ -2183,11 +2187,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		face2_part = BODY_L;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[8]*(0.5*CENTER_LENGTH);
@@ -2200,11 +2204,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		m[0] = 0.5*CENTER_LENGTH				+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 						BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
@@ -2215,11 +2219,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		face2_part = BODY_R;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		m[0] = 0.5*CENTER_LENGTH				+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 						BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
@@ -2232,11 +2236,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[8]*(0.5*CENTER_LENGTH);
@@ -2249,11 +2253,11 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
@@ -2266,14 +2270,14 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->bodyPart[BODY_R].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[BODY_R].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH) + R3[0]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH) + R3[4]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
@@ -2287,14 +2291,14 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[BODY_R].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[BODY_R].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
@@ -2308,14 +2312,14 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[BODY_R].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[BODY_R].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
@@ -2329,14 +2333,14 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[BODY_R].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[BODY_R].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
@@ -2350,14 +2354,14 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[BODY_R].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[BODY_R].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
@@ -2371,14 +2375,14 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->bodyPart[BODY_R].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[BODY_R].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH) + R3[0]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH) + R3[4]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
@@ -2577,14 +2581,12 @@ void CiMobotSim::imobot_build_attached_01(int botNum, int attNum, int face1, int
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
-		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
-		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
-		dMultiply0(R5, R4, R3, 3, 3, 3);
-		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) 								+ R3[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[1]*(-0.5*CENTER_LENGTH);
-		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH 	+ R3[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[5]*(-0.5*CENTER_LENGTH);
-		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) 								+ R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER + R1[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[1]*(-0.5*CENTER_LENGTH);
+		m[1] = -END_DEPTH - 0.5*BODY_WIDTH 	+ R1[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[5]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 2 ) {
 		// set which body parts are to be connected
@@ -3176,9 +3178,9 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], r_e);
 		dMultiply0(R8, R7, R6, 3, 3, 3);
@@ -3186,8 +3188,8 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		dMultiply0(R, R9, R8, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_e);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3205,16 +3207,16 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3230,16 +3232,16 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3255,16 +3257,16 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3280,16 +3282,16 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3305,9 +3307,9 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->bodyPart[BODY_L].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], -r_e);
 		dMultiply0(R8, R7, R6, 3, 3, 3);
@@ -3315,8 +3317,8 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		dMultiply0(R, R9, R8, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[BODY_L].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->bodyPart[ENDCAP_L].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_e);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3334,7 +3336,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -3342,7 +3344,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
@@ -3359,13 +3361,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -3378,13 +3380,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		face2_part = BODY_L;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH					+ R3[0]*(0.5*CENTER_LENGTH);
@@ -3399,13 +3401,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH					+ R3[0]*(0.5*CENTER_LENGTH);
@@ -3418,13 +3420,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		face2_part = BODY_R;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -3439,7 +3441,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -3447,7 +3449,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
@@ -3464,7 +3466,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -3472,7 +3474,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
@@ -3487,13 +3489,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		face2_part = BODY_L;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH				+ R3[0]*(0.5*CENTER_LENGTH);
@@ -3508,13 +3510,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -3527,13 +3529,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		face2_part = BODY_R;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -3548,13 +3550,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH				+ R3[0]*(0.5*CENTER_LENGTH);
@@ -3569,7 +3571,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -3577,7 +3579,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
@@ -3594,7 +3596,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -3602,7 +3604,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
@@ -3619,13 +3621,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH				+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -3638,13 +3640,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		face2_part = BODY_L;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[0]*(0.5*CENTER_LENGTH);
@@ -3659,13 +3661,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[0]*(0.5*CENTER_LENGTH);
@@ -3678,13 +3680,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		face2_part = BODY_R;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH					+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -3699,7 +3701,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -3707,7 +3709,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
@@ -3724,7 +3726,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -3732,7 +3734,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
@@ -3747,13 +3749,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		face2_part = BODY_L;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[0]*(0.5*CENTER_LENGTH);
@@ -3768,13 +3770,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH				+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -3787,13 +3789,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		face2_part = BODY_R;
 
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH				+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -3808,13 +3810,13 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[0]*(0.5*CENTER_LENGTH);
@@ -3829,7 +3831,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -3837,7 +3839,7 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[face1_part].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
@@ -3854,9 +3856,9 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->bodyPart[BODY_R].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], r_e);
 		dMultiply0(R8, R7, R6, 3, 3, 3);
@@ -3864,8 +3866,8 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		dMultiply0(R, R9, R8, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[BODY_R].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_e);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3883,16 +3885,16 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[BODY_R].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[BODY_R].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3908,16 +3910,16 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[BODY_R].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[BODY_R].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3933,16 +3935,16 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->bodyPart[BODY_R].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[BODY_R].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3958,16 +3960,16 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->bodyPart[BODY_R].ang);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[BODY_R].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3983,9 +3985,9 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->bodyPart[BODY_R].ang);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], -r_e);
 		dMultiply0(R8, R7, R6, 3, 3, 3);
@@ -3993,8 +3995,8 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 		dMultiply0(R, R9, R8, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->bodyPart[BODY_R].ang);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->bodyPart[ENDCAP_R].ang);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_e);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
