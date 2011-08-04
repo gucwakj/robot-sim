@@ -16,13 +16,6 @@ add_definitions(-Wno-dev)
 
 # Compilation options
 option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." OFF)
-if (ENABLE_DRAWSTUFF)
-  include_directories("../opende/include")
-  link_directories("../opende/drawstuff/src/.libs")
-  find_package(GLUT)
-  find_package(OpenGL)
-  set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
-endif (ENABLE_DRAWSTUFF)
 
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
 if (ENABLE_DOUBLE)
@@ -49,6 +42,14 @@ set (EXTRA_LIBS ${EXTRA_LIBS} imobotsim)
 include_directories("../opende/sys/include")
 link_directories("../opende/sys/lib")
 set (EXTRA_LIBS ${EXTRA_LIBS} ode)
+
+if (ENABLE_DRAWSTUFF)
+  include_directories("../opende/include")
+  link_directories("../opende/drawstuff/src/.libs")
+  find_package(GLUT)
+  find_package(OpenGL)
+  set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
+endif (ENABLE_DRAWSTUFF)
 
 #message( ${EXTRA_LIBS} )
 

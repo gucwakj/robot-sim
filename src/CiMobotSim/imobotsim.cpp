@@ -241,7 +241,7 @@ void CiMobotSim::ds_simulation(int pause) {
 #else
 void CiMobotSim::simulationLoop(void) {
 	bool loop = true;												// initialize
-	while (this->m_t_cur_step < this->m_t_tot_step || loop) {		// loop continuously until simulation is stopped
+	while (this->m_t_cur_step <= this->m_t_tot_step && loop) {		// loop continuously until simulation is stopped
 		this->update_angles();										// update angles for current step
 
 		dSpaceCollide(this->space, this, &this->collision_wrapper);	// collide all geometries together
