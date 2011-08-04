@@ -149,13 +149,13 @@ class CiMobotSim {
 			PID *pid;								// PID control for each joint
 			dJointID	*joints,					// joints between body parts
 						*motors;					// motors to drive body parts
-			dReal	*curAng,						// current angle of each body part
-					*futAng,						// future angle being driven toward
-					*jntVel,						// desired joint velocity
+			dReal	*cur_ang,						// current angle of each body part
+					*fut_ang,						// future angle being driven toward
+					*jnt_vel,						// desired joint velocity
 					*ang,							// array of angles
 					*vel,							// array of velocities
 					*pos,							// 3D position of center in world
-					*rot;							// 3D rotation matrix of robot about center
+					*rot;							// three Euler angles of robot about center
 		} CiMobotSimBot;
 		typedef struct cimobotsimreply_s {			// information on success to reply
 			bool success;							// flag if simulation is successful
@@ -179,12 +179,13 @@ class CiMobotSim {
 				m_motor_res,						// motor angle resolution
 				*m_joint_vel_max,					// maximum joint velocity possible
 				*m_joint_vel_min,					// minimum joint velocity possible
-				*m_joint_vel_del,					// range of joint velocities
 				*m_joint_frc_max;					// maximum force that can be applied to each body part
-		int	m_num_bot,								// number of modules in simulation
-			m_num_gnd,								// number of pieces of ground
-			m_num_stp,								// total number of steps
-			m_cur_stp;								// current step number
+		int		m_num_bot,							// number of modules in simulation
+				m_num_gnd,							// number of pieces of ground
+				m_num_stp,							// total number of steps
+				m_cur_stp,							// current step number
+				m_t_tot_step,						// total number of time steps
+				m_t_cur_step;						// current time step
 		bool	*m_flag_comp,						// flag for each bot - completed step
 				*m_flag_disable;					// flag for each bot - disabled/enabled
 		#ifdef ENABLE_DRAWSTUFF
@@ -208,8 +209,8 @@ class CiMobotSim {
 		void increment_step();						// increment step to next set of angles
 		void set_angles();							// set new angles for step of sim
 		void print_intermediate_data();				// print data out at each time step for analysis
-		bool end_simulation(double total_time);		// check if simulation is complete and exit
-		void increment_time(double t_step);			// update simulation time
+		void end_simulation(bool &loop);			// check if simulation is complete and exit
+		void increment_time();						// update simulation time
 		void collision(dGeomID o1, dGeomID o2);		// callback function for contact of bodies
 		static void collision_wrapper(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 
