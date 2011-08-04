@@ -86,7 +86,7 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 		this->bot[i]->bodyPart[ENDCAP_R].num_geomID = 7;
 		#endif
 		this->bot[i]->pid = new PID[NUM_DOF];
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->pid[j].Initialize(100, 1, 10, 0.1, this->m_t_step);
+		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->pid[j].init(100, 1, 10, 0.1, this->m_t_step);
 		this->bot[i]->joints = new dJointID[6];
 		this->bot[i]->motors = new dJointID[4];
 		this->bot[i]->ang = new dReal[NUM_DOF*num_stp];
@@ -283,9 +283,9 @@ void CiMobotSim::update_angles() {
 				else if (this->bot[i]->cur_ang[j] > this->bot[i]->fut_ang[j] + 10*this->m_motor_res)
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, -this->bot[i]->jnt_vel[j]);
 				else if (this->bot[i]->fut_ang[j] - 10*this->m_motor_res < this->bot[i]->cur_ang[j] &&  this->bot[i]->cur_ang[j] < this->bot[i]->fut_ang[j] - this->m_motor_res)
-					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->pid[j].Update(this->bot[i]->fut_ang[j] - this->bot[i]->cur_ang[j]));
+					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->pid[j].update(this->bot[i]->fut_ang[j] - this->bot[i]->cur_ang[j]));
 				else if (this->bot[i]->cur_ang[j] < this->bot[i]->fut_ang[j] + 10*this->m_motor_res && this->bot[i]->cur_ang[j] > this->bot[i]->fut_ang[j] + this->m_motor_res)
-					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->pid[j].Update(this->bot[i]->cur_ang[j] - this->bot[i]->fut_ang[j]));
+					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->pid[j].update(this->bot[i]->cur_ang[j] - this->bot[i]->fut_ang[j]));
 				else
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, 0);*/
 				// without PID
@@ -387,7 +387,7 @@ void CiMobotSim::increment_step() {
 		for (int i = 0; i < this->m_num_bot; i++) {
 			this->m_flag_comp[i] = false;
 			this->m_flag_disable[i] = false;
-			for (int j = 0; j < NUM_DOF; j++) this->bot[i]->pid[j].Restart();
+			for (int j = 0; j < NUM_DOF; j++) this->bot[i]->pid[j].restart();
 		}
 	}
 }
