@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8)
 project (CiMobot_Sim)
 
 # Set the version number
@@ -9,22 +9,29 @@ set (CiMobot_Sim_VERSION_MINOR 1)
 configure_file (
   "${PROJECT_SOURCE_DIR}/config.h.in"
   "${PROJECT_BINARY_DIR}/config.h"
-  )
+)
+
+# suppress dev warnings
+add_definitions(-Wno-dev)
 
 # Compilation options
-option (ENABLE_DRAWSTUFF 
-        "Enable usage of the ODE drawstuff routines for visualization." OFF)
+option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." OFF)
+if (ENABLE_DRAWSTUFF)
+  include_directories("../opende/include")
+  link_directories("../opende/drawstuff/src/.libs")
+  find_package(GLUT)
+  find_package(OpenGL)
+  set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
+endif (ENABLE_DRAWSTUFF)
 
-option (ENABLE_DOUBLE
-        "Enable double precision for simulation." ON)
+option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
 if (ENABLE_DOUBLE)
   add_definitions(-DdDOUBLE)
 else (ENABLE_DOUBLE)
   add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 
-option (ENABLE_GPROF
-	"Enable GNU Profiling capabilities for simulation." OFF)
+option (ENABLE_GPROF "Enable GNU Profiling capabilities for simulation." OFF)
 if (ENABLE_GPROF)
   add_definitions(-Dpg)
   set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -pg)
@@ -39,23 +46,11 @@ link_directories("../CiMobotSim")
 set (EXTRA_LIBS ${EXTRA_LIBS} imobotsim)
 
 # Add ODE library
-include_directories(
-  "../opende/sys/include"
-  )
+include_directories("../opende/sys/include")
 link_directories("../opende/sys/lib")
 set (EXTRA_LIBS ${EXTRA_LIBS} ode)
 
-
-# If drawstuff is enabled, include drawstuff library
-if (ENABLE_DRAWSTUFF)
-  include_directories("../opende/include")
-  link_directories("../opende/drawstuff/src/.libs")
-  find_package(GLUT)
-  find_package(OpenGL)
-  set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
-endif (ENABLE_DRAWSTUFF)
-
-message( ${EXTRA_LIBS} )
+#message( ${EXTRA_LIBS} )
 
 # Add the executable
 add_executable(cimobotsim_test cimobotsim_test.cpp)

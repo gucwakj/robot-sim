@@ -227,7 +227,7 @@ void CiMobotSim::ds_simulation(int pause) {
 	dWorldStep(this->world, this->m_t_step);						// step world time by one
 	dJointGroupEmpty(this->group);									// clear out all contact joints
 
-	this->print_intermediate_data();								// print out incremental data
+	//this->print_intermediate_data();								// print out incremental data
 
 	this->set_flags();												// set flags for completion of steps
 	this->increment_step();											// check whether to increment to next step
@@ -248,7 +248,7 @@ void CiMobotSim::simulationLoop(void) {
 		dWorldStep(this->world, this->m_t_step);					// step world time by one
 		dJointGroupEmpty(this->group);								// clear out all contact joints
 
-		this->print_intermediate_data();							// print out incremental data
+		//this->print_intermediate_data();							// print out incremental data
 
 		this->set_flags();											// set flags for completion of steps
 		this->increment_step();										// check whether to increment to next step
@@ -361,9 +361,9 @@ void CiMobotSim::set_flags() {
 		complete = 0;
 
 		// for each degree of freedom
-		for (int j = 0; j < NUM_DOF; j++) {
+		for (int j = 0; j < NUM_DOF; j++)
 			if (this->bot[i]->fut_ang[j] - this->m_motor_res < this->bot[i]->cur_ang[j] && this->bot[i]->cur_ang[j] < this->bot[i]->fut_ang[j] + this->m_motor_res) complete++;
-		}
+
 		// set flag for each robot that has completed all four joint motions
 		if (complete == 4) this->m_flag_comp[i] = true;
 
@@ -466,10 +466,10 @@ void CiMobotSim::print_intermediate_data() {
 		//cout << dJointGetHingeAngle(this->bot[i]->joints[RB]) << " ";
 		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RB]) << " ";
 		//
-		cout << this->bot[i]->fut_ang[RE] << " ";
+		//cout << this->bot[i]->fut_ang[RE] << " ";
 		//cout << this->bot[i]->bodyPart[ENDCAP_R].ang << " ";
-		cout << this->bot[i]->cur_ang[RE] << " ";
-		cout << this->bot[i]->jnt_vel[RE] << " ";
+		//cout << this->bot[i]->cur_ang[RE] << " ";
+		//cout << this->bot[i]->jnt_vel[RE] << " ";
 		//cout << dJointGetAMotorParam(this->bot[i]->motors[RE], dParamVel) << " ";
 		//cout << dJointGetHingeAngle(this->bot[i]->joints[RE]) << " ";
 		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RE]) << " ";
@@ -481,15 +481,19 @@ void CiMobotSim::print_intermediate_data() {
 }
 
 void CiMobotSim::end_simulation(bool &loop) {
+	// increment step
 	this->m_t_cur_step++;
-	/*if ( this->m_reply->success ) {
+
+	// stalled
+	if ( !this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
 		this->m_reply->message = 2;
 		loop = false;
 	}
-	else if ( !this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
+	// success
+	else if ( this->m_reply->success ) {
 		this->m_reply->message = 3;
 		loop = false;
-	}*/
+	}
 }
 
 void CiMobotSim::increment_time() {
@@ -500,9 +504,9 @@ void CiMobotSim::getReplyMessage() {
 	if ( this->m_reply->message == 1 )
 		cout << "Failure: reached end of simulation time" << endl;
 	else if ( this->m_reply->message == 2 )
-		cout << "Success: all robots have completed all of their steps in " << this->m_reply->time << " seconds"<< endl;
-	else if ( this->m_reply->message == 3 )
 		cout << "Failure: all robots are stationary\n" << endl;
+	else if ( this->m_reply->message == 3 )
+		cout << "Success: all robots have completed all of their steps in " << this->m_reply->time << " seconds"<< endl;
 }
 
 /**********************************************************
