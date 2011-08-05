@@ -31,7 +31,7 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 
 	// default simulation parameters
 	this->m_mu_g = 0.4;
-	this->m_mu_b = 0.4;
+	this->m_mu_b = 0.3;
 	this->m_cor_g = 0.3;
 	this->m_cor_b = 0.3;
 	this->m_t_total = 1.0;
@@ -327,43 +327,33 @@ void CiMobotSim::collision_wrapper(void *data, dGeomID o1, dGeomID o2) {
 }
 
 void CiMobotSim::collision(dGeomID o1, dGeomID o2) {
-	// initialize values
-	dBodyID b1, b2;
-	b1 = dGeomGetBody(o1);
-	b2 = dGeomGetBody(o2);
+	// get bodies of geoms
+	dBodyID b1 = dGeomGetBody(o1);
+	dBodyID b2 = dGeomGetBody(o2);
 
-	// if geoms are in same body do not intersect
-	if (b1 && b2 && dAreConnected(b1, b2)) return;
+	// if geom bodies are connected, do not intersect
+	if ( b1 && b2 && dAreConnected(b1, b2) ) return;
 
 	// special case for collision of spaces
 	if (dGeomIsSpace(o1) || dGeomIsSpace(o2)) {
 		dSpaceCollide2(o1, o2, this, &this->collision_wrapper);
-		if ( dGeomIsSpace(o1) )
-			dSpaceCollide( (dSpaceID)o1, this, &this->collision_wrapper);
-		if ( dGeomIsSpace(o2) )
-			dSpaceCollide( (dSpaceID)o2, this, &this->collision_wrapper);
+		if ( dGeomIsSpace(o1) )	dSpaceCollide((dSpaceID)o1, this, &this->collision_wrapper);
+		if ( dGeomIsSpace(o2) ) dSpaceCollide((dSpaceID)o2, this, &this->collision_wrapper);
 	}
-	// create contact point for two geoms
 	else {
-		const int N = 8;
-		dContact contact[N];
-		int n = dCollide(o1, o2, N, &contact[0].geom, sizeof(dContact));
-		if (n > 0) {
-			for (int i = 0; i < n; i++) {
-				// different properties for ground contact vs body contact
-				if ( dGeomGetSpace(o1) == this->space || dGeomGetSpace(o2) == this->space ) {
-					contact[i].surface.mode = dContactBounce | dContactApprox1;
-					contact[i].surface.mu = this->m_mu_g;
-					contact[i].surface.bounce = this->m_cor_g;
-				}
-				else {
-					contact[i].surface.mode = dContactBounce | dContactApprox1;
-					contact[i].surface.mu = this->m_mu_b;
-					contact[i].surface.bounce = this->m_cor_b;
-				}
-				dJointID c = dJointCreateContact(this->world, this->group, contact+i);
-				dJointAttach(c, b1, b2);
+		dContact contact[8];
+		for ( int i = 0; i < dCollide(o1, o2, 8, &contact[0].geom, sizeof(dContact)); i++ ) {
+			// different properties for ground contact vs body contact
+			if ( dGeomGetSpace(o1) == this->space || dGeomGetSpace(o2) == this->space ) {
+				contact[i].surface.mu = this->m_mu_g;
+				contact[i].surface.bounce = this->m_cor_g;
 			}
+			else {
+				contact[i].surface.mu = this->m_mu_b;
+				contact[i].surface.bounce = this->m_cor_b;
+			}
+			contact[i].surface.mode = dContactBounce | dContactApprox1;
+			dJointAttach( dJointCreateContact(this->world, this->group, contact + i), b1, b2);
 		}
 	}
 }
@@ -513,9 +503,7 @@ void CiMobotSim::end_simulation(bool &loop) {
 		loop = false;
 	}
 	// success on all steps
-	else if ( !this->m_reply->message ) {
-		loop = false;
-	}
+	else if ( !this->m_reply->message ) { loop = false; }
 }
 
 void CiMobotSim::increment_time() {
