@@ -1,6 +1,6 @@
 #include "imobotsim.h"
 
-dReal ang[] = {	0,	0,	0,	0,			0,	0,	0,	0};
+dReal ang[] = {	0,	45,	0,	45,			90,	0,	-45,	123456789};
 
 int main(int argc, char* argv[]) {
 	CiMobotSim *sim = new CiMobotSim(1, 2, 1, ang);

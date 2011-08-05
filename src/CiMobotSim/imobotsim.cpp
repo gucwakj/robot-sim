@@ -79,13 +79,6 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 		this->bot[i]->bodyPart[CENTER].geomID = new dGeomID[3];
 		this->bot[i]->bodyPart[BODY_R].geomID = new dGeomID[5];
 		this->bot[i]->bodyPart[ENDCAP_R].geomID = new dGeomID[7];
-		#ifdef ENABLE_DRAWSTUFF
-		this->bot[i]->bodyPart[ENDCAP_L].num_geomID = 7;
-		this->bot[i]->bodyPart[BODY_L].num_geomID = 5;
-		this->bot[i]->bodyPart[CENTER].num_geomID = 3;
-		this->bot[i]->bodyPart[BODY_R].num_geomID = 5;
-		this->bot[i]->bodyPart[ENDCAP_R].num_geomID = 7;
-		#endif
 		this->bot[i]->joints = new dJointID[6];
 		this->bot[i]->motors = new dJointID[4];
 		this->bot[i]->pid = new PID[NUM_DOF];
@@ -101,11 +94,18 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 			this->bot[i]->ang[j] = D2R(ang[4*i + NUM_DOF*num_bot*(j/NUM_DOF) + j%NUM_DOF]);
 			this->bot[i]->vel[j] = this->m_joint_vel_max[j%NUM_DOF];
 		}
+		for ( j = 0; j < NUM_DOF; j++ ) { this->bot[i]->pid[j].init(100, 1, 10, 0.1, this->m_t_step); }
+		#ifdef ENABLE_DRAWSTUFF
+		this->bot[i]->bodyPart[ENDCAP_L].num_geomID = 7;
+		this->bot[i]->bodyPart[BODY_L].num_geomID = 5;
+		this->bot[i]->bodyPart[CENTER].num_geomID = 3;
+		this->bot[i]->bodyPart[BODY_R].num_geomID = 5;
+		this->bot[i]->bodyPart[ENDCAP_R].num_geomID = 7;
 		for ( j = 0; j < NUM_DOF; j++ ) {
 			this->bot[i]->fut_ang[j] = this->bot[i]->ang[j];
 			this->bot[i]->jnt_vel[j] = this->bot[i]->vel[j];
-			this->bot[i]->pid[j].init(100, 1, 10, 0.1, this->m_t_step);
 		}
+		#endif
 	}
 
 	// create ODE simulation space
@@ -236,13 +236,10 @@ dReal CiMobotSim::getReplyTime() {
 #define this g_imobotsim
 void CiMobotSim::ds_simulationLoop(int pause) {
 	bool loop = true;												// initialize
-
 	this->update_angles();											// update angles for current step
-
 	dSpaceCollide(this->space, this, &this->collision_wrapper);		// collide all geometries together
 	dWorldStep(this->world, this->m_t_step);						// step world time by one
 	dJointGroupEmpty(this->group);									// clear out all contact joints
-
 	this->print_intermediate_data();								// print out incremental data
 	this->set_flags();												// set flags for completion of steps
 	this->increment_step();											// check whether to increment to next step
@@ -255,19 +252,45 @@ void CiMobotSim::ds_simulationLoop(int pause) {
 #undef this
 #else
 void CiMobotSim::simulation_loop(void) {
-	bool loop = true;												// initialize
+	bool loop = true;												// initialize loop tracker
+	this->init_angles();											// initialize angles for simulation
 	while (this->m_t_cur_step <= this->m_t_tot_step && loop) {		// loop continuously until simulation is stopped
 		this->update_angles();										// update angles for current step
-
 		dSpaceCollide(this->space, this, &this->collision_wrapper);	// collide all geometries together
 		dWorldStep(this->world, this->m_t_step);					// step world time by one
 		dJointGroupEmpty(this->group);								// clear out all contact joints
-
 		//this->print_intermediate_data();							// print out incremental data
 		this->set_flags();											// set flags for completion of steps
 		this->increment_step();										// check whether to increment to next step
 		this->end_simulation(loop);									// check whether to end simulation
 		this->increment_time();										// increment time
+	}
+}
+#endif
+
+#ifndef ENABLE_DRAWSTUFF
+void CiMobotSim::init_angles() {
+	// initialze loop counters
+	int i, j;
+
+	// initialize all angles for first step of simulation
+	for ( i = 0; i < this->m_num_bot; i++ ) {
+		for ( j = 0; j < NUM_DOF; j++ ) {
+			if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
+				dJointDisable(this->bot[i]->motors[j]);
+				this->bot[i]->fut_ang[j] = this->bot[i]->cur_ang[j];
+				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
+			}
+			else {
+				dJointEnable(this->bot[i]->motors[j]);
+				if ( j == LE || j == RE ) { this->bot[i]->fut_ang[j] = this->bot[i]->ori[j] + this->bot[i]->ang[j]; }
+				else { this->bot[i]->fut_ang[j] = this->bot[i]->ang[j]; }
+				this->bot[i]->jnt_vel[j] = this->bot[i]->vel[j];
+				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
+			}
+		}
+		// re-enable robots for next step
+		dBodyEnable(this->bot[i]->bodyPart[CENTER].bodyID);
 	}
 }
 #endif
@@ -290,10 +313,7 @@ void CiMobotSim::update_angles() {
 			dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
 
 			// drive motor to get current angle to match future angle
-			if ( !dJointIsEnabled(this->bot[i]->motors[j]) ) {
-				this->bot[i]->fut_ang[j] = this->bot[i]->cur_ang[j];
-			}
-			else {
+			if ( dJointIsEnabled(this->bot[i]->motors[j]) ) {
 				// with PID
 				/*if (this->bot[i]->cur_ang[j] < this->bot[i]->fut_ang[j] - 10*this->m_motor_res)
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->jnt_vel[j]);
@@ -406,31 +426,21 @@ void CiMobotSim::set_angles() {
 	int i, j, k;
 
 	for ( i = 0; i < this->m_num_bot; i++ ) {
-		// for two end cap joints
-		for ( j = 0; j < NUM_DOF; j+=3 ) {
+		for ( j = 0; j < NUM_DOF; j++ ) {
 			if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
 				dJointDisable(this->bot[i]->motors[j]);
-				this->bot[i]->fut_ang[j] = mod_angle(this->bot[i]->cur_ang[j], dJointGetHingeAngle(this->bot[i]->joints[j]), dJointGetHingeAngleRate(this->bot[i]->joints[j]));
+				this->bot[i]->fut_ang[j] = this->bot[i]->cur_ang[j];
 				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
 			}
 			else {
 				dJointEnable(this->bot[i]->motors[j]);
-				this->bot[i]->fut_ang[j] = this->bot[i]->ori[j];
-				for ( k = 0; k <= this->m_cur_stp; k++ ) { this->bot[i]->fut_ang[j] += this->bot[i]->ang[NUM_DOF*k + j]; }
-				this->bot[i]->jnt_vel[j] = this->bot[i]->vel[NUM_DOF*this->m_cur_stp + j];
-				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
-			}
-		}
-		// for two body joints
-		for ( j = 1; j < 3; j++ ) {
-			if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
-				dJointDisable(this->bot[i]->motors[j]);
-				this->bot[i]->fut_ang[j] = dJointGetHingeAngle(this->bot[i]->joints[j]);
-				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
-			}
-			else {
-				dJointEnable(this->bot[i]->motors[j]);
-				this->bot[i]->fut_ang[j] = this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j];
+				if ( j == LE || j == RE ) {
+					this->bot[i]->fut_ang[j] = this->bot[i]->ori[j];
+					for ( k = 0; k <= this->m_cur_stp; k++ ) { this->bot[i]->fut_ang[j] += this->bot[i]->ang[NUM_DOF*k + j]; }
+				}
+				else {
+					this->bot[i]->fut_ang[j] = this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j];
+				}
 				this->bot[i]->jnt_vel[j] = this->bot[i]->vel[NUM_DOF*this->m_cur_stp + j];
 				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
 			}

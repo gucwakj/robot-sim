@@ -204,6 +204,7 @@ class CiMobotSim {
 		void ds_simulationLoop(int pause);			// callback function for simulation
 		#else
 		void simulation_loop();						// loop to complete simulation
+		void init_angles();							// initialize angles for simulation
 		#endif
 		void update_angles();						// update struct with modified angles
 		void print_intermediate_data();				// print data out at each time step for analysis
