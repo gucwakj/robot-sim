@@ -21,7 +21,7 @@ CiMobotSim *g_imobotsim;
 #endif
 
 CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
-	// initialize parameters for simulation
+	// initialze loop counters
 	int i, j;
 
 	// values for simulation passed into constructor
@@ -63,10 +63,11 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 	this->m_flag_comp = new bool[num_bot];
 	this->m_flag_disable = new bool[num_bot];
 	this->m_ground = new dGeomID[num_gnd];
+
+	// initialze reply struct
 	this->m_reply = new CiMobotSimReply;
-	this->m_reply->success = false;
 	this->m_reply->time = 0.0;
-	this->m_reply->message = 1;
+	this->m_reply->message = SIM_ERROR_TIME;
 
 	// create and populate struct for each module in simulation
 	this->bot = new CiMobotSimBot * [num_bot];
@@ -85,54 +86,51 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 		this->bot[i]->bodyPart[BODY_R].num_geomID = 5;
 		this->bot[i]->bodyPart[ENDCAP_R].num_geomID = 7;
 		#endif
-		this->bot[i]->pid = new PID[NUM_DOF];
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->pid[j].init(100, 1, 10, 0.1, this->m_t_step);
 		this->bot[i]->joints = new dJointID[6];
 		this->bot[i]->motors = new dJointID[4];
+		this->bot[i]->pid = new PID[NUM_DOF];
 		this->bot[i]->ang = new dReal[NUM_DOF*num_stp];
 		this->bot[i]->vel = new dReal[NUM_DOF*num_stp];
+		this->bot[i]->cur_ang = new dReal[NUM_DOF];
+		this->bot[i]->fut_ang = new dReal[NUM_DOF];
+		this->bot[i]->jnt_vel = new dReal[NUM_DOF];
+		this->bot[i]->pos = new dReal[3];
+		this->bot[i]->rot = new dReal[3];
+		this->bot[i]->ori = new dReal[4];
 		for ( j = 0; j < NUM_DOF*num_stp; j++ ) {
 			this->bot[i]->ang[j] = D2R(ang[4*i + NUM_DOF*num_bot*(j/NUM_DOF) + j%NUM_DOF]);
 			this->bot[i]->vel[j] = this->m_joint_vel_max[j%NUM_DOF];
 		}
-		this->bot[i]->cur_ang = new dReal[NUM_DOF];
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->cur_ang[j] = 0;
-		this->bot[i]->fut_ang = new dReal[NUM_DOF];
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->fut_ang[j] = this->bot[i]->ang[j];
-		this->bot[i]->jnt_vel = new dReal[NUM_DOF];
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->jnt_vel[j] = this->bot[i]->vel[j];
-		this->bot[i]->pos = new dReal[3];
-		for ( j = 0; j < 3; j++ ) this->bot[i]->pos[j] = 0;
-		this->bot[i]->rot = new dReal[3];
-		for ( j = 0; j < 3; j++ ) this->bot[i]->rot[j] = 0;
-		this->bot[i]->ori = new dReal[4];
-		for ( j = 0; j < 4; j++ ) this->bot[i]->ori[j] = 0;
-		this->m_flag_comp[i] = false;
-		this->m_flag_disable[i] = false;
+		for ( j = 0; j < NUM_DOF; j++ ) {
+			this->bot[i]->fut_ang[j] = this->bot[i]->ang[j];
+			this->bot[i]->jnt_vel[j] = this->bot[i]->vel[j];
+			this->bot[i]->pid[j].init(100, 1, 10, 0.1, this->m_t_step);
+		}
 	}
 
 	// create ODE simulation space
 	dInitODE2(0);												// initialized ode library
-	this->world  = dWorldCreate();								// create world for simulation
-	this->space  = dHashSpaceCreate(0);							// create space for robots
+	this->world = dWorldCreate();								// create world for simulation
+	this->space = dHashSpaceCreate(0);							// create space for robots
 	this->space_bot = new dSpaceID[num_bot];					// create array of spaces for each robot
 	for ( i = 0; i < num_bot; i++ ) this->space_bot[i] = dHashSpaceCreate(this->space);		// create each robot's space
-	this->group  = dJointGroupCreate(0);
+	this->group = dJointGroupCreate(0);
 
 	// simulation parameters
 	dWorldSetAutoDisableFlag(this->world, 1);					// auto-disable bodies that are not moving
 	dWorldSetAutoDisableAngularThreshold(this->world, 0.01);	// threshold velocity for defining movement
 	dWorldSetAutoDisableLinearThreshold(this->world, 0.01);		// linear velocity threshold
-	dWorldSetAutoDisableSteps(this->world, 10);					// number of steps below thresholds before stationary
+	dWorldSetAutoDisableSteps(this->world, 4);					// number of steps below thresholds before stationary
 	dWorldSetCFM(this->world, 0.0000000001);					// constraint force mixing - how much a joint can be violated by excess force
 	dWorldSetContactSurfaceLayer(this->world, 0.001);			// depth each body can sink into another body before resting
 	dWorldSetERP(this->world, 0.95);							// error reduction parameter (0-1) - how much error is corrected on each step
 	dWorldSetGravity(this->world, 0, 0, -9.81);					// gravity
 
 	#ifdef ENABLE_DRAWSTUFF
+	// drawstuff simulation parameters
 	m_fn.version = DS_VERSION;									// version of drawstuff
 	m_fn.start = (void (*)(void))&CiMobotSim::ds_start;			// initialization function
-	m_fn.step = (void (*)(int))&CiMobotSim::ds_simulation;		// function for each step of simulation
+	m_fn.step = (void (*)(int))&CiMobotSim::ds_simulationLoop;	// function for each step of simulation
 	m_fn.command = (void (*)(int))&CiMobotSim::ds_command;		// keyboard commands to control simulation
 	m_fn.stop = 0;												// stopping parameter
 	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;				// path to texture files
@@ -141,9 +139,12 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 }
 
 CiMobotSim::~CiMobotSim() {
+	// initialze loop counters
+	int i, j;
+
 	// free all arrays created dynamically in constructor
-	for (int i = this->m_num_bot - 1; i >= 0; i--) {
-		for (int j = 0; j < NUM_PARTS; j++) delete [] this->bot[i]->bodyPart[j].geomID;
+	for ( i = this->m_num_bot - 1; i >= 0; i-- ) {
+		for ( j = 0; j < NUM_PARTS; j++ ) delete [] this->bot[i]->bodyPart[j].geomID;
 		delete [] this->bot[i]->bodyPart;
 		delete [] this->bot[i]->pid;
 		delete [] this->bot[i]->joints;
@@ -155,6 +156,7 @@ CiMobotSim::~CiMobotSim() {
 		delete [] this->bot[i]->vel;
 		delete [] this->bot[i]->pos;
 		delete [] this->bot[i]->rot;
+		delete [] this->bot[i]->ori;
 		delete this->bot[i];
 	}
 	delete [] this->bot;
@@ -168,14 +170,14 @@ CiMobotSim::~CiMobotSim() {
 
 	// destroy all ODE objects
 	dJointGroupDestroy(group);
-	for ( int i = 0; i < this->m_num_bot; i++ ) dSpaceDestroy(this->space_bot[i]);
+	for ( i = 0; i < this->m_num_bot; i++ ) dSpaceDestroy(this->space_bot[i]);
 	dSpaceDestroy(this->space);
 	dWorldDestroy(this->world);
 	dCloseODE();
 }
 
 void CiMobotSim::setAngVel(dReal *vel) {
-	// initialize loop variables
+	// initialze loop counters
 	int i, j;
 
 	// create array of delta values between min and max joint velocities
@@ -206,9 +208,9 @@ void CiMobotSim::setTime(dReal time_total) {
 
 void CiMobotSim::runSimulation(int argc, char **argv) {
 	#ifdef ENABLE_DRAWSTUFF
-		dsSimulationLoop(argc, argv, 352, 288, &m_fn);
+	dsSimulationLoop(argc, argv, 352, 288, &m_fn);
 	#else
-		simulationLoop();
+	simulation_loop();
 	#endif
 }
 
@@ -218,7 +220,7 @@ void CiMobotSim::runSimulation(int argc, char **argv) {
  * will be NULL. Instead, if we are using Drawstuff, we sholud reference the
  * global variable, g_imobotsim */
 #define this g_imobotsim
-void CiMobotSim::ds_simulation(int pause) {
+void CiMobotSim::ds_simulationLoop(int pause) {
 	bool loop = true;												// initialize
 
 	this->update_angles();											// update angles for current step
@@ -227,8 +229,7 @@ void CiMobotSim::ds_simulation(int pause) {
 	dWorldStep(this->world, this->m_t_step);						// step world time by one
 	dJointGroupEmpty(this->group);									// clear out all contact joints
 
-	//this->print_intermediate_data();								// print out incremental data
-
+	this->print_intermediate_data();								// print out incremental data
 	this->set_flags();												// set flags for completion of steps
 	this->increment_step();											// check whether to increment to next step
 	this->end_simulation(loop);										// check whether to end simulation
@@ -239,7 +240,7 @@ void CiMobotSim::ds_simulation(int pause) {
 }
 #undef this
 #else
-void CiMobotSim::simulationLoop(void) {
+void CiMobotSim::simulation_loop(void) {
 	bool loop = true;												// initialize
 	while (this->m_t_cur_step <= this->m_t_tot_step && loop) {		// loop continuously until simulation is stopped
 		this->update_angles();										// update angles for current step
@@ -249,7 +250,6 @@ void CiMobotSim::simulationLoop(void) {
 		dJointGroupEmpty(this->group);								// clear out all contact joints
 
 		//this->print_intermediate_data();							// print out incremental data
-
 		this->set_flags();											// set flags for completion of steps
 		this->increment_step();										// check whether to increment to next step
 		this->end_simulation(loop);									// check whether to end simulation
@@ -259,10 +259,13 @@ void CiMobotSim::simulationLoop(void) {
 #endif
 
 void CiMobotSim::update_angles() {
+	// initialze loop counters
+	int i, j;
+
 	// update stored data in struct with data from ODE
-	for (int i = 0; i < this->m_num_bot; i++) {
+	for ( i = 0; i < this->m_num_bot; i++ ) {
 		// must be done for each degree of freedom
-		for (int j = 0; j < NUM_DOF; j++) {
+		for ( j = 0; j < NUM_DOF; j++ ) {
 			// update current angle
 			if ( j == LE || j == RE )
 				this->bot[i]->cur_ang[j] = mod_angle(this->bot[i]->cur_ang[j], dJointGetHingeAngle(this->bot[i]->joints[j]), dJointGetHingeAngleRate(this->bot[i]->joints[j]));
@@ -352,20 +355,19 @@ void CiMobotSim::collision(dGeomID o1, dGeomID o2) {
 }
 
 void CiMobotSim::set_flags() {
-	// initialize counter variable
-	int complete;
+	// initialze loop counters
+	int c, i, j;
 
 	// set flags for each module in simulation
-	for (int i = 0; i < this->m_num_bot; i++) {
+	for ( i = 0; i < this->m_num_bot; i++ ) {
 		// restart counter for each robot
-		complete = 0;
+		c = 0;
 
-		// for each degree of freedom
-		for (int j = 0; j < NUM_DOF; j++)
-			if (this->bot[i]->fut_ang[j] - this->m_motor_res < this->bot[i]->cur_ang[j] && this->bot[i]->cur_ang[j] < this->bot[i]->fut_ang[j] + this->m_motor_res) complete++;
+		// check if joint speed is zero -> joint has completed step
+		for ( j = 0; j < NUM_DOF; j++ ) { if ( !(int)dJointGetAMotorParam(this->bot[i]->motors[j], dParamVel) ) c++; }
 
 		// set flag for each robot that has completed all four joint motions
-		if (complete == 4) this->m_flag_comp[i] = true;
+		if ( c == 4 ) this->m_flag_comp[i] = true;
 
 		// module is disabled
 		this->m_flag_disable[i] = !(bool)dBodyIsEnabled(this->bot[i]->bodyPart[CENTER].bodyID);
@@ -373,29 +375,35 @@ void CiMobotSim::set_flags() {
 }
 
 void CiMobotSim::increment_step() {
+	// initialze loop counters
+	int i, j;
+
 	if ( this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
 		if ( this->m_cur_stp != this->m_num_stp - 1 ) {
-			this->m_cur_stp++;					// increment to next step
-			this->set_angles();					// set new angles for next step
+			this->m_cur_stp++;
+			this->set_angles();
 		}
 		else {
-			this->m_reply->success = true;		// finished all steps
-			this->m_reply->time = this->m_t;	// record time to completion
+			this->m_reply->message = SIM_SUCCESS;
+			this->m_reply->time = this->m_t;
 		}
 
 		// reset all flags to zero
-		for (int i = 0; i < this->m_num_bot; i++) {
+		for ( i = 0; i < this->m_num_bot; i++ ) {
 			this->m_flag_comp[i] = false;
 			this->m_flag_disable[i] = false;
-			for (int j = 0; j < NUM_DOF; j++) this->bot[i]->pid[j].restart();
+			for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->pid[j].restart();
 		}
 	}
 }
 
 void CiMobotSim::set_angles() {
-	for (int i = 0; i < this->m_num_bot; i++) {
+	// initialze loop counters
+	int i, j, k;
+
+	for ( i = 0; i < this->m_num_bot; i++ ) {
 		// for two end cap joints
-		for (int j = 0; j < NUM_DOF; j+=3) {
+		for ( j = 0; j < NUM_DOF; j+=3 ) {
 			if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
 				dJointDisable(this->bot[i]->motors[j]);
 				this->bot[i]->fut_ang[j] = mod_angle(this->bot[i]->cur_ang[j], dJointGetHingeAngle(this->bot[i]->joints[j]), dJointGetHingeAngleRate(this->bot[i]->joints[j]));
@@ -404,13 +412,13 @@ void CiMobotSim::set_angles() {
 			else {
 				dJointEnable(this->bot[i]->motors[j]);
 				this->bot[i]->fut_ang[j] = this->bot[i]->ori[j];
-				for ( int k = 0; k <= this->m_cur_stp; k++) { this->bot[i]->fut_ang[j] += this->bot[i]->ang[NUM_DOF*k + j]; }
+				for ( k = 0; k <= this->m_cur_stp; k++ ) { this->bot[i]->fut_ang[j] += this->bot[i]->ang[NUM_DOF*k + j]; }
 				this->bot[i]->jnt_vel[j] = this->bot[i]->vel[NUM_DOF*this->m_cur_stp + j];
 				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
 			}
 		}
 		// for two body joints
-		for (int j = 1; j < NUM_DOF-1; j++) {
+		for ( j = 1; j < 3; j++ ) {
 			if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
 				dJointDisable(this->bot[i]->motors[j]);
 				this->bot[i]->fut_ang[j] = dJointGetHingeAngle(this->bot[i]->joints[j]);
@@ -429,9 +437,10 @@ void CiMobotSim::set_angles() {
 }
 
 void CiMobotSim::print_intermediate_data() {
+	// initialze loop counters
 	int i;
 
-	cout.width(3); /*cout << this->m_t / this->m_t_step;*/ cout << this->m_t_cur_step;
+	cout.width(3); cout << this->m_t_cur_step;
 	cout.width(4); cout << this->m_t_tot_step;
 	cout.width(6); cout << this->m_t;
 	cout.width(3); cout << this->m_cur_stp;
@@ -481,17 +490,16 @@ void CiMobotSim::print_intermediate_data() {
 }
 
 void CiMobotSim::end_simulation(bool &loop) {
-	// increment step
+	// increment time step
 	this->m_t_cur_step++;
 
-	// stalled
+	// have not completed steps && stalled
 	if ( !this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
-		this->m_reply->message = 2;
+		this->m_reply->message = SIM_ERROR_STALL;
 		loop = false;
 	}
-	// success
-	else if ( this->m_reply->success ) {
-		this->m_reply->message = 3;
+	// success on all steps
+	else if ( !this->m_reply->message ) {
 		loop = false;
 	}
 }
@@ -500,13 +508,12 @@ void CiMobotSim::increment_time() {
 		this->m_t += this->m_t_step;
 }
 
-void CiMobotSim::getReplyMessage() {
-	if ( this->m_reply->message == 1 )
-		cout << "Failure: reached end of simulation time" << endl;
-	else if ( this->m_reply->message == 2 )
-		cout << "Failure: all robots are stationary\n" << endl;
-	else if ( this->m_reply->message == 3 )
-		cout << "Success: all robots have completed all of their steps in " << this->m_reply->time << " seconds"<< endl;
+int CiMobotSim::getReplyMessage() {
+	return this->m_reply->message;
+}
+
+dReal CiMobotSim::getReplyTime() {
+	return this->m_reply->time;
 }
 
 /**********************************************************

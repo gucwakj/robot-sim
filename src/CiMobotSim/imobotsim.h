@@ -50,6 +50,11 @@ enum robot_build_e {		// build or rebuild a part
 	BUILD,
 	REBUILD
 };
+enum simulation_reply_message_e {
+	SIM_SUCCESS,
+	SIM_ERROR_TIME,
+	SIM_ERROR_STALL
+};
 
 /*
  *	simulation class
@@ -121,17 +126,10 @@ class CiMobotSim {
 		/*
 		 *	return a message on the success of the simulation
 		 */
-		void getReplyMessage();
+		int getReplyMessage();
+		dReal getReplyTime();
 
 	private:
-		/*
-		 *	variables to store simulation properties
-		 */
-		dWorldID world;								// world in which simulation occurs
-		dSpaceID space;								// space for robots in which to live
-		dSpaceID *space_bot;						// space for each robot
-		dJointGroupID group;						// group to store joints
-
 		/*
 		 *	structs to store simulation data
 		 */
@@ -158,14 +156,17 @@ class CiMobotSim {
 					*ori;							// initial orientation of body parts
 		} CiMobotSimBot;
 		typedef struct cimobotsimreply_s {			// information on success to reply
-			bool success;							// flag if simulation is successful
-			double time;							// time to successful completion
+			dReal time;								// time to successful completion
 			int message;							// reply message code
 		} CiMobotSimReply;
 
 		/*
 		 *	private variables to store general information about simulation
 		 */
+		dWorldID world;								// world in which simulation occurs
+		dSpaceID space;								// space for robots in which to live
+		dSpaceID *space_bot;						// space for each robot
+		dJointGroupID group;						// group to store joints
 		CiMobotSimBot **bot;						// array of structs for each bot
 		CiMobotSimReply *m_reply;					// struct of data to return after finishing simulation
 		dGeomID *m_ground;							// array of ground objects
@@ -200,15 +201,15 @@ class CiMobotSim {
 		void ds_start();							// initialization of drawstuff scene
 		void ds_drawPart(dGeomID part);				// draw each geometry of each body
 		void ds_command(int cmd);					// keyboard commands for ds
-		void ds_simulation(int pause);				// callback function for simulation
+		void ds_simulationLoop(int pause);			// callback function for simulation
 		#else
-		void simulationLoop();						// loop to complete simulation
+		void simulation_loop();						// loop to complete simulation
 		#endif
 		void update_angles();						// update struct with modified angles
+		void print_intermediate_data();				// print data out at each time step for analysis
 		void set_flags();							// set flags for complete/not-complete
 		void increment_step();						// increment step to next set of angles
 		void set_angles();							// set new angles for step of sim
-		void print_intermediate_data();				// print data out at each time step for analysis
 		void end_simulation(bool &loop);			// check if simulation is complete and exit
 		void increment_time();						// update simulation time
 		void collision(dGeomID o1, dGeomID o2);		// callback function for contact of bodies
