@@ -279,15 +279,14 @@ void CiMobotSim::init_angles() {
 			if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
 				dJointDisable(this->bot[i]->motors[j]);
 				this->bot[i]->fut_ang[j] = this->bot[i]->cur_ang[j];
-				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
 			}
 			else {
 				dJointEnable(this->bot[i]->motors[j]);
 				if ( j == LE || j == RE ) { this->bot[i]->fut_ang[j] = this->bot[i]->ori[j] + this->bot[i]->ang[j]; }
 				else { this->bot[i]->fut_ang[j] = this->bot[i]->ang[j]; }
 				this->bot[i]->jnt_vel[j] = this->bot[i]->vel[j];
-				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
 			}
+			dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
 		}
 		// re-enable robots for next step
 		dBodyEnable(this->bot[i]->bodyPart[CENTER].bodyID);
@@ -402,11 +401,14 @@ void CiMobotSim::increment_step() {
 	// initialze loop counters
 	int i, j;
 
+	// if completed step and bodies are at rest, then increment
 	if ( this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
+		// if haven't reached last step, increment
 		if ( this->m_cur_stp != this->m_num_stp - 1 ) {
 			this->m_cur_stp++;
 			this->set_angles();
 		}
+		// otherwise successfully reached last step
 		else {
 			this->m_reply->message = SIM_SUCCESS;
 			this->m_reply->time = this->m_t;
@@ -425,6 +427,7 @@ void CiMobotSim::set_angles() {
 	// initialze loop counters
 	int i, j, k;
 
+	// set arrays of angles for new step
 	for ( i = 0; i < this->m_num_bot; i++ ) {
 		for ( j = 0; j < NUM_DOF; j++ ) {
 			if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
