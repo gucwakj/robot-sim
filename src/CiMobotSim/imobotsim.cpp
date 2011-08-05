@@ -176,6 +176,9 @@ CiMobotSim::~CiMobotSim() {
 	dCloseODE();
 }
 
+/**********************************************************
+	Public Member Functions
+ **********************************************************/
 void CiMobotSim::setAngVel(dReal *vel) {
 	// initialze loop counters
 	int i, j;
@@ -214,6 +217,17 @@ void CiMobotSim::runSimulation(int argc, char **argv) {
 	#endif
 }
 
+int CiMobotSim::getReplyMessage() {
+	return this->m_reply->message;
+}
+
+dReal CiMobotSim::getReplyTime() {
+	return this->m_reply->time;
+}
+
+/**********************************************************
+	Private Simulation Functions
+ **********************************************************/
 #ifdef ENABLE_DRAWSTUFF
 /* If drawstuff is enabled, we cannot use any reference to 'this', because
  * simulationLoop is called as a callback function and any reference to 'this'
@@ -506,14 +520,6 @@ void CiMobotSim::end_simulation(bool &loop) {
 
 void CiMobotSim::increment_time() {
 		this->m_t += this->m_t_step;
-}
-
-int CiMobotSim::getReplyMessage() {
-	return this->m_reply->message;
-}
-
-dReal CiMobotSim::getReplyTime() {
-	return this->m_reply->time;
 }
 
 /**********************************************************
