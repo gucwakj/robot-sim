@@ -8,10 +8,8 @@ configure_file (
   "config.h"
   )
 
-option (ENABLE_DRAWSTUFF 
-        "Enable usage of the ODE drawstuff routines for visualization." OFF)
-option (ENABLE_DOUBLE
-        "Enable double precision for simulation." ON)
+option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." ON)
+option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
 
 if (ENABLE_DRAWSTUFF)
   include_directories("../opende/include")
@@ -23,7 +21,7 @@ else (ENABLE_DOUBLE)
   add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 
-add_library(imobotsim
+add_library (imobotsim STATIC
   imobotsim.cpp
   pid.cpp
   )
