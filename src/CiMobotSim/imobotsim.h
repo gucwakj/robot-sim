@@ -12,21 +12,21 @@
 /*
  *	iMobot dimension macros
  */
-#define CENTER_LENGTH		2.865
-#define CENTER_WIDTH		1.05
-#define CENTER_HEIGHT		2.60
-#define CENTER_RADIUS		1.30
-#define BODY_LENGTH			1.55
-#define BODY_WIDTH			2.85
-#define BODY_HEIGHT			2.85
-#define BODY_RADIUS			1.425
-#define BODY_INNER_WIDTH	0.875
-#define BODY_END_DEPTH		0.2
-#define BODY_MOUNT_CENTER	1.28
-#define END_WIDTH			2.85
-#define END_HEIGHT			2.85
-#define END_DEPTH			0.125
-#define END_RADIUS			0.85
+#define CENTER_LENGTH		0.07303
+#define CENTER_WIDTH		0.02540
+#define CENTER_HEIGHT		0.06909
+#define CENTER_RADIUS		0.03554
+#define BODY_LENGTH			0.03785
+#define BODY_WIDTH			0.07239
+#define BODY_HEIGHT			0.07239
+#define BODY_RADIUS			0.03620
+#define BODY_INNER_WIDTH	0.02287
+#define BODY_END_DEPTH		0.01994
+#define BODY_MOUNT_CENTER	0.03792
+#define END_WIDTH			0.07239
+#define END_HEIGHT			0.07239
+#define END_DEPTH			0.00476
+#define END_RADIUS			0.01778
 
 /*
  *	enumerations for parts of iMobot
@@ -80,17 +80,17 @@ class CiMobotSim {
 		 */
 		/* default build function without rotation support
 			botNum:				number of module to build
-			x, y, z:			global position of center of module	*/
+			x, y, z:			global position of center of module (in meters)	*/
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z);
 		/* rotate module about z-axis
 			botNum:				number of module to build
-			x, y, z:			global position of center of module
+			x, y, z:			global position of center of module (in meters)
 			theta, psi, phi:	Euler Angles in aircraft notation (in degrees)	*/
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		/* build a new module with predefined angles for body parts
 			botNum:				number of module to build
-			x, y, z:			global position of center of module
-			theta, psi, phi:	Euler Angles in aircraft notation (in degrees)
+			x, y, z:			global position of center of module (in meters)
+			psi, theta, phi:	Euler Angles in aircraft notation (in degrees)
 			le, re:				rotation of endcaps about respective bodies (in degrees)
 			lb, rb:				rotation of bodies about center (in degrees)	*/
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
@@ -235,8 +235,6 @@ class CiMobotSim {
 		/*
 		 *	utility functions
 		 */
-		inline dReal I2M(dReal x);			// convert inches to meters
-		inline dReal M2I(dReal x);			// convert meters to inches
 		inline dReal D2R(dReal x);			// convert degrees to radians
 		inline dReal R2D(dReal x);			// convert radians to degrees
 		bool is_true(int length, bool *a);	// check if all values in array are true
