@@ -30,4 +30,3 @@ add_library( imobotik STATIC
 	tree.cpp
 	vectorRn.cpp
 )
-#target_link_libraries(ik_test ${EXTRA_LIBS})
