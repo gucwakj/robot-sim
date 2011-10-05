@@ -13,7 +13,8 @@ Node::Node(const VectorR3 &attach, const VectorR3 &v, int purpose, double minThe
 	this->attach = attach;			// Global attachment point when joints are at zero angle
 	this->r.Set(0.0, 0.0, 0.0);		// r will be updated when this node is inserted into tree
 	this->v = v;					// Rotation axis when joints at zero angles
-	this->theta = 0.0;
+	//this->theta = 0.0;
+	this->theta = restAngle;
 	//this->minTheta = minTheta;
 	//this->maxTheta = maxTheta;
 	//this->restAngle = restAngle;
@@ -24,12 +25,12 @@ Node::Node(const VectorR3 &attach, const VectorR3 &v, int purpose, double minThe
 void Node::ComputeS(void) {
 	Node *y = this->realparent;
 	Node *w = this;
-	s = r;							// Initialize to local (relative) position
+	this->s = r;							// Initialize to local (relative) position
 	while ( y ) {
-		s.Rotate( y->theta, y->v );
+		this->s.Rotate( y->theta, y->v );
 		y = y->realparent;
 		w = w->realparent;
-		s += w->r;
+		this->s += w->r;
 	}
 }
 
@@ -52,16 +53,16 @@ void Node::PrintNode(void) {
 }
 
 void Node::InitNode(void) {
-	this->theta = 0.0;
+	//this->theta = 0.0;
 }
 
 const VectorR3& Node::GetAttach(void) {
 	return this->attach;
 }
 
-/*double Node::GetTheta(void) {
+double Node::GetTheta(void) {
 	return this->theta;
-}*/
+}
 
 double Node::AddToTheta(double delta) {
 	this->theta += delta;
@@ -108,12 +109,12 @@ int Node::GetJointNum(void) {
 bool Node::IsFrozen(void) {
 	return this->freezed;
 }
-void Node::Freeze(void) {
+/*void Node::Freeze(void) {
 	this->freezed = true;
 }
 void Node::UnFreeze(void) {
 	this->freezed = false;
-}
+}*/
 
 #ifdef ENABLE_GRAPHICS
 void Node::DrawNode(bool isRoot) {

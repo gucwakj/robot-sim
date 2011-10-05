@@ -9,44 +9,37 @@ class Tree {
 	public:
 		Tree(void);
 
-		int GetNumNode(void);
-		int GetNumEffector(void);
-		int GetNumJoint(void);
-		void InsertRoot(Node *node);
-		void InsertLeftChild(Node *parent, Node *child);
-		void InsertRightSibling(Node *parent, Node *child);
+		void init(void);
+		void compute(void);
 
-		// Accessors based on node numbers
-		Node* GetJoint(int);
-		Node* GetEffector(int);
-		const VectorR3& GetEffectorPosition(int);
+		void insertRoot(Node *node);
+		void insertLeftChild(Node *parent, Node *child);
+		void insertRightSibling(Node *parent, Node *child);
 
-		// Accessors for tree traversal
-		Node* GetParent( const Node* node ) const;
-		Node* GetRoot();
-		Node* GetSuccessor ( const Node* ) const;
+		Node* getParent(Node *node);
+		Node* getRoot(void);
+		Node* getSuccessor(Node *node);
+		int getNumNode(void);
+		int getNumEffector(void);
+		int getNumJoint(void);
 
-		void Compute();
-		void Print();
-		void Init();
-		void UnFreeze();
+		//void unfreeze();
 
 		#ifdef ENABLE_GRAPHICS
 		void Draw();
 		#endif
 	private:
 		Node *root;
-		int nNode;			// nNode = nEffector + nJoint
+		int m_num_node;			// nNode = nEffector + nJoint
 		int nEffector;
+		int m_num_effector;
 		int nJoint;
+		int m_num_joint;
 
-		void SetSeqNum(Node*);
-		Node *SearchJoint(Node*, int);
-		Node *SearchEffector(Node*, int);
-		void ComputeTree(Node*);
-		void PrintTree(Node*);
-		void InitTree(Node*);
-		void UnFreezeTree(Node*);
+		void compute_tree(Node *node);
+		void init_tree(Node *node);
+		void set_seq_num(Node *node);
+		//void unfreeze_tree(Node *node);
 
 		#ifdef ENABLE_GRAPHICS
 		void DrawTree(Node*);

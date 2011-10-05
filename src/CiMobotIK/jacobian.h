@@ -30,7 +30,7 @@ class Jacobian {
 		void computeJacobian(void);				// Compute Jacobian matrix
 		void calcDeltaThetas(void);				// Calculate delta theta for each joint
 		void updatedSClampValue(void);			// Update distance to target
-		void updateErrorArray(void);			// Update error of effector
+		//void updateErrorArray(void);			// Update error of effector
 		void updateThetas(void);				// Update theta values
 
 		void setCurrentMode(int mode);			// Type of updating mode for Jacobian
@@ -42,7 +42,7 @@ class Jacobian {
 		int getCurrentType(void);				// Jacobian type: END or TARGET
 		int getCurrentDLSMode(void);			// CLAMPED or TRADITIONAL
 
-		void Reset(void);
+		void reset(void);
 	private:
 		int m_num_effect;		// Number of end effectors
 		int m_num_joint;		// Number of joints
@@ -67,7 +67,7 @@ class Jacobian {
 		VectorRn dSclamp;		// Value at which to clamp magnitude of dT
 		VectorRn dTheta;		// delta theta
 		VectorRn dPreTheta;		// delta theta for single eigenvalue  (SDLS only)
-		VectorRn errorArray;	// Distance of end effectors from target after updating
+		//VectorRn errorArray;	// Distance of end effectors from target after updating
 		VectorR3 *target;		// target positions for effectors
 
 		void calc_delta_thetas_transpose(void);

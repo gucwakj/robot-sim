@@ -19,28 +19,26 @@ class Node {
 		void InitNode();
 
 		//void SetTheta(double newTheta);
-		//double GetTheta(void);
 		double AddToTheta(double delta);
 
 		const VectorR3& GetAttach(void);
 		const VectorR3& GetS(void);
 		const VectorR3& GetW(void);
-
+		double GetTheta(void);
 		//double GetMinTheta(void);
 		//double GetMaxTheta(void);
 		//double GetRestAngle(void);
-
-		void ComputeS(void);
-		void ComputeW(void);
-
-		bool IsEffector(void);
-		bool IsJoint(void);
 		int GetEffectorNum(void);
 		int GetJointNum(void);
 
+		void ComputeS(void);
+		void ComputeW(void);
+		//void Freeze(void);
+		//void UnFreeze(void);
+
+		bool IsEffector(void);
+		bool IsJoint(void);
 		bool IsFrozen(void);
-		void Freeze(void);
-		void UnFreeze(void);
 
 		#ifdef ENABLE_GRAPHICS
 		void DrawNode(bool);

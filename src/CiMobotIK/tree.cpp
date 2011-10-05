@@ -1,127 +1,62 @@
 #include <iostream>
-#include "linearR3.h"
 #include "tree.h"
 #ifdef ENABLE_GRAPHICS
-	#include <GL/gl.h>
+#include <GL/gl.h>
 #endif
 
 Tree::Tree(void) {
 	this->root = 0;
-	this->nNode = 0;
-	this->nEffector = 0;
-	this->nJoint = 0;
+	this->m_num_node = 0;
+	this->m_num_effector = 0;
+	this->m_num_joint = 0;
 }
 
-// Initialize all nodes in the tree
-void Tree::Init(void) {
-	InitTree(root);
+void Tree::init(void) {
+	this->init_tree(this->root);
 }
 
-void Tree::SetSeqNum(Node *node) {
-	switch (node->purpose) {
-		case JOINT:
-			node->seqNumJoint = this->nJoint++;
-			node->seqNumEffector = -1;
-			break;
-		case EFFECTOR:
-			node->seqNumJoint = -1;
-			node->seqNumEffector = this->nEffector++;
-			break;
-	}
+void Tree::compute(void) {
+	this->compute_tree(this->root);
 }
 
-void Tree::InsertRoot(Node *root) {
-	assert(nNode==0);
-	this->nNode++;
+void Tree::insertRoot(Node *root) {
+	assert(m_num_node==0);
+	this->m_num_node++;
 	this->root = root;
 	root->r = root->attach;
 	assert( !(root->left || root->right) );
-	SetSeqNum(root);
+	this->set_seq_num(root);
 }
 
-void Tree::InsertLeftChild(Node *parent, Node *child) {
+void Tree::insertLeftChild(Node *parent, Node *child) {
 	assert(parent);
-	nNode++;
+	m_num_node++;
 	parent->left = child;
 	child->realparent = parent;
 	child->r = child->attach - child->realparent->attach;
 	assert( !(child->left || child->right) );
-	SetSeqNum(child);
+	this->set_seq_num(child);
 }
 
-void Tree::InsertRightSibling(Node *parent, Node *child) {
+void Tree::insertRightSibling(Node *parent, Node *child) {
 	assert(parent);
-	nNode++;
+	m_num_node++;
 	parent->right = child;
 	child->realparent = parent->realparent;
 	child->r = child->attach - child->realparent->attach;
 	assert( !(child->left || child->right) );
-	SetSeqNum(child);
+	this->set_seq_num(child);
 }
 
-int Tree::GetNumNode(void) {
-	return this->nNode;
-}
-
-int Tree::GetNumEffector(void) {
-	return this->nEffector;
-}
-
-int Tree::GetNumJoint(void) {
-	return this->nJoint;
-}
-
-// Search recursively below "node" for the node with index value.
-Node* Tree::SearchJoint(Node *node, int index) {
-	if (node != 0) {
-		if (node->seqNumJoint == index)
-			return node;
-		else
-			return SearchJoint(node->right, index);
-	}
-	else {
-		return NULL;
-	}
-}
-
-// Search recursively below node for the end effector with the index value
-Node* Tree::SearchEffector(Node *node, int index) {
-	if (node != 0) {
-		if (node->seqNumEffector == index)
-			return node;
-		else
-			return SearchJoint(node->right, index);
-	} else {
-		return NULL;
-	}
-}
-
-// Get the joint with the index value
-Node* Tree::GetJoint(int index) {
-	return SearchJoint(root, index);
-}
-
-// Get the end effector for the index value
-Node* Tree::GetEffector(int index) {
-	return SearchEffector(root, index);
-}
-
-// Returns the global position of the effector.
-const VectorR3& Tree::GetEffectorPosition(int index) {
-	Node* effector = GetEffector(index);
-	assert(effector);
-	return (effector->s);
-}
-
-Node* Tree::GetParent( const Node* node ) const {
+Node* Tree::getParent(Node *node) {
 	return node->realparent;
 }
 
-Node* Tree::GetRoot() {
-	return root;
+Node* Tree::getRoot(void) {
+	return this->root;
 }
 
-Node* Tree::GetSuccessor( const Node* node ) const {
+Node* Tree::getSuccessor(Node *node) {
 	if ( node->left ) {
 		return node->left;
 	}
@@ -136,53 +71,59 @@ Node* Tree::GetSuccessor( const Node* node ) const {
 	}
 }
 
-void Tree::ComputeTree(Node *node) {
+int Tree::getNumNode(void) {
+	return this->m_num_node;
+}
+
+int Tree::getNumEffector(void) {
+	return this->m_num_effector;
+}
+
+int Tree::getNumJoint(void) {
+	return this->m_num_joint;
+}
+
+void Tree::compute_tree(Node *node) {
 	if (node != 0) {
 		node->ComputeS();
 		node->ComputeW();
-		ComputeTree(node->left);
-		ComputeTree(node->right);
+		this->compute_tree(node->left);
+		this->compute_tree(node->right);
 	}
 }
 
-void Tree::Compute(void) {
-	ComputeTree(root);
-}
-
-void Tree::PrintTree(Node* node) {
-	if (node != 0) {
-		node->PrintNode();
-		PrintTree(node->left);
-		PrintTree(node->right);
-	}
-}
-
-void Tree::Print(void) {
-	PrintTree(root);
-	cout << "\n";
-}
-
-// Recursively initialize tree below the node
-void Tree::InitTree(Node* node) {
+void Tree::init_tree(Node *node) {
 	if (node != 0) {
 		node->InitNode();
-		InitTree(node->left);
-		InitTree(node->right);
+		this->init_tree(node->left);
+		this->init_tree(node->right);
 	}
 }
 
+void Tree::set_seq_num(Node *node) {
+	switch (node->purpose) {
+		case JOINT:
+			node->seqNumJoint = this->m_num_joint++;
+			node->seqNumEffector = -1;
+			break;
+		case EFFECTOR:
+			node->seqNumJoint = -1;
+			node->seqNumEffector = this->m_num_effector++;
+			break;
+	}
+}
 
-void Tree::UnFreezeTree(Node* node) {
+/*void Tree::UnFreeze(void) {
+	this->unfreeze_tree(root);
+}*/
+
+/*void Tree::unfreeze_tree(Node *node) {
 	if (node != 0) {
 		node->UnFreeze();
-		UnFreezeTree(node->left);
-		UnFreezeTree(node->right);
+		this->unfreeze_tree(node->left);
+		this->unfreeze_tree(node->right);
 	}
-}
-
-void Tree::UnFreeze(void) {
-	UnFreezeTree(root);
-}
+}*/
 
 #ifdef ENABLE_GRAPHICS
 void Tree::DrawTree(Node* node) {

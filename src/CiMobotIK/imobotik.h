@@ -50,10 +50,14 @@ class CiMobotIK {
 		int getCurrentMode(void);				// Type of updating mode for Jacobian
 		int getCurrentType(void);				// Jacobian type: END or TARGET
 		int getCurrentDLSMode(void);			// CLAMPED or TRADITIONAL
+		void getEffector(int num, double &x, double &y, double &z);
+		double getEffectorX(int num);
+		double getEffectorY(int num);
+		double getEffectorZ(int num);
 		void getTarget(int num, double &x, double &y, double &z);
-		void getTargetX(int num, double &x);
-		void getTargetY(int num, double &y);
-		void getTargetZ(int num, double &z);
+		double getTargetX(int num);
+		double getTargetY(int num);
+		double getTargetZ(int num);
 
 		void runSimulation(int argc, char **argv);
 	private:
@@ -64,10 +68,12 @@ class CiMobotIK {
 
 		double m_t;
 		double m_t_step;
+		int m_t_count;
 		int m_num_bot;
 		int m_num_targets;
 
 		void update_targets(void);
+		void print_intermediate_data(void);
 		void increment_step(void);
 		bool end_simulation(void);
 		inline double D2R(double deg);
