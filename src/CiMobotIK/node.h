@@ -11,55 +11,56 @@ enum purpose_e {
 
 class Node {
 	friend class Tree;
-
 	public:
-		Node(const VectorR3 &attach, const VectorR3 &v, int purpose, double minTheta = -M_PI, double maxTheta = M_PI, double restAngle = 0);
+		Node(const VectorR3 &s_init, const VectorR3 &w_init, int purpose, double minTheta = -M_PI, double maxTheta = M_PI, double initAngle = 0);
 
-		void PrintNode();
-		void InitNode();
+		void initNode(void);
 
-		//void SetTheta(double newTheta);
-		double AddToTheta(double delta);
+		double updateTheta(double delta);
 
-		const VectorR3& GetAttach(void);
-		const VectorR3& GetS(void);
-		const VectorR3& GetW(void);
-		double GetTheta(void);
-		//double GetMinTheta(void);
-		//double GetMaxTheta(void);
-		//double GetRestAngle(void);
-		int GetEffectorNum(void);
-		int GetJointNum(void);
+		void setSeqNum(int seq_num);
 
-		void ComputeS(void);
-		void ComputeW(void);
+		const VectorR3& getS(void);
+		const VectorR3& getSInit(void);
+		const VectorR3& getW(void);
+		const VectorR3& getWInit(void);
+		double getTheta(void);
+		double getThetaMin(void);
+		double getThetaMax(void);
+		int getEffectorNum(void);
+		int getJointNum(void);
+		int getPurpose(void);
+
+		void computeS(void);
+		void computeW(void);
+
+		bool isEffector(void);
+		bool isJoint(void);
+		bool isFrozen(void);
+
 		//void Freeze(void);
 		//void UnFreeze(void);
-
-		bool IsEffector(void);
-		bool IsJoint(void);
-		bool IsFrozen(void);
 
 		#ifdef ENABLE_GRAPHICS
 		void DrawNode(bool);
 		#endif
 	private:
 		bool freezed;			// Is this node frozen?
-		int seqNumJoint;		// sequence number if this node is a joint
-		int seqNumEffector;		// sequence number if this node is an effector
-		int purpose;			// joint / effector / both
-		double theta;			// joint angle (radian)
-		//double minTheta;		// lower limit of joint angle
-		//double maxTheta;		// upper limit of joint angle
-		//double restAngle;		// rest position angle
-		VectorR3 attach;		// attachment point
-		VectorR3 r;				// relative position vector
-		VectorR3 s;				// Global Position
-		VectorR3 w;				// Global rotation axis
-		VectorR3 v;				// rotation axis
+		int m_seq_num_joint;	// sequence number if this node is a joint
+		int m_seq_num_effector;	// sequence number if this node is an effector
+		int m_purpose;			// joint / effector / both
+		double m_theta;			// joint angle (radian)
+		double m_theta_init;	// initial theta angle of joint
+		double m_theta_min;		// lower limit of joint angle
+		double m_theta_max;		// upper limit of joint angle
+		VectorR3 m_r;			// relative position vector
+		VectorR3 m_s;			// global position
+		VectorR3 m_s_init;		// global position when joint is zero
+		VectorR3 m_w;			// global rotation axis
+		VectorR3 m_w_init;		// global rotation axis when joint is zero
 		Node *left;				// left child
 		Node *right;			// right sibling
-		Node *realparent;		// pointer to real parent
+		Node *realparent;		// real parent
 };
 
 #endif	/* NODE_H_ */

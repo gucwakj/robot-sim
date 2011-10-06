@@ -50,29 +50,29 @@ CiMobotIK::~CiMobotIK(void) {
 }
 
 void CiMobotIK::iMobotAnchor(double x, double y, double z, double r_le, double r_lb, double r_rb, double r_re) {
-	this->node[0] = new Node(VectorR3(x, y + END_DEPTH, z), VectorR3(0, 1, 0), JOINT, D2R(-180.), D2R(180.), D2R(r_le));
+	this->node[0] = new Node(VectorR3(x, y + END_DEPTH, z), VectorR3(0, 1, 0), JOINT, D2R(-180), D2R(180), D2R(r_le));
 	this->tree.insertRoot(node[0]);
-	this->node[1] = new Node(this->node[0]->GetAttach() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 0, 1), JOINT, D2R(-180.), D2R(180.), D2R(r_lb));
+	this->node[1] = new Node(this->node[0]->getSInit() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 0, 1), JOINT, D2R(-180), D2R(180), D2R(r_lb));
 	this->tree.insertLeftChild(node[0], node[1]);
-	this->node[2] = new Node(this->node[1]->GetAttach() + VectorR3(0, CENTER_LENGTH, 0), VectorR3(0, 0, 1), JOINT, D2R(-180.), D2R(180.), D2R(r_rb));
+	this->node[2] = new Node(this->node[1]->getSInit() + VectorR3(0, CENTER_LENGTH, 0), VectorR3(0, 0, 1), JOINT, D2R(-180), D2R(180), D2R(r_rb));
 	this->tree.insertLeftChild(node[1], node[2]);
-	this->node[3] = new Node(this->node[2]->GetAttach() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 1, 0), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
+	this->node[3] = new Node(this->node[2]->getSInit() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 1, 0), JOINT, D2R(-180), D2R(180), D2R(r_re));
 	this->tree.insertLeftChild(node[2], node[3]);
 }
 
 void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re) {
-	this->node[bot_num*NUM_DOF + 0] = new Node(this->node[att_num*NUM_DOF + 3]->GetAttach() + VectorR3(0, 2*END_DEPTH, 0), VectorR3(0, 1, 0), JOINT, D2R(-180.), D2R(180.), D2R(r_le));
+	this->node[bot_num*NUM_DOF + 0] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(0, 2*END_DEPTH, 0), VectorR3(0, 1, 0), JOINT, D2R(-180.), D2R(180.), D2R(r_le));
 	this->tree.insertLeftChild(this->node[att_num*NUM_DOF + 3], this->node[bot_num*NUM_DOF + 0]);
-	this->node[bot_num*NUM_DOF + 1] = new Node(this->node[bot_num*NUM_DOF + 0]->GetAttach() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 0, 1), JOINT, D2R(-180.), D2R(180.), D2R(r_lb));
+	this->node[bot_num*NUM_DOF + 1] = new Node(this->node[bot_num*NUM_DOF + 0]->getSInit() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 0, 1), JOINT, D2R(-180.), D2R(180.), D2R(r_lb));
 	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 0], this->node[bot_num*NUM_DOF + 1]);
-	this->node[bot_num*NUM_DOF + 2] = new Node(this->node[bot_num*NUM_DOF + 1]->GetAttach() + VectorR3(0, CENTER_LENGTH, 0), VectorR3(0, 0, 1), JOINT, D2R(-180.), D2R(180.), D2R(r_rb));
+	this->node[bot_num*NUM_DOF + 2] = new Node(this->node[bot_num*NUM_DOF + 1]->getSInit() + VectorR3(0, CENTER_LENGTH, 0), VectorR3(0, 0, 1), JOINT, D2R(-180.), D2R(180.), D2R(r_rb));
 	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 1], this->node[bot_num*NUM_DOF + 2]);
-	this->node[bot_num*NUM_DOF + 3] = new Node(this->node[bot_num*NUM_DOF + 2]->GetAttach() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 1, 0), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
+	this->node[bot_num*NUM_DOF + 3] = new Node(this->node[bot_num*NUM_DOF + 2]->getSInit() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 1, 0), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
 	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 3]);
 }
 
 void CiMobotIK::addEffector(int eff_num, int bot_num) {
-	this->node[this->m_num_bot*NUM_DOF + eff_num - 1] = new Node(this->node[bot_num*NUM_DOF + 3]->GetAttach() + VectorR3(0, END_DEPTH, 0), VectorR3(0.0, 0.0, 0.0), EFFECTOR);
+	this->node[this->m_num_bot*NUM_DOF + eff_num - 1] = new Node(this->node[bot_num*NUM_DOF + 3]->getSInit() + VectorR3(0, END_DEPTH, 0), VectorR3(0.0, 0.0, 0.0), EFFECTOR);
 	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 3], this->node[this->m_num_bot*NUM_DOF + eff_num - 1]);
 }
 
@@ -90,7 +90,7 @@ void CiMobotIK::runSimulation(int argc, char **argv) {
 //#undef this
 #else
 void CiMobotIK::runSimulation(int argc, char **argv) {
-	bool loop = true;
+	bool loop = false;
 	this->jacob = new Jacobian(&(this->tree), this->target);
 	this->tree.init();
 	this->tree.compute();
@@ -146,24 +146,24 @@ int CiMobotIK::getCurrentDLSMode(void) {
 }
 
 void CiMobotIK::getEffector(int num, double &x, double &y, double &z) {
-	const VectorR3 &n = this->node[num]->GetS();
+	const VectorR3 &n = this->node[num]->getS();
 	x = n.x;
 	y = n.y;
 	z = n.z;
 }
 
 double CiMobotIK::getEffectorX(int num) {
-	const VectorR3 &n = this->node[this->m_num_bot*NUM_DOF + num - 1]->GetS();
+	const VectorR3 &n = this->node[this->m_num_bot*NUM_DOF + num - 1]->getS();
 	return n.x;
 }
 
 double CiMobotIK::getEffectorY(int num) {
-	const VectorR3 &n = this->node[this->m_num_bot*NUM_DOF + num - 1]->GetS();
+	const VectorR3 &n = this->node[this->m_num_bot*NUM_DOF + num - 1]->getS();
 	return n.y;
 }
 
 double CiMobotIK::getEffectorZ(int num) {
-	const VectorR3 &n = this->node[this->m_num_bot*NUM_DOF + num - 1]->GetS();
+	const VectorR3 &n = this->node[this->m_num_bot*NUM_DOF + num - 1]->getS();
 	return n.z;
 }
 
@@ -186,11 +186,17 @@ double CiMobotIK::getTargetZ(int num) {
 }
 
 void CiMobotIK::print_intermediate_data(void) {
-	cout << this->m_t << "\t";
-	for ( int i = 0; i < this->m_num_bot*NUM_DOF; i++ ) {
-		//cout << this->node[i]->GetS() << "\t";
-		cout << this->node[i]->GetTheta() << "\t";
+	//cout << this->m_t << "\t";
+	//for ( int i = 0; i < this->m_num_bot*NUM_DOF; i++ ) {
+	for ( int i = 0; i < 3; i++ ) {
+		cout << "Node " << i << endl;
+		cout << "     S: " << this->node[i]->getS() << endl;
+		cout << "S Init: " << this->node[i]->getSInit() << endl;
+		cout << "     W: " << this->node[i]->getW() << endl;
+		cout << "W Init: " << this->node[i]->getWInit() << endl;
+		cout << " Theta: " << this->node[i]->getTheta() << endl;
 	}
+	cout << endl;
 	cout << endl;
 }
 

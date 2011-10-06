@@ -9,8 +9,8 @@ class Tree {
 	public:
 		Tree(void);
 
-		void init(void);
 		void compute(void);
+		void init(void);
 
 		void insertRoot(Node *node);
 		void insertLeftChild(Node *parent, Node *child);
@@ -29,12 +29,10 @@ class Tree {
 		void Draw();
 		#endif
 	private:
-		Node *root;
-		int m_num_node;			// nNode = nEffector + nJoint
-		int nEffector;
-		int m_num_effector;
-		int nJoint;
-		int m_num_joint;
+		Node *root;				// root of tree
+		int m_num_effector;		// number of effectors
+		int m_num_joint;		// number of joints
+		int m_num_node;			// num_node = num_effector + num_joint
 
 		void compute_tree(Node *node);
 		void init_tree(Node *node);

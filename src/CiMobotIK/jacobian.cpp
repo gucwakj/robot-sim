@@ -58,9 +58,9 @@ void Jacobian::computeJacobian(void) {
 	Node *n = this->tree->getRoot();
 
 	while ( n ) {
-		if ( n->IsEffector() ) {
-			i = n->GetEffectorNum();
-			temp = this->target[i] - n->GetS();
+		if ( n->isEffector() ) {
+			i = n->getEffectorNum();
+			temp = this->target[i] - n->getS();
 
 			this->dS.SetTriple(i, temp);
 
@@ -68,20 +68,20 @@ void Jacobian::computeJacobian(void) {
 			// Set the corresponding entries in the Jacobians J, K.
 			Node *m = this->tree->getParent(n);
 			while ( m ) {
-				j = m->GetJointNum();
+				j = m->getJointNum();
 				assert( 0 <=i && i < this->m_num_effect && 0 <= j && j < this->m_num_joint );
 
-				if ( m->IsFrozen() ) {
+				if ( m->isFrozen() ) {
 					this->J.SetTriple(i, j, VectorR3::Zero);
 				}
 				else {
-					temp = m->GetS();				// joint pos
+					temp = m->getS();				// joint pos
 					if ( this->m_j_type == J_END )
-						temp -= n->GetS();			// -(end effector pos - joint pos)
+						temp -= n->getS();			// -(end effector pos - joint pos)
 					else {
 						temp -= this->target[i];	// -(target pos - joint pos)
 					}
-					temp *= m->GetW();				// cross product with joint rotation axis
+					temp *= m->getW();				// cross product with joint rotation axis
 					this->J.SetTriple(i, j, temp);
 				}
 				m = this->tree->getParent(m);
@@ -121,8 +121,9 @@ void Jacobian::updateThetas(void) {
 	Node *n = this->tree->getRoot();
 
 	while ( n ) {
-		if ( n->IsJoint() )
-			n->AddToTheta( this->dTheta[n->GetJointNum()] );
+		if ( n->isJoint() ) {
+			n->updateTheta( this->dTheta[n->getJointNum()] );
+		}
 		n = this->tree->getSuccessor(n);
 	}
 
@@ -136,9 +137,9 @@ void Jacobian::updatedSClampValue(void) {
 	Node *n = this->tree->getRoot();
 
 	while ( n ) {
-		if ( n->IsEffector() ) {
-			i = n->GetEffectorNum();
-			temp = this->target[i] - n->GetS();
+		if ( n->isEffector() ) {
+			i = n->getEffectorNum();
+			temp = this->target[i] - n->getS();
 
 			changedDist = temp.Norm() - sqrt(dS[i]*dS[i] + dS[i+1]*dS[i+1] + dS[i+2]*dS[i+2]);
 			if ( changedDist > 0.0 )
@@ -156,9 +157,9 @@ void Jacobian::updatedSClampValue(void) {
 	Node *n = this->tree->getRoot();
 
 	while ( n ) {
-		if ( n->IsEffector() ) {
-			i = n->GetEffectorNum();
-			temp = this->target[i] - n->GetS();
+		if ( n->isEffector() ) {
+			i = n->getEffectorNum();
+			temp = this->target[i] - n->getS();
 			this->errorArray[i] = temp.Norm();
 		}
 		n = this->tree->getSuccessor(n);
@@ -247,11 +248,11 @@ void Jacobian::calc_delta_thetas_dls_with_svd(void) {
 	this->J.ComputeSVD(U, w, V);			// Compute SVD
     assert(this->J.DebugCheckSVD(U, w, V));		// Debugging check
 
-	int diagLength = this->w.GetLength();
+	//int diagLength = this->w.GetLength();
 	double *wPtr = this->w.GetPtr();
 	this->dTheta.SetZero();
 
-	for ( int i = 0; i < diagLength; i++ ) {
+	for ( int i = 0; i < this->w.GetLength(); i++ ) {
 		dotProdCol = this->U.DotProductColumn(this->dS, i);		// Dot product with i-th column of U
 		alpha = *(wPtr++);
 		alpha = alpha / (alpha * alpha + this->m_lambda * this->m_lambda);
