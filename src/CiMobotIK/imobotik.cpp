@@ -215,6 +215,22 @@ bool CiMobotIK::end_simulation(void) {
 	return true;
 }
 
+void CiMobotIK::rotation_matrix_from_euler_angles(double *R, double psi, double theta, double phi) {
+	double	sphi = sin(phi), 	cphi = cos(phi),
+			stheta = sin(theta),ctheta = cos(theta),
+			spsi = sin(psi),	cpsi = cos(psi);
+
+	R[0] = cphi*ctheta;
+	R[1] = cphi*stheta*cpsi + sphi*spsi;
+	R[2] = cphi*stheta*spsi - sphi*cpsi;
+	R[3] = -stheta;
+	R[4] = ctheta*cpsi;
+	R[5] = ctheta*spsi;
+	R[6] = sphi*ctheta;
+	R[7] = sphi*stheta*cpsi - cphi*spsi;
+	R[8] = sphi*stheta*spsi + cphi*cpsi;
+}
+
 inline double CiMobotIK::D2R(double deg) {
 	return deg*M_PI/180;
 }
