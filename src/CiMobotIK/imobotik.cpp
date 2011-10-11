@@ -59,8 +59,45 @@ void CiMobotIK::iMobotAnchor(double x, double y, double z, double r_le, double r
 	this->node[3] = new Node(this->node[2]->getSInit() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 1, 0), JOINT, D2R(-180), D2R(180), D2R(r_re));
 	this->tree.insertLeftChild(node[2], node[3]);
 }
+void CiMobotIK::iMobotAnchor(int end, double x, double y, double z, double psi, double theta, double phi, double r_le, double r_lb, double r_rb, double r_re) {
+	double R[9];
+	rotation_matrix_from_euler_angles(R, D2R(psi), D2R(theta), D2R(phi));
+	this->m_psi = D2R(psi);
+	this->m_theta = D2R(theta);
+	this->m_phi = D2R(phi);
 
-void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re) {
+	if ( end == LE ) {
+		double le = END_DEPTH;
+		double lb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
+		double rb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
+		double re = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH;
+		this->node[0] = new Node(VectorR3(R[0]*le + x, R[3]*le + y, R[6]*le + z), VectorR3(-R[0], -R[3], -R[6]), JOINT, D2R(-180), D2R(180), D2R(r_le));
+		this->node[1] = new Node(VectorR3(R[0]*lb + x, R[3]*lb + y, R[6]*lb + z), VectorR3(-R[2], -R[5], -R[8]), JOINT, D2R(-180), D2R(180), D2R(r_lb));
+		this->node[2] = new Node(VectorR3(R[0]*rb + x, R[3]*rb + y, R[6]*rb + z), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180), D2R(180), D2R(r_rb));
+		this->node[3] = new Node(VectorR3(R[0]*re + x, R[3]*re + y, R[6]*re + z), VectorR3(R[0], R[3], R[6]), JOINT, D2R(-180), D2R(180), D2R(r_re));
+		this->tree.insertRoot(node[0]);
+		this->tree.insertLeftChild(node[0], node[1]);
+		this->tree.insertLeftChild(node[1], node[2]);
+		this->tree.insertLeftChild(node[2], node[3]);
+	}
+	else if ( end == RE ) {
+		double re = END_DEPTH;
+		double rb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
+		double lb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
+		double le = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH;
+		this->node[0] = new Node(VectorR3(R[0]*le + x, R[3]*le + y, R[6]*le + z), VectorR3(-R[0], -R[3], -R[6]), JOINT, D2R(-180), D2R(180), D2R(r_le));
+		this->node[1] = new Node(VectorR3(R[0]*lb + x, R[3]*lb + y, R[6]*lb + z), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180), D2R(180), D2R(r_lb));
+		this->node[2] = new Node(VectorR3(R[0]*rb + x, R[3]*rb + y, R[6]*rb + z), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180), D2R(180), D2R(r_rb));
+		this->node[3] = new Node(VectorR3(R[0]*re + x, R[3]*re + y, R[6]*re + z), VectorR3(R[0], R[3], R[6]), JOINT, D2R(-180), D2R(180), D2R(r_re));
+		this->tree.insertRoot(node[3]);
+		this->tree.insertLeftChild(node[3], node[2]);
+		this->tree.insertLeftChild(node[2], node[1]);
+		this->tree.insertLeftChild(node[1], node[0]);
+	}
+
+}
+
+/*void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re) {
 	this->node[bot_num*NUM_DOF + 0] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(0, 2*END_DEPTH, 0), VectorR3(0, 1, 0), JOINT, D2R(-180.), D2R(180.), D2R(r_le));
 	this->tree.insertLeftChild(this->node[att_num*NUM_DOF + 3], this->node[bot_num*NUM_DOF + 0]);
 	this->node[bot_num*NUM_DOF + 1] = new Node(this->node[bot_num*NUM_DOF + 0]->getSInit() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 0, 1), JOINT, D2R(-180.), D2R(180.), D2R(r_lb));
@@ -69,11 +106,107 @@ void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, dou
 	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 1], this->node[bot_num*NUM_DOF + 2]);
 	this->node[bot_num*NUM_DOF + 3] = new Node(this->node[bot_num*NUM_DOF + 2]->getSInit() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 1, 0), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
 	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 3]);
+}*/
+void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re) {
+	double R[9];
+	rotation_matrix_from_euler_angles(R, this->m_psi, this->m_theta, this->m_phi);
+
+	if ( face1 == 6 && face2 == 1 ) {
+		double le = 2*END_DEPTH;
+		double lb = 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
+		double rb = 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
+		double re = 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH;
+		this->node[bot_num*NUM_DOF + 0] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*le, R[3]*le, R[6]*le), VectorR3(-R[0], -R[3], -R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_le));
+		this->node[bot_num*NUM_DOF + 1] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*lb, R[3]*lb, R[6]*lb), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_lb));
+		this->node[bot_num*NUM_DOF + 2] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*rb, R[3]*rb, R[6]*rb), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_rb));
+		this->node[bot_num*NUM_DOF + 3] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*re, R[3]*re, R[6]*re), VectorR3(R[0], R[3], R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
+		this->tree.insertLeftChild(this->node[att_num*NUM_DOF + 3], this->node[bot_num*NUM_DOF + 0]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 0], this->node[bot_num*NUM_DOF + 1]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 1], this->node[bot_num*NUM_DOF + 2]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 3]);
+	}
+	else if ( face1 == 6 && face2 == 2 ) {
+		//double le = END_DEPTH;
+		double lb[3] = {END_DEPTH + BODY_WIDTH/2, 0, BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER};
+		double rb[3] = {END_DEPTH + BODY_WIDTH/2, 0, BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + CENTER_LENGTH};
+		double re[3] = {END_DEPTH + BODY_WIDTH/2, 0, BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH};
+		//this->node[bot_num*NUM_DOF + 0] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*le, R[3]*le, R[6]*le), VectorR3(-R[2], -R[5], -R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_le));
+		this->node[bot_num*NUM_DOF + 1] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*lb[0] + R[2]*lb[2], R[3]*lb[0] + R[5]*lb[2], R[6]*lb[0] + R[8]*lb[2]), VectorR3(-R[0], -R[3], -R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_lb));
+		this->node[bot_num*NUM_DOF + 2] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*rb[0] + R[2]*rb[2], R[3]*rb[0] + R[5]*rb[2], R[6]*rb[0] + R[8]*rb[2]), VectorR3(-R[0], -R[3], -R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_rb));
+		this->node[bot_num*NUM_DOF + 3] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*re[0] + R[2]*re[2], R[3]*re[0] + R[5]*re[2], R[6]*re[0] + R[8]*re[2]), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
+		this->tree.insertLeftChild(this->node[att_num*NUM_DOF + 3], this->node[bot_num*NUM_DOF + 1]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 1], this->node[bot_num*NUM_DOF + 2]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 3]);
+	}
+	else if ( face1 == 6 && face2 == 3 ) {
+		//double le = END_DEPTH;
+		double lb[3] = {END_DEPTH + BODY_WIDTH/2, 0, -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER};
+		double rb[3] = {END_DEPTH + BODY_WIDTH/2, 0, -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - CENTER_LENGTH};
+		double re[3] = {END_DEPTH + BODY_WIDTH/2, 0, -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - CENTER_LENGTH - BODY_END_DEPTH - BODY_LENGTH};
+		//this->node[bot_num*NUM_DOF + 0] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*le, R[3]*le, R[6]*le), VectorR3(-R[2], -R[5], -R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_le));
+		this->node[bot_num*NUM_DOF + 1] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*lb[0] + R[2]*lb[2], R[3]*lb[0] + R[5]*lb[2], R[6]*lb[0] + R[8]*lb[2]), VectorR3(R[0], R[3], R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_lb));
+		this->node[bot_num*NUM_DOF + 2] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*rb[0] + R[2]*rb[2], R[3]*rb[0] + R[5]*rb[2], R[6]*rb[0] + R[8]*rb[2]), VectorR3(R[0], R[3], R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_rb));
+		this->node[bot_num*NUM_DOF + 3] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*re[0] + R[2]*re[2], R[3]*re[0] + R[5]*re[2], R[6]*re[0] + R[8]*re[2]), VectorR3(-R[2], -R[5], -R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
+		this->tree.insertLeftChild(this->node[att_num*NUM_DOF + 3], this->node[bot_num*NUM_DOF + 1]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 1], this->node[bot_num*NUM_DOF + 2]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 3]);
+	}
+	else if ( face1 == 6 && face2 == 4 ) {
+		double le[3] = {END_DEPTH + BODY_WIDTH/2, 0, BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH};
+		double lb[3] = {END_DEPTH + BODY_WIDTH/2, 0, BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + CENTER_LENGTH};
+		double rb[3] = {END_DEPTH + BODY_WIDTH/2, 0, BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER};
+		//double re = END_DEPTH;
+		this->node[bot_num*NUM_DOF + 0] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*le[0] + R[2]*le[2], R[3]*le[0] + R[5]*le[2], R[6]*le[0] + R[8]*le[2]), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_le));
+		this->node[bot_num*NUM_DOF + 1] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*lb[0] + R[2]*lb[2], R[3]*lb[0] + R[5]*lb[2], R[6]*lb[0] + R[8]*lb[2]), VectorR3(R[0], R[3], R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_lb));
+		this->node[bot_num*NUM_DOF + 2] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*rb[0] + R[2]*rb[2], R[3]*rb[0] + R[5]*rb[2], R[6]*rb[0] + R[8]*rb[2]), VectorR3(-R[0], -R[3], -R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_rb));
+		//this->node[bot_num*NUM_DOF + 3] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*re[0] + R[2]*re[2], R[3]*re[0] + R[5]*re[2], R[6]*re[0] + R[8]*re[2]), VectorR3(-R[2], -R[5], -R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
+		this->tree.insertLeftChild(this->node[att_num*NUM_DOF + 3], this->node[bot_num*NUM_DOF + 2]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 1]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 1], this->node[bot_num*NUM_DOF + 0]);
+	}
+	else if ( face1 == 6 && face2 == 5 ) {
+		double le[3] = {END_DEPTH + BODY_WIDTH/2, 0, BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH};
+		double lb[3] = {END_DEPTH + BODY_WIDTH/2, 0, BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + CENTER_LENGTH};
+		double rb[3] = {END_DEPTH + BODY_WIDTH/2, 0, BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER};
+		//double re = END_DEPTH;
+		this->node[bot_num*NUM_DOF + 0] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*le[0] + R[2]*le[2], R[3]*le[0] + R[5]*le[2], R[6]*le[0] + R[8]*le[2]), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_le));
+		this->node[bot_num*NUM_DOF + 1] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*lb[0] + R[2]*lb[2], R[3]*lb[0] + R[5]*lb[2], R[6]*lb[0] + R[8]*lb[2]), VectorR3(-R[0], -R[3], -R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_lb));
+		this->node[bot_num*NUM_DOF + 2] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*rb[0] + R[2]*rb[2], R[3]*rb[0] + R[5]*rb[2], R[6]*rb[0] + R[8]*rb[2]), VectorR3(-R[0], -R[3], -R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_rb));
+		//this->node[bot_num*NUM_DOF + 3] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*re[0] + R[2]*re[2], R[3]*re[0] + R[5]*re[2], R[6]*re[0] + R[8]*re[2]), VectorR3(-R[2], -R[5], -R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
+		this->tree.insertLeftChild(this->node[att_num*NUM_DOF + 3], this->node[bot_num*NUM_DOF + 2]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 1]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 1], this->node[bot_num*NUM_DOF + 0]);
+	}
+	else if ( face1 == 6 && face2 == 6 ) {
+		double le = 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH;
+		double lb = 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
+		double rb = 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
+		double re = 2*END_DEPTH;
+		this->node[bot_num*NUM_DOF + 0] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*le, R[3]*le, R[6]*le), VectorR3(-R[0], -R[3], -R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_le));
+		this->node[bot_num*NUM_DOF + 1] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*lb, R[3]*lb, R[6]*lb), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_lb));
+		this->node[bot_num*NUM_DOF + 2] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*rb, R[3]*rb, R[6]*rb), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_rb));
+		this->node[bot_num*NUM_DOF + 3] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(R[0]*re, R[3]*re, R[6]*re), VectorR3(R[0], R[3], R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
+		this->tree.insertLeftChild(this->node[att_num*NUM_DOF + 3], this->node[bot_num*NUM_DOF + 3]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 3], this->node[bot_num*NUM_DOF + 2]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 1]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 1], this->node[bot_num*NUM_DOF + 0]);
+	}
 }
 
-void CiMobotIK::addEffector(int eff_num, int bot_num) {
-	this->node[this->m_num_bot*NUM_DOF + eff_num - 1] = new Node(this->node[bot_num*NUM_DOF + 3]->getSInit() + VectorR3(0, END_DEPTH, 0), VectorR3(0.0, 0.0, 0.0), EFFECTOR);
-	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 3], this->node[this->m_num_bot*NUM_DOF + eff_num - 1]);
+void CiMobotIK::addEffector(int eff_num, int bot_num, int face) {
+	double R[9];
+	rotation_matrix_from_euler_angles(R, this->m_psi, this->m_theta, this->m_phi);
+	//VectorR3 eff = END_DEPTH*this->node[bot_num*NUM_DOF + offset]->getWInit();
+	double eff = END_DEPTH;
+	int offset = 0;
+
+	if ( face == 1 )
+		offset = 0;
+	else if ( face == 6 )
+		offset = 3;
+
+	this->node[this->m_num_bot*NUM_DOF + eff_num - 1] = new Node(this->node[bot_num*NUM_DOF + offset]->getSInit() + VectorR3(R[0]*eff, R[3]*eff, R[6]*eff), VectorR3(0.0, 0.0, 0.0), EFFECTOR);
+	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + offset], this->node[this->m_num_bot*NUM_DOF + eff_num - 1]);
 }
 
 #ifdef ENABLE_GRAPHICS
@@ -187,14 +320,16 @@ double CiMobotIK::getTargetZ(int num) {
 
 void CiMobotIK::print_intermediate_data(void) {
 	//cout << this->m_t << "\t";
-	//for ( int i = 0; i < this->m_num_bot*NUM_DOF; i++ ) {
-	for ( int i = 0; i < 3; i++ ) {
-		cout << "Node " << i << endl;
-		cout << "     S: " << this->node[i]->getS() << endl;
-		cout << "S Init: " << this->node[i]->getSInit() << endl;
-		cout << "     W: " << this->node[i]->getW() << endl;
-		cout << "W Init: " << this->node[i]->getWInit() << endl;
-		cout << " Theta: " << this->node[i]->getTheta() << endl;
+	for ( int i = 0; i < this->m_num_bot*NUM_DOF; i++ ) {
+	//for ( int i = 4; i < 8; i++ ) {
+		if ( this->node[i] ) {
+			cout << "Node " << i << endl;
+			cout << "     S: " << this->node[i]->getS() << endl;
+			cout << "S Init: " << this->node[i]->getSInit() << endl;
+			cout << "     W: " << this->node[i]->getW() << endl;
+			cout << "W Init: " << this->node[i]->getWInit() << endl;
+			cout << " Theta: " << this->node[i]->getTheta() << endl;
+		}
 	}
 	cout << endl;
 	cout << endl;
@@ -220,15 +355,15 @@ void CiMobotIK::rotation_matrix_from_euler_angles(double *R, double psi, double 
 			stheta = sin(theta),ctheta = cos(theta),
 			spsi = sin(psi),	cpsi = cos(psi);
 
-	R[0] = cphi*ctheta;
-	R[1] = cphi*stheta*cpsi + sphi*spsi;
-	R[2] = cphi*stheta*spsi - sphi*cpsi;
-	R[3] = -stheta;
-	R[4] = ctheta*cpsi;
-	R[5] = ctheta*spsi;
-	R[6] = sphi*ctheta;
-	R[7] = sphi*stheta*cpsi - cphi*spsi;
-	R[8] = sphi*stheta*spsi + cphi*cpsi;
+	R[0] =  cphi*ctheta;
+	R[1] = -cphi*stheta*cpsi + sphi*spsi;
+	R[2] =  cphi*stheta*spsi + sphi*cpsi;
+	R[3] =  stheta;
+	R[4] =  ctheta*cpsi;
+	R[5] = -ctheta*spsi;
+	R[6] = -sphi*ctheta;
+	R[7] =  sphi*stheta*cpsi + cphi*spsi;
+	R[8] = -sphi*stheta*spsi + cphi*cpsi;
 }
 
 inline double CiMobotIK::D2R(double deg) {

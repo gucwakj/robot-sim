@@ -32,14 +32,20 @@
 #define END_RADIUS          0.01778
 #define NUM_DOF 4
 
+enum anchor_point_e {
+	LE,
+	RE
+};
+
 class CiMobotIK {
 	public:
 		CiMobotIK(int num_bot, int num_targets);
 		~CiMobotIK(void);
 
 		void iMobotAnchor(double x, double y, double z, double r_le, double r_lb, double r_rb, double r_re);
+		void iMobotAnchor(int end, double x, double y, double z, double psi, double theta, double phi, double r_le, double r_lb, double r_rb, double r_re);
 		void iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re);
-		void addEffector(int eff_num, int bot_num);
+		void addEffector(int eff_num, int bot_num, int face);
 
 		void setCurrentMode(int mode);			// Type of updating mode for Jacobian
 		void setCurrentType(int type);			// Jacobian type: END or TARGET
@@ -71,6 +77,9 @@ class CiMobotIK {
 		int m_t_count;
 		int m_num_bot;
 		int m_num_targets;
+		double m_psi;
+		double m_theta;
+		double m_phi;
 
 		void update_targets(void);
 		void print_intermediate_data(void);
