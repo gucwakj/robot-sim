@@ -1,9 +1,5 @@
 #include <cmath>
 #include "node.h"
-#ifdef ENABLE_GRAPHICS
-	#include <GL/gl.h>
-	#include <GL/glut.h>
-#endif
 
 Node::Node(const VectorR3 &s_init, const VectorR3 &w_init, int purpose, double minTheta, double maxTheta, double initAngle) {
 	this->freezed = false;
@@ -129,29 +125,3 @@ bool Node::isFrozen(void) {
 void Node::UnFreeze(void) {
 	this->freezed = false;
 }*/
-
-#ifdef ENABLE_GRAPHICS
-void Node::DrawNode(bool isRoot) {
-	if ( !isRoot ) {
-		glPushMatrix();
-
-		if ( r.z != 0.0 || r.x != 0.0 ) {
-			double alpha = atan2(r.z, r.x);
-			glRotatef(alpha*180/M_PI, 0.0f, -1.0f, 0.0f);
-		}
-
-		if ( r.y != 0.0 ) {
-			double beta = atan2(r.y, sqrt(r.x*r.x+r.z*r.z));
-			glRotatef( beta*180/M_PI, 0.0f, 0.0f, 1.0f );
-		}
-
-		double length = r.Norm();
-		glScalef(length/0.08, 1.0f, 1.0f);
-		glTranslatef(0.04, 0.0f, 0.0f);
-		glutSolidCube(0.08);
-		glPopMatrix();
-	}
-	glTranslatef(r.x, r.y, r.z);
-	glRotatef(theta*180/M_PI, v.x, v.y, v.z);
-}
-#endif

@@ -1,8 +1,5 @@
 #include <iostream>
 #include "tree.h"
-#ifdef ENABLE_GRAPHICS
-#include <GL/gl.h>
-#endif
 
 Tree::Tree(void) {
 	this->root = 0;
@@ -124,23 +121,3 @@ void Tree::set_seq_num(Node *node) {
 		this->unfreeze_tree(node->right);
 	}
 }*/
-
-#ifdef ENABLE_GRAPHICS
-void Tree::DrawTree(Node* node) {
-	if (node != 0) {
-		glPushMatrix();
-		node->DrawNode( node==root );	// Recursively draw node and update ModelView matrix
-		if (node->left) {
-			DrawTree(node->left);		// Draw tree of children recursively
-		}
-		glPopMatrix();
-		if (node->right) {
-			DrawTree(node->right);		// Draw right siblings recursively
-		}
-	}
-}
-
-void Tree::Draw(void) {
-	DrawTree(root);
-}
-#endif

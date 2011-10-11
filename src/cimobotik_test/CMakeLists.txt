@@ -3,6 +3,7 @@ project(CiMobot_IK_test)
 
 set(CiMobot_IK_test_VERSION_MAJOR 0)
 set(CiMobot_IK_test_VERSION_MINOR 1)
+cmake_policy(SET CMP0015 NEW)
 
 configure_file (
 	"${PROJECT_SOURCE_DIR}/config.h.in"
@@ -11,7 +12,6 @@ configure_file (
 
 include_directories("${PROJECT_BINARY_DIR}")
 
-# Add CiMobotIK library subdirectory
 include_directories("../CiMobotIK")
 link_directories("../CiMobotIK")
 set (EXTRA_LIBS ${EXTRA_LIBS} imobotik)

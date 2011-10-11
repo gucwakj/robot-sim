@@ -6,11 +6,6 @@
 #include "linearR3.h"
 #include "node.h"
 #include "tree.h"
-#ifdef ENABLE_GRAPHICS
-#include <GL/glui.h>
-#define ROTATE = 0;
-#define SCALE = 1;
-#endif
 
 /*
  *  iMobot dimension macros
@@ -88,38 +83,6 @@ class CiMobotIK {
 		void rotation_matrix_from_euler_angles(double *R, double psi, double theta, double phi);
 		inline double D2R(double deg);
 		inline double R2D(double rad);
-
-		#ifdef ENABLE_GRAPHICS
-		float ANGFACT;
-		float SCLFACT;
-		float MINSCALE;
-		int LEFT;
-		int MIDDLE;
-		int RIGHT;
-		int ORTHO;
-		int PERSP;
-		int ActiveButton;
-		float BACKCOLOR[4];
-		float AXES_COLOR[3];
-		float AXES_WIDTH;
-		GLUI *Glui;			/* instance of glui window		*/
-		int	GluiWindow;		/* the glut id for the glui window	*/
-		int	GrWindow;		/* window id for graphics window	*/
-		int	LeftButton;		/* either ROTATE or SCALE		*/
-		float	RotMatrix[4][4];	/* set by glui rotation widget		*/
-		float	Scale, Scale2;		/* scaling factors			*/
-		int	WhichProjection;	/* ORTHO or PERSP			*/
-		int	Xmouse, Ymouse;		/* mouse values				*/
-		float	Xrot, Yrot;		/* rotation angles in degrees		*/
-		float	TransXYZ[3];		/* set by glui translation widgets	*/
-
-		void Animate(void);
-		void Display(void);
-		void InitGraphics(void);
-		void ResetGraphics(void);
-		void MouseMotion(int x, int y);
-		void MouseButton(int button, int state, int x, int y);
-		#endif
 };
 
 #endif	/* CIMOBOTIK_H_ */

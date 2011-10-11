@@ -4,10 +4,6 @@
 
 using namespace std;
 
-#ifdef ENABLE_GRAPHICS
-CiMobotIK *g_imobotik;
-#endif
-
 CiMobotIK::CiMobotIK(int num_bot, int num_targets) {
 	this->m_num_bot = num_bot;
 	this->m_num_targets = num_targets;
@@ -15,32 +11,6 @@ CiMobotIK::CiMobotIK(int num_bot, int num_targets) {
 	this->m_t = 0.0;
 	this->node = new Node * [NUM_DOF*num_bot + num_targets];
 	this->target = new VectorR3[num_targets];
-
-	#ifdef ENABLE_GRAPHICS
-	RotMatrix[0][1] = RotMatrix[0][2] = RotMatrix[0][3] = 0.;
-	RotMatrix[1][0]                   = RotMatrix[1][2] = RotMatrix[1][3] = 0.;
-	RotMatrix[2][0] = RotMatrix[2][1]                   = RotMatrix[2][3] = 0.;
-	RotMatrix[3][0] = RotMatrix[3][1] = RotMatrix[3][3]                   = 0.;
-	RotMatrix[0][0] = RotMatrix[1][1] = RotMatrix[2][2] = RotMatrix[3][3] = 1.;
-	ANGFACT = 1.0;
-	SCLFACT = 0.005f;
-	MINSCALE = 0.05f;
-	LEFT   = 4;
-	MIDDLE = 2;
-	RIGHT  = 1;
-	ORTHO = 1;
-	PERSP = 0;
-	ActiveButton = 1;
-	BACKCOLOR[0] = 0.0;
-	BACKCOLOR[1] = 0.0;
-	BACKCOLOR[2] = 0.0;
-	BACKCOLOR[3] = 0.0;
-	AXES_COLOR[0] = 1.0;
-	AXES_COLOR[1] = 0.5;
-	AXES_COLOR[2] = 0.0;
-	AXES_WIDTH = 3.0;
-	g_imobotik = this;
-	#endif
 }
 
 CiMobotIK::~CiMobotIK(void) {
@@ -97,16 +67,6 @@ void CiMobotIK::iMobotAnchor(int end, double x, double y, double z, double psi, 
 
 }
 
-/*void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re) {
-	this->node[bot_num*NUM_DOF + 0] = new Node(this->node[att_num*NUM_DOF + 3]->getSInit() + VectorR3(0, 2*END_DEPTH, 0), VectorR3(0, 1, 0), JOINT, D2R(-180.), D2R(180.), D2R(r_le));
-	this->tree.insertLeftChild(this->node[att_num*NUM_DOF + 3], this->node[bot_num*NUM_DOF + 0]);
-	this->node[bot_num*NUM_DOF + 1] = new Node(this->node[bot_num*NUM_DOF + 0]->getSInit() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 0, 1), JOINT, D2R(-180.), D2R(180.), D2R(r_lb));
-	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 0], this->node[bot_num*NUM_DOF + 1]);
-	this->node[bot_num*NUM_DOF + 2] = new Node(this->node[bot_num*NUM_DOF + 1]->getSInit() + VectorR3(0, CENTER_LENGTH, 0), VectorR3(0, 0, 1), JOINT, D2R(-180.), D2R(180.), D2R(r_rb));
-	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 1], this->node[bot_num*NUM_DOF + 2]);
-	this->node[bot_num*NUM_DOF + 3] = new Node(this->node[bot_num*NUM_DOF + 2]->getSInit() + VectorR3(0, BODY_END_DEPTH + BODY_LENGTH, 0), VectorR3(0, 1, 0), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
-	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 3]);
-}*/
 void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re) {
 	double R[9];
 	rotation_matrix_from_euler_angles(R, this->m_psi, this->m_theta, this->m_phi);
@@ -209,19 +169,6 @@ void CiMobotIK::addEffector(int eff_num, int bot_num, int face) {
 	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + offset], this->node[this->m_num_bot*NUM_DOF + eff_num - 1]);
 }
 
-#ifdef ENABLE_GRAPHICS
-#define this g_imobotik
-void CiMobotIK::runSimulation(int argc, char **argv) {
-	this->jacob = new Jacobian(&(this->tree), this->target);
-	this->tree.Init();
-	this->tree.Compute();
-	glutInit( &argc, argv);
-	InitGraphics();
-	ResetGraphics();
-	glutMainLoop();
-}
-//#undef this
-#else
 void CiMobotIK::runSimulation(int argc, char **argv) {
 	bool loop = false;
 	this->jacob = new Jacobian(&(this->tree), this->target);
@@ -244,7 +191,6 @@ void CiMobotIK::runSimulation(int argc, char **argv) {
 		this->m_t_count++;
 	}
 }
-#endif
 
 void CiMobotIK::setCurrentMode(int mode) {
 	this->jacob->setCurrentMode(mode);
@@ -373,189 +319,3 @@ inline double CiMobotIK::D2R(double deg) {
 inline double CiMobotIK::R2D(double rad) {
 	return rad/M_PI*180;
 }
-
-#ifdef ENABLE_GRAPHICS
-void CiMobotIK::Animate(void) {
-	glutSetWindow( GrWindow );
-	glutPostRedisplay();
-}
-
-void CiMobotIK::ResetGraphics(void) {
-	Scale  = 1.0;
-	Scale2 = 0.0;		// because add 1. to it in Display()
-	WhichProjection = ORTHO;
-	Xrot = Yrot = 0.;
-	TransXYZ[0] = TransXYZ[1] = TransXYZ[2] = 0.;
-
-	RotMatrix[0][1] = RotMatrix[0][2] = RotMatrix[0][3] = 0.;
-	RotMatrix[1][0]                   = RotMatrix[1][2] = RotMatrix[1][3] = 0.;
-	RotMatrix[2][0] = RotMatrix[2][1]                   = RotMatrix[2][3] = 0.;
-	RotMatrix[3][0] = RotMatrix[3][1] = RotMatrix[3][3]                   = 0.;
-	RotMatrix[0][0] = RotMatrix[1][1] = RotMatrix[2][2] = RotMatrix[3][3] = 1.;
-
-	glutSetWindow(GrWindow);
-	glutPostRedisplay();
-}
-
-void CiMobotIK::Display(void) {
-	do_update_step();
-	float scale2;		/* real glui scale factor		*/
-
-	glutSetWindow( GrWindow );
-	glDrawBuffer( GL_BACK );
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	glEnable( GL_DEPTH_TEST );
-
-	glShadeModel( GL_FLAT );
-	glMatrixMode( GL_PROJECTION );
-	glLoadIdentity();
-
-	if (WhichProjection == ORTHO)
-		glOrtho(-3., 3.,     -1.7, 1.7,     0.1, 1000.);
-	else
-		gluPerspective(75., 1.,	0.1, 1000.);
-
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();
-	gluLookAt( -3., 0., 3.,     0., 0., 0.,     0., 1., 0. );
-	glTranslatef( TransXYZ[0], TransXYZ[1], -TransXYZ[2] );
-
-	glRotatef( Yrot, 0., 1., 0. );
-	glRotatef( Xrot, 1., 0., 0. );
-	glMultMatrixf( (const GLfloat *) RotMatrix );
-
-	glScalef( Scale, Scale, Scale );
-	scale2 = 1. + Scale2;		/* because glui translation starts at 0. */
-	if( scale2 < MINSCALE )
-		scale2 = MINSCALE;
-	glScalef( scale2, scale2, scale2 );
-
-	GLUI_Master.set_glutIdleFunc( (void (*)(void))&CiMobotIK::Animate );
-	GLfloat target_ambient_and_diffuse[] = { 1.0f, 0.0f, 0.0f, 1.0f };
-	GLfloat mat_ambient_and_diffuse[] = { 0.2f, 0.2f, 0.8f, 1.0f };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, target_ambient_and_diffuse);
-
-	// draw targets
-	//VectorR3 target;
-	for ( int i = 0; i < tree.GetNumEffector(); i++ ) {
-		glPushMatrix();
-		//target = this->jacob->GetTarget(i);
-		//glTranslatef(target2[i].x, target2[i].y, target2[i].z);
-		glutSolidSphere(0.1, 5, 5);
-		glPopMatrix();
-	}
-
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient_and_diffuse);
-
-	tree.Draw();
-
-	glFlush();
-	glutSwapBuffers();
-}
-
-void CiMobotIK::InitGraphics(void) {
-	glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
-	glutInitWindowSize(500, 300);
-	glutInitWindowPosition(300, 200);
-
-	GrWindow = glutCreateWindow("Title");
-	glutSetWindowTitle("Title2");
-
-	glClearColor( BACKCOLOR[0], BACKCOLOR[1], BACKCOLOR[2], BACKCOLOR[3] );
-	glutSetWindow(GrWindow);
-	glutDisplayFunc((void (*)(void))&CiMobotIK::Display);
-	glutMouseFunc((void (*)(int, int, int, int))&CiMobotIK::MouseButton);
-	glutMotionFunc((void (*)(int, int))&CiMobotIK::MouseMotion);
-
-	GLfloat global_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
-	GLfloat light0_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
-	GLfloat light0_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
-	GLfloat light0_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat light0_position[] = { 3.0f, 3.0f, 3.0f, 0.0 };
-	GLfloat mat_ambient_and_diffuse[] = { 0.2f, 0.2f, 0.8f, 1.0f };
-	GLfloat mat_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat mat_shininess[] = { 15.0f };
-
-	// light model
-	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
-
-	// light0
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular);
-	glLightfv(GL_LIGHT0, GL_POSITION, light0_position);
-
-	// light1
-	glLightfv(GL_LIGHT1, GL_AMBIENT, light0_ambient);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, light0_diffuse);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, light0_specular);
-	glLightfv(GL_LIGHT1, GL_POSITION, light0_position);
-
-	// material properties
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient_and_diffuse);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
-
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
-}
-
-void CiMobotIK::MouseMotion( int x, int y ) {
-	int dx, dy;     /* change in mouse coordinates      */
-
-	dx = x - Xmouse;        /* change in mouse coords   */
-	dy = y - Ymouse;
-
-	/*if( ActiveButton & LEFT ) {
-		switch( LeftButton ) {
-			case ROTATE:
-				Xrot += ( ANGFACT*dy );
-				Yrot += ( ANGFACT*dx );
-				break;
-			case SCALE:
-				Scale += SCLFACT * (float) ( dx - dy );
-				if( Scale < MINSCALE )
-					Scale = MINSCALE;
-				break;
-		}
-	}*/
-
-	if( ActiveButton & MIDDLE ) {
-		Scale += SCLFACT * (float) ( dx - dy );
-		if( Scale < MINSCALE )
-			Scale = MINSCALE;
-	}
-
-	Xmouse = x;         /* new current position     */
-	Ymouse = y;
-
-	glutSetWindow( GrWindow );
-	glutPostRedisplay();
-}
-
-void CiMobotIK::MouseButton( int button, int state, int x, int y ) {
-	int b;          /* LEFT, MIDDLE, or RIGHT       */
-
-	switch( button ) {
-		case GLUT_LEFT_BUTTON:
-			b = LEFT;       break;
-		case GLUT_MIDDLE_BUTTON:
-			b = MIDDLE;     break;
-		case GLUT_RIGHT_BUTTON:
-			b = RIGHT;      break;
-		default:
-			b = 0;
-			cerr << "Unknown mouse button: " << button << "\n";
-	}
-
-	if( state == GLUT_DOWN ) {
-		Xmouse = x;
-		Ymouse = y;
-		ActiveButton |= b;      /* set the proper bit   */
-	} else {
-		ActiveButton &= ~b;     /* clear the proper bit */
-	}
-}
-#endif

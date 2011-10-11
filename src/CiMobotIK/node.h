@@ -40,10 +40,6 @@ class Node {
 
 		//void Freeze(void);
 		//void UnFreeze(void);
-
-		#ifdef ENABLE_GRAPHICS
-		void DrawNode(bool);
-		#endif
 	private:
 		bool freezed;			// Is this node frozen?
 		int m_seq_num_joint;	// sequence number if this node is a joint

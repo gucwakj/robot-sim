@@ -24,10 +24,6 @@ class Tree {
 		int getNumJoint(void);
 
 		//void unfreeze();
-
-		#ifdef ENABLE_GRAPHICS
-		void Draw();
-		#endif
 	private:
 		Node *root;				// root of tree
 		int m_num_effector;		// number of effectors
@@ -38,10 +34,6 @@ class Tree {
 		void init_tree(Node *node);
 		void set_seq_num(Node *node);
 		//void unfreeze_tree(Node *node);
-
-		#ifdef ENABLE_GRAPHICS
-		void DrawTree(Node*);
-		#endif
 };
 
 #endif	/* TREE_H_ */
