@@ -15,9 +15,13 @@ CiMobotIK::CiMobotIK(int num_bot, int num_targets) {
 }
 
 CiMobotIK::~CiMobotIK(void) {
-	//delete this->jacob;
-	//delete this->target;
-	//delete this->tree;
+	delete this->jacob;
+	delete [] this->target;
+	delete [] this->m_del_theta;
+	for ( int i = NUM_DOF*this->m_num_bot + this->m_num_targets - 1; i >= 0; i-- ) {
+		delete this->node[i];
+	}
+	delete [] this->node;
 }
 
 void CiMobotIK::iMobotAnchor(double x, double y, double z, double r_le, double r_lb, double r_rb, double r_re) {

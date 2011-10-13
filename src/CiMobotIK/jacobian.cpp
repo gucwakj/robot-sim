@@ -46,8 +46,8 @@ Jacobian::Jacobian(Tree *tree, VectorR3 *target) {
 
 Jacobian::~Jacobian(void) {
 	delete this->m_max_angle;
-	delete this->tree;
-	delete this->target;
+	//delete this->tree;
+	//delete this->target;
 }
 
 // Compute the deltaS vector, dS, (the error in end effector positions
