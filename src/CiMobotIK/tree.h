@@ -22,8 +22,6 @@ class Tree {
 		int getNumNode(void);
 		int getNumEffector(void);
 		int getNumJoint(void);
-
-		//void unfreeze();
 	private:
 		Node *root;				// root of tree
 		int m_num_effector;		// number of effectors
@@ -33,7 +31,6 @@ class Tree {
 		void compute_tree(Node *node);
 		void init_tree(Node *node);
 		void set_seq_num(Node *node);
-		//void unfreeze_tree(Node *node);
 };
 
 #endif	/* TREE_H_ */

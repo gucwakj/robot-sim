@@ -109,15 +109,3 @@ void Tree::set_seq_num(Node *node) {
 			break;
 	}
 }
-
-/*void Tree::UnFreeze(void) {
-	this->unfreeze_tree(root);
-}*/
-
-/*void Tree::unfreeze_tree(Node *node) {
-	if (node != 0) {
-		node->UnFreeze();
-		this->unfreeze_tree(node->left);
-		this->unfreeze_tree(node->right);
-	}
-}*/

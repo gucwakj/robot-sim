@@ -19,6 +19,7 @@ class Node {
 		double updateTheta(double delta);
 
 		void setSeqNum(int seq_num);
+		void setFrozen(bool s);
 
 		const VectorR3& getS(void);
 		const VectorR3& getSInit(void);
@@ -38,11 +39,8 @@ class Node {
 		bool isEffector(void);
 		bool isJoint(void);
 		bool isFrozen(void);
-
-		//void Freeze(void);
-		//void UnFreeze(void);
 	private:
-		bool freezed;			// Is this node frozen?
+		bool m_frozen;			// Is this node frozen?
 		int m_seq_num_joint;	// sequence number if this node is a joint
 		int m_seq_num_effector;	// sequence number if this node is an effector
 		int m_purpose;			// joint / effector / both

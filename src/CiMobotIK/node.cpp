@@ -2,7 +2,7 @@
 #include "node.h"
 
 Node::Node(const VectorR3 &s_init, const VectorR3 &w_init, int purpose, double minTheta, double maxTheta, double initAngle) {
-	this->freezed = false;
+	this->m_frozen = false;
 	this->m_purpose = purpose;
 	this->m_seq_num_joint = -1;
 	this->m_seq_num_effector = -1;
@@ -42,6 +42,10 @@ void Node::setSeqNum(int seq_num) {
 			this->m_seq_num_joint = -1;
 			break;
 	}
+}
+
+void Node::setFrozen(bool s) {
+	this->m_frozen = s;
 }
 
 const VectorR3& Node::getS(void) {
@@ -120,12 +124,5 @@ bool Node::isJoint(void) {
 }
 
 bool Node::isFrozen(void) {
-	return this->freezed;
+	return this->m_frozen;
 }
-
-/*void Node::Freeze(void) {
-	this->freezed = true;
-}
-void Node::UnFreeze(void) {
-	this->freezed = false;
-}*/
