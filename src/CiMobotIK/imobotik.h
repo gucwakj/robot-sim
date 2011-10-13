@@ -64,6 +64,8 @@ class CiMobotIK {
 	private:
 		Jacobian *jacob;
 		Node **node;
+		Node **node_right;
+		Node **node_effector;
 		Tree tree;
 		VectorR3 *target;
 

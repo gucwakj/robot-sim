@@ -10,7 +10,9 @@ CiMobotIK::CiMobotIK(int num_bot, int num_targets) {
 	this->m_t_step = 0.004;
 	this->m_t = 0.0;
 	this->m_del_theta = new bool[NUM_DOF*num_bot + num_targets];
-	this->node = new Node * [NUM_DOF*num_bot + num_targets];
+	this->node = new Node * [NUM_DOF*num_bot];
+	this->node_right = new Node * [NUM_DOF*num_bot];
+	this->node_effector = new Node * [num_targets];
 	this->target = new VectorR3[num_targets];
 }
 
@@ -76,7 +78,23 @@ void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, dou
 	double R[9];
 	rotation_matrix_from_euler_angles(R, this->m_psi, this->m_theta, this->m_phi);
 
-	if ( face1 == 6 && face2 == 1 ) {
+	if ( face1 == 4 && face2 == 1 ) {
+		double le = BODY_WIDTH/2 + END_DEPTH;
+		double lb = BODY_WIDTH/2 + END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
+		double rb = BODY_WIDTH/2 + END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
+		double re = BODY_WIDTH/2 + END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH;
+		this->node_right[att_num*NUM_DOF + 2] = new Node(this->node[att_num*NUM_DOF + 2]->getSInit(), this->node[att_num*NUM_DOF + 2]->getWInit(), JOINT, this->node[att_num*NUM_DOF + 2]->getThetaMin(), this->node[att_num*NUM_DOF + 2]->getThetaMax(), this->node[att_num*NUM_DOF + 2]->getThetaInit());
+		this->node[bot_num*NUM_DOF + 0] = new Node(this->node[att_num*NUM_DOF + 2]->getSInit() + VectorR3(R[2]*le, R[5]*le, R[8]*le), VectorR3(-R[2], -R[5], -R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_le));
+		this->node[bot_num*NUM_DOF + 1] = new Node(this->node[att_num*NUM_DOF + 2]->getSInit() + VectorR3(R[2]*lb, R[5]*lb, R[8]*lb), VectorR3(-R[0], -R[3], -R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_lb));
+		this->node[bot_num*NUM_DOF + 2] = new Node(this->node[att_num*NUM_DOF + 2]->getSInit() + VectorR3(R[2]*rb, R[5]*rb, R[8]*rb), VectorR3(R[0], R[3], R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_rb));
+		this->node[bot_num*NUM_DOF + 3] = new Node(this->node[att_num*NUM_DOF + 2]->getSInit() + VectorR3(R[2]*re, R[5]*re, R[8]*re), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
+		this->tree.insertRightSibling(this->node[att_num*NUM_DOF + 2], this->node_right[att_num*NUM_DOF + 2]);
+		this->tree.insertLeftChild(this->node[att_num*NUM_DOF + 3], this->node[bot_num*NUM_DOF + 0]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 0], this->node[bot_num*NUM_DOF + 1]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 1], this->node[bot_num*NUM_DOF + 2]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 3]);
+	}
+	else if ( face1 == 6 && face2 == 1 ) {
 		double le = 2*END_DEPTH;
 		double lb = 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
 		double rb = 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
@@ -170,8 +188,8 @@ void CiMobotIK::addEffector(int eff_num, int bot_num, int face) {
 	else if ( face == 6 )
 		offset = 3;
 
-	this->node[this->m_num_bot*NUM_DOF + eff_num - 1] = new Node(this->node[bot_num*NUM_DOF + offset]->getSInit() + VectorR3(R[0]*eff, R[3]*eff, R[6]*eff), VectorR3(0.0, 0.0, 0.0), EFFECTOR);
-	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + offset], this->node[this->m_num_bot*NUM_DOF + eff_num - 1]);
+	this->node_effector[eff_num] = new Node(this->node[bot_num*NUM_DOF + offset]->getSInit() + VectorR3(R[0]*eff, R[3]*eff, R[6]*eff), VectorR3(0.0, 0.0, 0.0), EFFECTOR);
+	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + offset], this->node_effector[eff_num]);
 }
 
 void CiMobotIK::setCurrentMode(int mode) {
@@ -207,24 +225,24 @@ int CiMobotIK::getCurrentDLSMode(void) {
 }
 
 void CiMobotIK::getEffector(int num, double &x, double &y, double &z) {
-	const VectorR3 &n = this->node[num]->getS();
+	const VectorR3 &n = this->node_effector[num]->getS();
 	x = n.x;
 	y = n.y;
 	z = n.z;
 }
 
 double CiMobotIK::getEffectorX(int num) {
-	const VectorR3 &n = this->node[this->m_num_bot*NUM_DOF + num - 1]->getS();
+	const VectorR3 &n = this->node_effector[num]->getS();
 	return n.x;
 }
 
 double CiMobotIK::getEffectorY(int num) {
-	const VectorR3 &n = this->node[this->m_num_bot*NUM_DOF + num - 1]->getS();
+	const VectorR3 &n = this->node_effector[num]->getS();
 	return n.y;
 }
 
 double CiMobotIK::getEffectorZ(int num) {
-	const VectorR3 &n = this->node[this->m_num_bot*NUM_DOF + num - 1]->getS();
+	const VectorR3 &n = this->node_effector[num]->getS();
 	return n.z;
 }
 

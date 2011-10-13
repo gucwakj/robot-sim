@@ -25,6 +25,7 @@ class Node {
 		const VectorR3& getW(void);
 		const VectorR3& getWInit(void);
 		double getTheta(void);
+		double getThetaInit(void);
 		double getThetaMin(void);
 		double getThetaMax(void);
 		int getEffectorNum(void);

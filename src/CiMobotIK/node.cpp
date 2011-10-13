@@ -64,6 +64,10 @@ double Node::getTheta(void) {
 	return this->m_theta;
 }
 
+double Node::getThetaInit(void) {
+	return this->m_theta_init;
+}
+
 double Node::getThetaMin(void) {
 	return this->m_theta_min;
 }
