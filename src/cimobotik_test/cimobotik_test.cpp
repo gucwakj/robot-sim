@@ -2,13 +2,13 @@
 #include "imobotik.h"
 
 int main(int argc, char *argv[]) {
-	CiMobotIK *ik = new CiMobotIK(3, 1);
+	CiMobotIK *ik = new CiMobotIK(2, 1);
 
 	//ik->iMobotAnchor(0, 0, 0, 0, 0, 0, 0);
-	ik->iMobotAnchor(LE, 0, 0, 0, 0, /*9*/0, 0, 0, 0, 0, 0);
-	ik->iMobotAttach(1, 0, 6, 5, 0, 0, 10, 0);
+	ik->iMobotAnchor(LE, 0, 0, 0, 0, 90, 0, 0, 0, 0, 0);
+	ik->iMobotAttach(1, 0, 6, 1, 0, 0, 0, 0);
 	//ik->iMobotAttach(2, 1, 6, 6, 0, 0, 0, 0);
-	ik->addEffector(1, 1, 1);
+	ik->addEffector(1, 1, 6);
 
 	ik->setTarget(0, 3.0, 0.1, 0.4);
 

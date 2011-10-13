@@ -41,6 +41,7 @@ class Jacobian {
 		int getCurrentMode(void);				// Type of updating mode for Jacobian
 		int getCurrentType(void);				// Jacobian type: END or TARGET
 		int getCurrentDLSMode(void);			// CLAMPED or TRADITIONAL
+		double getDeltaTheta(int num);			// Current delta theta value of joint
 
 		void reset(void);
 	private:

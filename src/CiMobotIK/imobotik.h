@@ -67,20 +67,23 @@ class CiMobotIK {
 		Tree tree;
 		VectorR3 *target;
 
-		double m_t;
-		double m_t_step;
+		bool *m_del_theta;
 		int m_t_count;
 		int m_num_bot;
 		int m_num_targets;
+		double m_t;
+		double m_t_step;
 		double m_psi;
 		double m_theta;
 		double m_phi;
 
 		void update_targets(void);
 		void print_intermediate_data(void);
+		void set_flags(void);
 		void increment_step(void);
 		bool end_simulation(void);
 		void rotation_matrix_from_euler_angles(double *R, double psi, double theta, double phi);
+		bool is_true(bool *a, int length);
 		inline double D2R(double deg);
 		inline double R2D(double rad);
 };

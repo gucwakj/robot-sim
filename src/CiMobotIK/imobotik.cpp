@@ -9,6 +9,7 @@ CiMobotIK::CiMobotIK(int num_bot, int num_targets) {
 	this->m_num_targets = num_targets;
 	this->m_t_step = 0.004;
 	this->m_t = 0.0;
+	this->m_del_theta = new bool[NUM_DOF*num_bot + num_targets];
 	this->node = new Node * [NUM_DOF*num_bot + num_targets];
 	this->target = new VectorR3[num_targets];
 }
@@ -169,29 +170,6 @@ void CiMobotIK::addEffector(int eff_num, int bot_num, int face) {
 	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + offset], this->node[this->m_num_bot*NUM_DOF + eff_num - 1]);
 }
 
-void CiMobotIK::runSimulation(int argc, char **argv) {
-	bool loop = false;
-	this->jacob = new Jacobian(&(this->tree), this->target);
-	this->tree.init();
-	this->tree.compute();
-	this->print_intermediate_data();
-
-	while( loop ) {
-		this->jacob->computeJacobian();			// set up Jacobian and deltaS vectors
-		this->jacob->calcDeltaThetas();			// calculate delta Theta values
-		this->jacob->updateThetas();			// apply the change in the theta values
-		this->jacob->updatedSClampValue();		// update distance to target position
-		//this->jacob->updateErrorArray();		// update error of effector to target position
-
-		this->print_intermediate_data();
-
-		this->increment_step();					// increment time step
-		this->update_targets();					// update target to new values
-		loop = this->end_simulation();			// check to end simulation
-		this->m_t_count++;
-	}
-}
-
 void CiMobotIK::setCurrentMode(int mode) {
 	this->jacob->setCurrentMode(mode);
 }
@@ -264,21 +242,44 @@ double CiMobotIK::getTargetZ(int num) {
 	return this->target[num].z;
 }
 
+void CiMobotIK::runSimulation(int argc, char **argv) {
+	bool loop = true;
+	this->jacob = new Jacobian(&(this->tree), this->target);
+	this->tree.init();
+	this->tree.compute();
+
+	while( loop ) {
+		this->jacob->computeJacobian();			// set up Jacobian and deltaS vectors
+		this->jacob->calcDeltaThetas();			// calculate delta Theta values
+		this->jacob->updateThetas();			// apply the change in the theta values
+		this->jacob->updatedSClampValue();		// update distance to target position
+		//this->jacob->updateErrorArray();		// update error of effector to target position
+
+		this->print_intermediate_data();
+
+		this->update_targets();					// update target to new values
+		this->set_flags();						// set flags for completion
+		this->increment_step();					// increment time step
+		loop = this->end_simulation();			// check to end simulation
+	}
+}
+
 void CiMobotIK::print_intermediate_data(void) {
-	//cout << this->m_t << "\t";
-	for ( int i = 0; i < this->m_num_bot*NUM_DOF; i++ ) {
-	//for ( int i = 4; i < 8; i++ ) {
+	cout << this->m_t_count << "\t" << this->m_t << "\t";
+	for ( int i = 0; i < this->m_num_bot*NUM_DOF+this->m_num_targets; i++ ) {
 		if ( this->node[i] ) {
-			cout << "Node " << i << endl;
-			cout << "     S: " << this->node[i]->getS() << endl;
-			cout << "S Init: " << this->node[i]->getSInit() << endl;
-			cout << "     W: " << this->node[i]->getW() << endl;
-			cout << "W Init: " << this->node[i]->getWInit() << endl;
-			cout << " Theta: " << this->node[i]->getTheta() << endl;
+			//cout << "Node " << i << endl;
+			//cout << "     S: " << this->node[i]->getS() << endl;
+			//cout << "S Init: " << this->node[i]->getSInit() << endl;
+			//cout << "     W: " << this->node[i]->getW() << endl;
+			//cout << "W Init: " << this->node[i]->getWInit() << endl;
+			//cout << " Theta: " << this->node[i]->getTheta() << endl;
+			cout << this->m_del_theta[i] << " ";
+			//cout << this->node[i]->getTheta() << "\t";
 		}
 	}
 	cout << endl;
-	cout << endl;
+	//cout << endl;
 }
 
 void CiMobotIK::update_targets(void) {
@@ -287,13 +288,25 @@ void CiMobotIK::update_targets(void) {
 
 void CiMobotIK::increment_step(void) {
 	this->m_t += this->m_t_step;
+	this->m_t_count++;
 }
 
 bool CiMobotIK::end_simulation(void) {
-	if ( this->m_t_count == 10 ) {
-		return false;
-	}
+	if ( this->m_t_count == 200 ) return false;
+	if ( is_true(this->m_del_theta, NUM_DOF*this->m_num_bot) ) return false;
 	return true;
+}
+
+void CiMobotIK::set_flags(void) {
+	Node *n = this->tree.getRoot();
+	int i = 0;
+	while ( n ) {
+		this->m_del_theta[i] = 1;
+		if ( n->isJoint() && (fabs(this->jacob->getDeltaTheta(n->getJointNum())) > 0.00004) )
+			this->m_del_theta[i] = 0;
+		i++;
+		n = this->tree.getSuccessor(n);
+	}
 }
 
 void CiMobotIK::rotation_matrix_from_euler_angles(double *R, double psi, double theta, double phi) {
@@ -310,6 +323,14 @@ void CiMobotIK::rotation_matrix_from_euler_angles(double *R, double psi, double 
 	R[6] = -sphi*ctheta;
 	R[7] =  sphi*stheta*cpsi + cphi*spsi;
 	R[8] = -sphi*stheta*spsi + cphi*cpsi;
+}
+
+bool CiMobotIK::is_true(bool *a, int length) {
+	for ( int i = 0; i < length; i++ ) {
+		if ( a[i] == false )
+			return false;
+	}
+	return true;
 }
 
 inline double CiMobotIK::D2R(double deg) {

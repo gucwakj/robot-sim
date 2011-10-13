@@ -174,6 +174,7 @@ void Jacobian::setDampingDLS(double lambda) {	this->m_lambda = lambda;	}
 int Jacobian::getCurrentType(void) {	return this->m_j_type;	}
 int Jacobian::getCurrentMode(void) {	return this->m_j_mode;	}
 int Jacobian::getCurrentDLSMode(void) {	return this->m_dls_mode;}
+double Jacobian::getDeltaTheta(int num) {	return this->dTheta[num]; }
 
 void Jacobian::reset(void) {
 	this->m_lambda = this->m_lambda_default;
