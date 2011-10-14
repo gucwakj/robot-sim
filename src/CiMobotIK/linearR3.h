@@ -27,82 +27,74 @@ class Matrix3x4;
 // * * * * * * * * * * * * * * * * * * **
 
 class VectorR3 {
+	public:
+		double x, y, z;		// The x & y & z coordinates.
 
-public:
-	double x, y, z;		// The x & y & z coordinates.
+		static const VectorR3 Zero;
+		static const VectorR3 UnitX;
+		static const VectorR3 UnitY;
+		static const VectorR3 UnitZ;
+		static const VectorR3 NegUnitX;
+		static const VectorR3 NegUnitY;
+		static const VectorR3 NegUnitZ;
 
-	static const VectorR3 Zero;
-	static const VectorR3 UnitX;
-	static const VectorR3 UnitY;
-	static const VectorR3 UnitZ;
-	static const VectorR3 NegUnitX;
-	static const VectorR3 NegUnitY;
-	static const VectorR3 NegUnitZ;
+	public:
+		VectorR3( ) : x(0.0), y(0.0), z(0.0) {}
+		VectorR3( double xVal, double yVal, double zVal )
+			: x(xVal), y(yVal), z(zVal) {}
 
-public:
-	VectorR3( ) : x(0.0), y(0.0), z(0.0) {}
-	VectorR3( double xVal, double yVal, double zVal )
-		: x(xVal), y(yVal), z(zVal) {}
-	//VectorR3( const VectorHgR3& uH );
+		VectorR3& Set( double xx, double yy, double zz ){ x=xx; y=yy; z=zz; return *this; }
+		VectorR3& SetZero() { x=0.0; y=0.0; z=0.0;  return *this;}
+		VectorR3& Load( const double* v );
+		VectorR3& Load( const float* v );
+		void Dump( double* v ) const;
+		void Dump( float* v ) const;
 
-	//VectorR3& Set( const Quaternion& );	// Convert quat to rotation vector
-	VectorR3& Set( double xx, double yy, double zz )
-				{ x=xx; y=yy; z=zz; return *this; }
-	//VectorR3& SetFromHg( const VectorR4& );	// Convert homogeneous VectorR4 to VectorR3
-	VectorR3& SetZero() { x=0.0; y=0.0; z=0.0;  return *this;}
-	VectorR3& Load( const double* v );
-	VectorR3& Load( const float* v );
-	void Dump( double* v ) const;
-	void Dump( float* v ) const;
+		inline double operator[]( int i );
 
-	inline double operator[]( int i );
+		VectorR3& operator= ( const VectorR3& v )
+			{ x=v.x; y=v.y; z=v.z; return(*this);}
+		VectorR3& operator+= ( const VectorR3& v )
+			{ x+=v.x; y+=v.y; z+=v.z; return(*this); }
+		VectorR3& operator-= ( const VectorR3& v )
+			{ x-=v.x; y-=v.y; z-=v.z; return(*this); }
+		VectorR3& operator*= ( double m )
+			{ x*=m; y*=m; z*=m; return(*this); }
+		VectorR3& operator/= ( double m )
+				{ register double mInv = 1.0/m;
+				x*=mInv; y*=mInv; z*=mInv;
+				return(*this); }
+		VectorR3 operator- () const { return ( VectorR3(-x, -y, -z) ); }
+		VectorR3& operator*= (const VectorR3& v);	// Cross Product
+		VectorR3& ArrayProd(const VectorR3&);		// Component-wise product
 
-	VectorR3& operator= ( const VectorR3& v )
-		{ x=v.x; y=v.y; z=v.z; return(*this);}
-	VectorR3& operator+= ( const VectorR3& v )
-		{ x+=v.x; y+=v.y; z+=v.z; return(*this); }
-	VectorR3& operator-= ( const VectorR3& v )
-		{ x-=v.x; y-=v.y; z-=v.z; return(*this); }
-	VectorR3& operator*= ( double m )
-		{ x*=m; y*=m; z*=m; return(*this); }
-	VectorR3& operator/= ( double m )
-			{ register double mInv = 1.0/m;
-			  x*=mInv; y*=mInv; z*=mInv;
-			  return(*this); }
-	VectorR3 operator- () const { return ( VectorR3(-x, -y, -z) ); }
-	VectorR3& operator*= (const VectorR3& v);	// Cross Product
-	VectorR3& ArrayProd(const VectorR3&);		// Component-wise product
+		VectorR3& AddScaled( const VectorR3& u, double s );
 
-	VectorR3& AddScaled( const VectorR3& u, double s );
+		bool IsZero() const { return ( x==0.0 && y==0.0 && z==0.0 ); }
+		double Norm() const { return ( (double)sqrt( x*x + y*y + z*z ) ); }
+		double NormSq() const { return ( x*x + y*y + z*z ); }
+		double MaxAbs() const;
+		double Dist( const VectorR3& u ) const;	// Distance from u
+		double DistSq( const VectorR3& u ) const;	// Distance from u squared
+		VectorR3& Negate() { x = -x; y = -y; z = -z; return *this;}
+		VectorR3& Normalize () { *this /= Norm(); return *this;}	// No error checking
+		inline VectorR3& MakeUnit();		// Normalize() with error checking
+		inline VectorR3& ReNormalize();
+		bool IsUnit( ) const
+			{ register double norm = Norm();
+			return ( 1.000001>=norm && norm>=0.999999 ); }
+		bool IsUnit( double tolerance ) const
+			{ register double norm = Norm();
+			return ( 1.0+tolerance>=norm && norm>=1.0-tolerance ); }
+		bool NearZero(double tolerance) const { return( MaxAbs()<=tolerance );}
 
-	bool IsZero() const { return ( x==0.0 && y==0.0 && z==0.0 ); }
-	double Norm() const { return ( (double)sqrt( x*x + y*y + z*z ) ); }
-	double NormSq() const { return ( x*x + y*y + z*z ); }
-	double MaxAbs() const;
-	double Dist( const VectorR3& u ) const;	// Distance from u
-	double DistSq( const VectorR3& u ) const;	// Distance from u squared
-	VectorR3& Negate() { x = -x; y = -y; z = -z; return *this;}
-	VectorR3& Normalize () { *this /= Norm(); return *this;}	// No error checking
-	inline VectorR3& MakeUnit();		// Normalize() with error checking
-	inline VectorR3& ReNormalize();
-	bool IsUnit( ) const
-		{ register double norm = Norm();
-		  return ( 1.000001>=norm && norm>=0.999999 ); }
-	bool IsUnit( double tolerance ) const
-		{ register double norm = Norm();
-		  return ( 1.0+tolerance>=norm && norm>=1.0-tolerance ); }
-	bool NearZero(double tolerance) const { return( MaxAbs()<=tolerance );}
-							// tolerance should be non-negative
+		double YaxisDistSq() const { return (x*x+z*z); }
+		double YaxisDist() const { return sqrt(x*x+z*z); }
 
-	double YaxisDistSq() const { return (x*x+z*z); }
-	double YaxisDist() const { return sqrt(x*x+z*z); }
+		VectorR3& Rotate( double theta, const VectorR3& u); // rotate around u.
+		VectorR3& RotateUnitInDirection ( const VectorR3& dir);	// rotate in direction dir
 
-	VectorR3& Rotate( double theta, const VectorR3& u); // rotate around u.
-	VectorR3& RotateUnitInDirection ( const VectorR3& dir);	// rotate in direction dir
-	//VectorR3& Rotate( const Quaternion& );	// Rotate according to quaternion
-
-	friend ostream& operator<< ( ostream& os, const VectorR3& u );
-
+		friend ostream& operator<< ( ostream& os, const VectorR3& u );
 };
 
 inline VectorR3 operator+( const VectorR3& u, const VectorR3& v );
@@ -125,47 +117,16 @@ extern const VectorR3 UnitVecIR3;
 extern const VectorR3 UnitVecJR3;
 extern const VectorR3 UnitVecKR3;
 
-//inline VectorR3 ToVectorR3( const Quaternion& q )
-//								{return VectorR3().Set(q);}
-
-
-/*// ****************************************
-// VectorHgR3 class                       *
-// * * * * * * * * * * * * * * * * * * * **
-
-class VectorHgR3 {
-
-public:
-	double x, y, z, w;		// The x & y & z & w coordinates.
-
-public:
-	VectorHgR3( ) : x(0.0), y(0.0), z(0.0), w(1.0) {}
-	VectorHgR3( double xVal, double yVal, double zVal )
-		: x(xVal), y(yVal), z(zVal), w(1.0) {}
-	VectorHgR3( double xVal, double yVal, double zVal, double wVal )
-		: x(xVal), y(yVal), z(zVal), w(wVal) {}
-	VectorHgR3 ( const VectorR3& u ) : x(u.x), y(u.y), z(u.z), w(1.0) {}
-};*/
-
-//
-// Advanced vector and position functions (prototypes)
-//
-
 VectorR3 Interpolate( const VectorR3& start, const VectorR3& end, double a);
 
 // *****************************************
 // Matrix3x3 class                         *
 // * * * * * * * * * * * * * * * * * * * * *
-
 class Matrix3x3 {
 public:
-
 	double m11, m12, m13, m21, m22, m23, m31, m32, m33;
-
 	// Implements a 3x3 matrix: m_i_j - row-i and column-j entry
-
 	static const Matrix3x3 Identity;
-
 public:
 	inline Matrix3x3();
 	inline Matrix3x3(const VectorR3&, const VectorR3&, const VectorR3&); // Sets by columns!
@@ -228,113 +189,105 @@ ostream& operator<< ( ostream& os, const Matrix3x3& A );
 // *****************************************
 // Matrix3x4 class                         *
 // * * * * * * * * * * * * * * * * * * * * *
+class Matrix3x4 {
+	public:
+		double m11, m12, m13, m21, m22, m23, m31, m32, m33;
+		double m14;
+		double m24;
+		double m34;
 
-class Matrix3x4
-{
-public:
-	double m11, m12, m13, m21, m22, m23, m31, m32, m33;
-	double m14;
-	double m24;
-	double m34;
+		static const Matrix3x4 Identity;
+	public:
+		// Constructors set by columns!
+		Matrix3x4() {}
+		Matrix3x4(const VectorR3&, const VectorR3&, const VectorR3&, const VectorR3& );
+		Matrix3x4(double, double, double, double, double, double,
+						double, double, double, double, double, double );	// Sets by columns
+		Matrix3x4( const Matrix3x3&, const VectorR3& );
 
-	static const Matrix3x4 Identity;
+		void SetIdentity ();		// Set to the identity map
+		void Set ( const Matrix3x4& );	// Set to the matrix.
+		void Set3x3 ( const Matrix3x3& );	// Set linear part to the matrix.
+		void Set ( const Matrix3x3&, const VectorR3& );	// Set to the matrix plus 4th column
+		void Set( const VectorR3&, const VectorR3&, const VectorR3&, const VectorR3& );
+		void Set( double, double, double,
+				double, double, double,
+				double, double, double,
+				double, double, double );	  // Sets by columns
+		void Set3x3( double, double, double,
+					double, double, double,
+					double, double, double );	  // Sets by columns
+		void SetByRows( double, double, double, double, double, double,
+						double, double, double, double, double, double );
 
-public:
-	// Constructors set by columns!
-	Matrix3x4() {}
-	Matrix3x4(const VectorR3&, const VectorR3&, const VectorR3&, const VectorR3& );
-	Matrix3x4(double, double, double, double, double, double,
-					 double, double, double, double, double, double );	// Sets by columns
-	Matrix3x4( const Matrix3x3&, const VectorR3& );
+		void SetColumn1 ( double, double, double );
+		void SetColumn2 ( double, double, double );
+		void SetColumn3 ( double, double, double );
+		void SetColumn4 ( double, double, double );
+		void SetColumn1 ( const VectorR3& );
+		void SetColumn2 ( const VectorR3& );
+		void SetColumn3 ( const VectorR3& );
+		void SetColumn4 ( const VectorR3& );
+		VectorR3 Column1() const;
+		VectorR3 Column2() const;
+		VectorR3 Column3() const;
+		VectorR3 Column4() const;
+		void SetRow1 ( double x, double y, double z, double w );
+		void SetRow2 ( double x, double y, double z, double w );
+		void SetRow3 ( double x, double y, double z, double w );
+		void SetRow4 ( double x, double y, double z, double w );
 
-	void SetIdentity ();		// Set to the identity map
-	void Set ( const Matrix3x4& );	// Set to the matrix.
-	void Set3x3 ( const Matrix3x3& );	// Set linear part to the matrix.
-	void Set ( const Matrix3x3&, const VectorR3& );	// Set to the matrix plus 4th column
-	void Set( const VectorR3&, const VectorR3&, const VectorR3&, const VectorR3& );
-	void Set( double, double, double,
-		 	  double, double, double,
-			  double, double, double,
-			  double, double, double );	  // Sets by columns
-	void Set3x3( double, double, double,
-		 		 double, double, double,
-				 double, double, double );	  // Sets by columns
-	void SetByRows( double, double, double, double, double, double,
-					double, double, double, double, double, double );
+		Matrix3x4& ApplyTranslationLeft( const VectorR3& u );
+		Matrix3x4& ApplyTranslationRight( const VectorR3& u );
+		Matrix3x4& ApplyYRotationLeft( double theta );
+		Matrix3x4& ApplyYRotationLeft( double costheta, double sintheta );
 
-	void SetColumn1 ( double, double, double );
-	void SetColumn2 ( double, double, double );
-	void SetColumn3 ( double, double, double );
-	void SetColumn4 ( double, double, double );
-	void SetColumn1 ( const VectorR3& );
-	void SetColumn2 ( const VectorR3& );
-	void SetColumn3 ( const VectorR3& );
-	void SetColumn4 ( const VectorR3& );
-	VectorR3 Column1() const;
-	VectorR3 Column2() const;
-	VectorR3 Column3() const;
-	VectorR3 Column4() const;
-	void SetRow1 ( double x, double y, double z, double w );
-	void SetRow2 ( double x, double y, double z, double w );
-	void SetRow3 ( double x, double y, double z, double w );
-	void SetRow4 ( double x, double y, double z, double w );
+		Matrix3x4& ReNormalize();
+		VectorR3 Solve(const VectorR3&) const;	// Returns solution
 
-	Matrix3x4& ApplyTranslationLeft( const VectorR3& u );
-	Matrix3x4& ApplyTranslationRight( const VectorR3& u );
-	Matrix3x4& ApplyYRotationLeft( double theta );
-	Matrix3x4& ApplyYRotationLeft( double costheta, double sintheta );
+		inline void Transform( VectorR3* ) const;
+		inline void Transform3x3( VectorR3* ) const;
+		inline void Transform( const VectorR3& src, VectorR3*  dest ) const;
+		inline void Transform3x3( const VectorR3& src, VectorR3*  dest ) const;
+		inline void Transform3x3Transpose( VectorR3*  dest ) const;
+		inline void Transform3x3Transpose( const VectorR3& src, VectorR3*  dest ) const;
 
-	Matrix3x4& ReNormalize();
-	VectorR3 Solve(const VectorR3&) const;	// Returns solution
-
-	inline void Transform( VectorR3* ) const;
-	inline void Transform3x3( VectorR3* ) const;
-	inline void Transform( const VectorR3& src, VectorR3*  dest ) const;
-	inline void Transform3x3( const VectorR3& src, VectorR3*  dest ) const;
-	inline void Transform3x3Transpose( VectorR3*  dest ) const;
-	inline void Transform3x3Transpose( const VectorR3& src, VectorR3*  dest ) const;
-
-protected:
-	void SetZero ();			// Set to the zero map
-	void OperatorTimesEquals( const Matrix3x3& ); // Internal use only
-	void OperatorTimesEquals( const Matrix3x4& ); // Internal use only
+	protected:
+		void SetZero ();			// Set to the zero map
+		void OperatorTimesEquals( const Matrix3x3& ); // Internal use only
+		void OperatorTimesEquals( const Matrix3x4& ); // Internal use only
 };
 
 inline VectorR3 operator* ( const Matrix3x4&, const VectorR3& );
-
 ostream& operator<< ( ostream& os, const Matrix3x4& A );
 
 // *****************************************
 // LinearMapR3 class                       *
 // * * * * * * * * * * * * * * * * * * * * *
-
 class LinearMapR3 : public Matrix3x3 {
+	public:
+		LinearMapR3();
+		LinearMapR3( const VectorR3&, const VectorR3&, const VectorR3& );
+		LinearMapR3( double, double, double, double, double, double,
+						double, double, double );		// Sets by columns
+		LinearMapR3 ( const Matrix3x3& );
 
-public:
+		void SetZero ();			// Set to the zero map
+		inline void Negate();
 
-	LinearMapR3();
-	LinearMapR3( const VectorR3&, const VectorR3&, const VectorR3& );
-	LinearMapR3( double, double, double, double, double, double,
-					 double, double, double );		// Sets by columns
-	LinearMapR3 ( const Matrix3x3& );
+		inline LinearMapR3& operator+= (const Matrix3x3& );
+		inline LinearMapR3& operator-= (const Matrix3x3& );
+		inline LinearMapR3& operator*= (double);
+		inline LinearMapR3& operator/= (double);
+		LinearMapR3& operator*= (const Matrix3x3& );	// Matrix product
 
-	void SetZero ();			// Set to the zero map
-	inline void Negate();
-
-	inline LinearMapR3& operator+= (const Matrix3x3& );
-	inline LinearMapR3& operator-= (const Matrix3x3& );
-	inline LinearMapR3& operator*= (double);
-	inline LinearMapR3& operator/= (double);
-	LinearMapR3& operator*= (const Matrix3x3& );	// Matrix product
-
-	inline LinearMapR3 Transpose() const;	// Returns the transpose
-	double Determinant () const;		// Returns the determinant
-	LinearMapR3 Inverse() const;			// Returns inverse
-	LinearMapR3& Invert();				// Converts into inverse.
-	VectorR3 Solve(const VectorR3&) const;	// Returns solution
-	LinearMapR3 PseudoInverse() const;	// Returns pseudo-inverse TO DO
-	VectorR3 PseudoSolve(const VectorR3&);	// Finds least squares solution TO DO
-
+		inline LinearMapR3 Transpose() const;	// Returns the transpose
+		double Determinant () const;		// Returns the determinant
+		LinearMapR3 Inverse() const;			// Returns inverse
+		LinearMapR3& Invert();				// Converts into inverse.
+		VectorR3 Solve(const VectorR3&) const;	// Returns solution
+		LinearMapR3 PseudoInverse() const;	// Returns pseudo-inverse TO DO
+		VectorR3 PseudoSolve(const VectorR3&);	// Finds least squares solution TO DO
 };
 
 inline LinearMapR3 operator+ (const LinearMapR3&, const Matrix3x3&);
@@ -346,46 +299,42 @@ inline LinearMapR3 operator* ( const LinearMapR3&, double);
 inline LinearMapR3 operator* ( double, const LinearMapR3& );
 inline LinearMapR3 operator/ ( const LinearMapR3&, double );
 LinearMapR3 operator* ( const LinearMapR3&, const LinearMapR3& );
-								// Matrix product (composition)
-
 
 // *****************************************************
 // * AffineMapR3 class                 				   *
 // * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
 class AffineMapR3 : public Matrix3x4 {
+	public:
+		AffineMapR3();
+		AffineMapR3( double, double, double, double, double, double,
+				double, double, double, double, double, double );  // Sets by columns
+		AffineMapR3 ( const VectorR3&, const VectorR3&, const VectorR3&, const VectorR3&);
+		AffineMapR3 ( const LinearMapR3&, const VectorR3& );
 
-public:
-	AffineMapR3();
-	AffineMapR3( double, double, double, double, double, double,
-			   double, double, double, double, double, double );  // Sets by columns
-	AffineMapR3 ( const VectorR3&, const VectorR3&, const VectorR3&, const VectorR3&);
-	AffineMapR3 ( const LinearMapR3&, const VectorR3& );
+		void SetIdentity ();		// Set to the identity map
+		void SetZero ();			// Set to the zero map
 
-	void SetIdentity ();		// Set to the identity map
-	void SetZero ();			// Set to the zero map
+		AffineMapR3& operator+= (const Matrix3x4& );
+		AffineMapR3& operator-= (const Matrix3x4& );
+		AffineMapR3& operator*= (double);
+		AffineMapR3& operator/= (double);
+		AffineMapR3& operator*= (const Matrix3x3& );	// Composition
+		AffineMapR3& operator*= (const Matrix3x4& );	// Composition
 
-	AffineMapR3& operator+= (const Matrix3x4& );
-	AffineMapR3& operator-= (const Matrix3x4& );
-	AffineMapR3& operator*= (double);
-	AffineMapR3& operator/= (double);
-	AffineMapR3& operator*= (const Matrix3x3& );	// Composition
-	AffineMapR3& operator*= (const Matrix3x4& );	// Composition
+		AffineMapR3& ApplyTranslationLeft( const VectorR3& u )
+										{ Matrix3x4::ApplyTranslationLeft( u ); return *this; }
+		AffineMapR3& ApplyTranslationRight( const VectorR3& u )
+										{ Matrix3x4::ApplyTranslationRight( u ); return *this; }
+		AffineMapR3& ApplyYRotationLeft( double theta )
+										{ Matrix3x4::ApplyYRotationLeft( theta ); return *this; }
+		AffineMapR3& ApplyYRotationLeft( double costheta, double sintheta )
+										{ Matrix3x4::ApplyYRotationLeft( costheta, sintheta ); return *this; }
 
-	AffineMapR3& ApplyTranslationLeft( const VectorR3& u )
-									{ Matrix3x4::ApplyTranslationLeft( u ); return *this; }
-	AffineMapR3& ApplyTranslationRight( const VectorR3& u )
-									{ Matrix3x4::ApplyTranslationRight( u ); return *this; }
-	AffineMapR3& ApplyYRotationLeft( double theta )
-									{ Matrix3x4::ApplyYRotationLeft( theta ); return *this; }
-	AffineMapR3& ApplyYRotationLeft( double costheta, double sintheta )
-									{ Matrix3x4::ApplyYRotationLeft( costheta, sintheta ); return *this; }
-
-	AffineMapR3 Inverse() const;					// Returns inverse
-	AffineMapR3& Invert();							// Converts into inverse.
-	VectorR3 Solve(const VectorR3&) const;	// Returns solution
-	AffineMapR3 PseudoInverse() const;		// Returns pseudo-inverse // TO DO
-	VectorR3 PseudoSolve(const VectorR3&);	// Least squares solution // TO DO
+		AffineMapR3 Inverse() const;					// Returns inverse
+		AffineMapR3& Invert();							// Converts into inverse.
+		VectorR3 Solve(const VectorR3&) const;	// Returns solution
+		AffineMapR3 PseudoInverse() const;		// Returns pseudo-inverse // TO DO
+		VectorR3 PseudoSolve(const VectorR3&);	// Least squares solution // TO DO
 };
 
 inline AffineMapR3 operator+ (const AffineMapR3&, const Matrix3x4&);
@@ -409,7 +358,6 @@ AffineMapR3 operator* ( const AffineMapR3&, const LinearMapR3& );
 // *******************************************
 // RotationMapR3 class                       *
 // * * * * * * * * * * * * * * * * * * * * * *
-
 class RotationMapR3 : public Matrix3x3 {
 
 public:
@@ -1990,7 +1938,4 @@ inline double SolidAngle( const VectorR3& v, const VectorR3& w)
 	return atan2 ( (v*w).Norm(), v^w );
 }
 
-
-#endif
-
-// ******************* End of header material ********************
+#endif	/* LINEAR_R3_H_ */
