@@ -17,7 +17,6 @@ double VectorRn::MaxAbs(void) const {
 	return result;
 }
 
-
 VectorRn::VectorRn() {
 	length = 0;
 	AllocLength = 0;

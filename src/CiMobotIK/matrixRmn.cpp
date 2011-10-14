@@ -2,6 +2,219 @@
 
 MatrixRmn MatrixRmn::WorkMatrix;		// Temporary work matrix
 
+MatrixRmn::MatrixRmn(void) {
+	NumRows = 0;
+	NumCols = 0;
+	x = 0;
+	AllocSize = 0;
+}
+
+MatrixRmn::MatrixRmn(long numRows, long numCols) {
+	NumRows = 0;
+	NumCols = 0;
+	x = 0;
+	AllocSize = 0;
+	SetSize( numRows, numCols );
+}
+
+MatrixRmn::~MatrixRmn(void) {
+	delete x;
+}
+
+
+// Resize.
+// If the array space is decreased, the information about the allocated length is lost.
+void MatrixRmn::SetSize( long numRows, long numCols )
+{
+	assert ( numRows>0 && numCols>0 );
+	long newLength = numRows*numCols;
+	if ( newLength>AllocSize ) {
+		delete x;
+		//AllocSize = Max(newLength, AllocSize<<1);
+		AllocSize = ((newLength > (AllocSize<<1)) ? newLength : (AllocSize<<1));
+		x = new double[AllocSize];
+	}
+	NumRows = numRows;
+	NumCols = numCols;
+}
+
+// Zero out the entire vector
+void MatrixRmn::SetZero()
+{
+	double* target = x;
+	for ( long i=NumRows*NumCols; i>0; i-- ) {
+		*(target++) = 0.0;
+	}
+}
+
+// Return entry in row i and column j.
+double MatrixRmn::Get( long i, long j ) const {
+	assert ( i<NumRows && j<NumCols );
+	return *(x+j*NumRows+i);
+}
+
+// Return a VectorR3 out of a column.  Starts at row 3*i, in column j.
+void MatrixRmn::GetTriple( long i, long j, VectorR3 *retValue ) const
+{
+	long ii = 3*i;
+	assert ( 0<=i && ii+2<NumRows && 0<=j && j<NumCols );
+	retValue->Load( x+j*NumRows + ii );
+}
+
+// Get a pointer to the (0,0) entry.
+// The entries are in column order.
+// This version gives read-only pointer
+const double* MatrixRmn::GetPtr( ) const
+{
+	return x;
+}
+
+// Get a pointer to the (0,0) entry.
+// The entries are in column order.
+double* MatrixRmn::GetPtr( )
+{
+	return x;
+}
+
+// Get a pointer to the (i,j) entry.
+// The entries are in column order.
+// This version gives read-only pointer
+const double* MatrixRmn::GetPtr( long i, long j ) const
+{
+	assert ( 0<=i && i<NumRows && 0<=j &&j<NumCols );
+	return (x+j*NumRows+i);
+}
+
+// Get a pointer to the (i,j) entry.
+// The entries are in column order.
+// This version gives pointer to writable data
+double* MatrixRmn::GetPtr( long i, long j )
+{
+	assert ( i<NumRows && j<NumCols );
+	return (x+j*NumRows+i);
+}
+
+// Get a pointer to the j-th column.
+// The entries are in column order.
+// This version gives read-only pointer
+const double* MatrixRmn::GetColumnPtr( long j ) const
+{
+	assert ( 0<=j && j<NumCols );
+	return (x+j*NumRows);
+}
+
+// Get a pointer to the j-th column.
+// This version gives pointer to writable data
+double* MatrixRmn::GetColumnPtr( long j )
+{
+	assert ( 0<=j && j<NumCols );
+	return (x+j*NumRows);
+}
+
+// Get a pointer to the i-th row
+// The entries are in column order.
+// This version gives read-only pointer
+const double* MatrixRmn::GetRowPtr( long i ) const
+{
+	assert ( 0<=i && i<NumRows );
+	return (x+i);
+}
+
+// Get a pointer to the i-th row
+// This version gives pointer to writable data
+double* MatrixRmn::GetRowPtr( long i )
+{
+	assert ( 0<=i && i<NumRows );
+	return (x+i);
+}
+
+// Set the (i,j) entry of the matrix
+void MatrixRmn::Set( long i, long j, double val )
+{
+	assert( i<NumRows && j<NumCols );
+	*(x+j*NumRows+i) = val;
+}
+
+// Set the i-th triple in the j-th column to u's three values
+void MatrixRmn::SetTriple( long i, long j, const VectorR3& u )
+{
+	long ii = 3*i;
+	assert ( 0<=i && ii+2<NumRows && 0<=j && j<NumCols );
+	u.Dump( x+j*NumRows + ii );
+}
+
+// Set to be equal to the identity matrix
+void MatrixRmn::SetIdentity()
+{
+	assert ( NumRows==NumCols );
+	SetZero();
+	SetDiagonalEntries(1.0);
+}
+
+MatrixRmn& MatrixRmn::operator*=( double mult )
+{
+	double* aPtr = x;
+	for ( long i=NumRows*NumCols; i>0; i-- ) {
+		(*(aPtr++)) *= mult;
+	}
+	return (*this);
+}
+
+MatrixRmn& MatrixRmn::AddScaled( const MatrixRmn& B, double factor )
+{
+	assert (NumRows==B.NumRows && NumCols==B.NumCols);
+	double* aPtr = x;
+	double* bPtr = B.x;
+	for ( long i=NumRows*NumCols; i>0; i-- ) {
+		(*(aPtr++)) += (*(bPtr++))*factor;
+	}
+	return (*this);
+}
+
+MatrixRmn& MatrixRmn::operator+=( const MatrixRmn& B )
+{
+	assert (NumRows==B.NumRows && NumCols==B.NumCols);
+	double* aPtr = x;
+	double* bPtr = B.x;
+	for ( long i=NumRows*NumCols; i>0; i-- ) {
+		(*(aPtr++)) += *(bPtr++);
+	}
+	return (*this);
+}
+
+MatrixRmn& MatrixRmn::operator-=( const MatrixRmn& B )
+{
+	assert (NumRows==B.NumRows && NumCols==B.NumCols);
+	double* aPtr = x;
+	double* bPtr = B.x;
+	for ( long i=NumRows*NumCols; i>0; i-- ) {
+		(*(aPtr++)) -= *(bPtr++);
+	}
+	return (*this);
+}
+
+double MatrixRmn::FrobeniusNormSq() const
+{
+	double* aPtr = x;
+	double result = 0.0;
+	double temp = 0.0;
+	for ( long i=NumRows*NumCols; i>0; i-- ) {
+		//result += Square2( *(aPtr++) );
+		temp = *(aPtr++);
+		result += temp*temp;
+	}
+	return result;
+}
+
+
+
+
+
+
+
+
+
+
 // Fill the diagonal entries with the value d.  The rest of the matrix is unchanged.
 void MatrixRmn::SetDiagonalEntries( double d )
 {
@@ -837,12 +1050,9 @@ void MatrixRmn::ClearColumnWithDiagonalZero( long endIdx, MatrixRmn& V, double *
 	}
 }
 
-
-
 // Matrix A is  ( ( a c ) ( b d ) ), i.e., given in column order.
 // Mult's G[c,s]  times  A, replaces A.
-void MatrixRmn::ApplyGivensCBTD( double cosine, double sine, double *a, double *b, double *c, double *d )
-{
+void MatrixRmn::ApplyGivensCBTD( double cosine, double sine, double *a, double *b, double *c, double *d ) {
 	double temp = *a;
 	*a = cosine*(*a) - sine*(*b);
 	*b = sine*temp + cosine*(*b);
@@ -854,9 +1064,7 @@ void MatrixRmn::ApplyGivensCBTD( double cosine, double sine, double *a, double *
 // Now matrix A given in row order, A = ( ( a b c ) ( d e f ) ).
 // Return G[c,s] * A, replace A.  d becomes zero, no need to return.
 //  Also, it is certain the old *c value is taken to be zero!
-void MatrixRmn::ApplyGivensCBTD( double cosine, double sine, double *a, double *b, double *c,
-															 double  d, double *e, double *f )
-{
+void MatrixRmn::ApplyGivensCBTD( double cosine, double sine, double *a, double *b, double *c, double  d, double *e, double *f ) {
 	*a = cosine*(*a) - sine*d;
 	double temp = *b;
 	*b = cosine*(*b) - sine*(*e);
@@ -866,8 +1074,7 @@ void MatrixRmn::ApplyGivensCBTD( double cosine, double sine, double *a, double *
 }
 
 // Helper routine for SVD conversion from bidiagonal to diagonal
-bool MatrixRmn::UpdateBidiagIndices( long *firstBidiagIdx, long *lastBidiagIdx, VectorRn& w, VectorRn& superDiag, double eps )
-{
+bool MatrixRmn::UpdateBidiagIndices( long *firstBidiagIdx, long *lastBidiagIdx, VectorRn& w, VectorRn& superDiag, double eps ) {
 	long lastIdx = *lastBidiagIdx;
 	double* sdPtr = superDiag.GetPtr( lastIdx-1 );		// Entry above the last diagonal entry
 	//while ( NearZero(*sdPtr, eps) ) {
@@ -899,11 +1106,8 @@ bool MatrixRmn::UpdateBidiagIndices( long *firstBidiagIdx, long *lastBidiagIdx, 
 	return true;
 }
 
-
 // ******************************************DEBUG STUFFF
-
-bool MatrixRmn::DebugCheckSVD( const MatrixRmn& U, const VectorRn& w, const MatrixRmn& V ) const
-{
+bool MatrixRmn::DebugCheckSVD( const MatrixRmn& U, const VectorRn& w, const MatrixRmn& V ) const {
 	// Special SVD test code
 
 	MatrixRmn IV( V.GetNumRows(), V.GetNumColumns() );
@@ -935,8 +1139,7 @@ bool MatrixRmn::DebugCheckSVD( const MatrixRmn& U, const VectorRn& w, const Matr
 	return ret;
 }
 
-bool MatrixRmn::DebugCalcBidiagCheck( const MatrixRmn& U, const VectorRn& w, const VectorRn& superDiag, const MatrixRmn& V ) const
-{
+bool MatrixRmn::DebugCalcBidiagCheck( const MatrixRmn& U, const VectorRn& w, const VectorRn& superDiag, const MatrixRmn& V ) const {
 	// Special SVD test code
 
 	MatrixRmn IV( V.GetNumRows(), V.GetNumColumns() );

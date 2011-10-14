@@ -116,14 +116,11 @@ void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, dou
 		this->node[bot_num*NUM_DOF + 2] = new Node(this->node[att_num*NUM_DOF + 2]->getSInit() + VectorR3(R[0]*rb[0] + R[2]*rb[2], R[3]*rb[0] + R[5]*rb[2], R[6]*rb[0] + R[8]*rb[2]), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180.), D2R(180.), D2R(r_rb));
 		this->node[bot_num*NUM_DOF + 3] = new Node(this->node[att_num*NUM_DOF + 2]->getSInit() + VectorR3(R[0]*re[0] + R[2]*re[2], R[3]*re[0] + R[5]*re[2], R[6]*re[0] + R[8]*re[2]), VectorR3(R[0], R[3], R[6]), JOINT, D2R(-180.), D2R(180.), D2R(r_re));
 		this->node_right[bot_num*NUM_DOF + 1] = new Node(this->node[bot_num*NUM_DOF + 1]->getSInit(), this->node[bot_num*NUM_DOF + 1]->getWInit(), JOINT, this->node[bot_num*NUM_DOF + 1]->getThetaMin(), this->node[bot_num*NUM_DOF + 1]->getThetaMax(), this->node[bot_num*NUM_DOF + 1]->getThetaInit());
-		this->node_right[bot_num*NUM_DOF + 2] = new Node(this->node[bot_num*NUM_DOF + 1]->getSInit(), this->node[bot_num*NUM_DOF + 1]->getWInit(), JOINT, this->node[bot_num*NUM_DOF + 1]->getThetaMin(), this->node[bot_num*NUM_DOF + 1]->getThetaMax(), this->node[bot_num*NUM_DOF + 1]->getThetaInit());
 
 		this->tree.insertRightSibling(this->node[att_num*NUM_DOF + 2], this->node_right[att_num*NUM_DOF + 2]);
 		this->tree.insertLeftChild(this->node_right[att_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 1]);
 		this->node[bot_num*NUM_DOF + 1]->setFrozen(1);
-		this->tree.insertRightSibling(this->node[bot_num*NUM_DOF + 1], this->node_right[bot_num*NUM_DOF + 2]);
-		this->tree.insertLeftChild(this->node_right[bot_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 2]);
-		//this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 1], this->node[bot_num*NUM_DOF + 2]);
+		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 1], this->node[bot_num*NUM_DOF + 2]);
 		this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + 2], this->node[bot_num*NUM_DOF + 3]);
 
 		this->tree.insertRightSibling(this->node[bot_num*NUM_DOF + 1], this->node_right[bot_num*NUM_DOF + 1]);
