@@ -37,7 +37,6 @@ class CiMobotIK {
 		CiMobotIK(int num_bot, int num_targets);
 		~CiMobotIK(void);
 
-		void iMobotAnchor(double x, double y, double z, double r_le, double r_lb, double r_rb, double r_re);
 		void iMobotAnchor(int end, double x, double y, double z, double psi, double theta, double phi, double r_le, double r_lb, double r_rb, double r_re);
 		void iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re);
 		void addEffector(int eff_num, int bot_num, int face);
