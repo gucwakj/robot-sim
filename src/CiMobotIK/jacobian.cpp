@@ -72,7 +72,8 @@ void Jacobian::computeJacobian(void) {
 				assert( 0 <=i && i < this->m_num_effect && 0 <= j && j < this->m_num_joint );
 
 				if ( m->isFrozen() ) {
-					this->J.SetTriple(i, j, VectorR3::Zero);
+					//this->J.SetTriple(i, j, VectorR3::Zero);
+					this->J.SetTriple(i, j, VectorR3(0, 0, 0));
 				}
 				else {
 					temp = m->getS();				// joint pos
