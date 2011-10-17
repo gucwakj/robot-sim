@@ -3,7 +3,7 @@
 
 #include "config.h"
 #include "jacobian.h"
-#include "linearR3.h"
+#include "vectorR3.h"
 #include "node.h"
 #include "tree.h"
 

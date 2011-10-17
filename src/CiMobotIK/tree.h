@@ -2,7 +2,7 @@
 #define TREE_H_
 
 #include "config.h"
-#include "linearR3.h"
+#include "vectorR3.h"
 #include "node.h"
 
 class Tree {

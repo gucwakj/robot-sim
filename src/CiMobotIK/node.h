@@ -2,7 +2,7 @@
 #define NODE_H_
 
 #include "config.h"
-#include "linearR3.h"
+#include "vectorR3.h"
 
 enum purpose_e {
 	JOINT,
