@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <cassert>
-#include "linearR3.h"
+#include "vectorR3.h"
 
 class VectorRn {
 	friend class MatrixRmn;

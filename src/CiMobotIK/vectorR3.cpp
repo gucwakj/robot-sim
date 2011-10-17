@@ -1,4 +1,4 @@
-#include "linearR3.h"
+#include "vectorR3.h"
 
 VectorR3::VectorR3(void) {
 	this->x = 0;
@@ -83,8 +83,7 @@ VectorR3& VectorR3::SetZero(void) {
 	return *this;
 }
 
-// Convert to unit vector (or leave zero)
-VectorR3& VectorR3::MakeUnit ()	{
+VectorR3& VectorR3::MakeUnit(void)	{
 	double nSq = NormSq();
 	if (nSq != 0.0) {
 		*this /= sqrt(nSq);
@@ -92,8 +91,7 @@ VectorR3& VectorR3::MakeUnit ()	{
 	return *this;
 }
 
-// Component-wise Product
-VectorR3& VectorR3::ArrayProd (const VectorR3& v) {
+VectorR3& VectorR3::ArrayProd(const VectorR3& v) {
 	x *= v.x;
 	y *= v.y;
 	z *= v.z;
@@ -119,18 +117,18 @@ double VectorR3::NormSq(void) {
 	return ( x*x + y*y + z*z );
 }
 
-VectorR3& VectorR3::ReNormalize() {
+VectorR3& VectorR3::ReNormalize(void) {
 	double nSq = NormSq();
 	register double mFact = 1.0-0.5*(nSq-1.0);	// Multiplicative factor
 	*this *= mFact;
 	return *this;
 }
 
-double VectorR3::Dist( const VectorR3& u ) {
+double VectorR3::Dist(const VectorR3& u) {
 	return sqrt( DistSq(u) );
 }
 
-double VectorR3::DistSq( const VectorR3& u ) {
+double VectorR3::DistSq(const VectorR3& u) {
 	return ( (x-u.x)*(x-u.x) + (y-u.y)*(y-u.y) + (z-u.z)*(z-u.z) );
 }
 
@@ -162,7 +160,7 @@ bool VectorR3::NearZero(double tolerance) {
 
 
 
-/*double VectorR3::operator[] (int i) {
+double VectorR3::operator[] (int i) {
 	switch (i) {
 		case 0:
 			return x;
@@ -175,45 +173,87 @@ bool VectorR3::NearZero(double tolerance) {
 			return 0.0;
 	}
 }
+
+VectorR3 VectorR3::operator- (void) {
+	return (VectorR3(-this->x, -this->y, -this->z) );
+}
+
 VectorR3& VectorR3::operator= (const VectorR3& v) {
 	this->x = v.x;
 	this->y = v.y;
 	this->z = v.z;
-	return(*this);
+	return (*this);
 }
-VectorR3& VectorR3::operator+= (const VectorR3& v) {
-	x += v.x;
-	y += v.y;
-	z += v.z;
-	return(*this);
-}
-VectorR3& VectorR3::operator-= ( const VectorR3& v ) {
-	x-=v.x;
-	y-=v.y;
-	z-=v.z;
-	return(*this);
-}
-VectorR3& VectorR3::operator*= (double m) {
-	x*=m;
-	y*=m;
-	z*=m;
-	return(*this);
-}
-VectorR3& VectorR3::operator/= (double m) {
-	register double mInv = 1.0/m;
-	x*=mInv;
-	y*=mInv;
-	z*=mInv;
-	return(*this);
-}
-VectorR3 VectorR3::operator- () const {
-	return ( VectorR3(-x, -y, -z) );
-}
-*/
 
-// ***************************************************************
-//  Stream Output Routines										 *
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+VectorR3& VectorR3::operator+= (const VectorR3& v) {
+	this->x += v.x;
+	this->y += v.y;
+	this->z += v.z;
+	return (*this);
+}
+
+VectorR3& VectorR3::operator-= (const VectorR3& v) {
+	this->x -= v.x;
+	this->y -= v.y;
+	this->z -= v.z;
+	return (*this);
+}
+
+VectorR3& VectorR3::operator*= (double m) {
+	this->x *= m;
+	this->y *= m;
+	this->z *= m;
+	return (*this);
+}
+
+VectorR3& VectorR3::operator/= (double m) {
+	double mInv = 1.0/m;
+	this->x *= mInv;
+	this->y *= mInv;
+	this->z *= mInv;
+	return (*this);
+}
+
+VectorR3& VectorR3::operator*= (const VectorR3& v) {
+	double	tx = this->x,
+			ty = this->y;
+	this->x =  y*v.z -  z*v.y;
+	this->y =  z*v.x - tx*v.z;
+	this->z = tx*v.y - ty*v.x;
+	return (*this);
+}
+
+int operator== (const VectorR3& u, const VectorR3& v) {
+	return ( u.x==v.x && u.y==v.y && u.z==v.z );
+}
+
+VectorR3 operator* (double m, const VectorR3& u) {
+	return VectorR3( u.x*m, u.y*m, u.z*m);
+}
+
+VectorR3 operator* (const VectorR3& u, double m) {
+	return VectorR3( u.x*m, u.y*m, u.z*m);
+}
+
+VectorR3 operator/ (const VectorR3& u, double m) {
+	double mInv = 1.0/m;
+	return VectorR3( u.x*mInv, u.y*mInv, u.z*mInv);
+}
+
+VectorR3 operator+ (const VectorR3& u, const VectorR3& v) {
+	return VectorR3(u.x+v.x, u.y+v.y, u.z+v.z);
+}
+
+VectorR3 operator- (const VectorR3& u, const VectorR3& v) {
+	return VectorR3(u.x-v.x, u.y-v.y, u.z-v.z);
+}
+
+VectorR3 operator* (const VectorR3& u, const VectorR3& v) {
+	return (VectorR3(	u.y*v.z - u.z*v.y,
+						u.z*v.x - u.x*v.z,
+						u.x*v.y - u.y*v.x) );
+}
+
 ostream& operator<< ( ostream& os, const VectorR3& u ) {
 	return (os << "<" << u.x << "," << u.y << "," << u.z << ">");
 }
