@@ -53,6 +53,8 @@ class Node {
 		VectorR3 m_s_init;		// global position when joint is zero
 		VectorR3 m_w;			// global rotation axis
 		VectorR3 m_w_init;		// global rotation axis when joint is zero
+		VectorR3 m_o;			// global rotation angles
+		VectorR3 m_o_init;		// global rotation angles when joint is zero
 		Node *left;				// left child
 		Node *right;			// right sibling
 		Node *realparent;		// real parent

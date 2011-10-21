@@ -138,9 +138,20 @@ void MatrixRmn::Set( long i, long j, double val )
 // Set the i-th triple in the j-th column to u's three values
 void MatrixRmn::SetTriple( long i, long j, const VectorR3& u )
 {
-	long ii = 3*i;
+	//long ii = 3*i;
+	long ii = 6*i;		// for 6dof
 	assert ( 0<=i && ii+2<NumRows && 0<=j && j<NumCols );
 	u.Dump( x+j*NumRows + ii );
+}
+
+// Set the i-th triple in the j-th column to u's three values
+void MatrixRmn::SetHextuple( long i, long j, const VectorR3& u, const VectorR3& v )
+{
+	//long ii = 3*i;
+	long ii = 6*i;		// for 6dof
+	assert ( 0<=i && ii+5<NumRows && 0<=j && j<NumCols );
+	u.Dump( x+j*NumRows + ii );
+	v.Dump( x+j*NumRows + ii+3 );
 }
 
 // Set to be equal to the identity matrix

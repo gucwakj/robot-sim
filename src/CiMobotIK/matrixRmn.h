@@ -12,13 +12,26 @@ class MatrixRmn {
 		~MatrixRmn(void);							// Destructor
 
 		void SetSize(long numRows, long numCols);
-		long GetNumRows(void) const { return NumRows; }
-		long GetNumColumns(void) const { return NumCols; }
 		void SetZero(void);
+		void Set( long i, long j, double val );
+		void SetTriple( long i, long j, const VectorR3& u );
+		void SetHextuple( long i, long j, const VectorR3& u, const VectorR3& v );
+		void SetIdentity();
+		void SetDiagonalEntries( double d );
+		void SetDiagonalEntries( const VectorRn& d );
+		void SetSuperDiagonalEntries( double d );
+		void SetSuperDiagonalEntries( const VectorRn& d );
+		void SetSubDiagonalEntries( double d );
+		void SetSubDiagonalEntries( const VectorRn& d );
+		void SetColumn(long i, const VectorRn& d );
+		void SetRow(long i, const VectorRn& d );
+		void SetSequence( const VectorRn& d, long startRow, long startCol, long deltaRow, long deltaCol );
 
 		// Return entry in row i and column j.
 		double Get( long i, long j ) const;
 		void GetTriple( long i, long j, VectorR3 *retValue ) const;
+		long GetNumRows(void) const { return NumRows; }
+		long GetNumColumns(void) const { return NumCols; }
 
 		// Use GetPtr to get pointer into the array (efficient)
 		// Is friendly in that anyone can change the array contents (be careful!)
@@ -35,20 +48,6 @@ class MatrixRmn {
 		double* GetRowPtr( long i );
 		long GetRowStride() const { return NumRows; }		// Step size (stride) along a row
 		long GetColStride() const { return 1; }				// Step size (stide) along a column
-
-		void Set( long i, long j, double val );
-		void SetTriple( long i, long c, const VectorR3& u );
-
-		void SetIdentity();
-		void SetDiagonalEntries( double d );
-		void SetDiagonalEntries( const VectorRn& d );
-		void SetSuperDiagonalEntries( double d );
-		void SetSuperDiagonalEntries( const VectorRn& d );
-		void SetSubDiagonalEntries( double d );
-		void SetSubDiagonalEntries( const VectorRn& d );
-		void SetColumn(long i, const VectorRn& d );
-		void SetRow(long i, const VectorRn& d );
-		void SetSequence( const VectorRn& d, long startRow, long startCol, long deltaRow, long deltaCol );
 
 		// Loads matrix in as a sub-matrix.  (i,j) is the base point. Defaults to (0,0).
 		// The "Tranpose" versions load the transpose of A.

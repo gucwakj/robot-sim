@@ -16,6 +16,8 @@ Node::Node(const VectorR3 &s_init, const VectorR3 &w_init, int purpose, double m
 	this->m_s_init = s_init;			// global position when joint is zero
 	this->m_w.Set(0.0, 0.0, 0.0);		// global rotation axis
 	this->m_w_init = w_init;			// global rotation axis when joint is zero
+	//this->m_o.Set(
+	//this->m_o_init =
 
 	this->left = 0;
 	this->right = 0;

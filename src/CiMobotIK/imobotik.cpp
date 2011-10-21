@@ -14,11 +14,14 @@ CiMobotIK::CiMobotIK(int num_bot, int num_targets) {
 	this->node_right = new Node * [NUM_DOF*num_bot];
 	this->node_effector = new Node * [num_targets];
 	this->target = new VectorR3[num_targets];
+	//this->target_o = new VectorR3[num_targets];
+	this->target_o = new MatrixR33[num_targets];
 }
 
 CiMobotIK::~CiMobotIK(void) {
 	delete this->jacob;
 	delete [] this->target;
+	delete [] this->target_o;
 	delete [] this->m_del_theta;
 	for ( int i = NUM_DOF*this->m_num_bot + this->m_num_targets - 1; i >= 0; i-- ) {
 		delete this->node[i];
@@ -273,6 +276,7 @@ void CiMobotIK::addEffector(int eff_num, int bot_num, int face) {
 							R[6]*eff2[0] + R[7]*eff2[1] + R[8]*eff2[2]);
 
 	this->node_effector[eff_num] = new Node(this->node[bot_num*NUM_DOF + face/2]->getSInit() + eff, VectorR3(0.0, 0.0, 0.0), EFFECTOR);
+	//this->node_effector[eff_num] = new Node(this->node[bot_num*NUM_DOF + face/2]->getSInit() + eff, this->node[bot_num*NUM_DOF + face/2]->getWInit(), EFFECTOR);
 	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + face/2], this->node_effector[eff_num]);
 }
 
@@ -292,8 +296,23 @@ void CiMobotIK::setDampingDLS(double lambda) {
 	this->jacob->setDampingDLS(lambda);
 }
 
-void CiMobotIK::setTarget(int num, double x, double y, double z) {
+void CiMobotIK::setTarget(int num, double x, double y, double z, double psi, double theta, double phi) {
 	this->target[num].Set(x, y, z);
+	//this->target_o[num].Set(psi, theta, phi);
+	double R[9];
+	rotation_matrix_from_euler_angles(R, psi, theta, phi);
+	this->target_o[num].set(R[0], R[3], R[6], R[1], R[4], R[7], R[2], R[5], R[8]);
+}
+
+void CiMobotIK::setTargetPosition(int num, double x, double y, double z) {
+	this->target[num].Set(x, y, z);
+}
+
+void CiMobotIK::setTargetOrientation(int num, double psi, double theta, double phi) {
+	double R[9];
+	rotation_matrix_from_euler_angles(R, psi, theta, phi);
+	//this->target_o[num].Set(psi, theta, phi);
+	this->target_o[num].set(R[0], R[3], R[6], R[1], R[4], R[7], R[2], R[5], R[8]);
 }
 
 int CiMobotIK::getCurrentMode(void) {
@@ -308,7 +327,7 @@ int CiMobotIK::getCurrentDLSMode(void) {
 	return this->jacob->getCurrentDLSMode();
 }
 
-void CiMobotIK::getEffector(int num, double &x, double &y, double &z) {
+void CiMobotIK::getEffectorPosition(int num, double &x, double &y, double &z) {
 	const VectorR3 &n = this->node_effector[num]->getS();
 	x = n.x;
 	y = n.y;
@@ -330,7 +349,25 @@ double CiMobotIK::getEffectorZ(int num) {
 	return n.z;
 }
 
-void CiMobotIK::getTarget(int num, double &x, double &y, double &z) {
+void CiMobotIK::getEffectorOrientation(int num, double &psi, double &theta, double &phi) {
+	psi = this->m_psi;
+	theta = this->m_theta;
+	phi = this->m_phi;
+}
+
+double CiMobotIK::getEffectorPsi(int num) {
+	return this->m_psi;
+}
+
+double CiMobotIK::getEffectorTheta(int num) {
+	return this->m_theta;
+}
+
+double CiMobotIK::getEffectorPhi(int num) {
+	return this->m_phi;
+}
+
+void CiMobotIK::getTargetPosition(int num, double &x, double &y, double &z) {
 	x = target[num].x;
 	y = target[num].y;
 	z = target[num].z;
@@ -348,8 +385,26 @@ double CiMobotIK::getTargetZ(int num) {
 	return this->target[num].z;
 }
 
+void CiMobotIK::getTargetOrientation(int num, double &psi, double &theta, double &phi) {
+	psi = target_o[num].m_psi;
+	theta = target_o[num].m_theta;
+	phi = target_o[num].m_phi;
+}
+
+double CiMobotIK::getTargetPsi(int num) {
+	return this->target_o[num].m_psi;
+}
+
+double CiMobotIK::getTargetTheta(int num) {
+	return this->target_o[num].m_theta;
+}
+
+double CiMobotIK::getTargetPhi(int num) {
+	return this->target_o[num].m_phi;
+}
+
 void CiMobotIK::runSimulation(int argc, char **argv) {
-	bool loop = false;
+	bool loop = true;
 	this->jacob = new Jacobian(&(this->tree), this->target);
 	this->tree.init();
 	this->tree.compute();
@@ -373,21 +428,38 @@ void CiMobotIK::runSimulation(int argc, char **argv) {
 
 void CiMobotIK::print_intermediate_data(void) {
 	//cout << this->m_t_count << "\t" << this->m_t << "\t";
-	for ( int i = 0; i < this->m_num_bot*NUM_DOF+this->m_num_targets; i++ ) {
-	//for ( int i = 4; i < 8; i++ ) {
+	/*for ( int i = 0; i < this->m_num_bot*NUM_DOF+this->m_num_targets; i++ ) {
 		if ( this->node[i] ) {
-			cout << "Node " << i << endl;
-			cout << "     S: " << this->node[i]->getS() << endl;
-			cout << "S Init: " << this->node[i]->getSInit() << endl;
-			cout << "     W: " << this->node[i]->getW() << endl;
-			cout << "W Init: " << this->node[i]->getWInit() << endl;
-			cout << " Theta: " << this->node[i]->getTheta() << endl;
+			cout << this->node[i]->getS() << "\t" << this->target[i] << "\t";
+			cout << this->node[i]->getS() << "\t" << this->target_o[i] << "\t";
 			//cout << this->m_del_theta[i] << " ";
 			//cout << this->node[i]->getTheta() << "\t";
+			cout << endl;
 		}
 	}
 	cout << endl;
+	cout << endl;*/
+
+	for ( int i = 0; i < this->m_num_targets; i++ ) {
+		if ( this->node_effector[i] ) {
+			cout << this->node_effector[i]->getS() << "\t" << this->target[i] << "\t";
+			cout << this->node_effector[i]->getS() << "\t" << this->target_o[i] << "\t";
+			cout << endl;
+		}
+	}
+
+	/*for ( int i = 0; i < this->m_num_bot*NUM_DOF+this->m_num_targets; i++ ) {
+			if ( this->node[i] ) {
+				cout << "Node " << i << endl;
+				cout << "     S: " << this->node[i]->getS() << endl;
+				cout << "S Init: " << this->node[i]->getSInit() << endl;
+				cout << "     W: " << this->node[i]->getW() << endl;
+				cout << "W Init: " << this->node[i]->getWInit() << endl;
+				cout << " Theta: " << this->node[i]->getTheta() << endl;
+			}
+	}
 	cout << endl;
+	cout << endl;*/
 }
 
 void CiMobotIK::update_targets(void) {

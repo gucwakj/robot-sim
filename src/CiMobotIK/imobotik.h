@@ -3,9 +3,10 @@
 
 #include "config.h"
 #include "jacobian.h"
-#include "vectorR3.h"
+#include "matrixR33.h"
 #include "node.h"
 #include "tree.h"
+#include "vectorR3.h"
 
 /*
  *  iMobot dimension macros
@@ -45,19 +46,29 @@ class CiMobotIK {
 		void setCurrentType(int type);			// Jacobian type: END or TARGET
 		void setCurrentDLSMode(int mode);		// CLAMPED or TRADITIONAL
 		void setDampingDLS(double lambda);		// DLS damping
-		void setTarget(int num, double x, double y, double z);
+		void setTarget(int num, double x, double y, double z, double psi, double theta, double phi);
+		void setTargetPosition(int num, double x, double y, double z);
+		void setTargetOrientation(int num, double psi, double theta, double phi);
 
 		int getCurrentMode(void);				// Type of updating mode for Jacobian
 		int getCurrentType(void);				// Jacobian type: END or TARGET
 		int getCurrentDLSMode(void);			// CLAMPED or TRADITIONAL
-		void getEffector(int num, double &x, double &y, double &z);
+		void getEffectorPosition(int num, double &x, double &y, double &z);
 		double getEffectorX(int num);
 		double getEffectorY(int num);
 		double getEffectorZ(int num);
-		void getTarget(int num, double &x, double &y, double &z);
+		void getEffectorOrientation(int num, double &phi, double &theta, double &psi);
+		double getEffectorPhi(int num);
+		double getEffectorTheta(int num);
+		double getEffectorPsi(int num);
+		void getTargetPosition(int num, double &x, double &y, double &z);
 		double getTargetX(int num);
 		double getTargetY(int num);
 		double getTargetZ(int num);
+		void getTargetOrientation(int num, double &psi, double &theta, double &phi);
+		double getTargetPhi(int num);
+		double getTargetTheta(int num);
+		double getTargetPsi(int num);
 
 		void runSimulation(int argc, char **argv);
 	private:
@@ -67,6 +78,8 @@ class CiMobotIK {
 		Node **node_effector;
 		Tree tree;
 		VectorR3 *target;
+		//VectorR3 *target_o;
+		MatrixR33 *target_o;
 
 		bool *m_del_theta;
 		int m_t_count;

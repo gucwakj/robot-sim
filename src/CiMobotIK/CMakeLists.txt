@@ -14,6 +14,7 @@ include_directories("${PROJECT_BINARY_DIR}")
 add_library( imobotik STATIC
 	imobotik.cpp
 	jacobian.cpp
+	matrixR33.cpp
 	matrixRmn.cpp
 	node.cpp
 	tree.cpp
