@@ -5,7 +5,7 @@ int main(int argc, char *argv[]) {
 	CiMobotIK *ik = new CiMobotIK(2, 1);
 
 	//ik->iMobotAnchor(0, 0, 0, 0, 0, 0, 0);
-	ik->iMobotAnchor(LE, 0, 0, 0, 0, 90, 0, 0, 0, 0, 0);
+	ik->iMobotAnchor(LE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	ik->iMobotAttach(1, 0, 6, 1, 0, 0, 0, 0);
 	ik->addEffector(0, 1, 6);
 

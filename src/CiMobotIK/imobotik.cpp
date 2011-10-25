@@ -29,46 +29,42 @@ CiMobotIK::~CiMobotIK(void) {
 }
 
 void CiMobotIK::iMobotAnchor(int end, double x, double y, double z, double psi, double theta, double phi, double r_le, double r_lb, double r_rb, double r_re) {
-	double R[9];
-	rotation_matrix_from_euler_angles(R, D2R(psi), D2R(theta), D2R(phi));
-	this->m_psi = D2R(psi);
-	this->m_theta = D2R(theta);
-	this->m_phi = D2R(phi);
+    MatrixR33 R = MatrixR33(D2R(psi), D2R(theta), D2R(phi));
 
 	if ( end == LE ) {
 		double le = END_DEPTH;
 		double lb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
 		double rb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
 		double re = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH;
-		this->node[0] = new Node(VectorR3(R[0]*le + x, R[3]*le + y, R[6]*le + z), VectorR3(-R[0], -R[3], -R[6]), JOINT, D2R(-180), D2R(180), D2R(r_le));
-		this->node[1] = new Node(VectorR3(R[0]*lb + x, R[3]*lb + y, R[6]*lb + z), VectorR3(-R[2], -R[5], -R[8]), JOINT, D2R(-180), D2R(180), D2R(r_lb));
-		this->node[2] = new Node(VectorR3(R[0]*rb + x, R[3]*rb + y, R[6]*rb + z), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180), D2R(180), D2R(r_rb));
-		this->node[3] = new Node(VectorR3(R[0]*re + x, R[3]*re + y, R[6]*re + z), VectorR3(R[0], R[3], R[6]), JOINT, D2R(-180), D2R(180), D2R(r_re));
+        this->node[0] = new Node(R*VectorR3(le, 0, 0) + VectorR3(x, y, z), R*VectorR3(-1, 0, 0), R, JOINT, D2R(r_le));
+        this->node[1] = new Node(R*VectorR3(lb, 0, 0) + VectorR3(x, y, z), R*VectorR3( 0, 0,-1), R, JOINT, D2R(r_lb), D2R(-90), D2R(90));
+        this->node[2] = new Node(R*VectorR3(rb, 0, 0) + VectorR3(x, y, z), R*VectorR3( 0, 0, 1), R, JOINT, D2R(r_rb), D2R(-90), D2R(90));
+        this->node[3] = new Node(R*VectorR3(re, 0, 0) + VectorR3(x, y, z), R*VectorR3( 1, 0, 0), R, JOINT, D2R(r_re));
 		this->tree.insertRoot(node[0]);
 		this->tree.insertLeftChild(node[0], node[1]);
 		this->tree.insertLeftChild(node[1], node[2]);
 		this->tree.insertLeftChild(node[2], node[3]);
 	}
 	else if ( end == RE ) {
+        double le = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH;
+        double lb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
+        double rb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
 		double re = END_DEPTH;
-		double rb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
-		double lb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
-		double le = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH;
-		this->node[0] = new Node(VectorR3(R[0]*le + x, R[3]*le + y, R[6]*le + z), VectorR3(-R[0], -R[3], -R[6]), JOINT, D2R(-180), D2R(180), D2R(r_le));
-		this->node[1] = new Node(VectorR3(R[0]*lb + x, R[3]*lb + y, R[6]*lb + z), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180), D2R(180), D2R(r_lb));
-		this->node[2] = new Node(VectorR3(R[0]*rb + x, R[3]*rb + y, R[6]*rb + z), VectorR3(R[2], R[5], R[8]), JOINT, D2R(-180), D2R(180), D2R(r_rb));
-		this->node[3] = new Node(VectorR3(R[0]*re + x, R[3]*re + y, R[6]*re + z), VectorR3(R[0], R[3], R[6]), JOINT, D2R(-180), D2R(180), D2R(r_re));
+        this->node[0] = new Node(R*VectorR3(le, 0, 0) + VectorR3(x, y, z), R*VectorR3(-1, 0, 0), R, JOINT, D2R(r_le));
+        this->node[1] = new Node(R*VectorR3(lb, 0, 0) + VectorR3(x, y, z), R*VectorR3( 0, 0,-1), R, JOINT, D2R(r_lb), D2R(-90), D2R(90));
+        this->node[2] = new Node(R*VectorR3(rb, 0, 0) + VectorR3(x, y, z), R*VectorR3( 0, 0, 1), R, JOINT, D2R(r_rb), D2R(-90), D2R(90));
+        this->node[3] = new Node(R*VectorR3(re, 0, 0) + VectorR3(x, y, z), R*VectorR3( 1, 0, 0), R, JOINT, D2R(r_re));
 		this->tree.insertRoot(node[3]);
 		this->tree.insertLeftChild(node[3], node[2]);
 		this->tree.insertLeftChild(node[2], node[1]);
 		this->tree.insertLeftChild(node[1], node[0]);
 	}
-
 }
 
 void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re) {
 	double R[9];
-	rotation_matrix_from_euler_angles(R, this->m_psi, this->m_theta, this->m_phi);
+	//rotation_matrix_from_euler_angles(R, this->m_psi, this->m_theta, this->m_phi);
+    rotation_matrix_from_euler_angles(R, 0, 0, 0);
 
 	if ( face1 == 4 && face2 == 1 ) {
 		double le = BODY_WIDTH/2 + END_DEPTH;
@@ -266,16 +262,12 @@ void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, dou
 }
 
 void CiMobotIK::addEffector(int eff_num, int bot_num, int face) {
-	double R[9];
-	rotation_matrix_from_euler_angles(R, this->m_psi, this->m_theta, this->m_phi);
+    VectorR3 eff = this->node[bot_num*NUM_DOF + face/2]->getRInit() * (END_DEPTH*this->node[bot_num*NUM_DOF + face/2]->getWInit());
 
-	VectorR3 eff2 = END_DEPTH*this->node[bot_num*NUM_DOF + face/2]->getWInit();
-	VectorR3 eff = VectorR3(R[0]*eff2[0] + R[1]*eff2[1] + R[2]*eff2[2],
-							R[3]*eff2[0] + R[4]*eff2[1] + R[5]*eff2[2],
-							R[6]*eff2[0] + R[7]*eff2[1] + R[8]*eff2[2]);
-
-	this->node_effector[eff_num] = new Node(this->node[bot_num*NUM_DOF + face/2]->getSInit() + eff, VectorR3(0.0, 0.0, 0.0), EFFECTOR);
-	//this->node_effector[eff_num] = new Node(this->node[bot_num*NUM_DOF + face/2]->getSInit() + eff, this->node[bot_num*NUM_DOF + face/2]->getWInit(), EFFECTOR);
+    this->node_effector[eff_num] = new Node(this->node[bot_num*NUM_DOF + face/2]->getSInit() + eff,
+                                            VectorR3(0.0, 0.0, 0.0),
+                                            this->node[bot_num*NUM_DOF + face/2]->getRInit(),
+                                            EFFECTOR);
 	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + face/2], this->node_effector[eff_num]);
 }
 
@@ -343,21 +335,31 @@ double CiMobotIK::getEffectorZ(int num) {
 }
 
 void CiMobotIK::getEffectorRotation(int num, double &psi, double &theta, double &phi) {
-	psi = this->m_psi;
-	theta = this->m_theta;
-	phi = this->m_phi;
+    const MatrixR33 &r = this->node_effector[num]->getR();
+    psi = r.psi;
+    theta = r.theta;
+    psi = r.phi;
+	//psi = this->m_psi;
+	//theta = this->m_theta;
+	//phi = this->m_phi;
 }
 
 double CiMobotIK::getEffectorPsi(int num) {
-	return this->m_psi;
+    const MatrixR33 &r = this->node_effector[num]->getR();
+    return r.psi;
+	//return this->m_psi;
 }
 
 double CiMobotIK::getEffectorTheta(int num) {
-	return this->m_theta;
+    const MatrixR33 &r = this->node_effector[num]->getR();
+    return r.theta;
+	//return this->m_theta;
 }
 
 double CiMobotIK::getEffectorPhi(int num) {
-	return this->m_phi;
+    const MatrixR33 &r = this->node_effector[num]->getR();
+    return r.phi;
+	//return this->m_phi;
 }
 
 void CiMobotIK::getTargetPosition(int num, double &x, double &y, double &z) {
@@ -379,21 +381,21 @@ double CiMobotIK::getTargetZ(int num) {
 }
 
 void CiMobotIK::getTargetRotation(int num, double &psi, double &theta, double &phi) {
-	psi = this->target_rot[num].m_psi;
-	theta = this->target_rot[num].m_theta;
-	phi = this->target_rot[num].m_phi;
+	psi = this->target_rot[num].psi;
+	theta = this->target_rot[num].theta;
+	phi = this->target_rot[num].phi;
 }
 
 double CiMobotIK::getTargetPsi(int num) {
-	return this->target_rot[num].m_psi;
+	return this->target_rot[num].psi;
 }
 
 double CiMobotIK::getTargetTheta(int num) {
-	return this->target_rot[num].m_theta;
+	return this->target_rot[num].theta;
 }
 
 double CiMobotIK::getTargetPhi(int num) {
-	return this->target_rot[num].m_phi;
+	return this->target_rot[num].phi;
 }
 
 void CiMobotIK::runSimulation(int argc, char **argv) {

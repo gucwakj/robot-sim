@@ -11,17 +11,39 @@ Node::Node(const VectorR3 &s_init, const VectorR3 &w_init, int purpose, double m
 	this->m_theta_min = minTheta;
 	this->m_theta_max = maxTheta;
 
+    this->m_R.set(0.0, 0.0, 0.0);       // global rotation matrix
 	this->m_r.Set(0.0, 0.0, 0.0);		// relative global position when joint is zero
 	this->m_s.Set(0.0, 0.0, 0.0);		// global position
 	this->m_s_init = s_init;			// global position when joint is zero
 	this->m_w.Set(0.0, 0.0, 0.0);		// global rotation axis
 	this->m_w_init = w_init;			// global rotation axis when joint is zero
-	//this->m_o.Set(
-	//this->m_o_init =
 
 	this->left = 0;
 	this->right = 0;
 	this->realparent = 0;
+}
+
+Node::Node(const VectorR3 &s_init, const VectorR3 &w_init, const MatrixR33 &R_init, int purpose, double theta_init, double theta_min, double theta_max) {
+    this->m_frozen = false;
+    this->m_purpose = purpose;
+    this->m_seq_num_joint = -1;
+    this->m_seq_num_effector = -1;
+    this->m_theta = 0.0;
+    this->m_theta_init = theta_init;
+    this->m_theta_min = theta_min;
+    this->m_theta_max = theta_max;
+
+    this->m_R.set(0.0, 0.0, 0.0);       // global rotation matrix
+    this->m_R_init = R_init;            // global rotation matrix when joint is zero
+    this->m_r.Set(0.0, 0.0, 0.0);       // relative global position when joint is zero
+    this->m_s.Set(0.0, 0.0, 0.0);       // global position
+    this->m_s_init = s_init;            // global position when joint is zero
+    this->m_w.Set(0.0, 0.0, 0.0);       // global rotation axis
+    this->m_w_init = w_init;            // global rotation axis when joint is zero
+
+    this->left = 0;
+    this->right = 0;
+    this->realparent = 0;
 }
 
 void Node::initNode(void) {
@@ -48,6 +70,14 @@ void Node::setSeqNum(int seq_num) {
 
 void Node::setFrozen(bool s) {
 	this->m_frozen = s;
+}
+
+const MatrixR33& Node::getR(void) {
+    return this->m_R;
+}
+
+const MatrixR33& Node::getRInit(void) {
+    return this->m_R_init;
 }
 
 const VectorR3& Node::getS(void) {

@@ -86,9 +86,9 @@ class CiMobotIK {
 		int m_num_targets;
 		double m_t;
 		double m_t_step;
-		double m_psi;
-		double m_theta;
-		double m_phi;
+		//double m_psi;
+		//double m_theta;
+		//double m_phi;
 
 		void update_targets(void);
 		void print_intermediate_data(void);

@@ -12,16 +12,21 @@ MatrixR33::MatrixR33(const VectorR3& u, const VectorR3& v, const VectorR3& w) {
 	m31 = u.z;	m32 = v.z;	m33 = w.z;
 }
 
+MatrixR33::MatrixR33(double psi, double theta, double phi) {
+    double R[9];
+    rotation_matrix_from_euler_angles(R, psi, theta, phi);
+    m11 = R[0];  m12 = R[1];  m13 = R[2];
+    m21 = R[3];  m22 = R[4];  m23 = R[5];
+    m31 = R[6];  m32 = R[7];  m33 = R[8];
+    this->psi = psi;
+    this->theta = theta;
+    this->phi = phi;
+}
+
 MatrixR33::MatrixR33(double a11, double a21, double a31, double a12, double a22, double a32, double a13, double a23, double a33) {
 	m11 = a11;	m12 = a12;	m13 = a13;
 	m21 = a21;	m22 = a22;	m23 = a23;
 	m31 = a31;	m32 = a32;	m33 = a33;
-}
-
-void MatrixR33::set(const MatrixR33& A) {
-	m11 = A.m11;	m12 = A.m12;	m13 = A.m13;
-	m21 = A.m21;	m22 = A.m22;	m23 = A.m23;
-	m31 = A.m31;	m32 = A.m32;	m33 = A.m33;
 }
 
 void MatrixR33::set( const VectorR3& u, const VectorR3& v, const VectorR3& w) {
@@ -36,9 +41,9 @@ void MatrixR33::set(double psi, double theta, double phi) {
     m11 = R[0];  m12 = R[1];  m13 = R[2];
     m21 = R[3];  m22 = R[4];  m23 = R[5];
     m31 = R[6];  m32 = R[7];  m33 = R[8];
-    this->m_psi = psi;
-    this->m_theta = theta;
-    this->m_phi = phi;
+    this->psi = psi;
+    this->theta = theta;
+    this->phi = phi;
 }
 
 void MatrixR33::set(double a11, double a21, double a31, double a12, double a22, double a32, double a13, double a23, double a33) {
