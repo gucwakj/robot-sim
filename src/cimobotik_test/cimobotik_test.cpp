@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
 	ik->addEffector(0, 1, 6);
 
 	ik->setTargetPosition(0, 0.1, 0.25, 0.0);
-	ik->setTargetOrientation(0, 0, 0.1, 0.5);
+    ik->setTargetRotation(0, 0, 0, 0);
 
 	ik->runSimulation(argc, argv);
 

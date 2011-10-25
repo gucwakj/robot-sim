@@ -304,7 +304,7 @@ void CiMobotIK::setTargetPosition(int num, double x, double y, double z) {
 	this->target_pos[num].Set(x, y, z);
 }
 
-void CiMobotIK::setTargetOrientation(int num, double psi, double theta, double phi) {
+void CiMobotIK::setTargetRotation(int num, double psi, double theta, double phi) {
 	this->target_rot[num].set(D2R(psi), D2R(theta), D2R(phi));
 }
 
@@ -342,7 +342,7 @@ double CiMobotIK::getEffectorZ(int num) {
 	return n.z;
 }
 
-void CiMobotIK::getEffectorOrientation(int num, double &psi, double &theta, double &phi) {
+void CiMobotIK::getEffectorRotation(int num, double &psi, double &theta, double &phi) {
 	psi = this->m_psi;
 	theta = this->m_theta;
 	phi = this->m_phi;
@@ -361,9 +361,9 @@ double CiMobotIK::getEffectorPhi(int num) {
 }
 
 void CiMobotIK::getTargetPosition(int num, double &x, double &y, double &z) {
-	x = target_pos[num].x;
-	y = target_pos[num].y;
-	z = target_pos[num].z;
+    x = this->target_pos[num].x;
+    y = this->target_pos[num].y;
+    z = this->target_pos[num].z;
 }
 
 double CiMobotIK::getTargetX(int num) {
@@ -378,10 +378,10 @@ double CiMobotIK::getTargetZ(int num) {
 	return this->target_pos[num].z;
 }
 
-void CiMobotIK::getTargetOrientation(int num, double &psi, double &theta, double &phi) {
-	psi = target_rot[num].m_psi;
-	theta = target_rot[num].m_theta;
-	phi = target_rot[num].m_phi;
+void CiMobotIK::getTargetRotation(int num, double &psi, double &theta, double &phi) {
+	psi = this->target_rot[num].m_psi;
+	theta = this->target_rot[num].m_theta;
+	phi = this->target_rot[num].m_phi;
 }
 
 double CiMobotIK::getTargetPsi(int num) {

@@ -48,7 +48,7 @@ class CiMobotIK {
 		void setDampingDLS(double lambda);		// DLS damping
 		void setTarget(int num, double x, double y, double z, double psi, double theta, double phi);
 		void setTargetPosition(int num, double x, double y, double z);
-		void setTargetOrientation(int num, double psi, double theta, double phi);
+        void setTargetRotation(int num, double psi, double theta, double phi);
 
 		int getCurrentMode(void);				// Type of updating mode for Jacobian
 		int getCurrentType(void);				// Jacobian type: END or TARGET
@@ -57,7 +57,7 @@ class CiMobotIK {
 		double getEffectorX(int num);
 		double getEffectorY(int num);
 		double getEffectorZ(int num);
-		void getEffectorOrientation(int num, double &phi, double &theta, double &psi);
+		void getEffectorRotation(int num, double &phi, double &theta, double &psi);
 		double getEffectorPhi(int num);
 		double getEffectorTheta(int num);
 		double getEffectorPsi(int num);
@@ -65,7 +65,7 @@ class CiMobotIK {
 		double getTargetX(int num);
 		double getTargetY(int num);
 		double getTargetZ(int num);
-		void getTargetOrientation(int num, double &psi, double &theta, double &phi);
+        void getTargetRotation(int num, double &psi, double &theta, double &phi);
 		double getTargetPhi(int num);
 		double getTargetTheta(int num);
 		double getTargetPsi(int num);
