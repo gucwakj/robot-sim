@@ -77,9 +77,8 @@ class CiMobotIK {
 		Node **node_right;
 		Node **node_effector;
 		Tree tree;
-		VectorR3 *target;
-		//VectorR3 *target_o;
-		MatrixR33 *target_o;
+		VectorR3 *target_pos;
+		MatrixR33 *target_rot;
 
 		bool *m_del_theta;
 		int m_t_count;

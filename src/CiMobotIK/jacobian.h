@@ -1,6 +1,7 @@
 #ifndef JACOBIAN_H_
 #define JACOBIAN_H_
 
+#include "matrixR33.h"
 #include "matrixRmn.h"
 #include "tree.h"
 
@@ -24,7 +25,7 @@ enum dls_mode_e {
 
 class Jacobian {
 	public:
-		Jacobian(Tree *tree, VectorR3 *target);
+		Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot);
 		~Jacobian(void);
 
 		void computeJacobian(void);				// Compute Jacobian matrix
@@ -57,11 +58,13 @@ class Jacobian {
 		double m_lambda_default;// DLS: default lambda for DLS
 		double m_base_max_dist;	// SDLS: ??????
 		double m_pi_factor;		// PI: Threshold for treating eigenvalue as zero (fraction of largest eigenvalue)
+		MatrixR33 *target_rot;  // target orientation for effectors
 		MatrixRmn J;			// Jacobian matrix
 		MatrixRmn Jnorms;		// Norms of 3-vectors in active Jacobian (SDLS only)
 		MatrixRmn U;			// SVD (Singular Value Decomposition): J = U * Diag(w) * V^T
 		MatrixRmn V;			// SVD (Singular Value Decomposition): J = U * Diag(w) * V^T
 		Tree *tree;				// tree associated with this Jacobian matrix
+		VectorR3 *target_pos;   // target positions for effectors
 		VectorRn w;				// SVD (Singular Value Decomposition): J = U * Diag(w) * V^T
 		VectorRn dQ;			// delta q
 		VectorRn dR;			// delta r		--  these are delta Q values clamped to smaller magnitude
@@ -71,7 +74,6 @@ class Jacobian {
 		VectorRn dTheta;		// delta theta
 		VectorRn dPreTheta;		// delta theta for single eigenvalue  (SDLS only)
 		//VectorRn errorArray;	// Distance of end effectors from target after updating
-		VectorR3 *target;		// target positions for effectors
 
 		void calc_delta_thetas_transpose(void);
 		void calc_delta_thetas_pseudoinverse(void);

@@ -2,9 +2,10 @@
 #include "jacobian.h"
 #include "node.h"
 
-Jacobian::Jacobian(Tree *tree, VectorR3 *target) {
+Jacobian::Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot) {
 	this->tree = tree;
-	this->target = target;
+	this->target_pos = target_pos;
+    this->target_rot = target_rot;
 
 	this->m_num_effect = this->tree->getNumEffector();
 	this->m_num_joint = this->tree->getNumJoint();
@@ -59,7 +60,7 @@ void Jacobian::computeJacobian(void) {
 		if ( n->isEffector() ) {
 			i = n->getEffectorNum();
 			// position
-			temp = this->target[i] - n->getS();
+			temp = this->target_pos[i] - n->getS();
 			this->dS.SetTriple(i, temp);
 			// orientation
 			//temp = 0.5 * ();
@@ -79,7 +80,7 @@ void Jacobian::computeJacobian(void) {
 					if ( this->m_j_type == J_END )
 						temp -= n->getS();				// -(end effector pos - joint pos)
 					else
-						temp -= this->target[i];		// -(target pos - joint pos)
+						temp -= this->target_pos[i];	// -(target pos - joint pos)
 					temp *= m->getW();					// cross product with joint rotation axis
 					//this->J.SetTriple(i, j, temp);		// set position
 					this->J.SetHextuple(i, j, temp, m->getW());
@@ -89,8 +90,8 @@ void Jacobian::computeJacobian(void) {
 		}
 		n = this->tree->getSuccessor(n);
 	}
-	cout << "J Rows: " << this->J.GetNumRows() << endl;
-	cout << "J Cols: " << this->J.GetNumColumns() << endl;
+	//cout << "J Rows: " << this->J.GetNumRows() << endl;
+	//cout << "J Cols: " << this->J.GetNumColumns() << endl;
 }
 
 void Jacobian::calcDeltaThetas(void) {
@@ -141,7 +142,7 @@ void Jacobian::updatedSClampValue(void) {
 	while ( n ) {
 		if ( n->isEffector() ) {
 			i = n->getEffectorNum();
-			temp = this->target[i] - n->getS();
+			temp = this->target_pos[i] - n->getS();
 
 			changedDist = temp.Norm() - sqrt(dS[i]*dS[i] + dS[i+1]*dS[i+1] + dS[i+2]*dS[i+2]);
 			if ( changedDist > 0.0 )
@@ -161,7 +162,7 @@ void Jacobian::updatedSClampValue(void) {
 	while ( n ) {
 		if ( n->isEffector() ) {
 			i = n->getEffectorNum();
-			temp = this->target[i] - n->getS();
+			temp = this->target_pos[i] - n->getS();
 			this->errorArray[i] = temp.Norm();
 		}
 		n = this->tree->getSuccessor(n);
