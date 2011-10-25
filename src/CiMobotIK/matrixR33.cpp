@@ -30,6 +30,17 @@ void MatrixR33::set( const VectorR3& u, const VectorR3& v, const VectorR3& w) {
 	m31 = u.z;	m32 = v.z;	m33 = w.z;
 }
 
+void MatrixR33::set(double psi, double theta, double phi) {
+    double R[9];
+    rotation_matrix_from_euler_angles(R, psi, theta, phi);
+    m11 = R[0];  m12 = R[1];  m13 = R[2];
+    m21 = R[3];  m22 = R[4];  m23 = R[5];
+    m31 = R[6];  m32 = R[7];  m33 = R[8];
+    this->m_psi = psi;
+    this->m_theta = theta;
+    this->m_phi = phi;
+}
+
 void MatrixR33::set(double a11, double a21, double a31, double a12, double a22, double a32, double a13, double a23, double a33) {
 	m11 = a11;	m12 = a12;	m13 = a13;
 	m21 = a21;	m22 = a22;	m23 = a23;
@@ -159,6 +170,23 @@ MatrixR33& MatrixR33::reNormalize()	{
 	m31 = temp1;
 	m32 = temp2;
 	return *this;
+}
+
+
+void rotation_matrix_from_euler_angles(double *R, double psi, double theta, double phi) {
+    double  sphi = sin(phi),    cphi = cos(phi),
+    stheta = sin(theta),ctheta = cos(theta),
+    spsi = sin(psi),    cpsi = cos(psi);
+
+    R[0] =  cphi*ctheta;
+    R[1] = -cphi*stheta*cpsi + sphi*spsi;
+    R[2] =  cphi*stheta*spsi + sphi*cpsi;
+    R[3] =  stheta;
+    R[4] =  ctheta*cpsi;
+    R[5] = -ctheta*spsi;
+    R[6] = -sphi*ctheta;
+    R[7] =  sphi*stheta*cpsi + cphi*spsi;
+    R[8] = -sphi*stheta*spsi + cphi*cpsi;
 }
 
 ostream& operator<< ( ostream& os, const MatrixR33& A ) {

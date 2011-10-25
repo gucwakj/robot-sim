@@ -16,6 +16,7 @@ class MatrixR33 {
 
 		void set(const MatrixR33& A);
 		void set(const VectorR3& u, const VectorR3& v, const VectorR3& w);
+        void set(double psi, double theta, double phi);
 		void set(double a11, double a21, double a31, double a12, double a22, double a32, double a13, double a23, double a33);
 		void setColumn1(double a11, double a21, double a31);
 		void setColumn2(double a12, double a22, double a32);
@@ -46,6 +47,8 @@ class MatrixR33 {
 
 inline VectorR3 operator* ( const MatrixR33&, const VectorR3& );
 ostream& operator<< ( ostream& os, const MatrixR33& A );
+
+void rotation_matrix_from_euler_angles(double *R, double psi, double theta, double phi);
 
 inline VectorR3 operator* ( const MatrixR33& A, const VectorR3& u)
 {

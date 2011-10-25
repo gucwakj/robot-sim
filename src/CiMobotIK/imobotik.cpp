@@ -297,9 +297,7 @@ void CiMobotIK::setDampingDLS(double lambda) {
 
 void CiMobotIK::setTarget(int num, double x, double y, double z, double psi, double theta, double phi) {
 	this->target_pos[num].Set(x, y, z);
-	double R[9];
-	rotation_matrix_from_euler_angles(R, psi, theta, phi);
-	this->target_rot[num].set(R[0], R[3], R[6], R[1], R[4], R[7], R[2], R[5], R[8]);
+    this->target_rot[num].set(D2R(psi), D2R(theta), D2R(phi));
 }
 
 void CiMobotIK::setTargetPosition(int num, double x, double y, double z) {
@@ -307,9 +305,7 @@ void CiMobotIK::setTargetPosition(int num, double x, double y, double z) {
 }
 
 void CiMobotIK::setTargetOrientation(int num, double psi, double theta, double phi) {
-	double R[9];
-	rotation_matrix_from_euler_angles(R, psi, theta, phi);
-	this->target_rot[num].set(R[0], R[3], R[6], R[1], R[4], R[7], R[2], R[5], R[8]);
+	this->target_rot[num].set(D2R(psi), D2R(theta), D2R(phi));
 }
 
 int CiMobotIK::getCurrentMode(void) {
@@ -435,13 +431,13 @@ void CiMobotIK::print_intermediate_data(void) {
 	cout << endl;
 	cout << endl;*/
 
-	for ( int i = 0; i < this->m_num_targets; i++ ) {
+	/*for ( int i = 0; i < this->m_num_targets; i++ ) {
 		if ( this->node_effector[i] ) {
 			cout << this->node_effector[i]->getS() << "\t" << this->target_pos[i] << "\t";
 			cout << this->node_effector[i]->getS() << "\t" << this->target_rot[i] << "\t";
 			//cout << endl;
 		}
-	}
+	}*/
 
 	/*for ( int i = 0; i < this->m_num_bot*NUM_DOF+this->m_num_targets; i++ ) {
 			if ( this->node[i] ) {
@@ -482,22 +478,6 @@ void CiMobotIK::set_flags(void) {
 		i++;
 		n = this->tree.getSuccessor(n);
 	}
-}
-
-void CiMobotIK::rotation_matrix_from_euler_angles(double *R, double psi, double theta, double phi) {
-	double	sphi = sin(phi), 	cphi = cos(phi),
-			stheta = sin(theta),ctheta = cos(theta),
-			spsi = sin(psi),	cpsi = cos(psi);
-
-	R[0] =  cphi*ctheta;
-	R[1] = -cphi*stheta*cpsi + sphi*spsi;
-	R[2] =  cphi*stheta*spsi + sphi*cpsi;
-	R[3] =  stheta;
-	R[4] =  ctheta*cpsi;
-	R[5] = -ctheta*spsi;
-	R[6] = -sphi*ctheta;
-	R[7] =  sphi*stheta*cpsi + cphi*spsi;
-	R[8] = -sphi*stheta*spsi + cphi*cpsi;
 }
 
 bool CiMobotIK::is_true(bool *a, int length) {

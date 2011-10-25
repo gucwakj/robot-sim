@@ -95,7 +95,6 @@ class CiMobotIK {
 		void set_flags(void);
 		void increment_step(void);
 		bool end_simulation(void);
-		void rotation_matrix_from_euler_angles(double *R, double psi, double theta, double phi);
 		bool is_true(bool *a, int length);
 		inline double D2R(double deg);
 		inline double R2D(double rad);
