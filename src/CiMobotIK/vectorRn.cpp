@@ -137,3 +137,14 @@ double VectorRn::NormSq() const {
 	}
 	return res;
 }
+
+double VectorRn::dot(const VectorRn& v) {
+    assert( this->GetLength() == v.GetLength() );
+    double res = 0.0;
+    const double *p = this->GetPtr();
+    const double *q = v.GetPtr();
+    for ( int i = this->length; i > 0; i-- ) {
+        res += (*(p++))*(*(q++));
+    }
+    return res;
+}

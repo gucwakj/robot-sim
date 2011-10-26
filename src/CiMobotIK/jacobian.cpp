@@ -13,7 +13,7 @@ Jacobian::Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot) {
 	this->m_num_row = 6 * this->m_num_effect;		// 6dof
 	this->m_num_col = this->m_num_joint;
 	this->m_j_type = J_END;
-	this->m_j_mode = JACOB_SDLS;
+    this->m_j_mode = JACOB_SDLS;
 	this->m_dls_mode = TRADITIONAL;
 	this->m_lambda_default = 1.1;							// DLS: Default damping
 	this->m_pi_factor = 0.01;								// PI: threshhold for eigenvalues = 0
@@ -191,7 +191,9 @@ void Jacobian::calc_delta_thetas_transpose(void) {
 	// Scale back the dTheta values greedily
 	this->J.Multiply(this->dTheta, this->dT);								// dT = J * dTheta
 
-	double alpha = Dot(this->dS, this->dT) / this->dT.NormSq();
+    double alpha = Dot(this->dS, this->dT) / this->dT.NormSq();
+    //double alpha2 = this->dS.dot(this->dT) / this->dT.NormSq();   // will be implemented when dS length
+    //cout << "alpha: " << alpha << "\talpha2: " << alpha2 << endl; // issue is sorted out
 	double beta = this->m_max_angle[JACOB_TRANSPOSE] / dTheta.MaxAbs();
 	assert( alpha > 0.0 );
 

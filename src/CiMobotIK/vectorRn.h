@@ -47,6 +47,7 @@ class VectorRn {
 		double Norm() const { return sqrt(NormSq()); }
 
 		double MaxAbs() const;
+        double dot(const VectorRn& v);
 	private:
 		long length;				// Logical or actual length
 		long AllocLength;			// Allocated length
