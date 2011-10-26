@@ -1,7 +1,7 @@
 #ifndef TREE_H_
 #define TREE_H_
 
-#include "config.h"
+#include <cassert>
 #include "vectorR3.h"
 #include "node.h"
 

@@ -12,17 +12,45 @@ VectorR3::VectorR3(double xVal, double yVal, double zVal) {
 	this->z = zVal;
 }
 
-double VectorR3::MaxAbs() {
-	register double m;
-	m = (x>0.0) ? x : -x;
-	if ( y>m ) m=y;
-	else if ( -y >m ) m = -y;
-	if ( z>m ) m=z;
-	else if ( -z>m ) m = -z;
-	return m;
+double VectorR3::Dist(const VectorR3& u) {
+    return sqrt(DistSq(u));
 }
 
-VectorR3& VectorR3::Rotate( double theta, const VectorR3& w) {
+double VectorR3::DistSq(const VectorR3& u) {
+    return (x-u.x)*(x-u.x) + (y-u.y)*(y-u.y) + (z-u.z)*(z-u.z);
+}
+
+double VectorR3::MaxAbs(void) {
+    register double m;
+    m = (x>0.0) ? x : -x;
+    if ( y>m ) m=y;
+    else if ( -y >m ) m = -y;
+    if ( z>m ) m=z;
+    else if ( -z>m ) m = -z;
+    return m;
+}
+
+double VectorR3::Norm(void) {
+    return sqrt(x*x + y*y + z*z);
+}
+
+double VectorR3::NormSq(void) {
+    return (x*x + y*y + z*z);
+}
+
+void VectorR3::Dump(double *v) const {
+    *v = x;
+    *(v+1) = y;
+    *(v+2) = z;
+}
+
+void VectorR3::Dump(float *v) const {
+    *v = (float)x;
+    *(v+1) = (float)y;
+    *(v+2) = (float)z;
+}
+
+VectorR3& VectorR3::Rotate(double theta, const VectorR3& w) {
 	double c = cos(theta);
 	double s = sin(theta);
 	double dotw = (x*w.x + y*w.y + z*w.z);
@@ -55,18 +83,6 @@ VectorR3& VectorR3::Load( const float* v ) {
 	y = *(v+1);
 	z = *(v+2);
 	return *this;
-}
-
-void VectorR3::Dump(double *v) const {
-	*v = x;
-	*(v+1) = y;
-	*(v+2) = z;
-}
-
-void VectorR3::Dump(float *v) const {
-	*v = (float)x;
-	*(v+1) = (float)y;
-	*(v+2) = (float)z;
 }
 
 VectorR3& VectorR3::Set(double xx, double yy, double zz) {
@@ -105,31 +121,11 @@ VectorR3& VectorR3::AddScaled( const VectorR3& u, double s ) {
 	return(*this);
 }
 
-bool VectorR3::IsZero(void) {
-	return ( x==0.0 && y==0.0 && z==0.0 );
-}
-
-double VectorR3::Norm(void) {
-	return ( (double)sqrt( x*x + y*y + z*z ) );
-}
-
-double VectorR3::NormSq(void) {
-	return ( x*x + y*y + z*z );
-}
-
 VectorR3& VectorR3::ReNormalize(void) {
 	double nSq = NormSq();
 	register double mFact = 1.0-0.5*(nSq-1.0);	// Multiplicative factor
 	*this *= mFact;
 	return *this;
-}
-
-double VectorR3::Dist(const VectorR3& u) {
-	return sqrt( DistSq(u) );
-}
-
-double VectorR3::DistSq(const VectorR3& u) {
-	return ( (x-u.x)*(x-u.x) + (y-u.y)*(y-u.y) + (z-u.z)*(z-u.z) );
 }
 
 VectorR3& VectorR3::Negate(void) {
@@ -144,22 +140,6 @@ VectorR3& VectorR3::Normalize(void) {
 	return *this;
 }
 
-bool VectorR3::IsUnit(void) {
-	register double norm = Norm();
-	return ( 1.000001>=norm && norm>=0.999999 );
-}
-
-bool VectorR3::IsUnit(double tolerance) {
-	register double norm = Norm();
-	return ( 1.0+tolerance>=norm && norm>=1.0-tolerance );
-}
-
-bool VectorR3::NearZero(double tolerance) {
-	return( MaxAbs()<=tolerance );
-}
-
-
-
 double VectorR3::operator[] (int i) {
 	switch (i) {
 		case 0:
@@ -169,7 +149,6 @@ double VectorR3::operator[] (int i) {
 		case 2:
 			return z;
 		default:
-			assert(0);
 			return 0.0;
 	}
 }

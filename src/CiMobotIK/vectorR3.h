@@ -2,7 +2,6 @@
 #define VECTORR3_H_
 
 #include <cmath>
-#include <cassert>
 #include <iostream>
 
 using namespace std;
@@ -12,23 +11,19 @@ class VectorR3 {
 		VectorR3(void);
 		VectorR3(double xVal, double yVal, double zVal);
 
-		bool IsZero(void);
-		bool IsUnit(void);
-		bool IsUnit(double tolerance);
-		bool NearZero(double tolerance);
+        double Dist(const VectorR3& u);                     // Distance from u
+        double DistSq(const VectorR3& u);                   // Distance from u squared
+        double MaxAbs(void);
 		double Norm(void);
 		double NormSq(void);
-		double MaxAbs(void);
-		double Dist( const VectorR3& u );					// Distance from u
-        double DistSq( const VectorR3& u );					// Distance from u squared
         void Dump(double *v) const;
         void Dump(float *v) const;
 		VectorR3& AddScaled(const VectorR3& u, double s);
 		VectorR3& ArrayProd(const VectorR3&);				// Component-wise product
 		VectorR3& Negate(void);
 		VectorR3& Normalize(void);							// No error checking
-		VectorR3& MakeUnit();								// Normalize() with error checking
-		VectorR3& ReNormalize();
+		VectorR3& MakeUnit(void);							// Normalize() with error checking
+		VectorR3& ReNormalize(void);
 		VectorR3& Rotate(double theta, const VectorR3& u);	// rotate around u
 		VectorR3& Set(double xx, double yy, double zz);
 		VectorR3& SetZero(void);
