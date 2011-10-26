@@ -177,6 +177,22 @@ MatrixR33& MatrixR33::reNormalize()	{
 	return *this;
 }
 
+MatrixR33& MatrixR33::rotate(double theta, const VectorR3& w) {
+    double c = cos(theta);
+    double s = sin(theta);
+
+    this->m11 = c + w.x*w.x*(1-c);
+    this->m21 = w.x*w.y*(1-c) + w.z*s;
+    this->m31 = w.x*w.z*(1-c) - w.y*s;
+    this->m12 = w.x*w.y*(1-c) - w.z*s;
+    this->m22 = c + w.y*w.y*(1-c);
+    this->m32 = w.y*w.z*(1-c) + w.x*s;
+    this->m13 = w.x*w.z*(1-c) + w.y*s;
+    this->m23 = w.y*w.z*(1-c) - w.x*s;
+    this->m33 = c + w.z*w.z*(1-c);
+
+    return ( *this );
+}
 
 void rotation_matrix_from_euler_angles(double *R, double psi, double theta, double phi) {
     double  sphi = sin(phi),    cphi = cos(phi),

@@ -124,13 +124,23 @@ int Node::getPurpose(void) {
 	return this->m_purpose;
 }
 
+// Compute the global rotation matrix of a single node
+void Node::computeR(void) {
+    Node *y = this->realparent;
+    this->m_R = this->m_R_init;         // Initialize to local rotation matrix
+    while ( y ) {
+        this->m_R.rotate(y->m_theta, y->m_w_init);
+        y = y->realparent;
+    }
+}
+
 // Compute the global position of a single node
 void Node::computeS(void) {
 	Node *y = this->realparent;
 	Node *z = this;
 	this->m_s = this->m_r;				// Initialize to local (relative) position
 	while ( y ) {
-		this->m_s.Rotate( y->m_theta, y->m_w_init );
+		this->m_s.Rotate(y->m_theta, y->m_w_init);
 		y = y->realparent;
 		z = z->realparent;
 		this->m_s += z->m_r;

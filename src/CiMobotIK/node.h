@@ -38,7 +38,8 @@ class Node {
 		int getPurpose(void);
 
 		void computeS(void);
-		void computeW(void);
+        void computeW(void);
+        void computeR(void);
 
 		bool isEffector(void);
 		bool isJoint(void);

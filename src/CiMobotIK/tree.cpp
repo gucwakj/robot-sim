@@ -84,6 +84,7 @@ void Tree::compute_tree(Node *node) {
 	if (node != 0) {
 		node->computeS();
 		node->computeW();
+        node->computeR();
 		this->compute_tree(node->left);
 		this->compute_tree(node->right);
 	}
