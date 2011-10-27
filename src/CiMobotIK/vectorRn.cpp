@@ -154,13 +154,9 @@ double VectorRn::normSq(void) {
 }
 
 double VectorRn::normSq(int i) {
-    double *target = x;
+    double *target = x+i;
     double res = 0.0;
-    int j;
-    for ( j = 0; j < i; j++) {
-        target++;
-    }
-    for ( j; j < i + 3; j++ ) {
+    for ( int j = 0; j < 3; j++ ) {
         res += (*target)*(*target);
         target++;
     }
