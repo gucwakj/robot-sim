@@ -10,8 +10,8 @@ class VectorRn {
 
 	public:
 		VectorRn(void);				// Null constructor
-		VectorRn(long length);      // Constructor with length
-		~VectorRn(void);			// Destructor
+		VectorRn(long init_length);      // Constructor with length
+		~VectorRn();			// Destructor
 
 		void SetLength( long newLength );
 		long GetLength() const { return length; }
@@ -31,6 +31,7 @@ class VectorRn {
 		double* GetPtr() { return x; }
 		void Set( long i, double val ) { assert(0<=i && i<length), *(x+i) = val; }
 		void SetTriple( long i, const VectorR3& u );
+        void setHextuple(int i, const VectorR3&u, const VectorR3& v);
         void AddScaled (const VectorRn& src, double scaleFactor );
         double MaxAbs() const;
 
@@ -54,16 +55,5 @@ class VectorRn {
 		static VectorRn& GetWorkVector() { return WorkVector; }
 		static VectorRn& GetWorkVector( long len ) { WorkVector.SetLength(len); return WorkVector; }
 };
-
-inline double Dot( const VectorRn& u, const VectorRn& v ) {
-	assert ( u.GetLength() == v.GetLength() );
-	double res = 0.0;
-	const double* p = u.GetPtr();
-	const double* q = v.GetPtr();
-	for ( long i = u.GetLength(); i>0; i-- ) {
-		res += (*(p++))*(*(q++));
-	}
-	return res;
-}
 
 #endif /*VECTOR_RN_H*/

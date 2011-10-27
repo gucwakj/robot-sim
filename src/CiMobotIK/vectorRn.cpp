@@ -23,14 +23,14 @@ VectorRn::VectorRn(void) {
     this->x = 0;
 }
 
-VectorRn::VectorRn(long length) {
+VectorRn::VectorRn(long init_length) {
 	this->length = 0;
 	this->AllocLength = 0;
 	this->x = 0;
-	this->SetLength(length);
+	this->SetLength(init_length);
 }
 
-VectorRn::~VectorRn(void) {
+VectorRn::~VectorRn() {
 	delete x;
 }
 
@@ -59,6 +59,13 @@ void VectorRn::SetTriple( long i, const VectorR3& u ) {
 	long j = 3*i;
 	assert ( 0<=j && j+2 < length );
 	u.Dump( x+j );
+}
+
+void VectorRn::setHextuple(int i, const VectorR3&u, const VectorR3& v) {
+    int j = 6*i;
+    assert( 0<=j && j+2 < length );
+    u.Dump( x + j );
+    v.Dump( x + j + 3 );
 }
 
 void VectorRn::Fill( double d ) {

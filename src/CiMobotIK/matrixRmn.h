@@ -15,7 +15,7 @@ class MatrixRmn {
 		void SetZero(void);
 		void Set( long i, long j, double val );
 		void SetTriple( long i, long j, const VectorR3& u );
-		void SetHextuple( long i, long j, const VectorR3& u, const VectorR3& v );
+		void setHextuple(int i, int j, const VectorR3& u, const VectorR3& v);
 		void SetIdentity();
 		void SetDiagonalEntries( double d );
 		void SetDiagonalEntries( const VectorRn& d );

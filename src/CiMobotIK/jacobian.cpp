@@ -34,12 +34,10 @@ Jacobian::Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot) {
 	this->w.SetLength( (this->m_num_row < this->m_num_col) ? this->m_num_row : this->m_num_col );
 
     this->dTheta.SetLength(this->m_num_col);		// changes in joint angles
-    this->dS.SetLength(3 * this->m_num_effect);         // (target positions) - (end effector positions)
-    this->dT.SetLength(3 * this->m_num_effect);         // linearized change in end effector positions based on dTheta
-    //this->dS.SetLength(this->m_num_row);			// (target positions) - (end effector positions)
-    //this->dT.SetLength(this->m_num_row);			// linearized change in end effector positions based on dTheta
-	//this->dQ.SetLength(3 * this->m_num_effect);			//
-	//this->dR.SetLength(3 * this->m_num_effect);			// linearized change in end effector orientations based on dTheta
+    //this->dS.SetLength(3 * this->m_num_effect);         // (target positions) - (end effector positions)
+    //this->dT.SetLength(3 * this->m_num_effect);         // linearized change in end effector positions based on dTheta
+    this->dS.SetLength(this->m_num_row);			// (target positions) - (end effector positions)
+    this->dT.SetLength(this->m_num_row);			// linearized change in end effector positions based on dTheta
 
 	this->dSclamp.SetLength(this->m_num_effect);
 	//this->errorArray.SetLength(this->m_num_effect);
@@ -55,18 +53,16 @@ Jacobian::~Jacobian(void) {
 
 void Jacobian::computeJacobian(void) {
 	int i = 0, j = 0;
-	VectorR3 temp;
+	VectorR3 pos, rot;
 	Node *n = this->tree->getRoot();
 
 	while ( n ) {
 		if ( n->isEffector() ) {
 			i = n->getEffectorNum();
-			// position
-			temp = this->target_pos[i] - n->getS();
-			this->dS.SetTriple(i, temp);
-			// orientation
-			//temp = 0.5 * ();
-			//this->dQ.SetTriple(i, temp);
+            pos = this->target_pos[i] - n->getS();      // position
+			//this->dS.SetTriple(i, pos);
+            rot = VectorR3(0, 0, 0);                    // orientation
+            this->dS.setHextuple(i, pos, rot);
 
 			Node *m = this->tree->getParent(n);
 			while ( m ) {
@@ -75,25 +71,24 @@ void Jacobian::computeJacobian(void) {
 
 				if ( m->isFrozen() ) {
 					//this->J.SetTriple(i, j, VectorR3(0, 0, 0));			// position
-					this->J.SetHextuple(i, j, VectorR3(0, 0, 0), VectorR3(0, 0, 0));
+					this->J.setHextuple(i, j, VectorR3(0, 0, 0), VectorR3(0, 0, 0));
 				}
 				else {
-					temp = m->getS();					// joint pos
+					pos = m->getS();					// joint pos
 					if ( this->m_j_type == J_END )
-						temp -= n->getS();				// -(end effector pos - joint pos)
+						pos -= n->getS();				// -(end effector pos - joint pos)
 					else
-						temp -= this->target_pos[i];	// -(target pos - joint pos)
-					temp *= m->getW();					// cross product with joint rotation axis
-					//this->J.SetTriple(i, j, temp);		// set position
-					this->J.SetHextuple(i, j, temp, m->getW());
+						pos -= this->target_pos[i];	// -(target pos - joint pos)
+					pos *= m->getW();					// cross product with joint rotation axis
+					//this->J.SetTriple(i, j, pos);		// set position
+                    rot = m->getW();
+					this->J.setHextuple(i, j, pos, rot);    // set position and rotation
 				}
 				m = this->tree->getParent(m);
 			}
 		}
 		n = this->tree->getSuccessor(n);
 	}
-	//cout << "J Rows: " << this->J.GetNumRows() << endl;
-	//cout << "J Cols: " << this->J.GetNumColumns() << endl;
 }
 
 void Jacobian::calcDeltaThetas(void) {
@@ -193,9 +188,7 @@ void Jacobian::calc_delta_thetas_transpose(void) {
 	// Scale back the dTheta values greedily
 	this->J.Multiply(this->dTheta, this->dT);								// dT = J * dTheta
 
-    double alpha = Dot(this->dS, this->dT) / this->dT.normSq();
-    //double alpha2 = this->dS.dot(this->dT) / this->dT.NormSq();   // will be implemented when dS length
-    //cout << "alpha: " << alpha << "\talpha2: " << alpha2 << endl; // issue is sorted out
+    double alpha = this->dS.dot(this->dT) / this->dT.normSq();
 	double beta = this->m_max_angle[JACOB_TRANSPOSE] / dTheta.MaxAbs();
 	assert( alpha > 0.0 );
 
@@ -353,11 +346,11 @@ void Jacobian::zero_delta_thetas(void) {
 }
 
 void Jacobian::calc_dT_clamped_from_dS(void) {
-    for ( int i = 0, j = 0; i < this->dS.GetLength(); i+=3, j++ ) {
+    for ( int i = 0, j = 0; i < this->dS.GetLength(); i+=6, j++ ) {
         if ( this->dS.normSq(i) > (this->dSclamp[j]*this->dSclamp[j]) )
-            this->dT.SetTriple(i, this->dSclamp[j]*VectorR3(this->dS[i], this->dS[i+1], this->dS[i+2])/this->dS.norm(i));
-		else
-            this->dT.SetTriple(i, VectorR3(this->dS[i], this->dS[i+1], this->dS[i+2]));
+            this->dT.setHextuple(i, this->dSclamp[j]*VectorR3(this->dS[i], this->dS[i+1], this->dS[i+2])/this->dS.norm(i), VectorR3(0, 0, 0));
+        else
+            this->dT.setHextuple(i, VectorR3(this->dS[i], this->dS[i+1], this->dS[i+2]), VectorR3(0, 0, 0));
 	}
 }
 
