@@ -33,11 +33,13 @@ Jacobian::Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot) {
 	this->V.SetSize(this->m_num_col, this->m_num_col);
 	this->w.SetLength( (this->m_num_row < this->m_num_col) ? this->m_num_row : this->m_num_col );
 
-	this->dTheta.SetLength(this->m_num_col);		// changes in joint angles
-	this->dS.SetLength(3 * this->m_num_effect);			// (target positions) - (end effector positions)
-	this->dT.SetLength(3 * this->m_num_effect);			// linearized change in end effector positions based on dTheta
-	this->dQ.SetLength(3 * this->m_num_effect);			//
-	this->dR.SetLength(3 * this->m_num_effect);			// linearized change in end effector orientations based on dTheta
+    this->dTheta.SetLength(this->m_num_col);		// changes in joint angles
+    this->dS.SetLength(3 * this->m_num_effect);         // (target positions) - (end effector positions)
+    this->dT.SetLength(3 * this->m_num_effect);         // linearized change in end effector positions based on dTheta
+    //this->dS.SetLength(this->m_num_row);			// (target positions) - (end effector positions)
+    //this->dT.SetLength(this->m_num_row);			// linearized change in end effector positions based on dTheta
+	//this->dQ.SetLength(3 * this->m_num_effect);			//
+	//this->dR.SetLength(3 * this->m_num_effect);			// linearized change in end effector orientations based on dTheta
 
 	this->dSclamp.SetLength(this->m_num_effect);
 	//this->errorArray.SetLength(this->m_num_effect);
@@ -144,7 +146,7 @@ void Jacobian::updatedSClampValue(void) {
 			i = n->getEffectorNum();
 			temp = this->target_pos[i] - n->getS();
 
-			changedDist = temp.Norm() - sqrt(dS[i]*dS[i] + dS[i+1]*dS[i+1] + dS[i+2]*dS[i+2]);
+            changedDist = temp.Norm() - this->dS.norm(i);
 			if ( changedDist > 0.0 )
 				this->dSclamp[i] = this->m_base_max_dist + changedDist;
 			else
@@ -191,7 +193,7 @@ void Jacobian::calc_delta_thetas_transpose(void) {
 	// Scale back the dTheta values greedily
 	this->J.Multiply(this->dTheta, this->dT);								// dT = J * dTheta
 
-    double alpha = Dot(this->dS, this->dT) / this->dT.NormSq();
+    double alpha = Dot(this->dS, this->dT) / this->dT.normSq();
     //double alpha2 = this->dS.dot(this->dT) / this->dT.NormSq();   // will be implemented when dS length
     //cout << "alpha: " << alpha << "\talpha2: " << alpha2 << endl; // issue is sorted out
 	double beta = this->m_max_angle[JACOB_TRANSPOSE] / dTheta.MaxAbs();
@@ -351,22 +353,11 @@ void Jacobian::zero_delta_thetas(void) {
 }
 
 void Jacobian::calc_dT_clamped_from_dS(void) {
-	int j = 0, len = dS.GetLength();
-	double factor = 0, normSq = 0;
-
-	for ( int i = 0; i < len; i+=3, j++ ) {
-		normSq = dS[i]*dS[i] + dS[i+1]*dS[i+1] + dS[i+2]*dS[i+2];
-		if ( normSq > (this->dSclamp[j]*this->dSclamp[j]) ) {
-			factor = this->dSclamp[j] / sqrt(normSq);
-			dT[i] = dS[i]*factor;
-			dT[i+1] = dS[i+1]*factor;
-			dT[i+2] = dS[i+2]*factor;
-		}
-		else {
-			dT[i] = dS[i];
-			dT[i+1] = dS[i+1];
-			dT[i+2] = dS[i+2];
-		}
+    for ( int i = 0, j = 0; i < this->dS.GetLength(); i+=3, j++ ) {
+        if ( this->dS.normSq(i) > (this->dSclamp[j]*this->dSclamp[j]) )
+            this->dT.SetTriple(i, this->dSclamp[j]*VectorR3(this->dS[i], this->dS[i+1], this->dS[i+2])/this->dS.norm(i));
+		else
+            this->dT.SetTriple(i, VectorR3(this->dS[i], this->dS[i+1], this->dS[i+2]));
 	}
 }
 

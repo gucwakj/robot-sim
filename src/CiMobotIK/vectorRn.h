@@ -9,45 +9,42 @@ class VectorRn {
 	friend class MatrixRmn;
 
 	public:
-		VectorRn();					// Null constructor
-		VectorRn( long length );	// Constructor with length
-		~VectorRn();				// Destructor
+		VectorRn(void);				// Null constructor
+		VectorRn(long length);      // Constructor with length
+		~VectorRn(void);			// Destructor
 
 		void SetLength( long newLength );
 		long GetLength() const { return length; }
-
 		void SetZero();
 		void Fill( double d );
 		void Load( const double* d );
 		void LoadScaled( const double* d, double scaleFactor );
 		void Set ( const VectorRn& src );
-
 		// Two access methods identical in functionality
 		// Subscripts are ZERO-BASED!!
-		const double& operator[]( long i ) const { assert ( 0<=i && i<length );	return *(x+i); }
-		double& operator[]( long i ) { assert ( 0<=i && i<length );	return *(x+i); }
 		double Get( long i ) const { assert ( 0<=i && i<length );	return *(x+i); }
-
 		// Use GetPtr to get pointer into the array (efficient)
 		// Is friendly in that anyone can change the array contents (be careful!)
 		const double* GetPtr( long i ) const { assert(0<=i && i<length);  return (x+i); }
 		double* GetPtr( long i ) { assert(0<=i && i<length);  return (x+i); }
 		const double* GetPtr() const { return x; }
 		double* GetPtr() { return x; }
-
 		void Set( long i, double val ) { assert(0<=i && i<length), *(x+i) = val; }
 		void SetTriple( long i, const VectorR3& u );
+        void AddScaled (const VectorRn& src, double scaleFactor );
+        double MaxAbs() const;
+
+        double dot(const VectorRn& v);
+        double norm(void);
+        double normSq(void);
+        double norm(int i);
+        double normSq(int i);
 
 		VectorRn& operator+=( const VectorRn& src );
-		VectorRn& operator-=( const VectorRn& src );
-		void AddScaled (const VectorRn& src, double scaleFactor );
-
-		VectorRn& operator*=( double f );
-		double NormSq() const;
-		double Norm() const { return sqrt(NormSq()); }
-
-		double MaxAbs() const;
-        double dot(const VectorRn& v);
+        VectorRn& operator-=( const VectorRn& src );
+        VectorRn& operator*=( double f );
+        const double& operator[]( long i ) const { assert ( 0<=i && i<length ); return *(x+i); }
+        double& operator[]( long i ) { assert ( 0<=i && i<length ); return *(x+i); }
 	private:
 		long length;				// Logical or actual length
 		long AllocLength;			// Allocated length

@@ -17,20 +17,20 @@ double VectorRn::MaxAbs(void) const {
 	return result;
 }
 
-VectorRn::VectorRn() {
-	length = 0;
-	AllocLength = 0;
-	x = 0;
+VectorRn::VectorRn(void) {
+    this->length = 0;
+    this->AllocLength = 0;
+    this->x = 0;
 }
 
-VectorRn::VectorRn( long initLength ) {
-	length = 0;
-	AllocLength = 0;
-	x = 0;
-	SetLength( initLength );
+VectorRn::VectorRn(long length) {
+	this->length = 0;
+	this->AllocLength = 0;
+	this->x = 0;
+	this->SetLength(length);
 }
 
-VectorRn::~VectorRn() {
+VectorRn::~VectorRn(void) {
 	delete x;
 }
 
@@ -128,14 +128,36 @@ VectorRn& VectorRn::operator*=( double f ) {
 	return *this;
 }
 
-double VectorRn::NormSq() const {
-	double* target = x;
-	double res = 0.0;
-	for ( long i=length; i>0; i-- ) {
-		res += (*target)*(*target);
-		target++;
-	}
-	return res;
+double VectorRn::norm(void) {
+    return sqrt(this->normSq());
+}
+
+double VectorRn::norm(int i) {
+    return sqrt(this->normSq(i));
+}
+
+double VectorRn::normSq(void) {
+    double *target = x;
+    double res = 0;
+    for ( int i = length; i > 0; i-- ) {
+        res += (*target)*(*target);
+        target++;
+    }
+    return res;
+}
+
+double VectorRn::normSq(int i) {
+    double *target = x;
+    double res = 0.0;
+    int j;
+    for ( j = 0; j < i; j++) {
+        target++;
+    }
+    for ( j; j < i + 3; j++ ) {
+        res += (*target)*(*target);
+        target++;
+    }
+    return res;
 }
 
 double VectorRn::dot(const VectorRn& v) {

@@ -66,8 +66,8 @@ class Jacobian {
 		Tree *tree;				// tree associated with this Jacobian matrix
 		VectorR3 *target_pos;   // target positions for effectors
 		VectorRn w;				// SVD (Singular Value Decomposition): J = U * Diag(w) * V^T
-		VectorRn dQ;			// delta q
-		VectorRn dR;			// delta r		--  these are delta Q values clamped to smaller magnitude
+		//VectorRn dQ;			// delta q
+		//VectorRn dR;			// delta r		--  these are delta Q values clamped to smaller magnitude
 		VectorRn dS;			// delta s
 		VectorRn dT;			// delta t		--  these are delta S values clamped to smaller magnitude
 		VectorRn dSclamp;		// Value at which to clamp magnitude of dT
