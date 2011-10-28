@@ -9,51 +9,41 @@ class VectorRn {
 	friend class MatrixRmn;
 
 	public:
-		VectorRn(void);				// Null constructor
-		VectorRn(long init_length);      // Constructor with length
-		~VectorRn();			// Destructor
+		VectorRn(void);				    // Null constructor
+		VectorRn(int init_length);      // Constructor with length
+		~VectorRn(void);			    // Destructor
 
-		void SetLength( long newLength );
-		long GetLength() const { return length; }
-		void SetZero();
-		void Fill( double d );
-		void Load( const double* d );
-		void LoadScaled( const double* d, double scaleFactor );
-		void Set ( const VectorRn& src );
-		// Two access methods identical in functionality
-		// Subscripts are ZERO-BASED!!
-		double Get( long i ) const { assert ( 0<=i && i<length );	return *(x+i); }
-		// Use GetPtr to get pointer into the array (efficient)
-		// Is friendly in that anyone can change the array contents (be careful!)
-		const double* GetPtr( long i ) const { assert(0<=i && i<length);  return (x+i); }
-		double* GetPtr( long i ) { assert(0<=i && i<length);  return (x+i); }
-		const double* GetPtr() const { return x; }
-		double* GetPtr() { return x; }
-		void Set( long i, double val ) { assert(0<=i && i<length), *(x+i) = val; }
-		void SetTriple( long i, const VectorR3& u );
+		void set(const double *d, double scale = 1);
+        void setLength(int new_length);
+        void setValue(double d);
+        void setZero(void);
+        void setTriplePosition(int i, const VectorR3& u);
+        void setTripleRotation(int i, const VectorR3& v);
         void setHextuple(int i, const VectorR3&u, const VectorR3& v);
-        void AddScaled (const VectorRn& src, double scaleFactor );
-        double MaxAbs() const;
 
+        int getLength(void) const;
+        double* getPtr(void);
+        const double* getPtr(void) const;
+        double* getPtr(int i);
+        const double* getPtr(int i) const;
+
+        void add(const VectorRn& src, double scale = 1);
         double dot(const VectorRn& v);
+        double maxAbs(void) const;
         double norm(void);
         double normSq(void);
         double norm(int i);
         double normSq(int i);
 
-		VectorRn& operator+=( const VectorRn& src );
-        VectorRn& operator-=( const VectorRn& src );
-        VectorRn& operator*=( double f );
-        const double& operator[]( long i ) const { assert ( 0<=i && i<length ); return *(x+i); }
-        double& operator[]( long i ) { assert ( 0<=i && i<length ); return *(x+i); }
+        double& operator[] (int i);
+        const double& operator[] (int i) const;
+		VectorRn& operator+= (const VectorRn& src);
+        VectorRn& operator-= (const VectorRn& src);
+        VectorRn& operator*= (double f);
 	private:
-		long length;				// Logical or actual length
-		long AllocLength;			// Allocated length
-		double *x;					// Array of vector entries
-
-		static VectorRn WorkVector;								// Serves as a temporary vector
-		static VectorRn& GetWorkVector() { return WorkVector; }
-		static VectorRn& GetWorkVector( long len ) { WorkVector.SetLength(len); return WorkVector; }
+		int m_length;			            // Logical or actual length
+		int m_alloc_length;			        // Allocated length
+		double *x;					        // Array of vector entries
 };
 
 #endif /*VECTOR_RN_H*/

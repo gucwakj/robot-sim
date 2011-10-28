@@ -242,7 +242,7 @@ void MatrixRmn::SetDiagonalEntries( const VectorRn& d )
 {
 	//long diagLen = Min( NumRows, NumCols );
 	long diagLen = ((NumRows < NumCols) ? NumRows : NumCols);
-	assert ( d.length == diagLen );
+	assert ( d.m_length == diagLen );
 	double* dPtr = x;
 	double* from = d.x;
 	for ( ; diagLen>0; diagLen-- ) {
@@ -268,7 +268,7 @@ void MatrixRmn::SetSuperDiagonalEntries( const VectorRn& d )
 {
 	//long sDiagLen = Min( (long)(NumRows-1), NumCols );
 	long sDiagLen = (((long)(NumRows-1) < NumCols) ? (long)(NumRows-1) : NumCols);
-	assert ( sDiagLen == d.length );
+	assert ( sDiagLen == d.m_length );
 	double* to = x + NumRows;
 	double* from = d.x;
 	for ( ; sDiagLen>0; sDiagLen-- ) {
@@ -294,7 +294,7 @@ void MatrixRmn::SetSubDiagonalEntries( const VectorRn& d )
 {
 	//long sDiagLen = Min( NumRows, NumCols ) - 1;
 	long sDiagLen = ((NumRows < NumCols) ? NumRows : NumCols) - 1;
-	assert ( sDiagLen == d.length );
+	assert ( sDiagLen == d.m_length );
 	double* to = x + 1;
 	double* from = d.x;
 	for ( ; sDiagLen>0; sDiagLen-- ) {
@@ -306,7 +306,7 @@ void MatrixRmn::SetSubDiagonalEntries( const VectorRn& d )
 // Set the i-th column equal to d.
 void MatrixRmn::SetColumn(long i, const VectorRn& d )
 {
-	assert ( NumRows==d.GetLength() );
+	assert ( NumRows==d.getLength() );
 	double* to = x+i*NumRows;
 	const double* from = d.x;
 	for ( i=NumRows; i>0; i-- ) {
@@ -317,7 +317,7 @@ void MatrixRmn::SetColumn(long i, const VectorRn& d )
 // Set the i-th column equal to d.
 void MatrixRmn::SetRow(long i, const VectorRn& d )
 {
-	assert ( NumCols==d.GetLength() );
+	assert ( NumCols==d.getLength() );
 	double* to = x+i;
 	const double* from = d.x;
 	for ( i=NumRows; i>0; i-- ) {
@@ -332,7 +332,7 @@ void MatrixRmn::SetRow(long i, const VectorRn& d )
 //	to increment the row and column indices.  There is no wrapping around.
 void MatrixRmn::SetSequence( const VectorRn& d, long startRow, long startCol, long deltaRow, long deltaCol )
 {
-	long length = d.length;
+	long length = d.m_length;
 	assert( startRow>=0 && startRow<NumRows && startCol>=0 && startCol<NumCols );
 	assert( startRow+(length-1)*deltaRow>=0 && startRow+(length-1)*deltaRow<NumRows );
  	assert( startCol+(length-1)*deltaCol>=0 && startCol+(length-1)*deltaCol<NumCols );
@@ -391,11 +391,11 @@ double MatrixRmn::FrobeniusNorm() const
 // Result is column vector "result"
 void MatrixRmn::Multiply( const VectorRn& v, VectorRn& result ) const
 {
-	assert ( v.GetLength()==NumCols && result.GetLength()==NumRows );
-	double* out = result.GetPtr();				// Points to entry in result vector
+	assert ( v.getLength()==NumCols && result.getLength()==NumRows );
+	double* out = result.getPtr();				// Points to entry in result vector
 	const double* rowPtr = x;					// Points to beginning of next row in matrix
 	for ( long j = NumRows; j>0; j-- ) {
-		const double* in = v.GetPtr();
+		const double* in = v.getPtr();
 		const double* m = rowPtr++;
 		*out = 0.0f;
 		for ( long i = NumCols; i>0; i-- ) {
@@ -411,11 +411,11 @@ void MatrixRmn::Multiply( const VectorRn& v, VectorRn& result ) const
 // Equivalent to mult by row vector on left
 void MatrixRmn::MultiplyTranspose( const VectorRn& v, VectorRn& result ) const
 {
-	assert ( v.GetLength()==NumRows && result.GetLength()==NumCols );
-	double* out = result.GetPtr();				// Points to entry in result vector
+	assert ( v.getLength()==NumRows && result.getLength()==NumCols );
+	double* out = result.getPtr();				// Points to entry in result vector
 	const double* colPtr = x;					// Points to beginning of next column in matrix
 	for ( long i=NumCols; i>0; i-- ) {
-		const double* in=v.GetPtr();
+		const double* in=v.getPtr();
 		*out = 0.0f;
 		for ( long j = NumRows; j>0; j-- ) {
 			*out += (*(in++)) * (*(colPtr++));
@@ -427,7 +427,7 @@ void MatrixRmn::MultiplyTranspose( const VectorRn& v, VectorRn& result ) const
 // Form the dot product of a vector v with the i-th column of the array
 double MatrixRmn::DotProductColumn( const VectorRn& v, long colNum ) const
 {
-	assert ( v.GetLength()==NumRows );
+	assert ( v.getLength()==NumRows );
 	double* ptrC = x+colNum*NumRows;
 	double* ptrV = v.x;
 	double ret = 0.0;
@@ -518,7 +518,7 @@ MatrixRmn& MatrixRmn::MultiplyTranspose( const MatrixRmn& A, const MatrixRmn& B,
 // No error checking for divide by zero or instability (except with asserts)
 void MatrixRmn::Solve( const VectorRn& b, VectorRn* xVec ) const
 {
-	assert ( NumRows==NumCols && NumCols==xVec->GetLength() && NumRows==b.GetLength() );
+	assert ( NumRows==NumCols && NumCols==xVec->getLength() && NumRows==b.getLength() );
 
 	// Copy this matrix and b into an Augmented Matrix
 	MatrixRmn& AugMat = GetWorkMatrix( NumRows, NumCols+1 );
@@ -687,10 +687,11 @@ void MatrixRmn::ComputeSVD( MatrixRmn& U, VectorRn& w, MatrixRmn& V ) const
 			 && w.GetLength() == Min(NumRows,NumCols) );*/
 	assert ( U.NumRows==NumRows && V.NumCols==NumCols
 			&& U.NumRows==U.NumCols && V.NumRows==V.NumCols
-			&& w.GetLength() == ((NumRows<NumCols) ? NumRows : NumCols) );
+			&& w.getLength() == ((NumRows<NumCols) ? NumRows : NumCols) );
 
 	//double temp=0.0;
-	VectorRn& superDiag = VectorRn::GetWorkVector( w.GetLength()-1 );		// Some extra work space.  Will get passed around.
+	//VectorRn& superDiag = VectorRn::get_work_vector( w.getLength()-1 );		// Some extra work space.  Will get passed around.
+    VectorRn superDiag2(w.getLength() - 1);
 
 	// Choose larger of U, V to hold intermediate results
 	// If U is larger than V, use U to store intermediate results
@@ -711,8 +712,10 @@ void MatrixRmn::ComputeSVD( MatrixRmn& U, VectorRn& w, MatrixRmn& V ) const
 
 	// Do the actual work to calculate the SVD
 	// Now matrix has at least as many rows as columns
-	CalcBidiagonal( *leftMatrix, *rightMatrix, w, superDiag );
-	ConvertBidiagToDiagonal( *leftMatrix, *rightMatrix, w, superDiag );
+	//CalcBidiagonal( *leftMatrix, *rightMatrix, w, superDiag );
+    //ConvertBidiagToDiagonal( *leftMatrix, *rightMatrix, w, superDiag );
+    CalcBidiagonal( *leftMatrix, *rightMatrix, w, superDiag2 );
+    ConvertBidiagToDiagonal( *leftMatrix, *rightMatrix, w, superDiag2 );
 
 }
 
@@ -930,7 +933,7 @@ void MatrixRmn::ConvertBidiagToDiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w
 	long lastBidiagIdx = V.NumRows-1;
 	long firstBidiagIdx = 0;
 	//double eps = 1.0e-15 * Max(w.MaxAbs(), superDiag.MaxAbs());
-	double eps = 1.0e-15 * ((w.MaxAbs() > superDiag.MaxAbs()) ? w.MaxAbs() : superDiag.MaxAbs());
+	double eps = 1.0e-15 * ((w.maxAbs() > superDiag.maxAbs()) ? w.maxAbs() : superDiag.maxAbs());
 
 	while ( true ) {
 		bool workLeft = UpdateBidiagIndices( &firstBidiagIdx, &lastBidiagIdx, w, superDiag, eps );
@@ -1086,7 +1089,7 @@ void MatrixRmn::ApplyGivensCBTD( double cosine, double sine, double *a, double *
 // Helper routine for SVD conversion from bidiagonal to diagonal
 bool MatrixRmn::UpdateBidiagIndices( long *firstBidiagIdx, long *lastBidiagIdx, VectorRn& w, VectorRn& superDiag, double eps ) {
 	long lastIdx = *lastBidiagIdx;
-	double* sdPtr = superDiag.GetPtr( lastIdx-1 );		// Entry above the last diagonal entry
+	double* sdPtr = superDiag.getPtr( lastIdx-1 );		// Entry above the last diagonal entry
 	//while ( NearZero(*sdPtr, eps) ) {
 	while ( fabs(*sdPtr) <= eps ) {
 		*(sdPtr--) = 0.0;
@@ -1097,7 +1100,7 @@ bool MatrixRmn::UpdateBidiagIndices( long *firstBidiagIdx, long *lastBidiagIdx, 
 	}
 	*lastBidiagIdx = lastIdx;
 	long firstIdx = lastIdx-1;
-	double* wPtr = w.GetPtr( firstIdx );
+	double* wPtr = w.getPtr( firstIdx );
 	while ( firstIdx > 0 ) {
 		//if ( NearZero( *wPtr, eps ) ) {			// If this diagonal entry (near) zero
 		if ( fabs(*wPtr) <= eps ) {			// If this diagonal entry (near) zero
@@ -1144,7 +1147,7 @@ bool MatrixRmn::DebugCheckSVD( const MatrixRmn& U, const VectorRn& w, const Matr
 	C -= *this;
 	error += C.FrobeniusNorm();
 
-	bool ret = ( fabs(error)<=1.0e-13*w.MaxAbs() );
+	bool ret = ( fabs(error)<=1.0e-13*w.maxAbs() );
 	assert ( ret );
 	return ret;
 }
@@ -1183,7 +1186,7 @@ bool MatrixRmn::DebugCalcBidiagCheck( const MatrixRmn& U, const VectorRn& w, con
 	error += C.FrobeniusNorm();
 
 	//bool ret = ( fabs(error)<1.0e-13*Max(w.MaxAbs(),superDiag.MaxAbs()) );
-	bool ret = ( fabs(error) < (1.0e-13*((w.MaxAbs() > superDiag.MaxAbs()) ? w.MaxAbs() : superDiag.MaxAbs())) );
+	bool ret = ( fabs(error) < (1.0e-13*((w.maxAbs() > superDiag.maxAbs()) ? w.maxAbs() : superDiag.maxAbs())) );
 	assert ( ret );
 	return ret;
 }

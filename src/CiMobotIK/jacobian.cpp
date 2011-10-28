@@ -31,18 +31,18 @@ Jacobian::Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot) {
 
 	this->U.SetSize(this->m_num_row, this->m_num_row);
 	this->V.SetSize(this->m_num_col, this->m_num_col);
-	this->w.SetLength( (this->m_num_row < this->m_num_col) ? this->m_num_row : this->m_num_col );
+	this->w.setLength( (this->m_num_row < this->m_num_col) ? this->m_num_row : this->m_num_col );
 
-    this->dTheta.SetLength(this->m_num_col);		// changes in joint angles
-    //this->dS.SetLength(3 * this->m_num_effect);         // (target positions) - (end effector positions)
-    //this->dT.SetLength(3 * this->m_num_effect);         // linearized change in end effector positions based on dTheta
-    this->dS.SetLength(this->m_num_row);			// (target positions) - (end effector positions)
-    this->dT.SetLength(this->m_num_row);			// linearized change in end effector positions based on dTheta
+    this->dTheta.setLength(this->m_num_col);		// changes in joint angles
+    //this->dS.setLength(3 * this->m_num_effect);         // (target positions) - (end effector positions)
+    //this->dT.setLength(3 * this->m_num_effect);         // linearized change in end effector positions based on dTheta
+    this->dS.setLength(this->m_num_row);			// (target positions) - (end effector positions)
+    this->dT.setLength(this->m_num_row);			// linearized change in end effector positions based on dTheta
 
-	this->dSclamp.SetLength(this->m_num_effect);
-	//this->errorArray.SetLength(this->m_num_effect);
+	this->dSclamp.setLength(this->m_num_effect);
+	//this->errorArray.setLength(this->m_num_effect);
 	this->Jnorms.SetSize(this->m_num_effect, this->m_num_col);	// Holds the norms of the active J matrix
-	this->dPreTheta.SetLength(this->m_num_col);
+	this->dPreTheta.setLength(this->m_num_col);
 
 	this->reset();
 }
@@ -178,7 +178,7 @@ double Jacobian::getDeltaTheta(int num) {	return this->dTheta[num]; }
 
 void Jacobian::reset(void) {
 	this->m_lambda = this->m_lambda_default;
-	this->dSclamp.Fill(HUGE_VAL);
+    this->dSclamp.setValue(HUGE_VAL);
 }
 
 // Find the delta theta values using inverse Jacobian method
@@ -189,7 +189,7 @@ void Jacobian::calc_delta_thetas_transpose(void) {
 	this->J.Multiply(this->dTheta, this->dT);								// dT = J * dTheta
 
     double alpha = this->dS.dot(this->dT) / this->dT.normSq();
-	double beta = this->m_max_angle[JACOB_TRANSPOSE] / dTheta.MaxAbs();
+	double beta = this->m_max_angle[JACOB_TRANSPOSE] / dTheta.maxAbs();
 	assert( alpha > 0.0 );
 
 	this->dTheta *= ((alpha < beta) ? alpha : beta);
@@ -204,16 +204,16 @@ void Jacobian::calc_delta_thetas_pseudoinverse(void) {
 	this->J.ComputeSVD(U, w, V);			// Compute SVD
     assert(this->J.DebugCheckSVD(U, w, V));		// Debugging check
 
-	int diagLength = this->w.GetLength();
-	double *wPtr = this->w.GetPtr();
-	this->dTheta.SetZero();
+	int diagLength = this->w.getLength();
+	double *wPtr = this->w.getPtr();
+	this->dTheta.setZero();
 
 	for ( int i = 0; i < diagLength; i++ ) {
 		dotProdCol = this->U.DotProductColumn(this->dS, i);		// Dot product with i-th column of U
 		alpha = *(wPtr++);
-		if ( fabs(alpha) > (this->m_pi_factor * this->w.MaxAbs()) ) {
+		if ( fabs(alpha) > (this->m_pi_factor * this->w.maxAbs()) ) {
 			alpha = 1.0/alpha;
-			MatrixRmn::AddArrayScale(this->V.GetNumRows(), this->V.GetColumnPtr(i), 1, this->dTheta.GetPtr(), 1, dotProdCol*alpha);
+			MatrixRmn::AddArrayScale(this->V.GetNumRows(), this->V.GetColumnPtr(i), 1, this->dTheta.getPtr(), 1, dotProdCol*alpha);
 		}
 	}
 
@@ -250,14 +250,14 @@ void Jacobian::calc_delta_thetas_dls_with_svd(void) {
     assert(this->J.DebugCheckSVD(U, w, V));		// Debugging check
 
 	//int diagLength = this->w.GetLength();
-	double *wPtr = this->w.GetPtr();
-	this->dTheta.SetZero();
+	double *wPtr = this->w.getPtr();
+	this->dTheta.setZero();
 
-	for ( int i = 0; i < this->w.GetLength(); i++ ) {
+	for ( int i = 0; i < this->w.getLength(); i++ ) {
 		dotProdCol = this->U.DotProductColumn(this->dS, i);		// Dot product with i-th column of U
 		alpha = *(wPtr++);
 		alpha = alpha / (alpha * alpha + this->m_lambda * this->m_lambda);
-		MatrixRmn::AddArrayScale(this->V.GetNumRows(), this->V.GetColumnPtr(i), 1, this->dTheta.GetPtr(), 1, dotProdCol*alpha);
+		MatrixRmn::AddArrayScale(this->V.GetNumRows(), this->V.GetColumnPtr(i), 1, this->dTheta.getPtr(), 1, dotProdCol*alpha);
 	}
 
 	// Scale back to not exceed maximum angle changes
@@ -276,7 +276,7 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 	int num_rows = this->J.GetNumRows();
 	int num_cols = this->J.GetNumColumns();
 	int num_effectors = this->tree->getNumEffector();		// Equals the number of rows of J divided by three
-	this->dTheta.SetZero();
+	this->dTheta.setZero();
 
 	// Calculate the norms of the 3-vectors in the Jacobian
 	const double *jx = J.GetPtr();
@@ -301,7 +301,7 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 		// Calculate N
 		N = 0;					// N is the quasi-1-norm of the i-th column of U
 		alpha = 0;				// alpha is the dot product of dT and the i-th column of U
-		const double *dTx = this->dT.GetPtr();
+		const double *dTx = this->dT.getPtr();
 		const double *ux = this->U.GetColumnPtr(i);
 		for ( j = num_effectors; j > 0; j-- ) {
 			alpha += (*ux)*(*(dTx++));
@@ -332,21 +332,20 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 		// Scale back maximum permissable joint angle
 		gamma = this->m_max_angle[JACOB_SDLS];
 		if ( N < M ) { gamma *= N/M; }
-
 		// Calculate the dTheta from pure pseudoinverse considerations
-		this->dPreTheta.LoadScaled( this->V.GetColumnPtr(i), alpha*wiInv);
-		// Now rescale the dTheta values.
-		this->dTheta.AddScaled(this->dPreTheta, gamma/(gamma + this->dPreTheta.MaxAbs()));
+        this->dPreTheta.set(this->V.GetColumnPtr(i), alpha*wiInv);
+		// Now rescale the dTheta values
+		this->dTheta.add(this->dPreTheta, gamma/(gamma + this->dPreTheta.maxAbs()));
 	}
 	scale_back_angle(JACOB_SDLS, 1);		// Scale back to not exceed maximum angle changes
 }
 
 void Jacobian::zero_delta_thetas(void) {
-	this->dTheta.SetZero();
+	this->dTheta.setZero();
 }
 
 void Jacobian::calc_dT_clamped_from_dS(void) {
-    for ( int i = 0, j = 0; i < this->dS.GetLength(); i+=6, j++ ) {
+    for ( int i = 0, j = 0; i < this->dS.getLength(); i+=6, j++ ) {
         if ( this->dS.normSq(i) > (this->dSclamp[j]*this->dSclamp[j]) )
             this->dT.setHextuple(i, this->dSclamp[j]*VectorR3(this->dS[i], this->dS[i+1], this->dS[i+2])/this->dS.norm(i), VectorR3(0, 0, 0));
         else
@@ -355,7 +354,7 @@ void Jacobian::calc_dT_clamped_from_dS(void) {
 }
 
 void Jacobian::scale_back_angle(int j_mode, int method) {
-	double maxChange = this->dTheta.MaxAbs();
+	double maxChange = this->dTheta.maxAbs();
 	if ( maxChange > this->m_max_angle[j_mode] && method )
 		this->dTheta *= (this->m_max_angle[j_mode] / (this->m_max_angle[j_mode] + maxChange));
 	else if ( maxChange > this->m_max_angle[j_mode] && !method )
