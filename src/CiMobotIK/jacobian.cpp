@@ -65,12 +65,12 @@ void Jacobian::computeJacobian(void) {
 					this->J.setHextuple(i, j, VectorR3(0, 0, 0), VectorR3(0, 0, 0));
 				}
 				else {
-					pos = m->getS();					// joint pos
+					pos = m->getS();					    // joint pos
 					if ( this->m_j_type == J_END )
-						pos -= n->getS();				// -(end effector pos - joint pos)
+						pos -= n->getS();				    // -(end effector pos - joint pos)
 					else
-						pos -= this->target_pos[i];	// -(target pos - joint pos)
-					pos *= m->getW();					// cross product with joint rotation axis
+						pos -= this->target_pos[i];	        // -(target pos - joint pos)
+					pos *= m->getW();					    // cross product with joint rotation axis
                     rot = m->getW();
 					this->J.setHextuple(i, j, pos, rot);    // set position and rotation
 				}

@@ -449,13 +449,14 @@ void CiMobotIK::print_intermediate_data(void) {
 	cout << endl;
 	cout << endl;*/
 
-	/*for ( int i = 0; i < this->m_num_targets; i++ ) {
+	for ( int i = 0; i < this->m_num_targets; i++ ) {
 		if ( this->node_effector[i] ) {
-			cout << this->node_effector[i]->getS() << "\t" << this->target_pos[i] << "\t";
-			cout << this->node_effector[i]->getS() << "\t" << this->target_rot[i] << "\t";
+			cout << "Pos: " << this->node_effector[i]->getS() << "\t" << this->target_pos[i] << endl;
+			cout << "Rot eff: " << this->node_effector[i]->getR();
+            cout << "Rot tar: " << this->target_rot[i];
 			//cout << endl;
 		}
-	}*/
+	}
 
 	/*for ( int i = 0; i < this->m_num_bot*NUM_DOF+this->m_num_targets; i++ ) {
 			if ( this->node[i] ) {
