@@ -242,7 +242,7 @@ void MatrixRmn::SetDiagonalEntries( const VectorRn& d )
 {
 	//long diagLen = Min( NumRows, NumCols );
 	long diagLen = ((NumRows < NumCols) ? NumRows : NumCols);
-	assert ( d.m_length == diagLen );
+	assert ( d.getLength() == diagLen );
 	double* dPtr = x;
 	double* from = d.x;
 	for ( ; diagLen>0; diagLen-- ) {
@@ -268,9 +268,9 @@ void MatrixRmn::SetSuperDiagonalEntries( const VectorRn& d )
 {
 	//long sDiagLen = Min( (long)(NumRows-1), NumCols );
 	long sDiagLen = (((long)(NumRows-1) < NumCols) ? (long)(NumRows-1) : NumCols);
-	assert ( sDiagLen == d.m_length );
+	assert ( sDiagLen == d.getLength() );
 	double* to = x + NumRows;
-	double* from = d.x;
+    double* from = d.x;
 	for ( ; sDiagLen>0; sDiagLen-- ) {
 		*to = *(from++);
 		to += NumRows+1;
@@ -294,9 +294,9 @@ void MatrixRmn::SetSubDiagonalEntries( const VectorRn& d )
 {
 	//long sDiagLen = Min( NumRows, NumCols ) - 1;
 	long sDiagLen = ((NumRows < NumCols) ? NumRows : NumCols) - 1;
-	assert ( sDiagLen == d.m_length );
+	assert ( sDiagLen == d.getLength() );
 	double* to = x + 1;
-	double* from = d.x;
+    double* from = d.x;
 	for ( ; sDiagLen>0; sDiagLen-- ) {
 		*to = *(from++);
 		to += NumRows+1;
@@ -308,7 +308,7 @@ void MatrixRmn::SetColumn(long i, const VectorRn& d )
 {
 	assert ( NumRows==d.getLength() );
 	double* to = x+i*NumRows;
-	const double* from = d.x;
+    const double* from = d.x;
 	for ( i=NumRows; i>0; i-- ) {
 		*(to++) = *(from++);
 	}
@@ -319,7 +319,7 @@ void MatrixRmn::SetRow(long i, const VectorRn& d )
 {
 	assert ( NumCols==d.getLength() );
 	double* to = x+i;
-	const double* from = d.x;
+    const double* from = d.x;
 	for ( i=NumRows; i>0; i-- ) {
 		*to = *(from++);
 		to += NumRows;
@@ -332,12 +332,12 @@ void MatrixRmn::SetRow(long i, const VectorRn& d )
 //	to increment the row and column indices.  There is no wrapping around.
 void MatrixRmn::SetSequence( const VectorRn& d, long startRow, long startCol, long deltaRow, long deltaCol )
 {
-	long length = d.m_length;
+	long length = d.getLength();
 	assert( startRow>=0 && startRow<NumRows && startCol>=0 && startCol<NumCols );
 	assert( startRow+(length-1)*deltaRow>=0 && startRow+(length-1)*deltaRow<NumRows );
  	assert( startCol+(length-1)*deltaCol>=0 && startCol+(length-1)*deltaCol<NumCols );
 	double *to = x + startRow + NumRows*startCol;
-	double *from = d.x;
+    double *from = d.x;
 	long stride = deltaRow + NumRows*deltaCol;
 	for ( ; length>0; length-- ) {
 		*to = *(from++);

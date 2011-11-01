@@ -28,12 +28,6 @@ class Jacobian {
 		Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot);
 		~Jacobian(void);
 
-		void computeJacobian(void);				// Compute Jacobian matrix
-		void calcDeltaThetas(void);				// Calculate delta theta for each joint
-		void updatedSClampValue(void);			// Update distance to target
-		//void updateErrorArray(void);			// Update error of effector
-		void updateThetas(void);				// Update theta values
-
 		void setCurrentMode(int mode);			// Type of updating mode for Jacobian
 		void setCurrentType(int type);			// Jacobian type: END or TARGET
 		void setCurrentDLSMode(int mode);		// CLAMPED or TRADITIONAL
@@ -43,6 +37,11 @@ class Jacobian {
 		int getCurrentType(void);				// Jacobian type: END or TARGET
 		int getCurrentDLSMode(void);			// CLAMPED or TRADITIONAL
 		double getDeltaTheta(int num);			// Current delta theta value of joint
+
+        void computeJacobian(void);             // Compute Jacobian matrix
+        void calcDeltaThetas(void);             // Calculate delta theta for each joint
+        void updatedSClampValue(void);          // Update distance to target
+        void updateThetas(void);                // Update theta values
 
 		void reset(void);
 	private:
@@ -71,7 +70,6 @@ class Jacobian {
 		VectorRn dSclamp;		// Value at which to clamp magnitude of dT
 		VectorRn dTheta;		// delta theta
 		VectorRn dPreTheta;		// delta theta for single eigenvalue  (SDLS only)
-		//VectorRn errorArray;	// Distance of end effectors from target after updating
 
 		void calc_delta_thetas_transpose(void);
 		void calc_delta_thetas_pseudoinverse(void);

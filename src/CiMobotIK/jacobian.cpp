@@ -9,14 +9,10 @@ Jacobian::Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot) {
 
 	this->m_num_effect = this->tree->getNumEffector();
 	this->m_num_joint = this->tree->getNumJoint();
-	//this->m_num_row = 3 * this->m_num_effect;		// 3dof
-	this->m_num_row = 6 * this->m_num_effect;		// 6dof
+	this->m_num_row = 6 * this->m_num_effect;		        // 6dof
 	this->m_num_col = this->m_num_joint;
-	this->m_j_type = J_END;
-    this->m_j_mode = JACOB_SDLS;
-	this->m_dls_mode = TRADITIONAL;
-	this->m_lambda_default = 1.1;							// DLS: Default damping
-	this->m_pi_factor = 0.01;								// PI: threshhold for eigenvalues = 0
+	this->m_lambda_default = 1.1;							//  DLS: default damping
+	this->m_pi_factor = 0.01;								//   PI: threshhold for eigenvalues = 0
 	this->m_base_max_dist = 0.4;							// SDLS: ?????
 	this->m_max_angle = new double[NUM_MODES];				// array of max angle jumps for each time step
 	this->m_max_angle[JACOB_UNDEFINED] = 0;
@@ -29,20 +25,16 @@ Jacobian::Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot) {
 	this->J.SetSize(this->m_num_row, this->m_num_col);
 	this->J.SetZero();
 
-	this->U.SetSize(this->m_num_row, this->m_num_row);
+    this->U.SetSize(this->m_num_row, this->m_num_row);
+    this->w.setLength( (this->m_num_row < this->m_num_col) ? this->m_num_row : this->m_num_col );
 	this->V.SetSize(this->m_num_col, this->m_num_col);
-	this->w.setLength( (this->m_num_row < this->m_num_col) ? this->m_num_row : this->m_num_col );
 
-    this->dTheta.setLength(this->m_num_col);		// changes in joint angles
-    //this->dS.setLength(3 * this->m_num_effect);         // (target positions) - (end effector positions)
-    //this->dT.setLength(3 * this->m_num_effect);         // linearized change in end effector positions based on dTheta
+    this->Jnorms.SetSize(this->m_num_effect, this->m_num_col);  // Holds the norms of the active J matrix
+    this->dPreTheta.setLength(this->m_num_col);     // delta theta for single eigenvalue
     this->dS.setLength(this->m_num_row);			// (target positions) - (end effector positions)
+    this->dSclamp.setLength(this->m_num_effect);    // clamp magnitude of dT
     this->dT.setLength(this->m_num_row);			// linearized change in end effector positions based on dTheta
-
-	this->dSclamp.setLength(this->m_num_effect);
-	//this->errorArray.setLength(this->m_num_effect);
-	this->Jnorms.SetSize(this->m_num_effect, this->m_num_col);	// Holds the norms of the active J matrix
-	this->dPreTheta.setLength(this->m_num_col);
+    this->dTheta.setLength(this->m_num_col);        // changes in joint angles
 
 	this->reset();
 }
@@ -59,8 +51,8 @@ void Jacobian::computeJacobian(void) {
 	while ( n ) {
 		if ( n->isEffector() ) {
 			i = n->getEffectorNum();
+
             pos = this->target_pos[i] - n->getS();      // position
-			//this->dS.SetTriple(i, pos);
             rot = VectorR3(0, 0, 0);                    // orientation
             this->dS.setHextuple(i, pos, rot);
 
@@ -70,7 +62,6 @@ void Jacobian::computeJacobian(void) {
 				assert( 0 <=i && i < this->m_num_effect && 0 <= j && j < this->m_num_joint );
 
 				if ( m->isFrozen() ) {
-					//this->J.SetTriple(i, j, VectorR3(0, 0, 0));			// position
 					this->J.setHextuple(i, j, VectorR3(0, 0, 0), VectorR3(0, 0, 0));
 				}
 				else {
@@ -80,7 +71,6 @@ void Jacobian::computeJacobian(void) {
 					else
 						pos -= this->target_pos[i];	// -(target pos - joint pos)
 					pos *= m->getW();					// cross product with joint rotation axis
-					//this->J.SetTriple(i, j, pos);		// set position
                     rot = m->getW();
 					this->J.setHextuple(i, j, pos, rot);    // set position and rotation
 				}
@@ -150,21 +140,6 @@ void Jacobian::updatedSClampValue(void) {
 		n = this->tree->getSuccessor(n);
 	}
 }
-
-/*void Jacobian::updateErrorArray(void) {
-	int i = 0;
-	VectorR3 temp;
-	Node *n = this->tree->getRoot();
-
-	while ( n ) {
-		if ( n->isEffector() ) {
-			i = n->getEffectorNum();
-			temp = this->target_pos[i] - n->getS();
-			this->errorArray[i] = temp.Norm();
-		}
-		n = this->tree->getSuccessor(n);
-	}
-}*/
 
 void Jacobian::setCurrentType(int type) {	this->m_j_type = type;	}
 void Jacobian::setCurrentMode(int mode) {	this->m_j_mode = mode;	}

@@ -14,7 +14,11 @@ CiMobotIK::CiMobotIK(int num_bot, int num_targets) {
 	this->node_right = new Node * [NUM_DOF*num_bot];
 	this->node_effector = new Node * [num_targets];
 	this->target_pos = new VectorR3[num_targets];
-	this->target_rot = new MatrixR33[num_targets];
+    this->target_rot = new MatrixR33[num_targets];
+    this->m_j_mode = JACOB_SDLS;
+    this->m_j_type = J_END;
+    this->m_j_dls = TRADITIONAL;
+    this->m_j_lambda = 1.1;
 }
 
 CiMobotIK::~CiMobotIK(void) {
@@ -287,19 +291,19 @@ void CiMobotIK::addEffector(int eff_num, int bot_num, int face) {
 }
 
 void CiMobotIK::setCurrentMode(int mode) {
-	this->jacob->setCurrentMode(mode);
+    this->m_j_mode = mode;
 }
 
 void CiMobotIK::setCurrentType(int type) {
-	this->jacob->setCurrentType(type);
+    this->m_j_type = type;
 }
 
 void CiMobotIK::setCurrentDLSMode(int mode) {
-	this->jacob->setCurrentDLSMode(mode);
+    this->m_j_dls = mode;
 }
 
 void CiMobotIK::setDampingDLS(double lambda) {
-	this->jacob->setDampingDLS(lambda);
+    this->m_j_lambda = lambda;
 }
 
 void CiMobotIK::setTarget(int num, double x, double y, double z, double psi, double theta, double phi) {
@@ -409,7 +413,11 @@ double CiMobotIK::getTargetPhi(int num) {
 
 void CiMobotIK::runSimulation(int argc, char **argv) {
 	bool loop = true;
-	this->jacob = new Jacobian(&(this->tree), this->target_pos, this->target_rot);
+    this->jacob = new Jacobian(&(this->tree), this->target_pos, this->target_rot);
+    this->jacob->setCurrentMode(this->m_j_mode);
+    this->jacob->setCurrentType(this->m_j_type);
+    this->jacob->setCurrentDLSMode(this->m_j_dls);
+    this->jacob->setDampingDLS(this->m_j_lambda);
 	this->tree.init();
 	this->tree.compute();
 	this->print_intermediate_data();
@@ -419,7 +427,6 @@ void CiMobotIK::runSimulation(int argc, char **argv) {
 		this->jacob->calcDeltaThetas();			// calculate delta Theta values
 		this->jacob->updateThetas();			// apply the change in the theta values
 		this->jacob->updatedSClampValue();		// update distance to target position
-		//this->jacob->updateErrorArray();		// update error of effector to target position
 
 		this->print_intermediate_data();
 

@@ -86,6 +86,10 @@ class CiMobotIK {
 		int m_num_targets;
 		double m_t;
 		double m_t_step;
+        int m_j_mode;
+        int m_j_type;
+        int m_j_dls;
+        double m_j_lambda;
 
 		void update_targets(void);
 		void print_intermediate_data(void);
