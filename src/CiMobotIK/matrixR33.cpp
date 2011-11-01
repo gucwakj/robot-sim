@@ -1,3 +1,4 @@
+#include <float.h>
 #include "matrixR33.h"
 
 MatrixR33::MatrixR33(void) {
@@ -179,6 +180,22 @@ MatrixR33& MatrixR33::rotate(double theta, const VectorR3& w) {
     this->m13 = w.x*w.z*(1-c) + w.y*s;
     this->m23 = w.y*w.z*(1-c) - w.x*s;
     this->m33 = c + w.z*w.z*(1-c);
+
+    if ( fabs(this->m21 - 1) < DBL_EPSILON ) {         // m21 == 1
+        this->psi = atan2(this->m32, this->m33);
+        this->theta = M_PI/2;
+        this->phi = 0;
+    }
+    else if ( fabs(this->m21 + 1) < DBL_EPSILON ) {    // m21 == -1
+        this->psi = atan2(this->m13, this->m33);
+        this->theta = -M_PI/2;
+        this->phi = 0;
+    }
+    else {
+        this->theta = asin(this->m21);
+        this->psi = atan2(-this->m23/cos(this->theta), this->m22/cos(this->theta));
+        this->phi = atan2(-this->m31/cos(this->theta), this->m11/cos(this->theta));
+    }
 
     return ( *this );
 }
