@@ -8,53 +8,33 @@
 class MatrixRmn {
 	public:
 		MatrixRmn(void);							// Null constructor
-		MatrixRmn(long numRows, long numCols);		// Constructor with length
+        MatrixRmn(int num_row, int num_col);		// Constructor with length
 		~MatrixRmn(void);							// Destructor
 
-		void SetSize(long numRows, long numCols);
-		void SetZero(void);
-		void Set( long i, long j, double val );
-		void SetTriple( long i, long j, const VectorR3& u );
-		void setHextuple(int i, int j, const VectorR3& u, const VectorR3& v);
-		void SetIdentity();
+        void setColumn(int i, const VectorRn& d );
+        void setHextuple(int i, int j, const VectorR3& u, const VectorR3& v);
+        void setIdentity(void);
+        void setSize(int num_row, int num_col);
+        void setTriplePosition(int i, int j, const VectorR3& u);
+        void setTripleRotation(int i, int j, const VectorR3& v);
+        void setZero(void);
+
 		void SetDiagonalEntries( double d );
 		void SetDiagonalEntries( const VectorRn& d );
 		void SetSuperDiagonalEntries( double d );
 		void SetSuperDiagonalEntries( const VectorRn& d );
 		void SetSubDiagonalEntries( double d );
 		void SetSubDiagonalEntries( const VectorRn& d );
-		void SetColumn(long i, const VectorRn& d );
-		void SetRow(long i, const VectorRn& d );
 		void SetSequence( const VectorRn& d, long startRow, long startCol, long deltaRow, long deltaCol );
 
-		// Return entry in row i and column j.
-		double Get( long i, long j ) const;
-		void GetTriple( long i, long j, VectorR3 *retValue ) const;
-		long GetNumRows(void) const { return NumRows; }
-		long GetNumColumns(void) const { return NumCols; }
-
-		// Use GetPtr to get pointer into the array (efficient)
-		// Is friendly in that anyone can change the array contents (be careful!)
-		// The entries are in column order!!!
-		// Use this with care.  You may call GetRowStride and GetColStride to navigate
-		//			within the matrix.  I do not expect these values to ever change.
-		const double* GetPtr() const;
-		double* GetPtr();
-		const double* GetPtr( long i, long j ) const;
-		double* GetPtr( long i, long j );
-		const double* GetColumnPtr( long j ) const;
-		double* GetColumnPtr( long j );
-		const double* GetRowPtr( long i ) const;
-		double* GetRowPtr( long i );
-		long GetRowStride() const { return NumRows; }		// Step size (stride) along a row
-		long GetColStride() const { return 1; }				// Step size (stide) along a column
-
-		// Loads matrix in as a sub-matrix.  (i,j) is the base point. Defaults to (0,0).
-		// The "Tranpose" versions load the transpose of A.
-		void LoadAsSubmatrix( const MatrixRmn& A );
-		void LoadAsSubmatrix( long i, long j, const MatrixRmn& A );
-		void LoadAsSubmatrixTranspose( const MatrixRmn& A );
-		void LoadAsSubmatrixTranspose( long i, long j, const MatrixRmn& A );
+        int getNumRows(void) const;
+        int getNumColumns(void) const;
+        double* getPtr(void);
+        const double* getPtr(void) const;
+        double* getPtr(int i, int j);
+        const double* getPtr(int i, int j) const;
+        double* getColumnPtr(int j);
+        const double* getColumnPtr(int j) const;
 
 		// Norms
 		double FrobeniusNormSq() const;
@@ -66,17 +46,13 @@ class MatrixRmn {
 		double DotProductColumn( const VectorRn& v, long colNum ) const;			// Returns dot product of v with i-th column
 
 		// Operations on MatrixRmn's
-		MatrixRmn& operator*=( double );
-		MatrixRmn& operator/=( double d ) { assert(d!=0.0); *this *= (1.0/d); return *this; }
-		MatrixRmn& AddScaled( const MatrixRmn& B, double factor );
-		MatrixRmn& operator+=( const MatrixRmn& B );
-		MatrixRmn& operator-=( const MatrixRmn& B );
+		//MatrixRmn& AddScaled( const MatrixRmn& B, double factor );
 		static MatrixRmn& Multiply( const MatrixRmn& A, const MatrixRmn& B, MatrixRmn& dst );				// Sets dst = A*B.
 		static MatrixRmn& MultiplyTranspose( const MatrixRmn& A, const MatrixRmn& B, MatrixRmn& dst );		// Sets dst = A*(B-tranpose).
 		static MatrixRmn& TransposeMultiply( const MatrixRmn& A, const MatrixRmn& B, MatrixRmn& dst );		// Sets dst = (A-transpose)*B.
 
 		// Miscellaneous operation
-		MatrixRmn& AddToDiagonal( double d );					// Adds d to each diagonal
+		MatrixRmn& addToDiagonal(double d);					// Adds d to each diagonal
 
 		// Solving systems of linear equations
 		void Solve( const VectorRn& b, VectorRn* x ) const;	  // Solves the equation   (*this)*x = b;    Uses row operations.  Assumes *this is invertible.
@@ -93,23 +69,23 @@ class MatrixRmn {
 		void PostApplyGivens( double c, double s, long idx1, long idx2 );				// Applies Givens transform to columns idx1 and idx2.
 
 		// Singular value decomposition
-		void ComputeSVD( MatrixRmn& U, VectorRn& w, MatrixRmn& V ) const;
-		bool DebugCheckSVD( const MatrixRmn& U, const VectorRn& w, const MatrixRmn& V ) const;
+		void computeSVD(MatrixRmn& U, VectorRn& w, MatrixRmn& V) const;
+		bool DebugCheckSVD(const MatrixRmn& U, const VectorRn& w, const MatrixRmn& V) const;
 
 		// Some useful routines for experts who understand the inner workings of these classes.
 		inline static double DotArray( long length, const double* ptrA, long strideA, const double* ptrB, long strideB );
 		inline static void CopyArrayScale( long length, const double* from, long fromStride, double *to, long toStride, double scale );
 		inline static void AddArrayScale( long length, const double* from, long fromStride, double *to, long toStride, double scale );
 
+        MatrixRmn& operator*= (double d);
+        MatrixRmn& operator/= (double d);
+        MatrixRmn& operator+= (const MatrixRmn& B);
+        MatrixRmn& operator-= (const MatrixRmn& B);
 	private:
 		long NumRows;				// Number of rows
 		long NumCols;				// Number of columns
 		double *x;					// Array of vector entries - stored in column order
 		long AllocSize;				// Allocated size of the x array
-
-		static MatrixRmn WorkMatrix;	// Temporary work matrix
-		static MatrixRmn& GetWorkMatrix() { return WorkMatrix; }
-		static MatrixRmn& GetWorkMatrix(long numRows, long numCols) { WorkMatrix.SetSize( numRows, numCols ); return WorkMatrix; }
 
 		// Internal helper routines for SVD calculations
 		static void CalcBidiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag );
@@ -122,6 +98,9 @@ class MatrixRmn {
 		static void ClearRowWithDiagonalZero( long firstBidiagIdx, long lastBidiagIdx, MatrixRmn& U, double *wPtr, double *sdPtr, double eps );
 		static void ClearColumnWithDiagonalZero( long endIdx, MatrixRmn& V, double *wPtr, double *sdPtr, double eps );
 		bool DebugCalcBidiagCheck( const MatrixRmn& U, const VectorRn& w, const VectorRn& superDiag, const MatrixRmn& V ) const;
+
+        void load_as_submatrix(const MatrixRmn& A);
+        void load_as_submatrix_transpose(const MatrixRmn& A);
 };
 
 // Helper routine to calculate dot product

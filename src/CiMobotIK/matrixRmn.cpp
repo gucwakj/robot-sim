@@ -1,188 +1,128 @@
 #include "matrixRmn.h"
 
-MatrixRmn MatrixRmn::WorkMatrix;		// Temporary work matrix
-
 MatrixRmn::MatrixRmn(void) {
-	NumRows = 0;
-	NumCols = 0;
-	x = 0;
-	AllocSize = 0;
+    this->NumRows = 0;
+    this->NumCols = 0;
+    this->x = 0;
+    this->AllocSize = 0;
 }
 
-MatrixRmn::MatrixRmn(long numRows, long numCols) {
-	NumRows = 0;
-	NumCols = 0;
-	x = 0;
-	AllocSize = 0;
-	SetSize( numRows, numCols );
+MatrixRmn::MatrixRmn(int num_row, int num_col) {
+	this->NumRows = 0;
+    this->NumCols = 0;
+    this->x = 0;
+    this->AllocSize = 0;
+	this->setSize(num_row, num_col);
+    this->setZero();
 }
 
 MatrixRmn::~MatrixRmn(void) {
 	delete x;
 }
 
-
-// Resize.
-// If the array space is decreased, the information about the allocated length is lost.
-void MatrixRmn::SetSize( long numRows, long numCols )
-{
-	assert ( numRows>0 && numCols>0 );
-	long newLength = numRows*numCols;
+void MatrixRmn::setSize(int num_row, int num_col) {
+	assert ( num_row > 0 && num_col > 0 );
+	long newLength = num_row*num_col;
 	if ( newLength>AllocSize ) {
 		delete x;
-		//AllocSize = Max(newLength, AllocSize<<1);
 		AllocSize = ((newLength > (AllocSize<<1)) ? newLength : (AllocSize<<1));
 		x = new double[AllocSize];
 	}
-	NumRows = numRows;
-	NumCols = numCols;
+	NumRows = num_row;
+	NumCols = num_col;
 }
 
-// Zero out the entire vector
-void MatrixRmn::SetZero()
-{
+void MatrixRmn::setZero(void) {
 	double* target = x;
 	for ( long i=NumRows*NumCols; i>0; i-- ) {
 		*(target++) = 0.0;
 	}
 }
 
-// Return entry in row i and column j.
-double MatrixRmn::Get( long i, long j ) const {
-	assert ( i<NumRows && j<NumCols );
-	return *(x+j*NumRows+i);
+void MatrixRmn::setIdentity(void) {
+    assert ( NumRows==NumCols );
+    setZero();
+    SetDiagonalEntries(1.0);
+}
+void MatrixRmn::setTriplePosition(int i, int j, const VectorR3& u) {
+    int ii = 6*i;
+    assert ( 0<=i && ii+2<NumRows && 0<=j && j<NumCols );
+    u.Dump( x+j*NumRows + ii );
 }
 
-// Return a VectorR3 out of a column.  Starts at row 3*i, in column j.
-void MatrixRmn::GetTriple( long i, long j, VectorR3 *retValue ) const
-{
-	long ii = 3*i;
-	assert ( 0<=i && ii+2<NumRows && 0<=j && j<NumCols );
-	retValue->Load( x+j*NumRows + ii );
+void MatrixRmn::setTripleRotation(int i, int j, const VectorR3& v) {
+    int ii = 6*i;
+    assert ( 0<=i && ii+5<NumRows && 0<=j && j<NumCols );
+    v.Dump(x + j*NumRows + ii + 3);
 }
 
-// Get a pointer to the (0,0) entry.
-// The entries are in column order.
-// This version gives read-only pointer
-const double* MatrixRmn::GetPtr( ) const
-{
+void MatrixRmn::setHextuple(int i, int j, const VectorR3& u, const VectorR3& v) {
+    int ii = 6*i;
+    assert ( 0<=i && ii+5<NumRows && 0<=j && j<NumCols );
+    u.Dump(x + j*NumRows + ii );
+    v.Dump(x + j*NumRows + ii + 3);
+}
+
+void MatrixRmn::setColumn(int i, const VectorRn& d) {
+    assert ( NumRows==d.getLength() );
+    double* to = x+i*NumRows;
+    const double* from = d.x;
+    for ( i=NumRows; i>0; i-- ) {
+        *(to++) = *(from++);
+    }
+}
+
+int MatrixRmn::getNumRows(void) const {
+    return this->NumRows;
+}
+
+int MatrixRmn::getNumColumns(void) const {
+    return this->NumCols;
+}
+
+double* MatrixRmn::getPtr(void) {
+    return x;
+}
+
+const double* MatrixRmn::getPtr(void) const {
 	return x;
 }
 
-// Get a pointer to the (0,0) entry.
-// The entries are in column order.
-double* MatrixRmn::GetPtr( )
-{
-	return x;
+double* MatrixRmn::getPtr(int i, int j) {
+    assert ( i<NumRows && j<NumCols );
+    return (x+j*NumRows+i);
 }
 
-// Get a pointer to the (i,j) entry.
-// The entries are in column order.
-// This version gives read-only pointer
-const double* MatrixRmn::GetPtr( long i, long j ) const
-{
+const double* MatrixRmn::getPtr(int i, int j) const {
 	assert ( 0<=i && i<NumRows && 0<=j &&j<NumCols );
 	return (x+j*NumRows+i);
 }
 
-// Get a pointer to the (i,j) entry.
-// The entries are in column order.
-// This version gives pointer to writable data
-double* MatrixRmn::GetPtr( long i, long j )
-{
-	assert ( i<NumRows && j<NumCols );
-	return (x+j*NumRows+i);
+double* MatrixRmn::getColumnPtr(int j) {
+    assert ( 0<=j && j<NumCols );
+    return (x+j*NumRows);
 }
 
-// Get a pointer to the j-th column.
-// The entries are in column order.
-// This version gives read-only pointer
-const double* MatrixRmn::GetColumnPtr( long j ) const
-{
+const double* MatrixRmn::getColumnPtr(int j) const {
 	assert ( 0<=j && j<NumCols );
 	return (x+j*NumRows);
 }
 
-// Get a pointer to the j-th column.
-// This version gives pointer to writable data
-double* MatrixRmn::GetColumnPtr( long j )
-{
-	assert ( 0<=j && j<NumCols );
-	return (x+j*NumRows);
-}
-
-// Get a pointer to the i-th row
-// The entries are in column order.
-// This version gives read-only pointer
-const double* MatrixRmn::GetRowPtr( long i ) const
-{
-	assert ( 0<=i && i<NumRows );
-	return (x+i);
-}
-
-// Get a pointer to the i-th row
-// This version gives pointer to writable data
-double* MatrixRmn::GetRowPtr( long i )
-{
-	assert ( 0<=i && i<NumRows );
-	return (x+i);
-}
-
-// Set the (i,j) entry of the matrix
-void MatrixRmn::Set( long i, long j, double val )
-{
-	assert( i<NumRows && j<NumCols );
-	*(x+j*NumRows+i) = val;
-}
-
-// Set the i-th triple in the j-th column to u's three values
-void MatrixRmn::SetTriple( long i, long j, const VectorR3& u )
-{
-	//long ii = 3*i;
-	long ii = 6*i;		// for 6dof
-	assert ( 0<=i && ii+2<NumRows && 0<=j && j<NumCols );
-	u.Dump( x+j*NumRows + ii );
-}
-
-// Set the i-th triple in the j-th column to u's three values
-void MatrixRmn::setHextuple(int i, int j, const VectorR3& u, const VectorR3& v) {
-	//long ii = 3*i;
-	int ii = 6*i;		// for 6dof
-	assert ( 0<=i && ii+5<NumRows && 0<=j && j<NumCols );
-	u.Dump(x + j*NumRows + ii );
-	v.Dump(x + j*NumRows + ii + 3);
-}
-
-// Set to be equal to the identity matrix
-void MatrixRmn::SetIdentity()
-{
-	assert ( NumRows==NumCols );
-	SetZero();
-	SetDiagonalEntries(1.0);
-}
-
-MatrixRmn& MatrixRmn::operator*=( double mult )
-{
+MatrixRmn& MatrixRmn::operator*= (double d) {
 	double* aPtr = x;
 	for ( long i=NumRows*NumCols; i>0; i-- ) {
-		(*(aPtr++)) *= mult;
+		(*(aPtr++)) *= d;
 	}
 	return (*this);
 }
 
-MatrixRmn& MatrixRmn::AddScaled( const MatrixRmn& B, double factor )
-{
-	assert (NumRows==B.NumRows && NumCols==B.NumCols);
-	double* aPtr = x;
-	double* bPtr = B.x;
-	for ( long i=NumRows*NumCols; i>0; i-- ) {
-		(*(aPtr++)) += (*(bPtr++))*factor;
-	}
-	return (*this);
+MatrixRmn& MatrixRmn::operator/= (double d) {
+    assert(d!=0.0);
+    *this *= (1.0/d);
+    return (*this);
 }
 
-MatrixRmn& MatrixRmn::operator+=( const MatrixRmn& B )
-{
+MatrixRmn& MatrixRmn::operator+= (const MatrixRmn& B) {
 	assert (NumRows==B.NumRows && NumCols==B.NumCols);
 	double* aPtr = x;
 	double* bPtr = B.x;
@@ -192,8 +132,7 @@ MatrixRmn& MatrixRmn::operator+=( const MatrixRmn& B )
 	return (*this);
 }
 
-MatrixRmn& MatrixRmn::operator-=( const MatrixRmn& B )
-{
+MatrixRmn& MatrixRmn::operator-= (const MatrixRmn& B) {
 	assert (NumRows==B.NumRows && NumCols==B.NumCols);
 	double* aPtr = x;
 	double* bPtr = B.x;
@@ -202,6 +141,10 @@ MatrixRmn& MatrixRmn::operator-=( const MatrixRmn& B )
 	}
 	return (*this);
 }
+
+
+
+
 
 double MatrixRmn::FrobeniusNormSq() const
 {
@@ -217,6 +160,18 @@ double MatrixRmn::FrobeniusNormSq() const
 }
 
 
+
+
+/*MatrixRmn& MatrixRmn::AddScaled( const MatrixRmn& B, double factor )
+{
+    assert (NumRows==B.NumRows && NumCols==B.NumCols);
+    double* aPtr = x;
+    double* bPtr = B.x;
+    for ( long i=NumRows*NumCols; i>0; i-- ) {
+        (*(aPtr++)) += (*(bPtr++))*factor;
+    }
+    return (*this);
+}*/
 
 
 
@@ -303,28 +258,6 @@ void MatrixRmn::SetSubDiagonalEntries( const VectorRn& d )
 	}
 }
 
-// Set the i-th column equal to d.
-void MatrixRmn::SetColumn(long i, const VectorRn& d )
-{
-	assert ( NumRows==d.getLength() );
-	double* to = x+i*NumRows;
-    const double* from = d.x;
-	for ( i=NumRows; i>0; i-- ) {
-		*(to++) = *(from++);
-	}
-}
-
-// Set the i-th column equal to d.
-void MatrixRmn::SetRow(long i, const VectorRn& d )
-{
-	assert ( NumCols==d.getLength() );
-	double* to = x+i;
-    const double* from = d.x;
-	for ( i=NumRows; i>0; i-- ) {
-		*to = *(from++);
-		to += NumRows;
-	}
-}
 
 // Sets a "linear" portion of the array with the values from a vector d
 // The first row and column position are given by startRow, startCol.
@@ -342,42 +275,6 @@ void MatrixRmn::SetSequence( const VectorRn& d, long startRow, long startCol, lo
 	for ( ; length>0; length-- ) {
 		*to = *(from++);
 		to += stride;
-	}
-}
-
-// The matrix A is loaded, in into "this" matrix, based at (0,0).
-//  The size of "this" matrix must be large enough to accomodate A.
-//	The rest of "this" matrix is left unchanged.  It is not filled with zeroes!
-
-void MatrixRmn::LoadAsSubmatrix( const MatrixRmn& A )
-{
-	assert( A.NumRows<=NumRows && A.NumCols<=NumCols );
-	int extraColStep = NumRows - A.NumRows;
-	double *to = x;
-	double *from = A.x;
-	for ( long i=A.NumCols; i>0; i-- ) {			// Copy columns of A, one per time thru loop
-		for ( long j=A.NumRows; j>0; j-- ) {		// Copy all elements of this column of A
-			*(to++) = *(from++);
-		}
-		to += extraColStep;
-	}
-}
-
-// The matrix A is loaded, in transposed order into "this" matrix, based at (0,0).
-//  The size of "this" matrix must be large enough to accomodate A.
-//	The rest of "this" matrix is left unchanged.  It is not filled with zeroes!
-void MatrixRmn::LoadAsSubmatrixTranspose( const MatrixRmn& A )
-{
-	assert( A.NumRows<=NumCols && A.NumCols<=NumRows );
-	double* rowPtr = x;
-	double* from = A.x;
-	for ( long i=A.NumCols; i>0; i-- ) {				// Copy columns of A, once per loop
-		double* to = rowPtr;
-		for ( long j=A.NumRows; j>0; j-- ) {			// Loop copying values from the column of A
-			*to = *(from++);
-			to += NumRows;
-		}
-		rowPtr ++;
 	}
 }
 
@@ -438,9 +335,7 @@ double MatrixRmn::DotProductColumn( const VectorRn& v, long colNum ) const
 }
 
 // Add a constant to each entry on the diagonal
-MatrixRmn& MatrixRmn::AddToDiagonal( double d )				// Adds d to each diagonal entry
-{
-	//long diagLen = Min( NumRows, NumCols );
+MatrixRmn& MatrixRmn::addToDiagonal( double d ) {
 	long diagLen = ((NumRows < NumCols) ? NumRows : NumCols);
 	double* dPtr = x;
 	for ( ; diagLen>0; diagLen-- ) {
@@ -521,9 +416,9 @@ void MatrixRmn::Solve( const VectorRn& b, VectorRn* xVec ) const
 	assert ( NumRows==NumCols && NumCols==xVec->getLength() && NumRows==b.getLength() );
 
 	// Copy this matrix and b into an Augmented Matrix
-	MatrixRmn& AugMat = GetWorkMatrix( NumRows, NumCols+1 );
-	AugMat.LoadAsSubmatrix( *this );
-	AugMat.SetColumn( NumRows, b );
+    MatrixRmn AugMat(NumRows, NumCols+1);
+	AugMat.load_as_submatrix( *this );
+	AugMat.setColumn( NumRows, b );
 
 	// Put into row echelon form with row operations
 	AugMat.ConvertToRefNoFree();
@@ -680,43 +575,34 @@ void MatrixRmn::PostApplyGivens( double c, double s, long idx1, long idx2 )
 //		necessarily sorted.  (Someday, I will write ComputedSortedSVD that handles
 //		sorting the eigenvalues by magnitude.)
 // ********************************************************************************************
-void MatrixRmn::ComputeSVD( MatrixRmn& U, VectorRn& w, MatrixRmn& V ) const
-{
-	/*assert ( U.NumRows==NumRows && V.NumCols==NumCols
-			 && U.NumRows==U.NumCols && V.NumRows==V.NumCols
-			 && w.GetLength() == Min(NumRows,NumCols) );*/
+void MatrixRmn::computeSVD(MatrixRmn& U, VectorRn& w, MatrixRmn& V) const {
 	assert ( U.NumRows==NumRows && V.NumCols==NumCols
 			&& U.NumRows==U.NumCols && V.NumRows==V.NumCols
 			&& w.getLength() == ((NumRows<NumCols) ? NumRows : NumCols) );
 
-	//double temp=0.0;
-	//VectorRn& superDiag = VectorRn::get_work_vector( w.getLength()-1 );		// Some extra work space.  Will get passed around.
-    VectorRn superDiag2(w.getLength() - 1);
+    VectorRn superDiag(w.getLength() - 1);
 
 	// Choose larger of U, V to hold intermediate results
 	// If U is larger than V, use U to store intermediate results
 	// Otherwise use V.  In the latter case, we form the SVD of A transpose,
 	//		(which is essentially identical to the SVD of A).
-	MatrixRmn* leftMatrix;
-	MatrixRmn* rightMatrix;
+	MatrixRmn *leftMatrix;
+	MatrixRmn *rightMatrix;
 	if ( NumRows >= NumCols ) {
-		U.LoadAsSubmatrix( *this );				// Copy A into U
+		U.load_as_submatrix( *this );				// Copy A into U
 		leftMatrix = &U;
 		rightMatrix = &V;
 	}
 	else {
-		V.LoadAsSubmatrixTranspose( *this );		// Copy A-transpose into V
+		V.load_as_submatrix_transpose( *this );		// Copy A-transpose into V
 		leftMatrix = &V;
 		rightMatrix = &U;
 	}
 
 	// Do the actual work to calculate the SVD
 	// Now matrix has at least as many rows as columns
-	//CalcBidiagonal( *leftMatrix, *rightMatrix, w, superDiag );
-    //ConvertBidiagToDiagonal( *leftMatrix, *rightMatrix, w, superDiag );
-    CalcBidiagonal( *leftMatrix, *rightMatrix, w, superDiag2 );
-    ConvertBidiagToDiagonal( *leftMatrix, *rightMatrix, w, superDiag2 );
-
+    CalcBidiagonal(*leftMatrix, *rightMatrix, w, superDiag);
+    ConvertBidiagToDiagonal(*leftMatrix, *rightMatrix, w, superDiag);
 }
 
 // ************************************************ CalcBidiagonal **************************
@@ -868,7 +754,7 @@ void MatrixRmn::ExpandHouseholders( long numXforms, int numZerosSkipped, const d
 	assert( numToTransform>0 );
 
 	if ( numXforms==0 ) {
-		SetIdentity();
+		setIdentity();
 		return;
 	}
 
@@ -1119,29 +1005,66 @@ bool MatrixRmn::UpdateBidiagIndices( long *firstBidiagIdx, long *lastBidiagIdx, 
 	return true;
 }
 
+
+
+// The matrix A is loaded, in into "this" matrix, based at (0,0).
+//  The size of "this" matrix must be large enough to accomodate A.
+//  The rest of "this" matrix is left unchanged.  It is not filled with zeroes!
+void MatrixRmn::load_as_submatrix( const MatrixRmn& A ) {
+    assert( A.NumRows<=NumRows && A.NumCols<=NumCols );
+    int extraColStep = NumRows - A.NumRows;
+    double *to = x;
+    double *from = A.x;
+    for ( long i=A.NumCols; i>0; i-- ) {            // Copy columns of A, one per time thru loop
+        for ( long j=A.NumRows; j>0; j-- ) {        // Copy all elements of this column of A
+            *(to++) = *(from++);
+        }
+        to += extraColStep;
+    }
+}
+
+// The matrix A is loaded, in transposed order into "this" matrix, based at (0,0).
+//  The size of "this" matrix must be large enough to accomodate A.
+//  The rest of "this" matrix is left unchanged.  It is not filled with zeroes!
+void MatrixRmn::load_as_submatrix_transpose( const MatrixRmn& A ) {
+    assert( A.NumRows<=NumCols && A.NumCols<=NumRows );
+    double* rowPtr = x;
+    double* from = A.x;
+    for ( long i=A.NumCols; i>0; i-- ) {                // Copy columns of A, once per loop
+        double* to = rowPtr;
+        for ( long j=A.NumRows; j>0; j-- ) {            // Loop copying values from the column of A
+            *to = *(from++);
+            to += NumRows;
+        }
+        rowPtr ++;
+    }
+}
+
+
+
 // ******************************************DEBUG STUFFF
 bool MatrixRmn::DebugCheckSVD( const MatrixRmn& U, const VectorRn& w, const MatrixRmn& V ) const {
 	// Special SVD test code
 
-	MatrixRmn IV( V.GetNumRows(), V.GetNumColumns() );
-	IV.SetIdentity();
-	MatrixRmn VTV( V.GetNumRows(), V.GetNumColumns() );
+	MatrixRmn IV( V.getNumRows(), V.getNumColumns() );
+	IV.setIdentity();
+	MatrixRmn VTV( V.getNumRows(), V.getNumColumns() );
 	MatrixRmn::TransposeMultiply( V, V, VTV );
 	IV -= VTV;
 	double error = IV.FrobeniusNorm();
 
-	MatrixRmn IU( U.GetNumRows(), U.GetNumColumns() );
-	IU.SetIdentity();
-	MatrixRmn UTU( U.GetNumRows(), U.GetNumColumns() );
+	MatrixRmn IU( U.getNumRows(), U.getNumColumns() );
+	IU.setIdentity();
+	MatrixRmn UTU( U.getNumRows(), U.getNumColumns() );
 	MatrixRmn::TransposeMultiply( U, U, UTU );
 	IU -= UTU;
 	error += IU.FrobeniusNorm();
 
-	MatrixRmn Diag( U.GetNumRows(), V.GetNumRows() );
-	Diag.SetZero();
+	MatrixRmn Diag( U.getNumRows(), V.getNumRows() );
+	Diag.setZero();
 	Diag.SetDiagonalEntries( w );
-	MatrixRmn B(U.GetNumRows(), V.GetNumRows() );
-	MatrixRmn C(U.GetNumRows(), V.GetNumRows() );
+	MatrixRmn B(U.getNumRows(), V.getNumRows() );
+	MatrixRmn C(U.getNumRows(), V.getNumRows() );
 	MatrixRmn::Multiply( U, Diag, B );
 	MatrixRmn::MultiplyTranspose( B, V, C );
 	C -= *this;
@@ -1155,31 +1078,31 @@ bool MatrixRmn::DebugCheckSVD( const MatrixRmn& U, const VectorRn& w, const Matr
 bool MatrixRmn::DebugCalcBidiagCheck( const MatrixRmn& U, const VectorRn& w, const VectorRn& superDiag, const MatrixRmn& V ) const {
 	// Special SVD test code
 
-	MatrixRmn IV( V.GetNumRows(), V.GetNumColumns() );
-	IV.SetIdentity();
-	MatrixRmn VTV( V.GetNumRows(), V.GetNumColumns() );
+	MatrixRmn IV( V.getNumRows(), V.getNumColumns() );
+	IV.setIdentity();
+	MatrixRmn VTV( V.getNumRows(), V.getNumColumns() );
 	MatrixRmn::TransposeMultiply( V, V, VTV );
 	IV -= VTV;
 	double error = IV.FrobeniusNorm();
 
-	MatrixRmn IU( U.GetNumRows(), U.GetNumColumns() );
-	IU.SetIdentity();
-	MatrixRmn UTU( U.GetNumRows(), U.GetNumColumns() );
+	MatrixRmn IU( U.getNumRows(), U.getNumColumns() );
+	IU.setIdentity();
+	MatrixRmn UTU( U.getNumRows(), U.getNumColumns() );
 	MatrixRmn::TransposeMultiply( U, U, UTU );
 	IU -= UTU;
 	error += IU.FrobeniusNorm();
 
-	MatrixRmn DiagAndSuper( U.GetNumRows(), V.GetNumRows() );
-	DiagAndSuper.SetZero();
+	MatrixRmn DiagAndSuper( U.getNumRows(), V.getNumRows() );
+	DiagAndSuper.setZero();
 	DiagAndSuper.SetDiagonalEntries( w );
-	if ( this->GetNumRows()>=this->GetNumColumns() ) {
+	if ( this->getNumRows()>=this->getNumColumns() ) {
 		DiagAndSuper.SetSequence( superDiag, 0, 1, 1, 1 );
 	}
 	else {
 		DiagAndSuper.SetSequence( superDiag, 1, 0, 1, 1 );
 	}
-	MatrixRmn B(U.GetNumRows(), V.GetNumRows() );
-	MatrixRmn C(U.GetNumRows(), V.GetNumRows() );
+	MatrixRmn B(U.getNumRows(), V.getNumRows() );
+	MatrixRmn C(U.getNumRows(), V.getNumRows() );
 	MatrixRmn::Multiply( U, DiagAndSuper, B );
 	MatrixRmn::MultiplyTranspose( B, V, C );
 	C -= *this;

@@ -5,11 +5,11 @@ int main(int argc, char *argv[]) {
 	CiMobotIK *ik = new CiMobotIK(2, 1);
 
 	//ik->iMobotAnchor(0, 0, 0, 0, 0, 0, 0);
-	ik->iMobotAnchor(LE, 0, 0, 0, 15, 90, 45, 0, 0, 0, 0);
+	ik->iMobotAnchor(LE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	ik->iMobotAttach(1, 0, 6, 1, 0, 0, 0, 0);
 	ik->addEffector(0, 1, 6);
 
-	ik->setTargetPosition(0, 0.1, 0.25, 0.0);
+	ik->setTargetPosition(0, 0.25, 0.25, 0.0);
     ik->setTargetRotation(0, 0, 0, 10);
 
 	ik->runSimulation(argc, argv);
