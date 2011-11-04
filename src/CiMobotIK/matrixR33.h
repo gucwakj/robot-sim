@@ -24,12 +24,16 @@ class MatrixR33 {
 		VectorR3 getColumn1(void);
 		VectorR3 getColumn2(void);
 		VectorR3 getColumn3(void);
+        VectorR3 getEulerAngles(void);
 
+        void recomputeEulerAngles(void);
 		void transpose(void);
 		void transform(VectorR3 *u);
 		void transform(const VectorR3& src, VectorR3 *dest);
 		MatrixR33& reNormalize(void);
         MatrixR33& rotate(double theta, const VectorR3& w);
+        MatrixR33& multiply(const MatrixR33& A);
+        MatrixR33& operator*= (const MatrixR33& A);
 
 		double m11, m12, m13, m21, m22, m23, m31, m32, m33;
 		double psi;

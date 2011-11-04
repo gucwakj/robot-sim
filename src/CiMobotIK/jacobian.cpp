@@ -55,14 +55,10 @@ void Jacobian::computeJacobian(void) {
             pos = this->target_pos[i] - n->getS();      // position
             rot = VectorR3(0, 0, 0);                    // orientation
             R = n->getR();
-            //cout << "R: " << R;
-            //cout << "tar: " << this->target_rot[i];
             rot2 = 0.5*(R.getColumn1()*this->target_rot[i].getColumn1() + R.getColumn2()*this->target_rot[i].getColumn2() + R.getColumn3()*this->target_rot[i].getColumn3());
-            cout << " R1: " << R.getColumn1() << R.getColumn2() << R.getColumn3() << endl;
-            cout << "tar: " << this->target_rot[i].getColumn1() << this->target_rot[i].getColumn2() << this->target_rot[i].getColumn3() << endl;
-            cout << "mul: " << R.getColumn1()*this->target_rot[i].getColumn1() << R.getColumn2()*this->target_rot[i].getColumn2() << R.getColumn3()*this->target_rot[i].getColumn3() << endl;
-            cout << "add: " << 2*rot2 << endl;
-            cout << "rot2:" << rot2 << endl;
+            //rot2 = VectorR3(this->target_rot[i].psi, this->target_rot[i].theta, this->target_rot[i].phi) - VectorR3(R.psi, R.theta, R.phi);
+            //cout << "target_pos: " << this->target_pos[i] << "\tcurrent_pos: " << n->getS() << "\tdelta_pos: " << pos << endl;
+            //cout << "target_rot: " << VectorR3(this->target_rot[i].psi, this->target_rot[i].theta, this->target_rot[i].phi) << "\tcurrent_rot: " << VectorR3(R.psi, R.theta, R.phi) << "\tdelta_rot: " << rot2 << endl;
             this->dS.setHextuple(i, pos, rot2);
 
 			Node *m = this->tree->getParent(n);

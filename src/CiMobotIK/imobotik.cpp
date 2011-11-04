@@ -284,7 +284,8 @@ void CiMobotIK::addEffector(int eff_num, int bot_num, int face) {
     VectorR3 eff = this->node[bot_num*NUM_DOF + face/2]->getRInit() * (END_DEPTH*this->node[bot_num*NUM_DOF + face/2]->getWInit());
 
     this->node_effector[eff_num] = new Node(this->node[bot_num*NUM_DOF + face/2]->getSInit() + eff,
-                                            VectorR3(0.0, 0.0, 0.0),
+                                            //VectorR3(0.0, 0.0, 0.0),
+                                            this->node[bot_num*NUM_DOF + face/2]->getWInit(),
                                             this->node[bot_num*NUM_DOF + face/2]->getRInit(),
                                             EFFECTOR);
 	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + face/2], this->node_effector[eff_num]);
@@ -452,9 +453,8 @@ void CiMobotIK::print_intermediate_data(void) {
 	/*for ( int i = 0; i < this->m_num_targets; i++ ) {
 		if ( this->node_effector[i] ) {
 			cout << "Pos: " << this->node_effector[i]->getS() << "\t" << this->target_pos[i] << endl;
-			cout << "Rot eff: " << this->node_effector[i]->getR();
-            cout << "Rot tar: " << this->target_rot[i];
-			//cout << endl;
+			MatrixR33 R = this->node_effector[i]->getR();
+            cout << "Rot: " << R.getEulerAngles() << "\t" << this->target_rot[i].getEulerAngles() << endl;
 		}
 	}*/
 
@@ -464,7 +464,14 @@ void CiMobotIK::print_intermediate_data(void) {
 				cout << "     S: " << this->node[i]->getS() << endl;
 				cout << "S Init: " << this->node[i]->getSInit() << endl;
 				cout << "     W: " << this->node[i]->getW() << endl;
-				cout << "W Init: " << this->node[i]->getWInit() << endl;
+                cout << "W Init: " << this->node[i]->getWInit() << endl;
+                MatrixR33 R = this->node[i]->getR();
+                MatrixR33 R1 = this->node[i]->getRInit();
+                cout << "  R EE: " << R.getEulerAngles() << endl;
+                cout << "R Init: " << R1.getEulerAngles() << endl;
+                cout << "     R: " << R.m11 << " " << R.m12 << " " << R.m13 << endl;
+                cout << "     R: " << R.m21 << " " << R.m22 << " " << R.m23 << endl;
+                cout << "     R: " << R.m31 << " " << R.m32 << " " << R.m33 << endl;
 				cout << " Theta: " << this->node[i]->getTheta() << endl;
 			}
 	}
