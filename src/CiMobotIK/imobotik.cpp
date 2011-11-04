@@ -308,12 +308,12 @@ void CiMobotIK::setDampingDLS(double lambda) {
 }
 
 void CiMobotIK::setTarget(int num, double x, double y, double z, double psi, double theta, double phi) {
-	this->target_pos[num].Set(x, y, z);
+	this->target_pos[num].set(x, y, z);
     this->target_rot[num].set(D2R(psi), D2R(theta), D2R(phi));
 }
 
 void CiMobotIK::setTargetPosition(int num, double x, double y, double z) {
-	this->target_pos[num].Set(x, y, z);
+	this->target_pos[num].set(x, y, z);
 }
 
 void CiMobotIK::setTargetRotation(int num, double psi, double theta, double phi) {

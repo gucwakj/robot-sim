@@ -49,21 +49,21 @@ void VectorRn::setZero(void) {
 void VectorRn::setTriplePosition(int i, const VectorR3& u) {
     int j = 6*i;
     assert( 0 <= j && j + 5 < m_length );
-    u.Dump( x + j );
+    u.dump( x + j );
 }
 
 // Set the value of the i-th rotation triple of entries in the vector
 void VectorRn::setTripleRotation(int i, const VectorR3& v) {
     int j = 6*i;
     assert( 0 <= j && j + 5 < m_length );
-    v.Dump( x + j + 3 );
+    v.dump( x + j + 3 );
 }
 
 void VectorRn::setHextuple(int i, const VectorR3&u, const VectorR3& v) {
     int j = 6*i;
     assert( 0<=j && j+2 < m_length );
-    u.Dump( x + j );
-    v.Dump( x + j + 3 );
+    u.dump( x + j );
+    v.dump( x + j + 3 );
 }
 
 int VectorRn::getLength(void) const {

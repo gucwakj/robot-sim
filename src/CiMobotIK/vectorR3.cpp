@@ -6,51 +6,48 @@ VectorR3::VectorR3(void) {
 	this->z = 0;
 }
 
-VectorR3::VectorR3(double xVal, double yVal, double zVal) {
-	this->x = xVal;
-	this->y = yVal;
-	this->z = zVal;
+VectorR3::VectorR3(double x, double y, double z) {
+	this->x = x;
+	this->y = y;
+	this->z = z;
 }
 
-double VectorR3::Dist(const VectorR3& u) {
-    return sqrt(DistSq(u));
+void VectorR3::set(double x, double y, double z) {
+    this->x = x;
+    this->y = y;
+    this->z = z;
 }
 
-double VectorR3::DistSq(const VectorR3& u) {
-    return (x-u.x)*(x-u.x) + (y-u.y)*(y-u.y) + (z-u.z)*(z-u.z);
-}
-
-double VectorR3::MaxAbs(void) {
-    register double m;
-    m = (x>0.0) ? x : -x;
-    if ( y>m ) m=y;
-    else if ( -y >m ) m = -y;
-    if ( z>m ) m=z;
-    else if ( -z>m ) m = -z;
+/*double VectorR3::maxAbs(void) {
+    double m = (x > 0.0) ? x : -x;
+    if ( y > m )
+        m = y;
+    else if ( -y > m )
+        m = -y;
+    if ( z > m )
+        m = z;
+    else if ( -z > m )
+        m = -z;
     return m;
-}
+}*/
 
-double VectorR3::Norm(void) {
+double VectorR3::norm(void) {
     return sqrt(x*x + y*y + z*z);
 }
 
-double VectorR3::NormSq(void) {
-    return (x*x + y*y + z*z);
-}
-
-void VectorR3::Dump(double *v) const {
+void VectorR3::dump(double *v) const {
     *v = x;
     *(v+1) = y;
     *(v+2) = z;
 }
 
-void VectorR3::Dump(float *v) const {
-    *v = (float)x;
-    *(v+1) = (float)y;
-    *(v+2) = (float)z;
-}
+/*void VectorR3::makeUnit(void) {
+    double n = this->norm();
+    if (n != 0.0)
+        *this /= n;
+}*/
 
-VectorR3& VectorR3::Rotate(double theta, const VectorR3& w) {
+void VectorR3::rotate(double theta, const VectorR3& w) {
 	double c = cos(theta);
 	double s = sin(theta);
 	double dotw = (x*w.x + y*w.y + z*w.z);
@@ -67,77 +64,6 @@ VectorR3& VectorR3::Rotate(double theta, const VectorR3& w) {
 	x = v0x + c*v1x + s*v2x;
 	y = v0y + c*v1y + s*v2y;
 	z = v0z	+ c*v1z + s*v2z;
-
-	return ( *this );
-}
-
-VectorR3& VectorR3::Load( const double* v ) {
-	x = *v;
-	y = *(v+1);
-	z = *(v+2);
-	return *this;
-}
-
-VectorR3& VectorR3::Load( const float* v ) {
-	x = *v;
-	y = *(v+1);
-	z = *(v+2);
-	return *this;
-}
-
-VectorR3& VectorR3::Set(double xx, double yy, double zz) {
-	x = xx;
-	y = yy;
-	z = zz;
-	return *this;
-}
-
-VectorR3& VectorR3::SetZero(void) {
-	x = 0.0;
-	y = 0.0;
-	z = 0.0;
-	return *this;
-}
-
-VectorR3& VectorR3::MakeUnit(void)	{
-	double nSq = NormSq();
-	if (nSq != 0.0) {
-		*this /= sqrt(nSq);
-	}
-	return *this;
-}
-
-VectorR3& VectorR3::ArrayProd(const VectorR3& v) {
-	x *= v.x;
-	y *= v.y;
-	z *= v.z;
-	return ( *this );
-}
-
-VectorR3& VectorR3::AddScaled( const VectorR3& u, double s ) {
-	x += s*u.x;
-	y += s*u.y;
-	z += s*u.z;
-	return(*this);
-}
-
-VectorR3& VectorR3::ReNormalize(void) {
-	double nSq = NormSq();
-	register double mFact = 1.0-0.5*(nSq-1.0);	// Multiplicative factor
-	*this *= mFact;
-	return *this;
-}
-
-VectorR3& VectorR3::Negate(void) {
-	x = -x;
-	y = -y;
-	z = -z;
-	return *this;
-}
-
-VectorR3& VectorR3::Normalize(void) {
-	*this /= Norm();
-	return *this;
 }
 
 double VectorR3::operator[] (int i) {

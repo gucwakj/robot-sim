@@ -136,7 +136,7 @@ void Jacobian::updatedSClampValue(void) {
 			i = n->getEffectorNum();
 			temp = this->target_pos[i] - n->getS();
 
-            changedDist = temp.Norm() - this->dS.norm(i);
+            changedDist = temp.norm() - this->dS.norm(i);
 			if ( changedDist > 0.0 )
 				this->dSclamp[i] = this->m_base_max_dist + changedDist;
 			else

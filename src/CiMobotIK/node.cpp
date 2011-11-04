@@ -12,10 +12,10 @@ Node::Node(const VectorR3 &s_init, const VectorR3 &w_init, int purpose, double m
 	this->m_theta_max = maxTheta;
 
     this->m_R.set(0.0, 0.0, 0.0);       // global rotation matrix
-	this->m_r.Set(0.0, 0.0, 0.0);		// relative global position when joint is zero
-	this->m_s.Set(0.0, 0.0, 0.0);		// global position
+	this->m_r.set(0.0, 0.0, 0.0);		// relative global position when joint is zero
+	this->m_s.set(0.0, 0.0, 0.0);		// global position
 	this->m_s_init = s_init;			// global position when joint is zero
-	this->m_w.Set(0.0, 0.0, 0.0);		// global rotation axis
+	this->m_w.set(0.0, 0.0, 0.0);		// global rotation axis
 	this->m_w_init = w_init;			// global rotation axis when joint is zero
 
 	this->left = 0;
@@ -35,10 +35,10 @@ Node::Node(const VectorR3 &s_init, const VectorR3 &w_init, const MatrixR33 &R_in
 
     this->m_R.set(0.0, 0.0, 0.0);       // global rotation matrix
     this->m_R_init = R_init;            // global rotation matrix when joint is zero
-    this->m_r.Set(0.0, 0.0, 0.0);       // relative global position when joint is zero
-    this->m_s.Set(0.0, 0.0, 0.0);       // global position
+    this->m_r.set(0.0, 0.0, 0.0);       // relative global position when joint is zero
+    this->m_s.set(0.0, 0.0, 0.0);       // global position
     this->m_s_init = s_init;            // global position when joint is zero
-    this->m_w.Set(0.0, 0.0, 0.0);       // global rotation axis
+    this->m_w.set(0.0, 0.0, 0.0);       // global rotation axis
     this->m_w_init = w_init;            // global rotation axis when joint is zero
 
     this->left = 0;
@@ -140,7 +140,7 @@ void Node::computeS(void) {
 	Node *z = this;
 	this->m_s = this->m_r;				// Initialize to local (relative) position
 	while ( y ) {
-		this->m_s.Rotate(y->m_theta, y->m_w_init);
+		this->m_s.rotate(y->m_theta, y->m_w_init);
 		y = y->realparent;
 		z = z->realparent;
 		this->m_s += z->m_r;
@@ -152,7 +152,7 @@ void Node::computeW(void) {
 	Node *y = this->realparent;
 	this->m_w = this->m_w_init;			// Initialize to local rotation axis
 	while ( y ) {
-		this->m_w.Rotate(y->m_theta, y->m_w_init);
+		this->m_w.rotate(y->m_theta, y->m_w_init);
 		y = y->realparent;
 	}
 }

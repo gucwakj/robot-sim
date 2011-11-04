@@ -47,20 +47,20 @@ void MatrixRmn::setIdentity(void) {
 void MatrixRmn::setTriplePosition(int i, int j, const VectorR3& u) {
     int ii = 6*i;
     assert ( 0<=i && ii+2<NumRows && 0<=j && j<NumCols );
-    u.Dump( x+j*NumRows + ii );
+    u.dump(x + j*NumRows + ii);
 }
 
 void MatrixRmn::setTripleRotation(int i, int j, const VectorR3& v) {
     int ii = 6*i;
     assert ( 0<=i && ii+5<NumRows && 0<=j && j<NumCols );
-    v.Dump(x + j*NumRows + ii + 3);
+    v.dump(x + j*NumRows + ii + 3);
 }
 
 void MatrixRmn::setHextuple(int i, int j, const VectorR3& u, const VectorR3& v) {
     int ii = 6*i;
     assert ( 0<=i && ii+5<NumRows && 0<=j && j<NumCols );
-    u.Dump(x + j*NumRows + ii );
-    v.Dump(x + j*NumRows + ii + 3);
+    u.dump(x + j*NumRows + ii);
+    v.dump(x + j*NumRows + ii + 3);
 }
 
 void MatrixRmn::setColumn(int i, const VectorRn& d) {
