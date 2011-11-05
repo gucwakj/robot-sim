@@ -1,5 +1,5 @@
-#ifndef VECTOR_RN_H_
-#define VECTOR_RN_H_
+#ifndef VECTORRN_H_
+#define VECTORRN_H_
 
 #include <cmath>
 #include <cassert>
@@ -16,10 +16,8 @@ class VectorRn {
 		void set(const double *d, double scale = 1);
         void setLength(int new_length);
         void setValue(double d);
-        void setZero(void);
         void setTriplePosition(int i, const VectorR3& u);
         void setTripleRotation(int i, const VectorR3& v);
-        void setHextuple(int i, const VectorR3&u, const VectorR3& v);
 
         int getLength(void) const;
         double* getPtr(void);
@@ -31,9 +29,7 @@ class VectorRn {
         double dot(const VectorRn& v);
         double maxAbs(void) const;
         double norm(void);
-        double normSq(void);
         double norm(int i);
-        double normSq(int i);
 
         double& operator[] (int i);
         const double& operator[] (int i) const;
@@ -46,4 +42,4 @@ class VectorRn {
 		double *x;					        // Array of vector entries
 };
 
-#endif /*VECTOR_RN_H*/
+#endif /*VECTORRN_H*/

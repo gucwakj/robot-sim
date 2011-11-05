@@ -44,6 +44,7 @@ void MatrixRmn::setIdentity(void) {
     setZero();
     SetDiagonalEntries(1.0);
 }
+
 void MatrixRmn::setTriplePosition(int i, int j, const VectorR3& u) {
     int ii = 6*i;
     assert ( 0<=i && ii+2<NumRows && 0<=j && j<NumCols );
@@ -53,13 +54,6 @@ void MatrixRmn::setTriplePosition(int i, int j, const VectorR3& u) {
 void MatrixRmn::setTripleRotation(int i, int j, const VectorR3& v) {
     int ii = 6*i;
     assert ( 0<=i && ii+5<NumRows && 0<=j && j<NumCols );
-    v.dump(x + j*NumRows + ii + 3);
-}
-
-void MatrixRmn::setHextuple(int i, int j, const VectorR3& u, const VectorR3& v) {
-    int ii = 6*i;
-    assert ( 0<=i && ii+5<NumRows && 0<=j && j<NumCols );
-    u.dump(x + j*NumRows + ii);
     v.dump(x + j*NumRows + ii + 3);
 }
 

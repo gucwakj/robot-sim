@@ -41,10 +41,6 @@ void VectorRn::setValue(double d) {
     }
 }
 
-void VectorRn::setZero(void) {
-	this->setValue(0);
-}
-
 // Set the value of the i-th position triple of entries in the vector
 void VectorRn::setTriplePosition(int i, const VectorR3& u) {
     int j = 6*i;
@@ -56,13 +52,6 @@ void VectorRn::setTriplePosition(int i, const VectorR3& u) {
 void VectorRn::setTripleRotation(int i, const VectorR3& v) {
     int j = 6*i;
     assert( 0 <= j && j + 5 < m_length );
-    v.dump( x + j + 3 );
-}
-
-void VectorRn::setHextuple(int i, const VectorR3&u, const VectorR3& v) {
-    int j = 6*i;
-    assert( 0<=j && j+2 < m_length );
-    u.dump( x + j );
     v.dump( x + j + 3 );
 }
 
@@ -124,31 +113,23 @@ double VectorRn::maxAbs(void) const {
 }
 
 double VectorRn::norm(void) {
-    return sqrt(this->normSq());
-}
-
-double VectorRn::norm(int i) {
-    return sqrt(this->normSq(i));
-}
-
-double VectorRn::normSq(void) {
     double *target = x;
     double res = 0;
     for ( int i = this->m_length; i > 0; i-- ) {
         res += (*target)*(*target);
         target++;
     }
-    return res;
+    return sqrt(res);
 }
 
-double VectorRn::normSq(int i) {
+double VectorRn::norm(int i) {
     double *target = x+i;
     double res = 0.0;
     for ( int j = 0; j < 3; j++ ) {
         res += (*target)*(*target);
         target++;
     }
-    return res;
+    return sqrt(res);
 }
 
 double& VectorRn::operator[] (int i) {
@@ -168,7 +149,7 @@ VectorRn& VectorRn::operator+= (const VectorRn& src) {
     for ( int i = this->m_length; i > 0; i-- ) {
         *(to++) += *(from++);
     }
-    return *this;
+    return (*this);
 }
 
 VectorRn& VectorRn::operator-= (const VectorRn& src) {
@@ -178,7 +159,7 @@ VectorRn& VectorRn::operator-= (const VectorRn& src) {
     for ( int i = this->m_length; i > 0; i-- ) {
         *(to++) -= *(from++);
     }
-    return *this;
+    return (*this);
 }
 
 VectorRn& VectorRn::operator*= (double f) {
@@ -186,5 +167,5 @@ VectorRn& VectorRn::operator*= (double f) {
     for ( int i = this->m_length; i > 0; i-- ) {
         *(target++) *= f;
     }
-    return *this;
+    return (*this);
 }

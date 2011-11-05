@@ -12,7 +12,6 @@ class MatrixRmn {
 		~MatrixRmn(void);							// Destructor
 
         void setColumn(int i, const VectorRn& d );
-        void setHextuple(int i, int j, const VectorR3& u, const VectorR3& v);
         void setIdentity(void);
         void setSize(int num_row, int num_col);
         void setTriplePosition(int i, int j, const VectorR3& u);

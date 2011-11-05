@@ -53,13 +53,11 @@ void Jacobian::computeJacobian(void) {
 			i = n->getEffectorNum();
 
             pos = this->target_pos[i] - n->getS();      // position
-            rot = VectorR3(0, 0, 0);                    // orientation
+            this->dS.setTriplePosition(i, pos);
             R = n->getR();
-            rot2 = 0.5*(R.getColumn1()*this->target_rot[i].getColumn1() + R.getColumn2()*this->target_rot[i].getColumn2() + R.getColumn3()*this->target_rot[i].getColumn3());
-            //rot2 = VectorR3(this->target_rot[i].psi, this->target_rot[i].theta, this->target_rot[i].phi) - VectorR3(R.psi, R.theta, R.phi);
-            //cout << "target_pos: " << this->target_pos[i] << "\tcurrent_pos: " << n->getS() << "\tdelta_pos: " << pos << endl;
-            //cout << "target_rot: " << VectorR3(this->target_rot[i].psi, this->target_rot[i].theta, this->target_rot[i].phi) << "\tcurrent_rot: " << VectorR3(R.psi, R.theta, R.phi) << "\tdelta_rot: " << rot2 << endl;
-            this->dS.setHextuple(i, pos, rot2);
+            rot = 0.5*(R.getColumn1()*this->target_rot[i].getColumn1() + R.getColumn2()*this->target_rot[i].getColumn2() + R.getColumn3()*this->target_rot[i].getColumn3());
+            //rot = VectorR3(this->target_rot[i].psi, this->target_rot[i].theta, this->target_rot[i].phi) - VectorR3(R.psi, R.theta, R.phi);
+            this->dS.setTripleRotation(i, rot);
 
 			Node *m = this->tree->getParent(n);
 			while ( m ) {
@@ -67,7 +65,8 @@ void Jacobian::computeJacobian(void) {
 				assert( 0 <=i && i < this->m_num_effect && 0 <= j && j < this->m_num_joint );
 
 				if ( m->isFrozen() ) {
-					this->J.setHextuple(i, j, VectorR3(0, 0, 0), VectorR3(0, 0, 0));
+                    this->J.setTriplePosition(i, j, VectorR3(0, 0, 0));
+                    this->J.setTripleRotation(i, j, VectorR3(0, 0, 0));
 				}
 				else {
 					pos = m->getS();					    // joint pos
@@ -75,9 +74,10 @@ void Jacobian::computeJacobian(void) {
 						pos -= n->getS();				    // -(end effector pos - joint pos)
 					else
 						pos -= this->target_pos[i];	        // -(target pos - joint pos)
-					pos *= m->getW();					    // cross product with joint rotation axis
+                    pos *= m->getW();					    // cross product with joint rotation axis
+                    this->J.setTriplePosition(i, j, pos);
                     rot = m->getW();
-					this->J.setHextuple(i, j, pos, rot);    // set position and rotation
+                    this->J.setTripleRotation(i, j, rot);
 				}
 				m = this->tree->getParent(m);
 			}
@@ -168,7 +168,7 @@ void Jacobian::calc_delta_thetas_transpose(void) {
 	// Scale back the dTheta values greedily
 	this->J.Multiply(this->dTheta, this->dT);								// dT = J * dTheta
 
-    double alpha = this->dS.dot(this->dT) / this->dT.normSq();
+    double alpha = this->dS.dot(this->dT) / (this->dT.norm()*this->dT.norm());
 	double beta = this->m_max_angle[JACOB_TRANSPOSE] / dTheta.maxAbs();
 	assert( alpha > 0.0 );
 
@@ -186,7 +186,7 @@ void Jacobian::calc_delta_thetas_pseudoinverse(void) {
 
 	int diagLength = this->w.getLength();
 	double *wPtr = this->w.getPtr();
-	this->dTheta.setZero();
+	this->dTheta.setValue(0);
 
 	for ( int i = 0; i < diagLength; i++ ) {
 		dotProdCol = this->U.DotProductColumn(this->dS, i);		// Dot product with i-th column of U
@@ -231,7 +231,7 @@ void Jacobian::calc_delta_thetas_dls_with_svd(void) {
 
 	//int diagLength = this->w.GetLength();
 	double *wPtr = this->w.getPtr();
-	this->dTheta.setZero();
+    this->dTheta.setValue(0);
 
 	for ( int i = 0; i < this->w.getLength(); i++ ) {
 		dotProdCol = this->U.DotProductColumn(this->dS, i);		// Dot product with i-th column of U
@@ -256,7 +256,7 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 	int num_rows = this->J.getNumRows();
 	int num_cols = this->J.getNumColumns();
 	int num_effectors = this->tree->getNumEffector();		// Equals the number of rows of J divided by three
-	this->dTheta.setZero();
+    this->dTheta.setValue(0);
 
 	// Calculate the norms of the 3-vectors in the Jacobian
 	const double *jx = J.getPtr();
@@ -321,25 +321,20 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 }
 
 void Jacobian::zero_delta_thetas(void) {
-	this->dTheta.setZero();
+    this->dTheta.setValue(0);
 }
 
 void Jacobian::calc_dT_clamped_from_dS(void) {
     for ( int i = 0, j = 0; i < this->dS.getLength(); i+=6, j++ ) {
-        if ( this->dS.normSq(i) > (this->dSclamp[j]*this->dSclamp[j]) ) {
+        if ( (this->dS.norm(i)*this->dS.norm(i)) > (this->dSclamp[j]*this->dSclamp[j]) )
             this->dT.setTriplePosition(i, this->dSclamp[j]*VectorR3(this->dS[i+0], this->dS[i+1], this->dS[i+2])/this->dS.norm(i));
-            //this->dT.setHextuple(i, this->dSclamp[j]*VectorR3(this->dS[i], this->dS[i+1], this->dS[i+2])/this->dS.norm(i), VectorR3(0, 0, 0));
-        }
-        else {
+        else
             this->dT.setTriplePosition(i, VectorR3(this->dS[i+0], this->dS[i+1], this->dS[i+2]));
-            //this->dT.setHextuple(i, VectorR3(this->dS[i], this->dS[i+1], this->dS[i+2]), VectorR3(0, 0, 0));
-        }
-        if ( this->dS.normSq(i+3) < (this->dSclamp[j]*this->dSclamp[j]) ) {
+
+        if ( (this->dS.norm(i+3)*this->dS.norm(i+3)) > (this->dSclamp[j]*this->dSclamp[j]) )
             this->dT.setTripleRotation(i, this->dSclamp[j]*VectorR3(this->dS[i+3], this->dS[i+4], this->dS[i+5])/this->dS.norm(i+3));
-        }
-        else {
+        else
             this->dT.setTripleRotation(i, VectorR3(this->dS[i+3], this->dS[i+4], this->dS[i+5]));
-        }
 	}
 }
 
