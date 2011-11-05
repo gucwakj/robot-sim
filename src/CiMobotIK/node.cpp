@@ -1,28 +1,6 @@
 #include <cmath>
 #include "node.h"
 
-Node::Node(const VectorR3 &s_init, const VectorR3 &w_init, int purpose, double minTheta, double maxTheta, double initAngle) {
-	this->m_frozen = false;
-	this->m_purpose = purpose;
-	this->m_seq_num_joint = -1;
-	this->m_seq_num_effector = -1;
-	this->m_theta = 0.0;
-	this->m_theta_init = initAngle;
-	this->m_theta_min = minTheta;
-	this->m_theta_max = maxTheta;
-
-    this->m_R.set(0.0, 0.0, 0.0);       // global rotation matrix
-	this->m_r.set(0.0, 0.0, 0.0);		// relative global position when joint is zero
-	this->m_s.set(0.0, 0.0, 0.0);		// global position
-	this->m_s_init = s_init;			// global position when joint is zero
-	this->m_w.set(0.0, 0.0, 0.0);		// global rotation axis
-	this->m_w_init = w_init;			// global rotation axis when joint is zero
-
-	this->left = 0;
-	this->right = 0;
-	this->realparent = 0;
-}
-
 Node::Node(const VectorR3 &s_init, const VectorR3 &w_init, const MatrixR33 &R_init, int purpose, double theta_init, double theta_min, double theta_max) {
     this->m_frozen = false;
     this->m_purpose = purpose;
@@ -44,15 +22,6 @@ Node::Node(const VectorR3 &s_init, const VectorR3 &w_init, const MatrixR33 &R_in
     this->left = 0;
     this->right = 0;
     this->realparent = 0;
-}
-
-void Node::initNode(void) {
-	this->m_theta = this->m_theta_init;
-}
-
-double Node::updateTheta(double delta) {
-	this->m_theta += delta;
-	return this->m_theta;
 }
 
 void Node::setSeqNum(int seq_num) {
@@ -124,6 +93,23 @@ int Node::getPurpose(void) {
 	return this->m_purpose;
 }
 
+bool Node::isEffector(void) {
+    return (this->m_purpose == EFFECTOR);
+}
+
+bool Node::isJoint(void) {
+    return (this->m_purpose == JOINT);
+}
+
+bool Node::isFrozen(void) {
+    return this->m_frozen;
+}
+
+double Node::updateTheta(double delta) {
+    this->m_theta += delta;
+    return this->m_theta;
+}
+
 // Compute the global rotation matrix of a single node
 void Node::computeR(void) {
     Node *y = this->realparent;
@@ -157,14 +143,6 @@ void Node::computeW(void) {
 	}
 }
 
-bool Node::isEffector(void) {
-	return (this->m_purpose == EFFECTOR);
-}
-
-bool Node::isJoint(void) {
-	return (this->m_purpose == JOINT);
-}
-
-bool Node::isFrozen(void) {
-	return this->m_frozen;
+void Node::initNode(void) {
+    this->m_theta = this->m_theta_init;
 }

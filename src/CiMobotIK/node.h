@@ -1,7 +1,6 @@
 #ifndef NODE_H_
 #define NODE_H_
 
-//#include "config.h"
 #include "matrixR33.h"
 #include "vectorR3.h"
 
@@ -13,12 +12,7 @@ enum purpose_e {
 class Node {
 	friend class Tree;
 	public:
-        Node(const VectorR3 &s_init, const VectorR3 &w_init, int purpose, double minTheta = -M_PI, double maxTheta = M_PI, double initAngle = 0);
         Node(const VectorR3 &s_init, const VectorR3 &w_init, const MatrixR33 &R_init, int purpose, double theta_init = 0, double theta_min = -M_PI, double theta_max = M_PI);
-
-		void initNode(void);
-
-		double updateTheta(double delta);
 
 		void setSeqNum(int seq_num);
 		void setFrozen(bool s);
@@ -32,18 +26,19 @@ class Node {
 		double getTheta(void);
 		double getThetaInit(void);
 		double getThetaMin(void);
-		double getThetaMax(void);
+        double getThetaMax(void);
 		int getEffectorNum(void);
 		int getJointNum(void);
-		int getPurpose(void);
+        int getPurpose(void);
 
+        bool isEffector(void);
+        bool isJoint(void);
+        bool isFrozen(void);
+        double updateTheta(double delta);
 		void computeS(void);
         void computeW(void);
         void computeR(void);
-
-		bool isEffector(void);
-		bool isJoint(void);
-		bool isFrozen(void);
+        void initNode(void);
 	private:
 		bool m_frozen;			// Is this node frozen?
 		int m_seq_num_joint;	// sequence number if this node is a joint
