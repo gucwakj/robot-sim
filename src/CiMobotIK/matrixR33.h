@@ -2,7 +2,6 @@
 #define MATRIXR33_H_
 
 #include <cmath>
-#include <iostream>
 #include "vectorR3.h"
 
 using namespace std;
@@ -26,28 +25,22 @@ class MatrixR33 {
 		VectorR3 getColumn3(void);
         VectorR3 getEulerAngles(void);
 
-        void recomputeEulerAngles(void);
 		void transpose(void);
 		void transform(VectorR3 *u);
 		void transform(const VectorR3& src, VectorR3 *dest);
 		MatrixR33& reNormalize(void);
         MatrixR33& rotate(double theta, const VectorR3& w);
-        MatrixR33& multiply(const MatrixR33& A);
+
         MatrixR33& operator*= (const MatrixR33& A);
 
 		double m11, m12, m13, m21, m22, m23, m31, m32, m33;
 		double psi;
 		double theta;
 		double phi;
+    private:
+        void recompute_euler_angles(void);
 };
 
-inline VectorR3 operator* (const MatrixR33& A, const VectorR3& u);
-ostream& operator<< ( ostream& os, const MatrixR33& A );
-
-inline VectorR3 operator* (const MatrixR33& A, const VectorR3& u) {
-	return( VectorR3(   A.m11*u.x + A.m12*u.y + A.m13*u.z,
-                        A.m21*u.x + A.m22*u.y + A.m23*u.z,
-                        A.m31*u.x + A.m32*u.y + A.m33*u.z) );
-}
+VectorR3 operator* (const MatrixR33& A, const VectorR3& u);
 
 #endif	/* MATRIXR33_H_ */

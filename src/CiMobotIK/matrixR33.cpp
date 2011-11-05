@@ -205,66 +205,27 @@ MatrixR33& MatrixR33::rotate(double theta, const VectorR3& w) {
     this->m23 = temp23;
     this->m33 = temp33;
 
-    if ( fabs(this->m21 - 1) < DBL_EPSILON ) {         // m21 == 1
-        this->psi = atan2(this->m32, this->m33);
-        this->theta = M_PI/2;
-        this->phi = 0;
-    }
-    else if ( fabs(this->m21 + 1) < DBL_EPSILON ) {    // m21 == -1
-        this->psi = atan2(this->m13, this->m33);
-        this->theta = -M_PI/2;
-        this->phi = 0;
-    }
-    else {
-        this->theta = asin(this->m21);
-        this->psi = atan2(-this->m23/cos(this->theta), this->m22/cos(this->theta));
-        this->phi = atan2(-this->m31/cos(this->theta), this->m11/cos(this->theta));
-    }
-
-    return ( *this );
-}
-
-void MatrixR33::recomputeEulerAngles(void) {
-    if ( fabs(this->m21 - 1) < DBL_EPSILON ) {         // m21 == 1
-        this->psi = atan2(this->m32, this->m33);
-        this->theta = M_PI/2;
-        this->phi = 0;
-    }
-    else if ( fabs(this->m21 + 1) < DBL_EPSILON ) {    // m21 == -1
-        this->psi = atan2(this->m13, this->m33);
-        this->theta = -M_PI/2;
-        this->phi = 0;
-    }
-    else {
-        this->theta = asin(this->m21);
-        this->psi = atan2(-this->m23/cos(this->theta), this->m22/cos(this->theta));
-        this->phi = atan2(-this->m31/cos(this->theta), this->m11/cos(this->theta));
-    }
-}
-
-MatrixR33& MatrixR33::multiply(const MatrixR33& A) {
-    double temp11 = A.m11*this->m11 + A.m12*this->m21 + A.m13*this->m31;
-    double temp21 = A.m21*this->m11 + A.m22*this->m21 + A.m23*this->m31;
-    double temp31 = A.m31*this->m11 + A.m32*this->m21 + A.m33*this->m31;
-    double temp12 = A.m11*this->m12 + A.m12*this->m22 + A.m13*this->m32;
-    double temp22 = A.m21*this->m12 + A.m22*this->m22 + A.m23*this->m32;
-    double temp32 = A.m31*this->m12 + A.m32*this->m22 + A.m33*this->m32;
-    double temp13 = A.m11*this->m13 + A.m12*this->m23 + A.m13*this->m33;
-    double temp23 = A.m21*this->m13 + A.m22*this->m23 + A.m23*this->m33;
-    double temp33 = A.m31*this->m13 + A.m32*this->m23 + A.m33*this->m33;
-    this->m11 = temp11;
-    this->m21 = temp21;
-    this->m31 = temp31;
-    this->m12 = temp12;
-    this->m22 = temp22;
-    this->m32 = temp32;
-    this->m13 = temp13;
-    this->m23 = temp23;
-    this->m33 = temp33;
-
-    this->recomputeEulerAngles();
+    this->recompute_euler_angles();
 
     return (*this);
+}
+
+void MatrixR33::recompute_euler_angles(void) {
+    if ( fabs(this->m21 - 1) < DBL_EPSILON ) {         // m21 == 1
+        this->psi = atan2(this->m32, this->m33);
+        this->theta = M_PI/2;
+        this->phi = 0;
+    }
+    else if ( fabs(this->m21 + 1) < DBL_EPSILON ) {    // m21 == -1
+        this->psi = atan2(this->m13, this->m33);
+        this->theta = -M_PI/2;
+        this->phi = 0;
+    }
+    else {
+        this->theta = asin(this->m21);
+        this->psi = atan2(-this->m23/cos(this->theta), this->m22/cos(this->theta));
+        this->phi = atan2(-this->m31/cos(this->theta), this->m11/cos(this->theta));
+    }
 }
 
 MatrixR33& MatrixR33::operator*= (const MatrixR33& A) {
@@ -287,14 +248,13 @@ MatrixR33& MatrixR33::operator*= (const MatrixR33& A) {
     this->m23 = temp23;
     this->m33 = temp33;
 
-    this->recomputeEulerAngles();
+    this->recompute_euler_angles();
 
     return (*this);
 }
 
-ostream& operator<< ( ostream& os, const MatrixR33& A ) {
-	os << " <" << A.m11 << ", " << A.m12 << ", " << A.m13  << ">\n"
-	<< " <" << A.m21 << ", " << A.m22 << ", " << A.m23  << ">\n"
-	<< " <" << A.m31 << ", " << A.m32 << ", " << A.m33  << ">\n" ;
-	return (os);
+VectorR3 operator* (const MatrixR33& A, const VectorR3& u) {
+    return( VectorR3(   A.m11*u.x + A.m12*u.y + A.m13*u.z,
+                        A.m21*u.x + A.m22*u.y + A.m23*u.z,
+                        A.m31*u.x + A.m32*u.y + A.m33*u.z) );
 }
