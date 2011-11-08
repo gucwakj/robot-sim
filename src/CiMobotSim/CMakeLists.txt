@@ -33,7 +33,7 @@ else (ENABLE_DOUBLE)
 endif (ENABLE_DOUBLE)
 
 # Add the library
-add_library( imobotsim STATIC
+add_library( imobotsim SHARED
 	imobotsim.cpp
 	pid.cpp
 )

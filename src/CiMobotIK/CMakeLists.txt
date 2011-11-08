@@ -18,7 +18,7 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Add the library
-add_library( imobotik STATIC
+add_library( imobotik SHARED
 	imobotik.cpp
 	jacobian.cpp
 	matrixR33.cpp
