@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
 
 	sim->groundPlane(0, 0, 0, 1, 0);
 
-	sim->iMobotBuild(0, 1, 0, 0);
+	sim->iMobotBuild(0, 0, 0, 0);
 	//sim->iMobotBuild(0, 0, 0, 5, 15, 25, 45);
 	//sim->iMobotBuild(0, 0, 0, 5, 0, 0, 0, 0, 45, 45, 0);
 

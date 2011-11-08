@@ -1,0 +1,8 @@
+#ifndef _CONFIG_H_
+#define _CONFIG_H_
+
+#define CIMOBOTSIM_DEMOS_VERSION_MAJOR 
+#define CIMOBOTSIM_DEMOS_VERSION_MINOR 
+#define ENABLE_DRAWSTUFF
+
+#endif

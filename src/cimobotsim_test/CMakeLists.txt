@@ -1,18 +1,18 @@
-cmake_minimum_required (VERSION 2.8)
-project (CiMobot_Sim)
+cmake_minimum_required(VERSION 2.8)
+project(CiMobot_Sim_test)
 
 # Set the version number
-set (CiMobot_Sim_VERSION_MAJOR 0)
-set (CiMobot_Sim_VERSION_MINOR 1)
+set (CiMobot_Sim_test_VERSION_MAJOR 0)
+set (CiMobot_Sim_test_VERSION_MINOR 1)
+
+# Supress developer warnings
+cmake_policy(SET CMP0015 NEW)
 
 # Set up a configure file
 configure_file (
   "${PROJECT_SOURCE_DIR}/config.h.in"
   "${PROJECT_BINARY_DIR}/config.h"
 )
-
-# suppress dev warnings
-add_definitions(-Wno-dev)
 
 # Compilation options
 option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." OFF)
@@ -33,7 +33,7 @@ endif (ENABLE_GPROF)
 # Add the binary directory to include file search path
 include_directories("${PROJECT_BINARY_DIR}")
 
-# Add CiMobotSim library subdirectory and stuff
+# Add CiMobotSim library subdirectory
 include_directories("../CiMobotSim")
 link_directories("../CiMobotSim")
 set (EXTRA_LIBS ${EXTRA_LIBS} imobotsim)
@@ -50,8 +50,6 @@ if (ENABLE_DRAWSTUFF)
   find_package(OpenGL)
   set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
 endif (ENABLE_DRAWSTUFF)
-
-#message( ${EXTRA_LIBS} )
 
 # Add the executable
 add_executable(cimobotsim_test cimobotsim_test.cpp)
