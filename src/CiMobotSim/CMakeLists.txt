@@ -1,19 +1,42 @@
-# The ODE Library
 cmake_minimum_required(VERSION 2.6)
-include_directories(../opende/sys/include)
+project(CiMobot_Sim)
+
+# Set the version number
+set(CiMobot_Sim_VERSION_MAJOR 0)
+set(CiMobot_Sim_VERSION_MINOR 1)
+
+# Supress developer warnings
+cmake_policy(SET CMP0015 NEW)
 
 # Set up a configure file
 configure_file (
-  "config.h.in"
-  "config.h"
-  )
+	"${PROJECT_SOURCE_DIR}/config.h.in"
+	"${PROJECT_BINARY_DIR}/config.h"
+)
+
+# Add the binary directory to include file search path
+include_directories("${PROJECT_BINARY_DIR}")
+
+# Add ODE library
+include_directories("../opende/sys/include")
+link_directories("../opende/sys/lib")
+set (EXTRA_LIBS ${EXTRA_LIBS} ode)
+#include_directories(../opende/sys/include)
 
 option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." ON)
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
 
 if (ENABLE_DRAWSTUFF)
   include_directories("../opende/include")
+  link_directories("../opende/drawstuff/src/.libs")
+  find_package(GLUT)
+  find_package(OpenGL)
+  set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
 endif (ENABLE_DRAWSTUFF)
+
+#if (ENABLE_DRAWSTUFF)
+#  include_directories("../opende/include")
+#endif (ENABLE_DRAWSTUFF)
 
 if (ENABLE_DOUBLE)
   add_definitions(-DdDOUBLE)
@@ -21,7 +44,9 @@ else (ENABLE_DOUBLE)
   add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 
-add_library (imobotsim STATIC
+# Add the library
+add_library( imobotsim STATIC
   imobotsim.cpp
   pid.cpp
-  )
+)
+target_link_libraries(imobotsim ${EXTRA_LIBS})

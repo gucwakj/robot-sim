@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 project(CiMobot_Sim_test)
 
 # Set the version number
-set (CiMobot_Sim_test_VERSION_MAJOR 0)
-set (CiMobot_Sim_test_VERSION_MINOR 1)
+set(CiMobot_Sim_test_VERSION_MAJOR 0)
+set(CiMobot_Sim_test_VERSION_MINOR 1)
 
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)

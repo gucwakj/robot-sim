@@ -6,6 +6,7 @@ General:
 	build class
 		rename CiMobotSim to CiMobotDyn
 		create CiMobotBuild class to allow one build function per demo program
+	CMakeLists.txt much smaller than cimobotsim_test/*
 
 Forward Dynamics:
 	Parallelize the code
@@ -50,7 +51,6 @@ Forward Dynamics:
 	New features from David
 		PID
 		Mismatched endcap rotation
-	CMakeLists.txt much smaller than cimobotsim_test/*
 	Implement bot as class not struct
 		similar to IK classes, cleans up sim.cpp file
 
