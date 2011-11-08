@@ -1,7 +1,8 @@
-#include "config.h"
 #include <cmath>
 #include <iostream>
+#include "config.h"
 #include "imobotsim.h"
+#include "pid.h"
 
 #ifdef dDOUBLE
 #define dsDrawSphere dsDrawSphereD
@@ -12,443 +13,330 @@
 
 using namespace std;
 
-extern "C" {
-	//void *__dso_handle = NULL;
-}
-
+#ifdef ENABLE_DRAWSTUFF
 /* If drawstuff is enabled, we need a global pointer to an instantiated
  * CiMobotSim class so that the callback functions can access the necessary
  * data. */
-#ifdef ENABLE_DRAWSTUFF
-CiMobotSim* g_imobotsim;
+CiMobotSim *g_imobotsim;
 #endif
 
-CiMobotSim::CiMobotSim(int numBot, int numStp, int numGnd, dReal tmeTot, dReal *ang, dReal *vel) {
-	// initialize parameters for simulation
+CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
+	// initialze loop counters
 	int i, j;
-	this->numBot = numBot;
-	this->numStp = numStp;
-	this->numGnd = numGnd;
-	this->tmeTot = tmeTot;
-	this->mu_g = 0.4;
-	this->mu_b = 0.4;
-	this->cor_g = 0.3;
-	this->cor_b = 0.3;
-	this->curStp = 1;
-	this->newStp = true;
-	this->tmeStp = 0.004;
-	this->flags = new bool[numBot];
-	this->disable = new bool[numBot];
-	this->ground = new dGeomID[numGnd];
-	this->space_robots = new dSpaceID[numBot];
-	this->reply = new CiMobotSimReply;
-	this->reply->success = false;
-	this->reply->time = 0.0;
-	this->reply->message = 0;
-	this->bot = new CiMobotSimBot * [numBot];
+
+	// values for simulation passed into constructor
+	this->m_num_bot = num_bot;
+	this->m_num_stp = num_stp;
+	this->m_num_gnd = num_gnd;
+
+	// default simulation parameters
+	this->m_mu_g = 0.4;
+	this->m_mu_b = 0.3;
+	this->m_cor_g = 0.3;
+	this->m_cor_b = 0.3;
+	this->m_t_total = 1.0;
+
+	// iMobot physical parameters
+	this->m_motor_res = D2R(0.5);
+	this->m_joint_vel_max = new dReal[NUM_DOF];
+	this->m_joint_vel_max[LE] = 6.70;
+	this->m_joint_vel_max[LB] = 2.61;
+	this->m_joint_vel_max[RB] = 2.61;
+	this->m_joint_vel_max[RE] = 6.70;
+	this->m_joint_vel_min = new dReal[NUM_DOF];
+	this->m_joint_vel_min[LE] = 3.22;
+	this->m_joint_vel_min[LB] = 1.25;
+	this->m_joint_vel_min[RB] = 1.25;
+	this->m_joint_vel_min[RE] = 3.22;
+	this->m_joint_frc_max = new dReal[NUM_DOF];
+	this->m_joint_frc_max[LE] = 0.260;
+	this->m_joint_frc_max[LB] = 1.059;
+	this->m_joint_frc_max[RB] = 1.059;
+	this->m_joint_frc_max[RE] = 0.260;
+
+	// variables to keep track of progress of simulation
+	this->m_cur_stp = 0;
+	this->m_t = 0.0;
+	this->m_t_step = 0.004;
+	this->m_t_tot_step = (int)((this->m_t_total + this->m_t_step) / this->m_t_step);
+	this->m_t_cur_step = 0;
+	this->m_flag_comp = new bool[num_bot];
+	this->m_flag_disable = new bool[num_bot];
+	this->m_ground = new dGeomID[num_gnd];
+
+	// initialze reply struct
+	this->m_reply = new CiMobotSimReply;
+	this->m_reply->time = 0.0;
+	this->m_reply->message = SIM_ERROR_TIME;
+
 	// create and populate struct for each module in simulation
-	for ( i = 0; i < numBot; i++ ) {
+	this->bot = new CiMobotSimBot * [num_bot];
+	for ( i = 0; i < num_bot; i++ ) {
 		this->bot[i] = new CiMobotSimBot;
-		this->bot[i]->bdyPts = new CiMobotSimPart[NUM_PARTS];
-		this->bot[i]->bdyPts[BODY_L].geomID = new dGeomID[5];
-		this->bot[i]->bdyPts[BODY_R].geomID = new dGeomID[5];
-		this->bot[i]->bdyPts[CENTER].geomID = new dGeomID[3];
-		this->bot[i]->bdyPts[ENDCAP_L].geomID = new dGeomID[7];
-		this->bot[i]->bdyPts[ENDCAP_R].geomID = new dGeomID[7];
-#ifdef ENABLE_DRAWSTUFF
-		this->bot[i]->bdyPts[BODY_L].num_geomID = 5;
-		this->bot[i]->bdyPts[BODY_R].num_geomID = 5;
-		this->bot[i]->bdyPts[CENTER].num_geomID = 3;
-		this->bot[i]->bdyPts[ENDCAP_L].num_geomID = 7;
-		this->bot[i]->bdyPts[ENDCAP_R].num_geomID = 7;
-#endif
+		this->bot[i]->bodyPart = new CiMobotSimPart[NUM_PARTS];
+		this->bot[i]->bodyPart[ENDCAP_L].geomID = new dGeomID[7];
+		this->bot[i]->bodyPart[BODY_L].geomID = new dGeomID[5];
+		this->bot[i]->bodyPart[CENTER].geomID = new dGeomID[3];
+		this->bot[i]->bodyPart[BODY_R].geomID = new dGeomID[5];
+		this->bot[i]->bodyPart[ENDCAP_R].geomID = new dGeomID[7];
 		this->bot[i]->joints = new dJointID[6];
 		this->bot[i]->motors = new dJointID[4];
-		this->bot[i]->futAng = new dReal[NUM_DOF];
-		this->bot[i]->curAng = new dReal[NUM_DOF];
-		this->bot[i]->pasAng = new dReal[NUM_DOF];
-		this->bot[i]->delAng = new dReal[NUM_DOF];
-		this->bot[i]->jntVel = new dReal[NUM_DOF];
-		this->bot[i]->jntVelMax = new dReal[NUM_DOF];
-		this->bot[i]->jntVelMin = new dReal[NUM_DOF];
-		this->bot[i]->jntVelDel = new dReal[NUM_DOF];
-		this->bot[i]->radPerEnc = new dReal[NUM_DOF];
-		this->bot[i]->frcMax = new dReal[NUM_DOF];
-		this->bot[i]->ang = new dReal[NUM_DOF*numStp*numBot];
-		this->bot[i]->vel = new dReal[NUM_DOF*numStp*numBot];
+		this->bot[i]->pid = new PID[NUM_DOF];
+		this->bot[i]->ang = new dReal[NUM_DOF*num_stp];
+		this->bot[i]->vel = new dReal[NUM_DOF*num_stp];
+		this->bot[i]->cur_ang = new dReal[NUM_DOF];
+		this->bot[i]->fut_ang = new dReal[NUM_DOF];
+		this->bot[i]->jnt_vel = new dReal[NUM_DOF];
 		this->bot[i]->pos = new dReal[3];
-		this->bot[i]->rot = new dReal[12];
-		this->bot[i]->futEncCnt = new int[NUM_DOF];
-		this->bot[i]->curEncCnt = new int[NUM_DOF];
-		this->bot[i]->delEncCnt = new int[NUM_DOF];
-		this->bot[i]->cmpStp = new bool[NUM_DOF];
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->futAng[j] = 0;
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->curAng[j] = 0;
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->pasAng[j] = 0;
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->delAng[j] = 0;
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->jntVel[j] = 0;
-		this->bot[i]->jntVelMax[LE] = 6.70;
-		this->bot[i]->jntVelMax[LB] = 2.61;
-		this->bot[i]->jntVelMax[RB] = 2.61;
-		this->bot[i]->jntVelMax[RE] = 6.70;
-		this->bot[i]->jntVelMin[LE] = 3.22;
-		this->bot[i]->jntVelMin[LB] = 1.25;
-		this->bot[i]->jntVelMin[RB] = 1.25;
-		this->bot[i]->jntVelMin[RE] = 3.22;
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->jntVelDel[j] = 0;
-		this->bot[i]->radPerEnc[LE] = 0.02094;
-		this->bot[i]->radPerEnc[LB] = 0.00873;
-		this->bot[i]->radPerEnc[RB] = 0.00873;
-		this->bot[i]->radPerEnc[RE] = 0.02094;
-		this->bot[i]->frcMax[LE] = 0.260;
-		this->bot[i]->frcMax[LB] = 1.059;
-		this->bot[i]->frcMax[RB] = 1.059;
-		this->bot[i]->frcMax[RE] = 0.260;
-		for ( j = 0; j < NUM_DOF*numStp; j++ ) {
-			this->bot[i]->ang[j] = D2R(ang[4*i + NUM_DOF*this->numBot*(j/NUM_DOF) + j%NUM_DOF]);
-			this->bot[i]->vel[j] = vel[4*i + NUM_DOF*this->numBot*(j/NUM_DOF) + j%NUM_DOF];
+		this->bot[i]->rot = new dReal[3];
+		this->bot[i]->ori = new dReal[4];
+		for ( j = 0; j < NUM_DOF*num_stp; j++ ) {
+			this->bot[i]->ang[j] = D2R(ang[4*i + NUM_DOF*num_bot*(j/NUM_DOF) + j%NUM_DOF]);
+			this->bot[i]->vel[j] = this->m_joint_vel_max[j%NUM_DOF];
 		}
-		for ( j = 0; j < 3; j++ ) this->bot[i]->pos[j] = 0;
-		for ( j = 0; j < 12; j++ ) this->bot[i]->rot[j] = 0;
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->futEncCnt[j] = 0;
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->curEncCnt[j] = 0;
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->delEncCnt[j] = 0;
-		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->cmpStp[j] = false;
-		this->flags[i] = false;
-		this->disable[i] = false;
+		for ( j = 0; j < NUM_DOF; j++ ) { this->bot[i]->pid[j].init(100, 1, 10, 0.1, this->m_t_step); }
+		#ifdef ENABLE_DRAWSTUFF
+		this->bot[i]->bodyPart[ENDCAP_L].num_geomID = 7;
+		this->bot[i]->bodyPart[BODY_L].num_geomID = 5;
+		this->bot[i]->bodyPart[CENTER].num_geomID = 3;
+		this->bot[i]->bodyPart[BODY_R].num_geomID = 5;
+		this->bot[i]->bodyPart[ENDCAP_R].num_geomID = 7;
+		for ( j = 0; j < NUM_DOF; j++ ) {
+			this->bot[i]->fut_ang[j] = this->bot[i]->ang[j];
+			this->bot[i]->jnt_vel[j] = this->bot[i]->vel[j];
+		}
+		#endif
 	}
-
-#ifdef ENABLE_DRAWSTUFF
-  /* Initialize drawstuff */
-  m_fn.version = DS_VERSION;
-  m_fn.start = (void (*)(void))&CiMobotSim::ds_start;
-  m_fn.step = (void (*)(int))&CiMobotSim::simulationLoop;
-  m_fn.command = (void (*)(int))&CiMobotSim::ds_command;
-  m_fn.stop = 0;
-  m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
-#endif
 
 	// create ODE simulation space
-	dInitODE2(0);
-	this->world  = dWorldCreate();
-	this->space  = dHashSpaceCreate(0);
-	this->group  = dJointGroupCreate(1000000);
-	for ( int i = 0; i < numBot; i++ ) {
-		this->space_robots[i] = dHashSpaceCreate(this->space);
-		dSpaceSetCleanup(this->space_robots[i],1);
-	}
+	dInitODE2(0);												// initialized ode library
+	this->world = dWorldCreate();								// create world for simulation
+	this->space = dHashSpaceCreate(0);							// create space for robots
+	this->space_bot = new dSpaceID[num_bot];					// create array of spaces for each robot
+	for ( i = 0; i < num_bot; i++ ) this->space_bot[i] = dHashSpaceCreate(this->space);		// create each robot's space
+	this->group = dJointGroupCreate(0);
+
 	// simulation parameters
 	dWorldSetAutoDisableFlag(this->world, 1);					// auto-disable bodies that are not moving
 	dWorldSetAutoDisableAngularThreshold(this->world, 0.01);	// threshold velocity for defining movement
 	dWorldSetAutoDisableLinearThreshold(this->world, 0.01);		// linear velocity threshold
-	dWorldSetAutoDisableSteps(this->world, 10);					// number of steps below thresholds before stationary
+	dWorldSetAutoDisableSteps(this->world, 4);					// number of steps below thresholds before stationary
 	dWorldSetCFM(this->world, 0.0000000001);					// constraint force mixing - how much a joint can be violated by excess force
 	dWorldSetContactSurfaceLayer(this->world, 0.001);			// depth each body can sink into another body before resting
-	dWorldSetDamping(this->world, 0.1, 0.1);					// damping of all bodies in world
 	dWorldSetERP(this->world, 0.95);							// error reduction parameter (0-1) - how much error is corrected on each step
 	dWorldSetGravity(this->world, 0, 0, -9.81);					// gravity
 
-#ifdef ENABLE_DRAWSTUFF
-  g_imobotsim = this;
-#endif
+	#ifdef ENABLE_DRAWSTUFF
+	// drawstuff simulation parameters
+	m_fn.version = DS_VERSION;									// version of drawstuff
+	m_fn.start = (void (*)(void))&CiMobotSim::ds_start;			// initialization function
+	m_fn.step = (void (*)(int))&CiMobotSim::ds_simulationLoop;	// function for each step of simulation
+	m_fn.command = (void (*)(int))&CiMobotSim::ds_command;		// keyboard commands to control simulation
+	m_fn.stop = 0;												// stopping parameter
+	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;				// path to texture files
+	g_imobotsim = this;											// pointer to class
+	#endif
 }
 
 CiMobotSim::~CiMobotSim() {
+	// initialze loop counters
+	int i, j;
+
 	// free all arrays created dynamically in constructor
-	for (int i = this->numBot - 1; i >= 0; i--) {
-		for (int j = 0; j < NUM_PARTS; j++) {
-			delete [] this->bot[i]->bdyPts[j].geomID;
-		}
-		delete [] this->bot[i]->bdyPts;
+	for ( i = this->m_num_bot - 1; i >= 0; i-- ) {
+		for ( j = 0; j < NUM_PARTS; j++ ) delete [] this->bot[i]->bodyPart[j].geomID;
+		delete [] this->bot[i]->bodyPart;
+		delete [] this->bot[i]->pid;
 		delete [] this->bot[i]->joints;
 		delete [] this->bot[i]->motors;
-		delete [] this->bot[i]->futAng;
-		delete [] this->bot[i]->curAng;
-		delete [] this->bot[i]->pasAng;
-		delete [] this->bot[i]->delAng;
-		delete [] this->bot[i]->jntVel;
-		delete [] this->bot[i]->jntVelMax;
-		delete [] this->bot[i]->jntVelMin;
-		delete [] this->bot[i]->jntVelDel;
-		delete [] this->bot[i]->radPerEnc;
-		delete [] this->bot[i]->frcMax;
+		delete [] this->bot[i]->fut_ang;
+		delete [] this->bot[i]->cur_ang;
+		delete [] this->bot[i]->jnt_vel;
 		delete [] this->bot[i]->ang;
 		delete [] this->bot[i]->vel;
 		delete [] this->bot[i]->pos;
 		delete [] this->bot[i]->rot;
-		delete [] this->bot[i]->futEncCnt;
-		delete [] this->bot[i]->curEncCnt;
-		delete [] this->bot[i]->delEncCnt;
-		delete [] this->bot[i]->cmpStp;
+		delete [] this->bot[i]->ori;
 		delete this->bot[i];
 	}
 	delete [] this->bot;
-	delete [] this->flags;
-	delete [] this->disable;
-	delete [] this->ground;
-	delete this->reply;
+	delete [] this->m_flag_comp;
+	delete [] this->m_flag_disable;
+	delete [] this->m_ground;
+	delete [] this->m_joint_vel_max;
+	delete [] this->m_joint_vel_min;
+	delete [] this->m_joint_frc_max;
+	delete this->m_reply;
 
 	// destroy all ODE objects
 	dJointGroupDestroy(group);
-	for ( int i = 0; i < this->numBot; i++ ) {
-		dSpaceDestroy(this->space_robots[i]);
-	}
+	for ( i = 0; i < this->m_num_bot; i++ ) dSpaceDestroy(this->space_bot[i]);
 	dSpaceDestroy(this->space);
 	dWorldDestroy(this->world);
 	dCloseODE();
 }
 
-void CiMobotSim::setMu(dReal mu_g, dReal mu_b) {
-	this->mu_g = mu_g;
-	this->mu_b = mu_b;
+/**********************************************************
+	Public Member Functions
+ **********************************************************/
+void CiMobotSim::setAngVel(dReal *vel) {
+	// initialze loop counters
+	int i, j;
+
+	// create array of delta values between min and max joint velocities
+	dReal del[NUM_DOF];
+	for ( j = 0; j < NUM_DOF; j++ ) del[j] = this->m_joint_vel_max[j] - this->m_joint_vel_min[j];
+
+	// loop through each robot and assign new array of vel values
+	for ( i = 0; i < this->m_num_bot; i++ ) {
+		for ( j = 0; j < NUM_DOF*this->m_num_stp; j++ ) this->bot[i]->vel[j] = this->m_joint_vel_min[j%NUM_DOF] + vel[4*i + NUM_DOF*this->m_num_bot*(j/NUM_DOF) + j%NUM_DOF]*del[j%NUM_DOF];
+		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->jnt_vel[j] = this->bot[i]->vel[j];
+	}
 }
 
 void CiMobotSim::setCOR(dReal cor_g, dReal cor_b) {
-	this->cor_g = cor_g;
-	this->cor_b = cor_b;
+	this->m_cor_g = cor_g;
+	this->m_cor_b = cor_b;
 }
 
-void CiMobotSim::printData() {
-	for (int i = 0; i < this->numBot; i++) {
-		cout << this->bot[i]->ang[0] << "\t" << this->bot[i]->ang[1] << "\t" << this->bot[i]->ang[2] << "\t" << this->bot[i]->ang[3] << endl;
-		cout << this->bot[i]->ang[4] << "\t" << this->bot[i]->ang[5] << "\t" << this->bot[i]->ang[6] << "\t" << this->bot[i]->ang[7] << endl;
-		cout << this->bot[i]->ang[8] << "\t" << this->bot[i]->ang[9] << "\t" << this->bot[i]->ang[10] << "\t" << this->bot[i]->ang[11] << endl;
-		cout << this->bot[i]->ang[12] << "\t" << this->bot[i]->ang[13] << "\t" << this->bot[i]->ang[14] << "\t" << this->bot[i]->ang[15] << endl;
-		cout << this->bot[i]->vel[0] << "\t" << this->bot[i]->vel[1] << "\t" << this->bot[i]->vel[2] << "\t" << this->bot[i]->vel[3] << endl;
-		cout << this->bot[i]->vel[4] << "\t" << this->bot[i]->vel[5] << "\t" << this->bot[i]->vel[6] << "\t" << this->bot[i]->vel[7] << endl;
-		cout << this->bot[i]->vel[8] << "\t" << this->bot[i]->vel[9] << "\t" << this->bot[i]->vel[10] << "\t" << this->bot[i]->vel[11] << endl;
-		cout << this->bot[i]->vel[12] << "\t" << this->bot[i]->vel[13] << "\t" << this->bot[i]->vel[14] << "\t" << this->bot[i]->vel[15] << endl;
-	}
-}
-void CiMobotSim::run(int argc, char** argv)
-{
-#ifdef ENABLE_DRAWSTUFF
-  dsSimulationLoop(argc, argv, 352, 288, &m_fn);
-#else
-  simulationLoop();
-#endif
+void CiMobotSim::setMu(dReal mu_g, dReal mu_b) {
+	this->m_mu_g = mu_g;
+	this->m_mu_b = mu_b;
 }
 
+void CiMobotSim::setTime(dReal time_total) {
+	this->m_t_total = time_total;
+	this->m_t_tot_step = (int)((this->m_t_total + this->m_t_step) / this->m_t_step);
+}
+
+void CiMobotSim::runSimulation(int argc, char **argv) {
+	#ifdef ENABLE_DRAWSTUFF
+	dsSimulationLoop(argc, argv, 352, 288, &m_fn);
+	#else
+	simulation_loop();
+	#endif
+}
+
+int CiMobotSim::getReplyMessage() {
+	return this->m_reply->message;
+}
+
+dReal CiMobotSim::getReplyTime() {
+	return this->m_reply->time;
+}
+
+/**********************************************************
+	Private Simulation Functions
+ **********************************************************/
 #ifdef ENABLE_DRAWSTUFF
 /* If drawstuff is enabled, we cannot use any reference to 'this', because
  * simulationLoop is called as a callback function and any reference to 'this'
  * will be NULL. Instead, if we are using Drawstuff, we sholud reference the
  * global variable, g_imobotsim */
 #define this g_imobotsim
-void CiMobotSim::simulationLoop(int pause) 
-#else
-void CiMobotSim::simulationLoop(void) 
-#endif
-{
-	// initialize
-	bool loop = true;
+void CiMobotSim::ds_simulationLoop(int pause) {
+	bool loop = true;												// initialize
+	this->update_angles();											// update angles for current step
+	dSpaceCollide(this->space, this, &this->collision_wrapper);		// collide all geometries together
+	dWorldStep(this->world, this->m_t_step);						// step world time by one
+	dJointGroupEmpty(this->group);									// clear out all contact joints
+	this->print_intermediate_data();								// print out incremental data
+	this->set_flags();												// set flags for completion of steps
+	this->increment_step();											// check whether to increment to next step
+	this->end_simulation(loop);										// check whether to end simulation
+	this->increment_time();											// increment time
 
-	// loop continuously until simulation is stopped
-#ifndef ENABLE_DRAWSTUFF
-	while (loop) {
-#endif
-		if ( this->newStp )
-			this->setAngles();		// set angles for new step
-		else
-			this->updateAngles();	// update angles for current step
-
-		// collide all geoms together
-		dSpaceCollide(this->space, this, &this->collisionWrapper);
-		dWorldStep(this->world, this->tmeStp);
-		dJointGroupEmpty(this->group);
-
-		this->setFlags();			// set flags for completion of steps
-		this->incrementStep();		// check whether to increment to next step
-
-		// print out intermediate data for analysis
-		cout.width(3); cout << this->t / this->tmeStp;
-		//cout.width(6); cout << this->t;
-		//cout.width(3); cout << this->newStp;
-		cout.width(3); cout << this->curStp;
-		//cout.width(3); cout << this->reply->success;
-		//cout.width(6); cout << this->reply->time;
-		cout << "\t\t";
-		const dReal *pos;
-		for (int i = 0; i < this->numBot; i++) {
-			//cout << this->bot[i]->futAng[LE] << " ";
-			//cout << this->bot[i]->curAng[LE] << " ";
-			//cout << this->bot[i]->pasAng[LE] << " ";
-			//cout << this->bot[i]->futEncCnt[LE] << " ";
-			//cout << this->bot[i]->curEncCnt[LE] << " ";
-			//cout << this->bot[i]->radPerEnc[LE] << " ";
-			//cout << this->bot[i]->jntVel[LE] << " ";
-			//cout << this->bot[i]->cmpStp[LE] << " ";
-			//cout << dJointGetAMotorParam(this->bot[i]->motors[LE], dParamVel) << " ";
-			//cout << dJointGetHingeAngle(this->bot[i]->joints[LE]) << " ";
-			//cout << dJointGetHingeAngleRate(this->bot[i]->joints[LE]) << " ";
-			//
-			//cout << this->bot[i]->futAng[LB] << " ";
-			//cout << this->bot[i]->curAng[LB] << " ";
-			//cout << this->bot[i]->pasAng[LB] << " ";
-			//cout << this->bot[i]->futEncCnt[LB] << " ";
-			//cout << this->bot[i]->curEncCnt[LB] << " ";
-			//cout << this->bot[i]->radPerEnc[LB] << " ";
-			//cout << this->bot[i]->jntVel[LB] << " ";
-			//cout << this->bot[i]->cmpStp[LB] << " ";
-			//cout << dJointGetAMotorParam(this->bot[i]->motors[LB], dParamVel) << " ";
-			//cout << dJointGetHingeAngle(this->bot[i]->joints[LB]) << " ";
-			//cout << dJointGetHingeAngleRate(this->bot[i]->joints[LB]) << " ";
-			//			
-			pos = dBodyGetPosition(this->bot[i]->bdyPts[CENTER].bodyID);
-			printf("[%f %f %f]\t", M2I(pos[0]), M2I(pos[1]), M2I(pos[2]));
-			//
-			//cout << this->bot[i]->futAng[RB] << " ";
-			//cout << this->bot[i]->curAng[RB] << " ";
-			//cout << this->bot[i]->pasAng[RB] << " ";
-			//cout << this->bot[i]->futEncCnt[RB] << " ";
-			//cout << this->bot[i]->curEncCnt[RB] << " ";
-			//cout << this->bot[i]->radPerEnc[RB] << " ";
-			//cout << this->bot[i]->jntVel[RB] << " ";
-			//cout << this->bot[i]->cmpStp[RB] << " ";
-			//cout << dJointGetAMotorParam(this->bot[i]->motors[RB], dParamVel) << " ";
-			//cout << dJointGetHingeAngle(this->bot[i]->joints[RB]) << " ";
-			//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RB]) << " ";
-			//
-			//cout << this->bot[i]->futAng[RE] << " ";
-			//cout << this->bot[i]->curAng[RE] << " ";
-			//cout << this->bot[i]->pasAng[RE] << " ";
-			//cout << this->bot[i]->futEncCnt[RE] << " ";
-			//cout << this->bot[i]->curEncCnt[RE] << " ";
-			//cout << this->bot[i]->radPerEnc[RE] << " ";
-			//cout << this->bot[i]->jntVel[RE] << " ";
-			//cout << this->bot[i]->cmpStp[RE] << " ";
-			//cout << dJointGetAMotorParam(this->bot[i]->motors[RE], dParamVel) << " ";
-			//cout << dJointGetHingeAngle(this->bot[i]->joints[RE]) << " ";
-			//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RE]) << " ";
-		}
-		/*for (int i = 0; i < this->numBot; i++) {
-			cout.width(2); cout << this->flags[i];
-		}*/
-		//cout << " ";
-		//for (int i = 0; i < this->numBot; i++) {
-		//	cout << this->disable[i];
-		//}
-		cout << endl;
-
-		loop = this->endSimulation(this->tmeTot);		// check whether to end simulation
-#ifdef ENABLE_DRAWSTUFF
-    if(!loop) dsStop();
-#endif
-		this->incrementTime(this->tmeStp);				// increment time
-
-#ifdef ENABLE_DRAWSTUFF
-    // draw the bodies
-    for (int i = 0; i < this->numBot; i++) {
-      for (int j = 0; j < this->NUM_PARTS; j++) {
-        if (dBodyIsEnabled(this->bot[i]->bdyPts[j].bodyID)) {
-          dsSetColor(	this->bot[i]->bdyPts[j].color[0],
-              this->bot[i]->bdyPts[j].color[1],
-              this->bot[i]->bdyPts[j].color[2]);
-        }
-        else { dsSetColor(0.5,0.5,0.5); }
-        for (int k = 0; k < this->bot[i]->bdyPts[j].num_geomID; k++) {
-          ds_drawPart(this->bot[i]->bdyPts[j].geomID[k]);
-        }
-      }
-    }
-#endif
-
-#ifndef ENABLE_DRAWSTUFF
-	}
-#else
-#undef this
-#endif
+	this->ds_drawBodies();											// draw bodies onto screen
+	if ((this->m_t_cur_step == this->m_t_tot_step+1) || !loop) dsStop();// stop simulation
 }
+#undef this
+#else
+void CiMobotSim::simulation_loop(void) {
+	bool loop = true;												// initialize loop tracker
+	this->init_angles();											// initialize angles for simulation
+	while (this->m_t_cur_step <= this->m_t_tot_step && loop) {		// loop continuously until simulation is stopped
+		this->update_angles();										// update angles for current step
+		dSpaceCollide(this->space, this, &this->collision_wrapper);	// collide all geometries together
+		dWorldStep(this->world, this->m_t_step);					// step world time by one
+		dJointGroupEmpty(this->group);								// clear out all contact joints
+		//this->print_intermediate_data();							// print out incremental data
+		this->set_flags();											// set flags for completion of steps
+		this->increment_step();										// check whether to increment to next step
+		this->end_simulation(loop);									// check whether to end simulation
+		this->increment_time();										// increment time
+	}
+}
+#endif
 
-void CiMobotSim::setAngles() {
-	// for each module set new angles for next step
-	for (int i = 0; i < this->numBot; i++) {
-		// disable new step flag to update next iteration
-		this->newStp = false;
-		// initialize step variable
-		int step = this->curStp - 1;
+#ifndef ENABLE_DRAWSTUFF
+void CiMobotSim::init_angles() {
+	// initialze loop counters
+	int i, j;
 
-		// each degree of freedom is checked individually
-		for (int j = 0; j < NUM_DOF; j++) {
-			// check if motor should be disabled for current step
-			if ( (int)(this->bot[i]->ang[NUM_DOF*step + j]) == (int)(D2R(123456789)) ) {
-				// disable joint
+	// initialize all angles for first step of simulation
+	for ( i = 0; i < this->m_num_bot; i++ ) {
+		for ( j = 0; j < NUM_DOF; j++ ) {
+			if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
 				dJointDisable(this->bot[i]->motors[j]);
-				// set future angle equal to current angle
-				if ( j == LE || j == RE )
-					this->bot[i]->futAng[j] = angMod(this->bot[i]->curAng[j], dJointGetHingeAngle(this->bot[i]->joints[j]),	dJointGetHingeAngleRate(this->bot[i]->joints[j]));
-				else
-					this->bot[i]->futAng[j] = dJointGetHingeAngle(this->bot[i]->joints[j]);
-				this->bot[i]->curAng[j] = this->bot[i]->futAng[j];
-				this->bot[i]->pasAng[j] = this->bot[i]->curEncCnt[j] * this->bot[i]->radPerEnc[j];
-				this->bot[i]->futEncCnt[j] = this->bot[i]->curEncCnt[j];
-				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
-				this->bot[i]->cmpStp[j] = true;
+				this->bot[i]->fut_ang[j] = this->bot[i]->cur_ang[j];
 			}
-			// set future values for motor to reach
 			else {
 				dJointEnable(this->bot[i]->motors[j]);
-				// endcaps get modified angle to count continuously
-				if ( j == LE || j == RE ) {
-					this->bot[i]->futAng[j] += this->bot[i]->ang[NUM_DOF*step + j];
-					this->bot[i]->curAng[j] = angMod(this->bot[i]->curAng[j], dJointGetHingeAngle(this->bot[i]->joints[j]), dJointGetHingeAngleRate(this->bot[i]->joints[j]));
-				}
-				else {
-					this->bot[i]->futAng[j] = this->bot[i]->ang[NUM_DOF*step + j];
-				}
-				// store values for new step into struct
-				this->bot[i]->pasAng[j] = this->bot[i]->curEncCnt[j] * this->bot[i]->radPerEnc[j];
-				this->bot[i]->delAng[j] = this->bot[i]->futAng[j] - this->bot[i]->pasAng[j];
-				this->bot[i]->delEncCnt[j] = (int)(this->bot[i]->delAng[j]/this->bot[i]->radPerEnc[j] + 0.5);
-				this->bot[i]->futEncCnt[j] += this->bot[i]->delEncCnt[j];
-				this->bot[i]->jntVel[j] = this->bot[i]->jntVelMin[j] + this->bot[i]->vel[NUM_DOF*step + j]*this->bot[i]->jntVelDel[j];
-				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
+				if ( j == LE || j == RE ) { this->bot[i]->fut_ang[j] = this->bot[i]->ori[j] + this->bot[i]->ang[j]; }
+				else { this->bot[i]->fut_ang[j] = this->bot[i]->ang[j]; }
+				this->bot[i]->jnt_vel[j] = this->bot[i]->vel[j];
 			}
+			dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
 		}
+		// re-enable robots for next step
+		dBodyEnable(this->bot[i]->bodyPart[CENTER].bodyID);
 	}
 }
+#endif
 
-void CiMobotSim::updateAngles() {
+void CiMobotSim::update_angles() {
+	// initialze loop counters
+	int i, j;
+
 	// update stored data in struct with data from ODE
-	for (int i = 0; i < this->numBot; i++) {
+	for ( i = 0; i < this->m_num_bot; i++ ) {
 		// must be done for each degree of freedom
-		for (int j = 0; j < NUM_DOF; j++) {
+		for ( j = 0; j < NUM_DOF; j++ ) {
 			// update current angle
-			this->bot[i]->curAng[j] = angMod(this->bot[i]->curAng[j], dJointGetHingeAngle(this->bot[i]->joints[j]),	dJointGetHingeAngleRate(this->bot[i]->joints[j]));
-			dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->curAng[j]);
-			this->bot[i]->delAng[j] = this->bot[i]->curAng[j] - this->bot[i]->pasAng[j];
-			// when delta angle is greater than one encoder step, increment encoder count
-			if ( fabs(this->bot[i]->delAng[j]) >= this->bot[i]->radPerEnc[j] ) {
-				this->bot[i]->delEncCnt[j] = (int)(this->bot[i]->delAng[j] / this->bot[i]->radPerEnc[j]);
-				this->bot[i]->curEncCnt[j] += this->bot[i]->delEncCnt[j];
-				this->bot[i]->pasAng[j] += this->bot[i]->delEncCnt[j] * this->bot[i]->radPerEnc[j];
-			}
-			// if joint is being driven for current step, set angles to current values
-			if ( !dJointIsEnabled(this->bot[i]->motors[j]) ) {
-				this->bot[i]->futAng[j] = this->bot[i]->curAng[j];
-				this->bot[i]->pasAng[j] = this->bot[i]->curEncCnt[j] * this->bot[i]->radPerEnc[j];
-				this->bot[i]->futEncCnt[j] = this->bot[i]->curEncCnt[j];
-			}
-			// otherwise drive with motor
-			else {
-				if (this->bot[i]->curEncCnt[j] < this->bot[i]->futEncCnt[j]) {
-					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->jntVel[j]);
-					this->bot[i]->cmpStp[j] = false;
-				}
-				else if (this->bot[i]->curEncCnt[j] > this->bot[i]->futEncCnt[j]) {
-					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, -this->bot[i]->jntVel[j]);
-					this->bot[i]->cmpStp[j] = false;
-				}
-				else {
+			if ( j == LE || j == RE )
+				this->bot[i]->cur_ang[j] = mod_angle(this->bot[i]->cur_ang[j], dJointGetHingeAngle(this->bot[i]->joints[j]), dJointGetHingeAngleRate(this->bot[i]->joints[j]));
+			else
+				this->bot[i]->cur_ang[j] = dJointGetHingeAngle(this->bot[i]->joints[j]);
+
+			// set motor angle to current angle
+			dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
+
+			// drive motor to get current angle to match future angle
+			if ( dJointIsEnabled(this->bot[i]->motors[j]) ) {
+				// with PID
+				/*if (this->bot[i]->cur_ang[j] < this->bot[i]->fut_ang[j] - 10*this->m_motor_res)
+					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->jnt_vel[j]);
+				else if (this->bot[i]->cur_ang[j] > this->bot[i]->fut_ang[j] + 10*this->m_motor_res)
+					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, -this->bot[i]->jnt_vel[j]);
+				else if (this->bot[i]->fut_ang[j] - 10*this->m_motor_res < this->bot[i]->cur_ang[j] &&  this->bot[i]->cur_ang[j] < this->bot[i]->fut_ang[j] - this->m_motor_res)
+					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->pid[j].update(this->bot[i]->fut_ang[j] - this->bot[i]->cur_ang[j]));
+				else if (this->bot[i]->cur_ang[j] < this->bot[i]->fut_ang[j] + 10*this->m_motor_res && this->bot[i]->cur_ang[j] > this->bot[i]->fut_ang[j] + this->m_motor_res)
+					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->pid[j].update(this->bot[i]->cur_ang[j] - this->bot[i]->fut_ang[j]));
+				else
+					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, 0);*/
+				// without PID
+				if (this->bot[i]->cur_ang[j] < this->bot[i]->fut_ang[j] - this->m_motor_res)
+					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->jnt_vel[j]);
+				else if (this->bot[i]->cur_ang[j] > this->bot[i]->fut_ang[j] + this->m_motor_res)
+					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, -this->bot[i]->jnt_vel[j]);
+				else
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, 0);
-					this->bot[i]->cmpStp[j] = true;
-				}
 			}
 		}
 	}
 }
 
-void CiMobotSim::collisionWrapper(void *data, dGeomID o1, dGeomID o2) {
+void CiMobotSim::collision_wrapper(void *data, dGeomID o1, dGeomID o2) {
 	// cast void pointer to pointer to class
 	CiMobotSim *ptr;
 	ptr = (CiMobotSim *) data;
@@ -458,327 +346,418 @@ void CiMobotSim::collisionWrapper(void *data, dGeomID o1, dGeomID o2) {
 }
 
 void CiMobotSim::collision(dGeomID o1, dGeomID o2) {
-	// initialize values
-	dBodyID b1, b2;
-	b1 = dGeomGetBody(o1);
-	b2 = dGeomGetBody(o2);
+	// get bodies of geoms
+	dBodyID b1 = dGeomGetBody(o1);
+	dBodyID b2 = dGeomGetBody(o2);
 
-	// if geoms are in same body do not intersect
-	if (b1 && b2 && dAreConnected(b1, b2)) return;
+	// if geom bodies are connected, do not intersect
+	if ( b1 && b2 && dAreConnected(b1, b2) ) return;
 
 	// special case for collision of spaces
 	if (dGeomIsSpace(o1) || dGeomIsSpace(o2)) {
-		dSpaceCollide2(o1, o2, this, &this->collisionWrapper);
-		if ( dGeomIsSpace(o1) )
-			dSpaceCollide( (dSpaceID)o1, this, &this->collisionWrapper);
-		if ( dGeomIsSpace(o2) )
-			dSpaceCollide( (dSpaceID)o2, this, &this->collisionWrapper);
+		dSpaceCollide2(o1, o2, this, &this->collision_wrapper);
+		if ( dGeomIsSpace(o1) )	dSpaceCollide((dSpaceID)o1, this, &this->collision_wrapper);
+		if ( dGeomIsSpace(o2) ) dSpaceCollide((dSpaceID)o2, this, &this->collision_wrapper);
 	}
-	// create contact point for two geoms
 	else {
-		const int N = 8;
-		dContact contact[N];
-		int n = dCollide(o1, o2, N, &contact[0].geom, sizeof(dContact));
-		if (n > 0) {
-			for (int i = 0; i < n; i++) {
-				// different properties for ground contact vs body contact
-				if ( dGeomGetSpace(o1) == this->space || dGeomGetSpace(o2) == this->space ) {
-					contact[i].surface.mode = dContactBounce | dContactApprox1;
-					contact[i].surface.mu = this->mu_g;
-					contact[i].surface.bounce = this->cor_g;
+		dContact contact[8];
+		for ( int i = 0; i < dCollide(o1, o2, 8, &contact[0].geom, sizeof(dContact)); i++ ) {
+			// different properties for ground contact vs body contact
+			if ( dGeomGetSpace(o1) == this->space || dGeomGetSpace(o2) == this->space ) {
+				contact[i].surface.mu = this->m_mu_g;
+				contact[i].surface.bounce = this->m_cor_g;
+			}
+			else {
+				contact[i].surface.mu = this->m_mu_b;
+				contact[i].surface.bounce = this->m_cor_b;
+			}
+			contact[i].surface.mode = dContactBounce | dContactApprox1;
+			dJointAttach( dJointCreateContact(this->world, this->group, contact + i), b1, b2);
+		}
+	}
+}
+
+void CiMobotSim::set_flags() {
+	// initialze loop counters
+	int c, i, j;
+
+	// set flags for each module in simulation
+	for ( i = 0; i < this->m_num_bot; i++ ) {
+		// restart counter for each robot
+		c = 0;
+
+		// check if joint speed is zero -> joint has completed step
+		for ( j = 0; j < NUM_DOF; j++ ) { if ( !(int)dJointGetAMotorParam(this->bot[i]->motors[j], dParamVel) ) c++; }
+
+		// set flag for each robot that has completed all four joint motions
+		if ( c == 4 ) this->m_flag_comp[i] = true;
+
+		// module is disabled
+		this->m_flag_disable[i] = !(bool)dBodyIsEnabled(this->bot[i]->bodyPart[CENTER].bodyID);
+	}
+}
+
+void CiMobotSim::increment_step() {
+	// initialze loop counters
+	int i, j;
+
+	// if completed step and bodies are at rest, then increment
+	if ( this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
+		// if haven't reached last step, increment
+		if ( this->m_cur_stp != this->m_num_stp - 1 ) {
+			this->m_cur_stp++;
+			this->set_angles();
+		}
+		// otherwise successfully reached last step
+		else {
+			this->m_reply->message = SIM_SUCCESS;
+			this->m_reply->time = this->m_t;
+		}
+
+		// reset all flags to zero
+		for ( i = 0; i < this->m_num_bot; i++ ) {
+			this->m_flag_comp[i] = false;
+			this->m_flag_disable[i] = false;
+			for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->pid[j].restart();
+		}
+	}
+}
+
+void CiMobotSim::set_angles() {
+	// initialze loop counters
+	int i, j, k;
+
+	// set arrays of angles for new step
+	for ( i = 0; i < this->m_num_bot; i++ ) {
+		for ( j = 0; j < NUM_DOF; j++ ) {
+			if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
+				dJointDisable(this->bot[i]->motors[j]);
+				this->bot[i]->fut_ang[j] = this->bot[i]->cur_ang[j];
+				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
+			}
+			else {
+				dJointEnable(this->bot[i]->motors[j]);
+				if ( j == LE || j == RE ) {
+					this->bot[i]->fut_ang[j] = this->bot[i]->ori[j];
+					for ( k = 0; k <= this->m_cur_stp; k++ ) { this->bot[i]->fut_ang[j] += this->bot[i]->ang[NUM_DOF*k + j]; }
 				}
 				else {
-					contact[i].surface.mode = dContactBounce | dContactApprox1;
-					contact[i].surface.mu = this->mu_b;
-					contact[i].surface.bounce = this->cor_b;
+					this->bot[i]->fut_ang[j] = this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j];
 				}
-				dJointID c = dJointCreateContact(this->world, this->group, contact+i);
-				dJointAttach(c, b1, b2);
+				this->bot[i]->jnt_vel[j] = this->bot[i]->vel[NUM_DOF*this->m_cur_stp + j];
+				dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
 			}
 		}
+		// re-enable robots for next step
+		dBodyEnable(this->bot[i]->bodyPart[CENTER].bodyID);
 	}
 }
 
-void CiMobotSim::setFlags() {
-	// set flags for each module in simulation
-	for (int i = 0; i < this->numBot; i++) {
-		// all body parts of module finished
-		if ( this->isTrue(this->bot[i]->cmpStp, NUM_DOF) )
-			this->flags[i] = true;
-		// module is disabled
-		if ( !dBodyIsEnabled(this->bot[i]->bdyPts[0].bodyID) )
-			this->disable[i] = true;
-		else
-			this->disable[i] = false;
+void CiMobotSim::print_intermediate_data() {
+	// initialze loop counters
+	int i;
+
+	cout.width(3); cout << this->m_t_cur_step;
+	cout.width(4); cout << this->m_t_tot_step;
+	cout.width(6); cout << this->m_t;
+	cout.width(3); cout << this->m_cur_stp;
+	cout << "\t\t";
+	//const dReal *pos;
+	for (i = 0; i < this->m_num_bot; i++) {
+		//cout << this->bot[i]->fut_ang[LE] << " ";
+		//cout << this->bot[i]->bodyPart[ENDCAP_L].ang << " ";
+		//cout << this->bot[i]->cur_ang[LE] << " ";
+		//cout << this->bot[i]->jnt_vel[LE] << " ";
+		//cout << dJointGetAMotorParam(this->bot[i]->motors[LE], dParamVel) << " ";
+		//cout << dJointGetHingeAngle(this->bot[i]->joints[LE]) << " ";
+		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[LE]) << " ";
+		//
+		//cout << this->bot[i]->fut_ang[LB] << " ";
+		//cout << this->bot[i]->bodyPart[BODY_L].ang << " ";
+		//cout << this->bot[i]->cur_ang[LB] << " ";
+		//cout << this->bot[i]->jnt_vel[LB] << " ";
+		//cout << dJointGetAMotorParam(this->bot[i]->motors[LB], dParamVel) << " ";
+		//cout << dJointGetHingeAngle(this->bot[i]->joints[LB]) << " ";
+		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[LB]) << " ";
+		//
+		//pos = dBodyGetPosition(this->bot[i]->bodyPart[CENTER].bodyID);
+		//printf("[%f %f %f]\t", pos[0], pos[1], pos[2]);
+		//cout << dBodyIsEnabled(this->bot[i]->bodyPart[CENTER].bodyID) << " ";
+		//
+		//cout << this->bot[i]->fut_ang[RB] << " ";
+		//cout << this->bot[i]->bodyPart[BODY_R].ang << " ";
+		//cout << this->bot[i]->cur_ang[RB] << " ";
+		//cout << this->bot[i]->jnt_vel[RB] << " ";
+		//cout << dJointGetAMotorParam(this->bot[i]->motors[RB], dParamVel) << " ";
+		//cout << dJointGetHingeAngle(this->bot[i]->joints[RB]) << " ";
+		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RB]) << " ";
+		//
+		//cout << this->bot[i]->fut_ang[RE] << " ";
+		//cout << this->bot[i]->bodyPart[ENDCAP_R].ang << " ";
+		//cout << this->bot[i]->cur_ang[RE] << " ";
+		//cout << this->bot[i]->jnt_vel[RE] << " ";
+		//cout << dJointGetAMotorParam(this->bot[i]->motors[RE], dParamVel) << " ";
+		//cout << dJointGetHingeAngle(this->bot[i]->joints[RE]) << " ";
+		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RE]) << " ";
 	}
+	for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flag_comp[i] << " "; }
+	cout << " ";
+	for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flag_disable[i] << " "; }
+	cout << endl;
 }
 
-void CiMobotSim::incrementStep() {
-	// initialize
-	static int k = 1;
+void CiMobotSim::end_simulation(bool &loop) {
+	// increment time step
+	this->m_t_cur_step++;
 
-	// all robots have completed motion
-	if ( this->isTrue(this->flags, this->numBot) ) {
-		// increment to next step
-		this->curStp++;
-		this->newStp = true;
-		// reset all flags to zero
-		for (int i = 0; i < this->numBot; i++) {
-			this->flags[i] = false;
-			for (int j = 0; j < NUM_DOF; j++) {
-				this->bot[i]->cmpStp[j] = false;
-			}
-		}
-		// reached last step
-		if ( (this->curStp - 1 == this->numStp) && (this->newStp) ) {
-			// finished all steps
-			this->reply->success = true;
-			// record time to completion
-			if ( k == 1)
-				this->reply->time = this->t;
-			// step back current step number
-			this->curStp = numStp;
-			// dont move to new step
-			this->newStp = false;
-			// increment counter
-			k++;
-		}
-	}
-}
-
-bool CiMobotSim::endSimulation(double totalTime) {
-	// initialize
-	bool loop = true;
-
-	// reached end of simulation time == FAIL
-	if ( (totalTime - this->t) < 0.0000000596047 ) {
-		this->reply->message = 1;
+	// have not completed steps && stalled
+	if ( !this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
+		this->m_reply->message = SIM_ERROR_STALL;
 		loop = false;
 	}
-	// all modules are disabled
-	else if ( this->isTrue(this->disable, this->numBot) ) {
-		// if all steps are completed == SUCCESS
-		if ( this->reply->success )
-			this->reply->message = 2;
-		// everything is stalled == FAIL
-		else
-			this->reply->message = 3;
-		loop = false;
-	}
-	
-	return loop;
+	// success on all steps
+	else if ( !this->m_reply->message ) { loop = false; }
 }
 
-void CiMobotSim::incrementTime(double tStep) {
-		this->t += tStep;
-}
-
-void CiMobotSim::replyMessage() {
-	if ( this->reply->message == 1 )
-		cout << "Failure: reached end of simulation time" << endl;
-	else if ( this->reply->message == 2 )
-		cout << "Success: all robots have completed all of their steps" << endl;
-	else if ( this->reply->message == 3 )
-		cout << "Failure: all robots are stationary\n" << endl;
+void CiMobotSim::increment_time() {
+		this->m_t += this->m_t_step;
 }
 
 /**********************************************************
 	Ground Functions
  **********************************************************/
-void CiMobotSim::groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dMatrix3 R) {
-	this->ground[gndNum] = dCreateBox(this->space, lx, ly, lz);
-	dGeomSetPosition(this->ground[gndNum], px, py, pz);
-	dGeomSetRotation(this->ground[gndNum], R);
+void CiMobotSim::groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+	// create rotation matrix
+	dMatrix3 R, R_x, R_y, R_z, R_xy;
+	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+	dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+	dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+	dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+	// position box
+	this->m_ground[gndNum] = dCreateBox(this->space, lx, ly, lz);
+	dGeomSetPosition(this->m_ground[gndNum], px, py, pz);
+	dGeomSetRotation(this->m_ground[gndNum], R);
 }
 
-void CiMobotSim::groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dMatrix3 R) {
-	this->ground[gndNum] = dCreateCapsule(this->space, r, l);
-	dGeomSetPosition(this->ground[gndNum], px, py, pz);
-	dGeomSetRotation(this->ground[gndNum], R);
+void CiMobotSim::groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+	// create rotation matrix
+	dMatrix3 R, R_x, R_y, R_z, R_xy;
+	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+	dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+	dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+	dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+	// position capsule
+	this->m_ground[gndNum] = dCreateCapsule(this->space, r, l);
+	dGeomSetPosition(this->m_ground[gndNum], px, py, pz);
+	dGeomSetRotation(this->m_ground[gndNum], R);
 }
 
-void CiMobotSim::groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dMatrix3 R) {
-	this->ground[gndNum] = dCreateCapsule(this->space, r, l);
-	dGeomSetPosition(this->ground[gndNum], px, py, pz);
-	dGeomSetRotation(this->ground[gndNum], R);
+void CiMobotSim::groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+	// create rotation matrix
+	dMatrix3 R, R_x, R_y, R_z, R_xy;
+	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+	dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+	dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+	dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+	// position cylinder
+	this->m_ground[gndNum] = dCreateCylinder(this->space, r, l);
+	dGeomSetPosition(this->m_ground[gndNum], px, py, pz);
+	dGeomSetRotation(this->m_ground[gndNum], R);
 }
 
 void CiMobotSim::groundPlane(int gndNum, dReal a, dReal b, dReal c, dReal d) {
-	this->ground[gndNum] = dCreatePlane(this->space, a, b, c, d);
+	this->m_ground[gndNum] = dCreatePlane(this->space, a, b, c, d);
 }
 
 void CiMobotSim::groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz) {
-	this->ground[gndNum] = dCreateSphere(this->space, r);
-	dGeomSetPosition(this->ground[gndNum], px, py, pz);
+	this->m_ground[gndNum] = dCreateSphere(this->space, r);
+	dGeomSetPosition(this->m_ground[gndNum], px, py, pz);
 }
 
 /**********************************************************
 	Build Body Parts Functions
  **********************************************************/
-void CiMobotSim::buildLeftBody(dSpaceID *space, CiMobotSimPart *part, dReal x, dReal y, dReal z, dMatrix3 R) {
+void CiMobotSim::imobot_build_lb(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild) {
 	// define parameters
-	dMass m, m1, m2, m3;
 	dBodyID body;
 	dGeomID geom;
-	dMatrix3 R1;
+	dMass m, m1, m2, m3;
+	dMatrix3 R1, R2, R3;
 
 	// set mass of body
 	dMassSetZero(&m);
 	// create mass 1
-	dMassSetBox(&m1, 1700, I2M(0.2), I2M(2.60), I2M(2.85) );
+	dMassSetBox(&m1, 2700, BODY_END_DEPTH, CENTER_HEIGHT, BODY_WIDTH );
 	dMassAdd(&m, &m1);
 	// create mass 2
-	dMassSetBox(&m2, 700, I2M(1.0), I2M(0.125), I2M(2.85) );
-	dMassTranslate(&m2, I2M(0.5 + 0.1), -I2M(2.6/2 + 0.125/2), 0 );
+	dMassSetBox(&m2, 2700, BODY_INNER_WIDTH, END_DEPTH, BODY_WIDTH );
+	dMassTranslate(&m2, 0.01524, -0.0346, 0 );
 	dMassAdd(&m, &m2);
 	// create mass 3
-	dMassSetBox(&m3, 700, I2M(1.0), I2M(0.125), I2M(2.85) );
-	dMassTranslate(&m3, I2M(0.5 + 0.1), I2M(2.6/2 + 0.125/2), 0 );
+	dMassSetBox(&m3, 2700, BODY_INNER_WIDTH, END_DEPTH, BODY_WIDTH );
+	dMassTranslate(&m3, 0.01524, 0.0346, 0 );
 	dMassAdd(&m, &m3);
-	//dMassSetParameters( &m, 500, I2M(1), I2M(0), I2M(0), 0.5, 0.5, 0.5, 0, 0, 0);
+	//dMassSetParameters( &m, 500, 1, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
 	// adjsut x,y,z to position center of mass correctly
-	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2] - m.c[0];
-	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2] - m.c[1];
-	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2] - m.c[2];
+	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
 	// create body
-	body = dBodyCreate(this->world);
-	dBodySetPosition(body, x + m.c[0], y + m.c[1], z + m.c[2]);
+	if ( !rebuild )
+		body = dBodyCreate(this->world);
+	else
+		body = part.bodyID;
+
+	// set body parameters
+	dBodySetPosition(body, x, y, z);
 	dBodySetRotation(body, R);
 
 	// rotation matrix for curves of d-shapes
-	dRFromAxisAndAngle(R1,1,0,0,M_PI/2);
+	dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
+	dRFromAxisAndAngle(R3, 0, 0, 1, -r_lb);
+	dMultiply0(R2, R1, R3, 3, 3, 3);
 
 	// set geometry 1 - face
-	geom = dCreateBox( *space, I2M(0.2), I2M(2.85), I2M(2.85) );
+	geom = dCreateBox( space, BODY_END_DEPTH, BODY_WIDTH, BODY_HEIGHT );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], -m.c[1], -m.c[2] );
-	part->geomID[0] = geom;
+	part.geomID[0] = geom;
 
 	// set geometry 2 - side square
-	geom = dCreateBox( *space, I2M(1.55), I2M(0.875), I2M(2.85) );
+	geom = dCreateBox( space, BODY_LENGTH, BODY_INNER_WIDTH, BODY_HEIGHT );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, I2M(1.55/2 + 0.1) - m.c[0], -I2M(2.85/2 - 0.875/2) - m.c[1], -m.c[2] );
-	part->geomID[1] = geom;
+	dGeomSetOffsetPosition( geom, BODY_LENGTH/2 + BODY_END_DEPTH/2 - m.c[0], -BODY_RADIUS + BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
+	part.geomID[1] = geom;
 
 	// set geometry 3 - side square
-	geom = dCreateBox( *space, I2M(1.55), I2M(0.875), I2M(2.85) );
+	geom = dCreateBox( space, BODY_LENGTH, BODY_INNER_WIDTH, BODY_HEIGHT );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, I2M(1.55/2 + 0.1) - m.c[0], I2M(2.85/2 - 0.875/2) - m.c[1], -m.c[2] );
-	part->geomID[2] = geom;
+	dGeomSetOffsetPosition( geom, BODY_LENGTH/2 + BODY_END_DEPTH/2 - m.c[0], BODY_RADIUS - BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
+	part.geomID[2] = geom;
 
 	// set geometry 4 - side curve
-	geom = dCreateCylinder( *space, I2M(2.85/2), I2M(0.875) );
+	geom = dCreateCylinder( space, BODY_RADIUS, BODY_INNER_WIDTH );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, I2M(1.65) - m.c[0], -I2M(2.85/2 - 0.875/2) - m.c[1], -m.c[2] );
-	dGeomSetOffsetRotation( geom, R1);
-	part->geomID[3] = geom;
+	dGeomSetOffsetPosition( geom, BODY_LENGTH + BODY_END_DEPTH/2 - m.c[0], -BODY_RADIUS + BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
+	dGeomSetOffsetRotation( geom, R2);
+	part.geomID[3] = geom;
 
 	// set geometry 5 - side curve
-	geom = dCreateCylinder( *space, I2M(2.85/2), I2M(0.875) );
+	geom = dCreateCylinder( space, BODY_RADIUS, BODY_INNER_WIDTH );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, I2M(1.65) - m.c[0], I2M(2.85/2 - 0.875/2) - m.c[1], -m.c[2] );
-	dGeomSetOffsetRotation( geom, R1);
-	part->geomID[4] = geom;
+	dGeomSetOffsetPosition( geom, BODY_LENGTH + BODY_END_DEPTH/2 - m.c[0], BODY_RADIUS - BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
+	dGeomSetOffsetRotation( geom, R2);
+	part.geomID[4] = geom;
 
 	// set mass center to (0,0,0) of body
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
 	dBodySetMass(body, &m);
 
 	// put into robot struct
-	part->bodyID = body;
-#ifdef ENABLE_DRAWSTUFF
-	part->color[0] = 1;
-	part->color[1] = 0;
-	part->color[2] = 0;
-#endif
+	part.bodyID = body;
+	#ifdef ENABLE_DRAWSTUFF
+	part.color[0] = 1;
+	part.color[1] = 0;
+	part.color[2] = 0;
+	#endif
 }
 
-void CiMobotSim::buildRightBody(dSpaceID *space, CiMobotSimPart *part, dReal x, dReal y, dReal z, dMatrix3 R) {
+void CiMobotSim::imobot_build_rb(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild) {
 	// define parameters
-	dMass m, m1, m2, m3;
 	dBodyID body;
 	dGeomID geom;
-	dMatrix3 R1;
+	dMass m, m1, m2, m3;
+	dMatrix3 R1, R2, R3;
 
 	// set mass of body
 	dMassSetZero(&m);
 	// create mass 1
-	dMassSetBox(&m1, 2700, I2M(0.2), I2M(2.60), I2M(2.85) );
+	dMassSetBox(&m1, 2700, BODY_END_DEPTH, CENTER_HEIGHT, BODY_WIDTH );
 	dMassAdd(&m, &m1);
 	// create mass 2
-	dMassSetBox(&m2, 2700, I2M(1.0), I2M(0.125), I2M(2.85) );
-	dMassTranslate(&m2, -I2M(0.5 + 0.1), -I2M(2.6/2 + 0.125/2), 0 );
+	dMassSetBox(&m2, 2700, BODY_INNER_WIDTH, END_DEPTH, BODY_WIDTH );
+	dMassTranslate(&m2, -0.01524, -0.0346, 0 );
 	dMassAdd(&m, &m2);
 	// create mass 3
-	dMassSetBox(&m3, 2700, I2M(1.0), I2M(0.125), I2M(2.85) );
-	dMassTranslate(&m3, -I2M(0.5 + 0.1), I2M(2.6/2 + 0.125/2), 0 );
+	dMassSetBox(&m3, 2700, BODY_INNER_WIDTH, END_DEPTH, BODY_WIDTH );
+	dMassTranslate(&m3, -0.01524, 0.0346, 0 );
 	dMassAdd(&m, &m3);
-	//dMassSetParameters( &m, 500, I2M(0.45), I2M(0), I2M(0), 0.5, 0.5, 0.5, 0, 0, 0);
+	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
 	// adjsut x,y,z to position center of mass correctly
-	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2] - m.c[0];
-	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2] - m.c[1];
-	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2] - m.c[2];
+	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
 	// create body
-	body = dBodyCreate(this->world);
-	dBodySetPosition(body, x + m.c[0], y + m.c[1], z + m.c[2]);
+	if ( !rebuild )
+		body = dBodyCreate(this->world);
+	else
+		body = part.bodyID;
+
+	// set body parameters
+	dBodySetPosition(body, x, y, z);
 	dBodySetRotation(body, R);
 
 	// rotation matrix for curves of d-shapes
-	dRFromAxisAndAngle(R1,1,0,0,M_PI/2);
+	dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
+	dRFromAxisAndAngle(R3, 0, 0, 1, -r_rb);
+	dMultiply0(R2, R1, R3, 3, 3, 3);
 
 	// set geometry 1 - face
-	geom = dCreateBox( *space, I2M(0.2), I2M(2.85), I2M(2.85) );
+	geom = dCreateBox( space, BODY_END_DEPTH, BODY_WIDTH, BODY_HEIGHT );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], -m.c[1], -m.c[2] );
-	part->geomID[0] = geom;
+	part.geomID[0] = geom;
 
 	// set geometry 2 - side square
-	geom = dCreateBox( *space, I2M(1.55), I2M(0.875), I2M(2.85) );
+	geom = dCreateBox( space, BODY_LENGTH, BODY_INNER_WIDTH, BODY_HEIGHT );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, -I2M(1.55/2 + 0.1) - m.c[0], -I2M(2.85/2 - 0.875/2) - m.c[1], -m.c[2] );
-	part->geomID[1] = geom;
+	dGeomSetOffsetPosition( geom, -BODY_LENGTH/2 - BODY_END_DEPTH/2 - m.c[0], -BODY_RADIUS + BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
+	part.geomID[1] = geom;
 
 	// set geometry 3 - side square
-	geom = dCreateBox( *space, I2M(1.55), I2M(0.875), I2M(2.85) );
+	geom = dCreateBox( space, BODY_LENGTH, BODY_INNER_WIDTH, BODY_HEIGHT );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, -I2M(1.55/2 + 0.1) - m.c[0], I2M(2.85/2 - 0.875/2) - m.c[1], -m.c[2] );
-	part->geomID[2] = geom;
+	dGeomSetOffsetPosition( geom, -BODY_LENGTH/2 - BODY_END_DEPTH/2 - m.c[0], BODY_RADIUS - BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
+	part.geomID[2] = geom;
 
 	// set geometry 4 - side curve
-	geom = dCreateCylinder( *space, I2M(2.85/2), I2M(0.875) );
+	geom = dCreateCylinder( space, BODY_RADIUS, BODY_INNER_WIDTH );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, -I2M(1.65) - m.c[0], -I2M(2.85/2 - 0.875/2) - m.c[1], -m.c[2] );
-	dGeomSetOffsetRotation( geom, R1);
-	part->geomID[3] = geom;
+	dGeomSetOffsetPosition( geom, -BODY_LENGTH - BODY_END_DEPTH/2 - m.c[0], -BODY_RADIUS + BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
+	dGeomSetOffsetRotation( geom, R2);
+	part.geomID[3] = geom;
 
 	// set geometry 5 - side curve
-	geom = dCreateCylinder( *space, I2M(2.85/2), I2M(0.875) );
+	geom = dCreateCylinder( space, BODY_RADIUS, BODY_INNER_WIDTH );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, -I2M(1.65) - m.c[0], I2M(2.85/2 - 0.875/2) - m.c[1], -m.c[2] );
-	dGeomSetOffsetRotation( geom, R1);
-	part->geomID[4] = geom;
+	dGeomSetOffsetPosition( geom, -BODY_LENGTH - BODY_END_DEPTH/2 - m.c[0], BODY_RADIUS - BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
+	dGeomSetOffsetRotation( geom, R2);
+	part.geomID[4] = geom;
 
 	// set mass center to (0,0,0) of body
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
 	dBodySetMass(body, &m);
 
 	// put into robot struct
-	part->bodyID = body;
-#ifdef ENABLE_DRAWSTUFF
-	part->color[0] = 1;
-	part->color[1] = 1;
-	part->color[2] = 1;
-#endif
+	part.bodyID = body;
+	#ifdef ENABLE_DRAWSTUFF
+	part.color[0] = 1;
+	part.color[1] = 1;
+	part.color[2] = 1;
+	#endif
 }
 
-/*
- *	build copy of center
- */
-void CiMobotSim::buildCenter(dSpaceID *space, CiMobotSimPart *part, dReal x, dReal y, dReal z, dMatrix3 R) {
+void CiMobotSim::imobot_build_ce(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
 	// define parameters
 	dMass m;
 	dBodyID body;
@@ -787,591 +766,3297 @@ void CiMobotSim::buildCenter(dSpaceID *space, CiMobotSimPart *part, dReal x, dRe
 
 	// set mass of body
 	dMassSetZero(&m);
-	dMassSetCapsule(&m, 2700, 1, I2M(1.3), I2M(5.465 - 1.3 - 1.3) );
+	dMassSetCapsule(&m, 2700, 1, CENTER_RADIUS, CENTER_LENGTH );
 	dMassAdjust(&m, 0.24);
-	//dMassSetParameters( &m, 500, I2M(0.45), I2M(0), I2M(0), 0.5, 0.5, 0.5, 0, 0, 0);
+	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
 	// adjsut x,y,z to position center of mass correctly
-	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2] - m.c[0];
-	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2] - m.c[1];
-	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2] - m.c[2];
+	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
 	// create body
-	body = dBodyCreate(this->world);
-	dBodySetPosition(body, x + m.c[0], y + m.c[1], z + m.c[2]);
+	if ( !rebuild )
+		body = dBodyCreate(this->world);
+	else
+		body = part.bodyID;
+
+	// set body parameters
+	dBodySetPosition(body, x, y, z);
 	dBodySetRotation(body, R);
 
 	// rotation matrix for curves of d-shapes
-	dRFromAxisAndAngle(R1,1,0,0,M_PI/2);
+	dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
 
 	// set geometry 1 - center rectangle
-	geom = dCreateBox( *space, I2M(2.865), I2M(0.125*2 + 0.8), I2M(2.6) );
+	geom = dCreateBox( space, CENTER_LENGTH, CENTER_WIDTH, CENTER_HEIGHT );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], -m.c[1], -m.c[2] );
-	part->geomID[0] = geom;
+	part.geomID[0] = geom;
 
 	// set geometry 2 - side curve
-	geom = dCreateCylinder( *space, I2M(1.3), I2M(0.125*2 + 0.8) );
+	geom = dCreateCylinder( space, CENTER_RADIUS, CENTER_WIDTH );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, -I2M(1.4325) - m.c[0], -m.c[1], -m.c[2] );
+	dGeomSetOffsetPosition( geom, -CENTER_LENGTH/2 - m.c[0], -m.c[1], -m.c[2] );
 	dGeomSetOffsetRotation( geom, R1);
-	part->geomID[1] = geom;
+	part.geomID[1] = geom;
 
 	// set geometry 3 - side curve
-	geom = dCreateCylinder( *space, I2M(1.3), I2M(0.125*2 + 0.8) );
+	geom = dCreateCylinder( space, CENTER_RADIUS, CENTER_WIDTH );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, I2M(1.4325) - m.c[0], -m.c[1], -m.c[2] );
+	dGeomSetOffsetPosition( geom, CENTER_LENGTH/2 - m.c[0], -m.c[1], -m.c[2] );
 	dGeomSetOffsetRotation( geom, R1);
-	part->geomID[2] = geom;
+	part.geomID[2] = geom;
 
 	// set mass center to (0,0,0) of body
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
 	dBodySetMass(body, &m);
 
 	// put into robot struct
-	part->bodyID = body;
-#ifdef ENABLE_DRAWSTUFF
-	part->color[0] = 0;
-	part->color[1] = 1;
-	part->color[2] = 0;
-#endif
+	part.bodyID = body;
+	#ifdef ENABLE_DRAWSTUFF
+	part.color[0] = 0;
+	part.color[1] = 1;
+	part.color[2] = 0;
+	#endif
 }
 
-/*
- *	build copy of endcap
- */
-void CiMobotSim::buildEndcap(dSpaceID *space, CiMobotSimPart *part, dReal x, dReal y, dReal z, dMatrix3 R) {
+void CiMobotSim::imobot_build_en(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
 	// define parameters
-	dMass m;
 	dBodyID body;
 	dGeomID geom;
+	dMass m;
 	dMatrix3 R1;
 
 	// set mass of body
-	dMassSetBox(&m, 2700, I2M(0.125), I2M(2.85), I2M(2.85) );
-	//dMassSetParameters( &m, 500, I2M(0.45), I2M(0), I2M(0), 0.5, 0.5, 0.5, 0, 0, 0);
+	dMassSetBox(&m, 2700, END_DEPTH, END_WIDTH, END_HEIGHT );
+	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
 	// adjust x,y,z to position center of mass correctly
-	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2] - m.c[0];
-	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2] - m.c[1];
-	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2] - m.c[2];
+	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
 	// create body
-	body = dBodyCreate(this->world);
-	dBodySetPosition(body, x + m.c[0], y + m.c[1], z + m.c[2]);
+	if ( !rebuild )
+		body = dBodyCreate(this->world);
+	else
+		body = part.bodyID;
+
+	// set body parameters
+	dBodySetPosition(body, x, y, z);
 	dBodySetRotation(body, R);
 
 	// rotation matrix for curves
-	dRFromAxisAndAngle(R1,0,1,0,M_PI/2);
+	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 
 	// set geometry 1 - center box
-	geom = dCreateBox( *space, I2M(0.125), I2M(1.15), I2M(2.85) );
+	geom = dCreateBox( space, END_DEPTH, END_WIDTH - 2*END_RADIUS, END_HEIGHT );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], -m.c[1], -m.c[2] );
-	part->geomID[0] = geom;
+	part.geomID[0] = geom;
 
 	// set geometry 2 - left box
-	geom = dCreateBox( *space, I2M(0.125), I2M(0.85), I2M(1.15) );
+	geom = dCreateBox( space, END_DEPTH, END_RADIUS, END_HEIGHT - 2*END_RADIUS );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, -m.c[0], -I2M(0.575 + 0.85/2) - m.c[1], -m.c[2] );
-	part->geomID[1] = geom;
+	dGeomSetOffsetPosition( geom, -m.c[0], -END_WIDTH/2 + END_RADIUS/2 - m.c[1], -m.c[2] );
+	part.geomID[1] = geom;
 
 	// set geometry 3 - right box
-	geom = dCreateBox( *space, I2M(0.125), I2M(0.85), I2M(1.15) );
+	geom = dCreateBox( space, END_DEPTH, END_RADIUS, END_HEIGHT - 2*END_RADIUS );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, -m.c[0], I2M(0.575 + 0.85/2) - m.c[1], -m.c[2] );
-	part->geomID[2] = geom;
+	dGeomSetOffsetPosition( geom, -m.c[0], END_WIDTH/2 - END_RADIUS/2 - m.c[1], -m.c[2] );
+	part.geomID[2] = geom;
 
 	// set geometry 4 - fillet upper left
-	geom = dCreateCylinder( *space, I2M(0.85), I2M(0.125) );
+	geom = dCreateCylinder( space, END_RADIUS, END_DEPTH );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, -m.c[0], -I2M(0.575) - m.c[1], I2M(0.575) - m.c[2] );
+	dGeomSetOffsetPosition( geom, -m.c[0], -END_WIDTH/2 + END_RADIUS - m.c[1], END_WIDTH/2 - END_RADIUS - m.c[2] );
 	dGeomSetOffsetRotation( geom, R1);
-	part->geomID[3] = geom;
+	part.geomID[3] = geom;
 
 	// set geometry 5 - fillet upper right
-	geom = dCreateCylinder( *space, I2M(0.85), I2M(0.125) );
+	geom = dCreateCylinder( space, END_RADIUS, END_DEPTH );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, -m.c[0], I2M(0.575) - m.c[1], I2M(0.575) - m.c[2] );
+	dGeomSetOffsetPosition( geom, -m.c[0], END_WIDTH/2 - END_RADIUS - m.c[1], END_WIDTH/2 - END_RADIUS - m.c[2] );
 	dGeomSetOffsetRotation( geom, R1);
-	part->geomID[4] = geom;
+	part.geomID[4] = geom;
 
 	// set geometry 6 - fillet lower right
-	geom = dCreateCylinder( *space, I2M(0.85), I2M(0.125) );
+	geom = dCreateCylinder( space, END_RADIUS, END_DEPTH );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, -m.c[0], I2M(0.575) - m.c[1], -I2M(0.575) - m.c[2] );
+	dGeomSetOffsetPosition( geom, -m.c[0], END_WIDTH/2 - END_RADIUS - m.c[1], -END_WIDTH/2 + END_RADIUS - m.c[2] );
 	dGeomSetOffsetRotation( geom, R1);
-	part->geomID[5] = geom;
+	part.geomID[5] = geom;
 
 	// set geometry 7 - fillet lower left
-	geom = dCreateCylinder( *space, I2M(0.85), I2M(0.125) );
+	geom = dCreateCylinder( space, END_RADIUS, END_DEPTH );
 	dGeomSetBody( geom, body);
-	dGeomSetOffsetPosition( geom, -m.c[0], -I2M(0.575) - m.c[1], -I2M(0.575) - m.c[2] );
+	dGeomSetOffsetPosition( geom, -m.c[0], -END_WIDTH/2 + END_RADIUS - m.c[1], -END_WIDTH/2 + END_RADIUS - m.c[2] );
 	dGeomSetOffsetRotation( geom, R1);
-	part->geomID[6] = geom;
+	part.geomID[6] = geom;
 
 	// set mass center to (0,0,0) of body
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
 	dBodySetMass(body, &m);
 
 	// put into robot struct
-	part->bodyID = body;
-#ifdef ENABLE_DRAWSTUFF
-	part->color[0] = 0;
-	part->color[1] = 0;
-	part->color[2] = 1;
-#endif
+	part.bodyID = body;
+	#ifdef ENABLE_DRAWSTUFF
+	part.color[0] = 0;
+	part.color[1] = 0;
+	part.color[2] = 1;
+	#endif
 }
 
 /**********************************************************
 	Build iMobot Functions
  **********************************************************/
 void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
-	dMatrix3 R;
-	dRFromAxisAndAngle(R,0,0,1,0);
-	this->iMobotBuildRotated(botNum, x, y, z, R);
+	this->iMobotBuild(botNum, x, y, z, 0, 0, 0);
 }
 
-void CiMobotSim::iMobotBuildRotated(int botNum, dReal x, dReal y, dReal z, dMatrix3 R) {
-	// assign rotation matrix to variable
-	for (int i = 0; i < 12; i++) this->bot[botNum]->rot[i] = R[i];
+void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+	// adjust input height by body height
+	z += BODY_HEIGHT/2;
+	// convert input angles to radians
+	psi = D2R(psi);			// roll: x
+	theta = D2R(theta);		// pitch: -y
+	phi = D2R(phi);			// yaw: z
 
-	// desired velocity of each body
-	this->bot[botNum]->jntVel[LE] = this->bot[botNum]->jntVelMax[LE];
-	this->bot[botNum]->jntVel[LB] = this->bot[botNum]->jntVelMax[LB];
-	this->bot[botNum]->jntVel[RB] = this->bot[botNum]->jntVelMax[RB];
-	this->bot[botNum]->jntVel[RE] = this->bot[botNum]->jntVelMax[RE];
+	// create rotation matrix for robot
+	dMatrix3 R;
+	rotation_matrix_from_euler_angles(R, psi, theta, phi);
 
 	// offset values for each body part[0-2] and joint[3-5] from center
-	dReal le[6] = {-2.865/2-1.55-0.2-0.125/2, 0, 0, -2.865/2 - 1.55 - 0.2, 0, 0};
-	dReal lb[6] = {-2.865/2-1.55-0.2/2, 0, 0, -2.865/2, 1.3, 0};
-	dReal ce[3] = {0, 0, 0};
-	dReal rb[6] = {2.865/2+1.55+0.2/2, 0, 0, 2.865/2, 1.3, 0};
-	dReal re[6] = {2.865/2+1.55+0.2+0.125/2, 0, 0, 2.865/2 + 1.55 + 0.2, 0, 0};
+	dReal le[6] = {-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH/2, 0, 0, -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH, 0, 0};
+	dReal lb[6] = {-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH/2, 0, 0, -CENTER_LENGTH/2, CENTER_WIDTH/2, 0};
+	dReal rb[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2, 0, 0, CENTER_LENGTH/2, CENTER_WIDTH/2, 0};
+	dReal re[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2, 0, 0, CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH, 0, 0};
 
-	// build pieces of robot
-	buildLeftBody(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[BODY_L]),	I2M(R[0]*lb[0] + R[1]*lb[1] + R[2]*lb[2] + x),
-		I2M(R[4]*lb[0] + R[5]*lb[1] + R[6]*lb[2] + y),
-		I2M(R[8]*lb[0] + R[9]*lb[1] + R[10]*lb[2] + z + 1.425), R);
-	buildCenter(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[CENTER]),	I2M(R[0]*ce[0] + R[1]*ce[1] + R[2]*ce[2] + x),
-		I2M(R[4]*ce[0] + R[5]*ce[1] + R[6]*ce[2] + y),
-		I2M(R[8]*ce[0] + R[9]*ce[1] + R[10]*ce[2] + z + 1.425), R);
-	buildRightBody(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[BODY_R]),	I2M(R[0]*rb[0] + R[1]*rb[1] + R[2]*rb[2] + x),
-		I2M(R[4]*rb[0] + R[5]*rb[1] + R[6]*rb[2] + y),
-		I2M(R[8]*rb[0] + R[9]*rb[1] + R[10]*rb[2] + z + 1.425), R);
-	buildEndcap(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[ENDCAP_L]),	I2M(R[0]*le[0] + R[1]*le[1] + R[2]*le[2] + x),
-		I2M(R[4]*le[0] + R[5]*le[1] + R[6]*le[2] + y),
-		I2M(R[8]*le[0] + R[9]*le[1] + R[10]*le[2] + z + 1.425), R);
-	buildEndcap(&(this->space_robots[botNum]), &(this->bot[botNum]->bdyPts[ENDCAP_R]),	I2M(R[0]*re[0] + R[1]*re[1] + R[2]*re[2] + x),
-		I2M(R[4]*re[0] + R[5]*re[1] + R[6]*re[2] + y),
-		I2M(R[8]*re[0] + R[9]*re[1] + R[10]*re[2] + z + 1.425), R);
-	this->bot[botNum]->pos[0] = I2M(R[0]*ce[0] + R[1]*ce[1] + R[2]*ce[2] + x);
-	this->bot[botNum]->pos[1] = I2M(R[4]*ce[0] + R[5]*ce[1] + R[6]*ce[2] + y);
-	this->bot[botNum]->pos[2] = I2M(R[8]*ce[0] + R[9]*ce[1] + R[10]*ce[2] + z);
+	// build pieces of module
+	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
+	imobot_build_lb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
+	imobot_build_ce(this->space_bot[botNum], this->bot[botNum]->bodyPart[CENTER], x, y, z, R, BUILD);
+	imobot_build_rb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
+	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, BUILD);
+
+	// store position and rotation of center of module
+	this->bot[botNum]->pos[0] = x;
+	this->bot[botNum]->pos[1] = y;
+	this->bot[botNum]->pos[2] = z - BODY_HEIGHT/2;
+	this->bot[botNum]->rot[0] = psi;
+	this->bot[botNum]->rot[1] = theta;
+	this->bot[botNum]->rot[2] = phi;
 
 	// create joint
 	dJointID joint;
 
 	// joint for left endcap to body
 	joint = dJointCreateHinge(this->world, 0);
-	dJointAttach(joint, this->bot[botNum]->bdyPts[BODY_L].bodyID, this->bot[botNum]->bdyPts[ENDCAP_L].bodyID);
-	dJointSetHingeAnchor(joint, I2M(R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x),
-								I2M(R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y),
-								I2M(R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z + 1.425) );
-	dJointSetHingeAxis(joint,	R[0]*1 + R[1]*0 + R[2]*0,
-								R[4]*1 + R[5]*0 + R[6]*0,
-								R[8]*1 + R[9]*0 + R[10]*0);
+	dJointAttach(joint, this->bot[botNum]->bodyPart[BODY_L].bodyID, this->bot[botNum]->bodyPart[ENDCAP_L].bodyID);
+	dJointSetHingeAnchor(joint, R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
+	dJointSetHingeAxis(joint, R[0], R[4], R[8]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[0] = joint;
 
-	// joint for left body 1 to center
+	// joint for center to left body 1
 	joint = dJointCreateHinge(this->world, 0);
-	dJointAttach(joint, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_L].bodyID);
-	dJointSetHingeAnchor(joint, I2M(R[0]*lb[3] + R[1]*lb[4] + R[2]*lb[5] + x),
-								I2M(R[4]*lb[3] + R[5]*lb[4] + R[6]*lb[5] + y),
-								I2M(R[8]*lb[3] + R[9]*lb[4] + R[10]*lb[5] + z + 1.425) );
-	dJointSetHingeAxis(joint,	R[0]*0 + R[1]*-1 + R[2]*0,
-								R[4]*0 + R[5]*-1 + R[6]*0,
-								R[8]*0 + R[9]*-1 + R[10]*0);
+	dJointAttach(joint, this->bot[botNum]->bodyPart[CENTER].bodyID, this->bot[botNum]->bodyPart[BODY_L].bodyID);
+	dJointSetHingeAnchor(joint, R[0]*lb[3] + R[1]*lb[4] + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*lb[4] + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*lb[4] + R[10]*lb[5] + z);
+	dJointSetHingeAxis(joint, -R[1], -R[5], -R[9]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[1] = joint;
 
-	// joint for left body 2 to center
+	// joint for center to left body 2
 	joint = dJointCreateHinge(this->world, 0);
-	dJointAttach(joint, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_L].bodyID);
-	dJointSetHingeAnchor(joint, I2M(R[0]*lb[3] - R[1]*lb[4] + R[2]*lb[5] + x),
-								I2M(R[4]*lb[3] - R[5]*lb[4] + R[6]*lb[5] + y),
-								I2M(R[8]*lb[3] - R[9]*lb[4] + R[10]*lb[5] + z + 1.425) );
-	dJointSetHingeAxis(joint,	R[0]*0 + R[1]*1 + R[2]*0,
-								R[4]*0 + R[5]*1 + R[6]*0,
-								R[8]*0 + R[9]*1 + R[10]*0);
+	dJointAttach(joint, this->bot[botNum]->bodyPart[CENTER].bodyID, this->bot[botNum]->bodyPart[BODY_L].bodyID);
+	dJointSetHingeAnchor(joint, R[0]*lb[3] - R[1]*lb[4] + R[2]*lb[5] + x, R[4]*lb[3] - R[5]*lb[4] + R[6]*lb[5] + y, R[8]*lb[3] - R[9]*lb[4] + R[10]*lb[5] + z);
+	dJointSetHingeAxis(joint, R[1], R[5], R[9]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[4] = joint;
 
 	// joint for center to right body 1
 	joint = dJointCreateHinge(this->world, 0);
-	dJointAttach(joint, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_R].bodyID);
-	dJointSetHingeAnchor(joint, I2M(R[0]*rb[3] + R[1]*rb[4] + R[2]*rb[5] + x),
-								I2M(R[4]*rb[3] + R[5]*rb[4] + R[6]*rb[5] + y),
-								I2M(R[8]*rb[3] + R[9]*rb[4] + R[10]*rb[5] + z + 1.425) );
-	dJointSetHingeAxis(joint,	R[0]*0 + R[1]*1 + R[2]*0,
-								R[4]*0 + R[5]*1 + R[6]*0,
-								R[8]*0 + R[9]*1 + R[10]*0);
+	dJointAttach(joint, this->bot[botNum]->bodyPart[CENTER].bodyID, this->bot[botNum]->bodyPart[BODY_R].bodyID);
+	dJointSetHingeAnchor(joint, R[0]*rb[3] + R[1]*rb[4] + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*rb[4] + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*rb[4] + R[10]*rb[5] + z);
+	dJointSetHingeAxis(joint, R[1], R[5], R[9]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[2] = joint;
 
 	// joint for center to right body 2
 	joint = dJointCreateHinge(this->world, 0);
-	dJointAttach(joint, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_R].bodyID);
-	dJointSetHingeAnchor(joint, I2M(R[0]*rb[3] - R[1]*rb[4] + R[2]*rb[5] + x),
-								I2M(R[4]*rb[3] - R[5]*rb[4] + R[6]*rb[5] + y),
-								I2M(R[8]*rb[3] - R[9]*rb[4] + R[10]*rb[5] + z + 1.425) );
-	dJointSetHingeAxis(joint,	R[0]*0 + R[1]*-1 + R[2]*0,
-								R[4]*0 + R[5]*-1 + R[6]*0,
-								R[8]*0 + R[9]*-1 + R[10]*0);
+	dJointAttach(joint, this->bot[botNum]->bodyPart[CENTER].bodyID, this->bot[botNum]->bodyPart[BODY_R].bodyID);
+	dJointSetHingeAnchor(joint, R[0]*rb[3] - R[1]*rb[4] + R[2]*rb[5] + x, R[4]*rb[3] - R[5]*rb[4] + R[6]*rb[5] + y, R[8]*rb[3] - R[9]*rb[4] + R[10]*rb[5] + z);
+	dJointSetHingeAxis(joint, -R[1], -R[5], -R[9]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[5] = joint;
 
 	// joint for right body to endcap
 	joint = dJointCreateHinge(this->world, 0);
-	dJointAttach(joint, this->bot[botNum]->bdyPts[BODY_R].bodyID, this->bot[botNum]->bdyPts[ENDCAP_R].bodyID);
-	dJointSetHingeAnchor(joint, I2M(R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x),
-								I2M(R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y),
-								I2M(R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z + 1.425) );
-	dJointSetHingeAxis(joint,	R[0]*-1 + R[1]*0 + R[2]*0,
-								R[4]*-1 + R[5]*0 + R[6]*0,
-								R[8]*-1 + R[9]*0 + R[10]*0);
+	dJointAttach(joint, this->bot[botNum]->bodyPart[BODY_R].bodyID, this->bot[botNum]->bodyPart[ENDCAP_R].bodyID);
+	dJointSetHingeAnchor(joint, R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
+	dJointSetHingeAxis(joint, -R[0], -R[4], -R[8]);
 	dJointSetHingeParam(joint, dParamCFM, 0);
 	this->bot[botNum]->joints[3] = joint;
 
 	// create motor
 	dJointID motor;
 
-	// motor for left endcap to body joint
+	// motor for left endcap to body
 	motor = dJointCreateAMotor(this->world, 0);
-	dJointAttach(motor, this->bot[botNum]->bdyPts[BODY_L].bodyID, this->bot[botNum]->bdyPts[ENDCAP_L].bodyID);
+	dJointAttach(motor, this->bot[botNum]->bodyPart[BODY_L].bodyID, this->bot[botNum]->bodyPart[ENDCAP_L].bodyID);
 	dJointSetAMotorMode(motor, dAMotorUser);
 	dJointSetAMotorNumAxes(motor, 1);
 	dJointSetAMotorAxis(motor, 0, 1, R[0], R[4], R[8]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->frcMax[LE]);
+	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[LE]);
 	this->bot[botNum]->motors[0] = motor;
 
-	// motor for left body to center joint
+	// motor for center to left body
 	motor = dJointCreateAMotor(this->world, 0);
-	dJointAttach(motor, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_L].bodyID);
+	dJointAttach(motor, this->bot[botNum]->bodyPart[CENTER].bodyID, this->bot[botNum]->bodyPart[BODY_L].bodyID);
 	dJointSetAMotorMode(motor, dAMotorUser);
 	dJointSetAMotorNumAxes(motor, 1);
 	dJointSetAMotorAxis(motor, 0, 1, -R[1], -R[5], -R[9]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->frcMax[LB]);
+	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[LB]);
 	this->bot[botNum]->motors[1] = motor;
 
-	// motor for center to right body 1 joint
+	// motor for center to right body
 	motor = dJointCreateAMotor(this->world, 0);
-	dJointAttach(motor, this->bot[botNum]->bdyPts[CENTER].bodyID, this->bot[botNum]->bdyPts[BODY_R].bodyID);
+	dJointAttach(motor, this->bot[botNum]->bodyPart[CENTER].bodyID, this->bot[botNum]->bodyPart[BODY_R].bodyID);
 	dJointSetAMotorMode(motor, dAMotorUser);
 	dJointSetAMotorNumAxes(motor, 1);
 	dJointSetAMotorAxis(motor, 0, 1, R[1], R[5], R[9]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->frcMax[RB]);
+	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[RB]);
 	this->bot[botNum]->motors[2] = motor;
 
-	// motor for right body to endcap joint
+	// motor for right body to endcap
 	motor = dJointCreateAMotor(this->world, 0);
-	dJointAttach(motor, this->bot[botNum]->bdyPts[BODY_R].bodyID, this->bot[botNum]->bdyPts[ENDCAP_R].bodyID);
+	dJointAttach(motor, this->bot[botNum]->bodyPart[BODY_R].bodyID, this->bot[botNum]->bodyPart[ENDCAP_R].bodyID);
 	dJointSetAMotorMode(motor, dAMotorUser);
 	dJointSetAMotorNumAxes(motor, 1);
 	dJointSetAMotorAxis(motor, 0, 1, -R[0], -R[4], -R[8]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->frcMax[RE]);
+	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[RE]);
 	this->bot[botNum]->motors[3] = motor;
 
 	// set damping on all bodies to 0.1
-	for (int i = 0; i < NUM_PARTS; i++) {
-		dBodySetDamping(this->bot[botNum]->bdyPts[i].bodyID, 0.1, 0.1);
-	}
+	for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->bot[botNum]->bodyPart[i].bodyID, 0.1, 0.1);
+}
+
+void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	// adjust input height by body height
+	z += BODY_HEIGHT/2;
+	// convert input angles to radians
+	psi = D2R(psi);			// roll: x
+	theta = D2R(theta);		// pitch: -y
+	phi = D2R(phi);			// yaw: z
+	r_le = D2R(r_le);		// left end
+	r_lb = D2R(r_lb);		// left body
+	r_rb = D2R(r_rb);		// right body
+	r_re = D2R(r_re);		// right end
+
+	// create rotation matrix for robot
+	dMatrix3 R;
+	rotation_matrix_from_euler_angles(R, psi, theta, phi);
+
+	// store initial body angles into array
+	this->bot[botNum]->cur_ang[LE] = r_le;
+	this->bot[botNum]->cur_ang[LB] = r_lb;
+	this->bot[botNum]->cur_ang[RB] = r_rb;
+	this->bot[botNum]->cur_ang[RE] = r_re;
+	this->bot[botNum]->fut_ang[LE] += r_le;
+	this->bot[botNum]->fut_ang[RE] += r_re;
+
+	// offset values for each body part[0-2] and joint[3-5] from center
+	dReal le[6] = {-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH/2, 0, 0, -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH, 0, 0};
+	dReal lb[6] = {-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH/2, 0, 0, -CENTER_LENGTH/2, CENTER_WIDTH/2, 0};
+	dReal rb[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2, 0, 0, CENTER_LENGTH/2, CENTER_WIDTH/2, 0};
+	dReal re[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2, 0, 0, CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH, 0, 0};
+
+	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
+	imobot_build_lb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
+	imobot_build_ce(this->space_bot[botNum], this->bot[botNum]->bodyPart[CENTER], x, y, z, R, BUILD);
+	imobot_build_rb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
+	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, BUILD);
+
+	// store position and rotation of center of module
+	this->bot[botNum]->pos[0] = x;
+	this->bot[botNum]->pos[1] = y;
+	this->bot[botNum]->pos[2] = z - BODY_HEIGHT/2;
+	this->bot[botNum]->rot[0] = psi;
+	this->bot[botNum]->rot[1] = theta;
+	this->bot[botNum]->rot[2] = phi;
+	this->bot[botNum]->ori[0] = r_le;
+	this->bot[botNum]->ori[1] = r_lb;
+	this->bot[botNum]->ori[2] = r_rb;
+	this->bot[botNum]->ori[3] = r_re;
+
+	// create joint
+	dJointID joint;
+
+	// joint for left endcap to body
+	joint = dJointCreateHinge(this->world, 0);
+	dJointAttach(joint, this->bot[botNum]->bodyPart[BODY_L].bodyID, this->bot[botNum]->bodyPart[ENDCAP_L].bodyID);
+	dJointSetHingeAnchor(joint, R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
+	dJointSetHingeAxis(joint, R[0], R[4], R[8]);
+	dJointSetHingeParam(joint, dParamCFM, 0);
+	this->bot[botNum]->joints[0] = joint;
+
+	// joint for center to left body 1
+	joint = dJointCreateHinge(this->world, 0);
+	dJointAttach(joint, this->bot[botNum]->bodyPart[CENTER].bodyID, this->bot[botNum]->bodyPart[BODY_L].bodyID);
+	dJointSetHingeAnchor(joint, R[0]*lb[3] + R[1]*lb[4] + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*lb[4] + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*lb[4] + R[10]*lb[5] + z);
+	dJointSetHingeAxis(joint, -R[1], -R[5], -R[9]);
+	dJointSetHingeParam(joint, dParamCFM, 0);
+	this->bot[botNum]->joints[1] = joint;
+
+	// joint for center to left body 2
+	joint = dJointCreateHinge(this->world, 0);
+	dJointAttach(joint, this->bot[botNum]->bodyPart[CENTER].bodyID, this->bot[botNum]->bodyPart[BODY_L].bodyID);
+	dJointSetHingeAnchor(joint, R[0]*lb[3] - R[1]*lb[4] + R[2]*lb[5] + x, R[4]*lb[3] - R[5]*lb[4] + R[6]*lb[5] + y, R[8]*lb[3] - R[9]*lb[4] + R[10]*lb[5] + z);
+	dJointSetHingeAxis(joint, R[1], R[5], R[9]);
+	dJointSetHingeParam(joint, dParamCFM, 0);
+	this->bot[botNum]->joints[4] = joint;
+
+	// joint for center to right body 1
+	joint = dJointCreateHinge(this->world, 0);
+	dJointAttach(joint, this->bot[botNum]->bodyPart[CENTER].bodyID, this->bot[botNum]->bodyPart[BODY_R].bodyID);
+	dJointSetHingeAnchor(joint, R[0]*rb[3] + R[1]*rb[4] + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*rb[4] + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*rb[4] + R[10]*rb[5] + z);
+	dJointSetHingeAxis(joint, R[1], R[5], R[9]);
+	dJointSetHingeParam(joint, dParamCFM, 0);
+	this->bot[botNum]->joints[2] = joint;
+
+	// joint for center to right body 2
+	joint = dJointCreateHinge(this->world, 0);
+	dJointAttach(joint, this->bot[botNum]->bodyPart[CENTER].bodyID, this->bot[botNum]->bodyPart[BODY_R].bodyID);
+	dJointSetHingeAnchor(joint, R[0]*rb[3] - R[1]*rb[4] + R[2]*rb[5] + x, R[4]*rb[3] - R[5]*rb[4] + R[6]*rb[5] + y, R[8]*rb[3] - R[9]*rb[4] + R[10]*rb[5] + z);
+	dJointSetHingeAxis(joint, -R[1], -R[5], -R[9]);
+	dJointSetHingeParam(joint, dParamCFM, 0);
+	this->bot[botNum]->joints[5] = joint;
+
+	// joint for right body to endcap
+	joint = dJointCreateHinge(this->world, 0);
+	dJointAttach(joint, this->bot[botNum]->bodyPart[BODY_R].bodyID, this->bot[botNum]->bodyPart[ENDCAP_R].bodyID);
+	dJointSetHingeAnchor(joint, R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
+	dJointSetHingeAxis(joint, -R[0], -R[4], -R[8]);
+	dJointSetHingeParam(joint, dParamCFM, 0);
+	this->bot[botNum]->joints[3] = joint;
+
+	// create rotation matrices for each body part
+	dMatrix3 R_e, R_b, R_le, R_lb, R_rb, R_re;
+	dRFromAxisAndAngle(R_b, 0, 1, 0, r_lb);
+	dMultiply0(R_lb, R, R_b, 3, 3, 3);
+	dRFromAxisAndAngle(R_e, -1, 0, 0, r_le);
+	dMultiply0(R_le, R_lb, R_e, 3, 3, 3);
+	dRFromAxisAndAngle(R_b, 0, -1, 0, r_rb);
+	dMultiply0(R_rb, R, R_b, 3, 3, 3);
+	dRFromAxisAndAngle(R_e, 1, 0, 0, r_re);
+	dMultiply0(R_re, R_rb, R_e, 3, 3, 3);
+
+	// offset values from center of robot
+	dReal le_r[3] = {-CENTER_LENGTH/2 - (BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_lb), 0, (BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_lb)};
+	dReal lb_r[3] = {-CENTER_LENGTH/2 - (BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_lb), 0, (BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_lb)};
+	dReal rb_r[3] = {CENTER_LENGTH/2 + (BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_rb), 0, (BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_rb)};
+	dReal re_r[3] = {CENTER_LENGTH/2 + (BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_rb), 0, (BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_rb)};
+
+	// re-build pieces of module
+	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le, REBUILD);
+	imobot_build_lb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb, REBUILD);
+	imobot_build_rb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb, REBUILD);
+	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re, REBUILD);
+
+	// create motor
+	dJointID motor;
+
+	// motor for left endcap to body
+	motor = dJointCreateAMotor(this->world, 0);
+	dJointAttach(motor, this->bot[botNum]->bodyPart[BODY_L].bodyID, this->bot[botNum]->bodyPart[ENDCAP_L].bodyID);
+	dJointSetAMotorMode(motor, dAMotorUser);
+	dJointSetAMotorNumAxes(motor, 1);
+	dJointSetAMotorAxis(motor, 0, 1, R_lb[0], R_lb[4], R_lb[8]);
+	dJointSetAMotorAngle(motor, 0, 0);
+	dJointSetAMotorParam(motor, dParamCFM, 0);
+	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[LE]);
+	this->bot[botNum]->motors[0] = motor;
+
+	// motor for center to left body
+	motor = dJointCreateAMotor(this->world, 0);
+	dJointAttach(motor, this->bot[botNum]->bodyPart[CENTER].bodyID, this->bot[botNum]->bodyPart[BODY_L].bodyID);
+	dJointSetAMotorMode(motor, dAMotorUser);
+	dJointSetAMotorNumAxes(motor, 1);
+	dJointSetAMotorAxis(motor, 0, 1, -R[1], -R[5], -R[9]);
+	dJointSetAMotorAngle(motor, 0, 0);
+	dJointSetAMotorParam(motor, dParamCFM, 0);
+	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[LB]);
+	this->bot[botNum]->motors[1] = motor;
+
+	// motor for center to right body
+	motor = dJointCreateAMotor(this->world, 0);
+	dJointAttach(motor, this->bot[botNum]->bodyPart[CENTER].bodyID, this->bot[botNum]->bodyPart[BODY_R].bodyID);
+	dJointSetAMotorMode(motor, dAMotorUser);
+	dJointSetAMotorNumAxes(motor, 1);
+	dJointSetAMotorAxis(motor, 0, 1, R[1], R[5], R[9]);
+	dJointSetAMotorAngle(motor, 0, 0);
+	dJointSetAMotorParam(motor, dParamCFM, 0);
+	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[RB]);
+	this->bot[botNum]->motors[2] = motor;
+
+	// motor for right body to endcap
+	motor = dJointCreateAMotor(this->world, 0);
+	dJointAttach(motor, this->bot[botNum]->bodyPart[BODY_R].bodyID, this->bot[botNum]->bodyPart[ENDCAP_R].bodyID);
+	dJointSetAMotorMode(motor, dAMotorUser);
+	dJointSetAMotorNumAxes(motor, 1);
+	dJointSetAMotorAxis(motor, 0, 1, -R_rb[0], -R_rb[4], -R_rb[8]);
+	dJointSetAMotorAngle(motor, 0, 0);
+	dJointSetAMotorParam(motor, dParamCFM, 0);
+	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[RE]);
+	this->bot[botNum]->motors[3] = motor;
+
+	// set damping on all bodies to 0.1
+	for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->bot[botNum]->bodyPart[i].bodyID, 0.1, 0.1);
 }
 
 void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {
-	dMatrix3 R, R1;
-	dVector3 m;
-	dReal x, y, z;
-	int face1_part, face2_part;
+	if ( fabs(this->bot[attNum]->cur_ang[LE]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[LB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RE]) < DBL_EPSILON )
+		imobot_build_attached_00(botNum, attNum, face1, face2);
+	else
+		imobot_build_attached_10(botNum, attNum, face1, face2);
+}
 
-	if ( face1 == 1 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
-		m[0] = 2.865/2+1.55+0.2-1.28;
-		m[1] = 2.865/2+1.55+0.2+0.125+2.85/2;
-		m[2] = 0;
+void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	if ( fabs(this->bot[attNum]->cur_ang[LE]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[LB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RE]) < DBL_EPSILON	)
+		imobot_build_attached_01(botNum, attNum, face1, face2, r_le, r_lb, r_rb, r_re);
+	else
+		imobot_build_attached_11(botNum, attNum, face1, face2, r_le, r_lb, r_rb, r_re);
+}
+
+void CiMobotSim::imobot_build_attached_00(int botNum, int attNum, int face1, int face2) {
+	// initialize variables
+	int face1_part, face2_part;
+	dReal x, y, z, psi, theta, phi, m[3] = {0};
+	dMatrix3 R, R1, R_att;
+
+	// generate rotation matrix for base robot
+	rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
+
+	if ( face1 == 1 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - 2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
+		m[1] = 0;
+	}
+	else if ( face1 == 1 && face2 == 2 ) {
+		// set which body parts are to be connected
 		face1_part = ENDCAP_L;
 		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH;
+		m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 1 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
-		m[0] = 2.865/2+1.55+0.2-1.28;
-		m[1] = -2.865/2-1.55-0.2-0.125-2.85/2;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = ENDCAP_L;
 		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH;
+		m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 1 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
-		m[0] = -1*(2.865/2+1.55+0.2-1.28);
-		m[1] = 2.865/2+1.55+0.2+0.125+2.85/2;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = ENDCAP_L;
 		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH;
+		m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 1 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
-		m[0] = -1*(2.865/2+1.55+0.2-1.28);
-		m[1] = -2.865/2-1.55-0.2-0.125-2.85/2;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = ENDCAP_L;
 		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH;
+		m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 1 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
-		m[0] = -2*(2.865/2+1.55+0.2+0.125);
-		m[1] = 0;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = ENDCAP_L;
 		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRSetIdentity(R1);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - 2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
+		m[1] = 0;
 	}
 	else if ( face1 == 2 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
-		m[0] = 2.865/2+1.55+0.2+0.125+2.85/2;
-		m[1] = -1*(2.865/2+1.55+0.2-1.28);
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_L;
 		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER;
+		m[1] = -END_DEPTH - 0.5*BODY_WIDTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
+	}
+	else if ( face1 == 2 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - 0.5*CENTER_LENGTH;
+		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 2 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
-		m[0] = 0;
-		m[1] = -2.85;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_L;
 		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRSetIdentity(R1);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH + 0.5*CENTER_LENGTH;
+		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 2 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI);
-		m[0] = 0;
-		m[1] = 2.85;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_L;
 		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH + 0.5*CENTER_LENGTH;
+		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 2 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
-		m[0] = -2*1.9025;
-		m[1] = -2.85;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_L;
 		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRSetIdentity(R1);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - 0.5*CENTER_LENGTH;
+		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 2 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
-		m[0] = -1*(2.865/2+1.55+0.2+0.125+2.85/2);
-		m[1] = (2.865/2+1.55+0.2-1.28);
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_L;
 		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER;
+		m[1] = -END_DEPTH - 0.5*BODY_WIDTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 3 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
-		m[0] = (2.865/2+1.55+0.2+0.125+2.85/2);
-		m[1] = (2.865/2+1.55+0.2-1.28);
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_L;
 		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER;
+		m[1] = END_DEPTH + 0.5*BODY_WIDTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 3 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
-		m[0] = 0;
-		m[1] = 2.85;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_L;
 		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRSetIdentity(R1);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH + 0.5*CENTER_LENGTH;
+		m[1] = BODY_WIDTH;
+	}
+	else if ( face1 == 3 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - 0.5*CENTER_LENGTH;
+		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 3 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
-		m[0] = -2*1.9025;
-		m[1] = 2.85;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_L;
 		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRSetIdentity(R1);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - 0.5*CENTER_LENGTH;
+		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 3 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI);
-		m[0] = 0;
-		m[1] = -2.85;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_L;
 		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH + 0.5*CENTER_LENGTH;
+		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 3 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
-		m[0] = -1*(2.865/2+1.55+0.2+0.125+2.85/2);
-		m[1] = -1*(2.865/2+1.55+0.2-1.28);
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_L;
 		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER;
+		m[1] = END_DEPTH + 0.5*BODY_WIDTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 4 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
-		m[0] = 2.865/2+1.55+0.2+0.125+2.85/2;
-		m[1] = 2.865/2+1.55+0.2-1.28;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_R;
 		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER;
+		m[1] = -END_DEPTH - 0.5*BODY_WIDTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 4 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI);
-		m[0] = 0;
-		m[1] = 2.85;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_R;
 		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH - 0.5*CENTER_LENGTH;
+		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 4 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
-		m[0] = 2*1.9025;
-		m[1] = -2.85;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_R;
 		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRSetIdentity(R1);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH + 2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 0.5*CENTER_LENGTH;
+		m[1] = -BODY_WIDTH;
+	}
+	else if ( face1 == 4 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH +	2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 0.5*CENTER_LENGTH;
+		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 4 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
-		m[0] = 0;
-		m[1] = -2.85;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_R;
 		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRSetIdentity(R1);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH - 0.5*CENTER_LENGTH;
+		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 4 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
-		m[0] = -1*(2.865/2+1.55+0.2+0.125+2.85/2);
-		m[1] = -1*(2.865/2+1.55+0.2-1.28);
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_R;
 		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER;
+		m[1] = -END_DEPTH - 0.5*BODY_WIDTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 5 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
-		m[0] = (2.865/2+1.55+0.2+0.125+2.85/2);
-		m[1] = -1*(2.865/2+1.55+0.2-1.28);
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_R;
 		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER;
+		m[1] = END_DEPTH + 0.5*BODY_WIDTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 5 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
-		m[0] = 2*1.9025;
-		m[1] = 2.85;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_R;
 		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRSetIdentity(R1);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH + 2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 0.5*CENTER_LENGTH;
+		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 5 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI);
-		m[0] = 0;
-		m[1] = -2.85;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_R;
 		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH - 0.5*CENTER_LENGTH;
+		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 5 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
-		m[0] = 0;
-		m[1] = 2.85;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_R;
 		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRSetIdentity(R1);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH - 0.5*CENTER_LENGTH;
+		m[1] = BODY_WIDTH;
+	}
+	else if ( face1 == 5 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH	+	2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 0.5*CENTER_LENGTH;
+		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 5 && face2 == 6 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
-		m[0] = -1*(2.865/2+1.55+0.2+0.125+2.85/2);
-		m[1] = (2.865/2+1.55+0.2-1.28);
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = BODY_R;
 		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER;
+		m[1] = END_DEPTH + 0.5*BODY_WIDTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 6 && face2 == 1 ) {
-		dRFromAxisAndAngle(R,0,0,1,0);
-		m[0] = 2*(2.865/2+1.55+0.2+0.125);
-		m[1] = 0;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = ENDCAP_R;
 		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRSetIdentity(R1);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
+		m[1] = 0;
 	}
 	else if ( face1 == 6 && face2 == 2 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
-		m[0] = 2.865/2+1.55+0.2-1.28;
-		m[1] = 2.865/2+1.55+0.2+0.125+2.85/2;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = ENDCAP_R;
 		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH;
+		m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 6 && face2 == 3 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
-		m[0] = 2.865/2+1.55+0.2-1.28;
-		m[1] = -2.865/2-1.55-0.2-0.125-2.85/2;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = ENDCAP_R;
 		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH +	BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH;
+		m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 6 && face2 == 4 ) {
-		dRFromAxisAndAngle(R,0,0,1,-M_PI/2);
-		m[0] = -1*(2.865/2+1.55+0.2-1.28);
-		m[1] = 2.865/2+1.55+0.2+0.125+2.85/2;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = ENDCAP_R;
 		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH;
+		m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 6 && face2 == 5 ) {
-		dRFromAxisAndAngle(R,0,0,1,M_PI/2);
-		m[0] = -1*(2.865/2+1.55+0.2-1.28);
-		m[1] = -2.865/2-1.55-0.2-0.125-2.85/2;
-		m[2] = 0;
+		// set which body parts are to be connected
 		face1_part = ENDCAP_R;
 		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH;
+		m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH;
+	}
+	else if ( face1 == 6 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
+		m[1] = 0;
 	}
 
-	// build rotation matrix for new module
-	dMultiply0(R1, this->bot[attNum]->rot, R, 3, 3, 3);
+	// extract Euler Angles from rotation matrix
+	if ( fabs(R[8]-1) < DBL_EPSILON ) {			// R_31 == 1; theta = M_PI/2
+		psi = atan2(-R[1], -R[2]);
+		theta = M_PI/2;
+		phi = 0;
+	}
+	else if ( fabs(R[8]+1) < DBL_EPSILON ) {	// R_31 == -1; theta = -M_PI/2
+		psi = atan2(R[1], R[2]);
+		theta = -M_PI/2;
+		phi = 0;
+	}
+	else {
+		theta = asin(R[8]);
+		psi = atan2(R[9]/cos(theta), R[10]/cos(theta));
+		phi = atan2(R[4]/cos(theta), R[0]/cos(theta));
+	}
 
 	// set x,y,z position for new module
-	x = M2I(this->bot[attNum]->pos[0]) + R1[0]*m[0] + R1[1]*m[1] + R1[2]*m[2];
-	y = M2I(this->bot[attNum]->pos[1]) + R1[4]*m[0] + R1[5]*m[1] + R1[6]*m[2];
-	z = R1[8]*m[0] + R1[9]*m[1] + R1[10]*m[2];
+	x = this->bot[attNum]->pos[0] + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2];
+	y = this->bot[attNum]->pos[1] + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2];
+	z = this->bot[attNum]->pos[2] + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2];
 
 	// build new module
-	this->iMobotBuildRotated(botNum, x, y, z, R1);
+	this->iMobotBuild(botNum, x, y, z, R2D(psi), R2D(theta), R2D(phi));
 
 	// add fixed joint to attach two modules
 	dJointID joint = dJointCreateFixed(this->world, 0);
-	dJointAttach(joint, this->bot[attNum]->bdyPts[face1_part].bodyID, this->bot[botNum]->bdyPts[face2_part].bodyID);
+	dJointAttach(joint, this->bot[attNum]->bodyPart[face1_part].bodyID, this->bot[botNum]->bodyPart[face2_part].bodyID);
 	dJointSetFixed(joint);
 	dJointSetFixedParam(joint, dParamCFM, 0);
-	dJointSetFixedParam(joint, dParamERP, 0.85);
+	dJointSetFixedParam(joint, dParamERP, 0.9);
+}
+
+void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int face2) {
+	// initialize variables
+	int face1_part, face2_part;
+	dReal x, y, z, psi, theta, phi, m[3];
+	dMatrix3 R, R1, R2, R3, R4, R5, R_att;
+
+	// generate rotation matrix for base robot
+	rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
+
+	if ( face1 == 1 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[0]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[4]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[8]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[0]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[4]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[8]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) 								+ R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH 	+ R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) 								+ R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		m[0] = -0.5*CENTER_LENGTH					+ R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
+		m[2] =										+ R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		m[0] = -0.5*CENTER_LENGTH					+ R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
+		m[2] =										+ R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		m[0] = -0.5*CENTER_LENGTH				+ R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
+		m[2] =									+ R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		m[0] = -0.5*CENTER_LENGTH				+ R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
+		m[2] =									+ R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	 							 R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		m[0] = 0.5*CENTER_LENGTH				+ R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						-BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		m[0] = 0.5*CENTER_LENGTH					+ R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						- BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] =										+ R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	 							 R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		m[0] = 0.5*CENTER_LENGTH				+ R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		m[0] = 0.5*CENTER_LENGTH				+ R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH) + R3[0]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH) + R3[4]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH) + R3[8]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH) + R3[0]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH) + R3[4]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH) + R3[8]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+	}
+
+	// extract Euler Angles from rotation matrix
+	if ( fabs(R[8]-1) < DBL_EPSILON ) {			// R_31 == 1; theta = M_PI/2
+		psi = atan2(-R[1], -R[2]);
+		theta = M_PI/2;
+		phi = 0;
+	}
+	else if ( fabs(R[8]+1) < DBL_EPSILON ) {	// R_31 == -1; theta = -M_PI/2
+		psi = atan2(R[1], R[2]);
+		theta = -M_PI/2;
+		phi = 0;
+	}
+	else {
+		theta = asin(R[8]);
+		psi = atan2(R[9]/cos(theta), R[10]/cos(theta));
+		phi = atan2(R[4]/cos(theta), R[0]/cos(theta));
+	}
+
+	// set x,y,z position for new module
+	x = this->bot[attNum]->pos[0] + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2];
+	y = this->bot[attNum]->pos[1] + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2];
+	z = this->bot[attNum]->pos[2] + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2];
+
+	// build new module
+	this->iMobotBuild(botNum, x, y, z, R2D(psi), R2D(theta), R2D(phi));
+
+	// add fixed joint to attach two modules
+	dJointID joint = dJointCreateFixed(this->world, 0);
+	dJointAttach(joint, this->bot[attNum]->bodyPart[face1_part].bodyID, this->bot[botNum]->bodyPart[face2_part].bodyID);
+	dJointSetFixed(joint);
+	dJointSetFixedParam(joint, dParamCFM, 0);
+	dJointSetFixedParam(joint, dParamERP, 0.9);
+}
+
+void CiMobotSim::imobot_build_attached_01(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	// initialize variables
+	int face1_part, face2_part;
+	dReal x, y, z, psi, theta, phi, r_e, r_b, m[3];
+	dMatrix3 R, R1, R2, R3, R4, R5, R_att;
+
+	// generate rotation matrix for base robot
+	rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
+
+	// rotation of body about fixed point
+	if ( face2 == 1 ) {
+		r_e = D2R(r_le);
+		r_b = D2R(r_lb);
+	}
+	else if ( face2 == 2 ) {
+		r_e = 0;
+		r_b = D2R(r_lb);
+	}
+	else if ( face2 == 3 ) {
+		r_e = 0;
+		r_b = D2R(r_lb);
+	}
+	else if ( face2 == 4 ) {
+		r_e = 0;
+		r_b = D2R(r_rb);
+	}
+	else if ( face2 == 5 ) {
+		r_e = 0;
+		r_b = D2R(r_rb);
+	}
+	else if ( face2 == 6 ) {
+		r_e = D2R(r_re);
+		r_b = D2R(r_rb);
+	}
+
+	if ( face1 == 1 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], r_e);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 1, 0, 0, -r_e);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - 2*END_DEPTH + R1[0]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[0]*(-0.5*CENTER_LENGTH);
+		m[1] =																	 R1[4]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[4]*(-0.5*CENTER_LENGTH);
+		m[2] =																	 R1[8]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 1, 0, 0, r_b);
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH + R1[1]*(0.5*CENTER_LENGTH);
+		m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + R1[5]*(0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 1, 0, 0, -r_b);
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH + R1[1]*(-0.5*CENTER_LENGTH);
+		m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER + R1[5]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 1, 0, 0, -r_b);
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH + R1[1]*(-0.5*CENTER_LENGTH);
+		m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER + R1[5]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 1, 0, 0, r_b);
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH + R1[1]*(0.5*CENTER_LENGTH);
+		m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + R1[5]*(0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -r_e);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 1, 0, 0, -r_e);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - 2*END_DEPTH + R1[0]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[0]*(-0.5*CENTER_LENGTH);
+		m[1] = R1[4]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[4]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[8]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], r_e);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER + R1[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[1]*(-0.5*CENTER_LENGTH);
+		m[1] = -END_DEPTH - 0.5*BODY_WIDTH 	+ R1[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[5]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
+		m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = -BODY_WIDTH + R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -r_b);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
+		m[0] = -0.5*CENTER_LENGTH					+ R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
+		m[2] =										+ R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
+		m[0] = -0.5*CENTER_LENGTH					+ R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
+		m[2] =										+ R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], r_b);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
+		m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = -BODY_WIDTH + R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -r_e);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER + R1[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[1]*(-0.5*CENTER_LENGTH);
+		m[1] = -END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[5]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], r_e);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, r_e);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER + R1[1]*(BODY_END_DEPTH + BODY_LENGTH) + R3[1]*(0.5*CENTER_LENGTH);
+		m[1] = END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH) + R2[5]*(0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(BODY_END_DEPTH + BODY_LENGTH) + R3[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -r_b);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
+		m[0] = -0.5*CENTER_LENGTH				+ R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
+		m[2] =									+ R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER + R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = BODY_WIDTH + R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], r_b);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
+		m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = BODY_WIDTH + R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
+		m[0] = -0.5*CENTER_LENGTH				+ R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
+		m[2] =									+ R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -r_e);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, r_e);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER + R1[1]*(BODY_END_DEPTH + BODY_LENGTH) + R3[1]*(0.5*CENTER_LENGTH);
+		m[1] = END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH) + R3[5]*(0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(BODY_END_DEPTH + BODY_LENGTH) + R3[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], r_e);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER + R1[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[1]*(-0.5*CENTER_LENGTH);
+		m[1] = -END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[5]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
+		m[0] = 0.5*CENTER_LENGTH				+ R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						-BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -r_b);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
+		m[0] = 0.5*CENTER_LENGTH + 2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = -BODY_WIDTH + R1[4]*(0.5*CENTER_LENGTH);
+		m[2] = R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
+		m[0] = 0.5*CENTER_LENGTH + 2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = -BODY_WIDTH + R1[4]*(0.5*CENTER_LENGTH);
+		m[2] = R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], r_b);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
+		m[0] = 0.5*CENTER_LENGTH					+ R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						- BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] =										+ R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -r_e);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER + R1[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[1]*(-0.5*CENTER_LENGTH);
+		m[1] = -END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[5]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], r_e);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, r_e);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER + R1[1]*(BODY_END_DEPTH + BODY_LENGTH) + R3[1]*(0.5*CENTER_LENGTH);
+		m[1] = END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH) + R3[5]*(0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(BODY_END_DEPTH + BODY_LENGTH) + R3[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -r_b);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
+		m[0] = 0.5*CENTER_LENGTH + 2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = BODY_WIDTH + R1[4]*(0.5*CENTER_LENGTH);
+		m[2] = R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
+		m[0] = 0.5*CENTER_LENGTH				+ R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], r_b);
+		dMultiply0(R, R1, R_att, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
+		m[0] = 0.5*CENTER_LENGTH				+ R1[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
+		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
+		m[0] = 0.5*CENTER_LENGTH + 2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + R1[0]*(0.5*CENTER_LENGTH);
+		m[1] = BODY_WIDTH + R1[4]*(0.5*CENTER_LENGTH);
+		m[2] = R1[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -r_e);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, r_e);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER + R1[1]*(BODY_END_DEPTH + BODY_LENGTH) + R3[1]*(0.5*CENTER_LENGTH);
+		m[1] = END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH) + R3[5]*(0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(BODY_END_DEPTH + BODY_LENGTH) + R3[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], r_e);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 1, 0, 0, r_e);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + 2*END_DEPTH + R1[0]*(BODY_END_DEPTH + BODY_LENGTH) + R3[0]*(0.5*CENTER_LENGTH);
+		m[1] = R1[4]*(BODY_END_DEPTH + BODY_LENGTH) + R3[4]*(0.5*CENTER_LENGTH);
+		m[2] = R1[8]*(BODY_END_DEPTH + BODY_LENGTH) + R3[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 1, 0, 0, -r_b);
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH + R1[1]*(-0.5*CENTER_LENGTH);
+		m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER + R1[5]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 1, 0, 0, r_b);
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH + R1[1]*(0.5*CENTER_LENGTH);
+		m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + R1[5]*(0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 1, 0, 0, r_b);
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH + R1[1]*(0.5*CENTER_LENGTH);
+		m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + R1[5]*(0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 1, 0, 0, -r_b);
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH + R1[1]*(-0.5*CENTER_LENGTH);
+		m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER + R1[5]*(-0.5*CENTER_LENGTH);
+		m[2] = R1[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -r_e);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 1, 0, 0, r_e);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + 2*END_DEPTH + R1[0]*(BODY_END_DEPTH + BODY_LENGTH) + R3[0]*(0.5*CENTER_LENGTH);
+		m[1] = R1[4]*(BODY_END_DEPTH + BODY_LENGTH) + R3[4]*(0.5*CENTER_LENGTH);
+		m[2] = R1[8]*(BODY_END_DEPTH + BODY_LENGTH) + R3[8]*(0.5*CENTER_LENGTH);
+	}
+
+	// extract Euler Angles from rotation matrix
+	if ( fabs(R[8]-1) < DBL_EPSILON ) {			// R_31 == 1; theta = M_PI/2
+		psi = atan2(-R[1], -R[2]);
+		theta = M_PI/2;
+		phi = 0;
+	}
+	else if ( fabs(R[8]+1) < DBL_EPSILON ) {	// R_31 == -1; theta = -M_PI/2
+		psi = atan2(R[1], R[2]);
+		theta = -M_PI/2;
+		phi = 0;
+	}
+	else {
+		theta = asin(R[8]);
+		psi = atan2(R[9]/cos(theta), R[10]/cos(theta));
+		phi = atan2(R[4]/cos(theta), R[0]/cos(theta));
+	}
+
+	// set x,y,z position for new module
+	x = this->bot[attNum]->pos[0] + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2];
+	y = this->bot[attNum]->pos[1] + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2];
+	z = this->bot[attNum]->pos[2] + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2];
+
+	// build new module
+	this->iMobotBuild(botNum, x, y, z, R2D(psi), R2D(theta), R2D(phi), r_le, r_lb, r_rb, r_re);
+
+	// add fixed joint to attach two modules
+	dJointID joint = dJointCreateFixed(this->world, 0);
+	dJointAttach(joint, this->bot[attNum]->bodyPart[face1_part].bodyID, this->bot[botNum]->bodyPart[face2_part].bodyID);
+	dJointSetFixed(joint);
+	dJointSetFixedParam(joint, dParamCFM, 0);
+	dJointSetFixedParam(joint, dParamERP, 0.9);
+}
+
+void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	// initialize variables
+	int face1_part, face2_part;
+	dReal x, y, z, psi, theta, phi, r_e, r_b, m[3];
+	dMatrix3 R, R1, R2, R3, R4, R5, R6, R7, R8, R9, R_att;
+
+	// generate rotation matrix for base robot
+	rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
+
+	// rotation of body about fixed point
+	if ( face2 == 1 ) {
+		r_e = D2R(r_le);
+		r_b = D2R(r_lb);
+	}
+	else if ( face2 == 2 ) {
+		r_e = 0;
+		r_b = D2R(r_lb);
+	}
+	else if ( face2 == 3 ) {
+		r_e = 0;
+		r_b = D2R(r_lb);
+	}
+	else if ( face2 == 4 ) {
+		r_e = 0;
+		r_b = D2R(r_rb);
+	}
+	else if ( face2 == 5 ) {
+		r_e = 0;
+		r_b = D2R(r_rb);
+	}
+	else if ( face2 == 6 ) {
+		r_e = D2R(r_re);
+		r_b = D2R(r_rb);
+	}
+
+	if ( face1 == 1 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], r_e);
+		dMultiply0(R8, R7, R6, 3, 3, 3);
+		dRFromAxisAndAngle(R9, R8[1], R8[5], R8[9], -r_b);
+		dMultiply0(R, R9, R8, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_e);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		dRFromAxisAndAngle(R6, R5[1], R5[5], R5[9], r_b);
+		dMultiply0(R7, R6, R5, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[0]*(-2*END_DEPTH) + R5[0]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[4]*(-2*END_DEPTH) + R5[4]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[4]*(-0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[8]*(-2*END_DEPTH) + R5[8]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[1]*(0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[5]*(0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[1]*(-0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[5]*(-0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[1]*(-0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[5]*(-0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[1]*(0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[5]*(0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 1 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_L;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], -r_e);
+		dMultiply0(R8, R7, R6, 3, 3, 3);
+		dRFromAxisAndAngle(R9, R8[1], R8[5], R8[9], r_b);
+		dMultiply0(R, R9, R8, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_e);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		dRFromAxisAndAngle(R6, R5[1], R5[5], R5[9], r_b);
+		dMultiply0(R7, R6, R5, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[0]*(-2*END_DEPTH) + R5[0]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[4]*(-2*END_DEPTH) + R5[4]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[4]*(-0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[8]*(-2*END_DEPTH) + R5[8]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) 								+ R3[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[1]*(-0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH 	+ R3[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[5]*(-0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) 								+ R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R3[4]*(-0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH					+ R3[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						- BODY_WIDTH	+ R3[4]*(0.5*CENTER_LENGTH);
+		m[2] =										+ R3[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH					+ R3[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						- BODY_WIDTH	+ R3[4]*(0.5*CENTER_LENGTH);
+		m[2] =										+ R3[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R3[4]*(-0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 2 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R3[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[1]*(-0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[5]*(-0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R3[1]*(BODY_END_DEPTH + BODY_LENGTH) + R5[1]*(0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R3[5]*(BODY_END_DEPTH + BODY_LENGTH) + R5[5]*(0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R3[9]*(BODY_END_DEPTH + BODY_LENGTH) + R5[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH				+ R3[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						BODY_WIDTH	+ R3[4]*(0.5*CENTER_LENGTH);
+		m[2] =									+ R3[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R3[4]*(-0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R3[4]*(-0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH				+ R3[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						BODY_WIDTH	+ R3[4]*(0.5*CENTER_LENGTH);
+		m[2] =									+ R3[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 3 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_L;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R3[1]*(BODY_END_DEPTH + BODY_LENGTH) + R5[1]*(0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R3[5]*(BODY_END_DEPTH + BODY_LENGTH) + R5[5]*(0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R3[9]*(BODY_END_DEPTH + BODY_LENGTH) + R5[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	 							 R3[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[1]*(-0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[5]*(-0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH				+ R3[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						-BODY_WIDTH	+ R3[4]*(-0.5*CENTER_LENGTH);
+		m[2] =									+ R3[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[0]*(0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R3[4]*(0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[0]*(0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R3[4]*(0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH					+ R3[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						- BODY_WIDTH	+ R3[4]*(-0.5*CENTER_LENGTH);
+		m[2] =										+ R3[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 4 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	 							 R3[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[1]*(-0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[5]*(-0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R3[1]*(BODY_END_DEPTH + BODY_LENGTH) + R5[1]*(0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R3[5]*(BODY_END_DEPTH + BODY_LENGTH) + R5[5]*(0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R3[9]*(BODY_END_DEPTH + BODY_LENGTH) + R5[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[0]*(0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R3[4]*(0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH				+ R3[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						BODY_WIDTH	+ R3[4]*(-0.5*CENTER_LENGTH);
+		m[2] =									+ R3[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
+		dMultiply0(R, R3, R2, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH				+ R3[0]*(-0.5*CENTER_LENGTH);
+		m[1] = 						BODY_WIDTH	+ R3[4]*(-0.5*CENTER_LENGTH);
+		m[2] =									+ R3[8]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
+		dMultiply0(R, R5, R4, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[0]*(0.5*CENTER_LENGTH);
+		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R3[4]*(0.5*CENTER_LENGTH);
+		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 5 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = BODY_R;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R3[1]*(BODY_END_DEPTH + BODY_LENGTH) + R5[1]*(0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R3[5]*(BODY_END_DEPTH + BODY_LENGTH) + R5[5]*(0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R3[9]*(BODY_END_DEPTH + BODY_LENGTH) + R5[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 1 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = ENDCAP_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], r_e);
+		dMultiply0(R8, R7, R6, 3, 3, 3);
+		dRFromAxisAndAngle(R9, R8[1], R8[5], R8[9], -r_b);
+		dMultiply0(R, R9, R8, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_e);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		dRFromAxisAndAngle(R6, R5[1], R5[5], R5[9], -r_b);
+		dMultiply0(R7, R6, R5, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH) + R3[0]*(2*END_DEPTH) + R5[0]*(BODY_END_DEPTH + BODY_LENGTH) + R7[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH) + R3[4]*(2*END_DEPTH) + R5[4]*(BODY_END_DEPTH + BODY_LENGTH) + R7[4]*(0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH) + R3[8]*(2*END_DEPTH) + R5[8]*(BODY_END_DEPTH + BODY_LENGTH) + R7[8]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 2 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[1]*(-0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[5]*(-0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 3 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = BODY_L;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[1]*(0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[5]*(0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 4 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[1]*(0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[5]*(0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[9]*(0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 5 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = BODY_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
+		dMultiply0(R, R7, R6, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[1]*(-0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[5]*(-0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[9]*(-0.5*CENTER_LENGTH);
+	}
+	else if ( face1 == 6 && face2 == 6 ) {
+		// set which body parts are to be connected
+		face1_part = ENDCAP_R;
+		face2_part = ENDCAP_R;
+
+		// generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+		dMultiply0(R2, R1, R_att, 3, 3, 3);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dMultiply0(R4, R3, R2, 3, 3, 3);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R6, R5, R4, 3, 3, 3);
+		dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], -r_e);
+		dMultiply0(R8, R7, R6, 3, 3, 3);
+		dRFromAxisAndAngle(R9, R8[1], R8[5], R8[9], r_b);
+		dMultiply0(R, R9, R8, 3, 3, 3);
+
+		// generate offset for mass center of new module
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dMultiply0(R3, R2, R1, 3, 3, 3);
+		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_e);
+		dMultiply0(R5, R4, R3, 3, 3, 3);
+		dRFromAxisAndAngle(R6, R5[1], R5[5], R5[9], -r_b);
+		dMultiply0(R7, R6, R5, 3, 3, 3);
+		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH) + R3[0]*(2*END_DEPTH) + R5[0]*(BODY_END_DEPTH + BODY_LENGTH) + R7[0]*(0.5*CENTER_LENGTH);
+		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH) + R3[4]*(2*END_DEPTH) + R5[4]*(BODY_END_DEPTH + BODY_LENGTH) + R7[4]*(0.5*CENTER_LENGTH);
+		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH) + R3[8]*(2*END_DEPTH) + R5[8]*(BODY_END_DEPTH + BODY_LENGTH) + R7[8]*(0.5*CENTER_LENGTH);
+	}
+
+	// extract Euler Angles from rotation matrix
+	if ( fabs(R[8]-1) < DBL_EPSILON ) {			// R_31 == 1; theta = M_PI/2
+		psi = atan2(-R[1], -R[2]);
+		theta = M_PI/2;
+		phi = 0;
+	}
+	else if ( fabs(R[8]+1) < DBL_EPSILON ) {	// R_31 == -1; theta = -M_PI/2
+		psi = atan2(R[1], R[2]);
+		theta = -M_PI/2;
+		phi = 0;
+	}
+	else {
+		theta = asin(R[8]);
+		psi = atan2(R[9]/cos(theta), R[10]/cos(theta));
+		phi = atan2(R[4]/cos(theta), R[0]/cos(theta));
+	}
+
+	// set x,y,z position for new module
+	x = this->bot[attNum]->pos[0] + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2];
+	y = this->bot[attNum]->pos[1] + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2];
+	z = this->bot[attNum]->pos[2] + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2];
+
+	// build new module
+	this->iMobotBuild(botNum, x, y, z, R2D(psi), R2D(theta), R2D(phi), r_le, r_lb, r_rb, r_re);
+
+	// add fixed joint to attach two modules
+	dJointID joint = dJointCreateFixed(this->world, 0);
+	dJointAttach(joint, this->bot[attNum]->bodyPart[face1_part].bodyID, this->bot[botNum]->bodyPart[face2_part].bodyID);
+	dJointSetFixed(joint);
+	dJointSetFixedParam(joint, dParamCFM, 0);
+	dJointSetFixedParam(joint, dParamERP, 0.9);
 }
 
 /**********************************************************
 	Utility Functions
  **********************************************************/
-inline dReal CiMobotSim::I2M( dReal x ) {
-	return x*0.0254;
-}
-inline dReal CiMobotSim::M2I( dReal x ) {
-	return x/0.0254;
-}
 inline dReal CiMobotSim::D2R( dReal x ) {
 	return x*M_PI/180;
 }
@@ -1379,7 +4064,7 @@ inline dReal CiMobotSim::R2D( dReal x ) {
 	return x/M_PI*180;
 }
 
-bool CiMobotSim::isTrue(bool *a, int length) {
+bool CiMobotSim::is_true(int length, bool *a) {
 	for (int i = 0; i < length; i++) {
 		if ( a[i] == false )
 			return false;
@@ -1387,76 +4072,106 @@ bool CiMobotSim::isTrue(bool *a, int length) {
 	return true;
 }
 
-dReal CiMobotSim::angMod(dReal pasAng, dReal curAng, dReal angRat) {
-	dReal newAng = 0;
-	int stp = (int)( fabs(pasAng) / M_PI );
-	dReal pasAngMod = fabs(pasAng) - stp*M_PI;
+dReal CiMobotSim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
+	dReal new_ang = 0;
+	int stp = (int)( fabs(past_ang) / M_PI );
+	dReal past_ang_mod = fabs(past_ang) - stp*M_PI;
 
-	if ( (int)angRat == 0 ) {
-		newAng = pasAng;
+	if ( (int)ang_rate == 0 ) {
+		new_ang = past_ang;
 	}
 	// positive angular velocity, positive angle
-	else if ( angRat > 0 && pasAng >= 0 ) {
+	else if ( ang_rate > 0 && past_ang >= 0 ) {
 		// cross 180
-		if ( curAng < 0 && !(stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod + 2*M_PI);	}
+		if ( cur_ang < 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod + 2*M_PI);	}
 		// negative
-		else if ( curAng < 0 && (stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod + M_PI);	}
+		else if ( cur_ang < 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);	}
 		// cross 0
-		else if ( curAng > 0 && (stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod + M_PI);	}
+		else if ( cur_ang > 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);	}
 		// positive
-		else if ( curAng > 0 && !(stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod);	}
+		else if ( cur_ang > 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod);	}
 	}
 	// positive angular velocity, negative angle
-	else if ( angRat > 0 && pasAng < 0 ) {
+	else if ( ang_rate > 0 && past_ang < 0 ) {
 		// cross 180
-		if ( curAng < 0 && (stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod + M_PI);	}
+		if ( cur_ang < 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod + M_PI);	}
 		// negative
-		else if ( curAng < 0 && !(stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod);	}
+		else if ( cur_ang < 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod);	}
 		// cross 0
-		else if ( curAng > 0 && !(stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod);	}
+		else if ( cur_ang > 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod);	}
 		// positive
-		else if ( curAng > 0 && (stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod - M_PI);	}
+		else if ( cur_ang > 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);	}
 	}
 	// negative angular velocity, positive angle
-	else if ( angRat < 0 && pasAng >= 0 ) {
+	else if ( ang_rate < 0 && past_ang >= 0 ) {
 		// cross 180
-		if ( curAng > 0 && (stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod - M_PI);	}
+		if ( cur_ang > 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod - M_PI);	}
 		// negative
-		else if ( curAng < 0 && (stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod + M_PI);	}
+		else if ( cur_ang < 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);	}
 		// cross 0
-		else if ( curAng < 0 && !(stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod);	}
+		else if ( cur_ang < 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod);	}
 		// positive
-		else if ( curAng > 0 && !(stp % 2) ) {	newAng = pasAng + (curAng - pasAngMod);	}
+		else if ( cur_ang > 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod);	}
 	}
 	// negative angular velocity, negative angle
-	else if ( angRat < 0 && pasAng < 0 ) {
+	else if ( ang_rate < 0 && past_ang < 0 ) {
 		// cross 180
-		if ( curAng > 0 && !(stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod - 2*M_PI);	}
+		if ( cur_ang > 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod - 2*M_PI);	}
 		// negative
-		else if ( curAng < 0 && !(stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod);	}
+		else if ( cur_ang < 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod);	}
 		// cross 0
-		else if ( curAng < 0 && (stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod - M_PI);	}
+		else if ( cur_ang < 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);	}
 		// positive
-		else if ( curAng > 0 && (stp % 2) ) {	newAng = pasAng + (curAng + pasAngMod - M_PI);	}
+		else if ( cur_ang > 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);	}
 	}
 
-	return newAng;
+	return new_ang;
 }
 
-/* Drawstuff Functions */
-#ifdef ENABLE_DRAWSTUFF
-void CiMobotSim::ds_start()
-{
-	dAllocateODEDataForThread(dAllocateMaskAll);
+void CiMobotSim::rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
+	dReal	sphi = sin(phi), 		cphi = cos(phi),
+			stheta = sin(theta),	ctheta = cos(theta),
+			spsi = sin(psi),		cpsi = cos(psi);
 
-	static float xyz[3] = {I2M(10), I2M(-10), I2M(10)};
-	static float hpr[3] = {135.0, -20.0, 0.0};	// defined in degrees
+	R[0] =  cphi*ctheta;
+	R[1] = -cphi*stheta*spsi - sphi*cpsi;
+	R[2] = -cphi*stheta*cpsi + sphi*spsi;
+	R[3] = 0;
+	R[4] =  sphi*ctheta;
+	R[5] = -sphi*stheta*spsi + cphi*cpsi;
+	R[6] = -sphi*stheta*cpsi - cphi*spsi;
+	R[7] = 0;
+	R[8] =  stheta;
+	R[9] =  ctheta*spsi;
+	R[10] = ctheta*cpsi;
+	R[11] = 0;
+}
+
+#ifdef ENABLE_DRAWSTUFF
+/**********************************************************
+	Drawstuff Functions
+ **********************************************************/
+void CiMobotSim::ds_drawBodies() {
+	// draw the bodies
+	for (int i = 0; i < this->m_num_bot; i++) {
+		for (int j = 0; j < NUM_PARTS; j++) {
+			if (dBodyIsEnabled(this->bot[i]->bodyPart[j].bodyID))
+				dsSetColor(	this->bot[i]->bodyPart[j].color[0], this->bot[i]->bodyPart[j].color[1], this->bot[i]->bodyPart[j].color[2]);
+			else
+				dsSetColor(0.5,0.5,0.5);
+
+			for (int k = 0; k < this->bot[i]->bodyPart[j].num_geomID; k++) { ds_drawPart(this->bot[i]->bodyPart[j].geomID[k]); }
+		}
+	}
+}
+
+void CiMobotSim::ds_start() {
+	dAllocateODEDataForThread(dAllocateMaskAll);
+	static float xyz[3] = {0.254, -0.254, 0.127};		// left side
+	static float hpr[3] = {135.0, -20.0, 0.0};			// defined in degrees
 	dsSetViewpoint(xyz, hpr);
 }
 
-/*
- *	called when a key pressed
- */
 void CiMobotSim::ds_command(int cmd) {
 	switch (cmd) {
 		case 'q': case 'Q':
@@ -1471,7 +4186,7 @@ void CiMobotSim::ds_drawPart(dGeomID geom) {
 	// get pos, rot of body
 	const dReal *position = dGeomGetPosition(geom);
 	const dReal *rotation = dGeomGetRotation(geom);
-	
+
 	switch (dGeomGetClass(geom)) {
 		case dSphereClass:
 			{
@@ -1498,8 +4213,8 @@ void CiMobotSim::ds_drawPart(dGeomID geom) {
 				dReal r, l;
 				dGeomCapsuleGetParams(geom, &r, &l);
 				dsDrawCapsule(position, rotation, l, r);
+				break;
 			}
 	}
 }
 #endif
-

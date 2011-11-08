@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 2.8)
-project (CiMobot_Sim)
+project (CiMobotSim_Demos)
 
 # Set the version number
-set (CiMobot_Sim_VERSION_MAJOR 0)
-set (CiMobot_Sim_VERSION_MINOR 1)
+set (CiMobotSim_Demos_VERSION_MAJOR 0)
+set (CiMobotSim_Demos_VERSION_MINOR 1)
 
 # Set up a configure file
 configure_file (
@@ -11,11 +11,8 @@ configure_file (
   "${PROJECT_BINARY_DIR}/config.h"
 )
 
-# suppress dev warnings
-add_definitions(-Wno-dev)
-
 # Compilation options
-option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." OFF)
+option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." ON)
 
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
 if (ENABLE_DOUBLE)
@@ -34,25 +31,25 @@ endif (ENABLE_GPROF)
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Add CiMobotSim library subdirectory and stuff
-include_directories("../CiMobotSim")
-link_directories("../CiMobotSim")
+include_directories("../src/CiMobotSim")
+link_directories("../src/CiMobotSim")
 set (EXTRA_LIBS ${EXTRA_LIBS} imobotsim)
 
 # Add ODE library
-include_directories("../opende/sys/include")
-link_directories("../opende/sys/lib")
+include_directories("../src/opende/sys/include")
+link_directories("../src/opende/sys/lib")
 set (EXTRA_LIBS ${EXTRA_LIBS} ode)
 
 if (ENABLE_DRAWSTUFF)
-  include_directories("../opende/include")
-  link_directories("../opende/drawstuff/src/.libs")
+  include_directories("../src/opende/include")
+  link_directories("../src/opende/drawstuff/src/.libs")
   find_package(GLUT)
   find_package(OpenGL)
   set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
 endif (ENABLE_DRAWSTUFF)
 
-#message( ${EXTRA_LIBS} )
-
 # Add the executable
-add_executable(cimobotsim_test cimobotsim_test.cpp)
-target_link_libraries(cimobotsim_test ${EXTRA_LIBS})
+add_executable(inchworm inchworm.cpp)
+target_link_libraries(inchworm ${EXTRA_LIBS})
+add_executable(camera_stand camera_stand.cpp)
+target_link_libraries(camera_stand ${EXTRA_LIBS})
