@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 project(CiMobot_Sim_test)
 
 # Set the version number
@@ -14,22 +14,6 @@ configure_file (
   "${PROJECT_BINARY_DIR}/config.h"
 )
 
-# Compilation options
-option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." OFF)
-
-option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
-if (ENABLE_DOUBLE)
-  add_definitions(-DdDOUBLE)
-else (ENABLE_DOUBLE)
-  add_definitions(-DdSINGLE)
-endif (ENABLE_DOUBLE)
-
-option (ENABLE_GPROF "Enable GNU Profiling capabilities for simulation." OFF)
-if (ENABLE_GPROF)
-  add_definitions(-Dpg)
-  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -pg)
-endif (ENABLE_GPROF)
-
 # Add the binary directory to include file search path
 include_directories("${PROJECT_BINARY_DIR}")
 
@@ -43,6 +27,21 @@ include_directories("../opende/sys/include")
 link_directories("../opende/sys/lib")
 set (EXTRA_LIBS ${EXTRA_LIBS} ode)
 
+# Compilation options
+option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
+if (ENABLE_DOUBLE)
+  add_definitions(-DdDOUBLE)
+else (ENABLE_DOUBLE)
+  add_definitions(-DdSINGLE)
+endif (ENABLE_DOUBLE)
+
+option (ENABLE_GPROF "Enable GNU Profiling capabilities for simulation." OFF)
+if (ENABLE_GPROF)
+  add_definitions(-Dpg)
+  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -pg)
+endif (ENABLE_GPROF)
+
+option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." OFF)
 if (ENABLE_DRAWSTUFF)
   include_directories("../opende/include")
   link_directories("../opende/drawstuff/src/.libs")

@@ -19,34 +19,21 @@ include_directories("${PROJECT_BINARY_DIR}")
 
 # Add ODE library
 include_directories("../opende/sys/include")
-link_directories("../opende/sys/lib")
-set (EXTRA_LIBS ${EXTRA_LIBS} ode)
-#include_directories(../opende/sys/include)
 
 option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." ON)
-option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
-
 if (ENABLE_DRAWSTUFF)
   include_directories("../opende/include")
-  link_directories("../opende/drawstuff/src/.libs")
-  find_package(GLUT)
-  find_package(OpenGL)
-  set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
 endif (ENABLE_DRAWSTUFF)
 
-#if (ENABLE_DRAWSTUFF)
-#  include_directories("../opende/include")
-#endif (ENABLE_DRAWSTUFF)
-
+option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
 if (ENABLE_DOUBLE)
-  add_definitions(-DdDOUBLE)
+	add_definitions(-DdDOUBLE)
 else (ENABLE_DOUBLE)
-  add_definitions(-DdSINGLE)
+	add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 
 # Add the library
 add_library( imobotsim STATIC
-  imobotsim.cpp
-  pid.cpp
+	imobotsim.cpp
+	pid.cpp
 )
-target_link_libraries(imobotsim ${EXTRA_LIBS})
