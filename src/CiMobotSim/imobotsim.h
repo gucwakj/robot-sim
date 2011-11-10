@@ -108,6 +108,7 @@ class CiMobotSim {
 			le, re:				rotation of endcaps about respective bodies (in degrees)
 			lb, rb:				rotation of bodies about center (in degrees)	*/
 		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+        void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		/*
 		 *	build ground out of simple objects

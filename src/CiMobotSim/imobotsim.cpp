@@ -1238,6 +1238,18 @@ void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face
 		imobot_build_attached_11(botNum, attNum, face1, face2, r_le, r_lb, r_rb, r_re);
 }
 
+void CiMobotSim::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+
+    this->iMobotBuild(botNum, x, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
+
+    // add fixed joint to attach two modules
+    dJointID joint = dJointCreateFixed(this->world, 0);
+    dJointAttach(joint, 0, this->bot[botNum]->bodyPart[end].bodyID);
+    dJointSetFixed(joint);
+    dJointSetFixedParam(joint, dParamCFM, 0);
+    dJointSetFixedParam(joint, dParamERP, 0.9);
+}
+
 void CiMobotSim::imobot_build_attached_00(int botNum, int attNum, int face1, int face2) {
 	// initialize variables
 	int face1_part, face2_part;
