@@ -4,7 +4,7 @@ General:
 	demos dir with ik_*.cpp and fd_*.cpp
 	docs/, AUTHORS, README
 	build class
-		rename CiMobotSim to CiMobotDyn
+		rename CiMobotSim to CiMobotFD
 		create CiMobotBuild class to allow one build function per demo program
 	CMakeLists.txt much smaller than cimobotsim_test/*
 
@@ -14,30 +14,25 @@ Forward Dynamics:
 		seconds to run.  If not parallel, only one module can be doing work at a
 		time leaving the others to sit idle.  When stringing multiple
 		simulations together, this can add up.
-
 	Weight distribution
 		Values are currently guessed.  Need a more accurate distribution of
 		weights from a cad model.  Started work based on Graham's cad model within
 		solidedge to get weights and moments of inertia for each body part
 		including all connectors, etc.  KG doesn't have experience with cad
 		modeling to get it done quickly.
-
 	Max Joint Force
 		Values are guessed as well.  From a working RecurDyn model, need to get
 		the max force which can be applied by the motors for each joint.  These values
 		are set within ODE to stall a motor when it cant overcome a body.
-
 	Max Joint Velocity
 		Values are based upon Graham's calculations in his thesis.  Need experimental
 		values true to the module.
-
 	More accurate completion check
 		Currently the code will only check if all of the joints have completed
 		all of their scheduled positions.  For cases like the camera stand, if
 		the body falls over, can still get a 'success' flag because the bodies
 		have completed their motions.  However the module is obviously not in
 		the right position.
-
 	Wind
 		Possibly add wind effects to the simulation.  A cross-wind would have an
 		adverse effect especially on larger robots.  Found a link that simulated
@@ -47,7 +42,6 @@ Forward Dynamics:
 			Essex ..., Volume 6
 			By Conor Ryan
 			http://books.google.com/books?id=pVhXLZKMF-YC&lpg=PA51&ots=ikZfL8Ztow&dq=open%20dynamics%20engine%20wind&pg=PA51#v=onepage&q=open%20dynamics%20engine%20wind&f=false
-
 	New features from David
 		PID
 		Mismatched endcap rotation
@@ -58,6 +52,5 @@ Inverse Kinematics:
 	cleaner implementation of Jacobian type passing
 		do we even need different (lesser) types like pseudoinverse, transpose?  removing
 		them will allow other functions on Matrix and Vector classes to be removed
-
 	const keyword used excessively
-
+	properly clean up node_right array in destructor

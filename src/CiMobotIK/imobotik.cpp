@@ -22,20 +22,26 @@ CiMobotIK::CiMobotIK(int num_bot, int num_targets) {
 }
 
 CiMobotIK::~CiMobotIK(void) {
-	delete this->jacob;
-	delete [] this->target_pos;
-	delete [] this->target_rot;
-	delete [] this->m_del_theta;
-	for ( int i = NUM_DOF*this->m_num_bot + this->m_num_targets - 1; i >= 0; i-- ) {
+    delete this->jacob;
+    delete [] this->target_pos;
+    delete [] this->target_rot;
+    delete [] this->m_del_theta;
+	for ( int i = NUM_DOF*this->m_num_bot - 1; i >= 0; i-- ) {
 		delete this->node[i];
-	}
+        //delete this->node_right[i];
+    }
+    for ( int i = this->m_num_targets - 1; i>0; i-- ) {
+        delete this->node_effector[i-1];
+    }
 	delete [] this->node;
+    //delete [] this->node_right;
+    delete [] this->node_effector;
 }
 
 void CiMobotIK::iMobotAnchor(int end, double x, double y, double z, double psi, double theta, double phi, double r_le, double r_lb, double r_rb, double r_re) {
     MatrixR33 R = MatrixR33(D2R(psi), D2R(theta), D2R(phi));
 
-	if ( end == LE ) {
+	if ( end == ANCHOR_LE ) {
 		double le = END_DEPTH;
 		double lb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
 		double rb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
@@ -49,7 +55,7 @@ void CiMobotIK::iMobotAnchor(int end, double x, double y, double z, double psi, 
 		this->tree.insertLeftChild(node[1], node[2]);
 		this->tree.insertLeftChild(node[2], node[3]);
 	}
-	else if ( end == RE ) {
+	else if ( end == ANCHOR_RE ) {
         double le = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH;
         double lb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
         double rb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;

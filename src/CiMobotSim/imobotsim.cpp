@@ -1,8 +1,8 @@
 #include <cmath>
-#include <iostream>
-#include "config.h"
+//#include <iostream>
+//#include "config.h"
 #include "imobotsim.h"
-#include "pid.h"
+//#include "pid.h"
 
 #ifdef dDOUBLE
 #define dsDrawSphere dsDrawSphereD
@@ -240,7 +240,7 @@ void CiMobotSim::ds_simulationLoop(int pause) {
 	dSpaceCollide(this->space, this, &this->collision_wrapper);		// collide all geometries together
 	dWorldStep(this->world, this->m_t_step);						// step world time by one
 	dJointGroupEmpty(this->group);									// clear out all contact joints
-	this->print_intermediate_data();								// print out incremental data
+	//this->print_intermediate_data();								// print out incremental data
 	this->set_flags();												// set flags for completion of steps
 	this->increment_step();											// check whether to increment to next step
 	this->end_simulation(loop);										// check whether to end simulation
@@ -500,10 +500,10 @@ void CiMobotSim::print_intermediate_data() {
 		//cout << dJointGetHingeAngle(this->bot[i]->joints[RE]) << " ";
 		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RE]) << " ";
 	}
-	for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flag_comp[i] << " "; }
-	cout << " ";
-	for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flag_disable[i] << " "; }
-	cout << endl;
+	//for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flag_comp[i] << " "; }
+	//cout << " ";
+	//for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flag_disable[i] << " "; }
+	//cout << endl;
 }
 
 void CiMobotSim::end_simulation(bool &loop) {

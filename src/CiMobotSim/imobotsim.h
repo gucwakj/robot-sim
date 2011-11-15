@@ -1,6 +1,7 @@
 #ifndef CIMOBOTSIM_H_
 #define CIMOBOTSIM_H_
 
+#include <iostream>
 #include "config.h"
 #include "pid.h"
 #include <ode/ode.h>
@@ -12,6 +13,7 @@
 /*
  *	iMobot dimension macros
  */
+#ifndef CIMOBOTIK_H_
 #define CENTER_LENGTH		0.07303
 #define CENTER_WIDTH		0.02540
 #define CENTER_HEIGHT		0.06909
@@ -27,6 +29,7 @@
 #define END_HEIGHT			0.07239
 #define END_DEPTH			0.00476
 #define END_RADIUS			0.01778
+#endif
 
 /*
  *	enumerations for parts of iMobot

@@ -26,11 +26,13 @@
 #define END_HEIGHT          0.07239
 #define END_DEPTH           0.00476
 #define END_RADIUS          0.01778
+#ifndef CIMOBOTSIM_H_
 #define NUM_DOF 4
+#endif
 
 enum anchor_point_e {
-	LE,
-	RE
+	ANCHOR_LE,
+	ANCHOR_RE
 };
 
 class CiMobotIK {
