@@ -71,6 +71,10 @@ class CiMobotIK {
 		double getTargetPhi(int num);
 		double getTargetTheta(int num);
 		double getTargetPsi(int num);
+        int getNumAngles(void);
+        //void getAngles(float *array);
+        void getAngles(double *array);
+        void formatAngles(int method, double *array);
 
 		void runSimulation(int argc, char **argv);
 	private:

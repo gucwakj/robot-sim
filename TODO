@@ -47,6 +47,10 @@ Forward Dynamics:
 		Mismatched endcap rotation
 	Implement bot as class not struct
 		similar to IK classes, cleans up sim.cpp file
+    target functions
+        setTargetPosition()
+        setTargetOrientation()
+        drawTarget()
 
 Inverse Kinematics:
 	cleaner implementation of Jacobian type passing

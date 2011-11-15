@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <cfloat>
 #include "imobotik.h"
 
 using namespace std;
@@ -46,10 +47,10 @@ void CiMobotIK::iMobotAnchor(int end, double x, double y, double z, double psi, 
 		double lb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
 		double rb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
 		double re = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH;
-        this->node[0] = new Node(R*VectorR3(le, 0, 0) + VectorR3(x, y, z), R*VectorR3(-1, 0, 0), R, JOINT, D2R(r_le));
-        this->node[1] = new Node(R*VectorR3(lb, 0, 0) + VectorR3(x, y, z), R*VectorR3( 0, 0,-1), R, JOINT, D2R(r_lb), D2R(-90), D2R(90));
-        this->node[2] = new Node(R*VectorR3(rb, 0, 0) + VectorR3(x, y, z), R*VectorR3( 0, 0, 1), R, JOINT, D2R(r_rb), D2R(-90), D2R(90));
-        this->node[3] = new Node(R*VectorR3(re, 0, 0) + VectorR3(x, y, z), R*VectorR3( 1, 0, 0), R, JOINT, D2R(r_re));
+        this->node[0] = new Node(R*VectorR3(le, 0, 0) + VectorR3(x, y, z), R*VectorR3( 1, 0, 0), R, JOINT, D2R(r_le));
+        this->node[1] = new Node(R*VectorR3(lb, 0, 0) + VectorR3(x, y, z), R*VectorR3( 0, 0, 1), R, JOINT, D2R(r_lb), D2R(-90), D2R(90));
+        this->node[2] = new Node(R*VectorR3(rb, 0, 0) + VectorR3(x, y, z), R*VectorR3( 0, 0,-1), R, JOINT, D2R(r_rb), D2R(-90), D2R(90));
+        this->node[3] = new Node(R*VectorR3(re, 0, 0) + VectorR3(x, y, z), R*VectorR3(-1, 0, 0), R, JOINT, D2R(r_re));
 		this->tree.insertRoot(node[0]);
 		this->tree.insertLeftChild(node[0], node[1]);
 		this->tree.insertLeftChild(node[1], node[2]);
@@ -60,10 +61,10 @@ void CiMobotIK::iMobotAnchor(int end, double x, double y, double z, double psi, 
         double lb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
         double rb = END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
 		double re = END_DEPTH;
-        this->node[0] = new Node(R*VectorR3(le, 0, 0) + VectorR3(x, y, z), R*VectorR3(-1, 0, 0), R, JOINT, D2R(r_le));
-        this->node[1] = new Node(R*VectorR3(lb, 0, 0) + VectorR3(x, y, z), R*VectorR3( 0, 0,-1), R, JOINT, D2R(r_lb), D2R(-90), D2R(90));
-        this->node[2] = new Node(R*VectorR3(rb, 0, 0) + VectorR3(x, y, z), R*VectorR3( 0, 0, 1), R, JOINT, D2R(r_rb), D2R(-90), D2R(90));
-        this->node[3] = new Node(R*VectorR3(re, 0, 0) + VectorR3(x, y, z), R*VectorR3( 1, 0, 0), R, JOINT, D2R(r_re));
+        this->node[0] = new Node(R*VectorR3(le, 0, 0) + VectorR3(x, y, z), R*VectorR3( 1, 0, 0), R, JOINT, D2R(r_le));
+        this->node[1] = new Node(R*VectorR3(lb, 0, 0) + VectorR3(x, y, z), R*VectorR3( 0, 0, 1), R, JOINT, D2R(r_lb), D2R(-90), D2R(90));
+        this->node[2] = new Node(R*VectorR3(rb, 0, 0) + VectorR3(x, y, z), R*VectorR3( 0, 0,-1), R, JOINT, D2R(r_rb), D2R(-90), D2R(90));
+        this->node[3] = new Node(R*VectorR3(re, 0, 0) + VectorR3(x, y, z), R*VectorR3(-1, 0, 0), R, JOINT, D2R(r_re));
 		this->tree.insertRoot(node[3]);
 		this->tree.insertLeftChild(node[3], node[2]);
 		this->tree.insertLeftChild(node[2], node[1]);
@@ -416,6 +417,36 @@ double CiMobotIK::getTargetTheta(int num) {
 
 double CiMobotIK::getTargetPhi(int num) {
 	return this->target_rot[num].phi;
+}
+
+int CiMobotIK::getNumAngles(void) {
+    return NUM_DOF*this->m_num_bot;
+}
+
+void CiMobotIK::getAngles(double *array) {
+    for ( int i = 0; i < this->getNumAngles(); i++ ) {
+        array[i] = R2D(this->node[i]->getTheta());
+        if ( fabs(array[i]) < 0.5*3.141592/180 ) {
+            array[i] = 0;
+        }
+    }
+}
+
+void CiMobotIK::formatAngles(int method, double *array) {
+    double *angles = new double[this->getNumAngles()];
+    this->getAngles(angles);
+
+    if ( method == 1 ) {
+        for ( int i = 0; i < 8; i++ ) {
+            array[i*8 + 7 - i] = angles[7-i];
+            if ( (i%NUM_DOF == 1) || (i%NUM_DOF == 2) ) {
+                for ( int j = i; j < 8; j++ ) {
+                    array[i*8 + 7 - i + 8*(7-j)] = angles[7-i];
+                }
+            }
+        }
+    }
+    delete angles;
 }
 
 void CiMobotIK::runSimulation(int argc, char **argv) {
