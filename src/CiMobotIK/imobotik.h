@@ -34,6 +34,11 @@ enum anchor_point_e {
 	ANCHOR_LE,
 	ANCHOR_RE
 };
+enum ik_reply_message_e {
+    IK_SUCCESS,
+    IK_ERROR_TIME,
+    IK_ERROR_STALL
+};
 
 class CiMobotIK {
 	public:
@@ -72,9 +77,9 @@ class CiMobotIK {
 		double getTargetTheta(int num);
 		double getTargetPsi(int num);
         int getNumAngles(void);
-        //void getAngles(float *array);
         void getAngles(double *array);
         void formatAngles(int method, double *array);
+        int getReplyMessage(void);
 
 		void runSimulation(int argc, char **argv);
 	private:
@@ -90,6 +95,7 @@ class CiMobotIK {
 		int m_t_count;
 		int m_num_bot;
 		int m_num_targets;
+        int m_reply;
 		double m_t;
 		double m_t_step;
         int m_j_mode;

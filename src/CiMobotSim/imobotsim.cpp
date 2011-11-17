@@ -107,6 +107,14 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 		}
 		#endif
 	}
+	for ( i = 0; i < 8; i++ ) {
+        for ( j = 0; j < 8; j++ ) {
+            cout.precision(4);cout.width(8);
+            cout << ang[i*8 + j] << "\t";
+        }
+        cout << endl;
+    }
+    cout << endl;
 
 	// create ODE simulation space
 	dInitODE2(0);												// initialized ode library
@@ -240,7 +248,7 @@ void CiMobotSim::ds_simulationLoop(int pause) {
 	dSpaceCollide(this->space, this, &this->collision_wrapper);		// collide all geometries together
 	dWorldStep(this->world, this->m_t_step);						// step world time by one
 	dJointGroupEmpty(this->group);									// clear out all contact joints
-	//this->print_intermediate_data();								// print out incremental data
+	this->print_intermediate_data();								// print out incremental data
 	this->set_flags();												// set flags for completion of steps
 	this->increment_step();											// check whether to increment to next step
 	this->end_simulation(loop);										// check whether to end simulation
@@ -259,7 +267,7 @@ void CiMobotSim::simulation_loop(void) {
 		dSpaceCollide(this->space, this, &this->collision_wrapper);	// collide all geometries together
 		dWorldStep(this->world, this->m_t_step);					// step world time by one
 		dJointGroupEmpty(this->group);								// clear out all contact joints
-		//this->print_intermediate_data();							// print out incremental data
+		this->print_intermediate_data();							// print out incremental data
 		this->set_flags();											// set flags for completion of steps
 		this->increment_step();										// check whether to increment to next step
 		this->end_simulation(loop);									// check whether to end simulation
@@ -461,12 +469,13 @@ void CiMobotSim::print_intermediate_data() {
 	cout.width(4); cout << this->m_t_tot_step;
 	cout.width(6); cout << this->m_t;
 	cout.width(3); cout << this->m_cur_stp;
-	cout << "\t\t";
+	cout << "\t\t<";
 	//const dReal *pos;
-	for (i = 0; i < this->m_num_bot; i++) {
+    for ( i = 0; i < 1; i++ ) {
+	//for (i = 0; i < this->m_num_bot; i++) {
 		//cout << this->bot[i]->fut_ang[LE] << " ";
 		//cout << this->bot[i]->bodyPart[ENDCAP_L].ang << " ";
-		//cout << this->bot[i]->cur_ang[LE] << " ";
+		//cout << this->bot[i]->cur_ang[LE] << ", ";
 		//cout << this->bot[i]->jnt_vel[LE] << " ";
 		//cout << dJointGetAMotorParam(this->bot[i]->motors[LE], dParamVel) << " ";
 		//cout << dJointGetHingeAngle(this->bot[i]->joints[LE]) << " ";
@@ -474,11 +483,11 @@ void CiMobotSim::print_intermediate_data() {
 		//
 		//cout << this->bot[i]->fut_ang[LB] << " ";
 		//cout << this->bot[i]->bodyPart[BODY_L].ang << " ";
-		//cout << this->bot[i]->cur_ang[LB] << " ";
-		//cout << this->bot[i]->jnt_vel[LB] << " ";
+		cout << this->bot[i]->cur_ang[LB] << ", ";
+		cout << this->bot[i]->jnt_vel[LB] << " ";
 		//cout << dJointGetAMotorParam(this->bot[i]->motors[LB], dParamVel) << " ";
 		//cout << dJointGetHingeAngle(this->bot[i]->joints[LB]) << " ";
-		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[LB]) << " ";
+		cout << dJointGetHingeAngleRate(this->bot[i]->joints[LB]) << " ";
 		//
 		//pos = dBodyGetPosition(this->bot[i]->bodyPart[CENTER].bodyID);
 		//printf("[%f %f %f]\t", pos[0], pos[1], pos[2]);
@@ -486,7 +495,7 @@ void CiMobotSim::print_intermediate_data() {
 		//
 		//cout << this->bot[i]->fut_ang[RB] << " ";
 		//cout << this->bot[i]->bodyPart[BODY_R].ang << " ";
-		//cout << this->bot[i]->cur_ang[RB] << " ";
+		//cout << this->bot[i]->cur_ang[RB] << ", ";
 		//cout << this->bot[i]->jnt_vel[RB] << " ";
 		//cout << dJointGetAMotorParam(this->bot[i]->motors[RB], dParamVel) << " ";
 		//cout << dJointGetHingeAngle(this->bot[i]->joints[RB]) << " ";
@@ -500,6 +509,7 @@ void CiMobotSim::print_intermediate_data() {
 		//cout << dJointGetHingeAngle(this->bot[i]->joints[RE]) << " ";
 		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RE]) << " ";
 	}
+	cout << ">" << endl;
 	//for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flag_comp[i] << " "; }
 	//cout << " ";
 	//for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flag_disable[i] << " "; }

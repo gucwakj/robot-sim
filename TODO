@@ -58,3 +58,7 @@ Inverse Kinematics:
 		them will allow other functions on Matrix and Vector classes to be removed
 	const keyword used excessively
 	properly clean up node_right array in destructor
+	SDLS fails when num_rows > num_cols
+        read up on how N, M are calculated and why they are looping over num_rows
+    what is the meaning of the time variable
+        can the two times be synced by limiting ik to a max joint movement per step

@@ -252,7 +252,7 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 	assert(this->J.DebugCheckSVD(this->U, this->w, this->V));	// Debugging check
 
 	// Calculate response vector dTheta that is the SDLS solution.
-	//	Delta target values are the dS values
+    //	Delta target values are the dS values
 	int num_rows = this->J.getNumRows();
 	int num_cols = this->J.getNumColumns();
 	int num_effectors = this->tree->getNumEffector();		// Equals the number of rows of J divided by three
@@ -269,7 +269,7 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 		accum = *(jx++);
 		accumSq += accum*accum;
 		*(jnx++) = sqrt(accumSq);
-	}
+    }
 
 	this->calc_dT_clamped_from_dS();		// Clamp the dS values
 
@@ -294,7 +294,7 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 			temp = *(ux++);
 			tempSq += temp*temp;
 			N += sqrt(tempSq);
-		}
+        }
 
 		// Calculate M
 		M = 0;			// M is the quasi-1-norm of the response to angles changing according to the i-th column of V
@@ -315,7 +315,7 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 		// Calculate the dTheta from pure pseudoinverse considerations
         this->dPreTheta.set(this->V.getColumnPtr(i), alpha*wiInv);
 		// Now rescale the dTheta values
-		this->dTheta.add(this->dPreTheta, gamma/(gamma + this->dPreTheta.maxAbs()));
+        this->dTheta.add(this->dPreTheta, gamma/(gamma + this->dPreTheta.maxAbs()));
 	}
 	scale_back_angle(JACOB_SDLS, 1);		// Scale back to not exceed maximum angle changes
 }
