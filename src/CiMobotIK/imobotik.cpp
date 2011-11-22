@@ -211,7 +211,6 @@ void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, dou
 		double lb = 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH;
 		double rb = 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH;
 		double re = 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + CENTER_LENGTH + BODY_END_DEPTH + BODY_LENGTH;
-        cout << "botNum: " << bot_num << "\tNUMDOF" << NUM_DOF << endl;
         this->node[bot_num*NUM_DOF + 0] = new Node(S + R*VectorR3(le, 0, 0), R*VectorR3( 1, 0, 0), R, JOINT, D2R(r_le));
         this->node[bot_num*NUM_DOF + 1] = new Node(S + R*VectorR3(lb, 0, 0), R*VectorR3( 0, 0, 1), R, JOINT, D2R(r_lb), D2R(-90), D2R(90));
         this->node[bot_num*NUM_DOF + 2] = new Node(S + R*VectorR3(rb, 0, 0), R*VectorR3( 0, 0, 1), R, JOINT, D2R(r_rb), D2R(-90), D2R(90));
@@ -290,7 +289,7 @@ void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, dou
 }
 
 void CiMobotIK::addEffector(int eff_num, int bot_num, int face) {
-    VectorR3 eff = this->node[bot_num*NUM_DOF + face/2]->getRInit() * (END_DEPTH*this->node[bot_num*NUM_DOF + face/2]->getWInit());
+    VectorR3 eff = this->node[bot_num*NUM_DOF + face/2]->getRInit() * (4*END_DEPTH*this->node[bot_num*NUM_DOF + face/2]->getWInit());
 
     this->node_effector[eff_num] = new Node(this->node[bot_num*NUM_DOF + face/2]->getSInit() + eff,
                                             //VectorR3(0.0, 0.0, 0.0),
@@ -482,14 +481,14 @@ void CiMobotIK::runSimulation(int argc, char **argv) {
 		this->jacob->updateThetas();			// apply the change in the theta values
 		this->jacob->updatedSClampValue();		// update distance to target position
 
-		this->print_intermediate_data();        // print data for analysis purposes
+		//this->print_intermediate_data();        // print data for analysis purposes
 
 		this->update_targets();					// update target to new values
 		this->set_flags();						// set flags for completion
 		this->increment_step();					// increment time step
 		loop = this->end_simulation();			// check to end simulation
     }
-    this->print_intermediate_data();            // print last step of data
+    //this->print_intermediate_data();            // print last step of data
 }
 
 void CiMobotIK::print_intermediate_data(void) {
