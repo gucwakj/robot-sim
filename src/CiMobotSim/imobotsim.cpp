@@ -20,7 +20,7 @@ using namespace std;
 CiMobotSim *g_imobotsim;
 #endif
 
-CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
+CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, int num_targets, dReal *ang) {
 	// initialze loop counters
 	int i, j;
 
@@ -28,6 +28,7 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 	this->m_num_bot = num_bot;
 	this->m_num_stp = num_stp;
 	this->m_num_gnd = num_gnd;
+    this->m_num_targets = num_targets;
 
 	// default simulation parameters
 	this->m_mu_g = 0.4;
@@ -63,6 +64,7 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 	this->m_flag_comp = new bool[num_bot];
 	this->m_flag_disable = new bool[num_bot];
 	this->m_ground = new dGeomID[num_gnd];
+    this->target = new CiMobotSimTarget[num_targets];
 
 	// initialze reply struct
 	this->m_reply = new CiMobotSimReply;
@@ -146,7 +148,7 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang) {
 	#endif
 }
 
-CiMobotSim::~CiMobotSim() {
+CiMobotSim::~CiMobotSim(void) {
 	// initialze loop counters
 	int i, j;
 
@@ -174,6 +176,7 @@ CiMobotSim::~CiMobotSim() {
 	delete [] this->m_joint_vel_max;
 	delete [] this->m_joint_vel_min;
 	delete [] this->m_joint_frc_max;
+    delete [] this->target;
 	delete this->m_reply;
 
 	// destroy all ODE objects
@@ -217,6 +220,15 @@ void CiMobotSim::setTime(dReal time_total) {
 	this->m_t_tot_step = (int)((this->m_t_total + this->m_t_step) / this->m_t_step);
 }
 
+void CiMobotSim::setTarget(int num, double x, double y, double z) {
+    this->target[num].x = x;
+    this->target[num].y = y;
+    this->target[num].z = z;
+    this->target[num].geomID = dCreateSphere(this->space, 0.01);
+    dGeomSetPosition(this->target[num].geomID, x, y, z);
+    dGeomDisable(this->target[num].geomID);
+}
+
 void CiMobotSim::runSimulation(int argc, char **argv) {
 	#ifdef ENABLE_DRAWSTUFF
 	dsSimulationLoop(argc, argv, 352, 288, &m_fn);
@@ -255,6 +267,7 @@ void CiMobotSim::ds_simulationLoop(int pause) {
 	this->increment_time();											// increment time
 
 	this->ds_drawBodies();											// draw bodies onto screen
+    this->ds_drawTargets();                                         // draw targets onto screen
 	if ((this->m_t_cur_step == this->m_t_tot_step+1) || !loop) dsStop();// stop simulation
 }
 #undef this
@@ -4173,21 +4186,26 @@ void CiMobotSim::rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal 
 /**********************************************************
 	Drawstuff Functions
  **********************************************************/
-void CiMobotSim::ds_drawBodies() {
-	// draw the bodies
+void CiMobotSim::ds_drawBodies(void) {
 	for (int i = 0; i < this->m_num_bot; i++) {
 		for (int j = 0; j < NUM_PARTS; j++) {
 			if (dBodyIsEnabled(this->bot[i]->bodyPart[j].bodyID))
-				dsSetColor(	this->bot[i]->bodyPart[j].color[0], this->bot[i]->bodyPart[j].color[1], this->bot[i]->bodyPart[j].color[2]);
+				dsSetColor(this->bot[i]->bodyPart[j].color[0], this->bot[i]->bodyPart[j].color[1], this->bot[i]->bodyPart[j].color[2]);
 			else
 				dsSetColor(0.5,0.5,0.5);
-
 			for (int k = 0; k < this->bot[i]->bodyPart[j].num_geomID; k++) { ds_drawPart(this->bot[i]->bodyPart[j].geomID[k]); }
 		}
 	}
 }
 
-void CiMobotSim::ds_start() {
+void CiMobotSim::ds_drawTargets(void) {
+    for (int i = 0; i < this->m_num_targets; i++) {
+        dsSetColor(1, 0, 0);
+        ds_drawPart(this->target[i].geomID);
+    }
+}
+
+void CiMobotSim::ds_start(void) {
 	dAllocateODEDataForThread(dAllocateMaskAll);
 	static float xyz[3] = {0.254, -0.254, 0.127};		// left side
 	static float hpr[3] = {135.0, -20.0, 0.0};			// defined in degrees
@@ -4202,41 +4220,30 @@ void CiMobotSim::ds_command(int cmd) {
 }
 
 void CiMobotSim::ds_drawPart(dGeomID geom) {
-	// make sure correct geom is passed to function
-	if (!geom) return;
+    if (!geom) return;                                  // make sure geom is passed
 
-	// get pos, rot of body
-	const dReal *position = dGeomGetPosition(geom);
-	const dReal *rotation = dGeomGetRotation(geom);
+	const dReal *position = dGeomGetPosition(geom);     // get position
+	const dReal *rotation = dGeomGetRotation(geom);     // get rotation
+    dReal r, l;                                         // declare geom params
 
 	switch (dGeomGetClass(geom)) {
 		case dSphereClass:
-			{
-				dReal r = dGeomSphereGetRadius(geom);
+				r = dGeomSphereGetRadius(geom);
 				dsDrawSphere(position, rotation, r);
 				break;
-			}
 		case dBoxClass:
-			{
 				dVector3 sides;
 				dGeomBoxGetLengths(geom, sides);
 				dsDrawBox(position, rotation, sides);
 				break;
-			}
 		case dCylinderClass:
-			{
-				dReal r, l;
 				dGeomCylinderGetParams(geom, &r, &l);
 				dsDrawCylinder(position, rotation, l, r);
 				break;
-			}
 		case dCapsuleClass:
-			{
-				dReal r, l;
 				dGeomCapsuleGetParams(geom, &r, &l);
 				dsDrawCapsule(position, rotation, l, r);
 				break;
-			}
 	}
 }
 #endif

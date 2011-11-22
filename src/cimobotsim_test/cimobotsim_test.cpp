@@ -8,12 +8,13 @@ int main(int argc, char *argv[]) {
     0,  45, -25, 0, 0, -20, 0, 0,
     0,  45, -15, 0, 0, -30, 0, 0
     };
-	CiMobotSim *sim = new CiMobotSim(2, 4, 1, ang);
+	CiMobotSim *sim = new CiMobotSim(2, 4, 1, 1, ang);
 
 	//sim->setCOR(0.45, 0.45);
 	//sim->setMu(0.3, 0.1);
 	sim->setTime(3);
-	//sim->setAngVel(vel);
+    //sim->setAngVel(vel);
+    sim->setTarget(0, -0.1, 0.0, 0.10);
 
 	sim->groundPlane(0, 0, 0, 1, 0);
 

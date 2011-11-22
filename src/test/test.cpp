@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     cout << "  Psi: " << ik->getEffectorPsi(0) << "\t" << ik->getTargetPsi(0) << endl;
     cout << "Theta: " << ik->getEffectorTheta(0) << "\t" << ik->getTargetTheta(0) << endl;
     cout << "  Phi: " << ik->getEffectorPhi(0) << "\t" << ik->getTargetPhi(0) << endl;*/
-    dReal ang2[64] = {0};
+    /*dReal ang2[64] = {0};
     ang2[1] = -20;
     for ( int i = 0; i < 8; i++ ) {
         for ( int j = 0; j < 8; j++ ) {
@@ -49,11 +49,12 @@ int main(int argc, char *argv[]) {
         }
         cout << endl;
     }
-    cout << endl;
+    cout << endl;*/
 
     cout << "Forward Dynamics" << endl;
-    CiMobotSim *sim = new CiMobotSim(2, 8, 1, ang);
+    CiMobotSim *sim = new CiMobotSim(2, 8, 1, 1, ang);
     sim->setTime(5);
+    sim->setTarget(0, -0.1, 0.0, 0.10);
 	sim->groundPlane(0, 0, 0, 1, 0);
     sim->iMobotAnchor(0, LE, 0, 0, 0.1, 0, 90, 0, 0, 0, 0, 0);
     sim->iMobotBuildAttached(1, 0, 6, 1, 0, 0, 0, 0);

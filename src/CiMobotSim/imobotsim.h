@@ -67,8 +67,8 @@ class CiMobotSim {
 		/*
 		 *	constructor and destructor
 		 */
-		CiMobotSim(int num_bot, int num_stp, int num_gnd, dReal *ang);
-		~CiMobotSim();
+		CiMobotSim(int num_bot, int num_stp, int num_gnd, int num_targets, dReal *ang);
+		~CiMobotSim(void);
 
 		/*
 		 *	functions to input simulation variables
@@ -76,7 +76,8 @@ class CiMobotSim {
 		void setAngVel(dReal *vel);
 		void setMu(dReal mu_g, dReal mu_b);
 		void setCOR(dReal cor_g, dReal cor_b);
-		void setTime(dReal time_total);
+        void setTime(dReal time_total);
+        void setTarget(int num, double x, double y, double z);
 
 		/*
 		 *	functions to build models of iMobot
@@ -163,6 +164,10 @@ class CiMobotSim {
 			dReal time;								// time to successful completion
 			int message;							// reply message code
 		} CiMobotSimReply;
+        typedef struct cimobotsimtarget_s {
+            dReal x, y, z;
+            dGeomID geomID;
+        } CiMobotSimTarget;
 
 		/*
 		 *	private variables to store general information about simulation
@@ -173,6 +178,7 @@ class CiMobotSim {
 		dJointGroupID group;						// group to store joints
 		CiMobotSimBot **bot;						// array of structs for each bot
 		CiMobotSimReply *m_reply;					// struct of data to return after finishing simulation
+		CiMobotSimTarget *target;                   // array of targets
 		dGeomID *m_ground;							// array of ground objects
 		dReal	m_t,								// current time of simulation
 				m_t_total,							// total time for simulation to run
@@ -188,6 +194,7 @@ class CiMobotSim {
 		int		m_num_bot,							// number of modules in simulation
 				m_num_gnd,							// number of pieces of ground
 				m_num_stp,							// total number of steps
+                m_num_targets,                      // total number of targets
 				m_cur_stp,							// current step number
 				m_t_tot_step,						// total number of time steps
 				m_t_cur_step;						// current time step
@@ -201,8 +208,9 @@ class CiMobotSim {
 		 *	simulation functions
 		 */
 		#ifdef ENABLE_DRAWSTUFF
-		void ds_drawBodies();						// draw all of the bodies
-		void ds_start();							// initialization of drawstuff scene
+		void ds_drawBodies(void);					// draw all of the bodies
+		void ds_start(void);						// initialization of drawstuff scene
+        void ds_drawTargets(void);                  // draw sphere at each target
 		void ds_drawPart(dGeomID part);				// draw each geometry of each body
 		void ds_command(int cmd);					// keyboard commands for ds
 		void ds_simulationLoop(int pause);			// callback function for simulation
