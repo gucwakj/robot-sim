@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.6)
-project(CiMobot_Sim)
+project(CiMobot_FD)
 
 # Set the version number
-set(CiMobot_Sim_VERSION_MAJOR 0)
-set(CiMobot_Sim_VERSION_MINOR 1)
+set(CiMobot_FD_VERSION_MAJOR 0)
+set(CiMobot_FD_VERSION_MINOR 1)
 
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)
@@ -33,7 +33,7 @@ else (ENABLE_DOUBLE)
 endif (ENABLE_DOUBLE)
 
 # Add the library
-add_library( imobotsim SHARED
-	imobotsim.cpp
+add_library( imobotfd SHARED
+	imobotfd.cpp
 	pid.cpp
 )

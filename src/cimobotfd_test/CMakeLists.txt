@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
-project(CiMobot_Sim_test)
+project(CiMobot_FD_test)
 
 # Set the version number
-set(CiMobot_Sim_test_VERSION_MAJOR 0)
-set(CiMobot_Sim_test_VERSION_MINOR 1)
+set(CiMobot_FD_test_VERSION_MAJOR 0)
+set(CiMobot_FD_test_VERSION_MINOR 1)
 
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)
@@ -18,9 +18,9 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Add CiMobotSim library subdirectory
-include_directories("../CiMobotSim")
-link_directories("../CiMobotSim")
-set (EXTRA_LIBS ${EXTRA_LIBS} imobotsim)
+include_directories("../CiMobotFD")
+link_directories("../CiMobotFD")
+set (EXTRA_LIBS ${EXTRA_LIBS} imobotfd)
 
 # Add ODE library
 include_directories("../opende/sys/include")
@@ -51,5 +51,5 @@ if (ENABLE_DRAWSTUFF)
 endif (ENABLE_DRAWSTUFF)
 
 # Add the executable
-add_executable(cimobotsim_test cimobotsim_test.cpp)
-target_link_libraries(cimobotsim_test ${EXTRA_LIBS})
+add_executable(cimobotfd_test cimobotfd_test.cpp)
+target_link_libraries(cimobotfd_test ${EXTRA_LIBS})

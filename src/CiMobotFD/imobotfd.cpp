@@ -1,7 +1,5 @@
 #include <cmath>
-//#include <iostream>
-//#include "config.h"
-#include "imobotsim.h"
+#include "imobotfd.h"
 //#include "pid.h"
 
 #ifdef dDOUBLE
@@ -15,12 +13,12 @@ using namespace std;
 
 #ifdef ENABLE_DRAWSTUFF
 /* If drawstuff is enabled, we need a global pointer to an instantiated
- * CiMobotSim class so that the callback functions can access the necessary
+ * CiMobotFD class so that the callback functions can access the necessary
  * data. */
-CiMobotSim *g_imobotsim;
+CiMobotFD *g_imobotsim;
 #endif
 
-CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, int num_targets, dReal *ang) {
+CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets, dReal *ang) {
 	// initialze loop counters
 	int i, j;
 
@@ -64,18 +62,18 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, int num_targets, d
 	this->m_flag_comp = new bool[num_bot];
 	this->m_flag_disable = new bool[num_bot];
 	this->m_ground = new dGeomID[num_gnd];
-    this->target = new CiMobotSimTarget[num_targets];
+    this->target = new CiMobotFDTarget[num_targets];
 
 	// initialze reply struct
-	this->m_reply = new CiMobotSimReply;
+	this->m_reply = new CiMobotFDReply;
 	this->m_reply->time = 0.0;
-	this->m_reply->message = SIM_ERROR_TIME;
+	this->m_reply->message = FD_ERROR_TIME;
 
 	// create and populate struct for each module in simulation
-	this->bot = new CiMobotSimBot * [num_bot];
+	this->bot = new CiMobotFDBot * [num_bot];
 	for ( i = 0; i < num_bot; i++ ) {
-		this->bot[i] = new CiMobotSimBot;
-		this->bot[i]->bodyPart = new CiMobotSimPart[NUM_PARTS];
+		this->bot[i] = new CiMobotFDBot;
+		this->bot[i]->bodyPart = new CiMobotFDPart[NUM_PARTS];
 		this->bot[i]->bodyPart[ENDCAP_L].geomID = new dGeomID[7];
 		this->bot[i]->bodyPart[BODY_L].geomID = new dGeomID[5];
 		this->bot[i]->bodyPart[CENTER].geomID = new dGeomID[3];
@@ -131,16 +129,16 @@ CiMobotSim::CiMobotSim(int num_bot, int num_stp, int num_gnd, int num_targets, d
 	#ifdef ENABLE_DRAWSTUFF
 	// drawstuff simulation parameters
 	m_fn.version = DS_VERSION;									// version of drawstuff
-	m_fn.start = (void (*)(void))&CiMobotSim::ds_start;			// initialization function
-	m_fn.step = (void (*)(int))&CiMobotSim::ds_simulationLoop;	// function for each step of simulation
-	m_fn.command = (void (*)(int))&CiMobotSim::ds_command;		// keyboard commands to control simulation
+	m_fn.start = (void (*)(void))&CiMobotFD::ds_start;			// initialization function
+	m_fn.step = (void (*)(int))&CiMobotFD::ds_simulationLoop;	// function for each step of simulation
+	m_fn.command = (void (*)(int))&CiMobotFD::ds_command;		// keyboard commands to control simulation
 	m_fn.stop = 0;												// stopping parameter
 	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;				// path to texture files
 	g_imobotsim = this;											// pointer to class
 	#endif
 }
 
-CiMobotSim::~CiMobotSim(void) {
+CiMobotFD::~CiMobotFD(void) {
 	// initialze loop counters
 	int i, j;
 
@@ -182,7 +180,7 @@ CiMobotSim::~CiMobotSim(void) {
 /**********************************************************
 	Public Member Functions
  **********************************************************/
-void CiMobotSim::setAngVel(dReal *vel) {
+void CiMobotFD::setAngVel(dReal *vel) {
 	// initialze loop counters
 	int i, j;
 
@@ -197,22 +195,22 @@ void CiMobotSim::setAngVel(dReal *vel) {
 	}
 }
 
-void CiMobotSim::setCOR(dReal cor_g, dReal cor_b) {
+void CiMobotFD::setCOR(dReal cor_g, dReal cor_b) {
 	this->m_cor_g = cor_g;
 	this->m_cor_b = cor_b;
 }
 
-void CiMobotSim::setMu(dReal mu_g, dReal mu_b) {
+void CiMobotFD::setMu(dReal mu_g, dReal mu_b) {
 	this->m_mu_g = mu_g;
 	this->m_mu_b = mu_b;
 }
 
-void CiMobotSim::setTime(dReal time_total) {
+void CiMobotFD::setTime(dReal time_total) {
 	this->m_t_total = time_total;
 	this->m_t_tot_step = (int)((this->m_t_total + this->m_t_step) / this->m_t_step);
 }
 
-void CiMobotSim::setTarget(int num, double x, double y, double z) {
+void CiMobotFD::setTarget(int num, double x, double y, double z) {
     this->target[num].x = x;
     this->target[num].y = y;
     this->target[num].z = z;
@@ -221,7 +219,7 @@ void CiMobotSim::setTarget(int num, double x, double y, double z) {
     dGeomDisable(this->target[num].geomID);
 }
 
-void CiMobotSim::runSimulation(int argc, char **argv) {
+void CiMobotFD::runSimulation(int argc, char **argv) {
 	#ifdef ENABLE_DRAWSTUFF
 	dsSimulationLoop(argc, argv, 352, 288, &m_fn);
 	#else
@@ -229,11 +227,11 @@ void CiMobotSim::runSimulation(int argc, char **argv) {
 	#endif
 }
 
-int CiMobotSim::getReplyMessage() {
+int CiMobotFD::getReplyMessage() {
 	return this->m_reply->message;
 }
 
-dReal CiMobotSim::getReplyTime() {
+dReal CiMobotFD::getReplyTime() {
 	return this->m_reply->time;
 }
 
@@ -246,7 +244,7 @@ dReal CiMobotSim::getReplyTime() {
  * will be NULL. Instead, if we are using Drawstuff, we sholud reference the
  * global variable, g_imobotsim */
 #define this g_imobotsim
-void CiMobotSim::ds_simulationLoop(int pause) {
+void CiMobotFD::ds_simulationLoop(int pause) {
 	bool loop = true;												// initialize
 	this->update_angles();											// update angles for current step
 	dSpaceCollide(this->space, this, &this->collision_wrapper);		// collide all geometries together
@@ -264,7 +262,7 @@ void CiMobotSim::ds_simulationLoop(int pause) {
 }
 #undef this
 #else
-void CiMobotSim::simulation_loop(void) {
+void CiMobotFD::simulation_loop(void) {
 	bool loop = true;												// initialize loop tracker
 	this->init_angles();											// initialize angles for simulation
 	while (this->m_t_cur_step <= this->m_t_tot_step && loop) {		// loop continuously until simulation is stopped
@@ -282,7 +280,7 @@ void CiMobotSim::simulation_loop(void) {
 #endif
 
 #ifndef ENABLE_DRAWSTUFF
-void CiMobotSim::init_angles() {
+void CiMobotFD::init_angles() {
 	// initialze loop counters
 	int i, j;
 
@@ -307,7 +305,7 @@ void CiMobotSim::init_angles() {
 }
 #endif
 
-void CiMobotSim::update_angles() {
+void CiMobotFD::update_angles() {
 	// initialze loop counters
 	int i, j;
 
@@ -349,16 +347,16 @@ void CiMobotSim::update_angles() {
 	}
 }
 
-void CiMobotSim::collision_wrapper(void *data, dGeomID o1, dGeomID o2) {
+void CiMobotFD::collision_wrapper(void *data, dGeomID o1, dGeomID o2) {
 	// cast void pointer to pointer to class
-	CiMobotSim *ptr;
-	ptr = (CiMobotSim *) data;
+	CiMobotFD *ptr;
+	ptr = (CiMobotFD *) data;
 	if (ptr)
 	    ptr->collision(o1, o2);
 
 }
 
-void CiMobotSim::collision(dGeomID o1, dGeomID o2) {
+void CiMobotFD::collision(dGeomID o1, dGeomID o2) {
 	// get bodies of geoms
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);
@@ -390,7 +388,7 @@ void CiMobotSim::collision(dGeomID o1, dGeomID o2) {
 	}
 }
 
-void CiMobotSim::set_flags() {
+void CiMobotFD::set_flags() {
 	// initialze loop counters
 	int c, i, j;
 
@@ -410,7 +408,7 @@ void CiMobotSim::set_flags() {
 	}
 }
 
-void CiMobotSim::increment_step() {
+void CiMobotFD::increment_step() {
 	// initialze loop counters
 	int i, j;
 
@@ -423,7 +421,7 @@ void CiMobotSim::increment_step() {
 		}
 		// otherwise successfully reached last step
 		else {
-			this->m_reply->message = SIM_SUCCESS;
+			this->m_reply->message = FD_SUCCESS;
 			this->m_reply->time = this->m_t;
 		}
 
@@ -436,7 +434,7 @@ void CiMobotSim::increment_step() {
 	}
 }
 
-void CiMobotSim::set_angles() {
+void CiMobotFD::set_angles() {
 	// initialze loop counters
 	int i, j, k;
 
@@ -466,7 +464,7 @@ void CiMobotSim::set_angles() {
 	}
 }
 
-void CiMobotSim::print_intermediate_data() {
+void CiMobotFD::print_intermediate_data() {
 	// initialze loop counters
 	int i;
 
@@ -527,27 +525,27 @@ void CiMobotSim::print_intermediate_data() {
     //cout << "<" << pos[0] << "\t" << pos[1] << "\t" << pos[2] << ">" << endl;
 }
 
-void CiMobotSim::end_simulation(bool &loop) {
+void CiMobotFD::end_simulation(bool &loop) {
 	// increment time step
 	this->m_t_cur_step++;
 
 	// have not completed steps && stalled
 	if ( !this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
-		this->m_reply->message = SIM_ERROR_STALL;
+		this->m_reply->message = FD_ERROR_STALL;
 		loop = false;
 	}
 	// success on all steps
 	else if ( !this->m_reply->message ) { loop = false; }
 }
 
-void CiMobotSim::increment_time() {
+void CiMobotFD::increment_time() {
 		this->m_t += this->m_t_step;
 }
 
 /**********************************************************
 	Ground Functions
  **********************************************************/
-void CiMobotSim::groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+void CiMobotFD::groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
 	// create rotation matrix
 	dMatrix3 R, R_x, R_y, R_z, R_xy;
 	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
@@ -562,7 +560,7 @@ void CiMobotSim::groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, d
 	dGeomSetRotation(this->m_ground[gndNum], R);
 }
 
-void CiMobotSim::groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+void CiMobotFD::groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
 	// create rotation matrix
 	dMatrix3 R, R_x, R_y, R_z, R_xy;
 	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
@@ -577,7 +575,7 @@ void CiMobotSim::groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py,
 	dGeomSetRotation(this->m_ground[gndNum], R);
 }
 
-void CiMobotSim::groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+void CiMobotFD::groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
 	// create rotation matrix
 	dMatrix3 R, R_x, R_y, R_z, R_xy;
 	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
@@ -592,11 +590,11 @@ void CiMobotSim::groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py
 	dGeomSetRotation(this->m_ground[gndNum], R);
 }
 
-void CiMobotSim::groundPlane(int gndNum, dReal a, dReal b, dReal c, dReal d) {
+void CiMobotFD::groundPlane(int gndNum, dReal a, dReal b, dReal c, dReal d) {
 	this->m_ground[gndNum] = dCreatePlane(this->space, a, b, c, d);
 }
 
-void CiMobotSim::groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz) {
+void CiMobotFD::groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz) {
 	this->m_ground[gndNum] = dCreateSphere(this->space, r);
 	dGeomSetPosition(this->m_ground[gndNum], px, py, pz);
 }
@@ -604,7 +602,7 @@ void CiMobotSim::groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz)
 /**********************************************************
 	Build Body Parts Functions
  **********************************************************/
-void CiMobotSim::imobot_build_lb(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild) {
+void CiMobotFD::imobot_build_lb(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild) {
 	// define parameters
 	dBodyID body;
 	dGeomID geom;
@@ -691,7 +689,7 @@ void CiMobotSim::imobot_build_lb(dSpaceID &space, CiMobotSimPart &part, dReal x,
 	#endif
 }
 
-void CiMobotSim::imobot_build_rb(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild) {
+void CiMobotFD::imobot_build_rb(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild) {
 	// define parameters
 	dBodyID body;
 	dGeomID geom;
@@ -778,7 +776,7 @@ void CiMobotSim::imobot_build_rb(dSpaceID &space, CiMobotSimPart &part, dReal x,
 	#endif
 }
 
-void CiMobotSim::imobot_build_ce(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
+void CiMobotFD::imobot_build_ce(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
 	// define parameters
 	dMass m;
 	dBodyID body;
@@ -842,7 +840,7 @@ void CiMobotSim::imobot_build_ce(dSpaceID &space, CiMobotSimPart &part, dReal x,
 	#endif
 }
 
-void CiMobotSim::imobot_build_en(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
+void CiMobotFD::imobot_build_en(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
 	// define parameters
 	dBodyID body;
 	dGeomID geom;
@@ -930,7 +928,7 @@ void CiMobotSim::imobot_build_en(dSpaceID &space, CiMobotSimPart &part, dReal x,
 	#endif
 }
 
-/*void CiMobotSim::imobot_build_effector(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
+/*void CiMobotFD::imobot_build_effector(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
     // define parameters
     dBodyID body;
     dGeomID geom;
@@ -1033,11 +1031,11 @@ void CiMobotSim::imobot_build_en(dSpaceID &space, CiMobotSimPart &part, dReal x,
 /**********************************************************
 	Build iMobot Functions
  **********************************************************/
-void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
+void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
 	this->iMobotBuild(botNum, x, y, z, 0, 0, 0);
 }
 
-void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	// adjust input height by body height
 	z += BODY_HEIGHT/2;
 	// convert input angles to radians
@@ -1172,7 +1170,7 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, d
 	for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->bot[botNum]->bodyPart[i].bodyID, 0.1, 0.1);
 }
 
-void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// adjust input height by body height
 	z += BODY_HEIGHT/2;
 	// convert input angles to radians
@@ -1345,21 +1343,21 @@ void CiMobotSim::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, d
 	for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->bot[botNum]->bodyPart[i].bodyID, 0.1, 0.1);
 }
 
-void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {
+void CiMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {
 	if ( fabs(this->bot[attNum]->cur_ang[LE]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[LB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RE]) < DBL_EPSILON )
 		imobot_build_attached_00(botNum, attNum, face1, face2);
 	else
 		imobot_build_attached_10(botNum, attNum, face1, face2);
 }
 
-void CiMobotSim::iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CiMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	if ( fabs(this->bot[attNum]->cur_ang[LE]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[LB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RE]) < DBL_EPSILON	)
 		imobot_build_attached_01(botNum, attNum, face1, face2, r_le, r_lb, r_rb, r_re);
 	else
 		imobot_build_attached_11(botNum, attNum, face1, face2, r_le, r_lb, r_rb, r_re);
 }
 
-void CiMobotSim::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 
     if ( end == ENDCAP_L )
         this->iMobotBuild(botNum, x + END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
@@ -1374,7 +1372,7 @@ void CiMobotSim::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dR
     dJointSetFixedParam(joint, dParamERP, 0.9);
 }
 
-void CiMobotSim::imobot_build_attached_00(int botNum, int attNum, int face1, int face2) {
+void CiMobotFD::imobot_build_attached_00(int botNum, int attNum, int face1, int face2) {
 	// initialize variables
 	int face1_part, face2_part;
 	dReal x, y, z, psi, theta, phi, m[3] = {0};
@@ -1885,7 +1883,7 @@ void CiMobotSim::imobot_build_attached_00(int botNum, int attNum, int face1, int
 	dJointSetFixedParam(joint, dParamERP, 0.9);
 }
 
-void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int face2) {
+void CiMobotFD::imobot_build_attached_10(int botNum, int attNum, int face1, int face2) {
 	// initialize variables
 	int face1_part, face2_part;
 	dReal x, y, z, psi, theta, phi, m[3];
@@ -2572,7 +2570,7 @@ void CiMobotSim::imobot_build_attached_10(int botNum, int attNum, int face1, int
 	dJointSetFixedParam(joint, dParamERP, 0.9);
 }
 
-void CiMobotSim::imobot_build_attached_01(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// initialize variables
 	int face1_part, face2_part;
 	dReal x, y, z, psi, theta, phi, r_e, r_b, m[3];
@@ -3285,7 +3283,7 @@ void CiMobotSim::imobot_build_attached_01(int botNum, int attNum, int face1, int
 	dJointSetFixedParam(joint, dParamERP, 0.9);
 }
 
-void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// initialize variables
 	int face1_part, face2_part;
 	dReal x, y, z, psi, theta, phi, r_e, r_b, m[3];
@@ -4193,14 +4191,14 @@ void CiMobotSim::imobot_build_attached_11(int botNum, int attNum, int face1, int
 /**********************************************************
 	Utility Functions
  **********************************************************/
-inline dReal CiMobotSim::D2R( dReal x ) {
+inline dReal CiMobotFD::D2R( dReal x ) {
 	return x*M_PI/180;
 }
-inline dReal CiMobotSim::R2D( dReal x ) {
+inline dReal CiMobotFD::R2D( dReal x ) {
 	return x/M_PI*180;
 }
 
-bool CiMobotSim::is_true(int length, bool *a) {
+bool CiMobotFD::is_true(int length, bool *a) {
 	for (int i = 0; i < length; i++) {
 		if ( a[i] == false )
 			return false;
@@ -4208,7 +4206,7 @@ bool CiMobotSim::is_true(int length, bool *a) {
 	return true;
 }
 
-dReal CiMobotSim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
+dReal CiMobotFD::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
 	dReal new_ang = 0;
 	int stp = (int)( fabs(past_ang) / M_PI );
 	dReal past_ang_mod = fabs(past_ang) - stp*M_PI;
@@ -4264,7 +4262,7 @@ dReal CiMobotSim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
 	return new_ang;
 }
 
-void CiMobotSim::rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
+void CiMobotFD::rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
 	dReal	sphi = sin(phi), 		cphi = cos(phi),
 			stheta = sin(theta),	ctheta = cos(theta),
 			spsi = sin(psi),		cpsi = cos(psi);
@@ -4287,7 +4285,7 @@ void CiMobotSim::rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal 
 /**********************************************************
 	Drawstuff Functions
  **********************************************************/
-void CiMobotSim::ds_drawBodies(void) {
+void CiMobotFD::ds_drawBodies(void) {
 	for (int i = 0; i < this->m_num_bot; i++) {
 		for (int j = 0; j < NUM_PARTS; j++) {
 			if (dBodyIsEnabled(this->bot[i]->bodyPart[j].bodyID))
@@ -4299,28 +4297,28 @@ void CiMobotSim::ds_drawBodies(void) {
 	}
 }
 
-void CiMobotSim::ds_drawTargets(void) {
+void CiMobotFD::ds_drawTargets(void) {
     for (int i = 0; i < this->m_num_targets; i++) {
         dsSetColor(1, 0, 0);
         ds_drawPart(this->target[i].geomID);
     }
 }
 
-void CiMobotSim::ds_start(void) {
+void CiMobotFD::ds_start(void) {
 	dAllocateODEDataForThread(dAllocateMaskAll);
 	static float xyz[3] = {-0.35, -0.254, 0.127};		// left side
 	static float hpr[3] = {45.0, -15.0, 0.0};			// defined in degrees
 	dsSetViewpoint(xyz, hpr);
 }
 
-void CiMobotSim::ds_command(int cmd) {
+void CiMobotFD::ds_command(int cmd) {
 	switch (cmd) {
 		case 'q': case 'Q':
 			dsStop();
 	}
 }
 
-void CiMobotSim::ds_drawPart(dGeomID geom) {
+void CiMobotFD::ds_drawPart(dGeomID geom) {
     if (!geom) return;                                  // make sure geom is passed
 
 	const dReal *position = dGeomGetPosition(geom);     // get position

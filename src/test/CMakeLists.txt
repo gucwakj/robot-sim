@@ -17,15 +17,15 @@ configure_file (
 # Add the binary directory to include file search path
 include_directories("${PROJECT_BINARY_DIR}")
 
+# Add CiMobotFD library subdirectory
+include_directories("../CiMobotFD")
+link_directories("../CiMobotFD")
+set (EXTRA_LIBS ${EXTRA_LIBS} imobotfd)
+
 # Add CiMobotIK library subdirectory
 include_directories("../CiMobotIK")
 link_directories("../CiMobotIK")
 set (EXTRA_LIBS ${EXTRA_LIBS} imobotik)
-
-# Add CiMobotSim library subdirectory
-include_directories("../CiMobotSim")
-link_directories("../CiMobotSim")
-set (EXTRA_LIBS ${EXTRA_LIBS} imobotsim)
 
 # Add ODE library
 include_directories("../opende/sys/include")

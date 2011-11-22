@@ -1,5 +1,5 @@
 #include <iostream>
-#include "imobotsim.h"
+#include "imobotfd.h"
 #include "imobotik.h"
 using namespace std;
 
@@ -32,30 +32,30 @@ int main(int argc, char *argv[]) {
             cout << ang[i*8 + j] << "\t";
         }
         cout << endl;
-    }*/
+    }
 
     cout << "Forward Dynamics...";
-    CiMobotSim *sim = new CiMobotSim(2, 8, 1, 1, ang);
-    sim->setTime(5);
-    sim->setTarget(0, 0.35, -0.10, 0.15+0.2);
-	sim->groundPlane(0, 0, 0, 1, 0);
-    sim->iMobotAnchor(0, ENDCAP_L, 0, 0, 0.2-BODY_HEIGHT/2, 0, 0, 0, 0, 0, 0, 0);
-    sim->iMobotBuildAttached(1, 0, 6, 1, 0, 0, 0, 0);
-    sim->runSimulation(argc, argv);
-    switch (sim->getReplyMessage()) {
-        case SIM_SUCCESS:
+    CiMobotFD *fd = new CiMobotFD(2, 8, 1, 1, ang);
+    fd->setTime(5);
+    fd->setTarget(0, 0.35, -0.10, 0.15+0.2);
+	fd->groundPlane(0, 0, 0, 1, 0);
+    fd->iMobotAnchor(0, ENDCAP_L, 0, 0, 0.2-BODY_HEIGHT/2, 0, 0, 0, 0, 0, 0, 0);
+    fd->iMobotBuildAttached(1, 0, 6, 1, 0, 0, 0, 0);
+    fd->runSimulation(argc, argv);
+    switch (fd->getReplyMessage()) {
+        case FD_SUCCESS:
             cout << " success!" << endl;
             break;
-        case SIM_ERROR_TIME:
+        case FD_ERROR_TIME:
             cout << " failed." << endl;
             break;
-        case IK_ERROR_STALL:
+        case FD_ERROR_STALL:
             cout << " stalled." << endl;
             break;
     }
 
     delete ang;
     delete ik;
-	delete sim;
+	delete fd;
 	return 0;
 }

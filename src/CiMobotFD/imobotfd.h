@@ -54,21 +54,21 @@ enum robot_build_e {		// build or rebuild a part
 	REBUILD
 };
 enum simulation_reply_message_e {
-	SIM_SUCCESS,
-	SIM_ERROR_TIME,
-	SIM_ERROR_STALL
+	FD_SUCCESS,
+	FD_ERROR_TIME,
+	FD_ERROR_STALL
 };
 
 /*
  *	simulation class
  */
-class CiMobotSim {
+class CiMobotFD {
 	public:
 		/*
 		 *	constructor and destructor
 		 */
-		CiMobotSim(int num_bot, int num_stp, int num_gnd, int num_targets, dReal *ang);
-		~CiMobotSim(void);
+		CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets, dReal *ang);
+		~CiMobotFD(void);
 
 		/*
 		 *	functions to input simulation variables
@@ -138,16 +138,16 @@ class CiMobotSim {
 		/*
 		 *	structs to store simulation data
 		 */
-		typedef struct cimobotsimpart_s {			// information about each body part
+		typedef struct cimobotfdpart_s {			// information about each body part
 			dBodyID bodyID;							// id of body part
 			dGeomID *geomID;						// ids of geoms which make up each body part
 			#ifdef ENABLE_DRAWSTUFF
 			float color[3];							// rgb color for each body part
 			int num_geomID;							// total number of geomID for part
 			#endif
-		} CiMobotSimPart;
-		typedef struct cimobotsimbot_s {			// information about each iMobot module
-			CiMobotSimPart *bodyPart;				// body parts
+		} CiMobotFDPart;
+		typedef struct cimobotfdbot_s {			// information about each iMobot module
+			CiMobotFDPart *bodyPart;				// body parts
 			PID *pid;								// PID control for each joint
 			dJointID	*joints,					// joints between body parts
 						*motors;					// motors to drive body parts
@@ -159,15 +159,15 @@ class CiMobotSim {
 					*pos,							// initial position of robot
 					*rot,							// initial rotation of robot by three Euler angles
 					*ori;							// initial orientation of body parts
-		} CiMobotSimBot;
-		typedef struct cimobotsimreply_s {			// information on success to reply
+		} CiMobotFDBot;
+		typedef struct cimobotfdreply_s {			// information on success to reply
 			dReal time;								// time to successful completion
 			int message;							// reply message code
-		} CiMobotSimReply;
-        typedef struct cimobotsimtarget_s {
+		} CiMobotFDReply;
+        typedef struct cimobotfdtarget_s {
             dReal x, y, z;
             dGeomID geomID;
-        } CiMobotSimTarget;
+        } CiMobotFDTarget;
 
 		/*
 		 *	private variables to store general information about simulation
@@ -176,9 +176,9 @@ class CiMobotSim {
 		dSpaceID space;								// space for robots in which to live
 		dSpaceID *space_bot;						// space for each robot
 		dJointGroupID group;						// group to store joints
-		CiMobotSimBot **bot;						// array of structs for each bot
-		CiMobotSimReply *m_reply;					// struct of data to return after finishing simulation
-		CiMobotSimTarget *target;                   // array of targets
+		CiMobotFDBot **bot;						    // array of structs for each bot
+		CiMobotFDReply *m_reply;					// struct of data to return after finishing simulation
+		CiMobotFDTarget *target;                    // array of targets
 		dGeomID *m_ground;							// array of ground objects
 		dReal	m_t,								// current time of simulation
 				m_t_total,							// total time for simulation to run
@@ -231,10 +231,10 @@ class CiMobotSim {
 		/*
 		 *	functions to build body parts of iMobot
 		 */
-		void imobot_build_lb(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild);
-		void imobot_build_rb(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild);
-		void imobot_build_ce(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
-		void imobot_build_en(dSpaceID &space, CiMobotSimPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
+		void imobot_build_lb(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild);
+		void imobot_build_rb(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild);
+		void imobot_build_ce(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
+		void imobot_build_en(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
 
 		/*
 		 *	functions to build attached imobots
