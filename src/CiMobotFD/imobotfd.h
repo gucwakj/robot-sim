@@ -1,14 +1,14 @@
 #ifndef CIMOBOTSIM_H_
 #define CIMOBOTSIM_H_
 
-#include <iostream>
 #include "config.h"
-#include "pid.h"
+#include <iostream>
 #include <ode/ode.h>
 #ifdef ENABLE_DRAWSTUFF
 #include <drawstuff/drawstuff.h>
 #define DRAWSTUFF_TEXTURE_PATH "../opende/drawstuff/textures"
 #endif
+#include "pid.h"
 
 /*
  *	iMobot dimension macros

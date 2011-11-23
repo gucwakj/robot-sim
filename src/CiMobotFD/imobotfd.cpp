@@ -1,6 +1,5 @@
 #include <cmath>
 #include "imobotfd.h"
-//#include "pid.h"
 
 #ifdef dDOUBLE
 #define dsDrawSphere dsDrawSphereD
@@ -15,7 +14,7 @@ using namespace std;
 /* If drawstuff is enabled, we need a global pointer to an instantiated
  * CiMobotFD class so that the callback functions can access the necessary
  * data. */
-CiMobotFD *g_imobotsim;
+CiMobotFD *g_imobotfd;
 #endif
 
 CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets, dReal *ang) {
@@ -134,7 +133,7 @@ CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets, dRe
 	m_fn.command = (void (*)(int))&CiMobotFD::ds_command;		// keyboard commands to control simulation
 	m_fn.stop = 0;												// stopping parameter
 	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;				// path to texture files
-	g_imobotsim = this;											// pointer to class
+	g_imobotfd = this;											// pointer to class
 	#endif
 }
 
@@ -242,8 +241,8 @@ dReal CiMobotFD::getReplyTime() {
 /* If drawstuff is enabled, we cannot use any reference to 'this', because
  * simulationLoop is called as a callback function and any reference to 'this'
  * will be NULL. Instead, if we are using Drawstuff, we sholud reference the
- * global variable, g_imobotsim */
-#define this g_imobotsim
+ * global variable, g_imobotfd */
+#define this g_imobotfd
 void CiMobotFD::ds_simulationLoop(int pause) {
 	bool loop = true;												// initialize
 	this->update_angles();											// update angles for current step
