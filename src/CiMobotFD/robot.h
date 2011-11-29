@@ -58,6 +58,8 @@ class Robot {
 
         dReal getJointForce(int body);
 
+        void resetPID(int joint = NUM_DOF);
+
         typedef struct cimobotfdpart_s {            // information about each body part
             dBodyID bodyID;                         // id of body part
             dGeomID *geomID;                        // ids of geoms which make up each body part
@@ -69,7 +71,6 @@ class Robot {
 
         CiMobotFDPart *bodyPart;                // body parts
         //Body *bodyPart;                         // body parts
-        PID *pid;                               // PID control for each joint
         dJointID    *joints,                    // joints between body parts
                     *motors;                    // motors to drive body parts
         double  *cur_ang,                       // current angle of each body part
@@ -81,6 +82,7 @@ class Robot {
                 *rot,                           // initial rotation of robot by three Euler angles
                 *ori;                           // initial orientation of body parts
     private:
+        PID *pid;                               // PID control for each joint
         double  m_motor_res,                    // motor angle resolution
                 *m_joint_vel_max,               // maximum joint velocity possible
                 *m_joint_vel_min,               // minimum joint velocity possible

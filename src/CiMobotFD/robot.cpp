@@ -54,6 +54,9 @@ Robot::Robot(int num_stp) {
     this->bodyPart[CENTER].num_geomID = 3;
     this->bodyPart[BODY_R].num_geomID = 5;
     this->bodyPart[ENDCAP_R].num_geomID = 7;
+    for ( int j = 0; j < NUM_DOF; j++ ) {
+        this->jnt_vel[j] = this->vel[j];
+    }
     #endif
 }
 
@@ -114,6 +117,17 @@ void Robot::setMotorSpeed(int j) {
 
 dReal Robot::getJointForce(int body) {
     return this->m_joint_frc_max[body];
+}
+
+void Robot::resetPID(int joint) {
+    if ( joint == 4 ) {
+        for ( int i = 0; i < NUM_DOF; i++ ) {
+            this->pid[i].restart();
+        }
+    }
+    else {
+        this->pid[joint].restart();
+    }
 }
 
 inline dReal Robot::D2R( dReal x ) {

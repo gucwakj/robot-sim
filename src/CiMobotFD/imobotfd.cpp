@@ -341,7 +341,7 @@ void CiMobotFD::increment_step() {
 		for ( i = 0; i < this->m_num_bot; i++ ) {
 			this->m_flag_comp[i] = false;
 			this->m_flag_disable[i] = false;
-			for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->pid[j].restart();
+            this->bot[i]->resetPID();
 		}
 	}
 }
@@ -1064,7 +1064,7 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dJointSetAMotorAxis(motor, 0, 1, R[1], R[5], R[9]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-// 	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->getJointForce(RB));
+ 	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->getJointForce(RB));
 	this->bot[botNum]->motors[2] = motor;
 
 	// motor for right body to endcap
