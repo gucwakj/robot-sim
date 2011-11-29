@@ -5,11 +5,8 @@
 #include <ode/ode.h>
 //#include "body.h"
 #include "pid.h"
-//#include "imobotfd.h"   // move enum to here instead
 
-/*
- *  iMobot dimension macros
- */
+// iMobot dimension macros
 #ifndef CIMOBOTIK_H_
 #define CENTER_LENGTH       0.07303
 #define CENTER_WIDTH        0.02540

@@ -34,24 +34,6 @@ CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets, dRe
 	this->m_cor_b = 0.3;
 	this->m_t_total = 1.0;
 
-	// iMobot physical parameters
-	this->m_motor_res = D2R(0.5);
-	this->m_joint_vel_max = new dReal[NUM_DOF];
-	this->m_joint_vel_max[LE] = 6.70;
-	this->m_joint_vel_max[LB] = 2.61;
-	this->m_joint_vel_max[RB] = 2.61;
-	this->m_joint_vel_max[RE] = 6.70;
-	this->m_joint_vel_min = new dReal[NUM_DOF];
-	this->m_joint_vel_min[LE] = 3.22;
-	this->m_joint_vel_min[LB] = 1.25;
-	this->m_joint_vel_min[RB] = 1.25;
-	this->m_joint_vel_min[RE] = 3.22;
-	this->m_joint_frc_max = new dReal[NUM_DOF];
-	this->m_joint_frc_max[LE] = 0.260;
-	this->m_joint_frc_max[LB] = 1.059;
-	this->m_joint_frc_max[RB] = 1.059;
-	this->m_joint_frc_max[RE] = 0.260;
-
 	// variables to keep track of progress of simulation
 	this->m_cur_stp = 0;
 	this->m_t = 0.0;
@@ -68,50 +50,13 @@ CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets, dRe
 	this->m_reply->time = 0.0;
 	this->m_reply->message = FD_ERROR_TIME;
 
-	/*// create and populate struct for each module in simulation
-	this->bot = new CiMobotFDBot * [num_bot];
-	for ( i = 0; i < num_bot; i++ ) {
-		this->bot[i] = new CiMobotFDBot;
-		this->bot[i]->bodyPart = new CiMobotFDPart[NUM_PARTS];
-		this->bot[i]->bodyPart[ENDCAP_L].geomID = new dGeomID[7];
-		this->bot[i]->bodyPart[BODY_L].geomID = new dGeomID[5];
-		this->bot[i]->bodyPart[CENTER].geomID = new dGeomID[3];
-		this->bot[i]->bodyPart[BODY_R].geomID = new dGeomID[5];
-		this->bot[i]->bodyPart[ENDCAP_R].geomID = new dGeomID[7];
-		this->bot[i]->joints = new dJointID[6];
-		this->bot[i]->motors = new dJointID[4];
-		this->bot[i]->pid = new PID[NUM_DOF];
-		this->bot[i]->ang = new dReal[NUM_DOF*num_stp];
-		this->bot[i]->vel = new dReal[NUM_DOF*num_stp];
-		this->bot[i]->cur_ang = new dReal[NUM_DOF];
-		this->bot[i]->fut_ang = new dReal[NUM_DOF];
-		this->bot[i]->jnt_vel = new dReal[NUM_DOF];
-		this->bot[i]->pos = new dReal[3];
-		this->bot[i]->rot = new dReal[3];
-		this->bot[i]->ori = new dReal[4];
-		for ( j = 0; j < NUM_DOF*num_stp; j++ ) {
-			this->bot[i]->ang[j] = D2R(ang[4*i + NUM_DOF*num_bot*(j/NUM_DOF) + j%NUM_DOF]);
-			this->bot[i]->vel[j] = this->m_joint_vel_max[j%NUM_DOF];
-		}
-		for ( j = 0; j < NUM_DOF; j++ ) { this->bot[i]->pid[j].init(100, 1, 10, 0.1, this->m_t_step); }
-		#ifdef ENABLE_DRAWSTUFF
-		this->bot[i]->bodyPart[ENDCAP_L].num_geomID = 7;
-		this->bot[i]->bodyPart[BODY_L].num_geomID = 5;
-		this->bot[i]->bodyPart[CENTER].num_geomID = 3;
-		this->bot[i]->bodyPart[BODY_R].num_geomID = 5;
-		this->bot[i]->bodyPart[ENDCAP_R].num_geomID = 7;
-		for ( j = 0; j < NUM_DOF; j++ ) {
-			this->bot[i]->fut_ang[j] = this->bot[i]->ang[j];
-			this->bot[i]->jnt_vel[j] = this->bot[i]->vel[j];
-		}
-		#endif
-    }*/
+	// create instance for each module in simulation
     this->bot = new Robot * [num_bot];
     for ( i = 0; i < num_bot; i++ ) {
         this->bot[i] = new Robot(num_stp);
         for ( j = 0; j < NUM_DOF*num_stp; j++ ) {
             this->bot[i]->ang[j] = D2R(ang[4*i + NUM_DOF*num_bot*(j/NUM_DOF) + j%NUM_DOF]);
-            this->bot[i]->vel[j] = this->m_joint_vel_max[j%NUM_DOF];
+            this->bot[i]->vel[j] = this->bot[i]->m_joint_vel_max[j%NUM_DOF];
         }
     }
 
@@ -146,39 +91,18 @@ CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets, dRe
 }
 
 CiMobotFD::~CiMobotFD(void) {
-	// initialze loop counters
-	int i, j;
-
 	// free all arrays created dynamically in constructor
-	for ( i = this->m_num_bot - 1; i >= 0; i-- ) {
-		/*for ( j = 0; j < NUM_PARTS; j++ ) delete [] this->bot[i]->bodyPart[j].geomID;
-		delete [] this->bot[i]->bodyPart;
-		delete [] this->bot[i]->pid;
-		delete [] this->bot[i]->joints;
-		delete [] this->bot[i]->motors;
-		delete [] this->bot[i]->fut_ang;
-		delete [] this->bot[i]->cur_ang;
-		delete [] this->bot[i]->jnt_vel;
-		delete [] this->bot[i]->ang;
-		delete [] this->bot[i]->vel;
-		delete [] this->bot[i]->pos;
-		delete [] this->bot[i]->rot;
-		delete [] this->bot[i]->ori;*/
-		delete this->bot[i];
-	}
+	for ( int i = this->m_num_bot - 1; i >= 0; i-- ) { delete this->bot[i]; }
 	delete [] this->bot;
 	delete [] this->m_flag_comp;
 	delete [] this->m_flag_disable;
 	delete [] this->m_ground;
-	delete [] this->m_joint_vel_max;
-	delete [] this->m_joint_vel_min;
-	delete [] this->m_joint_frc_max;
     delete [] this->target;
 	delete this->m_reply;
 
 	// destroy all ODE objects
 	dJointGroupDestroy(group);
-	for ( i = 0; i < this->m_num_bot; i++ ) dSpaceDestroy(this->space_bot[i]);
+	for ( int i = 0; i < this->m_num_bot; i++ ) { dSpaceDestroy(this->space_bot[i]); }
 	dSpaceDestroy(this->space);
 	dWorldDestroy(this->world);
 	dCloseODE();
@@ -193,11 +117,11 @@ void CiMobotFD::setAngVel(dReal *vel) {
 
 	// create array of delta values between min and max joint velocities
 	dReal del[NUM_DOF];
-	for ( j = 0; j < NUM_DOF; j++ ) del[j] = this->m_joint_vel_max[j] - this->m_joint_vel_min[j];
+	for ( j = 0; j < NUM_DOF; j++ ) del[j] = this->bot[i]->m_joint_vel_max[j] - this->bot[i]->m_joint_vel_min[j];
 
 	// loop through each robot and assign new array of vel values
 	for ( i = 0; i < this->m_num_bot; i++ ) {
-		for ( j = 0; j < NUM_DOF*this->m_num_stp; j++ ) this->bot[i]->vel[j] = this->m_joint_vel_min[j%NUM_DOF] + vel[4*i + NUM_DOF*this->m_num_bot*(j/NUM_DOF) + j%NUM_DOF]*del[j%NUM_DOF];
+		for ( j = 0; j < NUM_DOF*this->m_num_stp; j++ ) this->bot[i]->vel[j] = this->bot[i]->m_joint_vel_min[j%NUM_DOF] + vel[4*i + NUM_DOF*this->m_num_bot*(j/NUM_DOF) + j%NUM_DOF]*del[j%NUM_DOF];
 		for ( j = 0; j < NUM_DOF; j++ ) this->bot[i]->jnt_vel[j] = this->bot[i]->vel[j];
 	}
 }
@@ -343,9 +267,9 @@ void CiMobotFD::update_angles() {
 				else
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, 0);*/
 				// without PID
-				if (this->bot[i]->cur_ang[j] < this->bot[i]->fut_ang[j] - this->m_motor_res)
+                if (this->bot[i]->cur_ang[j] < this->bot[i]->fut_ang[j] - this->bot[i]->m_motor_res)
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, this->bot[i]->jnt_vel[j]);
-				else if (this->bot[i]->cur_ang[j] > this->bot[i]->fut_ang[j] + this->m_motor_res)
+                else if (this->bot[i]->cur_ang[j] > this->bot[i]->fut_ang[j] + this->bot[i]->m_motor_res)
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, -this->bot[i]->jnt_vel[j]);
 				else
 					dJointSetAMotorParam(this->bot[i]->motors[j], dParamVel, 0);
@@ -609,7 +533,6 @@ void CiMobotFD::groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz) 
 /**********************************************************
 	Build Body Parts Functions
  **********************************************************/
-//void CiMobotFD::imobot_build_lb(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild) {
 void CiMobotFD::imobot_build_lb(dSpaceID &space, Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild) {
 	// define parameters
 	dBodyID body;
@@ -697,7 +620,6 @@ void CiMobotFD::imobot_build_lb(dSpaceID &space, Robot *bot, dReal x, dReal y, d
 	#endif
 }
 
-//void CiMobotFD::imobot_build_rb(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild) {
 void CiMobotFD::imobot_build_rb(dSpaceID &space, Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild) {
 	// define parameters
 	dBodyID body;
@@ -785,7 +707,6 @@ void CiMobotFD::imobot_build_rb(dSpaceID &space, Robot *bot, dReal x, dReal y, d
 	#endif
 }
 
-//void CiMobotFD::imobot_build_ce(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
 void CiMobotFD::imobot_build_ce(dSpaceID &space, Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
 	// define parameters
 	dMass m;
@@ -850,7 +771,6 @@ void CiMobotFD::imobot_build_ce(dSpaceID &space, Robot *bot, dReal x, dReal y, d
 	#endif
 }
 
-//void CiMobotFD::imobot_build_en(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
 void CiMobotFD::imobot_build_en(dSpaceID &space, Robot *bot, int end, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
 	// define parameters
 	dBodyID body;
@@ -1065,11 +985,6 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dReal re[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2, 0, 0, CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH, 0, 0};
 
 	// build pieces of module
-	/*imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
-	imobot_build_lb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
-	imobot_build_ce(this->space_bot[botNum], this->bot[botNum]->bodyPart[CENTER], x, y, z, R, BUILD);
-	imobot_build_rb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
-    imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, BUILD);*/
     imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
     imobot_build_lb(this->space_bot[botNum], this->bot[botNum], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
     imobot_build_ce(this->space_bot[botNum], this->bot[botNum], x, y, z, R, BUILD);
@@ -1146,7 +1061,7 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dJointSetAMotorAxis(motor, 0, 1, R[0], R[4], R[8]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[LE]);
+	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->m_joint_frc_max[LE]);
 	this->bot[botNum]->motors[0] = motor;
 
 	// motor for center to left body
@@ -1157,7 +1072,7 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dJointSetAMotorAxis(motor, 0, 1, -R[1], -R[5], -R[9]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[LB]);
+	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->m_joint_frc_max[LB]);
 	this->bot[botNum]->motors[1] = motor;
 
 	// motor for center to right body
@@ -1168,7 +1083,7 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dJointSetAMotorAxis(motor, 0, 1, R[1], R[5], R[9]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[RB]);
+// 	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->m_joint_frc_max[RB]);
 	this->bot[botNum]->motors[2] = motor;
 
 	// motor for right body to endcap
@@ -1179,7 +1094,7 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dJointSetAMotorAxis(motor, 0, 1, -R[0], -R[4], -R[8]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[RE]);
+	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->m_joint_frc_max[RE]);
 	this->bot[botNum]->motors[3] = motor;
 
 	// set damping on all bodies to 0.1
@@ -1216,11 +1131,6 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dReal rb[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2, 0, 0, CENTER_LENGTH/2, CENTER_WIDTH/2, 0};
 	dReal re[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2, 0, 0, CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH, 0, 0};
 
-	/*imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
-	imobot_build_lb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
-	imobot_build_ce(this->space_bot[botNum], this->bot[botNum]->bodyPart[CENTER], x, y, z, R, BUILD);
-	imobot_build_rb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
-    imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, BUILD);*/
     imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
     imobot_build_lb(this->space_bot[botNum], this->bot[botNum], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
     imobot_build_ce(this->space_bot[botNum], this->bot[botNum], x, y, z, R, BUILD);
@@ -1308,10 +1218,6 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dReal re_r[3] = {CENTER_LENGTH/2 + (BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_rb), 0, (BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_rb)};
 
 	// re-build pieces of module
-	/*imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_L], R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le, REBUILD);
-	imobot_build_lb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_L], R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb, REBUILD);
-	imobot_build_rb(this->space_bot[botNum], this->bot[botNum]->bodyPart[BODY_R], R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb, REBUILD);
-	imobot_build_en(this->space_bot[botNum], this->bot[botNum]->bodyPart[ENDCAP_R], R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re, REBUILD);*/
     imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le, REBUILD);
     imobot_build_lb(this->space_bot[botNum], this->bot[botNum], R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb, REBUILD);
     imobot_build_rb(this->space_bot[botNum], this->bot[botNum], R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb, REBUILD);
@@ -1328,7 +1234,7 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dJointSetAMotorAxis(motor, 0, 1, R_lb[0], R_lb[4], R_lb[8]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[LE]);
+	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->m_joint_frc_max[LE]);
 	this->bot[botNum]->motors[0] = motor;
 
 	// motor for center to left body
@@ -1339,7 +1245,7 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dJointSetAMotorAxis(motor, 0, 1, -R[1], -R[5], -R[9]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[LB]);
+	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->m_joint_frc_max[LB]);
 	this->bot[botNum]->motors[1] = motor;
 
 	// motor for center to right body
@@ -1350,7 +1256,7 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dJointSetAMotorAxis(motor, 0, 1, R[1], R[5], R[9]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[RB]);
+	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->m_joint_frc_max[RB]);
 	this->bot[botNum]->motors[2] = motor;
 
 	// motor for right body to endcap
@@ -1361,7 +1267,7 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dJointSetAMotorAxis(motor, 0, 1, -R_rb[0], -R_rb[4], -R_rb[8]);
 	dJointSetAMotorAngle(motor, 0, 0);
 	dJointSetAMotorParam(motor, dParamCFM, 0);
-	dJointSetAMotorParam(motor, dParamFMax, this->m_joint_frc_max[RE]);
+	dJointSetAMotorParam(motor, dParamFMax, this->bot[botNum]->m_joint_frc_max[RE]);
 	this->bot[botNum]->motors[3] = motor;
 
 	// set damping on all bodies to 0.1
