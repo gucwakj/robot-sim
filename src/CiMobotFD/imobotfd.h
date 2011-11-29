@@ -25,13 +25,14 @@ class CiMobotFD {
 		/*
 		 *	constructor and destructor
 		 */
-		CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets, dReal *ang);
+		CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets);
 		~CiMobotFD(void);
 
 		/*
 		 *	functions to input simulation variables
 		 */
-		void setAngVel(dReal *vel);
+        void setAngles(dReal *ang);
+		void setAngularVelocity(dReal *vel);
 		void setMu(dReal mu_g, dReal mu_b);
 		void setCOR(dReal cor_g, dReal cor_b);
         void setTime(dReal time_total);
@@ -121,10 +122,6 @@ class CiMobotFD {
 				m_mu_b,								// coefficient of friction of body_body
 				m_cor_g,							// coefficient of restitution of body_ground
 				m_cor_b;							// coefficient of restitution of body_body
-				//m_motor_res,						// motor angle resolution
-				//*m_joint_vel_max,					// maximum joint velocity possible
-				//*m_joint_vel_min,					// minimum joint velocity possible
-				//*m_joint_frc_max;					// maximum force that can be applied to each body part
 		int		m_num_bot,							// number of modules in simulation
 				m_num_gnd,							// number of pieces of ground
 				m_num_stp,							// total number of steps

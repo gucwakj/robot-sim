@@ -52,6 +52,12 @@ class Robot {
         Robot(int num_stp);
         ~Robot(void);
 
+        void setAngles(dReal *ang);
+        void setAngularVelocity(dReal *vel);
+        void setMotorSpeed(int j);
+
+        dReal getJointForce(int body);
+
         typedef struct cimobotfdpart_s {            // information about each body part
             dBodyID bodyID;                         // id of body part
             dGeomID *geomID;                        // ids of geoms which make up each body part
@@ -74,14 +80,15 @@ class Robot {
                 *pos,                           // initial position of robot
                 *rot,                           // initial rotation of robot by three Euler angles
                 *ori;                           // initial orientation of body parts
-
+    private:
         double  m_motor_res,                    // motor angle resolution
                 *m_joint_vel_max,               // maximum joint velocity possible
                 *m_joint_vel_min,               // minimum joint velocity possible
                 *m_joint_frc_max;               // maximum force that can be applied to each body part
-    private:
-        inline dReal D2R(dReal x);          // convert degrees to radians
-        inline dReal R2D(dReal x);          // convert radians to degrees
+        int m_num_stp;
+
+        inline dReal D2R(dReal x);              // convert degrees to radians
+        inline dReal R2D(dReal x);              // convert radians to degrees
 };
 
 #endif  /* ROBOT_H_ */
