@@ -47,19 +47,17 @@ CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets) {
 	this->m_reply->time = 0.0;
 	this->m_reply->message = FD_ERROR_TIME;
 
+    // create ODE simulation space
+    dInitODE2(0);                                               // initialized ode library
+    this->world = dWorldCreate();                               // create world for simulation
+    this->space = dHashSpaceCreate(0);                          // create space for robots
+    this->group = dJointGroupCreate(0);
+
 	// create instance for each module in simulation
     this->bot = new Robot * [num_bot];
     for ( int i = 0; i < num_bot; i++ ) {
-        this->bot[i] = new Robot(num_stp);
+        this->bot[i] = new Robot(num_stp, this->space);
     }
-
-	// create ODE simulation space
-	dInitODE2(0);												// initialized ode library
-	this->world = dWorldCreate();								// create world for simulation
-	this->space = dHashSpaceCreate(0);							// create space for robots
-	this->space_bot = new dSpaceID[num_bot];					// create array of spaces for each robot
-	for ( int i = 0; i < num_bot; i++ ) this->space_bot[i] = dHashSpaceCreate(this->space);		// create each robot's space
-	this->group = dJointGroupCreate(0);
 
 	// simulation parameters
 	dWorldSetAutoDisableFlag(this->world, 1);					// auto-disable bodies that are not moving
@@ -95,7 +93,7 @@ CiMobotFD::~CiMobotFD(void) {
 
 	// destroy all ODE objects
 	dJointGroupDestroy(group);
-	for ( int i = 0; i < this->m_num_bot; i++ ) { dSpaceDestroy(this->space_bot[i]); }
+	//for ( int i = 0; i < this->m_num_bot; i++ ) { dSpaceDestroy(this->space_bot[i]); }
 	dSpaceDestroy(this->space);
 	dWorldDestroy(this->world);
 	dCloseODE();
@@ -513,8 +511,9 @@ void CiMobotFD::groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz) 
 
 /**********************************************************
 	Build Body Parts Functions
- **********************************************************/
-void CiMobotFD::imobot_build_lb(dSpaceID &space, Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild) {
+	**********************************************************/
+//void CiMobotFD::imobot_build_lb(dSpaceID &space, Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild) {
+void CiMobotFD::imobot_build_lb(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild) {
 	// define parameters
 	dBodyID body;
 	dGeomID geom;
@@ -557,32 +556,32 @@ void CiMobotFD::imobot_build_lb(dSpaceID &space, Robot *bot, dReal x, dReal y, d
 	dMultiply0(R2, R1, R3, 3, 3, 3);
 
 	// set geometry 1 - face
-	geom = dCreateBox( space, BODY_END_DEPTH, BODY_WIDTH, BODY_HEIGHT );
+	geom = dCreateBox( bot->getSpaceID(), BODY_END_DEPTH, BODY_WIDTH, BODY_HEIGHT );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], -m.c[1], -m.c[2] );
     bot->bodyPart[BODY_L].geomID[0] = geom;
 
 	// set geometry 2 - side square
-	geom = dCreateBox( space, BODY_LENGTH, BODY_INNER_WIDTH, BODY_HEIGHT );
+    geom = dCreateBox( bot->getSpaceID(), BODY_LENGTH, BODY_INNER_WIDTH, BODY_HEIGHT );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, BODY_LENGTH/2 + BODY_END_DEPTH/2 - m.c[0], -BODY_RADIUS + BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
     bot->bodyPart[BODY_L].geomID[1] = geom;
 
 	// set geometry 3 - side square
-	geom = dCreateBox( space, BODY_LENGTH, BODY_INNER_WIDTH, BODY_HEIGHT );
+    geom = dCreateBox( bot->getSpaceID(), BODY_LENGTH, BODY_INNER_WIDTH, BODY_HEIGHT );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, BODY_LENGTH/2 + BODY_END_DEPTH/2 - m.c[0], BODY_RADIUS - BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
     bot->bodyPart[BODY_L].geomID[2] = geom;
 
 	// set geometry 4 - side curve
-	geom = dCreateCylinder( space, BODY_RADIUS, BODY_INNER_WIDTH );
+    geom = dCreateCylinder( bot->getSpaceID(), BODY_RADIUS, BODY_INNER_WIDTH );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, BODY_LENGTH + BODY_END_DEPTH/2 - m.c[0], -BODY_RADIUS + BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
 	dGeomSetOffsetRotation( geom, R2);
     bot->bodyPart[BODY_L].geomID[3] = geom;
 
 	// set geometry 5 - side curve
-	geom = dCreateCylinder( space, BODY_RADIUS, BODY_INNER_WIDTH );
+    geom = dCreateCylinder( bot->getSpaceID(), BODY_RADIUS, BODY_INNER_WIDTH );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, BODY_LENGTH + BODY_END_DEPTH/2 - m.c[0], BODY_RADIUS - BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
 	dGeomSetOffsetRotation( geom, R2);
@@ -601,7 +600,8 @@ void CiMobotFD::imobot_build_lb(dSpaceID &space, Robot *bot, dReal x, dReal y, d
 	#endif
 }
 
-void CiMobotFD::imobot_build_rb(dSpaceID &space, Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild) {
+//void CiMobotFD::imobot_build_rb(dSpaceID &space, Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild) {
+void CiMobotFD::imobot_build_rb(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild) {
 	// define parameters
 	dBodyID body;
 	dGeomID geom;
@@ -644,32 +644,32 @@ void CiMobotFD::imobot_build_rb(dSpaceID &space, Robot *bot, dReal x, dReal y, d
 	dMultiply0(R2, R1, R3, 3, 3, 3);
 
 	// set geometry 1 - face
-	geom = dCreateBox( space, BODY_END_DEPTH, BODY_WIDTH, BODY_HEIGHT );
+    geom = dCreateBox( bot->getSpaceID(), BODY_END_DEPTH, BODY_WIDTH, BODY_HEIGHT );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], -m.c[1], -m.c[2] );
 	bot->bodyPart[BODY_R].geomID[0] = geom;
 
 	// set geometry 2 - side square
-	geom = dCreateBox( space, BODY_LENGTH, BODY_INNER_WIDTH, BODY_HEIGHT );
+    geom = dCreateBox( bot->getSpaceID(), BODY_LENGTH, BODY_INNER_WIDTH, BODY_HEIGHT );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -BODY_LENGTH/2 - BODY_END_DEPTH/2 - m.c[0], -BODY_RADIUS + BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
 	bot->bodyPart[BODY_R].geomID[1] = geom;
 
 	// set geometry 3 - side square
-	geom = dCreateBox( space, BODY_LENGTH, BODY_INNER_WIDTH, BODY_HEIGHT );
+    geom = dCreateBox( bot->getSpaceID(), BODY_LENGTH, BODY_INNER_WIDTH, BODY_HEIGHT );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -BODY_LENGTH/2 - BODY_END_DEPTH/2 - m.c[0], BODY_RADIUS - BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
 	bot->bodyPart[BODY_R].geomID[2] = geom;
 
 	// set geometry 4 - side curve
-	geom = dCreateCylinder( space, BODY_RADIUS, BODY_INNER_WIDTH );
+    geom = dCreateCylinder( bot->getSpaceID(), BODY_RADIUS, BODY_INNER_WIDTH );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -BODY_LENGTH - BODY_END_DEPTH/2 - m.c[0], -BODY_RADIUS + BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
 	dGeomSetOffsetRotation( geom, R2);
 	bot->bodyPart[BODY_R].geomID[3] = geom;
 
 	// set geometry 5 - side curve
-	geom = dCreateCylinder( space, BODY_RADIUS, BODY_INNER_WIDTH );
+    geom = dCreateCylinder( bot->getSpaceID(), BODY_RADIUS, BODY_INNER_WIDTH );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -BODY_LENGTH - BODY_END_DEPTH/2 - m.c[0], BODY_RADIUS - BODY_INNER_WIDTH/2 - m.c[1], -m.c[2] );
 	dGeomSetOffsetRotation( geom, R2);
@@ -688,7 +688,8 @@ void CiMobotFD::imobot_build_rb(dSpaceID &space, Robot *bot, dReal x, dReal y, d
 	#endif
 }
 
-void CiMobotFD::imobot_build_ce(dSpaceID &space, Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
+//void CiMobotFD::imobot_build_ce(dSpaceID &space, Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
+void CiMobotFD::imobot_build_ce(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
 	// define parameters
 	dMass m;
 	dBodyID body;
@@ -720,20 +721,20 @@ void CiMobotFD::imobot_build_ce(dSpaceID &space, Robot *bot, dReal x, dReal y, d
 	dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
 
 	// set geometry 1 - center rectangle
-	geom = dCreateBox( space, CENTER_LENGTH, CENTER_WIDTH, CENTER_HEIGHT );
+    geom = dCreateBox( bot->getSpaceID(), CENTER_LENGTH, CENTER_WIDTH, CENTER_HEIGHT );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], -m.c[1], -m.c[2] );
 	bot->bodyPart[CENTER].geomID[0] = geom;
 
 	// set geometry 2 - side curve
-	geom = dCreateCylinder( space, CENTER_RADIUS, CENTER_WIDTH );
+    geom = dCreateCylinder( bot->getSpaceID(), CENTER_RADIUS, CENTER_WIDTH );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -CENTER_LENGTH/2 - m.c[0], -m.c[1], -m.c[2] );
 	dGeomSetOffsetRotation( geom, R1);
 	bot->bodyPart[CENTER].geomID[1] = geom;
 
 	// set geometry 3 - side curve
-	geom = dCreateCylinder( space, CENTER_RADIUS, CENTER_WIDTH );
+    geom = dCreateCylinder( bot->getSpaceID(), CENTER_RADIUS, CENTER_WIDTH );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, CENTER_LENGTH/2 - m.c[0], -m.c[1], -m.c[2] );
 	dGeomSetOffsetRotation( geom, R1);
@@ -752,7 +753,8 @@ void CiMobotFD::imobot_build_ce(dSpaceID &space, Robot *bot, dReal x, dReal y, d
 	#endif
 }
 
-void CiMobotFD::imobot_build_en(dSpaceID &space, Robot *bot, int end, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
+//void CiMobotFD::imobot_build_en(dSpaceID &space, Robot *bot, int end, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
+void CiMobotFD::imobot_build_en(Robot *bot, int end, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
 	// define parameters
 	dBodyID body;
 	dGeomID geom;
@@ -782,46 +784,46 @@ void CiMobotFD::imobot_build_en(dSpaceID &space, Robot *bot, int end, dReal x, d
 	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 
 	// set geometry 1 - center box
-	geom = dCreateBox( space, END_DEPTH, END_WIDTH - 2*END_RADIUS, END_HEIGHT );
+	geom = dCreateBox( bot->getSpaceID(), END_DEPTH, END_WIDTH - 2*END_RADIUS, END_HEIGHT );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], -m.c[1], -m.c[2] );
 	bot->bodyPart[end].geomID[0] = geom;
 
 	// set geometry 2 - left box
-	geom = dCreateBox( space, END_DEPTH, END_RADIUS, END_HEIGHT - 2*END_RADIUS );
+	geom = dCreateBox( bot->getSpaceID(), END_DEPTH, END_RADIUS, END_HEIGHT - 2*END_RADIUS );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], -END_WIDTH/2 + END_RADIUS/2 - m.c[1], -m.c[2] );
 	bot->bodyPart[end].geomID[1] = geom;
 
 	// set geometry 3 - right box
-	geom = dCreateBox( space, END_DEPTH, END_RADIUS, END_HEIGHT - 2*END_RADIUS );
+	geom = dCreateBox( bot->getSpaceID(), END_DEPTH, END_RADIUS, END_HEIGHT - 2*END_RADIUS );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], END_WIDTH/2 - END_RADIUS/2 - m.c[1], -m.c[2] );
 	bot->bodyPart[end].geomID[2] = geom;
 
 	// set geometry 4 - fillet upper left
-	geom = dCreateCylinder( space, END_RADIUS, END_DEPTH );
+	geom = dCreateCylinder( bot->getSpaceID(), END_RADIUS, END_DEPTH );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], -END_WIDTH/2 + END_RADIUS - m.c[1], END_WIDTH/2 - END_RADIUS - m.c[2] );
 	dGeomSetOffsetRotation( geom, R1);
 	bot->bodyPart[end].geomID[3] = geom;
 
 	// set geometry 5 - fillet upper right
-	geom = dCreateCylinder( space, END_RADIUS, END_DEPTH );
+	geom = dCreateCylinder( bot->getSpaceID(), END_RADIUS, END_DEPTH );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], END_WIDTH/2 - END_RADIUS - m.c[1], END_WIDTH/2 - END_RADIUS - m.c[2] );
 	dGeomSetOffsetRotation( geom, R1);
 	bot->bodyPart[end].geomID[4] = geom;
 
 	// set geometry 6 - fillet lower right
-	geom = dCreateCylinder( space, END_RADIUS, END_DEPTH );
+	geom = dCreateCylinder( bot->getSpaceID(), END_RADIUS, END_DEPTH );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], END_WIDTH/2 - END_RADIUS - m.c[1], -END_WIDTH/2 + END_RADIUS - m.c[2] );
 	dGeomSetOffsetRotation( geom, R1);
 	bot->bodyPart[end].geomID[5] = geom;
 
 	// set geometry 7 - fillet lower left
-	geom = dCreateCylinder( space, END_RADIUS, END_DEPTH );
+	geom = dCreateCylinder( bot->getSpaceID(), END_RADIUS, END_DEPTH );
 	dGeomSetBody( geom, body);
 	dGeomSetOffsetPosition( geom, -m.c[0], -END_WIDTH/2 + END_RADIUS - m.c[1], -END_WIDTH/2 + END_RADIUS - m.c[2] );
 	dGeomSetOffsetRotation( geom, R1);
@@ -966,11 +968,16 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dReal re[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2, 0, 0, CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH, 0, 0};
 
 	// build pieces of module
-    imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
+    /*imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
     imobot_build_lb(this->space_bot[botNum], this->bot[botNum], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
     imobot_build_ce(this->space_bot[botNum], this->bot[botNum], x, y, z, R, BUILD);
     imobot_build_rb(this->space_bot[botNum], this->bot[botNum], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
-    imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, BUILD);
+    imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, BUILD);*/
+    imobot_build_en(this->bot[botNum], ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
+    imobot_build_lb(this->bot[botNum], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
+    imobot_build_ce(this->bot[botNum], x, y, z, R, BUILD);
+    imobot_build_rb(this->bot[botNum], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
+    imobot_build_en(this->bot[botNum], ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, BUILD);
 
 	// store position and rotation of center of module
 	this->bot[botNum]->pos[0] = x;
@@ -1112,11 +1119,16 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dReal rb[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2, 0, 0, CENTER_LENGTH/2, CENTER_WIDTH/2, 0};
 	dReal re[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2, 0, 0, CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH, 0, 0};
 
-    imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
+    /*imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
     imobot_build_lb(this->space_bot[botNum], this->bot[botNum], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
     imobot_build_ce(this->space_bot[botNum], this->bot[botNum], x, y, z, R, BUILD);
     imobot_build_rb(this->space_bot[botNum], this->bot[botNum], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
-    imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, BUILD);
+    imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, BUILD);*/
+    imobot_build_en(this->bot[botNum], ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R, BUILD);
+    imobot_build_lb(this->bot[botNum], R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0, BUILD);
+    imobot_build_ce(this->bot[botNum], x, y, z, R, BUILD);
+    imobot_build_rb(this->bot[botNum], R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0, BUILD);
+    imobot_build_en(this->bot[botNum], ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R, BUILD);
 
 	// store position and rotation of center of module
 	this->bot[botNum]->pos[0] = x;
@@ -1199,10 +1211,14 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 	dReal re_r[3] = {CENTER_LENGTH/2 + (BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_rb), 0, (BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_rb)};
 
 	// re-build pieces of module
-    imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le, REBUILD);
+    /*imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le, REBUILD);
     imobot_build_lb(this->space_bot[botNum], this->bot[botNum], R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb, REBUILD);
     imobot_build_rb(this->space_bot[botNum], this->bot[botNum], R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb, REBUILD);
-    imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_R, R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re, REBUILD);
+    imobot_build_en(this->space_bot[botNum], this->bot[botNum], ENDCAP_R, R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re, REBUILD);*/
+    imobot_build_en(this->bot[botNum], ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le, REBUILD);
+    imobot_build_lb(this->bot[botNum], R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb, REBUILD);
+    imobot_build_rb(this->bot[botNum], R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb, REBUILD);
+    imobot_build_en(this->bot[botNum], ENDCAP_R, R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re, REBUILD);
 
 	// create motor
 	dJointID motor;

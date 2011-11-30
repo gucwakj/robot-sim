@@ -1,10 +1,11 @@
 #include "robot.h"
 using namespace std;
 
-Robot::Robot(int num_stp) {
+Robot::Robot(int num_stp, dSpaceID &space) {
     int j;
 
     this->m_num_stp = num_stp;
+    this->space = dHashSpaceCreate(space);
 
     this->m_motor_res = D2R(0.5);
     this->m_joint_vel_max = new dReal[NUM_DOF];
@@ -74,6 +75,7 @@ Robot::~Robot(void) {
     delete [] this->pos;
     delete [] this->rot;
     delete [] this->ori;
+    dSpaceDestroy(this->space);
 }
 
 void Robot::setAngles(dReal *ang) {
@@ -117,6 +119,10 @@ void Robot::setMotorSpeed(int j) {
 
 dReal Robot::getJointForce(int body) {
     return this->m_joint_frc_max[body];
+}
+
+dSpaceID Robot::getSpaceID(void) {
+    return this->space;
 }
 
 void Robot::resetPID(int joint) {

@@ -108,9 +108,7 @@ class CiMobotFD {
 		 */
 		dWorldID world;								// world in which simulation occurs
 		dSpaceID space;								// space for robots in which to live
-		dSpaceID *space_bot;						// space for each robot
 		dJointGroupID group;						// group to store joints
-		//CiMobotFDBot **bot;						    // array of structs for each bot
 		Robot **bot;
 		CiMobotFDReply *m_reply;					// struct of data to return after finishing simulation
 		CiMobotFDTarget *target;                    // array of targets
@@ -162,10 +160,10 @@ class CiMobotFD {
 		/*
 		 *	functions to build body parts of iMobot
 		 */
-        void imobot_build_lb(dSpaceID &space, Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild);
-        void imobot_build_rb(dSpaceID &space, Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild);
-        void imobot_build_ce(dSpaceID &space, Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
-        void imobot_build_en(dSpaceID &space, Robot *bot, int end, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
+        void imobot_build_lb(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild);
+        void imobot_build_rb(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild);
+        void imobot_build_ce(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
+        void imobot_build_en(Robot *bot, int end, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
 
 		/*
 		 *	functions to build attached imobots
