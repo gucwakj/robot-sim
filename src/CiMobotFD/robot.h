@@ -49,7 +49,7 @@ enum robot_build_e {        // build or rebuild a part
 
 class Robot {
     public:
-        Robot(int num_stp, dSpaceID &space);
+        Robot(dWorldID &world, dSpaceID &space, int num_stp);
         ~Robot(void);
 
         void setAngles(dReal *ang);
@@ -83,7 +83,8 @@ class Robot {
                 *rot,                           // initial rotation of robot by three Euler angles
                 *ori;                           // initial orientation of body parts
     private:
-        dSpaceID space;                         // space for robot to live
+        dWorldID world;                         // world for all robots
+        dSpaceID space;                         // space for this robot
         PID *pid;                               // PID control for each joint
         double  m_motor_res,                    // motor angle resolution
                 *m_joint_vel_max,               // maximum joint velocity possible

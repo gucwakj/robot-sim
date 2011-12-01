@@ -1,11 +1,12 @@
 #include "robot.h"
 using namespace std;
 
-Robot::Robot(int num_stp, dSpaceID &space) {
+Robot::Robot(dWorldID &world, dSpaceID &space, int num_stp) {
     int j;
 
-    this->m_num_stp = num_stp;
+    this->world = world;
     this->space = dHashSpaceCreate(space);
+    this->m_num_stp = num_stp;
 
     this->m_motor_res = D2R(0.5);
     this->m_joint_vel_max = new dReal[NUM_DOF];

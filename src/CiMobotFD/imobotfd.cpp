@@ -56,7 +56,7 @@ CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets) {
 	// create instance for each module in simulation
     this->bot = new Robot * [num_bot];
     for ( int i = 0; i < num_bot; i++ ) {
-        this->bot[i] = new Robot(num_stp, this->space);
+        this->bot[i] = new Robot(this->world, this->space, num_stp);
     }
 
 	// simulation parameters
