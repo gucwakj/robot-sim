@@ -6,25 +6,6 @@
 #include "body.h"
 #include "pid.h"
 
-// iMobot dimension macros
-#ifndef CIMOBOTIK_H_
-#define CENTER_LENGTH       0.07303
-#define CENTER_WIDTH        0.02540
-#define CENTER_HEIGHT       0.06909
-#define CENTER_RADIUS       0.03554
-#define BODY_LENGTH         0.03785
-#define BODY_WIDTH          0.07239
-#define BODY_HEIGHT         0.07239
-#define BODY_RADIUS         0.03620
-#define BODY_INNER_WIDTH    0.02287
-#define BODY_END_DEPTH      0.01994
-#define BODY_MOUNT_CENTER   0.03792
-#define END_WIDTH           0.07239
-#define END_HEIGHT          0.07239
-#define END_DEPTH           0.00476
-#define END_RADIUS          0.01778
-#endif
-
 enum robot_bodies_e {       // each body which has a degree of freedom
     LE,
     LB,
@@ -40,11 +21,6 @@ enum robot_pieces_e {       // each body part which is built
     ENDCAP_L,
     ENDCAP_R,
     NUM_PARTS
-};
-
-enum robot_build_e {        // build or rebuild a part
-    BUILD,
-    REBUILD
 };
 
 class Robot {
@@ -63,7 +39,7 @@ class Robot {
         void enable(void);
         bool isDisabled(void);
 
-        Body *bodyPart;                         // body parts
+        Body **body;                            // body parts
         dJointID    *joints,                    // joints between body parts
                     *motors;                    // motors to drive body parts
         double  *cur_ang,                       // current angle of each body part

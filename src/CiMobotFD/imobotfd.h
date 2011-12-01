@@ -160,10 +160,10 @@ class CiMobotFD {
 		/*
 		 *	functions to build body parts of iMobot
 		 */
-        void imobot_build_lb(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild);
+        /*void imobot_build_lb(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild);
         void imobot_build_rb(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild);
         void imobot_build_ce(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
-        void imobot_build_en(Robot *bot, int end, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
+        void imobot_build_en(Robot *bot, int end, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);*/
 
 		/*
 		 *	functions to build attached imobots

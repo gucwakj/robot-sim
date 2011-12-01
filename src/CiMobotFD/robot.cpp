@@ -25,13 +25,12 @@ Robot::Robot(dWorldID &world, dSpaceID &space, int num_stp) {
     this->m_joint_frc_max[RB] = 1.059;
     this->m_joint_frc_max[RE] = 0.260;
 
-    //this->bodyPart = new CiMobotFDPart[NUM_PARTS];
-    this->bodyPart = new Body[NUM_PARTS];
-    this->bodyPart[ENDCAP_L].geomID = new dGeomID[7];
-    this->bodyPart[BODY_L].geomID = new dGeomID[5];
-    this->bodyPart[CENTER].geomID = new dGeomID[3];
-    this->bodyPart[BODY_R].geomID = new dGeomID[5];
-    this->bodyPart[ENDCAP_R].geomID = new dGeomID[7];
+    this->body = new Body * [NUM_PARTS];
+    this->body[ENDCAP_L] = new Body(this->world, this->space, 7);
+    this->body[BODY_L] = new Body(this->world, this->space, 5);
+    this->body[CENTER] = new Body(this->world, this->space, 3);
+    this->body[BODY_R] = new Body(this->world, this->space, 5);
+    this->body[ENDCAP_R] = new Body(this->world, this->space, 7);
     this->joints = new dJointID[6];
     this->motors = new dJointID[4];
     this->pid = new PID[NUM_DOF];
@@ -52,20 +51,14 @@ Robot::Robot(dWorldID &world, dSpaceID &space, int num_stp) {
     }
 
     #ifdef ENABLE_DRAWSTUFF
-    this->bodyPart[ENDCAP_L].num_geomID = 7;
-    this->bodyPart[BODY_L].num_geomID = 5;
-    this->bodyPart[CENTER].num_geomID = 3;
-    this->bodyPart[BODY_R].num_geomID = 5;
-    this->bodyPart[ENDCAP_R].num_geomID = 7;
-    for ( int j = 0; j < NUM_DOF; j++ ) {
-        this->jnt_vel[j] = this->vel[j];
-    }
+    for ( int j = 0; j < NUM_DOF; j++ ) { this->jnt_vel[j] = this->vel[j]; }
     #endif
 }
 
 Robot::~Robot(void) {
-    for ( int j = 0; j < NUM_PARTS; j++ ) delete [] this->bodyPart[j].geomID;
-    delete [] this->bodyPart;
+    for ( int j = 0; j < NUM_PARTS; j++ ) delete [] this->body[j]->geomID;
+    for ( int i = NUM_PARTS - 1; i >= 0; i-- ) { delete this->body[i]; }
+    delete [] this->body;
     delete [] this->pid;
     delete [] this->joints;
     delete [] this->motors;
@@ -128,7 +121,7 @@ dSpaceID Robot::getSpaceID(void) {
 }
 
 void Robot::enable(void) {
-    dBodyEnable(this->bodyPart[CENTER].bodyID);
+    dBodyEnable(this->body[CENTER]->bodyID);
 }
 
 void Robot::resetPID(int joint) {
@@ -143,7 +136,7 @@ void Robot::resetPID(int joint) {
 }
 
 bool Robot::isDisabled(void) {
-    return !(bool)dBodyIsEnabled(this->bodyPart[CENTER].bodyID);
+    return !(bool)dBodyIsEnabled(this->body[CENTER]->bodyID);
 }
 
 inline dReal Robot::D2R( dReal x ) {
