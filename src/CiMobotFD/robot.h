@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <ode/ode.h>
-//#include "body.h"
+#include "body.h"
 #include "pid.h"
 
 // iMobot dimension macros
@@ -60,18 +60,10 @@ class Robot {
         dSpaceID getSpaceID(void);
 
         void resetPID(int joint = NUM_DOF);
+        void enable(void);
+        bool isDisabled(void);
 
-        typedef struct cimobotfdpart_s {            // information about each body part
-            dBodyID bodyID;                         // id of body part
-            dGeomID *geomID;                        // ids of geoms which make up each body part
-            #ifdef ENABLE_DRAWSTUFF
-            float color[3];                         // rgb color for each body part
-            int num_geomID;                         // total number of geomID for part
-            #endif
-        } CiMobotFDPart;
-
-        CiMobotFDPart *bodyPart;                // body parts
-        //Body *bodyPart;                         // body parts
+        Body *bodyPart;                         // body parts
         dJointID    *joints,                    // joints between body parts
                     *motors;                    // motors to drive body parts
         double  *cur_ang,                       // current angle of each body part
@@ -86,6 +78,7 @@ class Robot {
         dWorldID world;                         // world for all robots
         dSpaceID space;                         // space for this robot
         PID *pid;                               // PID control for each joint
+
         double  m_motor_res,                    // motor angle resolution
                 *m_joint_vel_max,               // maximum joint velocity possible
                 *m_joint_vel_min,               // minimum joint velocity possible

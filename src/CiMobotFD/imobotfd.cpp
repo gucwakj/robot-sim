@@ -314,7 +314,8 @@ void CiMobotFD::set_flags() {
 		if ( c == 4 ) this->m_flag_comp[i] = true;
 
 		// module is disabled
-		this->m_flag_disable[i] = !(bool)dBodyIsEnabled(this->bot[i]->bodyPart[CENTER].bodyID);
+        //this->m_flag_disable[i] = !(bool)dBodyIsEnabled(this->bot[i]->bodyPart[CENTER].bodyID);
+        this->m_flag_disable[i] = this->bot[i]->isDisabled();
 	}
 }
 
@@ -370,7 +371,8 @@ void CiMobotFD::set_angles() {
 			}
 		}
 		// re-enable robots for next step
-		dBodyEnable(this->bot[i]->bodyPart[CENTER].bodyID);
+		//dBodyEnable(this->bot[i]->bodyPart[CENTER].bodyID);
+        this->bot[i]->enable();
 	}
 }
 

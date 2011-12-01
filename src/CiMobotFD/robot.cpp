@@ -25,7 +25,8 @@ Robot::Robot(dWorldID &world, dSpaceID &space, int num_stp) {
     this->m_joint_frc_max[RB] = 1.059;
     this->m_joint_frc_max[RE] = 0.260;
 
-    this->bodyPart = new CiMobotFDPart[NUM_PARTS];
+    //this->bodyPart = new CiMobotFDPart[NUM_PARTS];
+    this->bodyPart = new Body[NUM_PARTS];
     this->bodyPart[ENDCAP_L].geomID = new dGeomID[7];
     this->bodyPart[BODY_L].geomID = new dGeomID[5];
     this->bodyPart[CENTER].geomID = new dGeomID[3];
@@ -126,6 +127,10 @@ dSpaceID Robot::getSpaceID(void) {
     return this->space;
 }
 
+void Robot::enable(void) {
+    dBodyEnable(this->bodyPart[CENTER].bodyID);
+}
+
 void Robot::resetPID(int joint) {
     if ( joint == 4 ) {
         for ( int i = 0; i < NUM_DOF; i++ ) {
@@ -135,6 +140,10 @@ void Robot::resetPID(int joint) {
     else {
         this->pid[joint].restart();
     }
+}
+
+bool Robot::isDisabled(void) {
+    return !(bool)dBodyIsEnabled(this->bodyPart[CENTER].bodyID);
 }
 
 inline dReal Robot::D2R( dReal x ) {

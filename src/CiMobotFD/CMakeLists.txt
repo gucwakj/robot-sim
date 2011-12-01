@@ -36,5 +36,6 @@ endif (ENABLE_DOUBLE)
 add_library( imobotfd SHARED
 	imobotfd.cpp
 	pid.cpp
+	body.cpp
 	robot.cpp
 )
