@@ -1,14 +1,7 @@
 #ifndef CIMOBOTSIM_H_
 #define CIMOBOTSIM_H_
 
-#include "config.h"
 #include <iostream>
-#include <ode/ode.h>
-#ifdef ENABLE_DRAWSTUFF
-#include <drawstuff/drawstuff.h>
-#define DRAWSTUFF_TEXTURE_PATH "../opende/drawstuff/textures"
-#endif
-#include "pid.h"
 #include "robot.h"
 
 enum simulation_reply_message_e {
@@ -41,36 +34,11 @@ class CiMobotFD {
 		/*
 		 *	functions to build models of iMobot
 		 */
-		/* default build function without rotation support
-			botNum:				number of module to build
-			x, y, z:			global position of center of module (in meters)	*/
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z);
-		/* rotate module about z-axis
-			botNum:				number of module to build
-			x, y, z:			global position of center of module (in meters)
-			theta, psi, phi:	Euler Angles in aircraft notation (in degrees)	*/
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
-		/* build a new module with predefined angles for body parts
-			botNum:				number of module to build
-			x, y, z:			global position of center of module (in meters)
-			psi, theta, phi:	Euler Angles in aircraft notation (in degrees)
-			le, re:				rotation of endcaps about respective bodies (in degrees)
-			lb, rb:				rotation of bodies about center (in degrees)	*/
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		/* build a new module attached to a preexisting module
-			botNum:				number of new module to build
-			attNum:				number of module which to attach
-			face1:				face of attNum module
-			face2:				face of new module to attach	*/
-		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2);
-		/* build a new module attached to a preexisting module
-			botNum:				number of new module to build
-			attNum:				number of module which to attach
-			face1:				face of attNum module
-			face2:				face of new module to attach
-			le, re:				rotation of endcaps about respective bodies (in degrees)
-			lb, rb:				rotation of bodies about center (in degrees)	*/
-		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		//void iMobotBuildAttached(int botNum, int attNum, int face1, int face2);
+		//void iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
         void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		/*
@@ -140,7 +108,6 @@ class CiMobotFD {
 		void ds_drawBodies(void);					// draw all of the bodies
 		void ds_start(void);						// initialization of drawstuff scene
         void ds_drawTargets(void);                  // draw sphere at each target
-		void ds_drawPart(dGeomID part);				// draw each geometry of each body
 		void ds_command(int cmd);					// keyboard commands for ds
 		void ds_simulationLoop(int pause);			// callback function for simulation
 		#else
@@ -158,20 +125,12 @@ class CiMobotFD {
 		static void collision_wrapper(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 
 		/*
-		 *	functions to build body parts of iMobot
-		 */
-        /*void imobot_build_lb(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild);
-        void imobot_build_rb(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild);
-        void imobot_build_ce(Robot *bot, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
-        void imobot_build_en(Robot *bot, int end, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);*/
-
-		/*
 		 *	functions to build attached imobots
 		 */
-		void imobot_build_attached_00(int botNum, int attNum, int face1, int face2);
-		void imobot_build_attached_10(int botNum, int attNum, int face1, int face2);
-		void imobot_build_attached_01(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		void imobot_build_attached_11(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		//void imobot_build_attached_00(int botNum, int attNum, int face1, int face2);
+		//void imobot_build_attached_10(int botNum, int attNum, int face1, int face2);
+		//void imobot_build_attached_01(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		//void imobot_build_attached_11(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		/*
 		 *	utility functions

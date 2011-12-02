@@ -1,11 +1,19 @@
 #ifndef BODY_H_
 #define BODY_H_
 
-#include <iostream>
-#include <ode/ode.h>
 #include "config.h"
+#include <ode/ode.h>
+#ifdef ENABLE_DRAWSTUFF
+    #include <drawstuff/drawstuff.h>
+    #define DRAWSTUFF_TEXTURE_PATH "../opende/drawstuff/textures"
+    #ifdef dDOUBLE
+        #define dsDrawSphere dsDrawSphereD
+        #define dsDrawBox dsDrawBoxD
+        #define dsDrawCylinder dsDrawCylinderD
+        #define dsDrawCapsule dsDrawCapsuleD
+    #endif
+#endif
 
-// iMobot dimension macros
 #ifndef CIMOBOTIK_H_
 #define CENTER_LENGTH       0.07303
 #define CENTER_WIDTH        0.02540
@@ -24,11 +32,6 @@
 #define END_RADIUS          0.01778
 #endif
 
-enum rebuild_part_e {        // build or rebuild a part
-    BUILD,
-    REBUILD
-};
-
 class Body {
     public:
         Body(dWorldID &world, dSpaceID &space, int num_geomID);
@@ -36,15 +39,20 @@ class Body {
 
         dBodyID getBodyID(void);
 
-        void buildLeftBody(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild);
-        void buildRightBody(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild);
-        void buildCenter(dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
-        void buildEndcap(dReal x, dReal y, dReal z, dMatrix3 R, int rebuild);
+        void buildLeftBody(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb);
+        void buildRightBody(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb);
+        void buildCenter(dReal x, dReal y, dReal z, dMatrix3 R);
+        void buildEndcap(dReal x, dReal y, dReal z, dMatrix3 R);
 
+        #ifdef ENABLE_DRAWSTUFF
+        void drawBody(void);
+        #endif
+    private:
         dWorldID world;                         // world for all robots
         dSpaceID space;                         // space for this robot
         dBodyID bodyID;                         // id of body part
         dGeomID *geomID;                        // ids of geoms which make up each body part
+
         #ifdef ENABLE_DRAWSTUFF
         float color[3];                         // rgb color for each body part
         int num_geomID;                         // total number of geomID for part

@@ -1,7 +1,6 @@
 #ifndef ROBOT_H_
 #define ROBOT_H_
 
-#include <iostream>
 #include <ode/ode.h>
 #include "body.h"
 #include "pid.h"
@@ -32,34 +31,46 @@ class Robot {
         void setAngularVelocity(dReal *vel);
         void setMotorSpeed(int j);
 
-        dReal getJointForce(int body);
-        dSpaceID getSpaceID(void);
+        dBodyID getBodyID(int body);
+        dJointID getJointID(int joint);
+        dJointID getMotorID(int motor);
 
-        void resetPID(int joint = NUM_DOF);
-        void enable(void);
+        void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
+        void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+        //void buildAttached(int attNum, int face1, int face2);
+        //void buildAttached(int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+
         bool isDisabled(void);
+        void enable(void);
+        void resetPID(int joint = NUM_DOF);
 
-        Body **body;                            // body parts
-        dJointID    *joints,                    // joints between body parts
-                    *motors;                    // motors to drive body parts
+        #ifdef ENABLE_DRAWSTUFF
+        void drawRobot(void);
+        #endif
+
         double  *cur_ang,                       // current angle of each body part
                 *fut_ang,                       // future angle being driven toward
                 *jnt_vel,                       // desired joint velocity
                 *ang,                           // array of angles
                 *vel,                           // array of velocities
-                *pos,                           // initial position of robot
-                *rot,                           // initial rotation of robot by three Euler angles
                 *ori;                           // initial orientation of body parts
     private:
         dWorldID world;                         // world for all robots
         dSpaceID space;                         // space for this robot
+        dJointID    *joints,                    // joints between body parts
+                    *motors;                    // motors to drive body parts
+        Body **body;                            // body parts
         PID *pid;                               // PID control for each joint
 
-        double  m_motor_res,                    // motor angle resolution
+        double  *pos,                           // initial position of robot
+                *rot,                           // initial rotation of robot by three Euler angles
+                m_motor_res,                    // motor angle resolution
                 *m_joint_vel_max,               // maximum joint velocity possible
                 *m_joint_vel_min,               // minimum joint velocity possible
                 *m_joint_frc_max;               // maximum force that can be applied to each body part
         int m_num_stp;
+
+        void rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi);
 
         inline dReal D2R(dReal x);              // convert degrees to radians
         inline dReal R2D(dReal x);              // convert radians to degrees

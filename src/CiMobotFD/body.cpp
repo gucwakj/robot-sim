@@ -1,9 +1,9 @@
 #include "body.h"
-using namespace std;
 
 Body::Body(dWorldID &world, dSpaceID &space, int num_geomID) {
     this->world = world;
     this->space = space;
+    this->bodyID = dBodyCreate(this->world);
     this->geomID = new dGeomID[num_geomID];
     #ifdef ENABLE_DRAWSTUFF
     this->num_geomID = num_geomID;
@@ -11,13 +11,14 @@ Body::Body(dWorldID &world, dSpaceID &space, int num_geomID) {
 }
 
 Body::~Body(void) {
+    delete [] this->geomID;
 }
 
 dBodyID Body::getBodyID(void) {
     return this->bodyID;
 }
 
-void Body::buildLeftBody(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int rebuild) {
+void Body::buildLeftBody(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb) {
     // define parameters
     dMass m, m1, m2, m3;
     dMatrix3 R1, R2, R3;
@@ -41,10 +42,6 @@ void Body::buildLeftBody(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int 
     x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
     y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
     z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-    // create body
-    //if ( !rebuild ) this->bodyID = dBodyCreate(this->world);
-    this->bodyID = dBodyCreate(this->world);
 
     // set body parameters
     dBodySetPosition(this->bodyID, x, y, z);
@@ -93,7 +90,7 @@ void Body::buildLeftBody(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_lb, int 
     #endif
 }
 
-void Body::buildRightBody(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int rebuild) {
+void Body::buildRightBody(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb) {
     // define parameters
     dMass m, m1, m2, m3;
     dMatrix3 R1, R2, R3;
@@ -117,10 +114,6 @@ void Body::buildRightBody(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int
     x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
     y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
     z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-    // create body
-    //if ( !rebuild ) this->bodyID = dBodyCreate(this->world);
-    this->bodyID = dBodyCreate(this->world);
 
     // set body parameters
     dBodySetPosition(this->bodyID, x, y, z);
@@ -169,7 +162,7 @@ void Body::buildRightBody(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_rb, int
     #endif
 }
 
-void Body::buildCenter(dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
+void Body::buildCenter(dReal x, dReal y, dReal z, dMatrix3 R) {
     // define parameters
     dMass m;
     dMatrix3 R1;
@@ -184,10 +177,6 @@ void Body::buildCenter(dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
     x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
     y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
     z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-    // create body
-    //if ( !rebuild ) this->bodyID = dBodyCreate(this->world);
-    this->bodyID = dBodyCreate(this->world);
 
     // set body parameters
     dBodySetPosition(this->bodyID, x, y, z);
@@ -224,7 +213,7 @@ void Body::buildCenter(dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
     #endif
 }
 
-void Body::buildEndcap(dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
+void Body::buildEndcap(dReal x, dReal y, dReal z, dMatrix3 R) {
     // define parameters
     dMass m;
     dMatrix3 R1;
@@ -237,10 +226,6 @@ void Body::buildEndcap(dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
     x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
     y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
     z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-    // create body
-    //if ( !rebuild ) this->bodyID = dBodyCreate(this->world);
-    this->bodyID = dBodyCreate(this->world);
 
     // set body parameters
     dBodySetPosition(this->bodyID, x, y, z);
@@ -298,3 +283,38 @@ void Body::buildEndcap(dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
     this->color[2] = 1;
     #endif
 }
+
+#ifdef ENABLE_DRAWSTUFF
+void Body::drawBody(void) {
+    if ( dBodyIsEnabled(this->bodyID) )
+        dsSetColor(this->color[0], this->color[1], this->color[2]);
+    else
+        dsSetColor(0.5, 0.5, 0.5);
+
+    for (int i = 0; i < this->num_geomID; i++) {
+        const dReal *position = dGeomGetPosition(this->geomID[i]);     // get position
+        const dReal *rotation = dGeomGetRotation(this->geomID[i]);     // get rotation
+        dReal r, l;
+        dVector3 sides;
+
+        switch (dGeomGetClass(this->geomID[i])) {
+            case dSphereClass:
+                r = dGeomSphereGetRadius(this->geomID[i]);
+                dsDrawSphere(position, rotation, r);
+                break;
+            case dBoxClass:
+                dGeomBoxGetLengths(this->geomID[i], sides);
+                dsDrawBox(position, rotation, sides);
+                break;
+            case dCylinderClass:
+                dGeomCylinderGetParams(this->geomID[i], &r, &l);
+                dsDrawCylinder(position, rotation, l, r);
+                break;
+            case dCapsuleClass:
+                dGeomCapsuleGetParams(this->geomID[i], &r, &l);
+                dsDrawCapsule(position, rotation, l, r);
+                break;
+        }
+    }
+}
+#endif
