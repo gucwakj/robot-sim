@@ -184,7 +184,7 @@ void CiMobotFD::ds_simulationLoop(int pause) {
 #else
 void CiMobotFD::simulation_loop(void) {
 	bool loop = true;												// initialize loop tracker
-	this->init_angles();											// initialize angles for simulation
+	this->set_angles();                                             // initialize angles for simulation
 	while (this->m_t_cur_step <= this->m_t_tot_step && loop) {		// loop continuously until simulation is stopped
 		this->update_angles();										// update angles for current step
 		dSpaceCollide(this->space, this, &this->collision_wrapper);	// collide all geometries together
@@ -195,32 +195,6 @@ void CiMobotFD::simulation_loop(void) {
 		this->increment_step();										// check whether to increment to next step
 		this->end_simulation(loop);									// check whether to end simulation
 		this->increment_time();										// increment time
-	}
-}
-#endif
-
-#ifndef ENABLE_DRAWSTUFF
-void CiMobotFD::init_angles() {
-	// initialze loop counters
-	int i, j;
-
-	// initialize all angles for first step of simulation
-	for ( i = 0; i < this->m_num_bot; i++ ) {
-		for ( j = 0; j < NUM_DOF; j++ ) {
-            if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
-                dJointDisable(this->bot[i]->getMotorID(j));
-                this->bot[i]->updateFutureAngle(j, this->m_cur_stp, 0);
-			}
-			else {
-                dJointEnable(this->bot[i]->getMotorID(j));
-                this->bot[i]->updateFutureAngle(j, this->m_cur_stp, 1);
-                this->bot[i]->updateJointVelocity(j, this->m_cur_stp);
-                dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getCurrentAngle(j));
-			}
-			dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
-		}
-		// re-enable robots for next step
-		dBodyEnable(this->bot[i]->getBodyID(CENTER));
 	}
 }
 #endif
@@ -629,7 +603,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 
     // add fixed joint to attach 'END' to static environment
     dJointID joint = dJointCreateFixed(this->world, 0);
-    //dJointAttach(joint, 0, this->bot[botNum]->body[end]->getBodyID());
     dJointAttach(joint, 0, this->bot[botNum]->getBodyID(end));
     dJointSetFixed(joint);
     dJointSetFixedParam(joint, dParamCFM, 0);

@@ -32,7 +32,6 @@ class Robot {
 
         dReal getCurrentAngle(int j);
         dBodyID getBodyID(int body);
-        dJointID getJointID(int joint);
         dJointID getMotorID(int motor);
 
         void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
@@ -55,10 +54,10 @@ class Robot {
     private:
         dWorldID world;                         // world for all robots
         dSpaceID space;                         // space for this robot
-        dJointID    *joints,                    // joints between body parts
-                    *motors;                    // motors to drive body parts
-        Body **body;                            // body parts
-        PID *pid;                               // PID control for each joint
+        dJointID *joints,                       // joints between body parts
+                 *motors;                       // motors to drive body parts
+        Body     **body;                        // body parts
+        PID      *pid;                          // PID control for each joint
 
         double  m_motor_res,                    // motor angle resolution
                 *pos,                           // initial position of robot
@@ -74,11 +73,10 @@ class Robot {
                 *m_joint_frc_max;               // maximum force that can be applied to each body part
         int m_num_stp;
 
-        dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);
-        void rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi);
-
         inline dReal D2R(dReal x);              // convert degrees to radians
         inline dReal R2D(dReal x);              // convert radians to degrees
+        dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);         // modify angle from ODE for endcaps to count continuously
+        void rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi);// create rotation matrix from euler angles
 };
 
 #endif  /* ROBOT_H_ */

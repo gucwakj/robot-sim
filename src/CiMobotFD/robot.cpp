@@ -95,10 +95,6 @@ dBodyID Robot::getBodyID(int body) {
     return this->body[body]->getBodyID();
 }
 
-dJointID Robot::getJointID(int joint) {
-    return this->joints[joint];
-}
-
 dJointID Robot::getMotorID(int motor) {
     return this->motors[motor];
 }
