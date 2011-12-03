@@ -147,12 +147,12 @@ void CiMobotFD::runSimulation(int argc, char **argv) {
 	#endif
 }
 
-int CiMobotFD::getReplyMessage() {
+int CiMobotFD::getReplyMessage(void) {
 	return this->m_reply->message;
 }
 
-dReal CiMobotFD::getReplyTime() {
-	return this->m_reply->time;
+double CiMobotFD::getReplyTime(void) {
+	return (double)(this->m_reply->time);
 }
 
 /**********************************************************
@@ -199,7 +199,7 @@ void CiMobotFD::simulation_loop(void) {
 }
 #endif
 
-void CiMobotFD::update_angles() {
+void CiMobotFD::update_angles(void) {
 	// initialze loop counters
 	int i, j;
 
@@ -262,7 +262,7 @@ void CiMobotFD::collision(dGeomID o1, dGeomID o2) {
 	}
 }
 
-void CiMobotFD::set_flags() {
+void CiMobotFD::set_flags(void) {
 	// initialze loop counters
 	int c, i, j;
 
@@ -282,7 +282,7 @@ void CiMobotFD::set_flags() {
 	}
 }
 
-void CiMobotFD::increment_step() {
+void CiMobotFD::increment_step(void) {
 	// initialze loop counters
 	int i, j;
 
@@ -328,7 +328,7 @@ void CiMobotFD::set_angles(void) {
 	}
 }
 
-void CiMobotFD::print_intermediate_data() {
+void CiMobotFD::print_intermediate_data(void) {
 	// initialze loop counters
 	int i;
 
@@ -402,7 +402,7 @@ void CiMobotFD::end_simulation(bool &loop) {
 	else if ( !this->m_reply->message ) { loop = false; }
 }
 
-void CiMobotFD::increment_time() {
+void CiMobotFD::increment_time(void) {
 		this->m_t += this->m_t_step;
 }
 

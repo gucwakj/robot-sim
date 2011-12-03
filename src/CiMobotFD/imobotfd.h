@@ -58,8 +58,8 @@ class CiMobotFD {
 		/*
 		 *	return a message on the success of the simulation
 		 */
-		int getReplyMessage();
-		dReal getReplyTime();
+		int getReplyMessage(void);
+		double getReplyTime(void);
 
 	private:
 		typedef struct cimobotfdreply_s {			// information on success to reply
@@ -76,11 +76,11 @@ class CiMobotFD {
 		 */
 		dWorldID world;								// world in which simulation occurs
 		dSpaceID space;								// space for robots in which to live
+		dGeomID *m_ground;                          // array of ground objects
 		dJointGroupID group;						// group to store joints
-		Robot **bot;
+		Robot **bot;                                // array of robots in simulation
 		CiMobotFDReply *m_reply;					// struct of data to return after finishing simulation
 		CiMobotFDTarget *target;                    // array of targets
-		dGeomID *m_ground;							// array of ground objects
 		dReal	m_t,								// current time of simulation
 				m_t_total,							// total time for simulation to run
 				m_t_step,							// time of each step of simulation
@@ -111,15 +111,15 @@ class CiMobotFD {
 		void ds_command(int cmd);					// keyboard commands for ds
 		void ds_simulationLoop(int pause);			// callback function for simulation
 		#else
-		void simulation_loop();						// loop to complete simulation
+		void simulation_loop(void);					// loop to complete simulation
 		#endif
-		void update_angles();						// update struct with modified angles
-		void print_intermediate_data();				// print data out at each time step for analysis
-		void set_flags();							// set flags for complete/not-complete
-		void increment_step();						// increment step to next set of angles
-		void set_angles();							// set new angles for step of sim
+		void update_angles(void);					// update struct with modified angles
+		void print_intermediate_data(void);			// print data out at each time step for analysis
+		void set_flags(void);						// set flags for complete/not-complete
+		void increment_step(void);					// increment step to next set of angles
+		void set_angles(void);						// set new angles for step of sim
 		void end_simulation(bool &loop);			// check if simulation is complete and exit
-		void increment_time();						// update simulation time
+		void increment_time(void);					// update simulation time
 		void collision(dGeomID o1, dGeomID o2);		// callback function for contact of bodies
 		static void collision_wrapper(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 
