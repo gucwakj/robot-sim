@@ -138,7 +138,7 @@ class CiMobotFD {
 		inline dReal D2R(dReal x);			// convert degrees to radians
 		inline dReal R2D(dReal x);			// convert radians to degrees
 		bool is_true(int length, bool *a);	// check if all values in array are true
-		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate); // modify angle from ODE for endcaps to count continuously
+		//dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate); // modify angle from ODE for endcaps to count continuously
 		void rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi);	// create rotation matrix from euler angles
 };
 

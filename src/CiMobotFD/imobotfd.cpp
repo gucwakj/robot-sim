@@ -207,15 +207,15 @@ void CiMobotFD::init_angles() {
 	// initialize all angles for first step of simulation
 	for ( i = 0; i < this->m_num_bot; i++ ) {
 		for ( j = 0; j < NUM_DOF; j++ ) {
-			if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
-				dJointDisable(this->bot[i]->motors[j]);
-				this->bot[i]->fut_ang[j] = this->bot[i]->cur_ang[j];
+            if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
+                dJointDisable(this->bot[i]->getMotorID(j));
+                this->bot[i]->updateFutureAngle(j, this->m_cur_stp, 0);
 			}
 			else {
-				dJointEnable(this->bot[i]->motors[j]);
-				if ( j == LE || j == RE ) { this->bot[i]->fut_ang[j] = this->bot[i]->ori[j] + this->bot[i]->ang[j]; }
-				else { this->bot[i]->fut_ang[j] = this->bot[i]->ang[j]; }
-				this->bot[i]->jnt_vel[j] = this->bot[i]->vel[j];
+                dJointEnable(this->bot[i]->getMotorID(j));
+                this->bot[i]->updateFutureAngle(j, this->m_cur_stp, 1);
+                this->bot[i]->updateJointVelocity(j, this->m_cur_stp);
+                dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getCurrentAngle(j));
 			}
 			dJointSetAMotorAngle(this->bot[i]->motors[j], 0, this->bot[i]->cur_ang[j]);
 		}
@@ -234,17 +234,14 @@ void CiMobotFD::update_angles() {
 		// must be done for each degree of freedom
 		for ( j = 0; j < NUM_DOF; j++ ) {
 			// update current angle
-			if ( j == LE || j == RE )
-				this->bot[i]->cur_ang[j] = mod_angle(this->bot[i]->cur_ang[j], dJointGetHingeAngle(this->bot[i]->getJointID(j)), dJointGetHingeAngleRate(this->bot[i]->getJointID(j)));
-			else
-				this->bot[i]->cur_ang[j] = dJointGetHingeAngle(this->bot[i]->getJointID(j));
+            this->bot[i]->updateCurrentAngle(j);
 
 			// set motor angle to current angle
-			dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->cur_ang[j]);
+			dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getCurrentAngle(j));
 
 			// drive motor to get current angle to match future angle
 			if ( dJointIsEnabled(this->bot[i]->getMotorID(j)) ) {
-                this->bot[i]->setMotorSpeed(j);
+                this->bot[i]->updateMotorSpeed(j);
 			}
 		}
 	}
@@ -337,33 +334,23 @@ void CiMobotFD::increment_step() {
 	}
 }
 
-void CiMobotFD::set_angles() {
-	// initialze loop counters
-	int i, j, k;
-
+void CiMobotFD::set_angles(void) {
 	// set arrays of angles for new step
-	for ( i = 0; i < this->m_num_bot; i++ ) {
-		for ( j = 0; j < NUM_DOF; j++ ) {
-			if ( (int)(this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j]) == (int)(D2R(123456789)) ) {
+	for ( int i = 0; i < this->m_num_bot; i++ ) {
+		for ( int j = 0; j < NUM_DOF; j++ ) {
+            if ( this->bot[i]->isJointDisabled(j, this->m_cur_stp) ) {
 				dJointDisable(this->bot[i]->getMotorID(j));
-				this->bot[i]->fut_ang[j] = this->bot[i]->cur_ang[j];
-				dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->cur_ang[j]);
+                this->bot[i]->updateFutureAngle(j, this->m_cur_stp, 0);
+				dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getCurrentAngle(j));
 			}
 			else {
 				dJointEnable(this->bot[i]->getMotorID(j));
-				if ( j == LE || j == RE ) {
-					this->bot[i]->fut_ang[j] = this->bot[i]->ori[j];
-					for ( k = 0; k <= this->m_cur_stp; k++ ) { this->bot[i]->fut_ang[j] += this->bot[i]->ang[NUM_DOF*k + j]; }
-				}
-				else {
-					this->bot[i]->fut_ang[j] = this->bot[i]->ang[NUM_DOF*this->m_cur_stp + j];
-				}
-				this->bot[i]->jnt_vel[j] = this->bot[i]->vel[NUM_DOF*this->m_cur_stp + j];
-				dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->cur_ang[j]);
+				this->bot[i]->updateFutureAngle(j, this->m_cur_stp, 1);
+                this->bot[i]->updateJointVelocity(j, this->m_cur_stp);
+				dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getCurrentAngle(j));
 			}
 		}
-		// re-enable robots for next step
-        this->bot[i]->enable();
+		this->bot[i]->enable();     // re-enable robots for next step
 	}
 }
 
@@ -3471,6 +3458,7 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 inline dReal CiMobotFD::D2R( dReal x ) {
 	return x*M_PI/180;
 }
+
 inline dReal CiMobotFD::R2D( dReal x ) {
 	return x/M_PI*180;
 }
@@ -3481,62 +3469,6 @@ bool CiMobotFD::is_true(int length, bool *a) {
 			return false;
 	}
 	return true;
-}
-
-dReal CiMobotFD::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
-	dReal new_ang = 0;
-	int stp = (int)( fabs(past_ang) / M_PI );
-	dReal past_ang_mod = fabs(past_ang) - stp*M_PI;
-
-	if ( (int)ang_rate == 0 ) {
-		new_ang = past_ang;
-	}
-	// positive angular velocity, positive angle
-	else if ( ang_rate > 0 && past_ang >= 0 ) {
-		// cross 180
-		if ( cur_ang < 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod + 2*M_PI);	}
-		// negative
-		else if ( cur_ang < 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);	}
-		// cross 0
-		else if ( cur_ang > 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);	}
-		// positive
-		else if ( cur_ang > 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod);	}
-	}
-	// positive angular velocity, negative angle
-	else if ( ang_rate > 0 && past_ang < 0 ) {
-		// cross 180
-		if ( cur_ang < 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod + M_PI);	}
-		// negative
-		else if ( cur_ang < 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod);	}
-		// cross 0
-		else if ( cur_ang > 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod);	}
-		// positive
-		else if ( cur_ang > 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);	}
-	}
-	// negative angular velocity, positive angle
-	else if ( ang_rate < 0 && past_ang >= 0 ) {
-		// cross 180
-		if ( cur_ang > 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod - M_PI);	}
-		// negative
-		else if ( cur_ang < 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);	}
-		// cross 0
-		else if ( cur_ang < 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod);	}
-		// positive
-		else if ( cur_ang > 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang - past_ang_mod);	}
-	}
-	// negative angular velocity, negative angle
-	else if ( ang_rate < 0 && past_ang < 0 ) {
-		// cross 180
-		if ( cur_ang > 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod - 2*M_PI);	}
-		// negative
-		else if ( cur_ang < 0 && !(stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod);	}
-		// cross 0
-		else if ( cur_ang < 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);	}
-		// positive
-		else if ( cur_ang > 0 && (stp % 2) ) {	new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);	}
-	}
-
-	return new_ang;
 }
 
 void CiMobotFD::rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi) {

@@ -87,25 +87,8 @@ void Robot::setAngularVelocity(dReal *vel) {
     }
 }
 
-void Robot::setMotorSpeed(int j) {
-    /*// with PID
-    if (this->cur_ang[j] < this->fut_ang[j] - 10*this->m_motor_res)
-        dJointSetA*MotorParam(this->motors[j], dParamVel, this->jnt_vel[j]);
-    else if (this->cur_ang[j] > this->fut_ang[j] + 10*this->m_motor_res)
-        dJointSetAMotorParam(this->motors[j], dParamVel, -this->jnt_vel[j]);
-    else if (this->fut_ang[j] - 10*this->m_motor_res < this->cur_ang[j] &&  this->cur_ang[j] < this->fut_ang[j] - this->m_motor_res)
-        dJointSetAMotorParam(this->motors[j], dParamVel, this->pid[j].update(this->fut_ang[j] - this->cur_ang[j]));
-    else if (this->cur_ang[j] < this->fut_ang[j] + 10*this->m_motor_res && this->cur_ang[j] > this->fut_ang[j] + this->m_motor_res)
-        dJointSetAMotorParam(this->motors[j], dParamVel, this->pid[j].update(this->cur_ang[j] - this->fut_ang[j]));
-    else
-        dJointSetAMotorParam(this->motors[j], dParamVel, 0);*/
-    // without PID
-    if (this->cur_ang[j] < this->fut_ang[j] - this->m_motor_res)
-        dJointSetAMotorParam(this->motors[j], dParamVel, this->jnt_vel[j]);
-    else if (this->cur_ang[j] > this->fut_ang[j] + this->m_motor_res)
-        dJointSetAMotorParam(this->motors[j], dParamVel, -this->jnt_vel[j]);
-    else
-        dJointSetAMotorParam(this->motors[j], dParamVel, 0);
+dReal Robot::getCurrentAngle(int j) {
+    return this->cur_ang[j];
 }
 
 dBodyID Robot::getBodyID(int body) {
@@ -124,6 +107,10 @@ bool Robot::isDisabled(void) {
     return !(bool)dBodyIsEnabled(this->body[CENTER]->getBodyID());
 }
 
+bool Robot::isJointDisabled(int j, int current_step) {
+    return ( (int)(this->ang[NUM_DOF*current_step + j]) == (int)(D2R(123456789)) );
+}
+
 void Robot::enable(void) {
     dBodyEnable(this->body[CENTER]->getBodyID());
 }
@@ -137,6 +124,53 @@ void Robot::resetPID(int joint) {
     else {
         this->pid[joint].restart();
     }
+}
+
+void Robot::updateCurrentAngle(int j) {
+    if ( j == LE || j == RE )
+        this->cur_ang[j] = mod_angle(this->cur_ang[j], dJointGetHingeAngle(this->joints[j]), dJointGetHingeAngleRate(this->joints[j]));
+    else
+        this->cur_ang[j] = dJointGetHingeAngle(this->joints[j]);
+}
+
+void Robot::updateFutureAngle(int j, int current_step, int enable) {
+    if ( enable ) {
+        if ( j == LE || j == RE ) {
+            this->fut_ang[j] = this->ori[j];
+            for ( int k = 0; k <= current_step; k++ ) { this->fut_ang[j] += this->ang[NUM_DOF*k + j]; }
+        }
+        else {
+            this->fut_ang[j] = this->ang[NUM_DOF*current_step + j];
+        }
+    }
+    else {
+        this->fut_ang[j] = this->cur_ang[j];
+    }
+}
+
+void Robot::updateJointVelocity(int j, int current_step) {
+    this->jnt_vel[j] = this->vel[NUM_DOF*current_step + j];
+}
+
+void Robot::updateMotorSpeed(int j) {
+    /*// with PID
+    if (this->cur_ang[j] < this->fut_ang[j] - 10*this->m_motor_res)
+        dJointSetA*MotorParam(this->motors[j], dParamVel, this->jnt_vel[j]);
+    else if (this->cur_ang[j] > this->fut_ang[j] + 10*this->m_motor_res)
+        dJointSetAMotorParam(this->motors[j], dParamVel, -this->jnt_vel[j]);
+    else if (this->fut_ang[j] - 10*this->m_motor_res < this->cur_ang[j] &&  this->cur_ang[j] < this->fut_ang[j] - this->m_motor_res)
+        dJointSetAMotorParam(this->motors[j], dParamVel, this->pid[j].update(this->fut_ang[j] - this->cur_ang[j]));
+    else if (this->cur_ang[j] < this->fut_ang[j] + 10*this->m_motor_res && this->cur_ang[j] > this->fut_ang[j] + this->m_motor_res)
+        dJointSetAMotorParam(this->motors[j], dParamVel, this->pid[j].update(this->cur_ang[j] - this->fut_ang[j]));
+    else
+        dJointSetAMotorParam(this->motors[j], dParamVel, 0);*/
+    // without PID
+    if (this->cur_ang[j] < this->fut_ang[j] - this->m_motor_res)
+        dJointSetAMotorParam(this->motors[j], dParamVel, this->jnt_vel[j]);
+    else if (this->cur_ang[j] > this->fut_ang[j] + this->m_motor_res)
+        dJointSetAMotorParam(this->motors[j], dParamVel, -this->jnt_vel[j]);
+    else
+        dJointSetAMotorParam(this->motors[j], dParamVel, 0);
 }
 
 void Robot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
@@ -436,6 +470,62 @@ void Robot::buildAttached(int attNum, int face1, int face2, dReal r_le, dReal r_
             break;
     }
 }*/
+
+dReal Robot::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
+    dReal new_ang = 0;
+    int stp = (int)( fabs(past_ang) / M_PI );
+    dReal past_ang_mod = fabs(past_ang) - stp*M_PI;
+
+    if ( (int)ang_rate == 0 ) {
+        new_ang = past_ang;
+    }
+    // positive angular velocity, positive angle
+    else if ( ang_rate > 0 && past_ang >= 0 ) {
+        // cross 180
+        if ( cur_ang < 0 && !(stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + 2*M_PI); }
+        // negative
+        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
+        // cross 0
+        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
+        // positive
+        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
+    }
+    // positive angular velocity, negative angle
+    else if ( ang_rate > 0 && past_ang < 0 ) {
+        // cross 180
+        if ( cur_ang < 0 && (stp % 2) ) {   new_ang = past_ang + (cur_ang + past_ang_mod + M_PI);   }
+        // negative
+        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
+        // cross 0
+        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
+        // positive
+        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
+    }
+    // negative angular velocity, positive angle
+    else if ( ang_rate < 0 && past_ang >= 0 ) {
+        // cross 180
+        if ( cur_ang > 0 && (stp % 2) ) {   new_ang = past_ang + (cur_ang - past_ang_mod - M_PI);   }
+        // negative
+        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
+        // cross 0
+        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
+        // positive
+        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
+    }
+    // negative angular velocity, negative angle
+    else if ( ang_rate < 0 && past_ang < 0 ) {
+        // cross 180
+        if ( cur_ang > 0 && !(stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - 2*M_PI); }
+        // negative
+        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
+        // cross 0
+        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
+        // positive
+        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
+    }
+
+    return new_ang;
+}
 
 void Robot::rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
     dReal   sphi = sin(phi),        cphi = cos(phi),

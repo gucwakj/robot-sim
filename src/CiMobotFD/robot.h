@@ -29,8 +29,8 @@ class Robot {
 
         void setAngles(dReal *ang);
         void setAngularVelocity(dReal *vel);
-        void setMotorSpeed(int j);
 
+        dReal getCurrentAngle(int j);
         dBodyID getBodyID(int body);
         dJointID getJointID(int joint);
         dJointID getMotorID(int motor);
@@ -41,19 +41,17 @@ class Robot {
         //void buildAttached(int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
         bool isDisabled(void);
+        bool isJointDisabled(int j, int current_step);
         void enable(void);
         void resetPID(int joint = NUM_DOF);
+        void updateCurrentAngle(int j);
+        void updateFutureAngle(int j, int current_step, int enable);
+        void updateJointVelocity(int j, int current_step);
+        void updateMotorSpeed(int j);
 
         #ifdef ENABLE_DRAWSTUFF
         void drawRobot(void);
         #endif
-
-        double  *cur_ang,                       // current angle of each body part
-                *fut_ang,                       // future angle being driven toward
-                *jnt_vel,                       // desired joint velocity
-                *ang,                           // array of angles
-                *vel,                           // array of velocities
-                *ori;                           // initial orientation of body parts
     private:
         dWorldID world;                         // world for all robots
         dSpaceID space;                         // space for this robot
@@ -62,14 +60,21 @@ class Robot {
         Body **body;                            // body parts
         PID *pid;                               // PID control for each joint
 
-        double  *pos,                           // initial position of robot
+        double  m_motor_res,                    // motor angle resolution
+                *pos,                           // initial position of robot
                 *rot,                           // initial rotation of robot by three Euler angles
-                m_motor_res,                    // motor angle resolution
+                *ang,                           // array of angles
+                *vel,                           // array of velocities
+                *ori,                           // initial orientation of body parts
+                *cur_ang,                       // current angle of each body part
+                *fut_ang,                       // future angle being driven toward
+                *jnt_vel,                       // desired joint velocity
                 *m_joint_vel_max,               // maximum joint velocity possible
                 *m_joint_vel_min,               // minimum joint velocity possible
                 *m_joint_frc_max;               // maximum force that can be applied to each body part
         int m_num_stp;
 
+        dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);
         void rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi);
 
         inline dReal D2R(dReal x);              // convert degrees to radians
