@@ -37,8 +37,8 @@ class CiMobotFD {
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z);
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		//void iMobotBuildAttached(int botNum, int attNum, int face1, int face2);
-		//void iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2);
+		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
         void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		/*
@@ -126,18 +126,19 @@ class CiMobotFD {
 		/*
 		 *	functions to build attached imobots
 		 */
-		//void imobot_build_attached_00(int botNum, int attNum, int face1, int face2);
-		//void imobot_build_attached_10(int botNum, int attNum, int face1, int face2);
-		//void imobot_build_attached_01(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		//void imobot_build_attached_11(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-
+		void imobot_build_attached_00(int botNum, int attNum, int face1, int face2);
+		void imobot_build_attached_10(int botNum, int attNum, int face1, int face2);
+		void imobot_build_attached_01(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void imobot_build_attached_11(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+        void create_fixed_joint(int att_num, int face1, int bot_num, int face2);
 		/*
 		 *	utility functions
 		 */
 		inline dReal D2R(dReal x);			// convert degrees to radians
 		inline dReal R2D(dReal x);			// convert radians to degrees
 		bool is_true(int length, bool *a);	// check if all values in array are true
-        void rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi);  // create rotation matrix from euler angles
+        void rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi);      // get rotation matrix from euler angles
+        void euler_angles_from_rotation_matrix(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);   // get euler angles from rotation matrix
 };
 
 #endif	/* CIMOBOTSIM_H_ */

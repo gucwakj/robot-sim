@@ -283,9 +283,6 @@ void CiMobotFD::set_flags(void) {
 }
 
 void CiMobotFD::increment_step(void) {
-	// initialze loop counters
-	int i, j;
-
 	// if completed step and bodies are at rest, then increment
 	if ( this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
 		// if haven't reached last step, increment
@@ -300,7 +297,7 @@ void CiMobotFD::increment_step(void) {
 		}
 
 		// reset all flags to zero
-		for ( i = 0; i < this->m_num_bot; i++ ) {
+		for ( int i = 0; i < this->m_num_bot; i++ ) {
 			this->m_flag_comp[i] = false;
 			this->m_flag_disable[i] = false;
             this->bot[i]->resetPID();
@@ -578,21 +575,25 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
     this->bot[botNum]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
 }
 
-/*void CiMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {
-	if ( fabs(this->bot[attNum]->cur_ang[LE]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[LB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RE]) < DBL_EPSILON )
+void CiMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {
+	/*if ( fabs(this->bot[attNum]->cur_ang[LE]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[LB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RE]) < DBL_EPSILON )
 		//imobot_build_attached_00(botNum, attNum, face1, face2);
         this->bot[botNum]->buildAttached(attNum, face1, face2, 00);
 	else
 		//imobot_build_attached_10(botNum, attNum, face1, face2);
-        this->bot[botNum]->buildAttached(attNum, face1, face2, 10);
+        this->bot[botNum]->buildAttached(attNum, face1, face2, 10);*/
+    this->imobot_build_attached_00(botNum, attNum, 1, 1);
+    this->imobot_build_attached_10(botNum, attNum, 2, 3);
+    this->imobot_build_attached_01(botNum, attNum, 1, 3, 0, 0, 0, 0);
+    this->imobot_build_attached_11(botNum, attNum, 4, 5, 5, 10, 20, 30);
 }
 
 void CiMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	if ( fabs(this->bot[attNum]->cur_ang[LE]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[LB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RE]) < DBL_EPSILON	)
+	/*if ( fabs(this->bot[attNum]->cur_ang[LE]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[LB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RE]) < DBL_EPSILON	)
 		imobot_build_attached_01(botNum, attNum, face1, face2, r_le, r_lb, r_rb, r_re);
 	else
-		imobot_build_attached_11(botNum, attNum, face1, face2, r_le, r_lb, r_rb, r_re);
-}*/
+		imobot_build_attached_11(botNum, attNum, face1, face2, r_le, r_lb, r_rb, r_re);*/
+}
 
 void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 
@@ -602,27 +603,18 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
         this->iMobotBuild(botNum, x - END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
 
     // add fixed joint to attach 'END' to static environment
-    dJointID joint = dJointCreateFixed(this->world, 0);
-    dJointAttach(joint, 0, this->bot[botNum]->getBodyID(end));
-    dJointSetFixed(joint);
-    dJointSetFixedParam(joint, dParamCFM, 0);
-    dJointSetFixedParam(joint, dParamERP, 0.9);
+    this->create_fixed_joint(-1, 0, botNum, end);
 }
 
-/*void CiMobotFD::imobot_build_attached_00(int botNum, int attNum, int face1, int face2) {
+void CiMobotFD::imobot_build_attached_00(int botNum, int attNum, int face1, int face2) {
 	// initialize variables
-	int face1_part, face2_part;
-	dReal x, y, z, psi, theta, phi, m[3] = {0};
+	dReal psi, theta, phi, m[3] = {0};
 	dMatrix3 R, R1, R_att;
 
 	// generate rotation matrix for base robot
-	rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
+    rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->getRotation(0), this->bot[attNum]->getRotation(1), this->bot[attNum]->getRotation(2));
 
 	if ( face1 == 1 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -632,10 +624,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = 0;
 	}
 	else if ( face1 == 1 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -645,10 +633,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 1 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -658,10 +642,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 1 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -671,10 +651,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 1 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -684,10 +660,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 1 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRSetIdentity(R1);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -697,10 +669,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = 0;
 	}
 	else if ( face1 == 2 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -710,10 +678,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -END_DEPTH - 0.5*BODY_WIDTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 2 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -723,10 +687,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 2 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRSetIdentity(R1);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -736,10 +696,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 2 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -749,10 +705,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 2 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRSetIdentity(R1);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -762,10 +714,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 2 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -775,10 +723,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -END_DEPTH - 0.5*BODY_WIDTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 3 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -788,10 +732,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = END_DEPTH + 0.5*BODY_WIDTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 3 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRSetIdentity(R1);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -801,10 +741,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 3 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -814,10 +750,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 3 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRSetIdentity(R1);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -827,10 +759,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 3 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -840,10 +768,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 3 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -853,10 +777,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = END_DEPTH + 0.5*BODY_WIDTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 4 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -866,10 +786,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -END_DEPTH - 0.5*BODY_WIDTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 4 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -879,10 +795,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 4 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRSetIdentity(R1);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -892,10 +804,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 4 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -905,10 +813,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 4 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRSetIdentity(R1);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -918,10 +822,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -BODY_WIDTH;
 	}
 	else if ( face1 == 4 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -931,10 +831,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -END_DEPTH - 0.5*BODY_WIDTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 5 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -944,10 +840,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = END_DEPTH + 0.5*BODY_WIDTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 5 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRSetIdentity(R1);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -957,10 +849,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 5 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -970,10 +858,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 5 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRSetIdentity(R1);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -983,10 +867,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 5 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -996,10 +876,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = BODY_WIDTH;
 	}
 	else if ( face1 == 5 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1009,10 +885,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = END_DEPTH + 0.5*BODY_WIDTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 6 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRSetIdentity(R1);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1022,10 +894,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = 0;
 	}
 	else if ( face1 == 6 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1035,10 +903,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 6 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1048,10 +912,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 6 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1061,10 +921,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 6 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1074,10 +930,6 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH;
 	}
 	else if ( face1 == 6 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1085,736 +937,550 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 		// generate offset for mass center of new module
 		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
 		m[1] = 0;
-	}
+    }
 
-	// extract Euler Angles from rotation matrix
-	if ( fabs(R[8]-1) < DBL_EPSILON ) {			// R_31 == 1; theta = M_PI/2
-		psi = atan2(-R[1], -R[2]);
-		theta = M_PI/2;
-		phi = 0;
-	}
-	else if ( fabs(R[8]+1) < DBL_EPSILON ) {	// R_31 == -1; theta = -M_PI/2
-		psi = atan2(R[1], R[2]);
-		theta = -M_PI/2;
-		phi = 0;
-	}
-	else {
-		theta = asin(R[8]);
-		psi = atan2(R[9]/cos(theta), R[10]/cos(theta));
-		phi = atan2(R[4]/cos(theta), R[0]/cos(theta));
-	}
+    // extract euler angles from rotation matrix
+    this->euler_angles_from_rotation_matrix(R, psi, theta, phi);
 
-	// set x,y,z position for new module
-	x = this->bot[attNum]->pos[0] + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2];
-	y = this->bot[attNum]->pos[1] + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2];
-	z = this->bot[attNum]->pos[2] + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2];
-
-	// build new module
-	this->iMobotBuild(botNum, x, y, z, R2D(psi), R2D(theta), R2D(phi));
+    // build new module
+    this->bot[botNum]->build(this->bot[attNum]->getPosition(0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
+                             this->bot[attNum]->getPosition(1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
+                             this->bot[attNum]->getPosition(2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
+                             R2D(psi), R2D(theta), R2D(phi));
 
 	// add fixed joint to attach two modules
-	dJointID joint = dJointCreateFixed(this->world, 0);
-	dJointAttach(joint, this->bot[attNum]->body[face1_part]->getBodyID(), this->bot[botNum]->body[face2_part]->getBodyID());
-	dJointSetFixed(joint);
-	dJointSetFixedParam(joint, dParamCFM, 0);
-	dJointSetFixedParam(joint, dParamERP, 0.9);
+    this->create_fixed_joint(attNum, face1, botNum, face2);
 }
 
 void CiMobotFD::imobot_build_attached_10(int botNum, int attNum, int face1, int face2) {
 	// initialize variables
-	int face1_part, face2_part;
-	dReal x, y, z, psi, theta, phi, m[3];
+	dReal psi, theta, phi, m[3];
 	dMatrix3 R, R1, R2, R3, R4, R5, R_att;
 
 	// generate rotation matrix for base robot
-	rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
+    rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->getRotation(0), this->bot[attNum]->getRotation(1), this->bot[attNum]->getRotation(2));
 
 	if ( face1 == 1 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->cur_ang[LE]);
+        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[0]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[4]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[8]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[0]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[4]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[8]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) 								+ R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH 	+ R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) 								+ R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		m[0] = -0.5*CENTER_LENGTH					+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 						- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =										+ R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		m[0] = -0.5*CENTER_LENGTH					+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 						- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =										+ R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		m[0] = -0.5*CENTER_LENGTH				+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 						BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =									+ R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		m[0] = -0.5*CENTER_LENGTH				+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 						BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =									+ R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		m[0] = -0.5*CENTER_LENGTH +	R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	 							 R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		m[0] = 0.5*CENTER_LENGTH				+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 						-BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	- BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		m[0] = 0.5*CENTER_LENGTH					+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 						- BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =										+ R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	 							 R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) -	END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		m[0] = 0.5*CENTER_LENGTH				+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 						BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R, R1, R_att, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		m[0] = 0.5*CENTER_LENGTH				+ R1[0]*(-0.5*CENTER_LENGTH);
 		m[1] = 						BODY_WIDTH	+ R1[4]*(-0.5*CENTER_LENGTH);
 		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[0]*(0.5*CENTER_LENGTH);
 		m[1] = 							2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)	+ BODY_WIDTH	+ R1[4]*(0.5*CENTER_LENGTH);
 		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +	END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH) + R3[0]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH) + R3[4]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH) + R3[8]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH +	R1[0]*(BODY_LENGTH + BODY_END_DEPTH) + R3[0]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[1] = 						R1[4]*(BODY_LENGTH + BODY_END_DEPTH) + R3[4]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH) + R3[8]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-	}
+    }
 
-	// extract Euler Angles from rotation matrix
-	if ( fabs(R[8]-1) < DBL_EPSILON ) {			// R_31 == 1; theta = M_PI/2
-		psi = atan2(-R[1], -R[2]);
-		theta = M_PI/2;
-		phi = 0;
-	}
-	else if ( fabs(R[8]+1) < DBL_EPSILON ) {	// R_31 == -1; theta = -M_PI/2
-		psi = atan2(R[1], R[2]);
-		theta = -M_PI/2;
-		phi = 0;
-	}
-	else {
-		theta = asin(R[8]);
-		psi = atan2(R[9]/cos(theta), R[10]/cos(theta));
-		phi = atan2(R[4]/cos(theta), R[0]/cos(theta));
-	}
+    // extract euler angles from rotation matrix
+    this->euler_angles_from_rotation_matrix(R, psi, theta, phi);
 
-	// set x,y,z position for new module
-	x = this->bot[attNum]->pos[0] + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2];
-	y = this->bot[attNum]->pos[1] + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2];
-	z = this->bot[attNum]->pos[2] + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2];
+    // build new module
+    this->bot[botNum]->build(this->bot[attNum]->getPosition(0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
+                             this->bot[attNum]->getPosition(1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
+                             this->bot[attNum]->getPosition(2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
+                             R2D(psi), R2D(theta), R2D(phi));
 
-	// build new module
-	this->iMobotBuild(botNum, x, y, z, R2D(psi), R2D(theta), R2D(phi));
-
-	// add fixed joint to attach two modules
-	dJointID joint = dJointCreateFixed(this->world, 0);
-	dJointAttach(joint, this->bot[attNum]->body[face1_part]->getBodyID(), this->bot[botNum]->body[face2_part]->getBodyID());
-	dJointSetFixed(joint);
-	dJointSetFixedParam(joint, dParamCFM, 0);
-	dJointSetFixedParam(joint, dParamERP, 0.9);
+    // add fixed joint to attach two modules
+    this->create_fixed_joint(attNum, face1, botNum, face2);
 }
 
 void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// initialize variables
-	int face1_part, face2_part;
-	dReal x, y, z, psi, theta, phi, r_e, r_b, m[3];
+	dReal psi, theta, phi, r_e, r_b, m[3];
 	dMatrix3 R, R1, R2, R3, R4, R5, R_att;
 
 	// generate rotation matrix for base robot
-	rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
+    rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->getRotation(0), this->bot[attNum]->getRotation(1), this->bot[attNum]->getRotation(2));
 
 	// rotation of body about fixed point
 	if ( face2 == 1 ) {
@@ -1843,10 +1509,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 	}
 
 	if ( face1 == 1 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1864,10 +1526,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] =																	 R1[8]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1881,10 +1539,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1898,10 +1552,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1915,10 +1565,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1932,10 +1578,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1953,10 +1595,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[8]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1974,10 +1612,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1991,10 +1625,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -r_b);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2006,10 +1636,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] =										+ R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2023,10 +1649,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] =										+ R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], r_b);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2038,10 +1660,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2059,10 +1677,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2080,10 +1694,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(BODY_END_DEPTH + BODY_LENGTH) + R3[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -r_b);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2095,10 +1705,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] =									+ R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2112,10 +1718,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], r_b);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2127,10 +1729,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2144,10 +1742,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] =									+ R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2165,10 +1759,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(BODY_END_DEPTH + BODY_LENGTH) + R3[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2186,10 +1776,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2203,10 +1789,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -r_b);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2218,10 +1800,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2235,10 +1813,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], r_b);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2250,10 +1824,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] =										+ R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2271,10 +1841,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2292,10 +1858,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(BODY_END_DEPTH + BODY_LENGTH) + R3[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -r_b);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2307,10 +1869,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2324,10 +1882,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], r_b);
 		dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2339,10 +1893,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] =									+ R1[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2356,10 +1906,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2377,10 +1923,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(BODY_END_DEPTH + BODY_LENGTH) + R3[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2398,10 +1940,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[8]*(BODY_END_DEPTH + BODY_LENGTH) + R3[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2415,10 +1953,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2432,10 +1966,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2449,10 +1979,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2466,10 +1992,6 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[2] = R1[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2485,49 +2007,28 @@ void CiMobotFD::imobot_build_attached_01(int botNum, int attNum, int face1, int 
 		m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + 2*END_DEPTH + R1[0]*(BODY_END_DEPTH + BODY_LENGTH) + R3[0]*(0.5*CENTER_LENGTH);
 		m[1] = R1[4]*(BODY_END_DEPTH + BODY_LENGTH) + R3[4]*(0.5*CENTER_LENGTH);
 		m[2] = R1[8]*(BODY_END_DEPTH + BODY_LENGTH) + R3[8]*(0.5*CENTER_LENGTH);
-	}
+    }
 
-	// extract Euler Angles from rotation matrix
-	if ( fabs(R[8]-1) < DBL_EPSILON ) {			// R_31 == 1; theta = M_PI/2
-		psi = atan2(-R[1], -R[2]);
-		theta = M_PI/2;
-		phi = 0;
-	}
-	else if ( fabs(R[8]+1) < DBL_EPSILON ) {	// R_31 == -1; theta = -M_PI/2
-		psi = atan2(R[1], R[2]);
-		theta = -M_PI/2;
-		phi = 0;
-	}
-	else {
-		theta = asin(R[8]);
-		psi = atan2(R[9]/cos(theta), R[10]/cos(theta));
-		phi = atan2(R[4]/cos(theta), R[0]/cos(theta));
-	}
-
-	// set x,y,z position for new module
-	x = this->bot[attNum]->pos[0] + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2];
-	y = this->bot[attNum]->pos[1] + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2];
-	z = this->bot[attNum]->pos[2] + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2];
+    // extract euler angles from rotation matrix
+    this->euler_angles_from_rotation_matrix(R, psi, theta, phi);
 
 	// build new module
-	this->iMobotBuild(botNum, x, y, z, R2D(psi), R2D(theta), R2D(phi), r_le, r_lb, r_rb, r_re);
+    this->bot[botNum]->build(this->bot[attNum]->getPosition(0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
+                             this->bot[attNum]->getPosition(1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
+                             this->bot[attNum]->getPosition(2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
+                             R2D(psi), R2D(theta), R2D(phi), r_le, r_lb, r_rb, r_re);
 
-	// add fixed joint to attach two modules
-	dJointID joint = dJointCreateFixed(this->world, 0);
-	dJointAttach(joint, this->bot[attNum]->body[face1_part]->getBodyID(), this->bot[botNum]->body[face2_part]->getBodyID());
-	dJointSetFixed(joint);
-	dJointSetFixedParam(joint, dParamCFM, 0);
-	dJointSetFixedParam(joint, dParamERP, 0.9);
+    // add fixed joint to attach two modules
+    this->create_fixed_joint(attNum, face1, botNum, face2);
 }
 
 void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// initialize variables
-	int face1_part, face2_part;
-	dReal x, y, z, psi, theta, phi, r_e, r_b, m[3];
+	dReal psi, theta, phi, r_e, r_b, m[3];
 	dMatrix3 R, R1, R2, R3, R4, R5, R6, R7, R8, R9, R_att;
 
 	// generate rotation matrix for base robot
-	rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->rot[0], this->bot[attNum]->rot[1], this->bot[attNum]->rot[2]);
+    rotation_matrix_from_euler_angles(R_att, this->bot[attNum]->getRotation(0), this->bot[attNum]->getRotation(1), this->bot[attNum]->getRotation(2));
 
 	// rotation of body about fixed point
 	if ( face2 == 1 ) {
@@ -2556,16 +2057,12 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 	}
 
 	if ( face1 == 1 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], r_e);
 		dMultiply0(R8, R7, R6, 3, 3, 3);
@@ -2573,8 +2070,8 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		dMultiply0(R, R9, R8, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_e);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2585,23 +2082,19 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[8]*(-2*END_DEPTH) + R5[8]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2610,23 +2103,19 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2635,23 +2124,19 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2660,23 +2145,19 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2685,16 +2166,12 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 1 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_L;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], -r_e);
 		dMultiply0(R8, R7, R6, 3, 3, 3);
@@ -2702,8 +2179,8 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		dMultiply0(R, R9, R8, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->cur_ang[LE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -this->bot[attNum]->getCurrentAngle(LE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_e);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2714,14 +2191,10 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[8]*(-2*END_DEPTH) + R5[8]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2729,7 +2202,7 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
@@ -2739,20 +2212,16 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) 								+ R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
-		// generate rotation matrix
+        // generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -2760,18 +2229,14 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH					+ R3[0]*(0.5*CENTER_LENGTH);
@@ -2779,20 +2244,16 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =										+ R3[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH					+ R3[0]*(0.5*CENTER_LENGTH);
@@ -2800,18 +2261,14 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =										+ R3[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -2819,14 +2276,10 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 2 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2834,7 +2287,7 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
@@ -2844,14 +2297,10 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2859,7 +2308,7 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
@@ -2869,18 +2318,14 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R3[9]*(BODY_END_DEPTH + BODY_LENGTH) + R5[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH				+ R3[0]*(0.5*CENTER_LENGTH);
@@ -2888,20 +2333,16 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =									+ R3[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -2909,18 +2350,14 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH	+	2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -2928,20 +2365,16 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =							2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)					+ R3[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = -0.5*CENTER_LENGTH				+ R3[0]*(0.5*CENTER_LENGTH);
@@ -2949,14 +2382,10 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =									+ R3[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 3 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_L;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(LB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2964,7 +2393,7 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->cur_ang[LB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, this->bot[attNum]->getCurrentAngle(LB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
@@ -2974,14 +2403,10 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + 							 R3[9]*(BODY_END_DEPTH + BODY_LENGTH) + R5[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2989,7 +2414,7 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
@@ -2999,20 +2424,16 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH				+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -3020,18 +2441,14 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =									+ R3[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[0]*(0.5*CENTER_LENGTH);
@@ -3039,20 +2456,16 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[0]*(0.5*CENTER_LENGTH);
@@ -3060,18 +2473,14 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH					+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -3079,14 +2488,10 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =										+ R3[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 4 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -3094,7 +2499,7 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
@@ -3104,14 +2509,10 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -3119,7 +2520,7 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
@@ -3129,18 +2530,14 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R3[9]*(BODY_END_DEPTH + BODY_LENGTH) + R5[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[0]*(0.5*CENTER_LENGTH);
@@ -3148,20 +2545,16 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH				+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -3169,18 +2562,14 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =									+ R3[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
-		// generate rotation matrix
-		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->cur_ang[RB]);
+        // generate rotation matrix
+		dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
 		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
 		dMultiply0(R, R3, R2, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH				+ R3[0]*(-0.5*CENTER_LENGTH);
@@ -3188,20 +2577,16 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =									+ R3[8]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
 		dMultiply0(R, R5, R4, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		m[0] = 0.5*CENTER_LENGTH	+	2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[0]*(0.5*CENTER_LENGTH);
@@ -3209,14 +2594,10 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =							2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)					+ R3[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 5 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = BODY_R;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
 		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
 		dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -3224,7 +2605,7 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
 		dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
@@ -3234,16 +2615,12 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 								 R3[9]*(BODY_END_DEPTH + BODY_LENGTH) + R5[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 1 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = ENDCAP_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], r_e);
 		dMultiply0(R8, R7, R6, 3, 3, 3);
@@ -3251,8 +2628,8 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		dMultiply0(R, R9, R8, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_e);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3263,23 +2640,19 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH) + R3[8]*(2*END_DEPTH) + R5[8]*(BODY_END_DEPTH + BODY_LENGTH) + R7[8]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 2 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3288,23 +2661,19 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 3 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_L;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3313,23 +2682,19 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 4 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3338,23 +2703,19 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[9]*(0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 5 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = BODY_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
 		dMultiply0(R, R7, R6, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3363,16 +2724,12 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[9]*(-0.5*CENTER_LENGTH);
 	}
 	else if ( face1 == 6 && face2 == 6 ) {
-		// set which body parts are to be connected
-		face1_part = ENDCAP_R;
-		face2_part = ENDCAP_R;
-
 		// generate rotation matrix
 		dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
 		dMultiply0(R2, R1, R_att, 3, 3, 3);
-		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->cur_ang[RB]);
+		dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], this->bot[attNum]->getCurrentAngle(RB));
 		dMultiply0(R4, R3, R2, 3, 3, 3);
-		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R6, R5, R4, 3, 3, 3);
 		dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], -r_e);
 		dMultiply0(R8, R7, R6, 3, 3, 3);
@@ -3380,8 +2737,8 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		dMultiply0(R, R9, R8, 3, 3, 3);
 
 		// generate offset for mass center of new module
-		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->cur_ang[RB]);
-		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->cur_ang[RE]);
+		dRFromAxisAndAngle(R1, 0, 1, 0, -this->bot[attNum]->getCurrentAngle(RB));
+		dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], this->bot[attNum]->getCurrentAngle(RE));
 		dMultiply0(R3, R2, R1, 3, 3, 3);
 		dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_e);
 		dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -3392,38 +2749,18 @@ void CiMobotFD::imobot_build_attached_11(int botNum, int attNum, int face1, int 
 		m[2] =						R1[8]*(BODY_LENGTH + BODY_END_DEPTH) + R3[8]*(2*END_DEPTH) + R5[8]*(BODY_END_DEPTH + BODY_LENGTH) + R7[8]*(0.5*CENTER_LENGTH);
 	}
 
-	// extract Euler Angles from rotation matrix
-	if ( fabs(R[8]-1) < DBL_EPSILON ) {			// R_31 == 1; theta = M_PI/2
-		psi = atan2(-R[1], -R[2]);
-		theta = M_PI/2;
-		phi = 0;
-	}
-	else if ( fabs(R[8]+1) < DBL_EPSILON ) {	// R_31 == -1; theta = -M_PI/2
-		psi = atan2(R[1], R[2]);
-		theta = -M_PI/2;
-		phi = 0;
-	}
-	else {
-		theta = asin(R[8]);
-		psi = atan2(R[9]/cos(theta), R[10]/cos(theta));
-		phi = atan2(R[4]/cos(theta), R[0]/cos(theta));
-	}
-
-	// set x,y,z position for new module
-	x = this->bot[attNum]->pos[0] + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2];
-	y = this->bot[attNum]->pos[1] + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2];
-	z = this->bot[attNum]->pos[2] + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2];
+	// extract euler angles from rotation matrix
+    this->euler_angles_from_rotation_matrix(R, psi, theta, phi);
 
 	// build new module
-	this->iMobotBuild(botNum, x, y, z, R2D(psi), R2D(theta), R2D(phi), r_le, r_lb, r_rb, r_re);
+    this->bot[botNum]->build(this->bot[attNum]->getPosition(0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
+                             this->bot[attNum]->getPosition(1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
+                             this->bot[attNum]->getPosition(2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
+                             R2D(psi), R2D(theta), R2D(phi), r_le, r_lb, r_rb, r_re);
 
 	// add fixed joint to attach two modules
-	dJointID joint = dJointCreateFixed(this->world, 0);
-	dJointAttach(joint, this->bot[attNum]->body[face1_part]->getBodyID(), this->bot[botNum]->body[face2_part]->getBodyID());
-	dJointSetFixed(joint);
-	dJointSetFixedParam(joint, dParamCFM, 0);
-	dJointSetFixedParam(joint, dParamERP, 0.9);
-}*/
+    this->create_fixed_joint(attNum, face1, botNum, face2);
+}
 
 /**********************************************************
 	Utility Functions
@@ -3444,6 +2781,50 @@ bool CiMobotFD::is_true(int length, bool *a) {
 	return true;
 }
 
+void CiMobotFD::create_fixed_joint(int att_num, int face1, int bot_num, int face2) {
+    int part1, part2;
+
+    switch (face1) {
+        case 1:
+            part1 = ENDCAP_L;
+            break;
+        case 2:
+        case 3:
+            part1 = BODY_L;
+            break;
+        case 4:
+        case 5:
+            part1 = BODY_R;
+            break;
+        case 6:
+            part1 = ENDCAP_R;
+            break;
+    }
+    switch (face2) {
+        case 1:
+            part2 = ENDCAP_L;
+            break;
+        case 2:
+        case 3:
+            part2 = BODY_L;
+            break;
+        case 4:
+        case 5:
+            part2 = BODY_R;
+            break;
+        case 6:
+            part2 = ENDCAP_R;
+            break;
+    }
+
+    dJointID joint = dJointCreateFixed(this->world, 0);
+    if ( att_num == -1 ) dJointAttach(joint, 0, this->bot[bot_num]->getBodyID(part2));
+    else dJointAttach(joint, this->bot[att_num]->getBodyID(part1), this->bot[bot_num]->getBodyID(part2));
+    dJointSetFixed(joint);
+    dJointSetFixedParam(joint, dParamCFM, 0);
+    dJointSetFixedParam(joint, dParamERP, 0.9);
+}
+
 void CiMobotFD::rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
 	dReal	sphi = sin(phi), 		cphi = cos(phi),
 			stheta = sin(theta),	ctheta = cos(theta),
@@ -3461,6 +2842,24 @@ void CiMobotFD::rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal t
 	R[9] =  ctheta*spsi;
 	R[10] = ctheta*cpsi;
 	R[11] = 0;
+}
+
+void CiMobotFD::euler_angles_from_rotation_matrix(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi) {
+    if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
+        psi = atan2(-R[1], -R[2]);
+        theta = M_PI/2;
+        phi = 0;
+    }
+    else if ( fabs(R[8]+1) < DBL_EPSILON ) {    // R_31 == -1; theta = -M_PI/2
+        psi = atan2(R[1], R[2]);
+        theta = -M_PI/2;
+        phi = 0;
+    }
+    else {
+        theta = asin(R[8]);
+        psi = atan2(R[9]/cos(theta), R[10]/cos(theta));
+        phi = atan2(R[4]/cos(theta), R[0]/cos(theta));
+    }
 }
 
 #ifdef ENABLE_DRAWSTUFF

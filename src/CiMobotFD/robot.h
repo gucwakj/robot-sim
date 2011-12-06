@@ -31,6 +31,8 @@ class Robot {
         void setAngularVelocity(dReal *vel);
 
         dReal getCurrentAngle(int j);
+        dReal getPosition(int i);
+        dReal getRotation(int i);
         dBodyID getBodyID(int body);
         dJointID getMotorID(int motor);
 

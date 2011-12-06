@@ -91,6 +91,14 @@ dReal Robot::getCurrentAngle(int j) {
     return this->cur_ang[j];
 }
 
+dReal Robot::getPosition(int i) {
+    return this->pos[i];
+}
+
+dReal Robot::getRotation(int i) {
+    return this->rot[i];
+}
+
 dBodyID Robot::getBodyID(int body) {
     return this->body[body]->getBodyID();
 }
