@@ -3,7 +3,7 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CiMobotFD *fd = new CiMobotFD(2, 1, 1, 1);
+	CiMobotFD *fd = new CiMobotFD(2, 1, 2, 1);
 
     dReal ang[] = { 0, 45, 45, 0, 0, 0, 0, 0};
     fd->setAngles(ang);
@@ -12,6 +12,7 @@ int main(int argc, char *argv[]) {
     fd->setTarget(0, -0.1, 0.0, 0.10);
 
 	fd->groundPlane(0, 0, 0, 1, 0);
+    fd->groundSphere(1, 0.3, 1, 2, 0);
 
 	fd->iMobotBuild(0, 0, 0, 0, 0, 0, 0);
     fd->iMobotBuildAttached(1, 0, 6, 1);

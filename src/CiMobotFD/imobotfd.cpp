@@ -172,6 +172,7 @@ void CiMobotFD::ds_simulationLoop(int pause) {
 	this->end_simulation(loop);										// check whether to end simulation
 
 	this->ds_drawBodies();											// draw bodies onto screen
+    this->ds_drawGround();                                          // draw ground onto screen
     this->ds_drawTargets();                                         // draw targets onto screen
 	if ((this->m_t_cur_step == this->m_t_tot_step+1) || !loop) dsStop();// stop simulation
 }
@@ -2862,6 +2863,34 @@ void CiMobotFD::ds_drawTargets(void) {
         const dReal *rotation = dGeomGetRotation(this->target[i].geomID);     // get rotation
         dReal r = dGeomSphereGetRadius(this->target[i].geomID);
         dsDrawSphere(position, rotation, r);
+    }
+}
+
+void CiMobotFD::ds_drawGround(void) {
+    for (int i = 1; i < this->m_num_gnd; i++) {
+        const dReal *position = dGeomGetPosition(this->m_ground[i]);     // get position
+        const dReal *rotation = dGeomGetRotation(this->m_ground[i]);     // get rotation
+        dReal r, l;
+        dVector3 sides;
+
+        switch (dGeomGetClass(this->m_ground[i])) {
+            case dSphereClass:
+                r = dGeomSphereGetRadius(this->m_ground[i]);
+                dsDrawSphere(position, rotation, r);
+                break;
+            case dBoxClass:
+                dGeomBoxGetLengths(this->m_ground[i], sides);
+                dsDrawBox(position, rotation, sides);
+                break;
+            case dCylinderClass:
+                dGeomCylinderGetParams(this->m_ground[i], &r, &l);
+                dsDrawCylinder(position, rotation, l, r);
+                break;
+            case dCapsuleClass:
+                dGeomCapsuleGetParams(this->m_ground[i], &r, &l);
+                dsDrawCapsule(position, rotation, l, r);
+                break;
+        }
     }
 }
 

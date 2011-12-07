@@ -83,8 +83,9 @@ class CiMobotFD {
 
 		// simulation functions
 		#ifdef ENABLE_DRAWSTUFF
-		void ds_drawBodies(void);					// draw all of the bodies
 		void ds_start(void);						// initialization of drawstuff scene
+        void ds_drawBodies(void);                   // draw all of the bodies
+        void ds_drawGround(void);                   // draw ground objects
         void ds_drawTargets(void);                  // draw sphere at each target
 		void ds_command(int cmd);					// keyboard commands for ds
 		void ds_simulationLoop(int pause);			// callback function for simulation
