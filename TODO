@@ -4,8 +4,7 @@ General:
 	demos dir with ik_*.cpp and fd_*.cpp
 	docs/, AUTHORS, README
 	build class
-		rename CiMobotSim to CiMobotFD
-		create CiMobotBuild class to allow one build function per demo program
+		create CiMobotSim class to allow one build function per demo program
 	CMakeLists.txt much smaller than cimobotsim_test/*
 
 Forward Dynamics:
@@ -45,12 +44,6 @@ Forward Dynamics:
 	New features from David
 		PID
 		Mismatched endcap rotation
-	Implement bot as class not struct
-		similar to IK classes, cleans up sim.cpp file
-    target functions
-        setTargetPosition()
-        setTargetOrientation()
-        drawTarget()
 
 Inverse Kinematics:
 	cleaner implementation of Jacobian type passing
