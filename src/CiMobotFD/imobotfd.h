@@ -12,16 +12,22 @@ enum simulation_reply_message_e {
 
 class CiMobotFD {
 	public:
-        CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets);
+        CiMobotFD(int num_bot, int num_stp);
 		~CiMobotFD(void);
 
 		// set simulation variables
         void setAngles(dReal *ang);
-		void setAngularVelocity(dReal *vel);
-		void setMu(dReal mu_g, dReal mu_b);
-		void setCOR(dReal cor_g, dReal cor_b);
+        void setAngularVelocity(dReal *vel);
+        void setCOR(dReal cor_g, dReal cor_b);
+        void setMu(dReal mu_g, dReal mu_b);
+        void setNumStatics(int num_statics);
+        void setNumTargets(int num_targets);
+        void setStaticBox(int num, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
+        void setStaticCapsule(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
+        void setStaticCylinder(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
+        void setStaticSphere(int num, dReal r, dReal px, dReal py, dReal pz);
         void setTime(dReal time_total);
-        void setTarget(int num, double x, double y, double z);
+        void setTarget(int num, dReal x, dReal y, dReal z);
 
 		// build models of iMobot
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z);
@@ -30,13 +36,6 @@ class CiMobotFD {
 		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2);
 		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
         void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-
-		// build ground out of simple objects
-		void groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
-		void groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
-		void groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
-		void groundPlane(int gndNum, dReal a, dReal b, dReal c, dReal d);
-		void groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz);
 
 		// run the simulation
 		void runSimulation(int argc, char **argv);
@@ -59,18 +58,19 @@ class CiMobotFD {
 		dWorldID world;								// world in which simulation occurs
 		dSpaceID space;								// space for robots in which to live
 		dJointGroupID group;                        // group to store joints
-		dGeomID *m_ground;                          // array of ground objects
+		dGeomID ground;                             // ground plane
+		dGeomID *m_statics;                         // array of ground objects
 		Robot **bot;                                // array of robots in simulation
 		CiMobotFDReply *m_reply;					// struct of data to return after finishing simulation
-		CiMobotFDTarget *target;                    // array of targets
+		CiMobotFDTarget *m_targets;                 // array of targets
 		dReal	m_t_step,							// time of each step of simulation
 				m_mu_g,								// coefficient of friction of body_ground
 				m_mu_b,								// coefficient of friction of body_body
 				m_cor_g,							// coefficient of restitution of body_ground
 				m_cor_b;							// coefficient of restitution of body_body
 		int		m_num_bot,							// number of modules in simulation
-				m_num_gnd,							// number of pieces of ground
-				m_num_stp,							// total number of steps
+                m_num_stp,							// total number of steps
+                m_num_statics,                      // number of pieces of ground
                 m_num_targets,                      // total number of targets
 				m_cur_stp,							// current step number
 				m_t_tot_step,						// total number of time steps
@@ -85,7 +85,7 @@ class CiMobotFD {
 		#ifdef ENABLE_DRAWSTUFF
 		void ds_start(void);						// initialization of drawstuff scene
         void ds_drawBodies(void);                   // draw all of the bodies
-        void ds_drawGround(void);                   // draw ground objects
+        void ds_drawStatics(void);                  // draw ground objects
         void ds_drawTargets(void);                  // draw sphere at each target
 		void ds_command(int cmd);					// keyboard commands for ds
 		void ds_simulationLoop(int pause);			// callback function for simulation

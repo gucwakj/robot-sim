@@ -10,12 +10,13 @@ using namespace std;
 CiMobotFD *g_imobotfd;
 #endif
 
-CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets) {
+CiMobotFD::CiMobotFD(int num_bot, int num_stp) {
     // create ODE simulation space
     dInitODE2(0);                                               // initialized ode library
     this->world = dWorldCreate();                               // create world for simulation
     this->space = dHashSpaceCreate(0);                          // create space for robots
-    this->group = dJointGroupCreate(0);
+    this->group = dJointGroupCreate(0);                         // create group for joints
+    this->ground = dCreatePlane(this->space, 0, 0, 1, 0);       // create ground plane
 
     // simulation parameters
     dWorldSetAutoDisableFlag(this->world, 1);                   // auto-disable bodies that are not moving
@@ -27,13 +28,7 @@ CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets) {
     dWorldSetERP(this->world, 0.95);                            // error reduction parameter (0-1) - how much error is corrected on each step
     dWorldSetGravity(this->world, 0, 0, -9.81);                 // gravity
 
-	// values for simulation passed into constructor
-	this->m_num_bot = num_bot;
-	this->m_num_stp = num_stp;
-	this->m_num_gnd = num_gnd;
-    this->m_num_targets = num_targets;
-
-	// default simulation parameters
+	// default collision parameters
 	this->m_mu_g = 0.4;
 	this->m_mu_b = 0.3;
 	this->m_cor_g = 0.3;
@@ -45,9 +40,11 @@ CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets) {
 	this->m_t_tot_step = (int)((1.0 + this->m_t_step) / this->m_t_step);
 	this->m_t_cur_step = 0;
 	this->m_flag_comp = new bool[num_bot];
-	this->m_flag_disable = new bool[num_bot];
-	this->m_ground = new dGeomID[num_gnd];
-    this->target = new CiMobotFDTarget[num_targets];
+    this->m_flag_disable = new bool[num_bot];
+    this->m_num_bot = num_bot;
+    this->m_num_stp = num_stp;
+    this->m_num_statics = 0;
+    this->m_num_targets = 0;
 
 	// create instance for each module in simulation
     this->bot = new Robot * [num_bot];
@@ -78,8 +75,8 @@ CiMobotFD::~CiMobotFD(void) {
 	delete [] this->bot;
 	delete [] this->m_flag_comp;
 	delete [] this->m_flag_disable;
-	delete [] this->m_ground;
-    delete [] this->target;
+	if ( this->m_num_statics ) delete [] this->m_statics;
+    if ( this->m_num_targets ) delete [] this->m_targets;
 	delete this->m_reply;
 
 	// destroy all ODE objects
@@ -122,17 +119,77 @@ void CiMobotFD::setMu(dReal mu_g, dReal mu_b) {
 	this->m_mu_b = mu_b;
 }
 
-void CiMobotFD::setTime(dReal time_total) {
-	this->m_t_tot_step = (int)((time_total + this->m_t_step) / this->m_t_step);
+void CiMobotFD::setNumStatics(int num_statics) {
+    this->m_num_statics = num_statics;
+    this->m_statics = new dGeomID[num_statics];
 }
 
-void CiMobotFD::setTarget(int num, double x, double y, double z) {
-    this->target[num].x = x;
-    this->target[num].y = y;
-    this->target[num].z = z;
-    this->target[num].geomID = dCreateSphere(this->space, 0.01);
-    dGeomSetPosition(this->target[num].geomID, x, y, z);
-    dGeomDisable(this->target[num].geomID);
+void CiMobotFD::setNumTargets(int num_targets) {
+    this->m_num_targets = num_targets;
+    this->m_targets = new CiMobotFDTarget[num_targets];
+}
+
+void CiMobotFD::setStaticBox(int num, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+    // create rotation matrix
+    dMatrix3 R, R_x, R_y, R_z, R_xy;
+    dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+    dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+    dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+    dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+    dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+    // position box
+    this->m_statics[num] = dCreateBox(this->space, lx, ly, lz);
+    dGeomSetPosition(this->m_statics[num], px, py, pz);
+    dGeomSetRotation(this->m_statics[num], R);
+}
+
+void CiMobotFD::setStaticCapsule(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+    // create rotation matrix
+    dMatrix3 R, R_x, R_y, R_z, R_xy;
+    dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+    dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+    dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+    dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+    dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+    // position capsule
+    this->m_statics[num] = dCreateCapsule(this->space, r, l);
+    dGeomSetPosition(this->m_statics[num], px, py, pz);
+    dGeomSetRotation(this->m_statics[num], R);
+}
+
+void CiMobotFD::setStaticCylinder(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+    // create rotation matrix
+    dMatrix3 R, R_x, R_y, R_z, R_xy;
+    dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+    dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+    dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+    dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+    dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+    // position cylinder
+    this->m_statics[num] = dCreateCylinder(this->space, r, l);
+    dGeomSetPosition(this->m_statics[num], px, py, pz);
+    dGeomSetRotation(this->m_statics[num], R);
+}
+
+void CiMobotFD::setStaticSphere(int num, dReal r, dReal px, dReal py, dReal pz) {
+    this->m_statics[num] = dCreateSphere(this->space, r);
+    dGeomSetPosition(this->m_statics[num], px, py, pz);
+}
+
+void CiMobotFD::setTarget(int num, dReal x, dReal y, dReal z) {
+    this->m_targets[num].x = x;
+    this->m_targets[num].y = y;
+    this->m_targets[num].z = z;
+    this->m_targets[num].geomID = dCreateSphere(this->space, 0.01);
+    dGeomSetPosition(this->m_targets[num].geomID, x, y, z);
+    dGeomDisable(this->m_targets[num].geomID);
+}
+
+void CiMobotFD::setTime(dReal time_total) {
+	this->m_t_tot_step = (int)((time_total + this->m_t_step) / this->m_t_step);
 }
 
 void CiMobotFD::runSimulation(int argc, char **argv) {
@@ -172,7 +229,7 @@ void CiMobotFD::ds_simulationLoop(int pause) {
 	this->end_simulation(loop);										// check whether to end simulation
 
 	this->ds_drawBodies();											// draw bodies onto screen
-    this->ds_drawGround();                                          // draw ground onto screen
+    this->ds_drawStatics();                                         // draw ground onto screen
     this->ds_drawTargets();                                         // draw targets onto screen
 	if ((this->m_t_cur_step == this->m_t_tot_step+1) || !loop) dsStop();// stop simulation
 }
@@ -391,63 +448,6 @@ void CiMobotFD::end_simulation(bool &loop) {
 	}
 	// success on all steps
 	else if ( !this->m_reply->message ) { loop = false; }
-}
-
-/**********************************************************
-	Ground Functions
- **********************************************************/
-void CiMobotFD::groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
-	// create rotation matrix
-	dMatrix3 R, R_x, R_y, R_z, R_xy;
-	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
-	dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
-	dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
-	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
-	dMultiply0(R, R_xy, R_z, 3, 3, 3);
-
-	// position box
-	this->m_ground[gndNum] = dCreateBox(this->space, lx, ly, lz);
-	dGeomSetPosition(this->m_ground[gndNum], px, py, pz);
-	dGeomSetRotation(this->m_ground[gndNum], R);
-}
-
-void CiMobotFD::groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
-	// create rotation matrix
-	dMatrix3 R, R_x, R_y, R_z, R_xy;
-	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
-	dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
-	dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
-	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
-	dMultiply0(R, R_xy, R_z, 3, 3, 3);
-
-	// position capsule
-	this->m_ground[gndNum] = dCreateCapsule(this->space, r, l);
-	dGeomSetPosition(this->m_ground[gndNum], px, py, pz);
-	dGeomSetRotation(this->m_ground[gndNum], R);
-}
-
-void CiMobotFD::groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
-	// create rotation matrix
-	dMatrix3 R, R_x, R_y, R_z, R_xy;
-	dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
-	dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
-	dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
-	dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
-	dMultiply0(R, R_xy, R_z, 3, 3, 3);
-
-	// position cylinder
-	this->m_ground[gndNum] = dCreateCylinder(this->space, r, l);
-	dGeomSetPosition(this->m_ground[gndNum], px, py, pz);
-	dGeomSetRotation(this->m_ground[gndNum], R);
-}
-
-void CiMobotFD::groundPlane(int gndNum, dReal a, dReal b, dReal c, dReal d) {
-	this->m_ground[gndNum] = dCreatePlane(this->space, a, b, c, d);
-}
-
-void CiMobotFD::groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz) {
-	this->m_ground[gndNum] = dCreateSphere(this->space, r);
-	dGeomSetPosition(this->m_ground[gndNum], px, py, pz);
 }
 
 /*void CiMobotFD::imobot_build_effector(dSpaceID &space, CiMobotFDPart &part, dReal x, dReal y, dReal z, dMatrix3 R, int rebuild) {
@@ -2856,41 +2856,41 @@ void CiMobotFD::ds_drawBodies(void) {
     }
 }
 
-void CiMobotFD::ds_drawTargets(void) {
-    for (int i = 0; i < this->m_num_targets; i++) {
-        dsSetColor(1, 0, 0);
-        const dReal *position = dGeomGetPosition(this->target[i].geomID);     // get position
-        const dReal *rotation = dGeomGetRotation(this->target[i].geomID);     // get rotation
-        dReal r = dGeomSphereGetRadius(this->target[i].geomID);
-        dsDrawSphere(position, rotation, r);
-    }
-}
-
-void CiMobotFD::ds_drawGround(void) {
-    for (int i = 1; i < this->m_num_gnd; i++) {
-        const dReal *position = dGeomGetPosition(this->m_ground[i]);     // get position
-        const dReal *rotation = dGeomGetRotation(this->m_ground[i]);     // get rotation
+void CiMobotFD::ds_drawStatics(void) {
+    for (int i = 0; i < this->m_num_statics; i++) {
+        const dReal *position = dGeomGetPosition(this->m_statics[i]);     // get position
+        const dReal *rotation = dGeomGetRotation(this->m_statics[i]);     // get rotation
         dReal r, l;
         dVector3 sides;
-
-        switch (dGeomGetClass(this->m_ground[i])) {
+        dsSetColor(0.5, 0.5, 0.5);
+        switch (dGeomGetClass(this->m_statics[i])) {
             case dSphereClass:
-                r = dGeomSphereGetRadius(this->m_ground[i]);
+                r = dGeomSphereGetRadius(this->m_statics[i]);
                 dsDrawSphere(position, rotation, r);
                 break;
             case dBoxClass:
-                dGeomBoxGetLengths(this->m_ground[i], sides);
+                dGeomBoxGetLengths(this->m_statics[i], sides);
                 dsDrawBox(position, rotation, sides);
                 break;
             case dCylinderClass:
-                dGeomCylinderGetParams(this->m_ground[i], &r, &l);
+                dGeomCylinderGetParams(this->m_statics[i], &r, &l);
                 dsDrawCylinder(position, rotation, l, r);
                 break;
             case dCapsuleClass:
-                dGeomCapsuleGetParams(this->m_ground[i], &r, &l);
+                dGeomCapsuleGetParams(this->m_statics[i], &r, &l);
                 dsDrawCapsule(position, rotation, l, r);
                 break;
         }
+    }
+}
+
+void CiMobotFD::ds_drawTargets(void) {
+    for (int i = 0; i < this->m_num_targets; i++) {
+        const dReal *position = dGeomGetPosition(this->m_targets[i].geomID);     // get position
+        const dReal *rotation = dGeomGetRotation(this->m_targets[i].geomID);     // get rotation
+        dReal r = dGeomSphereGetRadius(this->m_targets[i].geomID);
+        dsSetColor(1, 0, 0);
+        dsDrawSphere(position, rotation, r);
     }
 }
 
