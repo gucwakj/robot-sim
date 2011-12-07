@@ -38,6 +38,10 @@ class Robot {
 
         void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
         void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+        void buildAttached00(Robot *attach, int face1, int face2);
+        void buildAttached10(Robot *attach, int face1, int face2);
+        void buildAttached01(Robot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+        void buildAttached11(Robot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
         void enable(void);
         void resetPID(int i = NUM_DOF);
@@ -60,25 +64,26 @@ class Robot {
                  *motors;                       // motors to drive body parts
         Body     **body;                        // body parts
         PID      *pid;                          // PID control for each joint
+        double   m_motor_res,                   // motor angle resolution
+                 *pos,                          // initial position of robot
+                 *rot,                          // initial rotation of robot by three Euler angles
+                 *ang,                          // array of angles
+                 *vel,                          // array of velocities
+                 *ori,                          // initial orientation of body parts
+                 *cur_ang,                      // current angle of each body part
+                 *fut_ang,                      // future angle being driven toward
+                 *jnt_vel,                      // desired joint velocity
+                 *m_joint_vel_max,              // maximum joint velocity possible
+                 *m_joint_vel_min,              // minimum joint velocity possible
+                 *m_joint_frc_max;              // maximum force that can be applied to each body part
+        int      m_num_stp;
 
-        double  m_motor_res,                    // motor angle resolution
-                *pos,                           // initial position of robot
-                *rot,                           // initial rotation of robot by three Euler angles
-                *ang,                           // array of angles
-                *vel,                           // array of velocities
-                *ori,                           // initial orientation of body parts
-                *cur_ang,                       // current angle of each body part
-                *fut_ang,                       // future angle being driven toward
-                *jnt_vel,                       // desired joint velocity
-                *m_joint_vel_max,               // maximum joint velocity possible
-                *m_joint_vel_min,               // minimum joint velocity possible
-                *m_joint_frc_max;               // maximum force that can be applied to each body part
-        int m_num_stp;
-
-        inline dReal D2R(dReal x);              // convert degrees to radians
-        inline dReal R2D(dReal x);              // convert radians to degrees
-        dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);         // modify angle from ODE for endcaps to count continuously
-        void rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi);// create rotation matrix from euler angles
+        dReal D2R(dReal x);              // convert degrees to radians
+        dReal R2D(dReal x);              // convert radians to degrees
+        dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
+        void create_fixed_joint(Robot *attach, int face1, int face2);                   // create fixed joint between modules
+        void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);     // get rotation matrix from euler angles
+        void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);    // get euler angles from rotation matrix
 };
 
 #endif  /* ROBOT_H_ */

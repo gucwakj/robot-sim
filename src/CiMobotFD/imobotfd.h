@@ -1,5 +1,5 @@
-#ifndef CIMOBOTSIM_H_
-#define CIMOBOTSIM_H_
+#ifndef CIMOBOTFD_H_
+#define CIMOBOTFD_H_
 
 #include <iostream>
 #include "robot.h"
@@ -35,7 +35,7 @@ class CiMobotFD {
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2);
 		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-        void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+        //void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		// run the simulation
 		void runSimulation(int argc, char **argv);
@@ -43,7 +43,6 @@ class CiMobotFD {
 		// return message on completion
 		int getReplyMessage(void);
 		double getReplyTime(void);
-
 	private:
 		typedef struct cimobotfdreply_s {			// information on success to reply
 			dReal time;								// time to successful completion
@@ -63,7 +62,7 @@ class CiMobotFD {
 		Robot **bot;                                // array of robots in simulation
 		CiMobotFDReply *m_reply;					// struct of data to return after finishing simulation
 		CiMobotFDTarget *m_targets;                 // array of targets
-		dReal	m_t_step,							// time of each step of simulation
+		dReal   m_t_step,							// time of each step of simulation
 				m_mu_g,								// coefficient of friction of body_ground
 				m_mu_b,								// coefficient of friction of body_body
 				m_cor_g,							// coefficient of restitution of body_ground
@@ -101,19 +100,7 @@ class CiMobotFD {
 		void collision(dGeomID o1, dGeomID o2);		// callback function for contact of bodies
 		static void collision_wrapper(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 
-        // build functions
-		void imobot_build_attached_00(int botNum, int attNum, int face1, int face2);
-		void imobot_build_attached_10(int botNum, int attNum, int face1, int face2);
-		void imobot_build_attached_01(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		void imobot_build_attached_11(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-
-        void create_fixed_joint(int att_num, int face1, int bot_num, int face2);                    // create fixed joint between modules
-        void euler_angles_from_rotation_matrix(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);   // get euler angles from rotation matrix
-        void rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi);      // get rotation matrix from euler angles
-
         // utility functions
-		inline dReal D2R(dReal x);			// convert degrees to radians
-		inline dReal R2D(dReal x);			// convert radians to degrees
 		bool is_true(int length, bool *a);	// check if all values in array are true
 };
 
