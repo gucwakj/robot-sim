@@ -477,7 +477,7 @@ void CiMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2
         this->bot[botNum]->buildAttached11(this->bot[attNum], face1, face2, r_le, r_lb, r_rb, r_re);
 }
 
-/*void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     if ( end == ENDCAP_L )
         this->iMobotBuild(botNum, x + END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
     else
@@ -489,7 +489,7 @@ void CiMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2
     dJointSetFixed(joint);
     dJointSetFixedParam(joint, dParamCFM, 0);
     dJointSetFixedParam(joint, dParamERP, 0.9);
-}*/
+}
 
 /**********************************************************
 	Utility Functions

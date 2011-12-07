@@ -35,10 +35,10 @@ int main(int argc, char *argv[]) {
     }
 
     cout << "Forward Dynamics...";
-    CiMobotFD *fd = new CiMobotFD(2, 8, 1, 1, ang);
+    CiMobotFD *fd = new CiMobotFD(2, 8);
     fd->setTime(5);
+	fd->setNumTargets(1);
     fd->setTarget(0, 0.35, -0.10, 0.15+0.2);
-	fd->groundPlane(0, 0, 0, 1, 0);
     fd->iMobotAnchor(0, ENDCAP_L, 0, 0, 0.2-BODY_HEIGHT/2, 0, 0, 0, 0, 0, 0, 0);
     fd->iMobotBuildAttached(1, 0, 6, 1, 0, 0, 0, 0);
     fd->runSimulation(argc, argv);
