@@ -14,10 +14,10 @@ enum robot_bodies_e {       // each body which has a degree of freedom
 };
 
 enum robot_pieces_e {       // each body part which is built
-    BODY_L,
-    BODY_R,
-    CENTER,
     ENDCAP_L,
+    BODY_L,
+    CENTER,
+    BODY_R,
     ENDCAP_R,
     NUM_PARTS
 };
@@ -30,7 +30,7 @@ class Robot {
         void setAngles(dReal *ang);
         void setAngularVelocity(dReal *vel);
 
-        dReal getCurrentAngle(int j);
+        dReal getCurrentAngle(int i);
         dReal getPosition(int i);
         dReal getRotation(int i);
         dBodyID getBodyID(int body);
@@ -38,17 +38,17 @@ class Robot {
 
         void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
         void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-        //void buildAttached(int attNum, int face1, int face2);
-        //void buildAttached(int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+
+        void enable(void);
+        void resetPID(int i = NUM_DOF);
+        void updateCurrentAngle(int i);
+        void updateFutureAngle(int i, int current_step, int enable);
+        void updateJointVelocity(int i, int current_step);
+        void updateMotorSpeed(int i);
 
         bool isDisabled(void);
-        bool isJointDisabled(int j, int current_step);
-        void enable(void);
-        void resetPID(int joint = NUM_DOF);
-        void updateCurrentAngle(int j);
-        void updateFutureAngle(int j, int current_step, int enable);
-        void updateJointVelocity(int j, int current_step);
-        void updateMotorSpeed(int j);
+        bool isJointDisabled(int i, int current_step);
+        bool isHome(void);
 
         #ifdef ENABLE_DRAWSTUFF
         void drawRobot(void);

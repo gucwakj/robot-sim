@@ -11,35 +11,6 @@ CiMobotFD *g_imobotfd;
 #endif
 
 CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets) {
-	// values for simulation passed into constructor
-	this->m_num_bot = num_bot;
-	this->m_num_stp = num_stp;
-	this->m_num_gnd = num_gnd;
-    this->m_num_targets = num_targets;
-
-	// default simulation parameters
-	this->m_mu_g = 0.4;
-	this->m_mu_b = 0.3;
-	this->m_cor_g = 0.3;
-	this->m_cor_b = 0.3;
-	this->m_t_total = 1.0;
-
-	// variables to keep track of progress of simulation
-	this->m_cur_stp = 0;
-	this->m_t = 0.0;
-	this->m_t_step = 0.004;
-	this->m_t_tot_step = (int)((this->m_t_total + this->m_t_step) / this->m_t_step);
-	this->m_t_cur_step = 0;
-	this->m_flag_comp = new bool[num_bot];
-	this->m_flag_disable = new bool[num_bot];
-	this->m_ground = new dGeomID[num_gnd];
-    this->target = new CiMobotFDTarget[num_targets];
-
-	// initialze reply struct
-	this->m_reply = new CiMobotFDReply;
-	this->m_reply->time = 0.0;
-	this->m_reply->message = FD_ERROR_TIME;
-
     // create ODE simulation space
     dInitODE2(0);                                               // initialized ode library
     this->world = dWorldCreate();                               // create world for simulation
@@ -56,11 +27,38 @@ CiMobotFD::CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets) {
     dWorldSetERP(this->world, 0.95);                            // error reduction parameter (0-1) - how much error is corrected on each step
     dWorldSetGravity(this->world, 0, 0, -9.81);                 // gravity
 
+	// values for simulation passed into constructor
+	this->m_num_bot = num_bot;
+	this->m_num_stp = num_stp;
+	this->m_num_gnd = num_gnd;
+    this->m_num_targets = num_targets;
+
+	// default simulation parameters
+	this->m_mu_g = 0.4;
+	this->m_mu_b = 0.3;
+	this->m_cor_g = 0.3;
+	this->m_cor_b = 0.3;
+
+	// variables to keep track of progress of simulation
+	this->m_cur_stp = 0;
+	this->m_t_step = 0.004;
+	this->m_t_tot_step = (int)((1.0 + this->m_t_step) / this->m_t_step);
+	this->m_t_cur_step = 0;
+	this->m_flag_comp = new bool[num_bot];
+	this->m_flag_disable = new bool[num_bot];
+	this->m_ground = new dGeomID[num_gnd];
+    this->target = new CiMobotFDTarget[num_targets];
+
 	// create instance for each module in simulation
     this->bot = new Robot * [num_bot];
     for ( int i = 0; i < num_bot; i++ ) {
         this->bot[i] = new Robot(this->world, this->space, num_stp);
     }
+
+    // initialze reply struct
+    this->m_reply = new CiMobotFDReply;
+    this->m_reply->time = 0.0;
+    this->m_reply->message = FD_ERROR_TIME;
 
 	#ifdef ENABLE_DRAWSTUFF
 	// drawstuff simulation parameters
@@ -85,8 +83,7 @@ CiMobotFD::~CiMobotFD(void) {
 	delete this->m_reply;
 
 	// destroy all ODE objects
-	dJointGroupDestroy(group);
-	//for ( int i = 0; i < this->m_num_bot; i++ ) { dSpaceDestroy(this->space_bot[i]); }
+	dJointGroupDestroy(this->group);
 	dSpaceDestroy(this->space);
 	dWorldDestroy(this->world);
 	dCloseODE();
@@ -126,8 +123,7 @@ void CiMobotFD::setMu(dReal mu_g, dReal mu_b) {
 }
 
 void CiMobotFD::setTime(dReal time_total) {
-	this->m_t_total = time_total;
-	this->m_t_tot_step = (int)((this->m_t_total + this->m_t_step) / this->m_t_step);
+	this->m_t_tot_step = (int)((time_total + this->m_t_step) / this->m_t_step);
 }
 
 void CiMobotFD::setTarget(int num, double x, double y, double z) {
@@ -174,7 +170,6 @@ void CiMobotFD::ds_simulationLoop(int pause) {
 	this->set_flags();												// set flags for completion of steps
 	this->increment_step();											// check whether to increment to next step
 	this->end_simulation(loop);										// check whether to end simulation
-	this->increment_time();											// increment time
 
 	this->ds_drawBodies();											// draw bodies onto screen
     this->ds_drawTargets();                                         // draw targets onto screen
@@ -194,7 +189,6 @@ void CiMobotFD::simulation_loop(void) {
 		this->set_flags();											// set flags for completion of steps
 		this->increment_step();										// check whether to increment to next step
 		this->end_simulation(loop);									// check whether to end simulation
-		this->increment_time();										// increment time
 	}
 }
 #endif
@@ -293,7 +287,8 @@ void CiMobotFD::increment_step(void) {
 		// otherwise successfully reached last step
 		else {
 			this->m_reply->message = FD_SUCCESS;
-			this->m_reply->time = this->m_t;
+			//this->m_reply->time = this->m_t;
+            this->m_reply->time = this->m_t_cur_step*this->m_t_step;
 		}
 
 		// reset all flags to zero
@@ -303,6 +298,8 @@ void CiMobotFD::increment_step(void) {
             this->bot[i]->resetPID();
 		}
 	}
+	// increment time step
+	this->m_t_cur_step++;
 }
 
 void CiMobotFD::set_angles(void) {
@@ -331,7 +328,6 @@ void CiMobotFD::print_intermediate_data(void) {
 
 	//cout.width(3); cout << this->m_t_cur_step;
 	//cout.width(4); cout << this->m_t_tot_step;
-	cout.width(6); cout << this->m_t;
 	cout.width(3); cout << this->m_cur_stp;
 	cout << "\t\t";
 	const dReal *pos;
@@ -387,9 +383,6 @@ void CiMobotFD::print_intermediate_data(void) {
 }
 
 void CiMobotFD::end_simulation(bool &loop) {
-	// increment time step
-	this->m_t_cur_step++;
-
 	// have not completed steps && stalled
 	if ( !this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
 		this->m_reply->message = FD_ERROR_STALL;
@@ -397,10 +390,6 @@ void CiMobotFD::end_simulation(bool &loop) {
 	}
 	// success on all steps
 	else if ( !this->m_reply->message ) { loop = false; }
-}
-
-void CiMobotFD::increment_time(void) {
-		this->m_t += this->m_t_step;
 }
 
 /**********************************************************
@@ -576,23 +565,17 @@ void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dR
 }
 
 void CiMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {
-	/*if ( fabs(this->bot[attNum]->cur_ang[LE]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[LB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RE]) < DBL_EPSILON )
-		//imobot_build_attached_00(botNum, attNum, face1, face2);
-        this->bot[botNum]->buildAttached(attNum, face1, face2, 00);
-	else
-		//imobot_build_attached_10(botNum, attNum, face1, face2);
-        this->bot[botNum]->buildAttached(attNum, face1, face2, 10);*/
-    this->imobot_build_attached_00(botNum, attNum, 1, 1);
-    this->imobot_build_attached_10(botNum, attNum, 2, 3);
-    this->imobot_build_attached_01(botNum, attNum, 1, 3, 0, 0, 0, 0);
-    this->imobot_build_attached_11(botNum, attNum, 4, 5, 5, 10, 20, 30);
+	if ( this->bot[attNum]->isHome() )
+		this->imobot_build_attached_00(botNum, attNum, face1, face2);
+    else
+		this->imobot_build_attached_10(botNum, attNum, face1, face2);
 }
 
 void CiMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	/*if ( fabs(this->bot[attNum]->cur_ang[LE]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[LB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RB]) < DBL_EPSILON && fabs(this->bot[attNum]->cur_ang[RE]) < DBL_EPSILON	)
-		imobot_build_attached_01(botNum, attNum, face1, face2, r_le, r_lb, r_rb, r_re);
+    if ( this->bot[attNum]->isHome() )
+		this->imobot_build_attached_01(botNum, attNum, face1, face2, r_le, r_lb, r_rb, r_re);
 	else
-		imobot_build_attached_11(botNum, attNum, face1, face2, r_le, r_lb, r_rb, r_re);*/
+		this->imobot_build_attached_11(botNum, attNum, face1, face2, r_le, r_lb, r_rb, r_re);
 }
 
 void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {

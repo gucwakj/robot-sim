@@ -10,20 +10,12 @@ enum simulation_reply_message_e {
 	FD_ERROR_STALL
 };
 
-/*
- *	simulation class
- */
 class CiMobotFD {
 	public:
-		/*
-		 *	constructor and destructor
-		 */
-		CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets);
+        CiMobotFD(int num_bot, int num_stp, int num_gnd, int num_targets);
 		~CiMobotFD(void);
 
-		/*
-		 *	functions to input simulation variables
-		 */
+		// set simulation variables
         void setAngles(dReal *ang);
 		void setAngularVelocity(dReal *vel);
 		void setMu(dReal mu_g, dReal mu_b);
@@ -31,9 +23,7 @@ class CiMobotFD {
         void setTime(dReal time_total);
         void setTarget(int num, double x, double y, double z);
 
-		/*
-		 *	functions to build models of iMobot
-		 */
+		// build models of iMobot
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z);
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
@@ -41,23 +31,17 @@ class CiMobotFD {
 		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
         void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
-		/*
-		 *	build ground out of simple objects
-		 */
+		// build ground out of simple objects
 		void groundBox(int gndNum, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
 		void groundCapsule(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
 		void groundCylinder(int gndNum, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
 		void groundPlane(int gndNum, dReal a, dReal b, dReal c, dReal d);
 		void groundSphere(int gndNum, dReal r, dReal px, dReal py, dReal pz);
 
-		/*
-		 * 	run the simulation
-		 */
+		// run the simulation
 		void runSimulation(int argc, char **argv);
 
-		/*
-		 *	return a message on the success of the simulation
-		 */
+		// return message on completion
 		int getReplyMessage(void);
 		double getReplyTime(void);
 
@@ -71,19 +55,15 @@ class CiMobotFD {
             dGeomID geomID;
         } CiMobotFDTarget;
 
-		/*
-		 *	private variables to store general information about simulation
-		 */
+		// private variables to store general information about simulation
 		dWorldID world;								// world in which simulation occurs
 		dSpaceID space;								// space for robots in which to live
+		dJointGroupID group;                        // group to store joints
 		dGeomID *m_ground;                          // array of ground objects
-		dJointGroupID group;						// group to store joints
 		Robot **bot;                                // array of robots in simulation
 		CiMobotFDReply *m_reply;					// struct of data to return after finishing simulation
 		CiMobotFDTarget *target;                    // array of targets
-		dReal	m_t,								// current time of simulation
-				m_t_total,							// total time for simulation to run
-				m_t_step,							// time of each step of simulation
+		dReal	m_t_step,							// time of each step of simulation
 				m_mu_g,								// coefficient of friction of body_ground
 				m_mu_b,								// coefficient of friction of body_body
 				m_cor_g,							// coefficient of restitution of body_ground
@@ -101,9 +81,7 @@ class CiMobotFD {
 		dsFunctions m_fn;							// struct to store drawstuff functions
 		#endif
 
-		/*
-		 *	simulation functions
-		 */
+		// simulation functions
 		#ifdef ENABLE_DRAWSTUFF
 		void ds_drawBodies(void);					// draw all of the bodies
 		void ds_start(void);						// initialization of drawstuff scene
@@ -119,26 +97,23 @@ class CiMobotFD {
 		void increment_step(void);					// increment step to next set of angles
 		void set_angles(void);						// set new angles for step of sim
 		void end_simulation(bool &loop);			// check if simulation is complete and exit
-		void increment_time(void);					// update simulation time
 		void collision(dGeomID o1, dGeomID o2);		// callback function for contact of bodies
 		static void collision_wrapper(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 
-		/*
-		 *	functions to build attached imobots
-		 */
+        // build functions
 		void imobot_build_attached_00(int botNum, int attNum, int face1, int face2);
 		void imobot_build_attached_10(int botNum, int attNum, int face1, int face2);
 		void imobot_build_attached_01(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		void imobot_build_attached_11(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-        void create_fixed_joint(int att_num, int face1, int bot_num, int face2);
-		/*
-		 *	utility functions
-		 */
+
+        void create_fixed_joint(int att_num, int face1, int bot_num, int face2);                    // create fixed joint between modules
+        void euler_angles_from_rotation_matrix(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);   // get euler angles from rotation matrix
+        void rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi);      // get rotation matrix from euler angles
+
+        // utility functions
 		inline dReal D2R(dReal x);			// convert degrees to radians
 		inline dReal R2D(dReal x);			// convert radians to degrees
 		bool is_true(int length, bool *a);	// check if all values in array are true
-        void rotation_matrix_from_euler_angles(dMatrix3 R, dReal psi, dReal theta, dReal phi);      // get rotation matrix from euler angles
-        void euler_angles_from_rotation_matrix(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);   // get euler angles from rotation matrix
 };
 
-#endif	/* CIMOBOTSIM_H_ */
+#endif	/* CIMOBOTFD_H_ */

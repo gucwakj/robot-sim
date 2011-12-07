@@ -87,8 +87,8 @@ void Robot::setAngularVelocity(dReal *vel) {
     }
 }
 
-dReal Robot::getCurrentAngle(int j) {
-    return this->cur_ang[j];
+dReal Robot::getCurrentAngle(int i) {
+    return this->cur_ang[i];
 }
 
 dReal Robot::getPosition(int i) {
@@ -107,74 +107,62 @@ dJointID Robot::getMotorID(int motor) {
     return this->motors[motor];
 }
 
-bool Robot::isDisabled(void) {
-    return !(bool)dBodyIsEnabled(this->body[CENTER]->getBodyID());
-}
-
-bool Robot::isJointDisabled(int j, int current_step) {
-    return ( (int)(this->ang[NUM_DOF*current_step + j]) == (int)(D2R(123456789)) );
-}
-
 void Robot::enable(void) {
     dBodyEnable(this->body[CENTER]->getBodyID());
 }
 
-void Robot::resetPID(int joint) {
-    if ( joint == 4 ) {
-        for ( int i = 0; i < NUM_DOF; i++ ) {
-            this->pid[i].restart();
-        }
-    }
-    else {
-        this->pid[joint].restart();
-    }
-}
-
-void Robot::updateCurrentAngle(int j) {
-    if ( j == LE || j == RE )
-        this->cur_ang[j] = mod_angle(this->cur_ang[j], dJointGetHingeAngle(this->joints[j]), dJointGetHingeAngleRate(this->joints[j]));
+void Robot::resetPID(int i) {
+    if ( i == NUM_DOF )
+        for ( int j = 0; j < NUM_DOF; j++ ) this->pid[j].restart();
     else
-        this->cur_ang[j] = dJointGetHingeAngle(this->joints[j]);
+        this->pid[i].restart();
 }
 
-void Robot::updateFutureAngle(int j, int current_step, int enable) {
+void Robot::updateCurrentAngle(int i) {
+    if ( i == LE || i == RE )
+        this->cur_ang[i] = mod_angle(this->cur_ang[i], dJointGetHingeAngle(this->joints[i]), dJointGetHingeAngleRate(this->joints[i]));
+    else
+        this->cur_ang[i] = dJointGetHingeAngle(this->joints[i]);
+}
+
+void Robot::updateFutureAngle(int i, int current_step, int enable) {
     if ( enable ) {
-        if ( j == LE || j == RE ) {
-            this->fut_ang[j] = this->ori[j];
-            for ( int k = 0; k <= current_step; k++ ) { this->fut_ang[j] += this->ang[NUM_DOF*k + j]; }
+        if ( i == LE || i == RE ) {
+            this->fut_ang[i] = this->ori[i];
+            for ( int j = 0; j <= current_step; j++ ) { this->fut_ang[i] += this->ang[NUM_DOF*j + i]; }
         }
         else {
-            this->fut_ang[j] = this->ang[NUM_DOF*current_step + j];
+            this->fut_ang[i] = this->ang[NUM_DOF*current_step + i];
         }
     }
     else {
-        this->fut_ang[j] = this->cur_ang[j];
+        this->fut_ang[i] = this->cur_ang[i];
     }
 }
 
-void Robot::updateJointVelocity(int j, int current_step) {
-    this->jnt_vel[j] = this->vel[NUM_DOF*current_step + j];
+void Robot::updateJointVelocity(int i, int current_step) {
+    this->jnt_vel[i] = this->vel[NUM_DOF*current_step + i];
 }
 
-void Robot::updateMotorSpeed(int j) {
+void Robot::updateMotorSpeed(int i) {
     /*// with PID
-    if (this->cur_ang[j] < this->fut_ang[j] - 10*this->m_motor_res)
-        dJointSetA*MotorParam(this->motors[j], dParamVel, this->jnt_vel[j]);
-    else if (this->cur_ang[j] > this->fut_ang[j] + 10*this->m_motor_res)
-        dJointSetAMotorParam(this->motors[j], dParamVel, -this->jnt_vel[j]);
-    else if (this->fut_ang[j] - 10*this->m_motor_res < this->cur_ang[j] &&  this->cur_ang[j] < this->fut_ang[j] - this->m_motor_res)
-        dJointSetAMotorParam(this->motors[j], dParamVel, this->pid[j].update(this->fut_ang[j] - this->cur_ang[j]));
-    else if (this->cur_ang[j] < this->fut_ang[j] + 10*this->m_motor_res && this->cur_ang[j] > this->fut_ang[j] + this->m_motor_res)
-        dJointSetAMotorParam(this->motors[j], dParamVel, this->pid[j].update(this->cur_ang[j] - this->fut_ang[j]));
+    if (this->cur_ang[i] < this->fut_ang[i] - 10*this->m_motor_res)
+        dJointSetA*MotorParam(this->motors[i], dParamVel, this->jnt_vel[i]);
+    else if (this->cur_ang[i] > this->fut_ang[i] + 10*this->m_motor_res)
+        dJointSetAMotorParam(this->motors[i], dParamVel, -this->jnt_vel[i]);
+    else if (this->fut_ang[i] - 10*this->m_motor_res < this->cur_ang[i] &&  this->cur_ang[i] < this->fut_ang[i] - this->m_motor_res)
+        dJointSetAMotorParam(this->motors[i], dParamVel, this->pid[i].update(this->fut_ang[i] - this->cur_ang[i]));
+    else if (this->cur_ang[i] < this->fut_ang[i] + 10*this->m_motor_res && this->cur_ang[i] > this->fut_ang[i] + this->m_motor_res)
+        dJointSetAMotorParam(this->motors[i], dParamVel, this->pid[i].update(this->cur_ang[i] - this->fut_ang[i]));
     else
-        dJointSetAMotorParam(this->motors[j], dParamVel, 0);*/
+        dJointSetAMotorParam(this->motors[i], dParamVel, 0);*/
     // without PID
-    if (this->cur_ang[j] < this->fut_ang[j] - this->m_motor_res)
-        dJointSetAMotorParam(this->motors[j], dParamVel, this->jnt_vel[j]);
-    else if (this->cur_ang[j] > this->fut_ang[j] + this->m_motor_res)
-        dJointSetAMotorParam(this->motors[j], dParamVel, -this->jnt_vel[j]);
+    if (this->cur_ang[i] < this->fut_ang[i] - this->m_motor_res)
+        dJointSetAMotorParam(this->motors[i], dParamVel, this->jnt_vel[i]);
+    else if (this->cur_ang[i] > this->fut_ang[i] + this->m_motor_res)
+        dJointSetAMotorParam(this->motors[i], dParamVel, -this->jnt_vel[i]);
     else
-        dJointSetAMotorParam(this->motors[j], dParamVel, 0);
+        dJointSetAMotorParam(this->motors[i], dParamVel, 0);
 }
 
 void Robot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
@@ -453,27 +441,17 @@ void Robot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, 
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i]->getBodyID(), 0.1, 0.1);
 }
 
-/*void Robot::buildAttached(int attNum, int face1, int face2, int mode) {
-    switch (mode) {
-        case 00:
-            this->build_attached_00(attNum, face1, face2);
-            break;
-        case 10:
-            this->build_attached_10(attNum, face1, face2);
-            break;
-    }
+bool Robot::isDisabled(void) {
+    return !(bool)dBodyIsEnabled(this->body[CENTER]->getBodyID());
 }
 
-void Robot::buildAttached(int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-    switch (mode) {
-        case 01:
-            this->build_attached_00(attNum, face1, face2, r_le, r_lb, r_rb, r_re);
-            break;
-        case 11:
-            this->build_attached_10(attNum, face1, face2, r_le, r_lb, r_rb, r_re);
-            break;
-    }
-}*/
+bool Robot::isJointDisabled(int i, int current_step) {
+    return ( (int)(this->ang[NUM_DOF*current_step + i]) == (int)(D2R(123456789)) );
+}
+
+bool Robot::isHome(void) {
+    return ( fabs(this->cur_ang[LE]) < DBL_EPSILON && fabs(this->cur_ang[LB]) < DBL_EPSILON && fabs(this->cur_ang[RB]) < DBL_EPSILON && fabs(this->cur_ang[RE]) < DBL_EPSILON );
+}
 
 dReal Robot::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     dReal new_ang = 0;
@@ -560,8 +538,8 @@ inline dReal Robot::R2D( dReal x ) {
 
 #ifdef ENABLE_DRAWSTUFF
 void Robot::drawRobot(void) {
-    for (int j = 0; j < NUM_PARTS; j++) {
-        this->body[j]->drawBody();
+    for (int i = 0; i < NUM_PARTS; i++) {
+        this->body[i]->drawBody();
     }
 }
 #endif
