@@ -494,13 +494,16 @@ void CiMobotIK::runSimulation(int argc, char **argv) {
 void CiMobotIK::print_intermediate_data(void) {
 	cout << this->m_t_count << "\t" << this->m_t << "\t";
 	//cout << this->m_t_count << "\t";
-	for ( int i = 0; i < this->getNumAngles(); i++ ) {
+	/*for ( int i = 0; i < this->getNumAngles(); i++ ) {
 		if ( this->node[i] ) {
 			//cout << this->m_del_theta[i] << " ";
 			cout << R2D(this->node[i]->getTheta()) << "\t";
 		}
 	}
-	cout << endl;
+	cout << endl;*/
+
+    MatrixR33 r = this->node_effector[0]->getR();
+    cout << "< " << r.psi << "\t" << r.theta << "\t" << r.phi << " >" << endl;
 
 	/*for ( int i = 0; i < this->m_num_targets; i++ ) {
 		if ( this->node_effector[i] ) {
@@ -541,14 +544,14 @@ void CiMobotIK::increment_step(void) {
 }
 
 bool CiMobotIK::end_simulation(void) {
-	if ( this->m_t_count == 1000 ) {
+	if ( this->m_t_count == 2000 ) {
         this->m_reply = IK_ERROR_TIME;
         return false;
     }
-	if ( is_true(this->m_del_theta, NUM_DOF*this->m_num_bot) ) {
+	/*if ( is_true(this->m_del_theta, NUM_DOF*this->m_num_bot) ) {
         this->m_reply = IK_SUCCESS;
         return false;
-    }
+    }*/
 	return true;
 }
 

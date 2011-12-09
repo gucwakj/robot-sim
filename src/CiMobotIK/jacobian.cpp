@@ -22,11 +22,15 @@ Jacobian::Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot) {
 	this->m_max_angle[JACOB_DLS_SVD] = 45.0*M_PI/180;
 	this->m_max_angle[JACOB_SDLS] = 45.0*M_PI/180;
 
-	this->J.setSize(this->m_num_row, this->m_num_col);
+    this->J.setSize(this->m_num_row, this->m_num_col);
+    cout << "J[" << J.getNumRows() << ", " << J.getNumColumns() << "]" << endl;
 
     this->U.setSize(this->m_num_row, this->m_num_row);
+    cout << "U[" << U.getNumRows() << ", " << U.getNumColumns() << "]" << endl;
     this->w.setLength( (this->m_num_row < this->m_num_col) ? this->m_num_row : this->m_num_col );
-	this->V.setSize(this->m_num_col, this->m_num_col);
+    cout << "w[" << w.getLength() << "]" << endl;
+    this->V.setSize(this->m_num_col, this->m_num_col);
+    cout << "V[" << V.getNumRows() << ", " << V.getNumColumns() << "]" << endl;
 
     this->Jnorms.setSize(this->m_num_effect, this->m_num_col);  // Holds the norms of the active J matrix
     this->dPreTheta.setLength(this->m_num_col);     // delta theta for single eigenvalue
@@ -55,8 +59,8 @@ void Jacobian::computeJacobian(void) {
             pos = this->target_pos[i] - n->getS();      // position
             this->dS.setTriplePosition(i, pos);
             R = n->getR();
-            rot = 0.5*(R.getColumn1()*this->target_rot[i].getColumn1() + R.getColumn2()*this->target_rot[i].getColumn2() + R.getColumn3()*this->target_rot[i].getColumn3());
-            //rot = VectorR3(this->target_rot[i].psi, this->target_rot[i].theta, this->target_rot[i].phi) - VectorR3(R.psi, R.theta, R.phi);
+            //rot = 0.5*(R.getColumn1()*this->target_rot[i].getColumn1() + R.getColumn2()*this->target_rot[i].getColumn2() + R.getColumn3()*this->target_rot[i].getColumn3());
+            rot = VectorR3(this->target_rot[i].psi, this->target_rot[i].theta, this->target_rot[i].phi) - VectorR3(R.psi, R.theta, R.phi);
             this->dS.setTripleRotation(i, rot);
 
 			Node *m = this->tree->getParent(n);
@@ -245,46 +249,48 @@ void Jacobian::calc_delta_thetas_dls_with_svd(void) {
 }
 
 void Jacobian::calc_delta_thetas_sdls(void) {
+    // initialize variables
 	int i, j, k;
-	double alpha, wiInv, accum, accumSq, N, temp, tempSq, M, gamma;
+	double alpha, accum, accumSq, N, temp, tempSq, M, gamma;
 
 	this->J.computeSVD(this->U, this->w, this->V);				// Compute SVD
 	assert(this->J.DebugCheckSVD(this->U, this->w, this->V));	// Debugging check
 
-	// Calculate response vector dTheta that is the SDLS solution.
-    //	Delta target values are the dS values
-	int num_rows = this->J.getNumRows();
-	int num_cols = this->J.getNumColumns();
-	int num_effectors = this->tree->getNumEffector();		// Equals the number of rows of J divided by three
+	// calculate response vector dTheta that is the SDLS solution
     this->dTheta.setValue(0);
 
-	// Calculate the norms of the 3-vectors in the Jacobian
-	const double *jx = J.getPtr();
-	double *jnx = Jnorms.getPtr();
-	for ( i = num_cols*num_effectors; i > 0; i-- ) {
-		accum = *(jx++);
+	// calculate the norms of the 3-vectors in the Jacobian
+	const double *jx = this->J.getPtr();
+	double *jnx = this->Jnorms.getPtr();
+    for ( i = this->J.getNumColumns()*this->tree->getNumEffector(); i > 0; i-- ) {
+		accum = *(jx++);            // three positions
 		accumSq = accum*accum;
 		accum = *(jx++);
 		accumSq += accum*accum;
 		accum = *(jx++);
-		accumSq += accum*accum;
+        accumSq += accum*accum;
+        /*accum = *(jx++);            // three rotations
+        accumSq += accum*accum;
+        accum = *(jx++);
+        accumSq += accum*accum;
+        accum = *(jx++);
+        accumSq += accum*accum;*/
 		*(jnx++) = sqrt(accumSq);
     }
 
 	this->calc_dT_clamped_from_dS();		// Clamp the dS values
 
 	// Loop over each singular vector
-	for ( i = 0; i < num_rows; i++ ) {
-		if ( fabs(this->w[i]) <= 1.0e-10 ) { continue; }
-		wiInv = 1.0 / this->w[i];
+    for ( i = 0; i < this->J.getNumRows(); i++ ) {
+		if ( fabs(this->w[i]) <= 1.0e-10 ) { continue; }        // skip over zero values
 
-		// Calculate N
-		N = 0;					// N is the quasi-1-norm of the i-th column of U
-		alpha = 0;				// alpha is the dot product of dT and the i-th column of U
+        // Calculate N - the quasi-1-norm of the i-th column of U
+		N = 0;
+		//alpha = 0;				// alpha is the dot product of dT and the i-th column of U
 		const double *dTx = this->dT.getPtr();
 		const double *ux = this->U.getColumnPtr(i);
-		for ( j = num_effectors; j > 0; j-- ) {
-			alpha += (*ux)*(*(dTx++));
+        for ( j = this->tree->getNumEffector(); j > 0; j-- ) {
+			alpha = (*ux)*(*(dTx++));       // three positions
 			temp = *(ux++);
 			tempSq = temp*temp;
 			alpha += (*ux)*(*(dTx++));
@@ -292,28 +298,38 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 			tempSq += temp*temp;
 			alpha += (*ux)*(*(dTx++));
 			temp = *(ux++);
-			tempSq += temp*temp;
+            tempSq += temp*temp;
+            /*alpha += (*ux)*(*(dTx++));      // three rotations
+            temp = *(ux++);
+            tempSq += temp*temp;
+            alpha += (*ux)*(*(dTx++));
+            temp = *(ux++);
+            tempSq += temp*temp;
+            alpha += (*ux)*(*(dTx++));
+            temp = *(ux++);
+            tempSq += temp*temp;
+            //alphaSq += (*ux)*(*ux++));*/
 			N += sqrt(tempSq);
         }
 
-		// Calculate M
-		M = 0;			// M is the quasi-1-norm of the response to angles changing according to the i-th column of V
+        // Calculate M - the quasi-1-norm of the response to angles changing according to the i-th column of V
+		M = 0;
 		double *vx = this->V.getColumnPtr(i);
 		jnx = this->Jnorms.getPtr();
-		for ( j = num_cols; j > 0; j-- ) {
+        for ( j = this->J.getNumColumns(); j > 0; j-- ) {
 			double accum=0.0;
-			for ( k = num_effectors; k > 0; k-- ) {
+            for ( k = this->tree->getNumEffector(); k > 0; k-- ) {
 				accum += *(jnx++);
 			}
 			M += fabs((*(vx++)))*accum;
 		}
-		M *= fabs(wiInv);
+		M *= fabs(1.0/this->w[i]);
 
 		// Scale back maximum permissable joint angle
 		gamma = this->m_max_angle[JACOB_SDLS];
 		if ( N < M ) { gamma *= N/M; }
 		// Calculate the dTheta from pure pseudoinverse considerations
-        this->dPreTheta.set(this->V.getColumnPtr(i), alpha*wiInv);
+		this->dPreTheta.set(this->V.getColumnPtr(i), alpha/this->w[i]);
 		// Now rescale the dTheta values
         this->dTheta.add(this->dPreTheta, gamma/(gamma + this->dPreTheta.maxAbs()));
 	}

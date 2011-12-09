@@ -44,6 +44,8 @@ Forward Dynamics:
 	New features from David
 		PID
 		Mismatched endcap rotation
+    ODE Shared Library
+        recompile ode to be a shared library rather than static
 
 Inverse Kinematics:
 	cleaner implementation of Jacobian type passing
