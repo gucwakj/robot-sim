@@ -251,7 +251,7 @@ void Jacobian::calc_delta_thetas_dls_with_svd(void) {
 void Jacobian::calc_delta_thetas_sdls(void) {
     // initialize variables
 	int i, j, k;
-	double alpha, accum, normSq, N, temp, tempSq, M, gamma;
+	double alpha, accum, N, norm_sq, M, gamma;
 
 	this->J.computeSVD(this->U, this->w, this->V);				// Compute SVD
 	assert(this->J.DebugCheckSVD(this->U, this->w, this->V));	// Debugging check
@@ -263,49 +263,36 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 	double *jx = this->J.getPtr();
 	double *jnx = this->Jnorms.getPtr();
     for ( i = this->J.getNumColumns()*this->tree->getNumEffector(); i > 0; i-- ) {
-        normSq = 0;
+        norm_sq = 0;                        // magnitudes of vectors in J
         for ( j = 0; j < 3; j++ ) {
-            normSq += (*jx)*(*(jx++));
+            norm_sq += (*jx)*(*(jx++));
         }
-        *(jnx++) = sqrt(normSq);
+        *(jnx++) = sqrt(norm_sq);
     }
 
 	this->calc_dT_clamped_from_dS();		// Clamp the dS values
 
 	// Loop over each singular vector
     for ( i = 0; i < this->J.getNumRows(); i++ ) {
-		if ( fabs(this->w[i]) <= 1.0e-10 ) { continue; }        // skip over zero values
+        if ( fabs(this->w[i]) <= 1.0e-10 ) { continue; }        // skip over zero values
 
-        // Calculate N - the quasi-1-norm of the i-th column of U
-		N = 0;
-		//alpha = 0;				// alpha is the dot product of dT and the i-th column of U
-		const double *dTx = this->dT.getPtr();
-		const double *ux = this->U.getColumnPtr(i);
+        M = 0;          // the quasi-1-norm of the response to angles changing according to the i-th column of V
+        N = 0;          // the quasi-1-norm of the i-th column of U
+        alpha = 0;      // dot product of dT and the i-th column of U
+
+        // Calculate N
+		double *dTx = this->dT.getPtr();
+		double *ux = this->U.getColumnPtr(i);
         for ( j = this->tree->getNumEffector(); j > 0; j-- ) {
-			alpha = (*ux)*(*(dTx++));       // three positions
-			temp = *(ux++);
-			tempSq = temp*temp;
-			alpha += (*ux)*(*(dTx++));
-			temp = *(ux++);
-			tempSq += temp*temp;
-			alpha += (*ux)*(*(dTx++));
-			temp = *(ux++);
-            tempSq += temp*temp;
-            /*alpha += (*ux)*(*(dTx++));      // three rotations
-            temp = *(ux++);
-            tempSq += temp*temp;
-            alpha += (*ux)*(*(dTx++));
-            temp = *(ux++);
-            tempSq += temp*temp;
-            alpha += (*ux)*(*(dTx++));
-            temp = *(ux++);
-            tempSq += temp*temp;
-            //alphaSq += (*ux)*(*ux++));*/
-			N += sqrt(tempSq);
+            norm_sq = 0;                    // magnitudes of vectors in U
+            for ( k = 0; k < 3; k++ ) {
+                alpha += (*ux)*(*(dTx++));
+                norm_sq += (*ux)*(*(ux++));
+            }
+            N += sqrt(norm_sq);
         }
 
-        // Calculate M - the quasi-1-norm of the response to angles changing according to the i-th column of V
-		M = 0;
+        // Calculate M
 		double *vx = this->V.getColumnPtr(i);
 		jnx = this->Jnorms.getPtr();
         for ( j = this->J.getNumColumns(); j > 0; j-- ) {
