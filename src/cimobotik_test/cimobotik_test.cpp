@@ -11,9 +11,6 @@ int main(int argc, char *argv[]) {
     ik->setTargetRotation(0, 0, 0, 0);
 	ik->runSimulation(argc, argv);
 
-    //double *ang = new double[ik->getNumAngles()];
-    //ik->getAngles(ang);
-    //cout << ang[0] << "\t" << ang[1] << "\t" << ang[2] << "\t" << ang[3] << "\t" << ang[4] << "\t" << ang[5] << "\t" << ang[6] << "\t" << ang[7] << endl;
 	cout << "Effector 0:" << endl;
 	cout << "    X: " << ik->getEffectorX(0) << "\t" << ik->getTargetX(0) << endl;
 	cout << "    Y: " << ik->getEffectorY(0) << "\t" << ik->getTargetY(0) << endl;

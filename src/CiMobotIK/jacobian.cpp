@@ -251,7 +251,7 @@ void Jacobian::calc_delta_thetas_dls_with_svd(void) {
 void Jacobian::calc_delta_thetas_sdls(void) {
     // initialize variables
 	int i, j, k;
-	double alpha, accum, accumSq, N, temp, tempSq, M, gamma;
+	double alpha, accum, normSq, N, temp, tempSq, M, gamma;
 
 	this->J.computeSVD(this->U, this->w, this->V);				// Compute SVD
 	assert(this->J.DebugCheckSVD(this->U, this->w, this->V));	// Debugging check
@@ -260,22 +260,14 @@ void Jacobian::calc_delta_thetas_sdls(void) {
     this->dTheta.setValue(0);
 
 	// calculate the norms of the 3-vectors in the Jacobian
-	const double *jx = this->J.getPtr();
+	double *jx = this->J.getPtr();
 	double *jnx = this->Jnorms.getPtr();
     for ( i = this->J.getNumColumns()*this->tree->getNumEffector(); i > 0; i-- ) {
-		accum = *(jx++);            // three positions
-		accumSq = accum*accum;
-		accum = *(jx++);
-		accumSq += accum*accum;
-		accum = *(jx++);
-        accumSq += accum*accum;
-        /*accum = *(jx++);            // three rotations
-        accumSq += accum*accum;
-        accum = *(jx++);
-        accumSq += accum*accum;
-        accum = *(jx++);
-        accumSq += accum*accum;*/
-		*(jnx++) = sqrt(accumSq);
+        normSq = 0;
+        for ( j = 0; j < 3; j++ ) {
+            normSq += (*jx)*(*(jx++));
+        }
+        *(jnx++) = sqrt(normSq);
     }
 
 	this->calc_dT_clamped_from_dS();		// Clamp the dS values
@@ -317,7 +309,7 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 		double *vx = this->V.getColumnPtr(i);
 		jnx = this->Jnorms.getPtr();
         for ( j = this->J.getNumColumns(); j > 0; j-- ) {
-			double accum=0.0;
+			accum = 0;
             for ( k = this->tree->getNumEffector(); k > 0; k-- ) {
 				accum += *(jnx++);
 			}
