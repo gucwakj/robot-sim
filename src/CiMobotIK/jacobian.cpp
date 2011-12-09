@@ -251,7 +251,7 @@ void Jacobian::calc_delta_thetas_dls_with_svd(void) {
 void Jacobian::calc_delta_thetas_sdls(void) {
     // initialize variables
 	int i, j, k;
-	double alpha, accum, N, norm_sq, M, gamma;
+	double alpha, gamma, M, N, temp;
 
 	this->J.computeSVD(this->U, this->w, this->V);				// Compute SVD
 	assert(this->J.DebugCheckSVD(this->U, this->w, this->V));	// Debugging check
@@ -263,11 +263,11 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 	double *jx = this->J.getPtr();
 	double *jnx = this->Jnorms.getPtr();
     for ( i = this->J.getNumColumns()*this->tree->getNumEffector(); i > 0; i-- ) {
-        norm_sq = 0;                        // magnitudes of vectors in J
+        temp = 0;                        // magnitudes of vectors in J
         for ( j = 0; j < 3; j++ ) {
-            norm_sq += (*jx)*(*(jx++));
+            temp += (*jx)*(*(jx++));
         }
-        *(jnx++) = sqrt(norm_sq);
+        *(jnx++) = sqrt(temp);
     }
 
 	this->calc_dT_clamped_from_dS();		// Clamp the dS values
@@ -284,23 +284,23 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 		double *dTx = this->dT.getPtr();
 		double *ux = this->U.getColumnPtr(i);
         for ( j = this->tree->getNumEffector(); j > 0; j-- ) {
-            norm_sq = 0;                    // magnitudes of vectors in U
+            temp = 0;                    // magnitudes of vectors in U
             for ( k = 0; k < 3; k++ ) {
                 alpha += (*ux)*(*(dTx++));
-                norm_sq += (*ux)*(*(ux++));
+                temp += (*ux)*(*(ux++));
             }
-            N += sqrt(norm_sq);
+            N += sqrt(temp);
         }
 
         // Calculate M
 		double *vx = this->V.getColumnPtr(i);
 		jnx = this->Jnorms.getPtr();
         for ( j = this->J.getNumColumns(); j > 0; j-- ) {
-			accum = 0;
+			temp = 0;
             for ( k = this->tree->getNumEffector(); k > 0; k-- ) {
-				accum += *(jnx++);
+				temp += *(jnx++);
 			}
-			M += fabs((*(vx++)))*accum;
+			M += temp*fabs((*(vx++)));
 		}
 		M *= fabs(1.0/this->w[i]);
 
