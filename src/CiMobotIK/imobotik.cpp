@@ -473,7 +473,7 @@ void CiMobotIK::runSimulation(int argc, char **argv) {
     this->jacob->setDampingDLS(this->m_j_lambda);
 	this->tree.init();
 	this->tree.compute();
-	//this->print_intermediate_data();
+	this->print_intermediate_data();
 
 	while( loop ) {
 		this->jacob->computeJacobian();			// set up Jacobian and deltaS vectors
@@ -481,14 +481,14 @@ void CiMobotIK::runSimulation(int argc, char **argv) {
 		this->jacob->updateThetas();			// apply the change in the theta values
 		this->jacob->updatedSClampValue();		// update distance to target position
 
-		//this->print_intermediate_data();        // print data for analysis purposes
+		this->print_intermediate_data();        // print data for analysis purposes
 
 		this->update_targets();					// update target to new values
 		this->set_flags();						// set flags for completion
 		this->increment_step();					// increment time step
 		loop = this->end_simulation();			// check to end simulation
     }
-    //this->print_intermediate_data();            // print last step of data
+    this->print_intermediate_data();            // print last step of data
 }
 
 void CiMobotIK::print_intermediate_data(void) {
@@ -502,16 +502,16 @@ void CiMobotIK::print_intermediate_data(void) {
 	}
 	cout << endl;*/
 
-    MatrixR33 r = this->node_effector[0]->getR();
-    cout << "< " << r.psi << "\t" << r.theta << "\t" << r.phi << " >" << endl;
+    //MatrixR33 r = this->node_effector[0]->getR();
+    //cout << "< " << r.psi << "\t" << r.theta << "\t" << r.phi << " >" << endl;
 
-	/*for ( int i = 0; i < this->m_num_targets; i++ ) {
+	for ( int i = 0; i < this->m_num_targets; i++ ) {
 		if ( this->node_effector[i] ) {
-			cout << "Pos: " << this->node_effector[i]->getS() << "\t" << this->target_pos[i] << endl;
-			//MatrixR33 R = this->node_effector[i]->getR();
-            //cout << "Rot: " << R.getEulerAngles() << "\t" << this->target_rot[i].getEulerAngles() << endl;
+			cout << "Pos: " << this->node_effector[i]->getS() << "\t" << this->target_pos[i] << "\t\t";
+			MatrixR33 R = this->node_effector[i]->getR();
+            cout << "Rot: " << R.getEulerAngles() << "\t" << this->target_rot[i].getEulerAngles() << endl;
 		}
-	}*/
+	}
 
 	/*for ( int i = 0; i < this->m_num_bot*NUM_DOF+this->m_num_targets; i++ ) {
 			if ( this->node[i] ) {
@@ -548,10 +548,10 @@ bool CiMobotIK::end_simulation(void) {
         this->m_reply = IK_ERROR_TIME;
         return false;
     }
-	/*if ( is_true(this->m_del_theta, NUM_DOF*this->m_num_bot) ) {
+	if ( is_true(this->m_del_theta, NUM_DOF*this->m_num_bot) ) {
         this->m_reply = IK_SUCCESS;
         return false;
-    }*/
+    }
 	return true;
 }
 

@@ -251,7 +251,7 @@ void Jacobian::calc_delta_thetas_dls_with_svd(void) {
 void Jacobian::calc_delta_thetas_sdls(void) {
     // initialize variables
 	int i, j, k;
-	double alpha, gamma, M, N, temp;
+	double alpha, M, N, temp;
 
 	this->J.computeSVD(this->U, this->w, this->V);				// Compute SVD
 	assert(this->J.DebugCheckSVD(this->U, this->w, this->V));	// Debugging check
@@ -262,9 +262,9 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 	// calculate the norms of the 3-vectors in the Jacobian
 	double *jx = this->J.getPtr();
 	double *jnx = this->Jnorms.getPtr();
-    for ( i = this->J.getNumColumns()*this->tree->getNumEffector(); i > 0; i-- ) {
+    for ( i = 0; i < this->J.getNumColumns()*this->tree->getNumEffector(); i++ ) {
         temp = 0;                        // magnitudes of vectors in J
-        for ( j = 0; j < 3; j++ ) {
+        for ( j = 0; j < 6; j++ ) {
             temp += (*jx)*(*(jx++));
         }
         *(jnx++) = sqrt(temp);
@@ -283,9 +283,9 @@ void Jacobian::calc_delta_thetas_sdls(void) {
         // Calculate N
 		double *dTx = this->dT.getPtr();
 		double *ux = this->U.getColumnPtr(i);
-        for ( j = this->tree->getNumEffector(); j > 0; j-- ) {
+        for ( j = 0; j < this->tree->getNumEffector(); j++ ) {
             temp = 0;                    // magnitudes of vectors in U
-            for ( k = 0; k < 3; k++ ) {
+            for ( k = 0; k < 6; k++ ) {
                 alpha += (*ux)*(*(dTx++));
                 temp += (*ux)*(*(ux++));
             }
@@ -295,24 +295,24 @@ void Jacobian::calc_delta_thetas_sdls(void) {
         // Calculate M
 		double *vx = this->V.getColumnPtr(i);
 		jnx = this->Jnorms.getPtr();
-        for ( j = this->J.getNumColumns(); j > 0; j-- ) {
+        for ( j = 0; j < this->J.getNumColumns(); j++ ) {
 			temp = 0;
-            for ( k = this->tree->getNumEffector(); k > 0; k-- ) {
+            for ( k = 0; k < this->tree->getNumEffector(); k++ ) {
 				temp += *(jnx++);
 			}
 			M += temp*fabs((*(vx++)));
 		}
-		M *= fabs(1.0/this->w[i]);
+		M /= fabs(this->w[i]);
 
-		// Scale back maximum permissable joint angle
-		gamma = this->m_max_angle[JACOB_SDLS];
-		if ( N < M ) { gamma *= N/M; }
-		// Calculate the dTheta from pure pseudoinverse considerations
-		this->dPreTheta.set(this->V.getColumnPtr(i), alpha/this->w[i]);
-		// Now rescale the dTheta values
-        this->dTheta.add(this->dPreTheta, gamma/(gamma + this->dPreTheta.maxAbs()));
+        // calculate dTheta from pure pseudoinverse considerations
+        this->dPreTheta.set(this->V.getColumnPtr(i), alpha/this->w[i]);
+		// rescale dTheta values
+        if ( N < M )
+            this->dTheta.add(this->dPreTheta, (N*this->m_max_angle[JACOB_SDLS])/(N*this->m_max_angle[JACOB_SDLS] + M*this->dPreTheta.maxAbs()));
+        else
+            this->dTheta.add(this->dPreTheta, this->m_max_angle[JACOB_SDLS]/(this->m_max_angle[JACOB_SDLS] + this->dPreTheta.maxAbs()));
 	}
-	scale_back_angle(JACOB_SDLS, 1);		// Scale back to not exceed maximum angle changes
+	this->scale_back_angle(JACOB_SDLS, 1);		// Scale back to not exceed maximum angle changes
 }
 
 void Jacobian::zero_delta_thetas(void) {
