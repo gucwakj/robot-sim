@@ -72,11 +72,12 @@ class MatrixRmn {
         MatrixRmn& operator/= (double d);
         MatrixRmn& operator+= (const MatrixRmn& B);
         MatrixRmn& operator-= (const MatrixRmn& B);
-	private:
-		long NumRows;				// Number of rows
-		long NumCols;				// Number of columns
-		double *x;					// Array of vector entries - stored in column order
-		long AllocSize;				// Allocated size of the x array
+    private:
+        int m_alloc_size;           // Allocated size of the x array
+        int m_num_rows;				// Number of rows
+        int m_num_cols;				// Number of columns
+        int m_size;                 // Current size of array
+        double *x;					// Array of vector entries - stored in column order
 
 		// Internal helper routines for SVD calculations
 		static void CalcBidiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag );
