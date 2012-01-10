@@ -12,19 +12,13 @@ class MatrixRmn {
 		~MatrixRmn(void);							// Destructor
 
         void setColumn(int i, const VectorRn& d );
+        void setDiagonalEntries(const VectorRn& d);
         void setIdentity(void);
+        void setSequence(const VectorRn& d, int start_row, int start_col, int delta_row, int delta_col);
         void setSize(int num_row, int num_col);
         void setTriplePosition(int i, int j, const VectorR3& u);
         void setTripleRotation(int i, int j, const VectorR3& v);
         void setZero(void);
-
-		void SetDiagonalEntries( double d );
-		void SetDiagonalEntries( const VectorRn& d );
-		void SetSuperDiagonalEntries( double d );
-		void SetSuperDiagonalEntries( const VectorRn& d );
-		void SetSubDiagonalEntries( double d );
-		void SetSubDiagonalEntries( const VectorRn& d );
-		void SetSequence( const VectorRn& d, long startRow, long startCol, long deltaRow, long deltaCol );
 
         int getNumRows(void) const;
         int getNumColumns(void) const;
@@ -35,9 +29,7 @@ class MatrixRmn {
         double* getColumnPtr(int j);
         const double* getColumnPtr(int j) const;
 
-		// Norms
-		double FrobeniusNormSq() const;
-		double FrobeniusNorm() const;
+		double frobeniusNorm(void) const;                               // Frobenius Norm
 
 		// Operations on VectorRn's
 		void Multiply( const VectorRn& v, VectorRn& result ) const;					// result = (this)*(v)

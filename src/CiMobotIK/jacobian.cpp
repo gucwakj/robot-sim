@@ -59,8 +59,8 @@ void Jacobian::computeJacobian(void) {
             pos = this->target_pos[i] - n->getS();      // position
             this->dS.setTriplePosition(i, pos);
             R = n->getR();
-            //rot = 0.5*(R.getColumn1()*this->target_rot[i].getColumn1() + R.getColumn2()*this->target_rot[i].getColumn2() + R.getColumn3()*this->target_rot[i].getColumn3());
-            rot = VectorR3(this->target_rot[i].psi, this->target_rot[i].theta, this->target_rot[i].phi) - VectorR3(R.psi, R.theta, R.phi);
+            rot = 0.5*(R.getColumn1()*this->target_rot[i].getColumn1() + R.getColumn2()*this->target_rot[i].getColumn2() + R.getColumn3()*this->target_rot[i].getColumn3());
+            //rot = VectorR3(this->target_rot[i].psi, this->target_rot[i].theta, this->target_rot[i].phi) - VectorR3(R.psi, R.theta, R.phi);
             this->dS.setTripleRotation(i, rot);
 
 			Node *m = this->tree->getParent(n);

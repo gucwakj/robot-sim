@@ -20,29 +20,62 @@ MatrixRmn::~MatrixRmn(void) {
 	delete x;
 }
 
-void MatrixRmn::setSize(int num_row, int num_col) {
-	assert ( num_row > 0 && num_col > 0 );
-	long newLength = num_row*num_col;
-	if ( newLength>AllocSize ) {
-		delete x;
-		AllocSize = ((newLength > (AllocSize<<1)) ? newLength : (AllocSize<<1));
-		x = new double[AllocSize];
-	}
-	NumRows = num_row;
-	NumCols = num_col;
+void MatrixRmn::setColumn(int i, const VectorRn& d) {
+    assert ( NumRows==d.getLength() );
+    double* to = x+i*NumRows;
+    const double* from = d.x;
+    for ( i=NumRows; i>0; i-- ) {
+        *(to++) = *(from++);
+    }
 }
 
-void MatrixRmn::setZero(void) {
-	double* target = x;
-	for ( long i=NumRows*NumCols; i>0; i-- ) {
-		*(target++) = 0.0;
-	}
+// Fill the diagonal entries with values in vector d.  The rest of the matrix is unchanged.
+void MatrixRmn::setDiagonalEntries(const VectorRn& d) {
+    int diagLen = ((NumRows < NumCols) ? NumRows : NumCols);
+    assert ( d.getLength() == diagLen );
+    double *dPtr = x;
+    double *from = d.x;
+    for ( ; diagLen > 0; diagLen-- ) {
+        *dPtr = *(from++);
+        dPtr += NumRows+1;
+    }
 }
 
 void MatrixRmn::setIdentity(void) {
     assert ( NumRows==NumCols );
-    setZero();
-    SetDiagonalEntries(1.0);
+    this->setZero();
+    double *dPtr = this->x;
+    for ( int diag_len = this->NumRows; diag_len > 0; diag_len-- ) {
+        *dPtr = 1;
+        dPtr += this->NumRows + 1;
+    }
+}
+
+// Sets a "linear" portion of the array with the values from a vector d
+void MatrixRmn::setSequence(const VectorRn& d, int start_row, int start_col, int delta_row, int delta_col) {
+    int length = d.getLength();
+    assert( start_row>=0 && start_row<NumRows && start_col>=0 && start_col<NumCols );
+    assert( start_row+(length-1)*delta_row>=0 && start_row+(length-1)*delta_row<NumRows );
+    assert( start_col+(length-1)*delta_col>=0 && start_col+(length-1)*delta_col<NumCols );
+    double *to = this->x + start_row + NumRows*start_col;
+    double *from = d.x;
+    int stride = delta_row + NumRows*delta_col;
+    for ( ; length > 0; length-- ) {
+        *to = *(from++);
+        to += stride;
+    }
+}
+
+void MatrixRmn::setSize(int num_row, int num_col) {
+    assert ( num_row > 0 && num_col > 0 );
+    int newLength = num_row*num_col;
+    if ( newLength > AllocSize ) {
+        delete x;
+        AllocSize = ((newLength > (AllocSize<<1)) ? newLength : (AllocSize<<1));
+        x = new double[AllocSize];
+    }
+    NumRows = num_row;
+    NumCols = num_col;
 }
 
 void MatrixRmn::setTriplePosition(int i, int j, const VectorR3& u) {
@@ -57,12 +90,10 @@ void MatrixRmn::setTripleRotation(int i, int j, const VectorR3& v) {
     v.dump(x + j*NumRows + ii + 3);
 }
 
-void MatrixRmn::setColumn(int i, const VectorRn& d) {
-    assert ( NumRows==d.getLength() );
-    double* to = x+i*NumRows;
-    const double* from = d.x;
-    for ( i=NumRows; i>0; i-- ) {
-        *(to++) = *(from++);
+void MatrixRmn::setZero(void) {
+    double* target = x;
+    for ( int i = NumRows*NumCols; i > 0; i-- ) {
+        *(target++) = 0.0;
     }
 }
 
@@ -102,6 +133,33 @@ const double* MatrixRmn::getColumnPtr(int j) const {
 	return (x+j*NumRows);
 }
 
+// Calculate the Frobenius Norm (square root of sum of squares of entries of the matrix)
+double MatrixRmn::frobeniusNorm(void) const {
+    double *aPtr = this->x;
+    double result = 0.0;
+    for ( int i = NumRows*NumCols; i > 0; i-- ) {
+        result += (*(aPtr))*(*(aPtr++));
+    }
+    return sqrt(result);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 MatrixRmn& MatrixRmn::operator*= (double d) {
 	double* aPtr = x;
 	for ( long i=NumRows*NumCols; i>0; i-- ) {
@@ -134,148 +192,6 @@ MatrixRmn& MatrixRmn::operator-= (const MatrixRmn& B) {
 		(*(aPtr++)) -= *(bPtr++);
 	}
 	return (*this);
-}
-
-
-
-
-
-double MatrixRmn::FrobeniusNormSq() const
-{
-	double* aPtr = x;
-	double result = 0.0;
-	double temp = 0.0;
-	for ( long i=NumRows*NumCols; i>0; i-- ) {
-		//result += Square2( *(aPtr++) );
-		temp = *(aPtr++);
-		result += temp*temp;
-	}
-	return result;
-}
-
-
-
-
-/*MatrixRmn& MatrixRmn::AddScaled( const MatrixRmn& B, double factor )
-{
-    assert (NumRows==B.NumRows && NumCols==B.NumCols);
-    double* aPtr = x;
-    double* bPtr = B.x;
-    for ( long i=NumRows*NumCols; i>0; i-- ) {
-        (*(aPtr++)) += (*(bPtr++))*factor;
-    }
-    return (*this);
-}*/
-
-
-
-
-
-
-
-
-// Fill the diagonal entries with the value d.  The rest of the matrix is unchanged.
-void MatrixRmn::SetDiagonalEntries( double d )
-{
-	//long diagLen = Min( NumRows, NumCols );
-	long diagLen = ((NumRows < NumCols) ? NumRows : NumCols);
-	double* dPtr = x;
-	for ( ; diagLen>0; diagLen-- ) {
-		*dPtr = d;
-		dPtr += NumRows+1;
-	}
-}
-
-// Fill the diagonal entries with values in vector d.  The rest of the matrix is unchanged.
-void MatrixRmn::SetDiagonalEntries( const VectorRn& d )
-{
-	//long diagLen = Min( NumRows, NumCols );
-	long diagLen = ((NumRows < NumCols) ? NumRows : NumCols);
-	assert ( d.getLength() == diagLen );
-	double* dPtr = x;
-	double* from = d.x;
-	for ( ; diagLen>0; diagLen-- ) {
-		*dPtr = *(from++);
-		dPtr += NumRows+1;
-	}
-}
-
-// Fill the superdiagonal entries with the value d.  The rest of the matrix is unchanged.
-void MatrixRmn::SetSuperDiagonalEntries( double d )
-{
-	//long sDiagLen = Min( NumRows, (long)(NumCols-1) );
-	long sDiagLen = ((NumRows < (long)(NumCols-1)) ? NumRows : (long)(NumCols-1));
-	double* to = x + NumRows;
-	for ( ; sDiagLen>0; sDiagLen-- ) {
-		*to = d;
-		to += NumRows+1;
-	}
-}
-
-// Fill the superdiagonal entries with values in vector d.  The rest of the matrix is unchanged.
-void MatrixRmn::SetSuperDiagonalEntries( const VectorRn& d )
-{
-	//long sDiagLen = Min( (long)(NumRows-1), NumCols );
-	long sDiagLen = (((long)(NumRows-1) < NumCols) ? (long)(NumRows-1) : NumCols);
-	assert ( sDiagLen == d.getLength() );
-	double* to = x + NumRows;
-    double* from = d.x;
-	for ( ; sDiagLen>0; sDiagLen-- ) {
-		*to = *(from++);
-		to += NumRows+1;
-	}
-}
-
-// Fill the subdiagonal entries with the value d.  The rest of the matrix is unchanged.
-void MatrixRmn::SetSubDiagonalEntries( double d )
-{
-	//long sDiagLen = Min( NumRows, NumCols ) - 1;
-	long sDiagLen = ((NumRows < NumCols) ? NumRows : NumCols) - 1;
-	double* to = x + 1;
-	for ( ; sDiagLen>0; sDiagLen-- ) {
-		*to = d;
-		to += NumRows+1;
-	}
-}
-
-// Fill the subdiagonal entries with values in vector d.  The rest of the matrix is unchanged.
-void MatrixRmn::SetSubDiagonalEntries( const VectorRn& d )
-{
-	//long sDiagLen = Min( NumRows, NumCols ) - 1;
-	long sDiagLen = ((NumRows < NumCols) ? NumRows : NumCols) - 1;
-	assert ( sDiagLen == d.getLength() );
-	double* to = x + 1;
-    double* from = d.x;
-	for ( ; sDiagLen>0; sDiagLen-- ) {
-		*to = *(from++);
-		to += NumRows+1;
-	}
-}
-
-
-// Sets a "linear" portion of the array with the values from a vector d
-// The first row and column position are given by startRow, startCol.
-// Successive positions are found by using the deltaRow, deltaCol values
-//	to increment the row and column indices.  There is no wrapping around.
-void MatrixRmn::SetSequence( const VectorRn& d, long startRow, long startCol, long deltaRow, long deltaCol )
-{
-	long length = d.getLength();
-	assert( startRow>=0 && startRow<NumRows && startCol>=0 && startCol<NumCols );
-	assert( startRow+(length-1)*deltaRow>=0 && startRow+(length-1)*deltaRow<NumRows );
- 	assert( startCol+(length-1)*deltaCol>=0 && startCol+(length-1)*deltaCol<NumCols );
-	double *to = x + startRow + NumRows*startCol;
-    double *from = d.x;
-	long stride = deltaRow + NumRows*deltaCol;
-	for ( ; length>0; length-- ) {
-		*to = *(from++);
-		to += stride;
-	}
-}
-
-// Calculate the Frobenius Norm (square root of sum of squares of entries of the matrix)
-double MatrixRmn::FrobeniusNorm() const
-{
-	return sqrt( FrobeniusNormSq() );
 }
 
 // Multiply this matrix by column vector v.
@@ -1045,24 +961,24 @@ bool MatrixRmn::DebugCheckSVD( const MatrixRmn& U, const VectorRn& w, const Matr
 	MatrixRmn VTV( V.getNumRows(), V.getNumColumns() );
 	MatrixRmn::TransposeMultiply( V, V, VTV );
 	IV -= VTV;
-	double error = IV.FrobeniusNorm();
+	double error = IV.frobeniusNorm();
 
 	MatrixRmn IU( U.getNumRows(), U.getNumColumns() );
 	IU.setIdentity();
 	MatrixRmn UTU( U.getNumRows(), U.getNumColumns() );
 	MatrixRmn::TransposeMultiply( U, U, UTU );
 	IU -= UTU;
-	error += IU.FrobeniusNorm();
+	error += IU.frobeniusNorm();
 
 	MatrixRmn Diag( U.getNumRows(), V.getNumRows() );
 	Diag.setZero();
-	Diag.SetDiagonalEntries( w );
+	Diag.setDiagonalEntries(w);
 	MatrixRmn B(U.getNumRows(), V.getNumRows() );
 	MatrixRmn C(U.getNumRows(), V.getNumRows() );
 	MatrixRmn::Multiply( U, Diag, B );
 	MatrixRmn::MultiplyTranspose( B, V, C );
 	C -= *this;
-	error += C.FrobeniusNorm();
+	error += C.frobeniusNorm();
 
 	bool ret = ( fabs(error)<=1.0e-13*w.maxAbs() );
 	assert ( ret );
@@ -1077,30 +993,30 @@ bool MatrixRmn::DebugCalcBidiagCheck( const MatrixRmn& U, const VectorRn& w, con
 	MatrixRmn VTV( V.getNumRows(), V.getNumColumns() );
 	MatrixRmn::TransposeMultiply( V, V, VTV );
 	IV -= VTV;
-	double error = IV.FrobeniusNorm();
+	double error = IV.frobeniusNorm();
 
 	MatrixRmn IU( U.getNumRows(), U.getNumColumns() );
 	IU.setIdentity();
 	MatrixRmn UTU( U.getNumRows(), U.getNumColumns() );
 	MatrixRmn::TransposeMultiply( U, U, UTU );
 	IU -= UTU;
-	error += IU.FrobeniusNorm();
+	error += IU.frobeniusNorm();
 
 	MatrixRmn DiagAndSuper( U.getNumRows(), V.getNumRows() );
 	DiagAndSuper.setZero();
-	DiagAndSuper.SetDiagonalEntries( w );
+	DiagAndSuper.setDiagonalEntries(w);
 	if ( this->getNumRows()>=this->getNumColumns() ) {
-		DiagAndSuper.SetSequence( superDiag, 0, 1, 1, 1 );
+		DiagAndSuper.setSequence( superDiag, 0, 1, 1, 1 );
 	}
 	else {
-		DiagAndSuper.SetSequence( superDiag, 1, 0, 1, 1 );
+		DiagAndSuper.setSequence( superDiag, 1, 0, 1, 1 );
 	}
 	MatrixRmn B(U.getNumRows(), V.getNumRows() );
 	MatrixRmn C(U.getNumRows(), V.getNumRows() );
 	MatrixRmn::Multiply( U, DiagAndSuper, B );
 	MatrixRmn::MultiplyTranspose( B, V, C );
 	C -= *this;
-	error += C.FrobeniusNorm();
+	error += C.frobeniusNorm();
 
 	//bool ret = ( fabs(error)<1.0e-13*Max(w.MaxAbs(),superDiag.MaxAbs()) );
 	bool ret = ( fabs(error) < (1.0e-13*((w.maxAbs() > superDiag.maxAbs()) ? w.maxAbs() : superDiag.maxAbs())) );
