@@ -33,11 +33,11 @@ void MatrixRmn::setColumn(int i, const VectorRn& d) {
 
 // Fill the diagonal entries with values in vector d.  The rest of the matrix is unchanged.
 void MatrixRmn::setDiagonalEntries(const VectorRn& d) {
-    int diagLen = ((m_num_rows < m_num_cols) ? m_num_rows : m_num_cols);
-    assert ( d.getLength() == diagLen );
+    int diag_len = get_diagonal_length();
+    assert ( d.getLength() == diag_len );
     double *to = this->x;
     double *from = d.x;
-    for ( ; diagLen > 0; diagLen-- ) {
+    for ( ; diag_len > 0; diag_len-- ) {
         *to = *(from++);
         to += this->m_num_rows + 1;
     }
@@ -138,8 +138,50 @@ const double* MatrixRmn::getColumnPtr(int j) const {
     return (this->x + j*this->m_num_rows);
 }
 
+bool MatrixRmn::debugCheckSVD( const MatrixRmn& U, const VectorRn& w, const MatrixRmn& V ) const {
+    MatrixRmn IV( V.getNumRows(), V.getNumColumns() );
+    IV.setIdentity();
+    MatrixRmn VTV( V.getNumRows(), V.getNumColumns() );
+    V.transposeMultiply(V, VTV);
+    IV -= VTV;
+    double error = IV.frobeniusNorm();
+
+    MatrixRmn IU( U.getNumRows(), U.getNumColumns() );
+    IU.setIdentity();
+    MatrixRmn UTU( U.getNumRows(), U.getNumColumns() );
+    U.transposeMultiply(U, UTU);
+    IU -= UTU;
+    error += IU.frobeniusNorm();
+
+    MatrixRmn Diag( U.getNumRows(), V.getNumRows() );
+    Diag.setZero();
+    Diag.setDiagonalEntries(w);
+    MatrixRmn B(U.getNumRows(), V.getNumRows() );
+    MatrixRmn C(U.getNumRows(), V.getNumRows() );
+    U.multiply(Diag, B);
+    B.multiplyTranspose(V, C);
+    C -= *this;
+    error += C.frobeniusNorm();
+
+    bool ret = ( fabs(error)<=1.0e-13*w.maxAbs() );
+    assert ( ret );
+    return ret;
+}
+
+// Form the dot product of a vector v with the i-th column of the array
+double MatrixRmn::dotProductColumn(const VectorRn& v, int col_num) {
+    assert ( v.getLength()==m_num_rows );
+    double *ptrC = this->x + col_num*this->m_num_rows;
+    double *ptrV = v.x;
+    double ret = 0;
+    for ( int i = this->m_num_rows; i > 0; i-- ) {
+        ret += (*(ptrC++))*(*(ptrV++));
+    }
+    return ret;
+}
+
 // Calculate the Frobenius Norm (square root of sum of squares of entries of the matrix)
-double MatrixRmn::frobeniusNorm(void) const {
+double MatrixRmn::frobeniusNorm(void) {
     double *aPtr = this->x;
     double result = 0.0;
     for ( int i = this->m_size; i > 0; i-- ) {
@@ -148,22 +190,248 @@ double MatrixRmn::frobeniusNorm(void) const {
     return sqrt(result);
 }
 
+// Helper routine: adds a scaled array
+void MatrixRmn::addArrayScale(int length, const double *from, int fromStride, double *to, int toStride, double scale) const {
+    for ( ; length>0; length-- ) {
+        *to += (*from)*scale;
+        from += fromStride;
+        to += toStride;
+    }
+}
 
+// Add a constant to each entry on the diagonal
+void MatrixRmn::addToDiagonal(double d) {
+    int diag_len = get_diagonal_length();
+    double *dPtr = this->x;
+    for ( ; diag_len > 0; diag_len-- ) {
+        *dPtr += d;
+        dPtr += this->m_num_rows + 1;
+    }
+}
 
+// ********************************************************************************************
+// Singular value decomposition.
+// Return othogonal matrices U and V and diagonal matrix with diagonal w such that
+//     (this) = U * Diag(w) * V^T     (V^T is V-transpose.)
+// Diagonal entries have all non-zero entries before all zero entries, but are not
+//      necessarily sorted.  (Someday, I will write ComputedSortedSVD that handles
+//      sorting the eigenvalues by magnitude.)
+// ********************************************************************************************
+void MatrixRmn::computeSVD(MatrixRmn& U, VectorRn& w, MatrixRmn& V) const {
+    assert ( U.m_num_rows==m_num_rows && V.m_num_cols==m_num_cols
+    && U.m_num_rows==U.m_num_cols && V.m_num_rows==V.m_num_cols
+    && w.getLength() == ((m_num_rows<m_num_cols) ? m_num_rows : m_num_cols) );
 
+    VectorRn superDiag(w.getLength() - 1);
 
+    // Choose larger of U, V to hold intermediate results
+    MatrixRmn *leftMatrix;
+    MatrixRmn *rightMatrix;
+    if ( m_num_rows >= m_num_cols ) {
+        U.load_as_submatrix( *this );               // Copy A into U
+        leftMatrix = &U;
+        rightMatrix = &V;
+    }
+    else {
+        V.load_as_submatrix_transpose( *this );     // Copy A-transpose into V
+        leftMatrix = &V;
+        rightMatrix = &U;
+    }
 
+    CalcBidiagonal(*leftMatrix, *rightMatrix, w, superDiag);
+    ConvertBidiagToDiagonal(*leftMatrix, *rightMatrix, w, superDiag);
+}
 
+/* Converts the matrix (in place) to row echelon form.  Row echelon form allows
+ * any non-zero values, not just 1's, in the position for a lead variable.  The
+ * assumption is that no free variable will be found.  Algorithm uses row
+ * operations and row pivoting (only).  Augmented matrix is correctly
+ * accomodated.  Only the first square part participates in the main work of row
+ * operations. */
+void MatrixRmn::convertToREF(void) {
+    long numIters = get_diagonal_length();
+    double* rowPtr1 = x;
+    const long diagStep = m_num_rows+1;
+    long lenRowLeft = m_num_cols;
+    for ( ; numIters>1; numIters-- ) {
+        // Find row with most non-zero entry.
+        double* rowPtr2 = rowPtr1;
+        double maxAbs = fabs(*rowPtr1);
+        double *rowPivot = rowPtr1;
+        long i;
+        for ( i=numIters-1; i>0; i-- ) {
+            const double& newMax = *(++rowPivot);
+            if ( newMax > maxAbs ) {
+                maxAbs = *rowPivot;
+                rowPtr2 = rowPivot;
+            }
+            else if ( -newMax > maxAbs ) {
+                maxAbs = -newMax;
+                rowPtr2 = rowPivot;
+            }
+        }
+        // Pivot step: Swap the row with highest entry to the current row
+        if ( rowPtr1 != rowPtr2 ) {
+            double *to = rowPtr1;
+            for ( long i=lenRowLeft; i>0; i-- ) {
+                double temp = *to;
+                *to = *rowPtr2;
+                *rowPtr2 = temp;
+                to += m_num_rows;
+                rowPtr2 += m_num_rows;
+            }
+        }
+        // Subtract this row appropriately from all the lower rows (row operation of type 3)
+        rowPtr2 = rowPtr1;
+        for ( i=numIters-1; i>0; i-- ) {
+            rowPtr2++;
+            double* to = rowPtr2;
+            double* from = rowPtr1;
+            assert( *from != 0.0 );
+            double alpha = (*to)/(*from);
+            *to = 0.0;
+            for ( long j=lenRowLeft-1; j>0; j-- ) {
+                to += m_num_rows;
+                from += m_num_rows;
+                *to -= (*from)*alpha;
+            }
+        }
+        // Update for next iteration of loop
+        rowPtr1 += diagStep;
+        lenRowLeft--;
+    }
+}
 
+// {result} = [this]*{v}
+void MatrixRmn::multiply(const VectorRn& v, VectorRn& result) {
+    assert ( v.getLength()==m_num_cols && result.getLength()==m_num_rows );
+    double *out = result.getPtr();              // Points to entry in result vector
+    const double *rowPtr = this->x;             // Points to beginning of next row in matrix
+    for ( int j = this->m_num_rows; j > 0; j-- ) {
+        const double *in = v.getPtr();
+        const double *m = rowPtr++;
+        *out = 0;
+        for ( int i = m_num_cols; i > 0; i-- ) {
+            *out += (*(in++)) * (*m);
+            m += this->m_num_rows;
+        }
+        out++;
+    }
+}
 
+// [result] = [this]*[B]
+void MatrixRmn::multiply(const MatrixRmn& B, MatrixRmn& result) const {
+    assert( this->m_num_cols == B.m_num_rows && this->m_num_rows == result.getNumRows() && B.m_num_cols == result.getNumColumns());
+    int length = this->m_num_cols;
 
+    double *bPtr = B.x;                     // Points to beginning of column in B
+    double *dPtr = result.x;
+    for ( int i = result.getNumColumns(); i > 0; i-- ) {
+        double *aPtr = this->x;                 // Points to beginning of row in A
+        for ( int j = result.getNumRows(); j > 0; j-- ) {
+            *dPtr = dot_array(length, aPtr, this->m_num_rows, bPtr, 1);
+            dPtr++;
+            aPtr++;
+        }
+        bPtr += B.getNumRows();
+    }
+}
 
+// {result} = {v}*[this]
+void MatrixRmn::multiplyTranspose(const VectorRn& v, VectorRn& result) {
+    assert ( v.getLength()==m_num_rows && result.getLength()==m_num_cols );
+    double *out = result.getPtr();              // Points to entry in result vector
+    const double *colPtr = this->x;             // Points to beginning of next column in matrix
+    for ( int i = this->m_num_cols; i > 0; i-- ) {
+        const double *in = v.getPtr();
+        *out = 0;
+        for ( int j = this->m_num_rows; j > 0; j-- ) {
+            *out += (*(in++)) * (*(colPtr++));
+        }
+        out++;
+    }
+}
 
+// [result] = [this]*[B]^T
+void MatrixRmn::multiplyTranspose(const MatrixRmn& B, MatrixRmn& result) const {
+    assert(this->m_num_cols == B.getNumColumns() && this->m_num_rows == result.getNumRows() && B.getNumRows() == result.getNumColumns());
+    int length = this->m_num_cols;
 
+    double *bPtr = B.x;                     // Points to beginning of row in B
+    double *dPtr = result.x;
+    for ( int i = result.getNumColumns(); i > 0; i-- ) {
+        double *aPtr = this->x;                 // Points to beginning of row in A
+        for ( int j = result.getNumRows(); j > 0; j-- ) {
+            *dPtr = dot_array(length, aPtr, this->m_num_rows, bPtr, B.getNumRows());
+            dPtr++;
+            aPtr++;
+        }
+        bPtr++;
+    }
+}
 
+// Applies Givens transform to columns idx1 and idx2
+void MatrixRmn::postApplyGivens(double c, double s, int idx1, int idx2) {
+    assert ( idx1!=idx2 && 0<=idx1 && idx1<m_num_cols && 0<=idx2 && idx2<m_num_cols );
+    double *colA = this->x + idx1*this->m_num_rows;
+    double *colB = this->x + idx2*this->m_num_rows;
+    for ( int i = this->m_num_rows; i > 0; i-- ) {
+        double temp = *colA;
+        *colA = (*colA)*c + (*colB)*s;
+        *colB = (*colB)*c - temp*s;
+        colA++;
+        colB++;
+    }
+}
 
+// Solves the equation   [this]*{xVec} = {b}
+void MatrixRmn::solve(const VectorRn& b, VectorRn *xVec) {
+    assert ( m_num_rows==m_num_cols && m_num_cols==xVec->getLength() && m_num_rows==b.getLength() );
 
+    // Copy this matrix and b into an Augmented Matrix
+    MatrixRmn AugMat(this->m_num_rows, this->m_num_cols + 1);
+    AugMat.load_as_submatrix(*this);
+    AugMat.setColumn(this->m_num_rows, b);
 
+    // Put into row echelon form with row operations
+    AugMat.convertToREF();
+
+    // Solve for x vector values using back substitution
+    double *xLast = xVec->x+m_num_rows-1;               // Last entry in xVec
+    double *endRow = AugMat.x+this->m_size-1;   // Last entry in the current row of the coefficient part of Augmented Matrix
+    double *bPtr = endRow+m_num_rows;               // Last entry in augmented matrix (end of last column, in augmented part)
+    for ( long i = m_num_rows; i>0; i-- ) {
+        double accum = *(bPtr--);
+        // Next loop computes back substitution terms
+        double* rowPtr = endRow;                    // Points to entries of the current row for back substitution.
+        double* xPtr = xLast;                       // Points to entries in the x vector (also for back substitution)
+        for ( long j=m_num_rows-i; j>0; j-- ) {
+            accum -= (*rowPtr)*(*(xPtr--));
+            rowPtr -= m_num_cols;                       // Previous entry in the row
+        }
+        assert( *rowPtr != 0.0 );                   // Are not supposed to be any free variables in this matrix
+        *xPtr = accum/(*rowPtr);
+        endRow--;
+    }
+}
+
+// [result] = [this]^T*[B]
+void MatrixRmn::transposeMultiply(const MatrixRmn& B, MatrixRmn& result) const {
+    assert( this->m_num_rows == B.m_num_rows && this->m_num_cols == result.m_num_rows && B.m_num_cols == result.m_num_cols);
+    int length = this->m_num_rows;
+
+    double *bPtr = B.x;                                     // bPtr Points to beginning of column in B
+    double *dPtr = result.x;
+    for ( int i = result.m_num_cols; i>0; i-- ) {             // Loop over all columns of dst
+        double *aPtr = this->x;                                 // aPtr Points to beginning of column in A
+        for ( int j = result.m_num_rows; j > 0; j-- ) {         // Loop over all rows of dst
+            *dPtr = dot_array(length, aPtr, 1, bPtr, 1 );
+            dPtr ++;
+            aPtr += this->m_num_rows;
+        }
+        bPtr += B.m_num_rows;
+    }
+}
 
 MatrixRmn& MatrixRmn::operator*= (double d) {
 	double* aPtr = x;
@@ -199,334 +467,13 @@ MatrixRmn& MatrixRmn::operator-= (const MatrixRmn& B) {
 	return (*this);
 }
 
-// Multiply this matrix by column vector v.
-// Result is column vector "result"
-void MatrixRmn::Multiply( const VectorRn& v, VectorRn& result ) const
-{
-	assert ( v.getLength()==m_num_cols && result.getLength()==m_num_rows );
-	double* out = result.getPtr();				// Points to entry in result vector
-	const double* rowPtr = x;					// Points to beginning of next row in matrix
-	for ( long j = m_num_rows; j>0; j-- ) {
-		const double* in = v.getPtr();
-		const double* m = rowPtr++;
-		*out = 0.0f;
-		for ( long i = m_num_cols; i>0; i-- ) {
-			*out += (*(in++)) * (*m);
-			m += m_num_rows;
-		}
-		out++;
-	}
-}
-
-// Multiply transpose of this matrix by column vector v.
-//    Result is column vector "result"
-// Equivalent to mult by row vector on left
-void MatrixRmn::MultiplyTranspose( const VectorRn& v, VectorRn& result ) const
-{
-	assert ( v.getLength()==m_num_rows && result.getLength()==m_num_cols );
-	double* out = result.getPtr();				// Points to entry in result vector
-	const double* colPtr = x;					// Points to beginning of next column in matrix
-	for ( long i=m_num_cols; i>0; i-- ) {
-		const double* in=v.getPtr();
-		*out = 0.0f;
-		for ( long j = m_num_rows; j>0; j-- ) {
-			*out += (*(in++)) * (*(colPtr++));
-		}
-		out++;
-	}
-}
-
-// Form the dot product of a vector v with the i-th column of the array
-double MatrixRmn::DotProductColumn( const VectorRn& v, long colNum ) const
-{
-	assert ( v.getLength()==m_num_rows );
-	double* ptrC = x+colNum*m_num_rows;
-	double* ptrV = v.x;
-	double ret = 0.0;
-	for ( long i = m_num_rows; i>0; i-- ) {
-		ret += (*(ptrC++))*(*(ptrV++));
-	}
-	return ret;
-}
-
-// Add a constant to each entry on the diagonal
-MatrixRmn& MatrixRmn::addToDiagonal( double d ) {
-	long diagLen = ((m_num_rows < m_num_cols) ? m_num_rows : m_num_cols);
-	double* dPtr = x;
-	for ( ; diagLen>0; diagLen-- ) {
-		*dPtr += d;
-		dPtr += m_num_rows+1;
-	}
-	return *this;
-}
-
-// Multiply two MatrixRmn's
-MatrixRmn& MatrixRmn::Multiply( const MatrixRmn& A, const MatrixRmn& B, MatrixRmn& dst )
-{
-	assert( A.m_num_cols == B.m_num_rows && A.m_num_rows == dst.m_num_rows && B.m_num_cols == dst.m_num_cols );
-	long length = A.m_num_cols;
-
-	double *bPtr = B.x;						// Points to beginning of column in B
-	double *dPtr = dst.x;
-	for ( long i = dst.m_num_cols; i>0; i-- ) {
-		double *aPtr = A.x;					// Points to beginning of row in A
-		for ( long j = dst.m_num_rows; j>0; j-- ) {
-			*dPtr = DotArray( length, aPtr, A.m_num_rows, bPtr, 1 );
-			dPtr++;
-			aPtr++;
-		}
-		bPtr += B.m_num_rows;
-	}
-
-	return dst;
-}
-
-// Multiply two MatrixRmn's,  Transpose the first matrix before multiplying
-MatrixRmn& MatrixRmn::TransposeMultiply( const MatrixRmn& A, const MatrixRmn& B, MatrixRmn& dst )
-{
-	assert( A.m_num_rows == B.m_num_rows && A.m_num_cols == dst.m_num_rows && B.m_num_cols == dst.m_num_cols );
-	long length = A.m_num_rows;
-
-	double *bPtr = B.x;										// bPtr Points to beginning of column in B
-	double *dPtr = dst.x;
-	for ( long i = dst.m_num_cols; i>0; i-- ) {				// Loop over all columns of dst
-		double *aPtr = A.x;									// aPtr Points to beginning of column in A
-		for ( long j = dst.m_num_rows; j>0; j-- ) {			// Loop over all rows of dst
-			*dPtr = DotArray( length, aPtr, 1, bPtr, 1 );
-			dPtr ++;
-			aPtr += A.m_num_rows;
-		}
-		bPtr += B.m_num_rows;
-	}
-
-	return dst;
-}
-
-// Multiply two MatrixRmn's.  Transpose the second matrix before multiplying
-MatrixRmn& MatrixRmn::MultiplyTranspose( const MatrixRmn& A, const MatrixRmn& B, MatrixRmn& dst )
-{
-	assert( A.m_num_cols == B.m_num_cols && A.m_num_rows == dst.m_num_rows && B.m_num_rows == dst.m_num_cols );
-	long length = A.m_num_cols;
-
-	double *bPtr = B.x;						// Points to beginning of row in B
-	double *dPtr = dst.x;
-	for ( long i = dst.m_num_cols; i>0; i-- ) {
-		double *aPtr = A.x;					// Points to beginning of row in A
-		for ( long j = dst.m_num_rows; j>0; j-- ) {
-			*dPtr = DotArray( length, aPtr, A.m_num_rows, bPtr, B.m_num_rows );
-			dPtr++;
-			aPtr++;
-		}
-		bPtr++;
-	}
-
-	return dst;
-}
-
-// Solves the equation   (*this)*xVec = b;
-// Uses row operations.  Assumes *this is square and invertible.
-// No error checking for divide by zero or instability (except with asserts)
-void MatrixRmn::Solve( const VectorRn& b, VectorRn* xVec ) const
-{
-	assert ( m_num_rows==m_num_cols && m_num_cols==xVec->getLength() && m_num_rows==b.getLength() );
-
-	// Copy this matrix and b into an Augmented Matrix
-    MatrixRmn AugMat(m_num_rows, m_num_cols+1);
-	AugMat.load_as_submatrix( *this );
-	AugMat.setColumn( m_num_rows, b );
-
-	// Put into row echelon form with row operations
-	AugMat.ConvertToRefNoFree();
-
-	// Solve for x vector values using back substitution
-	double* xLast = xVec->x+m_num_rows-1;				// Last entry in xVec
-	double* endRow = AugMat.x+this->m_size-1;	// Last entry in the current row of the coefficient part of Augmented Matrix
-	double* bPtr = endRow+m_num_rows;				// Last entry in augmented matrix (end of last column, in augmented part)
-	for ( long i = m_num_rows; i>0; i-- ) {
-		double accum = *(bPtr--);
-		// Next loop computes back substitution terms
-		double* rowPtr = endRow;					// Points to entries of the current row for back substitution.
-		double* xPtr = xLast;						// Points to entries in the x vector (also for back substitution)
-		for ( long j=m_num_rows-i; j>0; j-- ) {
-			accum -= (*rowPtr)*(*(xPtr--));
-			rowPtr -= m_num_cols;						// Previous entry in the row
-		}
-		assert( *rowPtr != 0.0 );					// Are not supposed to be any free variables in this matrix
-		*xPtr = accum/(*rowPtr);
-		endRow--;
-	}
-}
-
-// ConvertToRefNoFree
-// Converts the matrix (in place) to row echelon form
-// For us, row echelon form allows any non-zero values, not just 1's, in the
-//		position for a lead variable.
-// The "NoFree" version operates on the assumption that no free variable will be found.
-// Algorithm uses row operations and row pivoting (only).
-// Augmented matrix is correctly accomodated.  Only the first square part participates
-//		in the main work of row operations.
-void MatrixRmn::ConvertToRefNoFree()
-{
-	// Loop over all columns (variables)
-	// Find row with most non-zero entry.
-	// Swap to the highest active row
-	// Subtract appropriately from all the lower rows (row op of type 3)
-	//long numIters = Min(m_num_rows,m_num_cols);
-	long numIters = ((m_num_rows < m_num_cols) ? m_num_rows : m_num_cols);
-	double* rowPtr1 = x;
-	const long diagStep = m_num_rows+1;
-	long lenRowLeft = m_num_cols;
-	for ( ; numIters>1; numIters-- ) {
-		// Find row with most non-zero entry.
-		double* rowPtr2 = rowPtr1;
-		double maxAbs = fabs(*rowPtr1);
-		double *rowPivot = rowPtr1;
-		long i;
-		for ( i=numIters-1; i>0; i-- ) {
-			const double& newMax = *(++rowPivot);
-			if ( newMax > maxAbs ) {
-				maxAbs = *rowPivot;
-				rowPtr2 = rowPivot;
-			}
-			else if ( -newMax > maxAbs ) {
-				maxAbs = -newMax;
-				rowPtr2 = rowPivot;
-			}
-		}
-		// Pivot step: Swap the row with highest entry to the current row
-		if ( rowPtr1 != rowPtr2 ) {
-			double *to = rowPtr1;
-			for ( long i=lenRowLeft; i>0; i-- ) {
-				double temp = *to;
-				*to = *rowPtr2;
-				*rowPtr2 = temp;
-				to += m_num_rows;
-				rowPtr2 += m_num_rows;
-			}
-		}
-		// Subtract this row appropriately from all the lower rows (row operation of type 3)
-		rowPtr2 = rowPtr1;
-		for ( i=numIters-1; i>0; i-- ) {
-			rowPtr2++;
-			double* to = rowPtr2;
-			double* from = rowPtr1;
-			assert( *from != 0.0 );
-			double alpha = (*to)/(*from);
-			*to = 0.0;
-			for ( long j=lenRowLeft-1; j>0; j-- ) {
-				to += m_num_rows;
-				from += m_num_rows;
-				*to -= (*from)*alpha;
-			}
-		}
-		// Update for next iteration of loop
-		rowPtr1 += diagStep;
-		lenRowLeft--;
-	}
-
-}
-
-// Calculate the c=cosine and s=sine values for a Givens transformation.
-// The matrix M = ( (c, -s), (s, c) ) in row order transforms the
-//   column vector (a, b)^T to have y-coordinate zero.
-void MatrixRmn::CalcGivensValues( double a, double b, double *c, double *s )
-{
-	double denomInv = sqrt(a*a + b*b);
-	if ( denomInv==0.0 ) {
-		*c = 1.0;
-		*s = 0.0;
-	}
-	else {
-		denomInv = 1.0/denomInv;
-		*c = a*denomInv;
-		*s = -b*denomInv;
-	}
-}
-
-// Applies Givens transform to columns i and i+1.
-// Equivalent to postmultiplying by the matrix
-//      ( c  -s )
-//		( s   c )
-// with non-zero entries in rows i and i+1 and columns i and i+1
-void MatrixRmn::PostApplyGivens( double c, double s, long idx )
-{
-	assert ( 0<=idx && idx<m_num_cols );
-	double *colA = x + idx*m_num_rows;
-	double *colB = colA + m_num_rows;
-	for ( long i = m_num_rows; i>0; i-- ) {
-		double temp = *colA;
-		*colA = (*colA)*c + (*colB)*s;
-		*colB = (*colB)*c - temp*s;
-		colA++;
-		colB++;
-	}
-}
-
-// Applies Givens transform to columns idx1 and idx2.
-// Equivalent to postmultiplying by the matrix
-//      ( c  -s )
-//		( s   c )
-// with non-zero entries in rows idx1 and idx2 and columns idx1 and idx2
-void MatrixRmn::PostApplyGivens( double c, double s, long idx1, long idx2 )
-{
-	assert ( idx1!=idx2 && 0<=idx1 && idx1<m_num_cols && 0<=idx2 && idx2<m_num_cols );
-	double *colA = x + idx1*m_num_rows;
-	double *colB = x + idx2*m_num_rows;
-	for ( long i = m_num_rows; i>0; i-- ) {
-		double temp = *colA;
-		*colA = (*colA)*c + (*colB)*s;
-		*colB = (*colB)*c - temp*s;
-		colA++;
-		colB++;
-	}
-}
-
-
-// ********************************************************************************************
-// Singular value decomposition.
-// Return othogonal matrices U and V and diagonal matrix with diagonal w such that
-//     (this) = U * Diag(w) * V^T     (V^T is V-transpose.)
-// Diagonal entries have all non-zero entries before all zero entries, but are not
-//		necessarily sorted.  (Someday, I will write ComputedSortedSVD that handles
-//		sorting the eigenvalues by magnitude.)
-// ********************************************************************************************
-void MatrixRmn::computeSVD(MatrixRmn& U, VectorRn& w, MatrixRmn& V) const {
-	assert ( U.m_num_rows==m_num_rows && V.m_num_cols==m_num_cols
-			&& U.m_num_rows==U.m_num_cols && V.m_num_rows==V.m_num_cols
-			&& w.getLength() == ((m_num_rows<m_num_cols) ? m_num_rows : m_num_cols) );
-
-    VectorRn superDiag(w.getLength() - 1);
-
-	// Choose larger of U, V to hold intermediate results
-	// If U is larger than V, use U to store intermediate results
-	// Otherwise use V.  In the latter case, we form the SVD of A transpose,
-	//		(which is essentially identical to the SVD of A).
-	MatrixRmn *leftMatrix;
-	MatrixRmn *rightMatrix;
-	if ( m_num_rows >= m_num_cols ) {
-		U.load_as_submatrix( *this );				// Copy A into U
-		leftMatrix = &U;
-		rightMatrix = &V;
-	}
-	else {
-		V.load_as_submatrix_transpose( *this );		// Copy A-transpose into V
-		leftMatrix = &V;
-		rightMatrix = &U;
-	}
-
-	// Do the actual work to calculate the SVD
-	// Now matrix has at least as many rows as columns
-    CalcBidiagonal(*leftMatrix, *rightMatrix, w, superDiag);
-    ConvertBidiagToDiagonal(*leftMatrix, *rightMatrix, w, superDiag);
-}
-
 // ************************************************ CalcBidiagonal **************************
 // Helper routine for SVD computation
 // U is a matrix to be bidiagonalized.
 // On return, U and V are orthonormal and w holds the new diagonal
 //	  elements and superDiag holds the super diagonal elements.
 
-void MatrixRmn::CalcBidiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag )
+void MatrixRmn::CalcBidiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag ) const
 {
 	assert ( U.m_num_rows>=V.m_num_rows );
 
@@ -592,7 +539,7 @@ void MatrixRmn::CalcBidiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorR
 //	 separately into "retFirstEntry"
 void MatrixRmn::SvdHouseholder( double* basePt,
 							    long colLength, long numCols, long colStride, long rowStride,
-								double* retFirstEntry )
+								double* retFirstEntry ) const
 {
 
 	// Calc norm of vector u
@@ -645,9 +592,9 @@ void MatrixRmn::SvdHouseholder( double* basePt,
 	for ( long j=numCols-1; j>0; j-- ) {
 		rPtr += rowStride;
 		// Calc dot product with Householder transformation vector
-		double dotP = DotArray( colLength, basePt, colStride, rPtr, colStride );
+		double dotP = dot_array( colLength, basePt, colStride, rPtr, colStride );
 		// Transform with I - 2*dotP*(Householder vector)
-		AddArrayScale( colLength, basePt, colStride, rPtr, colStride, -2.0*dotP );
+		addArrayScale( colLength, basePt, colStride, rPtr, colStride, -2.0*dotP );
 	}
 }
 
@@ -682,7 +629,7 @@ void MatrixRmn::ExpandHouseholders( long numXforms, int numZerosSkipped, const d
 	double* diagPtr = x+m_num_cols*m_num_rows-1;					// Last entry in matrix (points to diagonal entry)
 	double* colPtr = diagPtr-(numToTransform-1);			// Pointer to column in matrix
 	for ( i=numToTransform; i>0; i-- ) {
-		CopyArrayScale( numToTransform, hBase, colStride, colPtr, 1, -2.0*(*hDiagPtr) );
+		this->copy_array_scale( numToTransform, hBase, colStride, colPtr, 1, -2.0*(*hDiagPtr) );
 		*diagPtr += 1.0;						// Add back in 1 to the diagonal entry (since xforming the identity)
 		diagPtr -= (m_num_rows+1);					// Next diagonal entry in this matrix
 		colPtr -= m_num_rows;						// Next column in this matrix
@@ -698,13 +645,13 @@ void MatrixRmn::ExpandHouseholders( long numXforms, int numZerosSkipped, const d
 		colPtr = colLastPtr;
 		for ( long j = numToTransform-1; j>0; j-- ) {
 			// Get dot product
-			double dotProd2N = -2.0*DotArray( numToTransform-1, hBase+colStride, colStride, colPtr+1, 1 );
+			double dotProd2N = -2.0*dot_array( numToTransform-1, hBase+colStride, colStride, colPtr+1, 1 );
 			*colPtr = dotProd2N*(*hBase);			// Adding onto zero at initial point
-			AddArrayScale( numToTransform-1, hBase+colStride, colStride, colPtr+1, 1, dotProd2N );
+			addArrayScale( numToTransform-1, hBase+colStride, colStride, colPtr+1, 1, dotProd2N );
 			colPtr -= m_num_rows;
 		}
 		// Do last one as a special case (may overwrite the Householder vector)
-		CopyArrayScale( numToTransform, hBase, colStride, colPtr, 1, -2.0*(*hBase) );
+		this->copy_array_scale( numToTransform, hBase, colStride, colPtr, 1, -2.0*(*hBase) );
 		*colPtr += 1.0;				// Add back one one as identity
 		// Done with this Householder transformation
 		colLastPtr --;
@@ -787,29 +734,30 @@ void MatrixRmn::ConvertBidiagToDiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w
 		double t12 = w[firstBidiagIdx]*superDiag[firstBidiagIdx];
 
 		double c, s;
-		CalcGivensValues( t11-lambda, t12, &c, &s );
+        //CalcGivensValues( t11-lambda, t12, &c, &s );
+        this->calc_givens_values(t11-lambda, t12, &c, &s);
 		ApplyGivensCBTD( c, s, wPtr, sdPtr, &extraOffDiag, wPtr+1 );
-		V.PostApplyGivens( c, -s, firstBidiagIdx );
+        V.postApplyGivens(c, -s, firstBidiagIdx, firstBidiagIdx + 1);
 		long i;
 		for ( i=firstBidiagIdx; i<lastBidiagIdx-1; i++ ) {
 			// Push non-zero from M[i+1,i] to M[i,i+2]
-			CalcGivensValues( *wPtr, extraOffDiag, &c, &s );
+			//CalcGivensValues( *wPtr, extraOffDiag, &c, &s );
+			this->calc_givens_values( *wPtr, extraOffDiag, &c, &s );
 			ApplyGivensCBTD( c, s, wPtr, sdPtr, &extraOffDiag, extraOffDiag, wPtr+1, sdPtr+1 );
-			U.PostApplyGivens( c, -s, i );
+			U.postApplyGivens(c, -s, i, i + 1);
 			// Push non-zero from M[i,i+2] to M[1+2,i+1]
-			CalcGivensValues( *sdPtr, extraOffDiag, &c, &s );
+            //CalcGivensValues( *sdPtr, extraOffDiag, &c, &s );
+            this->calc_givens_values( *sdPtr, extraOffDiag, &c, &s );
 			ApplyGivensCBTD( c, s, sdPtr, wPtr+1, &extraOffDiag, extraOffDiag, sdPtr+1, wPtr+2 );
-			V.PostApplyGivens( c, -s, i+1 );
+			V.postApplyGivens(c, -s, i + 1, i + 2);
 			wPtr++;
 			sdPtr++;
 		}
 		// Push non-zero value from M[i+1,i] to M[i,i+1] for i==lastBidiagIdx-1
-		CalcGivensValues( *wPtr, extraOffDiag, &c, &s );
+		//CalcGivensValues( *wPtr, extraOffDiag, &c, &s );
+		this->calc_givens_values( *wPtr, extraOffDiag, &c, &s );
 		ApplyGivensCBTD( c, s, wPtr, &extraOffDiag, sdPtr, wPtr+1 );
-		U.PostApplyGivens( c, -s, i );
-
-		// DEBUG
-		// DebugCalcBidiagCheck( V, w, superDiag, U );
+		U.postApplyGivens(c, -s, i, i + 1);
 	}
 }
 
@@ -817,7 +765,7 @@ void MatrixRmn::ConvertBidiagToDiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w
 // We use Givens rotations to "chase" the non-zero entry across the row; when it reaches the last
 //	column, it is finally zeroed away.
 // wPtr points to the zero entry on the diagonal.  sdPtr points to the non-zero superdiagonal entry on the same row.
-void MatrixRmn::ClearRowWithDiagonalZero( long firstBidiagIdx, long lastBidiagIdx, MatrixRmn& U, double *wPtr, double *sdPtr, double eps )
+void MatrixRmn::ClearRowWithDiagonalZero( long firstBidiagIdx, long lastBidiagIdx, MatrixRmn& U, double *wPtr, double *sdPtr, double eps ) const
 {
 	double curSd = *sdPtr;		// Value being chased across the row
 	*sdPtr = 0.0;
@@ -825,8 +773,9 @@ void MatrixRmn::ClearRowWithDiagonalZero( long firstBidiagIdx, long lastBidiagId
 	while (true) {
 		// Rotate row i and row firstBidiagIdx (Givens rotation)
 		double c, s;
-		CalcGivensValues( *(++wPtr), curSd, &c, &s );
-		U.PostApplyGivens( c, -s, i, firstBidiagIdx );
+        //CalcGivensValues( *(++wPtr), curSd, &c, &s );
+        this->calc_givens_values( *(++wPtr), curSd, &c, &s );
+		U.postApplyGivens(c, -s, i, firstBidiagIdx);
 		*wPtr = c*(*wPtr) - s*curSd;
 		if ( i==lastBidiagIdx ) {
 			break;
@@ -841,15 +790,16 @@ void MatrixRmn::ClearRowWithDiagonalZero( long firstBidiagIdx, long lastBidiagId
 // We use Givens rotations to "chase" the non-zero entry up the column; when it reaches the last
 //	column, it is finally zeroed away.
 // wPtr points to the zero entry on the diagonal.  sdPtr points to the non-zero superdiagonal entry in the same column.
-void MatrixRmn::ClearColumnWithDiagonalZero( long endIdx, MatrixRmn& V, double *wPtr, double *sdPtr, double eps )
+void MatrixRmn::ClearColumnWithDiagonalZero( long endIdx, MatrixRmn& V, double *wPtr, double *sdPtr, double eps ) const
 {
 	double curSd = *sdPtr;		// Value being chased up the column
 	*sdPtr = 0.0;
 	long i = endIdx-1;
 	while ( true ) {
 		double c, s;
-		CalcGivensValues( *(--wPtr), curSd, &c, &s );
-		V.PostApplyGivens( c, -s, i, endIdx );
+        //CalcGivensValues( *(--wPtr), curSd, &c, &s );
+        this->calc_givens_values( *(--wPtr), curSd, &c, &s );
+		V.postApplyGivens(c, -s, i, endIdx);
 		*wPtr = c*(*wPtr) - s*curSd;
 		if ( i==0 ) {
 			break;
@@ -920,7 +870,29 @@ bool MatrixRmn::UpdateBidiagIndices( long *firstBidiagIdx, long *lastBidiagIdx, 
 	return true;
 }
 
+// Helper routine: calculate dot product
+double MatrixRmn::dot_array(int length, const double *ptrA, int strideA, const double *ptrB, int strideB) const {
+    double result = 0;
+    for ( ; length>0 ; length-- ) {
+        result += (*ptrA)*(*ptrB);
+        ptrA += strideA;
+        ptrB += strideB;
+    }
+    return result;
+}
 
+int MatrixRmn::get_diagonal_length(void) {
+    return ((this->m_num_rows < this->m_num_cols) ? this->m_num_rows : this->m_num_cols);
+}
+
+// Helper routine: copies and scales an array
+void MatrixRmn::copy_array_scale(int length, const double *from, int fromStride, double *to, int toStride, double scale) const {
+    for ( ; length>0; length-- ) {
+        *to = (*from)*scale;
+        from += fromStride;
+        to += toStride;
+    }
+}
 
 // The matrix A is loaded, in into "this" matrix, based at (0,0).
 //  The size of "this" matrix must be large enough to accomodate A.
@@ -955,76 +927,16 @@ void MatrixRmn::load_as_submatrix_transpose( const MatrixRmn& A ) {
     }
 }
 
-
-
-// ******************************************DEBUG STUFFF
-bool MatrixRmn::DebugCheckSVD( const MatrixRmn& U, const VectorRn& w, const MatrixRmn& V ) const {
-	// Special SVD test code
-
-	MatrixRmn IV( V.getNumRows(), V.getNumColumns() );
-	IV.setIdentity();
-	MatrixRmn VTV( V.getNumRows(), V.getNumColumns() );
-	MatrixRmn::TransposeMultiply( V, V, VTV );
-	IV -= VTV;
-	double error = IV.frobeniusNorm();
-
-	MatrixRmn IU( U.getNumRows(), U.getNumColumns() );
-	IU.setIdentity();
-	MatrixRmn UTU( U.getNumRows(), U.getNumColumns() );
-	MatrixRmn::TransposeMultiply( U, U, UTU );
-	IU -= UTU;
-	error += IU.frobeniusNorm();
-
-	MatrixRmn Diag( U.getNumRows(), V.getNumRows() );
-	Diag.setZero();
-	Diag.setDiagonalEntries(w);
-	MatrixRmn B(U.getNumRows(), V.getNumRows() );
-	MatrixRmn C(U.getNumRows(), V.getNumRows() );
-	MatrixRmn::Multiply( U, Diag, B );
-	MatrixRmn::MultiplyTranspose( B, V, C );
-	C -= *this;
-	error += C.frobeniusNorm();
-
-	bool ret = ( fabs(error)<=1.0e-13*w.maxAbs() );
-	assert ( ret );
-	return ret;
-}
-
-bool MatrixRmn::DebugCalcBidiagCheck( const MatrixRmn& U, const VectorRn& w, const VectorRn& superDiag, const MatrixRmn& V ) const {
-	// Special SVD test code
-
-	MatrixRmn IV( V.getNumRows(), V.getNumColumns() );
-	IV.setIdentity();
-	MatrixRmn VTV( V.getNumRows(), V.getNumColumns() );
-	MatrixRmn::TransposeMultiply( V, V, VTV );
-	IV -= VTV;
-	double error = IV.frobeniusNorm();
-
-	MatrixRmn IU( U.getNumRows(), U.getNumColumns() );
-	IU.setIdentity();
-	MatrixRmn UTU( U.getNumRows(), U.getNumColumns() );
-	MatrixRmn::TransposeMultiply( U, U, UTU );
-	IU -= UTU;
-	error += IU.frobeniusNorm();
-
-	MatrixRmn DiagAndSuper( U.getNumRows(), V.getNumRows() );
-	DiagAndSuper.setZero();
-	DiagAndSuper.setDiagonalEntries(w);
-	if ( this->getNumRows()>=this->getNumColumns() ) {
-		DiagAndSuper.setSequence( superDiag, 0, 1, 1, 1 );
-	}
-	else {
-		DiagAndSuper.setSequence( superDiag, 1, 0, 1, 1 );
-	}
-	MatrixRmn B(U.getNumRows(), V.getNumRows() );
-	MatrixRmn C(U.getNumRows(), V.getNumRows() );
-	MatrixRmn::Multiply( U, DiagAndSuper, B );
-	MatrixRmn::MultiplyTranspose( B, V, C );
-	C -= *this;
-	error += C.frobeniusNorm();
-
-	//bool ret = ( fabs(error)<1.0e-13*Max(w.MaxAbs(),superDiag.MaxAbs()) );
-	bool ret = ( fabs(error) < (1.0e-13*((w.maxAbs() > superDiag.maxAbs()) ? w.maxAbs() : superDiag.maxAbs())) );
-	assert ( ret );
-	return ret;
+// Calculate the c=cosine and s=sine values for a Givens transformation.
+void MatrixRmn::calc_givens_values(double a, double b, double *c, double *s) const {
+    double denomInv = sqrt(a*a + b*b);
+    if ( denomInv==0.0 ) {
+        *c = 1.0;
+        *s = 0.0;
+    }
+    else {
+        denomInv = 1.0/denomInv;
+        *c = a*denomInv;
+        *s = -b*denomInv;
+    }
 }

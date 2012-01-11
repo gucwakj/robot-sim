@@ -29,44 +29,22 @@ class MatrixRmn {
         double* getColumnPtr(int j);
         const double* getColumnPtr(int j) const;
 
-		double frobeniusNorm(void) const;                               // Frobenius Norm
+        bool debugCheckSVD(const MatrixRmn& U, const VectorRn& w, const MatrixRmn& V) const; // check SVD
 
-		// Operations on VectorRn's
-		void Multiply( const VectorRn& v, VectorRn& result ) const;					// result = (this)*(v)
-		void MultiplyTranspose( const VectorRn& v, VectorRn& result ) const;		// Equivalent to mult by row vector on left
-		double DotProductColumn( const VectorRn& v, long colNum ) const;			// Returns dot product of v with i-th column
+        double dotProductColumn(const VectorRn& v, int col_num);        // Returns dot product of v with i-th column
+        double frobeniusNorm(void);                                     // Frobenius Norm
 
-		// Operations on MatrixRmn's
-		//MatrixRmn& AddScaled( const MatrixRmn& B, double factor );
-		static MatrixRmn& Multiply( const MatrixRmn& A, const MatrixRmn& B, MatrixRmn& dst );				// Sets dst = A*B.
-		static MatrixRmn& MultiplyTranspose( const MatrixRmn& A, const MatrixRmn& B, MatrixRmn& dst );		// Sets dst = A*(B-tranpose).
-		static MatrixRmn& TransposeMultiply( const MatrixRmn& A, const MatrixRmn& B, MatrixRmn& dst );		// Sets dst = (A-transpose)*B.
-
-		// Miscellaneous operation
-		MatrixRmn& addToDiagonal(double d);					// Adds d to each diagonal
-
-		// Solving systems of linear equations
-		void Solve( const VectorRn& b, VectorRn* x ) const;	  // Solves the equation   (*this)*x = b;    Uses row operations.  Assumes *this is invertible.
-
-		// Row Echelon Form and Reduced Row Echelon Form routines
-		// Row echelon form here allows non-negative entries (instead of 1's) in the positions of lead variables.
-		void ConvertToRefNoFree();				// Converts the matrix in place to row echelon form -- assumption is no free variables will be found
-		void ConvertToRef( int numVars);		// Converts the matrix in place to row echelon form -- numVars is number of columns to work with.
-		void ConvertToRef( int numVars, double eps);		// Same, but eps is the measure of closeness to zero
-
-		// Givens transformation
-		static void CalcGivensValues( double a, double b, double *c, double *s );
-		void PostApplyGivens( double c, double s, long idx );							// Applies Givens transform to columns idx and idx+1.
-		void PostApplyGivens( double c, double s, long idx1, long idx2 );				// Applies Givens transform to columns idx1 and idx2.
-
-		// Singular value decomposition
-		void computeSVD(MatrixRmn& U, VectorRn& w, MatrixRmn& V) const;
-		bool DebugCheckSVD(const MatrixRmn& U, const VectorRn& w, const MatrixRmn& V) const;
-
-		// Some useful routines for experts who understand the inner workings of these classes.
-		inline static double DotArray( long length, const double* ptrA, long strideA, const double* ptrB, long strideB );
-		inline static void CopyArrayScale( long length, const double* from, long fromStride, double *to, long toStride, double scale );
-		inline static void AddArrayScale( long length, const double* from, long fromStride, double *to, long toStride, double scale );
+        void addArrayScale(int length, const double *from, int fromStride, double *to, int toStride, double scale) const;
+        void addToDiagonal(double d);                                   // Adds d to each diagonal
+        void computeSVD(MatrixRmn& U, VectorRn& w, MatrixRmn& V) const; // Singular value decomposition
+        void convertToREF(void);                                        // Converts the matrix in place to row echelon form
+        void multiply(const VectorRn& v, VectorRn& result);             // {result} = [this]*{v}
+        void multiply(const MatrixRmn& B, MatrixRmn& result) const;     // [result] = [this]*[B]
+        void multiplyTranspose(const VectorRn& v, VectorRn& result);    // {result} = {v}*[this]
+        void multiplyTranspose(const MatrixRmn& B, MatrixRmn& result) const; // [result] = [this]*[B]^T
+        void postApplyGivens(double c, double s, int idx1, int idx2);   // Applies Givens transform to columns idx1 and idx2
+        void solve(const VectorRn& b, VectorRn *xVec);                  // Solves the equation [this]*{x} = {b}
+        void transposeMultiply(const MatrixRmn& B, MatrixRmn& result) const; // [result] = [this]^T*[B]
 
         MatrixRmn& operator*= (double d);
         MatrixRmn& operator/= (double d);
@@ -79,53 +57,25 @@ class MatrixRmn {
         int m_size;                 // Current size of array
         double *x;					// Array of vector entries - stored in column order
 
-		// Internal helper routines for SVD calculations
-		static void CalcBidiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag );
-		void ConvertBidiagToDiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag ) const;
-		static void SvdHouseholder( double *basePt, long colLength, long numCols, long colStride, long rowStride, double *retFirstEntry);
-		void ExpandHouseholders( long numXforms, int numZerosSkipped, const double* basePt, long colStride, long rowStride );
+        // Internal helper routines for SVD calculations
+        void ExpandHouseholders( long numXforms, int numZerosSkipped, const double* basePt, long colStride, long rowStride );
+        void ConvertBidiagToDiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag ) const;
+
+		void CalcBidiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag ) const;
+		void SvdHouseholder( double *basePt, long colLength, long numCols, long colStride, long rowStride, double *retFirstEntry) const;
 		static bool UpdateBidiagIndices( long *firstDiagIdx, long *lastBidiagIdx, VectorRn& w, VectorRn& superDiag, double eps );
 		static void ApplyGivensCBTD( double cosine, double sine, double *a, double *b, double *c, double *d );
 		static void ApplyGivensCBTD( double cosine, double sine, double *a, double *b, double *c, double  d, double *e, double *f );
-		static void ClearRowWithDiagonalZero( long firstBidiagIdx, long lastBidiagIdx, MatrixRmn& U, double *wPtr, double *sdPtr, double eps );
-		static void ClearColumnWithDiagonalZero( long endIdx, MatrixRmn& V, double *wPtr, double *sdPtr, double eps );
+		void ClearRowWithDiagonalZero( long firstBidiagIdx, long lastBidiagIdx, MatrixRmn& U, double *wPtr, double *sdPtr, double eps ) const;
+		void ClearColumnWithDiagonalZero( long endIdx, MatrixRmn& V, double *wPtr, double *sdPtr, double eps ) const;
 		bool DebugCalcBidiagCheck( const MatrixRmn& U, const VectorRn& w, const VectorRn& superDiag, const MatrixRmn& V ) const;
 
+        double dot_array(int length, const double *ptrA, int strideA, const double *ptrB, int strideB) const;
+        int get_diagonal_length(void);
+        void calc_givens_values(double a, double b, double *c, double *s) const;
+        void copy_array_scale(int length, const double *from, int fromStride, double *to, int toStride, double scale) const;
         void load_as_submatrix(const MatrixRmn& A);
         void load_as_submatrix_transpose(const MatrixRmn& A);
 };
-
-// Helper routine to calculate dot product
-inline double MatrixRmn::DotArray( long length, const double* ptrA, long strideA, const double* ptrB, long strideB )
-{
-	double result = 0.0;
-    for ( ; length>0 ; length-- ) {
-		result += (*ptrA)*(*ptrB);
-		ptrA += strideA;
-		ptrB += strideB;
-	}
-	return result;
-}
-
-// Helper routine: copies and scales an array (src and dest may be equal, or overlap)
-inline void MatrixRmn::CopyArrayScale( long length, const double* from, long fromStride, double *to, long toStride, double scale )
-{
-	for ( ; length>0; length-- ) {
-		*to = (*from)*scale;
-		from += fromStride;
-		to += toStride;
-	}
-}
-
-// Helper routine: adds a scaled array
-//	fromArray = toArray*scale.
-inline void MatrixRmn::AddArrayScale( long length, const double* from, long fromStride, double *to, long toStride, double scale )
-{
-	for ( ; length>0; length-- ) {
-		*to += (*from)*scale;
-		from += fromStride;
-		to += toStride;
-	}
-}
 
 #endif	/* MATRIXRMN_H_ */

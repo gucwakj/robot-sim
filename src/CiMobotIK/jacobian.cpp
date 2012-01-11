@@ -167,10 +167,10 @@ void Jacobian::reset(void) {
 
 // Find the delta theta values using inverse Jacobian method
 void Jacobian::calc_delta_thetas_transpose(void) {
-	this->J.MultiplyTranspose(this->dS, this->dTheta);
+	this->J.multiplyTranspose(this->dS, this->dTheta);
 
 	// Scale back the dTheta values greedily
-	this->J.Multiply(this->dTheta, this->dT);								// dT = J * dTheta
+	this->J.multiply(this->dTheta, this->dT);								// dT = J * dTheta
 
     double alpha = this->dS.dot(this->dT) / (this->dT.norm()*this->dT.norm());
 	double beta = this->m_max_angle[JACOB_TRANSPOSE] / dTheta.maxAbs();
@@ -186,18 +186,18 @@ void Jacobian::calc_delta_thetas_pseudoinverse(void) {
 	double alpha = 0, dotProdCol = 0;
 
 	this->J.computeSVD(U, w, V);			// Compute SVD
-    assert(this->J.DebugCheckSVD(U, w, V));		// Debugging check
+    assert(this->J.debugCheckSVD(U, w, V));		// Debugging check
 
 	int diagLength = this->w.getLength();
 	double *wPtr = this->w.getPtr();
 	this->dTheta.setValue(0);
 
 	for ( int i = 0; i < diagLength; i++ ) {
-		dotProdCol = this->U.DotProductColumn(this->dS, i);		// Dot product with i-th column of U
+		dotProdCol = this->U.dotProductColumn(this->dS, i);		// Dot product with i-th column of U
 		alpha = *(wPtr++);
 		if ( fabs(alpha) > (this->m_pi_factor * this->w.maxAbs()) ) {
 			alpha = 1.0/alpha;
-			MatrixRmn::AddArrayScale(this->V.getNumRows(), this->V.getColumnPtr(i), 1, this->dTheta.getPtr(), 1, dotProdCol*alpha);
+            this->J.addArrayScale(this->V.getNumRows(), this->V.getColumnPtr(i), 1, this->dTheta.getPtr(), 1, dotProdCol*alpha);
 		}
 	}
 
@@ -206,18 +206,19 @@ void Jacobian::calc_delta_thetas_pseudoinverse(void) {
 }
 
 void Jacobian::calc_delta_thetas_dls(void) {
-	MatrixRmn::MultiplyTranspose(J, J, U);		// U = J * (J^T)
+	//MatrixRmn::MultiplyTranspose(J, J, U);		// U = J * (J^T)
+	this->J.multiplyTranspose(J, U);
 	this->U.addToDiagonal(this->m_lambda*this->m_lambda);
 
 	if ( this->m_dls_mode == CLAMPED ) {		// DLS method with clamped error vector e.
 		this->calc_dT_clamped_from_dS();
 		VectorRn dTextra(3*this->m_num_effect);
-		this->U.Solve( dT, &dTextra );
-		this->J.MultiplyTranspose( dTextra, dTheta );
+		this->U.solve(this->dT, &dTextra);
+		this->J.multiplyTranspose(dTextra, dTheta);
 	}
 	else {										// traditional DLS method
-		this->U.Solve(this->dS, &(this->dT));
-		this->J.MultiplyTranspose(this->dT, this->dTheta);
+		this->U.solve(this->dS, &(this->dT));
+		this->J.multiplyTranspose(this->dT, this->dTheta);
 	}
 
 	// Scale back to not exceed maximum angle changes
@@ -231,17 +232,17 @@ void Jacobian::calc_delta_thetas_dls_with_svd(void) {
 	double alpha = 0, dotProdCol = 0;
 
 	this->J.computeSVD(U, w, V);			// Compute SVD
-    assert(this->J.DebugCheckSVD(U, w, V));		// Debugging check
+    assert(this->J.debugCheckSVD(U, w, V));		// Debugging check
 
 	//int diagLength = this->w.GetLength();
 	double *wPtr = this->w.getPtr();
     this->dTheta.setValue(0);
 
 	for ( int i = 0; i < this->w.getLength(); i++ ) {
-		dotProdCol = this->U.DotProductColumn(this->dS, i);		// Dot product with i-th column of U
+		dotProdCol = this->U.dotProductColumn(this->dS, i);		// Dot product with i-th column of U
 		alpha = *(wPtr++);
 		alpha = alpha / (alpha * alpha + this->m_lambda * this->m_lambda);
-		MatrixRmn::AddArrayScale(this->V.getNumRows(), this->V.getColumnPtr(i), 1, this->dTheta.getPtr(), 1, dotProdCol*alpha);
+		this->J.addArrayScale(this->V.getNumRows(), this->V.getColumnPtr(i), 1, this->dTheta.getPtr(), 1, dotProdCol*alpha);
 	}
 
 	// Scale back to not exceed maximum angle changes
@@ -254,7 +255,7 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 	double alpha, M, N, temp;
 
 	this->J.computeSVD(this->U, this->w, this->V);				// Compute SVD
-	assert(this->J.DebugCheckSVD(this->U, this->w, this->V));	// Debugging check
+	assert(this->J.debugCheckSVD(this->U, this->w, this->V));	// Debugging check
 
 	// calculate response vector dTheta that is the SDLS solution
     this->dTheta.setValue(0);
