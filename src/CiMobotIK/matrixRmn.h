@@ -57,25 +57,21 @@ class MatrixRmn {
         int m_size;                 // Current size of array
         double *x;					// Array of vector entries - stored in column order
 
-        // Internal helper routines for SVD calculations
-        void ExpandHouseholders( long numXforms, int numZerosSkipped, const double* basePt, long colStride, long rowStride );
-        void ConvertBidiagToDiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag ) const;
-
-		void CalcBidiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag ) const;
-		void SvdHouseholder( double *basePt, long colLength, long numCols, long colStride, long rowStride, double *retFirstEntry) const;
-		static bool UpdateBidiagIndices( long *firstDiagIdx, long *lastBidiagIdx, VectorRn& w, VectorRn& superDiag, double eps );
-		static void ApplyGivensCBTD( double cosine, double sine, double *a, double *b, double *c, double *d );
-		static void ApplyGivensCBTD( double cosine, double sine, double *a, double *b, double *c, double  d, double *e, double *f );
-		void ClearRowWithDiagonalZero( long firstBidiagIdx, long lastBidiagIdx, MatrixRmn& U, double *wPtr, double *sdPtr, double eps ) const;
-		void ClearColumnWithDiagonalZero( long endIdx, MatrixRmn& V, double *wPtr, double *sdPtr, double eps ) const;
-		bool DebugCalcBidiagCheck( const MatrixRmn& U, const VectorRn& w, const VectorRn& superDiag, const MatrixRmn& V ) const;
-
+        bool update_bidiag_indices(int *firstBidiagIdx, int *lastBidiagIdx, VectorRn& w, VectorRn& superDiag, double eps) const;
         double dot_array(int length, const double *ptrA, int strideA, const double *ptrB, int strideB) const;
         int get_diagonal_length(void);
+        void apply_givens_cbtd(double cosine, double sine, double *a, double *b, double *c, double *d) const;
+        void apply_givens_cbtd(double cosine, double sine, double *a, double *b, double *c, double  d, double *e, double *f) const;
+        void calc_bidiagonal(MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag) const;
         void calc_givens_values(double a, double b, double *c, double *s) const;
+        void clear_column_with_diagonal_zero(int endIdx, MatrixRmn& V, double *wPtr, double *sdPtr, double eps) const;
+        void clear_row_with_diagonal_zero(int firstBidiagIdx, int lastBidiagIdx, MatrixRmn& U, double *wPtr, double *sdPtr, double eps) const;
+        void convert_bidiag_to_diag(MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag) const;
         void copy_array_scale(int length, const double *from, int fromStride, double *to, int toStride, double scale) const;
+        void expand_householders(int numXforms, int numZerosSkipped, const double *basePt, int colStride, int rowStride);
         void load_as_submatrix(const MatrixRmn& A);
         void load_as_submatrix_transpose(const MatrixRmn& A);
+        void svd_householder(double *basePt, int colLength, int numCols, int colStride, int rowStride, double *retFirstEntry) const;
 };
 
 #endif	/* MATRIXRMN_H_ */

@@ -209,45 +209,46 @@ void MatrixRmn::addToDiagonal(double d) {
     }
 }
 
-// ********************************************************************************************
-// Singular value decomposition.
-// Return othogonal matrices U and V and diagonal matrix with diagonal w such that
-//     (this) = U * Diag(w) * V^T     (V^T is V-transpose.)
-// Diagonal entries have all non-zero entries before all zero entries, but are not
-//      necessarily sorted.  (Someday, I will write ComputedSortedSVD that handles
-//      sorting the eigenvalues by magnitude.)
-// ********************************************************************************************
+/*
+ * Singular value decomposition.
+ * Return othogonal matrices U and V and diagonal matrix with diagonal w such that
+ *     (this) = U * Diag(w) * V^T     (V^T is V-transpose.)
+ * Diagonal entries have all non-zero entries before all zero entries, but are not
+ *      necessarily sorted.  (Someday, I will write ComputedSortedSVD that handles
+ *      sorting the eigenvalues by magnitude.)
+ */
 void MatrixRmn::computeSVD(MatrixRmn& U, VectorRn& w, MatrixRmn& V) const {
-    assert ( U.m_num_rows==m_num_rows && V.m_num_cols==m_num_cols
+    assert(U.m_num_rows==m_num_rows && V.m_num_cols==m_num_cols
     && U.m_num_rows==U.m_num_cols && V.m_num_rows==V.m_num_cols
     && w.getLength() == ((m_num_rows<m_num_cols) ? m_num_rows : m_num_cols) );
 
     VectorRn superDiag(w.getLength() - 1);
 
     // Choose larger of U, V to hold intermediate results
-    MatrixRmn *leftMatrix;
-    MatrixRmn *rightMatrix;
-    if ( m_num_rows >= m_num_cols ) {
-        U.load_as_submatrix( *this );               // Copy A into U
+    MatrixRmn *leftMatrix, *rightMatrix;
+    if ( this->m_num_rows >= this->m_num_cols ) {
+        U.load_as_submatrix(*this);               // Copy A into U
         leftMatrix = &U;
         rightMatrix = &V;
     }
     else {
-        V.load_as_submatrix_transpose( *this );     // Copy A-transpose into V
+        V.load_as_submatrix_transpose(*this);     // Copy A-transpose into V
         leftMatrix = &V;
         rightMatrix = &U;
     }
 
-    CalcBidiagonal(*leftMatrix, *rightMatrix, w, superDiag);
-    ConvertBidiagToDiagonal(*leftMatrix, *rightMatrix, w, superDiag);
+    this->calc_bidiagonal(*leftMatrix, *rightMatrix, w, superDiag);
+    this->convert_bidiag_to_diag(*leftMatrix, *rightMatrix, w, superDiag);
 }
 
-/* Converts the matrix (in place) to row echelon form.  Row echelon form allows
+/*
+ * Converts the matrix (in place) to row echelon form.  Row echelon form allows
  * any non-zero values, not just 1's, in the position for a lead variable.  The
  * assumption is that no free variable will be found.  Algorithm uses row
  * operations and row pivoting (only).  Augmented matrix is correctly
  * accomodated.  Only the first square part participates in the main work of row
- * operations. */
+ * operations.
+ */
 void MatrixRmn::convertToREF(void) {
     long numIters = get_diagonal_length();
     double* rowPtr1 = x;
@@ -467,14 +468,13 @@ MatrixRmn& MatrixRmn::operator-= (const MatrixRmn& B) {
 	return (*this);
 }
 
-// ************************************************ CalcBidiagonal **************************
-// Helper routine for SVD computation
-// U is a matrix to be bidiagonalized.
-// On return, U and V are orthonormal and w holds the new diagonal
-//	  elements and superDiag holds the super diagonal elements.
-
-void MatrixRmn::CalcBidiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag ) const
-{
+/*
+ * Calculate Bidiagonal
+ *      Helper routine for SVD computation.  U is a matrix to be bidiagonalized.
+ *      On return, U and V are orthonormal and w holds the new diagonal elements
+ *      and superDiag holds the super diagonal elements.
+ */
+void MatrixRmn::calc_bidiagonal(MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag) const {
 	assert ( U.m_num_rows>=V.m_num_rows );
 
 	// The diagonal and superdiagonal entries of the bidiagonalized
@@ -494,14 +494,14 @@ void MatrixRmn::CalcBidiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorR
 	long rowLengthLeft = V.m_num_cols;
 	while (true) {
 		// Apply a Householder xform on left to zero part of a column
-		SvdHouseholder( diagPtr, colLengthLeft, rowLengthLeft, 1, rowStep, wPtr );
+		this->svd_householder(diagPtr, colLengthLeft, rowLengthLeft, 1, rowStep, wPtr);
 
 		if ( rowLengthLeft==2 ) {
 			*superDiagPtr = *(diagPtr+rowStep);
 			break;
 		}
 		// Apply a Householder xform on the right to zero part of a row
-		SvdHouseholder( diagPtr+rowStep, rowLengthLeft-1, colLengthLeft, rowStep, 1, superDiagPtr );
+		this->svd_householder(diagPtr+rowStep, rowLengthLeft-1, colLengthLeft, rowStep, 1, superDiagPtr);
 
 		rowLengthLeft--;
 		colLengthLeft--;
@@ -517,31 +517,25 @@ void MatrixRmn::CalcBidiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorR
 		extra = 1;
 		// Do one last Householder transformation when the matrix is not square
 		colLengthLeft--;
-		SvdHouseholder( diagPtr, colLengthLeft, 1, 1, 0, wPtr );
+		this->svd_householder(diagPtr, colLengthLeft, 1, 1, 0, wPtr);
 	}
 	else {
 		*wPtr = *diagPtr;
 	}
 
 	// Form U and V from the Householder transformations
-	V.ExpandHouseholders( V.m_num_cols-2, 1, U.x+U.m_num_rows, U.m_num_rows, 1 );
-	U.ExpandHouseholders( V.m_num_cols-1+extra, 0, U.x, 1, U.m_num_rows );
-
-	// Done with bidiagonalization
-	return;
+	V.expand_householders(V.m_num_cols - 2, 1, U.x + U.m_num_rows, U.m_num_rows, 1);
+	U.expand_householders(V.m_num_cols - 1 + extra, 0, U.x, 1, U.m_num_rows);
 }
 
-// Helper routine for CalcBidiagonal
-// Performs a series of Householder transformations on a matrix
-// Stores results compactly into the matrix:   The Householder vector u (normalized)
-//   is stored into the first row/column being transformed.
-// The leading term of that row (= plus/minus its magnitude is returned
-//	 separately into "retFirstEntry"
-void MatrixRmn::SvdHouseholder( double* basePt,
-							    long colLength, long numCols, long colStride, long rowStride,
-								double* retFirstEntry ) const
-{
-
+/*
+ * Helper routine for CalcBidiagonal.  Performs a series of Householder
+ * transformations on a matrix. Stores results compactly into the matrix:
+ *   The Householder vector u (normalized) is stored into the first row/column
+ * being transformed. The leading term of that row (= plus/minus its magnitude
+ * is returned separately into "retFirstEntry"
+ */
+void MatrixRmn::svd_householder(double *basePt, int colLength, int numCols, int colStride, int rowStride, double *retFirstEntry) const {
 	// Calc norm of vector u
 	double* cPtr = basePt;
 	double norm = 0.0;
@@ -598,20 +592,19 @@ void MatrixRmn::SvdHouseholder( double* basePt,
 	}
 }
 
-// ********************************* ExpandHouseholders ********************************************
-// The matrix will be square.
-//   numXforms = number of Householder transformations to concatenate
-//		Each Householder transformation is represented by a unit vector
-//		Each successive Householder transformation starts one position later
-//			and has one more implied leading zero
-//	 basePt = beginning of the first Householder transform
-//	 colStride, rowStride: Householder xforms are stored in "columns"
-//   numZerosSkipped is the number of implicit zeros on the front each
-//			Householder transformation vector (only values supported are 0 and 1).
-void MatrixRmn::ExpandHouseholders( long numXforms, int numZerosSkipped, const double* basePt, long colStride, long rowStride )
-{
-	// Number of applications of the last Householder transform
-	//     (That are not trivial!)
+/*
+ * Expand Householders
+ *  The matrix will be square.
+ *   numXforms: number of Householder transformations to concatenate
+ *		Each Householder transformation is represented by a unit vector
+ *		Each successive Householder transformation starts one position later
+ *		and has one more implied leading zero
+ *   basePt: beginning of the first Householder transform
+ *   colStride, rowStride: Householder xforms are stored in "columns"
+ *   numZerosSkipped is the number of implicit zeros on the front each
+ *		Householder transformation vector (only values supported are 0 and 1).
+ */
+void MatrixRmn::expand_householders(int numXforms, int numZerosSkipped, const double *basePt, int colStride, int rowStride) {
 	long numToTransform = m_num_cols-numXforms+1-numZerosSkipped;
 	assert( numToTransform>0 );
 
@@ -670,21 +663,20 @@ void MatrixRmn::ExpandHouseholders( long numXforms, int numZerosSkipped, const d
 	}
 }
 
-// **************** ConvertBidiagToDiagonal ***********************************************
-// Do the iterative transformation from bidiagonal form to diagonal form using
-//		Givens transformation.  (Golub-Reinsch)
-// U and V are square.  Size of U less than or equal to that of U.
-void MatrixRmn::ConvertBidiagToDiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag ) const
-{
-	// These two index into the last bidiagonal block  (last in the matrix, it will be
-	//	first one handled.
-	long lastBidiagIdx = V.m_num_rows-1;
-	long firstBidiagIdx = 0;
-	//double eps = 1.0e-15 * Max(w.MaxAbs(), superDiag.MaxAbs());
+/*
+ * ConvertBidiagToDiagonal
+ *  Do the iterative transformation from bidiagonal form to diagonal form using
+ *  Givens transformation.  (Golub-Reinsch) U and V are square.  Size of U less
+ *  than or equal to that of U.
+ */
+void MatrixRmn::convert_bidiag_to_diag( MatrixRmn& U, MatrixRmn& V, VectorRn& w, VectorRn& superDiag ) const {
+	// These two index into the last bidiagonal block  (last in the matrix, it will be first one handled.
+	int lastBidiagIdx = V.m_num_rows - 1;
+	int firstBidiagIdx = 0;
 	double eps = 1.0e-15 * ((w.maxAbs() > superDiag.maxAbs()) ? w.maxAbs() : superDiag.maxAbs());
 
 	while ( true ) {
-		bool workLeft = UpdateBidiagIndices( &firstBidiagIdx, &lastBidiagIdx, w, superDiag, eps );
+		bool workLeft = this->update_bidiag_indices(&firstBidiagIdx, &lastBidiagIdx, w, superDiag, eps);
 		if ( !workLeft ) {
 			break;
 		}
@@ -695,14 +687,13 @@ void MatrixRmn::ConvertBidiagToDiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w
 		double* sdPtr = superDiag.x+firstBidiagIdx;
 		double extraOffDiag=0.0;
 		if ( (*wPtr)==0.0 ) {
-			ClearRowWithDiagonalZero( firstBidiagIdx, lastBidiagIdx, U, wPtr, sdPtr, eps );
-			if ( firstBidiagIdx>0 ) {
-				//if ( NearZero( *(--sdPtr), eps ) ) {
+			this->clear_row_with_diagonal_zero(firstBidiagIdx, lastBidiagIdx, U, wPtr, sdPtr, eps);
+			if ( firstBidiagIdx > 0 ) {
 				if ( fabs(*(--sdPtr)) <= eps ) {
 					*sdPtr = 0.0;
 				}
 				else {
-					ClearColumnWithDiagonalZero( firstBidiagIdx, V, wPtr, sdPtr, eps );
+					this->clear_column_with_diagonal_zero(firstBidiagIdx, V, wPtr, sdPtr, eps);
 				}
 			}
 			continue;
@@ -711,73 +702,63 @@ void MatrixRmn::ConvertBidiagToDiagonal( MatrixRmn& U, MatrixRmn& V, VectorRn& w
 		// Estimate an eigenvalue from bottom four entries of M
 		// This gives a lambda value which will shift the Givens rotations
 		// Last four entries of M^T * M are  ( ( A, B ), ( B, C ) ).
-		double A;
-		//A = (firstBidiagIdx<lastBidiagIdx-1) ? Square(superDiag[lastBidiagIdx-2]): 0.0;
-		A = (firstBidiagIdx<lastBidiagIdx-1) ? superDiag[lastBidiagIdx-2]*superDiag[lastBidiagIdx-2]: 0.0;
-		//double BSq = Square(w[lastBidiagIdx-1]);
+		double A = (firstBidiagIdx<lastBidiagIdx-1) ? superDiag[lastBidiagIdx-2]*superDiag[lastBidiagIdx-2]: 0.0;
 		double BSq = w[lastBidiagIdx-1]*w[lastBidiagIdx-1];
 		A += BSq;										// The "A" entry of M^T * M
-		//double C = Square(superDiag[lastBidiagIdx-1]);
 		double C = superDiag[lastBidiagIdx-1]*superDiag[lastBidiagIdx-1];
 		BSq *= C;										// The squared "B" entry
-		//C += Square(w[lastBidiagIdx]);					// The "C" entry
 		C += w[lastBidiagIdx]*w[lastBidiagIdx];					// The "C" entry
 		double lambda;									// lambda will hold the estimated eigenvalue
-		//lambda = sqrt( Square((A-C)*0.5) + BSq );		// Use the lambda value that is closest to C.
 		lambda = sqrt( ((A-C)*0.5)*((A-C)*0.5) + BSq );		// Use the lambda value that is closest to C.
 		if ( A > C ) {
 			lambda = -lambda;
 		}
 		lambda += (A+C)*0.5;						// Now lambda equals the estimate for the last eigenvalue
-		//double t11 = Square(w[firstBidiagIdx]);
 		double t11 = w[firstBidiagIdx]*w[firstBidiagIdx];
 		double t12 = w[firstBidiagIdx]*superDiag[firstBidiagIdx];
 
 		double c, s;
-        //CalcGivensValues( t11-lambda, t12, &c, &s );
         this->calc_givens_values(t11-lambda, t12, &c, &s);
-		ApplyGivensCBTD( c, s, wPtr, sdPtr, &extraOffDiag, wPtr+1 );
+		this->apply_givens_cbtd(c, s, wPtr, sdPtr, &extraOffDiag, wPtr+1);
         V.postApplyGivens(c, -s, firstBidiagIdx, firstBidiagIdx + 1);
-		long i;
-		for ( i=firstBidiagIdx; i<lastBidiagIdx-1; i++ ) {
+		int i;
+		for ( i = firstBidiagIdx; i < lastBidiagIdx - 1; i++ ) {
 			// Push non-zero from M[i+1,i] to M[i,i+2]
-			//CalcGivensValues( *wPtr, extraOffDiag, &c, &s );
-			this->calc_givens_values( *wPtr, extraOffDiag, &c, &s );
-			ApplyGivensCBTD( c, s, wPtr, sdPtr, &extraOffDiag, extraOffDiag, wPtr+1, sdPtr+1 );
+			this->calc_givens_values(*wPtr, extraOffDiag, &c, &s);
+			this->apply_givens_cbtd(c, s, wPtr, sdPtr, &extraOffDiag, extraOffDiag, wPtr+1, sdPtr+1);
 			U.postApplyGivens(c, -s, i, i + 1);
 			// Push non-zero from M[i,i+2] to M[1+2,i+1]
-            //CalcGivensValues( *sdPtr, extraOffDiag, &c, &s );
             this->calc_givens_values( *sdPtr, extraOffDiag, &c, &s );
-			ApplyGivensCBTD( c, s, sdPtr, wPtr+1, &extraOffDiag, extraOffDiag, sdPtr+1, wPtr+2 );
+			this->apply_givens_cbtd(c, s, sdPtr, wPtr+1, &extraOffDiag, extraOffDiag, sdPtr+1, wPtr+2);
 			V.postApplyGivens(c, -s, i + 1, i + 2);
 			wPtr++;
 			sdPtr++;
 		}
 		// Push non-zero value from M[i+1,i] to M[i,i+1] for i==lastBidiagIdx-1
-		//CalcGivensValues( *wPtr, extraOffDiag, &c, &s );
-		this->calc_givens_values( *wPtr, extraOffDiag, &c, &s );
-		ApplyGivensCBTD( c, s, wPtr, &extraOffDiag, sdPtr, wPtr+1 );
+		this->calc_givens_values(*wPtr, extraOffDiag, &c, &s);
+		this->apply_givens_cbtd(c, s, wPtr, &extraOffDiag, sdPtr, wPtr+1);
 		U.postApplyGivens(c, -s, i, i + 1);
 	}
 }
 
-// This is called when there is a zero diagonal entry, with a non-zero superdiagonal entry on the same row.
-// We use Givens rotations to "chase" the non-zero entry across the row; when it reaches the last
-//	column, it is finally zeroed away.
-// wPtr points to the zero entry on the diagonal.  sdPtr points to the non-zero superdiagonal entry on the same row.
-void MatrixRmn::ClearRowWithDiagonalZero( long firstBidiagIdx, long lastBidiagIdx, MatrixRmn& U, double *wPtr, double *sdPtr, double eps ) const
-{
+/*
+ * This is called when there is a zero diagonal entry, with a non-zero
+ * superdiagonal entry on the same row.  We use Givens rotations to "chase" the
+ * non-zero entry across the row; when it reaches the last column, it is finally
+ * zeroed away. wPtr points to the zero entry on the diagonal.  sdPtr points to
+ * the non-zero superdiagonal entry on the same row.
+ */
+void MatrixRmn::clear_row_with_diagonal_zero(int firstBidiagIdx, int lastBidiagIdx, MatrixRmn& U, double *wPtr, double *sdPtr, double eps) const {
 	double curSd = *sdPtr;		// Value being chased across the row
 	*sdPtr = 0.0;
-	long i=firstBidiagIdx+1;
+	long i = firstBidiagIdx + 1;
 	while (true) {
 		// Rotate row i and row firstBidiagIdx (Givens rotation)
 		double c, s;
-        //CalcGivensValues( *(++wPtr), curSd, &c, &s );
         this->calc_givens_values( *(++wPtr), curSd, &c, &s );
 		U.postApplyGivens(c, -s, i, firstBidiagIdx);
 		*wPtr = c*(*wPtr) - s*curSd;
-		if ( i==lastBidiagIdx ) {
+		if ( i == lastBidiagIdx ) {
 			break;
 		}
 		curSd = s*(*(++sdPtr));		// New value pops up one column over to the right
@@ -786,18 +767,19 @@ void MatrixRmn::ClearRowWithDiagonalZero( long firstBidiagIdx, long lastBidiagId
 	}
 }
 
-// This is called when there is a zero diagonal entry, with a non-zero superdiagonal entry in the same column.
-// We use Givens rotations to "chase" the non-zero entry up the column; when it reaches the last
-//	column, it is finally zeroed away.
-// wPtr points to the zero entry on the diagonal.  sdPtr points to the non-zero superdiagonal entry in the same column.
-void MatrixRmn::ClearColumnWithDiagonalZero( long endIdx, MatrixRmn& V, double *wPtr, double *sdPtr, double eps ) const
-{
+/*
+ * This is called when there is a zero diagonal entry, with a non-zero
+ * superdiagonal entry in the same column.  We use Givens rotations to "chase"
+ * the non-zero entry up the column; when it reaches the last column, it is
+ * finally zeroed away. wPtr points to the zero entry on the diagonal.  sdPtr
+ * points to the non-zero superdiagonal entry in the same column.
+ */
+void MatrixRmn::clear_column_with_diagonal_zero(int endIdx, MatrixRmn& V, double *wPtr, double *sdPtr, double eps) const {
 	double curSd = *sdPtr;		// Value being chased up the column
 	*sdPtr = 0.0;
 	long i = endIdx-1;
 	while ( true ) {
 		double c, s;
-        //CalcGivensValues( *(--wPtr), curSd, &c, &s );
         this->calc_givens_values( *(--wPtr), curSd, &c, &s );
 		V.postApplyGivens(c, -s, i, endIdx);
 		*wPtr = c*(*wPtr) - s*curSd;
@@ -805,7 +787,6 @@ void MatrixRmn::ClearColumnWithDiagonalZero( long endIdx, MatrixRmn& V, double *
 			break;
 		}
 		curSd = s*(*(--sdPtr));		// New value pops up one row above
-		//if ( NearZero( curSd, eps ) ) {
 		if ( fabs(curSd) <= eps ) {
 			break;
 		}
@@ -816,7 +797,7 @@ void MatrixRmn::ClearColumnWithDiagonalZero( long endIdx, MatrixRmn& V, double *
 
 // Matrix A is  ( ( a c ) ( b d ) ), i.e., given in column order.
 // Mult's G[c,s]  times  A, replaces A.
-void MatrixRmn::ApplyGivensCBTD( double cosine, double sine, double *a, double *b, double *c, double *d ) {
+void MatrixRmn::apply_givens_cbtd(double cosine, double sine, double *a, double *b, double *c, double *d) const {
 	double temp = *a;
 	*a = cosine*(*a) - sine*(*b);
 	*b = sine*temp + cosine*(*b);
@@ -828,7 +809,7 @@ void MatrixRmn::ApplyGivensCBTD( double cosine, double sine, double *a, double *
 // Now matrix A given in row order, A = ( ( a b c ) ( d e f ) ).
 // Return G[c,s] * A, replace A.  d becomes zero, no need to return.
 //  Also, it is certain the old *c value is taken to be zero!
-void MatrixRmn::ApplyGivensCBTD( double cosine, double sine, double *a, double *b, double *c, double  d, double *e, double *f ) {
+void MatrixRmn::apply_givens_cbtd(double cosine, double sine, double *a, double *b, double *c, double  d, double *e, double *f) const {
 	*a = cosine*(*a) - sine*d;
 	double temp = *b;
 	*b = cosine*(*b) - sine*(*e);
@@ -838,7 +819,7 @@ void MatrixRmn::ApplyGivensCBTD( double cosine, double sine, double *a, double *
 }
 
 // Helper routine for SVD conversion from bidiagonal to diagonal
-bool MatrixRmn::UpdateBidiagIndices( long *firstBidiagIdx, long *lastBidiagIdx, VectorRn& w, VectorRn& superDiag, double eps ) {
+bool MatrixRmn::update_bidiag_indices(int *firstBidiagIdx, int *lastBidiagIdx, VectorRn& w, VectorRn& superDiag, double eps) const {
 	long lastIdx = *lastBidiagIdx;
 	double* sdPtr = superDiag.getPtr( lastIdx-1 );		// Entry above the last diagonal entry
 	//while ( NearZero(*sdPtr, eps) ) {
