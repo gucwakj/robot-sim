@@ -1,9 +1,4 @@
-#include <cmath>
-#include <iostream>
-#include <cfloat>
 #include "imobotik.h"
-
-using namespace std;
 
 CiMobotIK::CiMobotIK(int num_bot, int num_targets) {
 	this->m_num_bot = num_bot;

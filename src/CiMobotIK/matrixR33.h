@@ -1,10 +1,8 @@
 #ifndef MATRIXR33_H_
 #define MATRIXR33_H_
 
-#include <cmath>
+#include <cfloat>
 #include "vectorR3.h"
-
-using namespace std;
 
 class MatrixR33 {
 	public:
@@ -27,11 +25,11 @@ class MatrixR33 {
 
 		void transpose(void);
 		void transform(VectorR3 *u);
-		void transform(const VectorR3& src, VectorR3 *dest);
+		void transform(VectorR3& src, VectorR3 *dest);
 		MatrixR33& reNormalize(void);
-        MatrixR33& rotate(double theta, const VectorR3& w);
+        MatrixR33& rotate(double theta, VectorR3& w);
 
-        MatrixR33& operator*= (const MatrixR33& A);
+        MatrixR33& operator*= (MatrixR33& A);
 
 		double m11, m12, m13, m21, m22, m23, m31, m32, m33;
 		double psi;
@@ -41,6 +39,6 @@ class MatrixR33 {
         void recompute_euler_angles(void);
 };
 
-VectorR3 operator* (const MatrixR33& A, const VectorR3& u);
+VectorR3 operator* (MatrixR33& A, const VectorR3& u);
 
 #endif	/* MATRIXR33_H_ */

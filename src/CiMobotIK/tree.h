@@ -2,7 +2,6 @@
 #define TREE_H_
 
 #include <cassert>
-#include "vectorR3.h"
 #include "node.h"
 
 class Tree {

@@ -1,6 +1,4 @@
-#include <iostream>
 #include "jacobian.h"
-#include "node.h"
 
 Jacobian::Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot) {
 	this->tree = tree;

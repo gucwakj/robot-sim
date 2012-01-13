@@ -1,4 +1,3 @@
-#include <iostream>
 #include "tree.h"
 
 Tree::Tree(void) {

@@ -41,27 +41,27 @@ void Node::setFrozen(bool s) {
 	this->m_frozen = s;
 }
 
-const MatrixR33& Node::getR(void) {
+MatrixR33& Node::getR(void) {
     return this->m_R;
 }
 
-const MatrixR33& Node::getRInit(void) {
+MatrixR33& Node::getRInit(void) {
     return this->m_R_init;
 }
 
-const VectorR3& Node::getS(void) {
+VectorR3& Node::getS(void) {
 	return this->m_s;
 }
 
-const VectorR3& Node::getSInit(void) {
+VectorR3& Node::getSInit(void) {
 	return this->m_s_init;
 }
 
-const VectorR3& Node::getW(void) {
+VectorR3& Node::getW(void) {
 	return this->m_w;
 }
 
-const VectorR3& Node::getWInit(void) {
+VectorR3& Node::getWInit(void) {
 	return this->m_w_init;
 }
 

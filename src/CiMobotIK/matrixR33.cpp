@@ -1,4 +1,3 @@
-#include <float.h>
 #include "matrixR33.h"
 
 MatrixR33::MatrixR33(void) {
@@ -119,14 +118,14 @@ void MatrixR33::transform(VectorR3 *u) {
 	u->y = newY;
 }
 
-void MatrixR33::transform(const VectorR3& src, VectorR3 *dest) {
+void MatrixR33::transform(VectorR3& src, VectorR3 *dest) {
 	dest->x = m11*src.x + m12*src.y + m13*src.z;
 	dest->y = m21*src.x + m22*src.y + m23*src.z;
 	dest->z = m31*src.x + m32*src.y + m33*src.z;
 }
 
 // Re-normalizes nearly orthonormal matrix
-MatrixR33& MatrixR33::reNormalize()	{
+MatrixR33& MatrixR33::reNormalize(void)	{
 	double alpha = m11*m11+m21*m21+m31*m31;	// First column's norm squared
 	double beta  = m12*m12+m22*m22+m32*m32;	// Second column's norm squared
 	double gamma = m13*m13+m23*m23+m33*m33;	// Third column's norm squared
@@ -171,7 +170,7 @@ MatrixR33& MatrixR33::reNormalize()	{
  * rotation matrix from angle and axis based upon
  * Rodrigues Rotation Formula
  */
-MatrixR33& MatrixR33::rotate(double theta, const VectorR3& w) {
+MatrixR33& MatrixR33::rotate(double theta, VectorR3& w) {
     double c = cos(theta);
     double s = sin(theta);
 
@@ -228,7 +227,7 @@ void MatrixR33::recompute_euler_angles(void) {
     }
 }
 
-MatrixR33& MatrixR33::operator*= (const MatrixR33& A) {
+MatrixR33& MatrixR33::operator*= (MatrixR33& A) {
     double temp11 = A.m11*this->m11 + A.m12*this->m21 + A.m13*this->m31;
     double temp21 = A.m21*this->m11 + A.m22*this->m21 + A.m23*this->m31;
     double temp31 = A.m31*this->m11 + A.m32*this->m21 + A.m33*this->m31;
@@ -253,8 +252,8 @@ MatrixR33& MatrixR33::operator*= (const MatrixR33& A) {
     return (*this);
 }
 
-VectorR3 operator* (const MatrixR33& A, const VectorR3& u) {
-    return( VectorR3(   A.m11*u.x + A.m12*u.y + A.m13*u.z,
-                        A.m21*u.x + A.m22*u.y + A.m23*u.z,
-                        A.m31*u.x + A.m32*u.y + A.m33*u.z) );
+VectorR3 operator* (MatrixR33& A, const VectorR3& u) {
+    return ( VectorR3(   A.m11*u.x + A.m12*u.y + A.m13*u.z,
+                         A.m21*u.x + A.m22*u.y + A.m23*u.z,
+                         A.m31*u.x + A.m32*u.y + A.m33*u.z) );
 }

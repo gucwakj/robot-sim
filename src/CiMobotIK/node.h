@@ -17,12 +17,12 @@ class Node {
 		void setSeqNum(int seq_num);
 		void setFrozen(bool s);
 
-        const MatrixR33& getR(void);
-        const MatrixR33& getRInit(void);
-		const VectorR3& getS(void);
-		const VectorR3& getSInit(void);
-		const VectorR3& getW(void);
-		const VectorR3& getWInit(void);
+        MatrixR33& getR(void);
+        MatrixR33& getRInit(void);
+		VectorR3& getS(void);
+		VectorR3& getSInit(void);
+		VectorR3& getW(void);
+		VectorR3& getWInit(void);
 		double getTheta(void);
 		double getThetaInit(void);
 		double getThetaMin(void);
