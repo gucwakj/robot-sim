@@ -106,14 +106,12 @@ void Jacobian::calcDeltaThetas(void) {
 // Nothing is done about joint limits for now.
 void Jacobian::updateThetas(void) {
 	Node *n = this->tree->getRoot();
-
 	while ( n ) {
 		if ( n->isJoint() ) {
 			n->updateTheta( this->dTheta[n->getJointNum()] );
 		}
 		n = this->tree->getSuccessor(n);
 	}
-
 	this->tree->compute();		// Update the positions and rotation axes of all joints/effectors
 }
 
