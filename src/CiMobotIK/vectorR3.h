@@ -13,11 +13,9 @@ class VectorR3 {
 
         void set(double x, double y, double z);         // set three values for vector
 
-        //double maxAbs(void);                          // maximum absolute value
 		double norm(void);                              // norm of vector
         void dump(double *v) const;                     // dump values into x,y,z
-		//void makeUnit(void);							// normalize with error checking
-		void rotate(double theta, const VectorR3& u);	// rotate around u by theta
+		void rotate(double theta, VectorR3& u);	        // rotate around u by theta
 
 		double x, y, z;									// The x & y & z coordinates
 

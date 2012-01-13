@@ -1,5 +1,5 @@
-#ifndef MATRIX_RMN_H_
-#define MATRIX_RMN_H_
+#ifndef MATRIXRMN_H_
+#define MATRIXRMN_H_
 
 #include <cmath>
 #include <cassert>
@@ -69,4 +69,4 @@ class MatrixRmn {
         void svd_householder(double *basePt, int colLength, int numCols, int colStride, int rowStride, double *retFirstEntry);
 };
 
-#endif	/* MATRIX_RMN_H_ */
+#endif	/* MATRIXRMN_H_ */
