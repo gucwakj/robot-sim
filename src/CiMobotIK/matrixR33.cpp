@@ -80,18 +80,6 @@ void MatrixR33::setZero(void) {
     this->m31 = this->m32 = this->m33 = 0;
 }
 
-VectorR3 MatrixR33::getColumn1(void) {
-	return VectorR3(this->m11, this->m21, this->m31);
-}
-
-VectorR3 MatrixR33::getColumn2(void) {
-	return VectorR3(this->m12, this->m22, this->m32);
-}
-
-VectorR3 MatrixR33::getColumn3(void) {
-	return VectorR3(this->m13, this->m23, this->m33);
-}
-
 VectorR3 MatrixR33::getEulerAngles(void) {
     return VectorR3(this->psi, this->theta, this->phi);
 }
@@ -207,6 +195,13 @@ MatrixR33& MatrixR33::rotate(double theta, VectorR3& w) {
     this->recompute_euler_angles();
 
     return (*this);
+}
+
+VectorR3 MatrixR33::computeError(MatrixR33& A) {
+    return 0.5*VectorR3( (A.m21*this->m31 - A.m31*this->m21) + (A.m22*this->m32 - A.m32*this->m22) + (A.m23*this->m33 - A.m33*this->m23),
+                         (A.m31*this->m11 - A.m11*this->m31) + (A.m32*this->m12 - A.m12*this->m32) + (A.m33*this->m13 - A.m13*this->m33),
+                         (A.m11*this->m21 - A.m21*this->m11) + (A.m12*this->m22 - A.m22*this->m12) + (A.m13*this->m23 - A.m23*this->m13) );
+    //return VectorR3( this->psi - A.psi, this->theta - A.theta, this->phi - A.phi );
 }
 
 void MatrixR33::recompute_euler_angles(void) {

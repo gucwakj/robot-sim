@@ -18,9 +18,6 @@ class MatrixR33 {
 		void setIdentity(void);
 		void setZero(void);
 
-		VectorR3 getColumn1(void);
-		VectorR3 getColumn2(void);
-		VectorR3 getColumn3(void);
         VectorR3 getEulerAngles(void);
 
 		void transpose(void);
@@ -28,6 +25,7 @@ class MatrixR33 {
 		void transform(VectorR3& src, VectorR3 *dest);
 		MatrixR33& reNormalize(void);
         MatrixR33& rotate(double theta, VectorR3& w);
+        VectorR3 computeError(MatrixR33& A);
 
         MatrixR33& operator*= (MatrixR33& A);
 

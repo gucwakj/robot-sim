@@ -21,14 +21,9 @@ Jacobian::Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot) {
 	this->m_max_angle[JACOB_SDLS] = 45.0*M_PI/180;
 
     this->J.setSize(this->m_num_row, this->m_num_col);
-    cout << "J[" << J.getNumRows() << ", " << J.getNumColumns() << "]" << endl;
-
     this->U.setSize(this->m_num_row, this->m_num_row);
-    cout << "U[" << U.getNumRows() << ", " << U.getNumColumns() << "]" << endl;
     this->w.setLength( (this->m_num_row < this->m_num_col) ? this->m_num_row : this->m_num_col );
-    cout << "w[" << w.getLength() << "]" << endl;
     this->V.setSize(this->m_num_col, this->m_num_col);
-    cout << "V[" << V.getNumRows() << ", " << V.getNumColumns() << "]" << endl;
 
     this->Jnorms.setSize(this->m_num_effect, this->m_num_col);  // Holds the norms of the active J matrix
     this->dPreTheta.setLength(this->m_num_col);     // delta theta for single eigenvalue
@@ -46,20 +41,15 @@ Jacobian::~Jacobian(void) {
 
 void Jacobian::computeJacobian(void) {
 	int i = 0, j = 0;
-	VectorR3 pos, rot, rot2;
-    MatrixR33 R;
+	VectorR3 pos, rot;
 	Node *n = this->tree->getRoot();
 
 	while ( n ) {
 		if ( n->isEffector() ) {
 			i = n->getEffectorNum();
 
-            pos = this->target_pos[i] - n->getS();      // position
-            this->dS.setTriplePosition(i, pos);
-            R = n->getR();
-            rot = 0.5*(R.getColumn1()*this->target_rot[i].getColumn1() + R.getColumn2()*this->target_rot[i].getColumn2() + R.getColumn3()*this->target_rot[i].getColumn3());
-            //rot = VectorR3(this->target_rot[i].psi, this->target_rot[i].theta, this->target_rot[i].phi) - VectorR3(R.psi, R.theta, R.phi);
-            this->dS.setTripleRotation(i, rot);
+            this->dS.setTriplePosition(i, this->target_pos[i] - n->getS());
+            this->dS.setTripleRotation(i, this->target_rot[i].computeError(n->getR()));
 
 			Node *m = this->tree->getParent(n);
 			while ( m ) {
