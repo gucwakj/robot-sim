@@ -17,7 +17,7 @@ VectorRn::~VectorRn(void) {
 	delete x;
 }
 
-void VectorRn::set(const double *d, double scale) {
+void VectorRn::set(double *d, double scale) {
     double *to = x;
     for ( int i = this->m_length; i > 0; i-- ) {
         *(to++) = (*(d++))*scale;
@@ -45,7 +45,7 @@ void VectorRn::setValue(double d) {
 void VectorRn::setTriplePosition(int i, const VectorR3& u) {
     int j = 6*i;
     assert( 0 <= j && j + 5 < m_length );
-    u.dump( x + j );
+    u.dump(x + j);
 }
 
 // Set the value of the i-th rotation triple of entries in the vector
@@ -55,29 +55,20 @@ void VectorRn::setTripleRotation(int i, const VectorR3& v) {
     v.dump( x + j + 3 );
 }
 
-int VectorRn::getLength(void) const {
+int VectorRn::getLength(void) {
     return this->m_length;
 }
 
 double* VectorRn::getPtr(void) {
-    return x;
-}
-
-const double* VectorRn::getPtr(void) const {
-    return x;
+    return this->x;
 }
 
 double* VectorRn::getPtr(int i) {
     assert( 0 <= i && i < this->m_length );
-    return (x+i);
+    return (this->x + i);
 }
 
-const double* VectorRn::getPtr(int i) const {
-    assert( 0 <= i && i < this->m_length );
-    return (x+i);
-}
-
-void VectorRn::add(const VectorRn& src, double scale) {
+void VectorRn::add(VectorRn& src, double scale) {
 	assert( src.m_length == this->m_length );
 	double *to = x;
 	double *from = src.x;
@@ -86,18 +77,18 @@ void VectorRn::add(const VectorRn& src, double scale) {
 	}
 }
 
-double VectorRn::dot(const VectorRn& v) {
+double VectorRn::dot(VectorRn& v) {
     assert( this->getLength() == v.getLength() );
     double res = 0.0;
-    const double *p = this->getPtr();
-    const double *q = v.getPtr();
+    double *p = this->getPtr();
+    double *q = v.getPtr();
     for ( int i = this->m_length; i > 0; i-- ) {
         res += (*(p++))*(*(q++));
     }
     return res;
 }
 
-double VectorRn::maxAbs(void) const {
+double VectorRn::maxAbs(void) {
     double result = 0.0;
     double *t = x;
     for ( int i = this->m_length; i > 0; i-- ) {
@@ -137,12 +128,7 @@ double& VectorRn::operator[] (int i) {
     return *(x+i);
 }
 
-const double& VectorRn::operator[] (int i) const {
-    assert( 0 <= i && i < this->m_length );
-    return *(x+i);
-}
-
-VectorRn& VectorRn::operator+= (const VectorRn& src) {
+VectorRn& VectorRn::operator+= (VectorRn& src) {
     assert( src.m_length == this->m_length );
     double *to = x;
     double *from = src.x;
@@ -152,7 +138,7 @@ VectorRn& VectorRn::operator+= (const VectorRn& src) {
     return (*this);
 }
 
-VectorRn& VectorRn::operator-= (const VectorRn& src) {
+VectorRn& VectorRn::operator-= (VectorRn& src) {
     assert( src.m_length == this->m_length );
     double *to = x;
     double *from = src.x;
