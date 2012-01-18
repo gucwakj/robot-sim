@@ -554,8 +554,7 @@ void CiMobotIK::set_flags(void) {
 	Node *n = this->tree.getRoot();
 	int i = 0;
 	while ( n ) {
-		this->m_del_theta[i] = 1;
-        //if ( n->isJoint() && (fabs(this->jacob->getDeltaTheta(n->getJointNum())) > 0.00004) )
+        this->m_del_theta[i] = 1;
         if ( n->isJoint() && (fabs(this->jacob->getDeltaTheta(n->getJointNum())) > 0.005) )
 			this->m_del_theta[i] = 0;
 		i++;
