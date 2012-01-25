@@ -488,23 +488,24 @@ void CiMobotIK::computeInverseKinematics(void) {
 }
 
 void CiMobotIK::print_intermediate_data(void) {
-	cout << this->m_t_count << "\t" << this->m_t << "\t";
-	//cout << this->m_t_count << "\t";
+    cout << fixed << setprecision(4);
+	cout << setw(4) << this->m_t_count << setw(8) << this->m_t << "\t";
 
 	for ( int i = 0; i < this->getNumAngles(); i++ ) {
 		if ( this->node[i] ) {
-			cout << R2D(this->node[i]->getTheta()) << "\t";
+			cout << setw(12) << R2D(this->node[i]->getTheta());
+		}
+	}
+	cout << "\t";//cout << endl;
+
+	for ( int i = 0; i < this->m_num_targets; i++ ) {
+		if ( this->node_effector[i] ) {
+			cout << this->node_effector[i]->getS() << this->target_pos[i];
+			//MatrixR33 R = this->node_effector[i]->getR();
+            //cout << "Rot: " << R.getEulerAngles() << "\t" << this->target_rot[i].getEulerAngles() << endl;
 		}
 	}
 	cout << endl;
-
-	/*for ( int i = 0; i < this->m_num_targets; i++ ) {
-		if ( this->node_effector[i] ) {
-			cout << "Pos: " << this->node_effector[i]->getS() << "\t" << this->target_pos[i] << "\t\t";
-			MatrixR33 R = this->node_effector[i]->getR();
-            cout << "Rot: " << R.getEulerAngles() << "\t" << this->target_rot[i].getEulerAngles() << endl;
-		}
-	}*/
 
 	/*for ( int i = 0; i < this->m_num_bot*NUM_DOF+this->m_num_targets; i++ ) {
 			if ( this->node[i] ) {
