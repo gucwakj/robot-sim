@@ -2,7 +2,7 @@
 #include <iomanip>
 #include "imobotik.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     CiMobotIK ik(2,1);
 
 	ik.iMobotAnchor(ANCHOR_LE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
 	ik.addEffector(0, 1, 6);
 	ik.setTargetPosition(0, 0.25, 0.3, 0.0);
     ik.setTargetRotation(0, 0, 0, 0);
-	ik.runSimulation(argc, argv);
+    ik.computeInverseKinematics();
 
     cout << fixed << setprecision(3);
 	cout << "Effector 0:" << endl;

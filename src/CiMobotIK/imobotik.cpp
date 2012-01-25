@@ -459,7 +459,7 @@ void CiMobotIK::formatAngles(int method, double *array) {
     delete angles;
 }
 
-void CiMobotIK::runSimulation(int argc, char **argv) {
+void CiMobotIK::computeInverseKinematics(void) {
 	bool loop = true;
     this->jacob = new Jacobian(&(this->tree), this->target_pos, this->target_rot);
     this->jacob->setCurrentMode(this->m_j_mode);

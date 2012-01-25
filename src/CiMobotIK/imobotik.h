@@ -81,7 +81,7 @@ class CiMobotIK {
         void formatAngles(int method, double *array);
         int getReplyMessage(void);
 
-		void runSimulation(int argc, char **argv);
+		void computeInverseKinematics(void);
 	private:
 		Jacobian *jacob;
 		Node **node;
