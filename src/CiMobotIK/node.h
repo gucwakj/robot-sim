@@ -12,7 +12,7 @@ enum purpose_e {
 class Node {
 	friend class Tree;
 	public:
-        Node(const VectorR3 &s_init, const VectorR3 &w_init, const MatrixR33 &R_init, int purpose, double theta_init = 0, double theta_min = -M_PI, double theta_max = M_PI);
+        Node(const VectorR3 &s_init, const VectorR3 &w_init, const MatrixR33 &R_init, int purpose, double theta_init = 0, double theta_min = -2*M_PI, double theta_max = 2*M_PI);
 
 		void setSeqNum(int seq_num);
 		void setFrozen(bool s);

@@ -107,6 +107,12 @@ bool Node::isFrozen(void) {
 
 double Node::updateTheta(double delta) {
     this->m_theta += delta;
+
+    if ( (this->m_theta - this->m_theta_max) > 0 )
+        this->m_theta = this->m_theta_max;
+    else if ( (this->m_theta - this->m_theta_min) < 0 )
+        this->m_theta = this->m_theta_min;
+
     return this->m_theta;
 }
 

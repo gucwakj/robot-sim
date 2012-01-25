@@ -101,9 +101,6 @@ void Jacobian::calcDeltaThetas(void) {
 	}
 }
 
-// The delta theta values have been computed in dTheta array
-// Apply the delta theta values to the joints
-// Nothing is done about joint limits for now.
 void Jacobian::updateThetas(void) {
 	Node *n = this->tree->getRoot();
 	while ( n ) {
@@ -112,7 +109,7 @@ void Jacobian::updateThetas(void) {
 		}
 		n = this->tree->getSuccessor(n);
 	}
-	this->tree->compute();		// Update the positions and rotation axes of all joints/effectors
+	this->tree->compute();		// Update positions of all joints/effectors
 }
 
 void Jacobian::updatedSClampValue(void) {

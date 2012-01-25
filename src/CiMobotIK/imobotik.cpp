@@ -490,24 +490,21 @@ void CiMobotIK::computeInverseKinematics(void) {
 void CiMobotIK::print_intermediate_data(void) {
 	cout << this->m_t_count << "\t" << this->m_t << "\t";
 	//cout << this->m_t_count << "\t";
-	/*for ( int i = 0; i < this->getNumAngles(); i++ ) {
+
+	for ( int i = 0; i < this->getNumAngles(); i++ ) {
 		if ( this->node[i] ) {
-			//cout << this->m_del_theta[i] << " ";
 			cout << R2D(this->node[i]->getTheta()) << "\t";
 		}
 	}
-	cout << endl;*/
+	cout << endl;
 
-    //MatrixR33 r = this->node_effector[0]->getR();
-    //cout << "< " << r.psi << "\t" << r.theta << "\t" << r.phi << " >" << endl;
-
-	for ( int i = 0; i < this->m_num_targets; i++ ) {
+	/*for ( int i = 0; i < this->m_num_targets; i++ ) {
 		if ( this->node_effector[i] ) {
 			cout << "Pos: " << this->node_effector[i]->getS() << "\t" << this->target_pos[i] << "\t\t";
 			MatrixR33 R = this->node_effector[i]->getR();
             cout << "Rot: " << R.getEulerAngles() << "\t" << this->target_rot[i].getEulerAngles() << endl;
 		}
-	}
+	}*/
 
 	/*for ( int i = 0; i < this->m_num_bot*NUM_DOF+this->m_num_targets; i++ ) {
 			if ( this->node[i] ) {

@@ -8,7 +8,7 @@ int main(void) {
 	ik.iMobotAnchor(ANCHOR_LE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	ik.iMobotAttach(1, 0, 6, 1, 0, 0, 0, 0);
 	ik.addEffector(0, 1, 6);
-	ik.setTargetPosition(0, 0.25, 0.3, 0.0);
+	ik.setTargetPosition(0, 0.25, 0.15, 0.0);
     ik.setTargetRotation(0, 0, 0, 0);
     ik.computeInverseKinematics();
 
