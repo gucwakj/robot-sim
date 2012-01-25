@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 project(CiMobot_FD)
 
 # Set the version number
@@ -20,11 +20,13 @@ include_directories("${PROJECT_BINARY_DIR}")
 # Add ODE library
 include_directories("../opende/sys/include")
 
+# Option to enable drawstuff visualization
 option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." ON)
 if (ENABLE_DRAWSTUFF)
   include_directories("../opende/include")
 endif (ENABLE_DRAWSTUFF)
 
+# Option to enable double precision
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
 if (ENABLE_DOUBLE)
 	add_definitions(-DdDOUBLE)

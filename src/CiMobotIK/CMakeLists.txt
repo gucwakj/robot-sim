@@ -17,6 +17,12 @@ configure_file (
 # Add the binary directory to include file search path
 include_directories("${PROJECT_BINARY_DIR}")
 
+# Option to enable imobot simulation
+option (ENABLE_IMOBOT "Use iMobot properties for simulation." ON)
+
+# Option to enable imobot simulation
+option (ENABLE_MOBOT "Use MoBot properties for simulation." OFF)
+
 # Add the library
 add_library( imobotik SHARED
 	imobotik.cpp

@@ -8,7 +8,7 @@ using namespace std;
 CiMobotFD *g_imobotfd;
 #endif
 
-CiMobotFD::CiMobotFD(int num_bot, int num_stp) {
+CiMobotFD::CiMobotFD(int bot_type, int num_bot, int num_stp) {
     // create ODE simulation space
     dInitODE2(0);                                               // initialized ode library
     this->world = dWorldCreate();                               // create world for simulation
@@ -34,20 +34,20 @@ CiMobotFD::CiMobotFD(int num_bot, int num_stp) {
 
 	// variables to keep track of progress of simulation
 	this->m_cur_stp = 0;
-	this->m_t_step = 0.004;
-	this->m_t_tot_step = (int)((1.0 + this->m_t_step) / this->m_t_step);
-	this->m_t_cur_step = 0;
 	this->m_flag_comp = new bool[num_bot];
     this->m_flag_disable = new bool[num_bot];
     this->m_num_bot = num_bot;
     this->m_num_stp = num_stp;
     this->m_num_statics = 0;
     this->m_num_targets = 0;
+    this->m_t_step = 0.004;
+    this->m_t_tot_step = (int)((1.0 + this->m_t_step) / this->m_t_step);
+    this->m_t_cur_step = 0;
 
 	// create instance for each module in simulation
     this->bot = new Robot * [num_bot];
     for ( int i = 0; i < num_bot; i++ ) {
-        this->bot[i] = new Robot(this->world, this->space, num_stp);
+        this->bot[i] = new Robot(this->world, this->space, num_stp, bot_type);
     }
 
     // initialze reply struct

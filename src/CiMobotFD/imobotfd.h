@@ -12,7 +12,7 @@ enum simulation_reply_message_e {
 
 class CiMobotFD {
 	public:
-        CiMobotFD(int num_bot, int num_stp);
+        CiMobotFD(int bot_type, int num_bot, int num_stp);
 		~CiMobotFD(void);
 
 		// set simulation variables
