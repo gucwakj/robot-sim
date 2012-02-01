@@ -47,6 +47,10 @@ void VectorR3::rotate(double theta, VectorR3& w) {
 	this->z = v0z + c*v1z + s*v2z;
 }
 
+VectorR3 VectorR3::computeError(VectorR3& v) {
+    return (VectorR3(this->x, this->y, this->z) - v);
+}
+
 double VectorR3::operator[] (int i) {
 	switch (i) {
 		case 0:

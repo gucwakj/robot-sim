@@ -176,6 +176,16 @@ double MatrixRmn::frobeniusNorm(void) {
     return sqrt(result);
 }
 
+// Calculate norm of three-vector
+double MatrixRmn::norm(int i) {
+    double *target = this->x + i;
+    double res = 0;
+    for ( int j = 0; j < 3; j++ ) {
+        res += (*target)*(*target++);
+    }
+    return sqrt(res);
+}
+
 // Helper routine: adds a scaled array
 void MatrixRmn::addArrayScale(int length, double *from, int fromStride, double *to, int toStride, double scale) {
     for ( ; length>0; length-- ) {

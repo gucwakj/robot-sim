@@ -16,6 +16,7 @@ class VectorR3 {
 		double norm(void);                              // norm of vector
         void dump(double *v) const;                     // dump values into x,y,z
 		void rotate(double theta, VectorR3& u);	        // rotate around u by theta
+        VectorR3 computeError(VectorR3& v);             // compute position error
 
 		double x, y, z;									// The x & y & z coordinates
 

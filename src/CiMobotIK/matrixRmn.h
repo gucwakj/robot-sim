@@ -29,6 +29,7 @@ class MatrixRmn {
         bool debugCheckSVD(MatrixRmn& U, VectorRn& w, MatrixRmn& V);    // check SVD
         double dotProductColumn(VectorRn& v, int col_num);              // Returns dot product of v with i-th column
         double frobeniusNorm(void);                                     // Frobenius Norm
+        double norm(int i);                                             // norm
         void addArrayScale(int length, double *from, int fromStride, double *to, int toStride, double scale);
         void addToDiagonal(double d);                                   // Adds d to each diagonal
         void computeSVD(MatrixRmn& U, VectorRn& w, MatrixRmn& V);       // Singular value decomposition

@@ -39,7 +39,7 @@ class Jacobian {
 
         void computeJacobian(void);             // Compute Jacobian matrix
         void calcDeltaThetas(void);             // Calculate delta theta for each joint
-        void updatedSClampValue(void);          // Update distance to target
+        void updateClampMagValue(void);         // Update distance to target
         void updateThetas(void);                // Update theta values
 
 		void reset(void);
@@ -58,7 +58,7 @@ class Jacobian {
 		double m_pi_factor;		// PI: Threshold for treating eigenvalue as zero (fraction of largest eigenvalue)
 		MatrixR33 *target_rot;  // target orientation for effectors
 		MatrixRmn J;			// Jacobian matrix
-		MatrixRmn Jnorms;		// Norms of 3-vectors in active Jacobian (SDLS only)
+		MatrixRmn JNorms;		// Norms of 3-vectors in active Jacobian (SDLS only)
 		MatrixRmn U;			// SVD (Singular Value Decomposition): J = U * Diag(w) * V^T
 		MatrixRmn V;			// SVD (Singular Value Decomposition): J = U * Diag(w) * V^T
 		Tree *tree;				// tree associated with this Jacobian matrix

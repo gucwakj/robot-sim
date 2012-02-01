@@ -25,7 +25,7 @@ Jacobian::Jacobian(Tree *tree, VectorR3 *target_pos, MatrixR33 *target_rot) {
     this->w.setLength( (this->m_num_row < this->m_num_col) ? this->m_num_row : this->m_num_col );
     this->V.setSize(this->m_num_col, this->m_num_col);
 
-    this->Jnorms.setSize(this->m_num_effect, this->m_num_col);  // Holds the norms of the active J matrix
+    this->JNorms.setSize(2*this->m_num_effect, this->m_num_col);  // Holds the norms of the active J matrix
     this->dPreTheta.setLength(this->m_num_col);     // delta theta for single eigenvalue
     this->dS.setLength(this->m_num_row);			// (target positions) - (end effector positions)
     this->dSclamp.setLength(this->m_num_effect);    // clamp magnitude of dT
@@ -48,7 +48,7 @@ void Jacobian::computeJacobian(void) {
 		if ( n->isEffector() ) {
 			i = n->getEffectorNum();
 
-            this->dS.setTriplePosition(i, this->target_pos[i] - n->getS());
+            this->dS.setTriplePosition(i, this->target_pos[i].computeError(n->getS()));
             this->dS.setTripleRotation(i, this->target_rot[i].computeError(n->getR()));
 
 			Node *m = this->tree->getParent(n);
@@ -112,18 +112,19 @@ void Jacobian::updateThetas(void) {
 	this->tree->compute();		// Update positions of all joints/effectors
 }
 
-void Jacobian::updatedSClampValue(void) {
+void Jacobian::updateClampMagValue(void) {
 	int i = 0;
-	double changedDist = 0.0;
-	VectorR3 temp;
+	double changedDist = 0;
+	VectorR3 e_pos/*, e_rot*/;
 	Node *n = this->tree->getRoot();
 
 	while ( n ) {
 		if ( n->isEffector() ) {
 			i = n->getEffectorNum();
-			temp = this->target_pos[i] - n->getS();
+            e_pos = this->target_pos[i].computeError(n->getS());
+            //e_rot = this->target_rot[i].computeError(n->getR());
 
-            changedDist = temp.norm() - this->dS.norm(i);
+            changedDist = e_pos.norm() - this->dS.norm(i);
 			if ( changedDist > 0.0 )
 				this->dSclamp[i] = this->m_base_max_dist + changedDist;
 			else
@@ -245,12 +246,20 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 
 	// calculate the norms of the 3-vectors in the Jacobian
 	double *jx = this->J.getPtr();
-	double *jnx = this->Jnorms.getPtr();
+	double *jnx = this->JNorms.getPtr();
     for ( i = 0; i < this->J.getNumColumns()*this->tree->getNumEffector(); i++ ) {
         temp = 0;                        // magnitudes of vectors in J
-        for ( j = 0; j < 6; j++ ) {
+        for ( j = 0; j < 3; j++ ) {     // position norm
             temp += (*jx)*(*(jx++));
         }
+        //*(jnx++) = this-J.norm(i);
+        *(jnx++) = sqrt(temp);
+        cout << "Pos Norm: " << temp << " J.norm(): " << this->J.norm(i) << endl;
+        temp = 0;
+        for ( j = 0; j < 3; j++ ) {     // rotation norm
+            temp += (*jx)*(*(jx++));
+        }
+        //cout << "Rot Norm: " << temp << endl;
         *(jnx++) = sqrt(temp);
     }
 
@@ -268,21 +277,25 @@ void Jacobian::calc_delta_thetas_sdls(void) {
 		double *dTx = this->dT.getPtr();
 		double *ux = this->U.getColumnPtr(i);
         for ( j = 0; j < this->tree->getNumEffector(); j++ ) {
-            temp = 0;                    // magnitudes of vectors in U
-            for ( k = 0; k < 6; k++ ) {
+            temp = 0;                       // magnitudes of vectors in U
+            for ( k = 0; k < 3; k++ ) {     // position
                 alpha += (*ux)*(*(dTx++));
                 temp += (*ux)*(*(ux++));
+            }
+            for ( k = 0; k < 3; k++ ) {     // rotation
+                dTx++; ux++;
             }
             N += sqrt(temp);
         }
 
         // Calculate M
 		double *vx = this->V.getColumnPtr(i);
-		jnx = this->Jnorms.getPtr();
+		jnx = this->JNorms.getPtr();
         for ( j = 0; j < this->J.getNumColumns(); j++ ) {
 			temp = 0;
             for ( k = 0; k < this->tree->getNumEffector(); k++ ) {
 				temp += *(jnx++);
+                jnx++;  // to skip over rot norm
 			}
 			M += temp*fabs((*(vx++)));
 		}
@@ -310,10 +323,11 @@ void Jacobian::calc_dT_clamped_from_dS(void) {
         else
             this->dT.setTriplePosition(i, VectorR3(this->dS[i+0], this->dS[i+1], this->dS[i+2]));
 
-        if ( (this->dS.norm(i+3)*this->dS.norm(i+3)) > (this->dSclamp[j]*this->dSclamp[j]) )
+        /*if ( (this->dS.norm(i+3)*this->dS.norm(i+3)) > (this->dSclamp[j]*this->dSclamp[j]) )
             this->dT.setTripleRotation(i, this->dSclamp[j]*VectorR3(this->dS[i+3], this->dS[i+4], this->dS[i+5])/this->dS.norm(i+3));
         else
-            this->dT.setTripleRotation(i, VectorR3(this->dS[i+3], this->dS[i+4], this->dS[i+5]));
+            this->dT.setTripleRotation(i, VectorR3(this->dS[i+3], this->dS[i+4], this->dS[i+5]));*/
+        this->dT.setTripleRotation(i, VectorR3(this->dS[i+3], this->dS[i+4], this->dS[i+5]));
 	}
 }
 

@@ -475,7 +475,7 @@ void CiMobotIK::computeInverseKinematics(void) {
 		this->jacob->computeJacobian();			// set up Jacobian and deltaS vectors
 		this->jacob->calcDeltaThetas();			// calculate delta Theta values
 		this->jacob->updateThetas();			// apply the change in the theta values
-		this->jacob->updatedSClampValue();		// update distance to target position
+		this->jacob->updateClampMagValue();		// update distance to target position
 
 		this->print_intermediate_data();        // print data for analysis purposes
 
