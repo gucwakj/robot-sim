@@ -1,5 +1,5 @@
-#ifndef CIMOBOTFD_H_
-#define CIMOBOTFD_H_
+#ifndef CMOBOTFD_H_
+#define CMOBOTFD_H_
 
 #include <iostream>
 #include "robot.h"
@@ -104,4 +104,4 @@ class CiMobotFD {
 		bool is_true(int length, bool *a);	// check if all values in array are true
 };
 
-#endif	/* CIMOBOTFD_H_ */
+#endif	/* CMOBOTFD_H_ */

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <iomanip>
-#include "imobotik.h"
+#include "mobotik.h"
 
 int main(int argc, char *argv[]) {
 	CiMobotIK *ik = new CiMobotIK(2, 1);

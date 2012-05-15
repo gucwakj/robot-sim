@@ -1,5 +1,5 @@
-#ifndef CIMOBOTIK_H_
-#define CIMOBOTIK_H_
+#ifndef CMOBOTIK_H_
+#define CMOBOTIK_H_
 
 #include "config.h"
 #include "jacobian.h"
@@ -129,4 +129,4 @@ class CiMobotIK {
 		inline double R2D(double rad);
 };
 
-#endif	/* CIMOBOTIK_H_ */
+#endif	/* CMOBOTIK_H_ */

@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
-project(CiMobot_IK)
+project(CMobot_IK)
 
 # Set the version number
-set(CiMobot_IK_VERSION_MAJOR 0)
-set(CiMobot_IK_VERSION_MINOR 1)
+set(CMobot_IK_VERSION_MAJOR 0)
+set(CMobot_IK_VERSION_MINOR 1)
 
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)
@@ -18,14 +18,14 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Option to enable imobot simulation
-option (ENABLE_IMOBOT "Use iMobot properties for simulation." ON)
+option (ENABLE_IMOBOT "Use iMobot properties for simulation." OFF)
 
 # Option to enable imobot simulation
-option (ENABLE_MOBOT "Use MoBot properties for simulation." OFF)
+option (ENABLE_MOBOT "Use Mobot properties for simulation." ON)
 
 # Add the library
-add_library( imobotik SHARED
-	imobotik.cpp
+add_library( mobotik SHARED
+	mobotik.cpp
 	jacobian.cpp
 	matrixR33.cpp
 	matrixRmn.cpp

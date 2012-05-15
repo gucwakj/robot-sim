@@ -1,4 +1,4 @@
-#include "imobotik.h"
+#include "mobotik.h"
 
 CiMobotIK::CiMobotIK(int num_bot, int num_targets) {
 	this->m_num_bot = num_bot;

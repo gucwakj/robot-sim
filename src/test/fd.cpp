@@ -1,11 +1,11 @@
 #include <iostream>
-#include "imobotfd.h"
+#include "mobotfd.h"
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CiMobotFD *fd = new CiMobotFD(2, 1);
+	CiMobotFD *fd = new CiMobotFD(1, 2, 1);
 
-    dReal ang[] = { 0, 45, 45, -45, 45, 45, 45, 0};
+    double ang[] = { 0, 45, 45, -45, 45, 45, 45, 0};
     fd->setAngles(ang);
 
 	fd->iMobotBuild(0, 0, 0, 0, 0, 0, 0);
