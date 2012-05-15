@@ -2,9 +2,10 @@
 
 CMobotIK::CMobotIK(int num_bot, int num_targets) {
 	this->m_num_bot = num_bot;
-	this->m_num_targets = num_targets;
-	this->m_t_step = 0.004;
-	this->m_t = 0.0;
+    this->m_num_targets = num_targets;
+    this->m_t = 0.0;
+    this->m_t_step = 0.004;
+    this->m_t_count = 0;
 	this->m_del_theta = new bool[NUM_DOF*num_bot + num_targets];
 	this->node = new Node * [NUM_DOF*num_bot];
 	this->node_right = new Node * [NUM_DOF*num_bot];
