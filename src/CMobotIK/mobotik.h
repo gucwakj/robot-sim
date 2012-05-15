@@ -56,10 +56,10 @@ enum ik_reply_message_e {
     IK_ERROR_STALL
 };
 
-class CiMobotIK {
+class CMobotIK {
 	public:
-		CiMobotIK(int num_bot, int num_targets);
-		~CiMobotIK(void);
+		CMobotIK(int num_bot, int num_targets);
+		~CMobotIK(void);
 
 		void iMobotAnchor(int end, double x, double y, double z, double psi, double theta, double phi, double r_le, double r_lb, double r_rb, double r_re);
 		void iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re);

@@ -3,7 +3,7 @@
 #include "mobotik.h"
 
 int main(int argc, char *argv[]) {
-	CiMobotIK *ik = new CiMobotIK(2, 1);
+	CMobotIK *ik = new CMobotIK(2, 1);
 
 	ik->iMobotAnchor(ANCHOR_LE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	ik->iMobotAttach(1, 0, 6, 1, 0, 0, 0, 0);
