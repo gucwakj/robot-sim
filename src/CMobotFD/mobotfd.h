@@ -10,10 +10,10 @@ enum simulation_reply_message_e {
 	FD_ERROR_STALL
 };
 
-class CiMobotFD {
+class CMobotFD {
 	public:
-        CiMobotFD(int bot_type, int num_bot, int num_stp);
-		~CiMobotFD(void);
+        CMobotFD(int bot_type, int num_bot, int num_stp);
+		~CMobotFD(void);
 
 		// set simulation variables
         void setAngles(dReal *ang);
@@ -47,11 +47,11 @@ class CiMobotFD {
 		typedef struct cimobotfdreply_s {			// information on success to reply
 			dReal time;								// time to successful completion
 			int message;							// reply message code
-		} CiMobotFDReply;
+		} CMobotFDReply;
         typedef struct cimobotfdtarget_s {
             dReal x, y, z;
             dGeomID geomID;
-        } CiMobotFDTarget;
+        } CMobotFDTarget;
 
 		// private variables to store general information about simulation
 		dWorldID world;								// world in which simulation occurs
@@ -60,8 +60,8 @@ class CiMobotFD {
 		dGeomID ground;                             // ground plane
 		dGeomID *m_statics;                         // array of ground objects
 		Robot **bot;                                // array of robots in simulation
-		CiMobotFDReply *m_reply;					// struct of data to return after finishing simulation
-		CiMobotFDTarget *m_targets;                 // array of targets
+		CMobotFDReply *m_reply;					// struct of data to return after finishing simulation
+		CMobotFDTarget *m_targets;                 // array of targets
 		dReal   m_t_step,							// time of each step of simulation
 				m_mu_g,								// coefficient of friction of body_ground
 				m_mu_b,								// coefficient of friction of body_body
