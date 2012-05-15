@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 project(CMobot_IK)
 
 # Set the version number
-set(CMobot_IK_VERSION_MAJOR 0)
-set(CMobot_IK_VERSION_MINOR 1)
+set(CMobotIK_VERSION_MAJOR 0)
+set(CMobotIK_VERSION_MINOR 1)
 
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)

@@ -24,7 +24,7 @@
 #define END_HEIGHT          0.07239
 #define END_DEPTH           0.00476
 #define END_RADIUS          0.01778
-#else                                   /* MoBot dimensions */
+#else                                   /* Mobot dimensions */
 #define CENTER_LENGTH       0.07303
 #define CENTER_WIDTH        0.02540
 #define CENTER_HEIGHT       0.06909
@@ -42,7 +42,7 @@
 #define END_RADIUS          0.01778
 #endif
 
-#ifndef CIMOBOTFD_H_
+#ifndef CMOBOTFD_H_
 #define NUM_DOF 4
 #endif
 

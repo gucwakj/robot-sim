@@ -37,6 +37,12 @@ else (ENABLE_DOUBLE)
 	add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 
+# Option to enable imobot simulation
+option (ENABLE_IMOBOT "Use iMobot properties for simulation." OFF)
+
+# Option to enable imobot simulation
+option (ENABLE_MOBOT "Use Mobot properties for simulation." ON)
+
 # Add the library
 add_library( mobotfd SHARED
 	mobotfd.cpp
