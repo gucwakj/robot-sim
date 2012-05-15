@@ -1,16 +1,16 @@
 #include <iostream>
 #include <iomanip>
-#include "imobotik.h"
+#include "mobotik.h"
 
-int main(void) {
-    CiMobotIK ik(2,1);
+int main(int argc, char *argv[]) {
+	CMobotIK ik(2, 1);
 
 	ik.iMobotAnchor(ANCHOR_LE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	ik.iMobotAttach(1, 0, 6, 1, 0, 0, 0, 0);
 	ik.addEffector(0, 1, 6);
-	ik.setTargetPosition(0, 0.25, 0.15, 0.0);
+	ik.setTargetPosition(0, 0.25, 0.3, 0.0);
     ik.setTargetRotation(0, 0, 0, 0);
-    ik.computeInverseKinematics();
+	ik.computeInverseKinematics();
 
     cout << fixed << setprecision(3);
 	cout << "Effector 0:" << endl;

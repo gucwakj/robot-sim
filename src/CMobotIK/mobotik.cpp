@@ -1,8 +1,8 @@
-#include "imobotik.h"
+#include "mobotik.h"
 
-CiMobotIK::CiMobotIK(int num_bot, int num_targets) {
+CMobotIK::CMobotIK(int num_bot, int num_targets) {
 	this->m_num_bot = num_bot;
-	this->m_num_targets = num_targets;
+    this->m_num_targets = num_targets;
     this->m_t = 0.0;
     this->m_t_step = 0.004;
     this->m_t_count = 0;
@@ -19,7 +19,7 @@ CiMobotIK::CiMobotIK(int num_bot, int num_targets) {
     this->m_reply = IK_ERROR_TIME;
 }
 
-CiMobotIK::~CiMobotIK(void) {
+CMobotIK::~CMobotIK(void) {
     delete this->jacob;
     delete [] this->target_pos;
     delete [] this->target_rot;
@@ -36,7 +36,7 @@ CiMobotIK::~CiMobotIK(void) {
     delete [] this->node_effector;
 }
 
-void CiMobotIK::iMobotAnchor(int end, double x, double y, double z, double psi, double theta, double phi, double r_le, double r_lb, double r_rb, double r_re) {
+void CMobotIK::iMobotAnchor(int end, double x, double y, double z, double psi, double theta, double phi, double r_le, double r_lb, double r_rb, double r_re) {
     MatrixR33 R = MatrixR33(D2R(psi), D2R(theta), D2R(phi));
 
 	if ( end == ANCHOR_LE ) {
@@ -69,7 +69,7 @@ void CiMobotIK::iMobotAnchor(int end, double x, double y, double z, double psi, 
 	}
 }
 
-void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re) {
+void CMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re) {
     VectorR3 S;
     MatrixR33 R;
     if ( face1 == 1 ) {
@@ -284,7 +284,7 @@ void CiMobotIK::iMobotAttach(int bot_num, int att_num, int face1, int face2, dou
 	}
 }
 
-void CiMobotIK::addEffector(int eff_num, int bot_num, int face) {
+void CMobotIK::addEffector(int eff_num, int bot_num, int face) {
     VectorR3 eff = this->node[bot_num*NUM_DOF + face/2]->getRInit() * (4*END_DEPTH*this->node[bot_num*NUM_DOF + face/2]->getWInit());
 
     this->node_effector[eff_num] = new Node(this->node[bot_num*NUM_DOF + face/2]->getSInit() + eff,
@@ -295,132 +295,132 @@ void CiMobotIK::addEffector(int eff_num, int bot_num, int face) {
 	this->tree.insertLeftChild(this->node[bot_num*NUM_DOF + face/2], this->node_effector[eff_num]);
 }
 
-void CiMobotIK::setCurrentMode(int mode) {
+void CMobotIK::setCurrentMode(int mode) {
     this->m_j_mode = mode;
 }
 
-void CiMobotIK::setCurrentType(int type) {
+void CMobotIK::setCurrentType(int type) {
     this->m_j_type = type;
 }
 
-void CiMobotIK::setCurrentDLSMode(int mode) {
+void CMobotIK::setCurrentDLSMode(int mode) {
     this->m_j_dls = mode;
 }
 
-void CiMobotIK::setDampingDLS(double lambda) {
+void CMobotIK::setDampingDLS(double lambda) {
     this->m_j_lambda = lambda;
 }
 
-void CiMobotIK::setTarget(int num, double x, double y, double z, double psi, double theta, double phi) {
+void CMobotIK::setTarget(int num, double x, double y, double z, double psi, double theta, double phi) {
 	this->target_pos[num].set(x, y, z);
     this->target_rot[num].set(D2R(psi), D2R(theta), D2R(phi));
 }
 
-void CiMobotIK::setTargetPosition(int num, double x, double y, double z) {
+void CMobotIK::setTargetPosition(int num, double x, double y, double z) {
 	this->target_pos[num].set(x, y, z);
 }
 
-void CiMobotIK::setTargetRotation(int num, double psi, double theta, double phi) {
+void CMobotIK::setTargetRotation(int num, double psi, double theta, double phi) {
 	this->target_rot[num].set(D2R(psi), D2R(theta), D2R(phi));
 }
 
-int CiMobotIK::getCurrentMode(void) {
+int CMobotIK::getCurrentMode(void) {
 	return this->jacob->getCurrentMode();
 }
 
-int CiMobotIK::getCurrentType(void) {
+int CMobotIK::getCurrentType(void) {
 	return this->jacob->getCurrentType();
 }
 
-int CiMobotIK::getCurrentDLSMode(void) {
+int CMobotIK::getCurrentDLSMode(void) {
 	return this->jacob->getCurrentDLSMode();
 }
 
-void CiMobotIK::getEffectorPosition(int num, double &x, double &y, double &z) {
+void CMobotIK::getEffectorPosition(int num, double &x, double &y, double &z) {
     VectorR3 n = this->node_effector[num]->getS();
 	x = n.x;
 	y = n.y;
 	z = n.z;
 }
 
-double CiMobotIK::getEffectorX(int num) {
+double CMobotIK::getEffectorX(int num) {
     VectorR3 n = this->node_effector[num]->getS();
 	return n.x;
 }
 
-double CiMobotIK::getEffectorY(int num) {
+double CMobotIK::getEffectorY(int num) {
     VectorR3 n = this->node_effector[num]->getS();
 	return n.y;
 }
 
-double CiMobotIK::getEffectorZ(int num) {
+double CMobotIK::getEffectorZ(int num) {
     VectorR3 n = this->node_effector[num]->getS();
 	return n.z;
 }
 
-void CiMobotIK::getEffectorRotation(int num, double &psi, double &theta, double &phi) {
+void CMobotIK::getEffectorRotation(int num, double &psi, double &theta, double &phi) {
     MatrixR33 r = this->node_effector[num]->getR();
     psi = r.psi;
     theta = r.theta;
     psi = r.phi;
 }
 
-double CiMobotIK::getEffectorPsi(int num) {
+double CMobotIK::getEffectorPsi(int num) {
     MatrixR33 r = this->node_effector[num]->getR();
     return r.psi;
 }
 
-double CiMobotIK::getEffectorTheta(int num) {
+double CMobotIK::getEffectorTheta(int num) {
     MatrixR33 r = this->node_effector[num]->getR();
     return r.theta;
 }
 
-double CiMobotIK::getEffectorPhi(int num) {
+double CMobotIK::getEffectorPhi(int num) {
     MatrixR33 r = this->node_effector[num]->getR();
     return r.phi;
 }
 
-void CiMobotIK::getTargetPosition(int num, double &x, double &y, double &z) {
+void CMobotIK::getTargetPosition(int num, double &x, double &y, double &z) {
     x = this->target_pos[num].x;
     y = this->target_pos[num].y;
     z = this->target_pos[num].z;
 }
 
-double CiMobotIK::getTargetX(int num) {
+double CMobotIK::getTargetX(int num) {
 	return this->target_pos[num].x;
 }
 
-double CiMobotIK::getTargetY(int num) {
+double CMobotIK::getTargetY(int num) {
 	return this->target_pos[num].y;
 }
 
-double CiMobotIK::getTargetZ(int num) {
+double CMobotIK::getTargetZ(int num) {
 	return this->target_pos[num].z;
 }
 
-void CiMobotIK::getTargetRotation(int num, double &psi, double &theta, double &phi) {
+void CMobotIK::getTargetRotation(int num, double &psi, double &theta, double &phi) {
 	psi = this->target_rot[num].psi;
 	theta = this->target_rot[num].theta;
 	phi = this->target_rot[num].phi;
 }
 
-double CiMobotIK::getTargetPsi(int num) {
+double CMobotIK::getTargetPsi(int num) {
 	return this->target_rot[num].psi;
 }
 
-double CiMobotIK::getTargetTheta(int num) {
+double CMobotIK::getTargetTheta(int num) {
 	return this->target_rot[num].theta;
 }
 
-double CiMobotIK::getTargetPhi(int num) {
+double CMobotIK::getTargetPhi(int num) {
 	return this->target_rot[num].phi;
 }
 
-int CiMobotIK::getNumAngles(void) {
+int CMobotIK::getNumAngles(void) {
     return NUM_DOF*this->m_num_bot;
 }
 
-void CiMobotIK::getAngles(double *array) {
+void CMobotIK::getAngles(double *array) {
     for ( int i = 0; i < this->getNumAngles(); i++ ) {
         array[i] = R2D(this->node[i]->getTheta());
         if ( fabs(array[i]) < 0.5 ) {
@@ -429,11 +429,11 @@ void CiMobotIK::getAngles(double *array) {
     }
 }
 
-int CiMobotIK::getReplyMessage(void) {
+int CMobotIK::getReplyMessage(void) {
     return this->m_reply;
 }
 
-void CiMobotIK::formatAngles(int method, double *array) {
+void CMobotIK::formatAngles(int method, double *array) {
     double *angles = new double[this->getNumAngles()];
     this->getAngles(angles);
 
@@ -460,7 +460,7 @@ void CiMobotIK::formatAngles(int method, double *array) {
     delete angles;
 }
 
-void CiMobotIK::computeInverseKinematics(void) {
+void CMobotIK::computeInverseKinematics(void) {
 	bool loop = true;
     this->jacob = new Jacobian(&(this->tree), this->target_pos, this->target_rot);
     this->jacob->setCurrentMode(this->m_j_mode);
@@ -487,11 +487,10 @@ void CiMobotIK::computeInverseKinematics(void) {
     this->print_intermediate_data();            // print last step of data
 }
 
-void CiMobotIK::print_intermediate_data(void) {
-    cout << fixed << setprecision(4);
-	cout << setw(4) << this->m_t_count << setw(8) << this->m_t << "\t";
-
-	for ( int i = 0; i < this->getNumAngles(); i++ ) {
+void CMobotIK::print_intermediate_data(void) {
+	cout << this->m_t_count << "\t" << this->m_t << "\t";
+	//cout << this->m_t_count << "\t";
+	/*for ( int i = 0; i < this->getNumAngles(); i++ ) {
 		if ( this->node[i] ) {
 			cout << setw(12) << R2D(this->node[i]->getTheta());
 		}
@@ -507,7 +506,7 @@ void CiMobotIK::print_intermediate_data(void) {
 	}
 	cout << endl;
 
-	/*for ( int i = 0; i < this->m_num_bot*NUM_DOF+this->m_num_targets; i++ ) {
+	*for ( int i = 0; i < this->m_num_bot*NUM_DOF+this->m_num_targets; i++ ) {
 			if ( this->node[i] ) {
 				cout << "Node " << i << endl;
 				cout << "     S: " << this->node[i]->getS() << endl;
@@ -528,16 +527,16 @@ void CiMobotIK::print_intermediate_data(void) {
 	cout << endl;*/
 }
 
-void CiMobotIK::update_targets(void) {
+void CMobotIK::update_targets(void) {
 	//this->target[0].Set(3.f, 0.1f, 0.3f);
 }
 
-void CiMobotIK::increment_step(void) {
+void CMobotIK::increment_step(void) {
 	this->m_t += this->m_t_step;
 	this->m_t_count++;
 }
 
-bool CiMobotIK::end_simulation(void) {
+bool CMobotIK::end_simulation(void) {
 	if ( this->m_t_count == 2000 ) {
         this->m_reply = IK_ERROR_TIME;
         return false;
@@ -549,7 +548,7 @@ bool CiMobotIK::end_simulation(void) {
 	return true;
 }
 
-void CiMobotIK::set_flags(void) {
+void CMobotIK::set_flags(void) {
 	Node *n = this->tree.getRoot();
 	int i = 0;
 	while ( n ) {
@@ -561,7 +560,7 @@ void CiMobotIK::set_flags(void) {
 	}
 }
 
-bool CiMobotIK::is_true(bool *a, int length) {
+bool CMobotIK::is_true(bool *a, int length) {
 	for ( int i = 0; i < length; i++ ) {
 		if ( a[i] == false )
 			return false;
@@ -569,10 +568,10 @@ bool CiMobotIK::is_true(bool *a, int length) {
 	return true;
 }
 
-inline double CiMobotIK::D2R(double deg) {
+inline double CMobotIK::D2R(double deg) {
 	return deg*M_PI/180;
 }
 
-inline double CiMobotIK::R2D(double rad) {
+inline double CMobotIK::R2D(double rad) {
 	return rad/M_PI*180;
 }

@@ -5,6 +5,10 @@
 #include "body.h"
 #include "pid.h"
 
+enum robot_type_e {         // type of robot in simulation
+    IMOBOT,
+    MOBOT
+};
 enum robot_bodies_e {       // each body which has a degree of freedom
     LE,
     LB,
@@ -12,7 +16,6 @@ enum robot_bodies_e {       // each body which has a degree of freedom
     RE,
     NUM_DOF
 };
-
 enum robot_pieces_e {       // each body part which is built
     ENDCAP_L,
     BODY_L,
@@ -24,7 +27,7 @@ enum robot_pieces_e {       // each body part which is built
 
 class Robot {
     public:
-        Robot(dWorldID &world, dSpaceID &space, int num_stp);
+        Robot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type);
         ~Robot(void);
 
         void setAngles(dReal *ang);

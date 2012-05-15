@@ -1,5 +1,5 @@
-#ifndef CIMOBOTIK_H_
-#define CIMOBOTIK_H_
+#ifndef CMOBOTIK_H_
+#define CMOBOTIK_H_
 
 #include "config.h"
 #include "jacobian.h"
@@ -8,9 +8,7 @@
 #include "tree.h"
 #include "vectorR3.h"
 
-/*
- *  iMobot dimension macros
- */
+#ifdef ENABLE_IMOBOT                    /* iMobot dimensions */
 #define CENTER_LENGTH       0.07303
 #define CENTER_WIDTH        0.02540
 #define CENTER_HEIGHT       0.06909
@@ -26,7 +24,25 @@
 #define END_HEIGHT          0.07239
 #define END_DEPTH           0.00476
 #define END_RADIUS          0.01778
-#ifndef CIMOBOTFD_H_
+#else                                   /* Mobot dimensions */
+#define CENTER_LENGTH       0.07303
+#define CENTER_WIDTH        0.02540
+#define CENTER_HEIGHT       0.06909
+#define CENTER_RADIUS       0.03554
+#define BODY_LENGTH         0.03785
+#define BODY_WIDTH          0.07239
+#define BODY_HEIGHT         0.07239
+#define BODY_RADIUS         0.03620
+#define BODY_INNER_WIDTH    0.02287
+#define BODY_END_DEPTH      0.01994
+#define BODY_MOUNT_CENTER   0.03792
+#define END_WIDTH           0.07239
+#define END_HEIGHT          0.07239
+#define END_DEPTH           0.00476
+#define END_RADIUS          0.01778
+#endif
+
+#ifndef CMOBOTFD_H_
 #define NUM_DOF 4
 #endif
 
@@ -40,10 +56,10 @@ enum ik_reply_message_e {
     IK_ERROR_STALL
 };
 
-class CiMobotIK {
+class CMobotIK {
 	public:
-		CiMobotIK(int num_bot, int num_targets);
-		~CiMobotIK(void);
+		CMobotIK(int num_bot, int num_targets);
+		~CMobotIK(void);
 
 		void iMobotAnchor(int end, double x, double y, double z, double psi, double theta, double phi, double r_le, double r_lb, double r_rb, double r_re);
 		void iMobotAttach(int bot_num, int att_num, int face1, int face2, double r_le, double r_lb, double r_rb, double r_re);
@@ -113,4 +129,4 @@ class CiMobotIK {
 		inline double R2D(double rad);
 };
 
-#endif	/* CIMOBOTIK_H_ */
+#endif	/* CMOBOTIK_H_ */

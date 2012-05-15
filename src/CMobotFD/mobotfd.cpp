@@ -1,14 +1,14 @@
-#include "imobotfd.h"
+#include "mobotfd.h"
 using namespace std;
 
 #ifdef ENABLE_DRAWSTUFF
 /* If drawstuff is enabled, we need a global pointer to an instantiated
- * CiMobotFD class so that the callback functions can access the necessary
+ * CMobotFD class so that the callback functions can access the necessary
  * data. */
-CiMobotFD *g_imobotfd;
+CMobotFD *g_imobotfd;
 #endif
 
-CiMobotFD::CiMobotFD(int num_bot, int num_stp) {
+CMobotFD::CMobotFD(int bot_type, int num_bot, int num_stp) {
     // create ODE simulation space
     dInitODE2(0);                                               // initialized ode library
     this->world = dWorldCreate();                               // create world for simulation
@@ -34,40 +34,40 @@ CiMobotFD::CiMobotFD(int num_bot, int num_stp) {
 
 	// variables to keep track of progress of simulation
 	this->m_cur_stp = 0;
-	this->m_t_step = 0.004;
-	this->m_t_tot_step = (int)((1.0 + this->m_t_step) / this->m_t_step);
-	this->m_t_cur_step = 0;
 	this->m_flag_comp = new bool[num_bot];
     this->m_flag_disable = new bool[num_bot];
     this->m_num_bot = num_bot;
     this->m_num_stp = num_stp;
     this->m_num_statics = 0;
     this->m_num_targets = 0;
+    this->m_t_step = 0.004;
+    this->m_t_tot_step = (int)((1.0 + this->m_t_step) / this->m_t_step);
+    this->m_t_cur_step = 0;
 
 	// create instance for each module in simulation
     this->bot = new Robot * [num_bot];
     for ( int i = 0; i < num_bot; i++ ) {
-        this->bot[i] = new Robot(this->world, this->space, num_stp);
+        this->bot[i] = new Robot(this->world, this->space, num_stp, bot_type);
     }
 
     // initialze reply struct
-    this->m_reply = new CiMobotFDReply;
+    this->m_reply = new CMobotFDReply;
     this->m_reply->time = 0.0;
     this->m_reply->message = FD_ERROR_TIME;
 
 	#ifdef ENABLE_DRAWSTUFF
 	// drawstuff simulation parameters
 	m_fn.version = DS_VERSION;									// version of drawstuff
-	m_fn.start = (void (*)(void))&CiMobotFD::ds_start;			// initialization function
-	m_fn.step = (void (*)(int))&CiMobotFD::ds_simulationLoop;	// function for each step of simulation
-	m_fn.command = (void (*)(int))&CiMobotFD::ds_command;		// keyboard commands to control simulation
+	m_fn.start = (void (*)(void))&CMobotFD::ds_start;			// initialization function
+	m_fn.step = (void (*)(int))&CMobotFD::ds_simulationLoop;	// function for each step of simulation
+	m_fn.command = (void (*)(int))&CMobotFD::ds_command;		// keyboard commands to control simulation
 	m_fn.stop = 0;												// stopping parameter
 	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;				// path to texture files
 	g_imobotfd = this;											// pointer to class
 	#endif
 }
 
-CiMobotFD::~CiMobotFD(void) {
+CMobotFD::~CMobotFD(void) {
 	// free all arrays created dynamically in constructor
 	for ( int i = this->m_num_bot - 1; i >= 0; i-- ) { delete this->bot[i]; }
 	delete [] this->bot;
@@ -87,7 +87,7 @@ CiMobotFD::~CiMobotFD(void) {
 /**********************************************************
 	Public Member Functions
  **********************************************************/
-void CiMobotFD::setAngles(dReal *ang) {
+void CMobotFD::setAngles(dReal *ang) {
     dReal ang2[NUM_DOF*this->m_num_stp];
     for ( int i = 0; i < this->m_num_bot; i++ ) {
         for ( int j = 0; j < NUM_DOF*this->m_num_stp; j++ ) {
@@ -97,7 +97,7 @@ void CiMobotFD::setAngles(dReal *ang) {
     }
 }
 
-void CiMobotFD::setAngularVelocity(dReal *vel) {
+void CMobotFD::setAngularVelocity(dReal *vel) {
 	dReal vel2[NUM_DOF*this->m_num_stp];
 	for ( int i = 0; i < this->m_num_bot; i++ ) {
         for ( int j = 0; j < NUM_DOF*this->m_num_stp; j++ ) {
@@ -107,27 +107,27 @@ void CiMobotFD::setAngularVelocity(dReal *vel) {
     }
 }
 
-void CiMobotFD::setCOR(dReal cor_g, dReal cor_b) {
+void CMobotFD::setCOR(dReal cor_g, dReal cor_b) {
 	this->m_cor_g = cor_g;
 	this->m_cor_b = cor_b;
 }
 
-void CiMobotFD::setMu(dReal mu_g, dReal mu_b) {
+void CMobotFD::setMu(dReal mu_g, dReal mu_b) {
 	this->m_mu_g = mu_g;
 	this->m_mu_b = mu_b;
 }
 
-void CiMobotFD::setNumStatics(int num_statics) {
+void CMobotFD::setNumStatics(int num_statics) {
     this->m_num_statics = num_statics;
     this->m_statics = new dGeomID[num_statics];
 }
 
-void CiMobotFD::setNumTargets(int num_targets) {
+void CMobotFD::setNumTargets(int num_targets) {
     this->m_num_targets = num_targets;
-    this->m_targets = new CiMobotFDTarget[num_targets];
+    this->m_targets = new CMobotFDTarget[num_targets];
 }
 
-void CiMobotFD::setStaticBox(int num, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+void CMobotFD::setStaticBox(int num, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
     // create rotation matrix
     dMatrix3 R, R_x, R_y, R_z, R_xy;
     dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
@@ -142,7 +142,7 @@ void CiMobotFD::setStaticBox(int num, dReal lx, dReal ly, dReal lz, dReal px, dR
     dGeomSetRotation(this->m_statics[num], R);
 }
 
-void CiMobotFD::setStaticCapsule(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+void CMobotFD::setStaticCapsule(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
     // create rotation matrix
     dMatrix3 R, R_x, R_y, R_z, R_xy;
     dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
@@ -157,7 +157,7 @@ void CiMobotFD::setStaticCapsule(int num, dReal r, dReal l, dReal px, dReal py, 
     dGeomSetRotation(this->m_statics[num], R);
 }
 
-void CiMobotFD::setStaticCylinder(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+void CMobotFD::setStaticCylinder(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
     // create rotation matrix
     dMatrix3 R, R_x, R_y, R_z, R_xy;
     dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
@@ -172,12 +172,12 @@ void CiMobotFD::setStaticCylinder(int num, dReal r, dReal l, dReal px, dReal py,
     dGeomSetRotation(this->m_statics[num], R);
 }
 
-void CiMobotFD::setStaticSphere(int num, dReal r, dReal px, dReal py, dReal pz) {
+void CMobotFD::setStaticSphere(int num, dReal r, dReal px, dReal py, dReal pz) {
     this->m_statics[num] = dCreateSphere(this->space, r);
     dGeomSetPosition(this->m_statics[num], px, py, pz);
 }
 
-void CiMobotFD::setTarget(int num, dReal x, dReal y, dReal z) {
+void CMobotFD::setTarget(int num, dReal x, dReal y, dReal z) {
     this->m_targets[num].x = x;
     this->m_targets[num].y = y;
     this->m_targets[num].z = z;
@@ -186,11 +186,11 @@ void CiMobotFD::setTarget(int num, dReal x, dReal y, dReal z) {
     dGeomDisable(this->m_targets[num].geomID);
 }
 
-void CiMobotFD::setTime(dReal time_total) {
+void CMobotFD::setTime(dReal time_total) {
 	this->m_t_tot_step = (int)((time_total + this->m_t_step) / this->m_t_step);
 }
 
-void CiMobotFD::runSimulation(int argc, char **argv) {
+void CMobotFD::runSimulation(int argc, char **argv) {
 	#ifdef ENABLE_DRAWSTUFF
 	dsSimulationLoop(argc, argv, 352, 288, &m_fn);
 	#else
@@ -198,11 +198,11 @@ void CiMobotFD::runSimulation(int argc, char **argv) {
 	#endif
 }
 
-int CiMobotFD::getReplyMessage(void) {
+int CMobotFD::getReplyMessage(void) {
 	return this->m_reply->message;
 }
 
-double CiMobotFD::getReplyTime(void) {
+double CMobotFD::getReplyTime(void) {
 	return (double)(this->m_reply->time);
 }
 
@@ -215,7 +215,7 @@ double CiMobotFD::getReplyTime(void) {
  * will be NULL. Instead, if we are using Drawstuff, we sholud reference the
  * global variable, g_imobotfd */
 #define this g_imobotfd
-void CiMobotFD::ds_simulationLoop(int pause) {
+void CMobotFD::ds_simulationLoop(int pause) {
 	bool loop = true;												// initialize
 	this->update_angles();											// update angles for current step
 	dSpaceCollide(this->space, this, &this->collision_wrapper);		// collide all geometries together
@@ -233,7 +233,7 @@ void CiMobotFD::ds_simulationLoop(int pause) {
 }
 #undef this
 #else
-void CiMobotFD::simulation_loop(void) {
+void CMobotFD::simulation_loop(void) {
 	bool loop = true;												// initialize loop tracker
 	this->set_angles();                                             // initialize angles for simulation
 	while (this->m_t_cur_step <= this->m_t_tot_step && loop) {		// loop continuously until simulation is stopped
@@ -249,7 +249,7 @@ void CiMobotFD::simulation_loop(void) {
 }
 #endif
 
-void CiMobotFD::update_angles(void) {
+void CMobotFD::update_angles(void) {
 	// initialze loop counters
 	int i, j;
 
@@ -271,16 +271,16 @@ void CiMobotFD::update_angles(void) {
 	}
 }
 
-void CiMobotFD::collision_wrapper(void *data, dGeomID o1, dGeomID o2) {
+void CMobotFD::collision_wrapper(void *data, dGeomID o1, dGeomID o2) {
 	// cast void pointer to pointer to class
-	CiMobotFD *ptr;
-	ptr = (CiMobotFD *) data;
+	CMobotFD *ptr;
+	ptr = (CMobotFD *) data;
 	if (ptr)
 	    ptr->collision(o1, o2);
 
 }
 
-void CiMobotFD::collision(dGeomID o1, dGeomID o2) {
+void CMobotFD::collision(dGeomID o1, dGeomID o2) {
 	// get bodies of geoms
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);
@@ -312,7 +312,7 @@ void CiMobotFD::collision(dGeomID o1, dGeomID o2) {
 	}
 }
 
-void CiMobotFD::set_flags(void) {
+void CMobotFD::set_flags(void) {
 	// initialze loop counters
 	int c, i, j;
 
@@ -332,7 +332,7 @@ void CiMobotFD::set_flags(void) {
 	}
 }
 
-void CiMobotFD::increment_step(void) {
+void CMobotFD::increment_step(void) {
 	// if completed step and bodies are at rest, then increment
 	if ( this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
 		// if haven't reached last step, increment
@@ -358,7 +358,7 @@ void CiMobotFD::increment_step(void) {
 	this->m_t_cur_step++;
 }
 
-void CiMobotFD::set_angles(void) {
+void CMobotFD::set_angles(void) {
 	// set arrays of angles for new step
 	for ( int i = 0; i < this->m_num_bot; i++ ) {
 		for ( int j = 0; j < NUM_DOF; j++ ) {
@@ -378,7 +378,7 @@ void CiMobotFD::set_angles(void) {
 	}
 }
 
-void CiMobotFD::print_intermediate_data(void) {
+void CMobotFD::print_intermediate_data(void) {
 	// initialze loop counters
 	int i;
 
@@ -438,7 +438,7 @@ void CiMobotFD::print_intermediate_data(void) {
     //cout << "<" << pos[0] << "\t" << pos[1] << "\t" << pos[2] << ">" << endl;
 }
 
-void CiMobotFD::end_simulation(bool &loop) {
+void CMobotFD::end_simulation(bool &loop) {
 	// have not completed steps && stalled
 	if ( !this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
 		this->m_reply->message = FD_ERROR_STALL;
@@ -451,33 +451,33 @@ void CiMobotFD::end_simulation(bool &loop) {
 /**********************************************************
 	Build iMobot Functions
  **********************************************************/
-void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
+void CMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
 	this->bot[botNum]->build(x, y, z, 0, 0, 0);
 }
 
-void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+void CMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
     this->bot[botNum]->build(x, y, z, psi, theta, phi);
 }
 
-void CiMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     this->bot[botNum]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
 }
 
-void CiMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {
+void CMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {
 	if ( this->bot[attNum]->isHome() )
         this->bot[botNum]->buildAttached00(this->bot[attNum], face1, face2);
     else
         this->bot[botNum]->buildAttached10(this->bot[attNum], face1, face2);
 }
 
-void CiMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     if ( this->bot[attNum]->isHome() )
         this->bot[botNum]->buildAttached01(this->bot[attNum], face1, face2, r_le, r_lb, r_rb, r_re);
 	else
         this->bot[botNum]->buildAttached11(this->bot[attNum], face1, face2, r_le, r_lb, r_rb, r_re);
 }
 
-void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     if ( end == ENDCAP_L )
         this->iMobotBuild(botNum, x + END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
     else
@@ -494,7 +494,7 @@ void CiMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRe
 /**********************************************************
 	Utility Functions
  **********************************************************/
-bool CiMobotFD::is_true(int length, bool *a) {
+bool CMobotFD::is_true(int length, bool *a) {
 	for (int i = 0; i < length; i++) {
 		if ( a[i] == false )
 			return false;
@@ -506,13 +506,13 @@ bool CiMobotFD::is_true(int length, bool *a) {
 /**********************************************************
 	Drawstuff Functions
  **********************************************************/
-void CiMobotFD::ds_drawBodies(void) {
+void CMobotFD::ds_drawBodies(void) {
 	for (int i = 0; i < this->m_num_bot; i++) {
         this->bot[i]->drawRobot();
     }
 }
 
-void CiMobotFD::ds_drawStatics(void) {
+void CMobotFD::ds_drawStatics(void) {
     for (int i = 0; i < this->m_num_statics; i++) {
         const dReal *position = dGeomGetPosition(this->m_statics[i]);     // get position
         const dReal *rotation = dGeomGetRotation(this->m_statics[i]);     // get rotation
@@ -540,7 +540,7 @@ void CiMobotFD::ds_drawStatics(void) {
     }
 }
 
-void CiMobotFD::ds_drawTargets(void) {
+void CMobotFD::ds_drawTargets(void) {
     for (int i = 0; i < this->m_num_targets; i++) {
         const dReal *position = dGeomGetPosition(this->m_targets[i].geomID);     // get position
         const dReal *rotation = dGeomGetRotation(this->m_targets[i].geomID);     // get rotation
@@ -550,14 +550,14 @@ void CiMobotFD::ds_drawTargets(void) {
     }
 }
 
-void CiMobotFD::ds_start(void) {
+void CMobotFD::ds_start(void) {
 	dAllocateODEDataForThread(dAllocateMaskAll);
 	static float xyz[3] = {-0.35, -0.254, 0.127};		// left side
 	static float hpr[3] = {45.0, -15.0, 0.0};			// defined in degrees
 	dsSetViewpoint(xyz, hpr);
 }
 
-void CiMobotFD::ds_command(int cmd) {
+void CMobotFD::ds_command(int cmd) {
 	switch (cmd) {
 		case 'q': case 'Q':
 			dsStop();
