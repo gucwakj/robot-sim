@@ -39,7 +39,7 @@ class Jacobian {
 
         void computeJacobian(void);             // Compute Jacobian matrix
         void calcDeltaThetas(void);             // Calculate delta theta for each joint
-        void updateClampMagValue(void);         // Update distance to target
+        void updateClampMag(void);              // Update distance to target
         void updateThetas(void);                // Update theta values
 
 		void reset(void);

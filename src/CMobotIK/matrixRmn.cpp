@@ -181,7 +181,7 @@ double MatrixRmn::norm(int i) {
     double *target = this->x + i;
     double res = 0;
     for ( int j = 0; j < 3; j++ ) {
-        res += (*target)*(*target++);
+        res += (*target)*(*(target++));
     }
     return sqrt(res);
 }
