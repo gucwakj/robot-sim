@@ -2,7 +2,7 @@
 #define CMOBOTFD_H_
 
 #include <iostream>
-#include "robot.h"
+#include "mobot.h"
 
 enum simulation_reply_message_e {
 	FD_SUCCESS,
@@ -12,7 +12,7 @@ enum simulation_reply_message_e {
 
 class CMobotFD {
 	public:
-        CMobotFD(int bot_type, int num_bot, int num_stp);
+        CMobotFD(int num_bot, int num_stp);
 		~CMobotFD(void);
 
 		// set simulation variables
@@ -59,7 +59,7 @@ class CMobotFD {
 		dJointGroupID group;                        // group to store joints
 		dGeomID ground;                             // ground plane
 		dGeomID *m_statics;                         // array of ground objects
-		Robot **bot;                                // array of robots in simulation
+		Mobot **bot;                                 // array of robots in simulation
 		CMobotFDReply *m_reply;					// struct of data to return after finishing simulation
 		CMobotFDTarget *m_targets;                 // array of targets
 		dReal   m_t_step,							// time of each step of simulation

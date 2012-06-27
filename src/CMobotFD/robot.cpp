@@ -1,6 +1,6 @@
-#include "robot.h"
+#include "mobot.h"
 
-Robot::Robot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type) {
+Mobot::Mobot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type) {
     this->world = world;
     this->space = dHashSpaceCreate(space);
     this->m_num_stp = num_stp;
@@ -72,7 +72,7 @@ Robot::Robot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type) {
     }
 }
 
-Robot::~Robot(void) {
+Mobot::~Mobot(void) {
     for ( int i = NUM_PARTS - 1; i >= 0; i-- ) { delete this->body[i]; }
     delete [] this->body;
     delete [] this->pid;
@@ -89,7 +89,7 @@ Robot::~Robot(void) {
     dSpaceDestroy(this->space);
 }
 
-void Robot::setAngles(dReal *ang) {
+void Mobot::setAngles(dReal *ang) {
     for ( int j = 0; j < NUM_DOF*this->m_num_stp; j++ ) {
         this->ang[j] = D2R(ang[j]);
     }
@@ -98,7 +98,7 @@ void Robot::setAngles(dReal *ang) {
     }
 }
 
-void Robot::setAngularVelocity(dReal *vel) {
+void Mobot::setAngularVelocity(dReal *vel) {
     for ( int j = 0; j < NUM_DOF*this->m_num_stp; j++ ) {
         this->vel[j] = this->m_joint_vel_min[j%NUM_DOF] + vel[j]*(this->m_joint_vel_max[j%NUM_DOF] - this->m_joint_vel_min[j%NUM_DOF]);
     }
@@ -107,45 +107,45 @@ void Robot::setAngularVelocity(dReal *vel) {
     }
 }
 
-dReal Robot::getCurrentAngle(int i) {
+dReal Mobot::getCurrentAngle(int i) {
     return this->cur_ang[i];
 }
 
-dReal Robot::getPosition(int i) {
+dReal Mobot::getPosition(int i) {
     return this->pos[i];
 }
 
-dReal Robot::getRotation(int i) {
+dReal Mobot::getRotation(int i) {
     return this->rot[i];
 }
 
-dBodyID Robot::getBodyID(int body) {
+dBodyID Mobot::getBodyID(int body) {
     return this->body[body]->getBodyID();
 }
 
-dJointID Robot::getMotorID(int motor) {
+dJointID Mobot::getMotorID(int motor) {
     return this->motors[motor];
 }
 
-void Robot::enable(void) {
+void Mobot::enable(void) {
     dBodyEnable(this->body[CENTER]->getBodyID());
 }
 
-void Robot::resetPID(int i) {
+void Mobot::resetPID(int i) {
     if ( i == NUM_DOF )
         for ( int j = 0; j < NUM_DOF; j++ ) this->pid[j].restart();
     else
         this->pid[i].restart();
 }
 
-void Robot::updateCurrentAngle(int i) {
+void Mobot::updateCurrentAngle(int i) {
     if ( i == LE || i == RE )
         this->cur_ang[i] = mod_angle(this->cur_ang[i], dJointGetHingeAngle(this->joints[i]), dJointGetHingeAngleRate(this->joints[i]));
     else
         this->cur_ang[i] = dJointGetHingeAngle(this->joints[i]);
 }
 
-void Robot::updateFutureAngle(int i, int current_step, int enable) {
+void Mobot::updateFutureAngle(int i, int current_step, int enable) {
     if ( enable ) {
         if ( i == LE || i == RE ) {
             this->fut_ang[i] = this->ori[i];
@@ -160,11 +160,11 @@ void Robot::updateFutureAngle(int i, int current_step, int enable) {
     }
 }
 
-void Robot::updateJointVelocity(int i, int current_step) {
+void Mobot::updateJointVelocity(int i, int current_step) {
     this->jnt_vel[i] = this->vel[NUM_DOF*current_step + i];
 }
 
-void Robot::updateMotorSpeed(int i) {
+void Mobot::updateMotorSpeed(int i) {
     /*// with PID
     if (this->cur_ang[i] < this->fut_ang[i] - 10*this->m_motor_res)
         dJointSetA*MotorParam(this->motors[i], dParamVel, this->jnt_vel[i]);
@@ -185,7 +185,7 @@ void Robot::updateMotorSpeed(int i) {
         dJointSetAMotorParam(this->motors[i], dParamVel, 0);
 }
 
-void Robot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
     // adjust input height by body height
     z += BODY_HEIGHT/2;
     // convert input angles to radians
@@ -304,7 +304,7 @@ void Robot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) 
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i]->getBodyID(), 0.1, 0.1);
 }
 
-void Robot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     // adjust input height by body height
     z += BODY_HEIGHT/2;
     // convert input angles to radians
@@ -461,7 +461,7 @@ void Robot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, 
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i]->getBodyID(), 0.1, 0.1);
 }
 
-void Robot::buildAttached00(Robot *attach, int face1, int face2) {
+void Mobot::buildAttached00(Mobot *attach, int face1, int face2) {
     // initialize variables
     dReal psi, theta, phi, m[3] = {0};
     dMatrix3 R, R1, R_att;
@@ -699,7 +699,7 @@ void Robot::buildAttached00(Robot *attach, int face1, int face2) {
     this->create_fixed_joint(attach, face1, face2);
 }
 
-void Robot::buildAttached10(Robot *attach, int face1, int face2) {
+void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
     // initialize variables
     dReal psi, theta, phi, m[3];
     dMatrix3 R, R1, R2, R3, R4, R5, R_att;
@@ -1220,7 +1220,7 @@ void Robot::buildAttached10(Robot *attach, int face1, int face2) {
     this->create_fixed_joint(attach, face1, face2);
 }
 
-void Robot::buildAttached01(Robot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     // initialize variables
     dReal psi, theta, phi, r_e, r_b, m[3];
     dMatrix3 R, R1, R2, R3, R4, R5, R_att;
@@ -1768,7 +1768,7 @@ void Robot::buildAttached01(Robot *attach, int face1, int face2, dReal r_le, dRe
     this->create_fixed_joint(attach, face1, face2);
 }
 
-void Robot::buildAttached11(Robot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     // initialize variables
     dReal psi, theta, phi, r_e, r_b, m[3];
     dMatrix3 R, R1, R2, R3, R4, R5, R6, R7, R8, R9, R_att;
@@ -2508,19 +2508,19 @@ void Robot::buildAttached11(Robot *attach, int face1, int face2, dReal r_le, dRe
     this->create_fixed_joint(attach, face1, face2);
 }
 
-bool Robot::isDisabled(void) {
+bool Mobot::isDisabled(void) {
     return !(bool)dBodyIsEnabled(this->body[CENTER]->getBodyID());
 }
 
-bool Robot::isJointDisabled(int i, int current_step) {
+bool Mobot::isJointDisabled(int i, int current_step) {
     return ( (int)(this->ang[NUM_DOF*current_step + i]) == (int)(D2R(123456789)) );
 }
 
-bool Robot::isHome(void) {
+bool Mobot::isHome(void) {
     return ( fabs(this->cur_ang[LE]) < DBL_EPSILON && fabs(this->cur_ang[LB]) < DBL_EPSILON && fabs(this->cur_ang[RB]) < DBL_EPSILON && fabs(this->cur_ang[RE]) < DBL_EPSILON );
 }
 
-dReal Robot::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
+dReal Mobot::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     dReal new_ang = 0;
     int stp = (int)( fabs(past_ang) / M_PI );
     dReal past_ang_mod = fabs(past_ang) - stp*M_PI;
@@ -2576,15 +2576,15 @@ dReal Robot::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     return new_ang;
 }
 
-dReal Robot::D2R( dReal x ) {
+dReal Mobot::D2R( dReal x ) {
     return x*M_PI/180;
 }
 
-dReal Robot::R2D( dReal x ) {
+dReal Mobot::R2D( dReal x ) {
     return x/M_PI*180;
 }
 
-void Robot::create_fixed_joint(Robot *attach, int face1, int face2) {
+void Mobot::create_fixed_joint(Mobot *attach, int face1, int face2) {
     int part1, part2;
 
     switch (face1) {
@@ -2627,7 +2627,7 @@ void Robot::create_fixed_joint(Robot *attach, int face1, int face2) {
     dJointSetFixedParam(joint, dParamERP, 0.9);
 }
 
-void Robot::create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
+void Mobot::create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
     dReal   sphi = sin(phi),        cphi = cos(phi),
     stheta = sin(theta),    ctheta = cos(theta),
     spsi = sin(psi),        cpsi = cos(psi);
@@ -2646,7 +2646,7 @@ void Robot::create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi
     R[11] = 0;
 }
 
-void Robot::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi) {
+void Mobot::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi) {
     if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
         psi = atan2(-R[1], -R[2]);
         theta = M_PI/2;
@@ -2665,7 +2665,7 @@ void Robot::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &ph
 }
 
 #ifdef ENABLE_DRAWSTUFF
-void Robot::drawRobot(void) {
+void Mobot::drawMobot(void) {
     for (int i = 0; i < NUM_PARTS; i++) {
         this->body[i]->drawBody();
     }

@@ -3,7 +3,7 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CMobotFD fd(1, 2, 1);
+	CMobotFD fd(2, 1);
 
     double ang[] = { 0, 45, 45, -45, 45, 45, 45, 0};
     fd.setAngles(ang);

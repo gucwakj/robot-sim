@@ -8,7 +8,7 @@ using namespace std;
 CMobotFD *g_imobotfd;
 #endif
 
-CMobotFD::CMobotFD(int bot_type, int num_bot, int num_stp) {
+CMobotFD::CMobotFD(int num_bot, int num_stp) {
     // create ODE simulation space
     dInitODE2(0);                                               // initialized ode library
     this->world = dWorldCreate();                               // create world for simulation
@@ -45,10 +45,10 @@ CMobotFD::CMobotFD(int bot_type, int num_bot, int num_stp) {
     this->m_t_cur_step = 0;
 
 	// create instance for each module in simulation
-    this->bot = new Robot * [num_bot];
-    for ( int i = 0; i < num_bot; i++ ) {
-        this->bot[i] = new Robot(this->world, this->space, num_stp, bot_type);
-    }
+    this->bot = new Mobot * [num_bot];
+    /*for ( int i = 0; i < num_bot; i++ ) {
+        this->bot[i] = new Mobot(this->world, this->space, num_stp);
+    }*/
 
     // initialze reply struct
     this->m_reply = new CMobotFDReply;
@@ -452,18 +452,22 @@ void CMobotFD::end_simulation(bool &loop) {
 	Build iMobot Functions
  **********************************************************/
 void CMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
+	this->bot[botNum] = new Mobot(this->world, this->space, this->m_num_stp, 0);
 	this->bot[botNum]->build(x, y, z, 0, 0, 0);
 }
 
 void CMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+	this->bot[botNum] = new Mobot(this->world, this->space, this->m_num_stp, 0);
     this->bot[botNum]->build(x, y, z, psi, theta, phi);
 }
 
 void CMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	this->bot[botNum] = new Mobot(this->world, this->space, this->m_num_stp, 0);
     this->bot[botNum]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
 }
 
 void CMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {
+	this->bot[botNum] = new Mobot(this->world, this->space, this->m_num_stp, 0);
 	if ( this->bot[attNum]->isHome() )
         this->bot[botNum]->buildAttached00(this->bot[attNum], face1, face2);
     else
@@ -471,6 +475,7 @@ void CMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2)
 }
 
 void CMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	this->bot[botNum] = new Mobot(this->world, this->space, this->m_num_stp, 0);
     if ( this->bot[attNum]->isHome() )
         this->bot[botNum]->buildAttached01(this->bot[attNum], face1, face2, r_le, r_lb, r_rb, r_re);
 	else
@@ -478,10 +483,11 @@ void CMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2,
 }
 
 void CMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	this->bot[botNum] = new Mobot(this->world, this->space, this->m_num_stp, 0);
     if ( end == ENDCAP_L )
-        this->iMobotBuild(botNum, x + END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
+        this->iMobotBuild(botNum, x + IMOBOT_END_DEPTH + IMOBOT_BODY_END_DEPTH + IMOBOT_BODY_LENGTH + 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
     else
-        this->iMobotBuild(botNum, x - END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
+        this->iMobotBuild(botNum, x - IMOBOT_END_DEPTH - IMOBOT_BODY_END_DEPTH - IMOBOT_BODY_LENGTH - 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
 
     // add fixed joint to attach 'END' to static environment
     dJointID joint = dJointCreateFixed(this->world, 0);

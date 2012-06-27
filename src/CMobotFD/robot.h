@@ -1,8 +1,7 @@
-#ifndef ROBOT_H_
-#define ROBOT_H_
+#ifndef MOBOT_H_
+#define MOBOT_H_
 
 #include <ode/ode.h>
-#include "body.h"
 #include "pid.h"
 
 enum robot_type_e {         // type of robot in simulation
@@ -24,11 +23,19 @@ enum robot_pieces_e {       // each body part which is built
     ENDCAP_R,
     NUM_PARTS
 };
+struct robot_body_s {
+	        dGeomID *geomID;                        // ids of geoms which make up each body part
 
-class Robot {
+        #ifdef ENABLE_DRAWSTUFF
+        float color[3];                         // rgb color for each body part
+        int num_geomID;                         // total number of geomID for part
+        #endif
+} Body;
+
+class Mobot {
     public:
-        Robot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type);
-        ~Robot(void);
+        Mobot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type);
+        ~Mobot(void);
 
         void setAngles(dReal *ang);
         void setAngularVelocity(dReal *vel);
@@ -41,10 +48,10 @@ class Robot {
 
         void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
         void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-        void buildAttached00(Robot *attach, int face1, int face2);
-        void buildAttached10(Robot *attach, int face1, int face2);
-        void buildAttached01(Robot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-        void buildAttached11(Robot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+        void buildAttached00(Mobot *attach, int face1, int face2);
+        void buildAttached10(Mobot *attach, int face1, int face2);
+        void buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+        void buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
         void enable(void);
         void resetPID(int i = NUM_DOF);
@@ -58,7 +65,7 @@ class Robot {
         bool isHome(void);
 
         #ifdef ENABLE_DRAWSTUFF
-        void drawRobot(void);
+        void drawMobot(void);
         #endif
     private:
         dWorldID world;                         // world for all robots
@@ -84,9 +91,9 @@ class Robot {
         dReal D2R(dReal x);              // convert degrees to radians
         dReal R2D(dReal x);              // convert radians to degrees
         dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
-        void create_fixed_joint(Robot *attach, int face1, int face2);                   // create fixed joint between modules
+        void create_fixed_joint(Mobot *attach, int face1, int face2);                   // create fixed joint between modules
         void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);     // get rotation matrix from euler angles
         void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);    // get euler angles from rotation matrix
 };
 
-#endif  /* ROBOT_H_ */
+#endif  /* MOBOT_H_ */
