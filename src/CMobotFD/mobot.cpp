@@ -22,6 +22,21 @@ Mobot::Mobot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type) {
         this->m_joint_frc_max[LB] = 1.059;
         this->m_joint_frc_max[RB] = 1.059;
         this->m_joint_frc_max[RE] = 0.260;
+		center_length = IMOBOT_CENTER_LENGTH;
+		center_width = IMOBOT_CENTER_WIDTH;
+		center_height = IMOBOT_CENTER_HEIGHT;
+		center_radius = IMOBOT_CENTER_RADIUS;
+		body_length = IMOBOT_BODY_LENGTH;
+		body_width = IMOBOT_BODY_WIDTH;
+		body_height = IMOBOT_BODY_HEIGHT;
+		body_radius = IMOBOT_BODY_RADIUS;
+		body_inner_width = IMOBOT_BODY_INNER_WIDTH;
+		body_end_depth = IMOBOT_BODY_END_DEPTH;
+		body_mount_center = IMOBOT_BODY_MOUNT_CENTER;
+		end_width = IMOBOT_END_WIDTH;
+		end_height = IMOBOT_END_HEIGHT;
+		end_depth = IMOBOT_END_DEPTH;
+		end_radius = IMOBOT_END_RADIUS;
     }
     else if ( bot_type == MOBOT ) {
         this->m_motor_res = D2R(0.5);
@@ -40,14 +55,39 @@ Mobot::Mobot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type) {
         this->m_joint_frc_max[LB] = 1.059;
         this->m_joint_frc_max[RB] = 1.059;
         this->m_joint_frc_max[RE] = 0.260;
+		center_length = MOBOT_CENTER_LENGTH;
+		center_width = MOBOT_CENTER_WIDTH;
+		center_height = MOBOT_CENTER_HEIGHT;
+		center_radius = MOBOT_CENTER_RADIUS;
+		body_length = MOBOT_BODY_LENGTH;
+		body_width = MOBOT_BODY_WIDTH;
+		body_height = MOBOT_BODY_HEIGHT;
+		body_radius = MOBOT_BODY_RADIUS;
+		body_inner_width = MOBOT_BODY_INNER_WIDTH;
+		body_end_depth = MOBOT_BODY_END_DEPTH;
+		body_mount_center = MOBOT_BODY_MOUNT_CENTER;
+		end_width = MOBOT_END_WIDTH;
+		end_height = MOBOT_END_HEIGHT;
+		end_depth = MOBOT_END_DEPTH;
+		end_radius = MOBOT_END_RADIUS;
     }
 
-    this->body = new Body * [NUM_PARTS];
-    this->body[ENDCAP_L] = new Body(this->world, this->space, 7);
-    this->body[BODY_L] = new Body(this->world, this->space, 5);
-    this->body[CENTER] = new Body(this->world, this->space, 3);
-    this->body[BODY_R] = new Body(this->world, this->space, 5);
-    this->body[ENDCAP_R] = new Body(this->world, this->space, 7);
+    this->body = new Body[NUM_PARTS];
+	for ( int i = 0; i < NUM_PARTS; i++ ) {
+		this->body[i].bodyID = dBodyCreate(this->world);
+	}
+    this->body[ENDCAP_L].geomID = new dGeomID[7];
+    this->body[BODY_L].geomID = new dGeomID[5];
+    this->body[CENTER].geomID = new dGeomID[3];
+    this->body[BODY_R].geomID = new dGeomID[5];
+    this->body[ENDCAP_R].geomID = new dGeomID[7];
+#ifdef ENABLE_DRAWSTUFF
+	this->body[ENDCAP_L].num_geomID = 7;
+    this->body[BODY_L].num_geomID = 5;
+    this->body[CENTER].num_geomID = 3;
+    this->body[BODY_R].num_geomID = 5;
+    this->body[ENDCAP_R].num_geomID = 7;
+#endif
     this->joints = new dJointID[6];
     this->motors = new dJointID[4];
     this->pid = new PID[NUM_DOF];
@@ -73,7 +113,6 @@ Mobot::Mobot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type) {
 }
 
 Mobot::~Mobot(void) {
-    for ( int i = NUM_PARTS - 1; i >= 0; i-- ) { delete this->body[i]; }
     delete [] this->body;
     delete [] this->pid;
     delete [] this->joints;
@@ -120,7 +159,7 @@ dReal Mobot::getRotation(int i) {
 }
 
 dBodyID Mobot::getBodyID(int body) {
-    return this->body[body]->getBodyID();
+    return this->body[body].bodyID;
 }
 
 dJointID Mobot::getMotorID(int motor) {
@@ -128,7 +167,7 @@ dJointID Mobot::getMotorID(int motor) {
 }
 
 void Mobot::enable(void) {
-    dBodyEnable(this->body[CENTER]->getBodyID());
+    dBodyEnable(this->body[CENTER].bodyID);
 }
 
 void Mobot::resetPID(int i) {
@@ -187,7 +226,7 @@ void Mobot::updateMotorSpeed(int i) {
 
 void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
     // adjust input height by body height
-    z += BODY_HEIGHT/2;
+    z += this->body_height/2;
     // convert input angles to radians
     psi = D2R(psi);         // roll: x
     theta = D2R(theta);     // pitch: -y
@@ -198,71 +237,71 @@ void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) 
     this->create_rotation_matrix(R, psi, theta, phi);
 
     // offset values for each body part[0-2] and joint[3-5] from center
-    dReal le[6] = {-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH/2, 0, 0, -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH, 0, 0};
-    dReal lb[6] = {-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH/2, 0, 0, -CENTER_LENGTH/2, CENTER_WIDTH/2, 0};
-    dReal rb[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2, 0, 0, CENTER_LENGTH/2, CENTER_WIDTH/2, 0};
-    dReal re[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2, 0, 0, CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH, 0, 0};
+    dReal le[6] = {-this->center_length/2 - this->body_length - this->body_end_depth - this->end_depth/2, 0, 0, -this->center_length/2 - this->body_length - this->body_end_depth, 0, 0};
+    dReal lb[6] = {-this->center_length/2 - this->body_length - this->body_end_depth/2, 0, 0, -this->center_length/2, this->center_width/2, 0};
+    dReal rb[6] = {this->center_length/2 + this->body_length + this->body_end_depth/2, 0, 0, this->center_length/2, this->center_width/2, 0};
+    dReal re[6] = {this->center_length/2 + this->body_length + this->body_end_depth + this->end_depth/2, 0, 0, this->center_length/2 + this->body_length + this->body_end_depth, 0, 0};
 
     // build pieces of module
-    this->body[ENDCAP_L]->buildEndcap(R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R);
-    this->body[BODY_L]->buildLeftBody(R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0);
-    this->body[CENTER]->buildCenter(x, y, z, R);
-    this->body[BODY_R]->buildRightBody(R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0);
-    this->body[ENDCAP_R]->buildEndcap(R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
+    this->build_endcap(ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R);
+    this->build_body(BODY_L, R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0);
+    this->build_center(x, y, z, R);
+    this->build_body(BODY_R, R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0);
+    this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 
     // store position and rotation of center of module
     this->pos[0] = x;
     this->pos[1] = y;
-    this->pos[2] = z - BODY_HEIGHT/2;
+    this->pos[2] = z - this->body_height/2;
     this->rot[0] = psi;
     this->rot[1] = theta;
     this->rot[2] = phi;
 
     // joint for left endcap to body
     this->joints[0] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[0], this->body[BODY_L]->getBodyID(), this->body[ENDCAP_L]->getBodyID());
+    dJointAttach(this->joints[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
     dJointSetHingeAnchor(this->joints[0], R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
     dJointSetHingeAxis(this->joints[0], R[0], R[4], R[8]);
     dJointSetHingeParam(this->joints[0], dParamCFM, 0);
 
     // joint for center to left body 1
     this->joints[1] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[1], this->body[CENTER]->getBodyID(), this->body[BODY_L]->getBodyID());
+    dJointAttach(this->joints[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
     dJointSetHingeAnchor(this->joints[1], R[0]*lb[3] + R[1]*lb[4] + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*lb[4] + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*lb[4] + R[10]*lb[5] + z);
     dJointSetHingeAxis(this->joints[1], -R[1], -R[5], -R[9]);
     dJointSetHingeParam(this->joints[1], dParamCFM, 0);
 
     // joint for center to left body 2
     this->joints[4] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[4], this->body[CENTER]->getBodyID(), this->body[BODY_L]->getBodyID());
+    dJointAttach(this->joints[4], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
     dJointSetHingeAnchor(this->joints[4], R[0]*lb[3] - R[1]*lb[4] + R[2]*lb[5] + x, R[4]*lb[3] - R[5]*lb[4] + R[6]*lb[5] + y, R[8]*lb[3] - R[9]*lb[4] + R[10]*lb[5] + z);
     dJointSetHingeAxis(this->joints[4], R[1], R[5], R[9]);
     dJointSetHingeParam(this->joints[4], dParamCFM, 0);
 
     // joint for center to right body 1
     this->joints[2] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[2], this->body[CENTER]->getBodyID(), this->body[BODY_R]->getBodyID());
+    dJointAttach(this->joints[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
     dJointSetHingeAnchor(this->joints[2], R[0]*rb[3] + R[1]*rb[4] + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*rb[4] + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*rb[4] + R[10]*rb[5] + z);
     dJointSetHingeAxis(this->joints[2], R[1], R[5], R[9]);
     dJointSetHingeParam(this->joints[2], dParamCFM, 0);
 
     // joint for center to right body 2
     this->joints[5] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[5], this->body[CENTER]->getBodyID(), this->body[BODY_R]->getBodyID());
+    dJointAttach(this->joints[5], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
     dJointSetHingeAnchor(this->joints[5], R[0]*rb[3] - R[1]*rb[4] + R[2]*rb[5] + x, R[4]*rb[3] - R[5]*rb[4] + R[6]*rb[5] + y, R[8]*rb[3] - R[9]*rb[4] + R[10]*rb[5] + z);
     dJointSetHingeAxis(this->joints[5], -R[1], -R[5], -R[9]);
     dJointSetHingeParam(this->joints[5], dParamCFM, 0);
 
     // joint for right body to endcap
     this->joints[3] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[3], this->body[BODY_R]->getBodyID(), this->body[ENDCAP_R]->getBodyID());
+    dJointAttach(this->joints[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
     dJointSetHingeAnchor(this->joints[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
     dJointSetHingeAxis(this->joints[3], -R[0], -R[4], -R[8]);
     dJointSetHingeParam(this->joints[3], dParamCFM, 0);
 
     // motor for left endcap to body
     this->motors[0] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[0], this->body[BODY_L]->getBodyID(), this->body[ENDCAP_L]->getBodyID());
+    dJointAttach(this->motors[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
     dJointSetAMotorMode(this->motors[0], dAMotorUser);
     dJointSetAMotorNumAxes(this->motors[0], 1);
     dJointSetAMotorAxis(this->motors[0], 0, 1, R[0], R[4], R[8]);
@@ -272,7 +311,7 @@ void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) 
 
     // motor for center to left body
     this->motors[1] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[1], this->body[CENTER]->getBodyID(), this->body[BODY_L]->getBodyID());
+    dJointAttach(this->motors[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
     dJointSetAMotorMode(this->motors[1], dAMotorUser);
     dJointSetAMotorNumAxes(this->motors[1], 1);
     dJointSetAMotorAxis(this->motors[1], 0, 1, -R[1], -R[5], -R[9]);
@@ -282,7 +321,7 @@ void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) 
 
     // motor for center to right body
     this->motors[2] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[2], this->body[CENTER]->getBodyID(), this->body[BODY_R]->getBodyID());
+    dJointAttach(this->motors[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
     dJointSetAMotorMode(this->motors[2], dAMotorUser);
     dJointSetAMotorNumAxes(this->motors[2], 1);
     dJointSetAMotorAxis(this->motors[2], 0, 1, R[1], R[5], R[9]);
@@ -292,7 +331,7 @@ void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) 
 
     // motor for right body to endcap
     this->motors[3] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[3], this->body[BODY_R]->getBodyID(), this->body[ENDCAP_R]->getBodyID());
+    dJointAttach(this->motors[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
     dJointSetAMotorMode(this->motors[3], dAMotorUser);
     dJointSetAMotorNumAxes(this->motors[3], 1);
     dJointSetAMotorAxis(this->motors[3], 0, 1, -R[0], -R[4], -R[8]);
@@ -301,12 +340,12 @@ void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) 
     dJointSetAMotorParam(this->motors[3], dParamFMax, this->m_joint_frc_max[RE]);
 
     // set damping on all bodies to 0.1
-    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i]->getBodyID(), 0.1, 0.1);
+    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i].bodyID, 0.1, 0.1);
 }
 
 void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     // adjust input height by body height
-    z += BODY_HEIGHT/2;
+    z += this->body_height/2;
     // convert input angles to radians
     psi = D2R(psi);         // roll: x
     theta = D2R(theta);     // pitch: -y
@@ -329,21 +368,21 @@ void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, 
     this->fut_ang[RE] += r_re;
 
     // offset values for each body part[0-2] and joint[3-5] from center
-    dReal le[6] = {-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH/2, 0, 0, -CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH, 0, 0};
-    dReal lb[6] = {-CENTER_LENGTH/2 - BODY_LENGTH - BODY_END_DEPTH/2, 0, 0, -CENTER_LENGTH/2, CENTER_WIDTH/2, 0};
-    dReal rb[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH/2, 0, 0, CENTER_LENGTH/2, CENTER_WIDTH/2, 0};
-    dReal re[6] = {CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2, 0, 0, CENTER_LENGTH/2 + BODY_LENGTH + BODY_END_DEPTH, 0, 0};
+    dReal le[6] = {-this->center_length/2 - this->body_length - this->body_end_depth - this->end_depth/2, 0, 0, -this->center_length/2 - this->body_length - this->body_end_depth, 0, 0};
+    dReal lb[6] = {-this->center_length/2 - this->body_length - this->body_end_depth/2, 0, 0, -this->center_length/2, this->center_width/2, 0};
+    dReal rb[6] = {this->center_length/2 + this->body_length + this->body_end_depth/2, 0, 0, this->center_length/2, this->center_width/2, 0};
+    dReal re[6] = {this->center_length/2 + this->body_length + this->body_end_depth + this->end_depth/2, 0, 0, this->center_length/2 + this->body_length + this->body_end_depth, 0, 0};
 
-    this->body[ENDCAP_L]->buildEndcap(R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R);
-    this->body[BODY_L]->buildLeftBody(R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0);
-    this->body[CENTER]->buildCenter(x, y, z, R);
-    this->body[BODY_R]->buildRightBody(R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0);
-    this->body[ENDCAP_R]->buildEndcap(R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
+    this->build_endcap(ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R);
+    this->build_body(BODY_L, R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0);
+    this->build_center(x, y, z, R);
+    this->build_body(BODY_R, R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0);
+    this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 
     // store position and rotation of center of module
     this->pos[0] = x;
     this->pos[1] = y;
-    this->pos[2] = z - BODY_HEIGHT/2;
+    this->pos[2] = z - this->body_height/2;
     this->rot[0] = psi;
     this->rot[1] = theta;
     this->rot[2] = phi;
@@ -354,42 +393,42 @@ void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, 
 
     // joint for left endcap to body
     this->joints[0] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[0], this->body[BODY_L]->getBodyID(), this->body[ENDCAP_L]->getBodyID());
+    dJointAttach(this->joints[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
     dJointSetHingeAnchor(this->joints[0], R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
     dJointSetHingeAxis(this->joints[0], R[0], R[4], R[8]);
     dJointSetHingeParam(this->joints[0], dParamCFM, 0);
 
     // joint for center to left body 1
     this->joints[1] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[1], this->body[CENTER]->getBodyID(), this->body[BODY_L]->getBodyID());
+    dJointAttach(this->joints[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
     dJointSetHingeAnchor(this->joints[1], R[0]*lb[3] + R[1]*lb[4] + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*lb[4] + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*lb[4] + R[10]*lb[5] + z);
     dJointSetHingeAxis(this->joints[1], -R[1], -R[5], -R[9]);
     dJointSetHingeParam(this->joints[1], dParamCFM, 0);
 
     // joint for center to left body 2
     this->joints[4] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[4], this->body[CENTER]->getBodyID(), this->body[BODY_L]->getBodyID());
+    dJointAttach(this->joints[4], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
     dJointSetHingeAnchor(this->joints[4], R[0]*lb[3] - R[1]*lb[4] + R[2]*lb[5] + x, R[4]*lb[3] - R[5]*lb[4] + R[6]*lb[5] + y, R[8]*lb[3] - R[9]*lb[4] + R[10]*lb[5] + z);
     dJointSetHingeAxis(this->joints[4], R[1], R[5], R[9]);
     dJointSetHingeParam(this->joints[4], dParamCFM, 0);
 
     // joint for center to right body 1
     this->joints[2] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[2], this->body[CENTER]->getBodyID(), this->body[BODY_R]->getBodyID());
+    dJointAttach(this->joints[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
     dJointSetHingeAnchor(this->joints[2], R[0]*rb[3] + R[1]*rb[4] + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*rb[4] + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*rb[4] + R[10]*rb[5] + z);
     dJointSetHingeAxis(this->joints[2], R[1], R[5], R[9]);
     dJointSetHingeParam(this->joints[2], dParamCFM, 0);
 
     // joint for center to right body 2
     this->joints[5] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[5], this->body[CENTER]->getBodyID(), this->body[BODY_R]->getBodyID());
+    dJointAttach(this->joints[5], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
     dJointSetHingeAnchor(this->joints[5], R[0]*rb[3] - R[1]*rb[4] + R[2]*rb[5] + x, R[4]*rb[3] - R[5]*rb[4] + R[6]*rb[5] + y, R[8]*rb[3] - R[9]*rb[4] + R[10]*rb[5] + z);
     dJointSetHingeAxis(this->joints[5], -R[1], -R[5], -R[9]);
     dJointSetHingeParam(this->joints[5], dParamCFM, 0);
 
     // joint for right body to endcap
     this->joints[3] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[3], this->body[BODY_R]->getBodyID(), this->body[ENDCAP_R]->getBodyID());
+    dJointAttach(this->joints[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
     dJointSetHingeAnchor(this->joints[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
     dJointSetHingeAxis(this->joints[3], -R[0], -R[4], -R[8]);
     dJointSetHingeParam(this->joints[3], dParamCFM, 0);
@@ -406,20 +445,20 @@ void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, 
     dMultiply0(R_re, R_rb, R_e, 3, 3, 3);
 
     // offset values from center of robot
-    dReal le_r[3] = {-CENTER_LENGTH/2 - (BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_lb), 0, (BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_lb)};
-    dReal lb_r[3] = {-CENTER_LENGTH/2 - (BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_lb), 0, (BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_lb)};
-    dReal rb_r[3] = {CENTER_LENGTH/2 + (BODY_LENGTH + BODY_END_DEPTH/2)*cos(r_rb), 0, (BODY_LENGTH + BODY_END_DEPTH/2)*sin(r_rb)};
-    dReal re_r[3] = {CENTER_LENGTH/2 + (BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*cos(r_rb), 0, (BODY_LENGTH + BODY_END_DEPTH + END_DEPTH/2)*sin(r_rb)};
+    dReal le_r[3] = {-this->center_length/2 - (this->body_length + this->body_end_depth + this->end_depth/2)*cos(r_lb), 0, (this->body_length + this->body_end_depth + this->end_depth/2)*sin(r_lb)};
+    dReal lb_r[3] = {-this->center_length/2 - (this->body_length + this->body_end_depth/2)*cos(r_lb), 0, (this->body_length + this->body_end_depth/2)*sin(r_lb)};
+    dReal rb_r[3] = {this->center_length/2 + (this->body_length + this->body_end_depth/2)*cos(r_rb), 0, (this->body_length + this->body_end_depth/2)*sin(r_rb)};
+    dReal re_r[3] = {this->center_length/2 + (this->body_length + this->body_end_depth + this->end_depth/2)*cos(r_rb), 0, (this->body_length + this->body_end_depth + this->end_depth/2)*sin(r_rb)};
 
     // re-build pieces of module
-    this->body[ENDCAP_L]->buildEndcap(R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le);
-    this->body[BODY_L]->buildLeftBody(R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb);
-    this->body[BODY_R]->buildRightBody(R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb);
-    this->body[ENDCAP_R]->buildEndcap(R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re);
+    this->build_endcap(ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le);
+    this->build_body(BODY_L, R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb);
+    this->build_body(BODY_R, R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb);
+    this->build_endcap(ENDCAP_R, R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re);
 
     // motor for left endcap to body
     this->motors[0] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[0], this->body[BODY_L]->getBodyID(), this->body[ENDCAP_L]->getBodyID());
+    dJointAttach(this->motors[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
     dJointSetAMotorMode(this->motors[0], dAMotorUser);
     dJointSetAMotorNumAxes(this->motors[0], 1);
     dJointSetAMotorAxis(this->motors[0], 0, 1, R_lb[0], R_lb[4], R_lb[8]);
@@ -429,7 +468,7 @@ void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, 
 
     // motor for center to left body
     this->motors[1] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[1], this->body[CENTER]->getBodyID(), this->body[BODY_L]->getBodyID());
+    dJointAttach(this->motors[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
     dJointSetAMotorMode(this->motors[1], dAMotorUser);
     dJointSetAMotorNumAxes(this->motors[1], 1);
     dJointSetAMotorAxis(this->motors[1], 0, 1, -R[1], -R[5], -R[9]);
@@ -439,7 +478,7 @@ void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, 
 
     // motor for center to right body
     this->motors[2] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[2], this->body[CENTER]->getBodyID(), this->body[BODY_R]->getBodyID());
+    dJointAttach(this->motors[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
     dJointSetAMotorMode(this->motors[2], dAMotorUser);
     dJointSetAMotorNumAxes(this->motors[2], 1);
     dJointSetAMotorAxis(this->motors[2], 0, 1, R[1], R[5], R[9]);
@@ -449,7 +488,7 @@ void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, 
 
     // motor for right body to endcap
     this->motors[3] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[3], this->body[BODY_R]->getBodyID(), this->body[ENDCAP_R]->getBodyID());
+    dJointAttach(this->motors[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
     dJointSetAMotorMode(this->motors[3], dAMotorUser);
     dJointSetAMotorNumAxes(this->motors[3], 1);
     dJointSetAMotorAxis(this->motors[3], 0, 1, -R_rb[0], -R_rb[4], -R_rb[8]);
@@ -458,7 +497,7 @@ void Mobot::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, 
     dJointSetAMotorParam(this->motors[3], dParamFMax, this->m_joint_frc_max[RE]);
 
     // set damping on all bodies to 0.1
-    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i]->getBodyID(), 0.1, 0.1);
+    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i].bodyID, 0.1, 0.1);
 }
 
 void Mobot::buildAttached00(Mobot *attach, int face1, int face2) {
@@ -472,217 +511,217 @@ void Mobot::buildAttached00(Mobot *attach, int face1, int face2) {
     if ( face1 == 1 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - 2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - 2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length;
         m[1] = 0;
     }
     else if ( face1 == 1 && face2 == 2 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH;
-        m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH;
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width;
+        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length;
     }
     else if ( face1 == 1 && face2 == 3 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH;
-        m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH;
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width;
+        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length;
     }
     else if ( face1 == 1 && face2 == 4 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH;
-        m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH;
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width;
+        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length;
     }
     else if ( face1 == 1 && face2 == 5 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH;
-        m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH;
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width;
+        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length;
     }
     else if ( face1 == 1 && face2 == 6 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - 2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - 2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length;
         m[1] = 0;
     }
     else if ( face1 == 2 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER;
-        m[1] = -END_DEPTH - 0.5*BODY_WIDTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center;
+        m[1] = -this->end_depth - 0.5*this->body_width - this->body_end_depth - this->body_length - 0.5*this->center_length;
     }
     else if ( face1 == 2 && face2 == 2 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - 0.5*CENTER_LENGTH;
-        m[1] = -BODY_WIDTH;
+        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) - 0.5*this->center_length;
+        m[1] = -this->body_width;
     }
     else if ( face1 == 2 && face2 == 3 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + 0.5*CENTER_LENGTH;
-        m[1] = -BODY_WIDTH;
+        m[0] = -0.5*this->center_length + 0.5*this->center_length;
+        m[1] = -this->body_width;
     }
     else if ( face1 == 2 && face2 == 4 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + 0.5*CENTER_LENGTH;
-        m[1] = -BODY_WIDTH;
+        m[0] = -0.5*this->center_length + 0.5*this->center_length;
+        m[1] = -this->body_width;
     }
     else if ( face1 == 2 && face2 == 5 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - 0.5*CENTER_LENGTH;
-        m[1] = -BODY_WIDTH;
+        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) - 0.5*this->center_length;
+        m[1] = -this->body_width;
     }
     else if ( face1 == 2 && face2 == 6 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER;
-        m[1] = -END_DEPTH - 0.5*BODY_WIDTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center;
+        m[1] = -this->end_depth - 0.5*this->body_width - this->body_end_depth - this->body_length - 0.5*this->center_length;
     }
     else if ( face1 == 3 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER;
-        m[1] = END_DEPTH + 0.5*BODY_WIDTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center;
+        m[1] = this->end_depth + 0.5*this->body_width + this->body_end_depth + this->body_length + 0.5*this->center_length;
     }
     else if ( face1 == 3 && face2 == 2 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + 0.5*CENTER_LENGTH;
-        m[1] = BODY_WIDTH;
+        m[0] = -0.5*this->center_length + 0.5*this->center_length;
+        m[1] = this->body_width;
     }
     else if ( face1 == 3 && face2 == 3 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - 0.5*CENTER_LENGTH;
-        m[1] = BODY_WIDTH;
+        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) - 0.5*this->center_length;
+        m[1] = this->body_width;
     }
     else if ( face1 == 3 && face2 == 4 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - 0.5*CENTER_LENGTH;
-        m[1] = BODY_WIDTH;
+        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) - 0.5*this->center_length;
+        m[1] = this->body_width;
     }
     else if ( face1 == 3 && face2 == 5 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + 0.5*CENTER_LENGTH;
-        m[1] = BODY_WIDTH;
+        m[0] = -0.5*this->center_length + 0.5*this->center_length;
+        m[1] = this->body_width;
     }
     else if ( face1 == 3 && face2 == 6 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER;
-        m[1] = END_DEPTH + 0.5*BODY_WIDTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center;
+        m[1] = this->end_depth + 0.5*this->body_width + this->body_end_depth + this->body_length + 0.5*this->center_length;
     }
     else if ( face1 == 4 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER;
-        m[1] = -END_DEPTH - 0.5*BODY_WIDTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center;
+        m[1] = -this->end_depth - 0.5*this->body_width - this->body_end_depth - this->body_length - 0.5*this->center_length;
     }
     else if ( face1 == 4 && face2 == 2 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH - 0.5*CENTER_LENGTH;
-        m[1] = -BODY_WIDTH;
+        m[0] = 0.5*this->center_length - 0.5*this->center_length;
+        m[1] = -this->body_width;
     }
     else if ( face1 == 4 && face2 == 3 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + 2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 0.5*CENTER_LENGTH;
-        m[1] = -BODY_WIDTH;
+        m[0] = 0.5*this->center_length + 2*(this->body_length + this->body_end_depth - this->body_mount_center) + 0.5*this->center_length;
+        m[1] = -this->body_width;
     }
     else if ( face1 == 4 && face2 == 4 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 0.5*CENTER_LENGTH;
-        m[1] = -BODY_WIDTH;
+        m[0] = 0.5*this->center_length +  2*(this->body_length + this->body_end_depth - this->body_mount_center) + 0.5*this->center_length;
+        m[1] = -this->body_width;
     }
     else if ( face1 == 4 && face2 == 5 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH - 0.5*CENTER_LENGTH;
-        m[1] = -BODY_WIDTH;
+        m[0] = 0.5*this->center_length - 0.5*this->center_length;
+        m[1] = -this->body_width;
     }
     else if ( face1 == 4 && face2 == 6 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER;
-        m[1] = -END_DEPTH - 0.5*BODY_WIDTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH;
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center;
+        m[1] = -this->end_depth - 0.5*this->body_width - this->body_end_depth - this->body_length - 0.5*this->center_length;
     }
     else if ( face1 == 5 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER;
-        m[1] = END_DEPTH + 0.5*BODY_WIDTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center;
+        m[1] = this->end_depth + 0.5*this->body_width + this->body_end_depth + this->body_length + 0.5*this->center_length;
     }
     else if ( face1 == 5 && face2 == 2 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + 2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 0.5*CENTER_LENGTH;
-        m[1] = BODY_WIDTH;
+        m[0] = 0.5*this->center_length + 2*(this->body_length + this->body_end_depth - this->body_mount_center) + 0.5*this->center_length;
+        m[1] = this->body_width;
     }
     else if ( face1 == 5 && face2 == 3 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH - 0.5*CENTER_LENGTH;
-        m[1] = BODY_WIDTH;
+        m[0] = 0.5*this->center_length - 0.5*this->center_length;
+        m[1] = this->body_width;
     }
     else if ( face1 == 5 && face2 == 4 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH - 0.5*CENTER_LENGTH;
-        m[1] = BODY_WIDTH;
+        m[0] = 0.5*this->center_length - 0.5*this->center_length;
+        m[1] = this->body_width;
     }
     else if ( face1 == 5 && face2 == 5 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH    +   2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + 0.5*CENTER_LENGTH;
-        m[1] = BODY_WIDTH;
+        m[0] = 0.5*this->center_length    +   2*(this->body_length + this->body_end_depth - this->body_mount_center) + 0.5*this->center_length;
+        m[1] = this->body_width;
     }
     else if ( face1 == 5 && face2 == 6 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER;
-        m[1] = END_DEPTH + 0.5*BODY_WIDTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center;
+        m[1] = this->end_depth + 0.5*this->body_width + this->body_end_depth + this->body_length + 0.5*this->center_length;
     }
     else if ( face1 == 6 && face2 == 1 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + 2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length;
         m[1] = 0;
     }
     else if ( face1 == 6 && face2 == 2 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH;
-        m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH;
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width;
+        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length;
     }
     else if ( face1 == 6 && face2 == 3 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH;
-        m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH;
+        m[0] = 0.5*this->center_length +  this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width;
+        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length;
     }
     else if ( face1 == 6 && face2 == 4 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH;
-        m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH;
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width;
+        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length;
     }
     else if ( face1 == 6 && face2 == 5 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH;
-        m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH;
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width;
+        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length;
     }
     else if ( face1 == 6 && face2 == 6 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + 2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH;
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + 2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length;
         m[1] = 0;
     }
 
@@ -720,9 +759,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[0]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[4]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[8]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth) + R3[0]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth) + R3[4]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth) + R3[8]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 2 ) {
         // generate rotation matrix
@@ -737,9 +776,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 3 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
@@ -753,9 +792,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 4 ) {
         // generate rotation matrix
@@ -770,9 +809,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 5 ) {
         // generate rotation matrix
@@ -787,9 +826,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 6 ) {
         // generate rotation matrix
@@ -804,9 +843,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[0]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[4]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[8]*(-2*END_DEPTH - BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth) + R3[0]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth) + R3[4]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth) + R3[8]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 1 ) {
         // generate rotation matrix
@@ -817,9 +856,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                               + R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - END_DEPTH - 0.5*BODY_WIDTH  + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                               + R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                               + R1[1]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->end_depth - 0.5*this->body_width  + R1[5]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                               + R1[9]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 2 ) {
         // generate rotation matrix
@@ -830,9 +869,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        m[0] = -0.5*CENTER_LENGTH   +   2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - BODY_WIDTH    + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[0]*(-0.5*this->center_length);
+        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->body_width    + R1[4]*(-0.5*this->center_length);
+        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 3 ) {
         // generate rotation matrix
@@ -841,9 +880,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        m[0] = -0.5*CENTER_LENGTH                   + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      - BODY_WIDTH    + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] =                                      + R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length                   + R1[0]*(0.5*this->center_length);
+        m[1] =                      - this->body_width    + R1[4]*(0.5*this->center_length);
+        m[2] =                                      + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 4 ) {
         // generate rotation matrix
@@ -854,9 +893,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        m[0] = -0.5*CENTER_LENGTH                   + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      - BODY_WIDTH    + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] =                                      + R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length                   + R1[0]*(0.5*this->center_length);
+        m[1] =                      - this->body_width    + R1[4]*(0.5*this->center_length);
+        m[2] =                                      + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 5 ) {
         // generate rotation matrix
@@ -865,9 +904,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        m[0] = -0.5*CENTER_LENGTH   +   2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - BODY_WIDTH    + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[0]*(-0.5*this->center_length);
+        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->body_width    + R1[4]*(-0.5*this->center_length);
+        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 6 ) {
         // generate rotation matrix
@@ -878,9 +917,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +                              R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +                              R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[1]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[9]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 1 ) {
         // generate rotation matrix
@@ -891,9 +930,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +                              R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +                              R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[1]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[9]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 2 ) {
         // generate rotation matrix
@@ -902,9 +941,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        m[0] = -0.5*CENTER_LENGTH               + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      BODY_WIDTH  + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] =                                  + R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length               + R1[0]*(0.5*this->center_length);
+        m[1] =                      this->body_width  + R1[4]*(0.5*this->center_length);
+        m[2] =                                  + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 3 ) {
         // generate rotation matrix
@@ -915,9 +954,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        m[0] = -0.5*CENTER_LENGTH   +   2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + BODY_WIDTH    + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[0]*(-0.5*this->center_length);
+        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->body_width    + R1[4]*(-0.5*this->center_length);
+        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 4 ) {
         // generate rotation matrix
@@ -926,9 +965,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        m[0] = -0.5*CENTER_LENGTH   +   2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + BODY_WIDTH    + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[0]*(-0.5*this->center_length);
+        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->body_width    + R1[4]*(-0.5*this->center_length);
+        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 5 ) {
         // generate rotation matrix
@@ -939,9 +978,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        m[0] = -0.5*CENTER_LENGTH               + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      BODY_WIDTH  + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] =                                  + R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length               + R1[0]*(0.5*this->center_length);
+        m[1] =                      this->body_width  + R1[4]*(0.5*this->center_length);
+        m[2] =                                  + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 6 ) {
         // generate rotation matrix
@@ -952,9 +991,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +                              R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +                              R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[1]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[9]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 1 ) {
         // generate rotation matrix
@@ -965,9 +1004,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) -  END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[1]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) -  this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[9]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 2 ) {
         // generate rotation matrix
@@ -978,9 +1017,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        m[0] = 0.5*CENTER_LENGTH                + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      -BODY_WIDTH + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                  + R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
+        m[1] =                      -this->body_width + R1[4]*(-0.5*this->center_length);
+        m[2] =                                  + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 3 ) {
         // generate rotation matrix
@@ -989,9 +1028,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        m[0] = 0.5*CENTER_LENGTH    +   2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)  - BODY_WIDTH    + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[0]*(0.5*this->center_length);
+        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  - this->body_width    + R1[4]*(0.5*this->center_length);
+        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 4 ) {
         // generate rotation matrix
@@ -1002,9 +1041,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        m[0] = 0.5*CENTER_LENGTH    +   2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)  - BODY_WIDTH    + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[0]*(0.5*this->center_length);
+        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  - this->body_width    + R1[4]*(0.5*this->center_length);
+        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 5 ) {
         // generate rotation matrix
@@ -1013,9 +1052,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        m[0] = 0.5*CENTER_LENGTH                    + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      - BODY_WIDTH    + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                      + R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length                    + R1[0]*(-0.5*this->center_length);
+        m[1] =                      - this->body_width    + R1[4]*(-0.5*this->center_length);
+        m[2] =                                      + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 6 ) {
         // generate rotation matrix
@@ -1026,9 +1065,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R1[1]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) -  END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R1[9]*(-BODY_END_DEPTH - BODY_LENGTH - 0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[1]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) -  this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[9]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 1 ) {
         // generate rotation matrix
@@ -1039,9 +1078,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +  END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[1]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) +  this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[9]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 2 ) {
         // generate rotation matrix
@@ -1050,9 +1089,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        m[0] = 0.5*CENTER_LENGTH    +   2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)  + BODY_WIDTH    + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[0]*(0.5*this->center_length);
+        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  + this->body_width    + R1[4]*(0.5*this->center_length);
+        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 3 ) {
         // generate rotation matrix
@@ -1063,9 +1102,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        m[0] = 0.5*CENTER_LENGTH                + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      BODY_WIDTH  + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                  + R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
+        m[1] =                      this->body_width  + R1[4]*(-0.5*this->center_length);
+        m[2] =                                  + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 4 ) {
         // generate rotation matrix
@@ -1074,9 +1113,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        m[0] = 0.5*CENTER_LENGTH                + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      BODY_WIDTH  + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                  + R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
+        m[1] =                      this->body_width  + R1[4]*(-0.5*this->center_length);
+        m[2] =                                  + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 5 ) {
         // generate rotation matrix
@@ -1087,9 +1126,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        m[0] = 0.5*CENTER_LENGTH    +   2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)  + BODY_WIDTH    + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[0]*(0.5*this->center_length);
+        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  + this->body_width    + R1[4]*(0.5*this->center_length);
+        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 6 ) {
         // generate rotation matrix
@@ -1100,9 +1139,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R1[1]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +  END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R1[9]*(BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[1]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) +  this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[9]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 1 ) {
         // generate rotation matrix
@@ -1117,9 +1156,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH) + R3[0]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH) + R3[4]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH) + R3[8]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth) + R3[0]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth) + R3[4]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth) + R3[8]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 2 ) {
         // generate rotation matrix
@@ -1134,9 +1173,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 3 ) {
         // generate rotation matrix
@@ -1151,9 +1190,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 4 ) {
         // generate rotation matrix
@@ -1168,9 +1207,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + 0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 5 ) {
         // generate rotation matrix
@@ -1185,9 +1224,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER - 0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 6 ) {
         // generate rotation matrix
@@ -1202,9 +1241,9 @@ void Mobot::buildAttached10(Mobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH) + R3[0]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH) + R3[4]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH) + R3[8]*(2*END_DEPTH + BODY_END_DEPTH + BODY_LENGTH + 0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth) + R3[0]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth) + R3[4]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth) + R3[8]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
     }
 
     // extract euler angles from rotation matrix
@@ -1267,9 +1306,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 1, 0, 0, -r_e);
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - 2*END_DEPTH + R1[0]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                                                                   R1[4]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                                                   R1[8]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - 2*this->end_depth + R1[0]*(-this->body_end_depth - this->body_length) + R3[0]*(-0.5*this->center_length);
+        m[1] =                                                                   R1[4]*(-this->body_end_depth - this->body_length) + R3[4]*(-0.5*this->center_length);
+        m[2] =                                                                   R1[8]*(-this->body_end_depth - this->body_length) + R3[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 2 ) {
         // generate rotation matrix
@@ -1280,9 +1319,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, r_b);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH + R1[1]*(0.5*CENTER_LENGTH);
-        m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + R1[5]*(0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width + R1[1]*(0.5*this->center_length);
+        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + R1[5]*(0.5*this->center_length);
+        m[2] = R1[9]*(0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 3 ) {
         // generate rotation matrix
@@ -1293,9 +1332,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, -r_b);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH + R1[1]*(-0.5*CENTER_LENGTH);
-        m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER + R1[5]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width + R1[1]*(-0.5*this->center_length);
+        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center + R1[5]*(-0.5*this->center_length);
+        m[2] = R1[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 4 ) {
         // generate rotation matrix
@@ -1306,9 +1345,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, -r_b);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH + R1[1]*(-0.5*CENTER_LENGTH);
-        m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER + R1[5]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width + R1[1]*(-0.5*this->center_length);
+        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center + R1[5]*(-0.5*this->center_length);
+        m[2] = R1[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 5 ) {
         // generate rotation matrix
@@ -1319,9 +1358,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, r_b);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH + R1[1]*(0.5*CENTER_LENGTH);
-        m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + R1[5]*(0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width + R1[1]*(0.5*this->center_length);
+        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + R1[5]*(0.5*this->center_length);
+        m[2] = R1[9]*(0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 6 ) {
         // generate rotation matrix
@@ -1336,9 +1375,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 1, 0, 0, -r_e);
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH - 2*END_DEPTH + R1[0]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[0]*(-0.5*CENTER_LENGTH);
-        m[1] = R1[4]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[4]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[8]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - 2*this->end_depth + R1[0]*(-this->body_end_depth - this->body_length) + R3[0]*(-0.5*this->center_length);
+        m[1] = R1[4]*(-this->body_end_depth - this->body_length) + R3[4]*(-0.5*this->center_length);
+        m[2] = R1[8]*(-this->body_end_depth - this->body_length) + R3[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 1 ) {
         // generate rotation matrix
@@ -1353,9 +1392,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER + R1[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[1]*(-0.5*CENTER_LENGTH);
-        m[1] = -END_DEPTH - 0.5*BODY_WIDTH  + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[5]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[9]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center + R1[1]*(-this->body_end_depth - this->body_length) + R3[1]*(-0.5*this->center_length);
+        m[1] = -this->end_depth - 0.5*this->body_width  + R1[5]*(-this->body_end_depth - this->body_length) + R3[5]*(-0.5*this->center_length);
+        m[2] = R1[9]*(-this->body_end_depth - this->body_length) + R3[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 2 ) {
         // generate rotation matrix
@@ -1366,9 +1405,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] = -BODY_WIDTH + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) + R1[0]*(-0.5*this->center_length);
+        m[1] = -this->body_width + R1[4]*(-0.5*this->center_length);
+        m[2] = R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 3 ) {
         // generate rotation matrix
@@ -1377,9 +1416,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = -0.5*CENTER_LENGTH                   + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      - BODY_WIDTH    + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] =                                      + R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length                   + R1[0]*(0.5*this->center_length);
+        m[1] =                      - this->body_width    + R1[4]*(0.5*this->center_length);
+        m[2] =                                      + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 4 ) {
         // generate rotation matrix
@@ -1390,9 +1429,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = -0.5*CENTER_LENGTH                   + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      - BODY_WIDTH    + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] =                                      + R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length                   + R1[0]*(0.5*this->center_length);
+        m[1] =                      - this->body_width    + R1[4]*(0.5*this->center_length);
+        m[2] =                                      + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 5 ) {
         // generate rotation matrix
@@ -1401,9 +1440,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] = -BODY_WIDTH + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) + R1[0]*(-0.5*this->center_length);
+        m[1] = -this->body_width + R1[4]*(-0.5*this->center_length);
+        m[2] = R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 6 ) {
         // generate rotation matrix
@@ -1418,9 +1457,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER + R1[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[1]*(-0.5*CENTER_LENGTH);
-        m[1] = -END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[5]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center + R1[1]*(-this->body_end_depth - this->body_length) + R3[1]*(-0.5*this->center_length);
+        m[1] = -this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length) + R5[5]*(-0.5*this->center_length);
+        m[2] = R1[9]*(-this->body_end_depth - this->body_length) + R5[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 1 ) {
         // generate rotation matrix
@@ -1435,9 +1474,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER + R1[1]*(BODY_END_DEPTH + BODY_LENGTH) + R3[1]*(0.5*CENTER_LENGTH);
-        m[1] = END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH) + R2[5]*(0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(BODY_END_DEPTH + BODY_LENGTH) + R3[9]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center + R1[1]*(this->body_end_depth + this->body_length) + R3[1]*(0.5*this->center_length);
+        m[1] = this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length) + R2[5]*(0.5*this->center_length);
+        m[2] = R1[9]*(this->body_end_depth + this->body_length) + R3[9]*(0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 2 ) {
         // generate rotation matrix
@@ -1446,9 +1485,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = -0.5*CENTER_LENGTH               + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      BODY_WIDTH  + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] =                                  + R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length               + R1[0]*(0.5*this->center_length);
+        m[1] =                      this->body_width  + R1[4]*(0.5*this->center_length);
+        m[2] =                                  + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 3 ) {
         // generate rotation matrix
@@ -1459,9 +1498,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] = BODY_WIDTH + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center + R1[0]*(-0.5*this->center_length);
+        m[1] = this->body_width + R1[4]*(-0.5*this->center_length);
+        m[2] = R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 4 ) {
         // generate rotation matrix
@@ -1470,9 +1509,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = -0.5*CENTER_LENGTH + 2*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] = BODY_WIDTH + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) + R1[0]*(-0.5*this->center_length);
+        m[1] = this->body_width + R1[4]*(-0.5*this->center_length);
+        m[2] = R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 5 ) {
         // generate rotation matrix
@@ -1483,9 +1522,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = -0.5*CENTER_LENGTH               + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      BODY_WIDTH  + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] =                                  + R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length               + R1[0]*(0.5*this->center_length);
+        m[1] =                      this->body_width  + R1[4]*(0.5*this->center_length);
+        m[2] =                                  + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 6 ) {
         // generate rotation matrix
@@ -1500,9 +1539,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH - BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER + R1[1]*(BODY_END_DEPTH + BODY_LENGTH) + R3[1]*(0.5*CENTER_LENGTH);
-        m[1] = END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH) + R3[5]*(0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(BODY_END_DEPTH + BODY_LENGTH) + R3[9]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center + R1[1]*(this->body_end_depth + this->body_length) + R3[1]*(0.5*this->center_length);
+        m[1] = this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length) + R3[5]*(0.5*this->center_length);
+        m[2] = R1[9]*(this->body_end_depth + this->body_length) + R3[9]*(0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 1 ) {
         // generate rotation matrix
@@ -1517,9 +1556,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER + R1[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[1]*(-0.5*CENTER_LENGTH);
-        m[1] = -END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[5]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[9]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center + R1[1]*(-this->body_end_depth - this->body_length) + R3[1]*(-0.5*this->center_length);
+        m[1] = -this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length) + R3[5]*(-0.5*this->center_length);
+        m[2] = R1[9]*(-this->body_end_depth - this->body_length) + R3[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 2 ) {
         // generate rotation matrix
@@ -1530,9 +1569,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = 0.5*CENTER_LENGTH                + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      -BODY_WIDTH + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                  + R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
+        m[1] =                      -this->body_width + R1[4]*(-0.5*this->center_length);
+        m[2] =                                  + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 3 ) {
         // generate rotation matrix
@@ -1541,9 +1580,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = 0.5*CENTER_LENGTH + 2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] = -BODY_WIDTH + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] = R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + 2*(this->body_length + this->body_end_depth - this->body_mount_center) + R1[0]*(0.5*this->center_length);
+        m[1] = -this->body_width + R1[4]*(0.5*this->center_length);
+        m[2] = R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 4 ) {
         // generate rotation matrix
@@ -1554,9 +1593,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = 0.5*CENTER_LENGTH + 2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] = -BODY_WIDTH + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] = R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + 2*(this->body_length + this->body_end_depth - this->body_mount_center) + R1[0]*(0.5*this->center_length);
+        m[1] = -this->body_width + R1[4]*(0.5*this->center_length);
+        m[2] = R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 5 ) {
         // generate rotation matrix
@@ -1565,9 +1604,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = 0.5*CENTER_LENGTH                    + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      - BODY_WIDTH    + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                      + R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length                    + R1[0]*(-0.5*this->center_length);
+        m[1] =                      - this->body_width    + R1[4]*(-0.5*this->center_length);
+        m[2] =                                      + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 6 ) {
         // generate rotation matrix
@@ -1582,9 +1621,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER + R1[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[1]*(-0.5*CENTER_LENGTH);
-        m[1] = -END_DEPTH - 0.5*BODY_WIDTH + R1[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[5]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R3[9]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center + R1[1]*(-this->body_end_depth - this->body_length) + R3[1]*(-0.5*this->center_length);
+        m[1] = -this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length) + R3[5]*(-0.5*this->center_length);
+        m[2] = R1[9]*(-this->body_end_depth - this->body_length) + R3[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 1 ) {
         // generate rotation matrix
@@ -1599,9 +1638,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER + R1[1]*(BODY_END_DEPTH + BODY_LENGTH) + R3[1]*(0.5*CENTER_LENGTH);
-        m[1] = END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH) + R3[5]*(0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(BODY_END_DEPTH + BODY_LENGTH) + R3[9]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center + R1[1]*(this->body_end_depth + this->body_length) + R3[1]*(0.5*this->center_length);
+        m[1] = this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length) + R3[5]*(0.5*this->center_length);
+        m[2] = R1[9]*(this->body_end_depth + this->body_length) + R3[9]*(0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 2 ) {
         // generate rotation matrix
@@ -1610,9 +1649,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = 0.5*CENTER_LENGTH + 2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] = BODY_WIDTH + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] = R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + 2*(this->body_length + this->body_end_depth - this->body_mount_center) + R1[0]*(0.5*this->center_length);
+        m[1] = this->body_width + R1[4]*(0.5*this->center_length);
+        m[2] = R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 3 ) {
         // generate rotation matrix
@@ -1623,9 +1662,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = 0.5*CENTER_LENGTH                + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      BODY_WIDTH  + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                  + R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
+        m[1] =                      this->body_width  + R1[4]*(-0.5*this->center_length);
+        m[2] =                                  + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 4 ) {
         // generate rotation matrix
@@ -1634,9 +1673,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = 0.5*CENTER_LENGTH                + R1[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      BODY_WIDTH  + R1[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                  + R1[8]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
+        m[1] =                      this->body_width  + R1[4]*(-0.5*this->center_length);
+        m[2] =                                  + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 5 ) {
         // generate rotation matrix
@@ -1647,9 +1686,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = 0.5*CENTER_LENGTH + 2*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) + R1[0]*(0.5*CENTER_LENGTH);
-        m[1] = BODY_WIDTH + R1[4]*(0.5*CENTER_LENGTH);
-        m[2] = R1[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + 2*(this->body_length + this->body_end_depth - this->body_mount_center) + R1[0]*(0.5*this->center_length);
+        m[1] = this->body_width + R1[4]*(0.5*this->center_length);
+        m[2] = R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 6 ) {
         // generate rotation matrix
@@ -1664,9 +1703,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER + R1[1]*(BODY_END_DEPTH + BODY_LENGTH) + R3[1]*(0.5*CENTER_LENGTH);
-        m[1] = END_DEPTH + 0.5*BODY_WIDTH + R1[5]*(BODY_END_DEPTH + BODY_LENGTH) + R3[5]*(0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(BODY_END_DEPTH + BODY_LENGTH) + R3[9]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center + R1[1]*(this->body_end_depth + this->body_length) + R3[1]*(0.5*this->center_length);
+        m[1] = this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length) + R3[5]*(0.5*this->center_length);
+        m[2] = R1[9]*(this->body_end_depth + this->body_length) + R3[9]*(0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 1 ) {
         // generate rotation matrix
@@ -1681,9 +1720,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 1, 0, 0, r_e);
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + 2*END_DEPTH + R1[0]*(BODY_END_DEPTH + BODY_LENGTH) + R3[0]*(0.5*CENTER_LENGTH);
-        m[1] = R1[4]*(BODY_END_DEPTH + BODY_LENGTH) + R3[4]*(0.5*CENTER_LENGTH);
-        m[2] = R1[8]*(BODY_END_DEPTH + BODY_LENGTH) + R3[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + 2*this->end_depth + R1[0]*(this->body_end_depth + this->body_length) + R3[0]*(0.5*this->center_length);
+        m[1] = R1[4]*(this->body_end_depth + this->body_length) + R3[4]*(0.5*this->center_length);
+        m[2] = R1[8]*(this->body_end_depth + this->body_length) + R3[8]*(0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 2 ) {
         // generate rotation matrix
@@ -1694,9 +1733,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, -r_b);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH + R1[1]*(-0.5*CENTER_LENGTH);
-        m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER + R1[5]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width + R1[1]*(-0.5*this->center_length);
+        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center + R1[5]*(-0.5*this->center_length);
+        m[2] = R1[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 3 ) {
         // generate rotation matrix
@@ -1707,9 +1746,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, r_b);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH + R1[1]*(0.5*CENTER_LENGTH);
-        m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + R1[5]*(0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width + R1[1]*(0.5*this->center_length);
+        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + R1[5]*(0.5*this->center_length);
+        m[2] = R1[9]*(0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 4 ) {
         // generate rotation matrix
@@ -1720,9 +1759,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, r_b);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH + R1[1]*(0.5*CENTER_LENGTH);
-        m[1] = BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER + R1[5]*(0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width + R1[1]*(0.5*this->center_length);
+        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + R1[5]*(0.5*this->center_length);
+        m[2] = R1[9]*(0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 5 ) {
         // generate rotation matrix
@@ -1733,9 +1772,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, -r_b);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH + R1[1]*(-0.5*CENTER_LENGTH);
-        m[1] = -BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER + R1[5]*(-0.5*CENTER_LENGTH);
-        m[2] = R1[9]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width + R1[1]*(-0.5*this->center_length);
+        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center + R1[5]*(-0.5*this->center_length);
+        m[2] = R1[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 6 ) {
         // generate rotation matrix
@@ -1750,9 +1789,9 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 1, 0, 0, r_e);
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH + BODY_LENGTH + BODY_END_DEPTH + 2*END_DEPTH + R1[0]*(BODY_END_DEPTH + BODY_LENGTH) + R3[0]*(0.5*CENTER_LENGTH);
-        m[1] = R1[4]*(BODY_END_DEPTH + BODY_LENGTH) + R3[4]*(0.5*CENTER_LENGTH);
-        m[2] = R1[8]*(BODY_END_DEPTH + BODY_LENGTH) + R3[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + 2*this->end_depth + R1[0]*(this->body_end_depth + this->body_length) + R3[0]*(0.5*this->center_length);
+        m[1] = R1[4]*(this->body_end_depth + this->body_length) + R3[4]*(0.5*this->center_length);
+        m[2] = R1[8]*(this->body_end_depth + this->body_length) + R3[8]*(0.5*this->center_length);
     }
 
     // extract euler angles from rotation matrix
@@ -1823,9 +1862,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R5, R4, R3, 3, 3, 3);
         dRFromAxisAndAngle(R6, R5[1], R5[5], R5[9], r_b);
         dMultiply0(R7, R6, R5, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[0]*(-2*END_DEPTH) + R5[0]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[4]*(-2*END_DEPTH) + R5[4]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[8]*(-2*END_DEPTH) + R5[8]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth) + R3[0]*(-2*this->end_depth) + R5[0]*(-this->body_end_depth - this->body_length) + R7[0]*(-0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth) + R3[4]*(-2*this->end_depth) + R5[4]*(-this->body_end_depth - this->body_length) + R7[4]*(-0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth) + R3[8]*(-2*this->end_depth) + R5[8]*(-this->body_end_depth - this->body_length) + R7[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 2 ) {
         // generate rotation matrix
@@ -1844,9 +1883,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[1]*(0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[5]*(0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[9]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[1]*(0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[5]*(0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[9]*(0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 3 ) {
         // generate rotation matrix
@@ -1865,9 +1904,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[1]*(-0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[5]*(-0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[9]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[1]*(-0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[5]*(-0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 4 ) {
         // generate rotation matrix
@@ -1886,9 +1925,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[1]*(-0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[5]*(-0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[9]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[1]*(-0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[5]*(-0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 5 ) {
         // generate rotation matrix
@@ -1907,9 +1946,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[1]*(0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[5]*(0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH - END_DEPTH - 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[9]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[1]*(0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[5]*(0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[9]*(0.5*this->center_length);
     }
     else if ( face1 == 1 && face2 == 6 ) {
         // generate rotation matrix
@@ -1932,9 +1971,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R5, R4, R3, 3, 3, 3);
         dRFromAxisAndAngle(R6, R5[1], R5[5], R5[9], r_b);
         dMultiply0(R7, R6, R5, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[0]*(-2*END_DEPTH) + R5[0]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[4]*(-2*END_DEPTH) + R5[4]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH) + R3[8]*(-2*END_DEPTH) + R5[8]*(-BODY_END_DEPTH - BODY_LENGTH) + R7[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth) + R3[0]*(-2*this->end_depth) + R5[0]*(-this->body_end_depth - this->body_length) + R7[0]*(-0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth) + R3[4]*(-2*this->end_depth) + R5[4]*(-this->body_end_depth - this->body_length) + R7[4]*(-0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth) + R3[8]*(-2*this->end_depth) + R5[8]*(-this->body_end_depth - this->body_length) + R7[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 1 ) {
         // generate rotation matrix
@@ -1953,9 +1992,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                               + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[1]*(-0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - END_DEPTH - 0.5*BODY_WIDTH  + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[5]*(-0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                               + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                               + R3[1]*(-this->body_end_depth - this->body_length) + R5[1]*(-0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->end_depth - 0.5*this->body_width  + R3[5]*(-this->body_end_depth - this->body_length) + R5[5]*(-0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                               + R3[9]*(-this->body_end_depth - this->body_length) + R5[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 2 ) {
         // generate rotation matrix
@@ -1970,9 +2009,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH   +   2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R3[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - BODY_WIDTH    + R3[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R3[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[0]*(-0.5*this->center_length);
+        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->body_width    + R3[4]*(-0.5*this->center_length);
+        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 3 ) {
         // generate rotation matrix
@@ -1985,9 +2024,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH                   + R3[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      - BODY_WIDTH    + R3[4]*(0.5*CENTER_LENGTH);
-        m[2] =                                      + R3[8]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length                   + R3[0]*(0.5*this->center_length);
+        m[1] =                      - this->body_width    + R3[4]*(0.5*this->center_length);
+        m[2] =                                      + R3[8]*(0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 4 ) {
         // generate rotation matrix
@@ -2002,9 +2041,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH                   + R3[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      - BODY_WIDTH    + R3[4]*(0.5*CENTER_LENGTH);
-        m[2] =                                      + R3[8]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length                   + R3[0]*(0.5*this->center_length);
+        m[1] =                      - this->body_width    + R3[4]*(0.5*this->center_length);
+        m[2] =                                      + R3[8]*(0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 5 ) {
         // generate rotation matrix
@@ -2017,9 +2056,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH   +   2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R3[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - BODY_WIDTH    + R3[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R3[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[0]*(-0.5*this->center_length);
+        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->body_width    + R3[4]*(-0.5*this->center_length);
+        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 6 ) {
         // generate rotation matrix
@@ -2038,9 +2077,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +                              R3[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[1]*(-0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) - END_DEPTH - 0.5*BODY_WIDTH + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[5]*(-0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +                              R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R3[1]*(-this->body_end_depth - this->body_length) + R5[1]*(-0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->end_depth - 0.5*this->body_width + R3[5]*(-this->body_end_depth - this->body_length) + R5[5]*(-0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R3[9]*(-this->body_end_depth - this->body_length) + R5[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 1 ) {
         // generate rotation matrix
@@ -2059,9 +2098,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +                              R3[1]*(BODY_END_DEPTH + BODY_LENGTH) + R5[1]*(0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + END_DEPTH + 0.5*BODY_WIDTH + R3[5]*(BODY_END_DEPTH + BODY_LENGTH) + R5[5]*(0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +                              R3[9]*(BODY_END_DEPTH + BODY_LENGTH) + R5[9]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R3[1]*(this->body_end_depth + this->body_length) + R5[1]*(0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->end_depth + 0.5*this->body_width + R3[5]*(this->body_end_depth + this->body_length) + R5[5]*(0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R3[9]*(this->body_end_depth + this->body_length) + R5[9]*(0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 2 ) {
         // generate rotation matrix
@@ -2074,9 +2113,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH               + R3[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      BODY_WIDTH  + R3[4]*(0.5*CENTER_LENGTH);
-        m[2] =                                  + R3[8]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length               + R3[0]*(0.5*this->center_length);
+        m[1] =                      this->body_width  + R3[4]*(0.5*this->center_length);
+        m[2] =                                  + R3[8]*(0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 3 ) {
         // generate rotation matrix
@@ -2091,9 +2130,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH   +   2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R3[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + BODY_WIDTH    + R3[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R3[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[0]*(-0.5*this->center_length);
+        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->body_width    + R3[4]*(-0.5*this->center_length);
+        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 4 ) {
         // generate rotation matrix
@@ -2106,9 +2145,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH   +   2*R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R3[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + BODY_WIDTH    + R3[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER)                 + R3[8]*(-0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[0]*(-0.5*this->center_length);
+        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->body_width    + R3[4]*(-0.5*this->center_length);
+        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 5 ) {
         // generate rotation matrix
@@ -2123,9 +2162,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH               + R3[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      BODY_WIDTH  + R3[4]*(0.5*CENTER_LENGTH);
-        m[2] =                                  + R3[8]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length               + R3[0]*(0.5*this->center_length);
+        m[1] =                      this->body_width  + R3[4]*(0.5*this->center_length);
+        m[2] =                                  + R3[8]*(0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 6 ) {
         // generate rotation matrix
@@ -2144,9 +2183,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*CENTER_LENGTH + R1[0]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +                              R3[1]*(BODY_END_DEPTH + BODY_LENGTH) + R5[1]*(0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) + END_DEPTH + 0.5*BODY_WIDTH + R3[5]*(BODY_END_DEPTH + BODY_LENGTH) + R5[5]*(0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(-BODY_LENGTH - BODY_END_DEPTH + BODY_MOUNT_CENTER) +                              R3[9]*(BODY_END_DEPTH + BODY_LENGTH) + R5[9]*(0.5*CENTER_LENGTH);
+        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R3[1]*(this->body_end_depth + this->body_length) + R5[1]*(0.5*this->center_length);
+        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->end_depth + 0.5*this->body_width + R3[5]*(this->body_end_depth + this->body_length) + R5[5]*(0.5*this->center_length);
+        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R3[9]*(this->body_end_depth + this->body_length) + R5[9]*(0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 1 ) {
         // generate rotation matrix
@@ -2165,9 +2204,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R3[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[1]*(-0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) -  END_DEPTH - 0.5*BODY_WIDTH + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[5]*(-0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[1]*(-this->body_end_depth - this->body_length) + R5[1]*(-0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) -  this->end_depth - 0.5*this->body_width + R3[5]*(-this->body_end_depth - this->body_length) + R5[5]*(-0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[9]*(-this->body_end_depth - this->body_length) + R5[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 2 ) {
         // generate rotation matrix
@@ -2182,9 +2221,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH                + R3[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      -BODY_WIDTH + R3[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                  + R3[8]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length                + R3[0]*(-0.5*this->center_length);
+        m[1] =                      -this->body_width + R3[4]*(-0.5*this->center_length);
+        m[2] =                                  + R3[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 3 ) {
         // generate rotation matrix
@@ -2197,9 +2236,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH    +   2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R3[0]*(0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)  - BODY_WIDTH    + R3[4]*(0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R3[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[0]*(0.5*this->center_length);
+        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  - this->body_width    + R3[4]*(0.5*this->center_length);
+        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[8]*(0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 4 ) {
         // generate rotation matrix
@@ -2214,9 +2253,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH    +   2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R3[0]*(0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)  - BODY_WIDTH    + R3[4]*(0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R3[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[0]*(0.5*this->center_length);
+        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  - this->body_width    + R3[4]*(0.5*this->center_length);
+        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[8]*(0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 5 ) {
         // generate rotation matrix
@@ -2229,9 +2268,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH                    + R3[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      - BODY_WIDTH    + R3[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                      + R3[8]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length                    + R3[0]*(-0.5*this->center_length);
+        m[1] =                      - this->body_width    + R3[4]*(-0.5*this->center_length);
+        m[2] =                                      + R3[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 6 ) {
         // generate rotation matrix
@@ -2250,9 +2289,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R3[1]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[1]*(-0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) -  END_DEPTH - 0.5*BODY_WIDTH + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[5]*(-0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R3[9]*(-BODY_END_DEPTH - BODY_LENGTH) + R5[9]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[1]*(-this->body_end_depth - this->body_length) + R5[1]*(-0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) -  this->end_depth - 0.5*this->body_width + R3[5]*(-this->body_end_depth - this->body_length) + R5[5]*(-0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[9]*(-this->body_end_depth - this->body_length) + R5[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 1 ) {
         // generate rotation matrix
@@ -2271,9 +2310,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R3[1]*(BODY_END_DEPTH + BODY_LENGTH) + R5[1]*(0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +  END_DEPTH + 0.5*BODY_WIDTH + R3[5]*(BODY_END_DEPTH + BODY_LENGTH) + R5[5]*(0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R3[9]*(BODY_END_DEPTH + BODY_LENGTH) + R5[9]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[1]*(this->body_end_depth + this->body_length) + R5[1]*(0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) +  this->end_depth + 0.5*this->body_width + R3[5]*(this->body_end_depth + this->body_length) + R5[5]*(0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[9]*(this->body_end_depth + this->body_length) + R5[9]*(0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 2 ) {
         // generate rotation matrix
@@ -2286,9 +2325,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH    +   2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R3[0]*(0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)  + BODY_WIDTH    + R3[4]*(0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R3[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[0]*(0.5*this->center_length);
+        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  + this->body_width    + R3[4]*(0.5*this->center_length);
+        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[8]*(0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 3 ) {
         // generate rotation matrix
@@ -2303,9 +2342,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH                + R3[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      BODY_WIDTH  + R3[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                  + R3[8]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length                + R3[0]*(-0.5*this->center_length);
+        m[1] =                      this->body_width  + R3[4]*(-0.5*this->center_length);
+        m[2] =                                  + R3[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 4 ) {
         // generate rotation matrix
@@ -2318,9 +2357,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH                + R3[0]*(-0.5*CENTER_LENGTH);
-        m[1] =                      BODY_WIDTH  + R3[4]*(-0.5*CENTER_LENGTH);
-        m[2] =                                  + R3[8]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length                + R3[0]*(-0.5*this->center_length);
+        m[1] =                      this->body_width  + R3[4]*(-0.5*this->center_length);
+        m[2] =                                  + R3[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 5 ) {
         // generate rotation matrix
@@ -2335,9 +2374,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH    +   2*R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R3[0]*(0.5*CENTER_LENGTH);
-        m[1] =                          2*R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)  + BODY_WIDTH    + R3[4]*(0.5*CENTER_LENGTH);
-        m[2] =                          2*R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER)                  + R3[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[0]*(0.5*this->center_length);
+        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  + this->body_width    + R3[4]*(0.5*this->center_length);
+        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[8]*(0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 6 ) {
         // generate rotation matrix
@@ -2356,9 +2395,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R3[1]*(BODY_END_DEPTH + BODY_LENGTH) + R5[1]*(0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +  END_DEPTH + 0.5*BODY_WIDTH + R3[5]*(BODY_END_DEPTH + BODY_LENGTH) + R5[5]*(0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH - BODY_MOUNT_CENTER) +                               R3[9]*(BODY_END_DEPTH + BODY_LENGTH) + R5[9]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[1]*(this->body_end_depth + this->body_length) + R5[1]*(0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) +  this->end_depth + 0.5*this->body_width + R3[5]*(this->body_end_depth + this->body_length) + R5[5]*(0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[9]*(this->body_end_depth + this->body_length) + R5[9]*(0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 1 ) {
         // generate rotation matrix
@@ -2381,9 +2420,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R5, R4, R3, 3, 3, 3);
         dRFromAxisAndAngle(R6, R5[1], R5[5], R5[9], -r_b);
         dMultiply0(R7, R6, R5, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH) + R3[0]*(2*END_DEPTH) + R5[0]*(BODY_END_DEPTH + BODY_LENGTH) + R7[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH) + R3[4]*(2*END_DEPTH) + R5[4]*(BODY_END_DEPTH + BODY_LENGTH) + R7[4]*(0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH) + R3[8]*(2*END_DEPTH) + R5[8]*(BODY_END_DEPTH + BODY_LENGTH) + R7[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth) + R3[0]*(2*this->end_depth) + R5[0]*(this->body_end_depth + this->body_length) + R7[0]*(0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth) + R3[4]*(2*this->end_depth) + R5[4]*(this->body_end_depth + this->body_length) + R7[4]*(0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth) + R3[8]*(2*this->end_depth) + R5[8]*(this->body_end_depth + this->body_length) + R7[8]*(0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 2 ) {
         // generate rotation matrix
@@ -2402,9 +2441,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[1]*(-0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[5]*(-0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[9]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[1]*(-0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[5]*(-0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 3 ) {
         // generate rotation matrix
@@ -2423,9 +2462,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[1]*(0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[5]*(0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[9]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[1]*(0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[5]*(0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[9]*(0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 4 ) {
         // generate rotation matrix
@@ -2444,9 +2483,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[1]*(0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[5]*(0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(BODY_END_DEPTH + BODY_LENGTH - BODY_MOUNT_CENTER) + R5[9]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[1]*(0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[5]*(0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[9]*(0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 5 ) {
         // generate rotation matrix
@@ -2465,9 +2504,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[1]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[1]*(-0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[5]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[5]*(-0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH + END_DEPTH + 0.5*BODY_WIDTH) + R3[9]*(-BODY_END_DEPTH - BODY_LENGTH + BODY_MOUNT_CENTER) + R5[9]*(-0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[1]*(-0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[5]*(-0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[9]*(-0.5*this->center_length);
     }
     else if ( face1 == 6 && face2 == 6 ) {
         // generate rotation matrix
@@ -2490,9 +2529,9 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
         dMultiply0(R5, R4, R3, 3, 3, 3);
         dRFromAxisAndAngle(R6, R5[1], R5[5], R5[9], -r_b);
         dMultiply0(R7, R6, R5, 3, 3, 3);
-        m[0] = 0.5*CENTER_LENGTH +  R1[0]*(BODY_LENGTH + BODY_END_DEPTH) + R3[0]*(2*END_DEPTH) + R5[0]*(BODY_END_DEPTH + BODY_LENGTH) + R7[0]*(0.5*CENTER_LENGTH);
-        m[1] =                      R1[4]*(BODY_LENGTH + BODY_END_DEPTH) + R3[4]*(2*END_DEPTH) + R5[4]*(BODY_END_DEPTH + BODY_LENGTH) + R7[4]*(0.5*CENTER_LENGTH);
-        m[2] =                      R1[8]*(BODY_LENGTH + BODY_END_DEPTH) + R3[8]*(2*END_DEPTH) + R5[8]*(BODY_END_DEPTH + BODY_LENGTH) + R7[8]*(0.5*CENTER_LENGTH);
+        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth) + R3[0]*(2*this->end_depth) + R5[0]*(this->body_end_depth + this->body_length) + R7[0]*(0.5*this->center_length);
+        m[1] =                      R1[4]*(this->body_length + this->body_end_depth) + R3[4]*(2*this->end_depth) + R5[4]*(this->body_end_depth + this->body_length) + R7[4]*(0.5*this->center_length);
+        m[2] =                      R1[8]*(this->body_length + this->body_end_depth) + R3[8]*(2*this->end_depth) + R5[8]*(this->body_end_depth + this->body_length) + R7[8]*(0.5*this->center_length);
     }
 
     // extract euler angles from rotation matrix
@@ -2509,7 +2548,7 @@ void Mobot::buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dRe
 }
 
 bool Mobot::isDisabled(void) {
-    return !(bool)dBodyIsEnabled(this->body[CENTER]->getBodyID());
+    return !(bool)dBodyIsEnabled(this->body[CENTER].bodyID);
 }
 
 bool Mobot::isJointDisabled(int i, int current_step) {
@@ -2582,6 +2621,205 @@ dReal Mobot::D2R( dReal x ) {
 
 dReal Mobot::R2D( dReal x ) {
     return x/M_PI*180;
+}
+
+
+void Mobot::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta) {
+	int i = 1;
+	if ( id == BODY_R )
+		i = -1;
+
+    // define parameters
+    dMass m, m1, m2, m3;
+    dMatrix3 R1, R2, R3;
+
+    // set mass of body
+    dMassSetZero(&m);
+    // create mass 1
+    dMassSetBox(&m1, 2700, this->body_end_depth, this->center_height, this->body_width );
+    dMassAdd(&m, &m1);
+    // create mass 2
+    dMassSetBox(&m2, 2700, this->body_inner_width, this->end_depth, this->body_width );
+    dMassTranslate(&m2, 0.01524*i, -0.0346, 0 );
+    dMassAdd(&m, &m2);
+    // create mass 3
+    dMassSetBox(&m3, 2700, this->body_inner_width, this->end_depth, this->body_width );
+    dMassTranslate(&m3, 0.01524*i, 0.0346, 0 );
+    dMassAdd(&m, &m3);
+    //dMassSetParameters( &m, 500, 1, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
+
+    // adjsut x,y,z to position center of mass correctly
+    x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+    y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+    z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+    // set body parameters
+    dBodySetPosition(this->body[id].bodyID, x, y, z);
+    dBodySetRotation(this->body[id].bodyID, R);
+
+    // rotation matrix for curves of d-shapes
+    dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
+    dRFromAxisAndAngle(R3, 0, 0, 1, -theta);
+    dMultiply0(R2, R1, R3, 3, 3, 3);
+
+    // set geometry 1 - face
+    this->body[id].geomID[0] = dCreateBox(this->space, this->body_end_depth, this->body_width, this->body_height);
+    dGeomSetBody(this->body[id].geomID[0], this->body[id].bodyID);
+    dGeomSetOffsetPosition(this->body[id].geomID[0], -m.c[0], -m.c[1], -m.c[2]);
+
+    // set geometry 2 - side square
+    this->body[id].geomID[1] = dCreateBox( this->space, this->body_length, this->body_inner_width, this->body_height);
+    dGeomSetBody( this->body[id].geomID[1], this->body[id].bodyID);
+    dGeomSetOffsetPosition( this->body[id].geomID[1], i*this->body_length/2 + i*this->body_end_depth/2 - m.c[0], -this->body_radius + this->body_inner_width/2 - m.c[1], -m.c[2] );
+
+    // set geometry 3 - side square
+    this->body[id].geomID[2] = dCreateBox( this->space, this->body_length, this->body_inner_width, this->body_height);
+    dGeomSetBody( this->body[id].geomID[2], this->body[id].bodyID);
+    dGeomSetOffsetPosition( this->body[id].geomID[2], i*this->body_length/2 + i*this->body_end_depth/2 - m.c[0], this->body_radius - this->body_inner_width/2 - m.c[1], -m.c[2] );
+
+    // set geometry 4 - side curve
+    this->body[id].geomID[3] = dCreateCylinder( this->space, this->body_radius, this->body_inner_width);
+    dGeomSetBody( this->body[id].geomID[3], this->body[id].bodyID);
+    dGeomSetOffsetPosition( this->body[id].geomID[3], i*this->body_length + i*this->body_end_depth/2 - m.c[0], -this->body_radius + this->body_inner_width/2 - m.c[1], -m.c[2] );
+    dGeomSetOffsetRotation( this->body[id].geomID[3], R2);
+
+    // set geometry 5 - side curve
+    this->body[id].geomID[4] = dCreateCylinder( this->space, this->body_radius, this->body_inner_width);
+    dGeomSetBody( this->body[id].geomID[4], this->body[id].bodyID);
+    dGeomSetOffsetPosition( this->body[id].geomID[4], i*this->body_length + i*this->body_end_depth/2 - m.c[0], this->body_radius - this->body_inner_width/2 - m.c[1], -m.c[2] );
+    dGeomSetOffsetRotation( this->body[id].geomID[4], R2);
+
+    // set mass center to (0,0,0) of this->bodyID
+    dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+    dBodySetMass(this->body[id].bodyID, &m);
+
+#ifdef ENABLE_DRAWSTUFF
+    this->body[id].color[0] = 1;
+    this->body[id].color[1] = 0;
+    this->body[id].color[2] = 0;
+#endif
+}
+
+void Mobot::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
+    // define parameters
+    dMass m;
+    dMatrix3 R1;
+
+    // set mass of body
+    dMassSetZero(&m);
+    dMassSetCapsule(&m, 2700, 1, this->center_radius, this->center_length );
+    dMassAdjust(&m, 0.24);
+    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
+
+    // adjsut x,y,z to position center of mass correctly
+    x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+    y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+    z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+    // set body parameters
+    dBodySetPosition(this->body[CENTER].bodyID, x, y, z);
+    dBodySetRotation(this->body[CENTER].bodyID, R);
+
+    // rotation matrix for curves of d-shapes
+    dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
+
+    // set geometry 1 - center rectangle
+    this->body[CENTER].geomID[0] = dCreateBox(this->space, this->center_length, this->center_width, this->center_height );
+    dGeomSetBody( this->body[CENTER].geomID[0], this->body[CENTER].bodyID);
+    dGeomSetOffsetPosition( this->body[CENTER].geomID[0], -m.c[0], -m.c[1], -m.c[2] );
+
+    // set geometry 2 - side curve
+    this->body[CENTER].geomID[1] = dCreateCylinder(this->space, this->center_radius, this->center_width );
+    dGeomSetBody( this->body[CENTER].geomID[1], this->body[CENTER].bodyID);
+    dGeomSetOffsetPosition( this->body[CENTER].geomID[1], -this->center_length/2 - m.c[0], -m.c[1], -m.c[2] );
+    dGeomSetOffsetRotation( this->body[CENTER].geomID[1], R1);
+
+    // set geometry 3 - side curve
+    this->body[CENTER].geomID[2] = dCreateCylinder(this->space, this->center_radius, this->center_width );
+    dGeomSetBody( this->body[CENTER].geomID[2], this->body[CENTER].bodyID);
+    dGeomSetOffsetPosition( this->body[CENTER].geomID[2], this->center_length/2 - m.c[0], -m.c[1], -m.c[2] );
+    dGeomSetOffsetRotation( this->body[CENTER].geomID[2], R1);
+
+    // set mass center to (0,0,0) of body
+    dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+    dBodySetMass(this->body[CENTER].bodyID, &m);
+
+#ifdef ENABLE_DRAWSTUFF
+    this->body[CENTER].color[0] = 0;
+    this->body[CENTER].color[1] = 1;
+    this->body[CENTER].color[2] = 0;
+#endif
+}
+
+void Mobot::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
+    // define parameters
+    dMass m;
+    dMatrix3 R1;
+
+    // set mass of body
+    dMassSetBox(&m, 2700, this->end_depth, this->end_width, this->end_height );
+    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
+
+    // adjust x,y,z to position center of mass correctly
+    x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+    y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+    z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+    // set body parameters
+    dBodySetPosition(this->body[id].bodyID, x, y, z);
+    dBodySetRotation(this->body[id].bodyID, R);
+
+    // rotation matrix for curves
+    dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
+
+    // set geometry 1 - center box
+    this->body[id].geomID[0] = dCreateBox(this->space, this->end_depth, this->end_width - 2*this->end_radius, this->end_height );
+    dGeomSetBody( this->body[id].geomID[0], this->body[id].bodyID);
+    dGeomSetOffsetPosition( this->body[id].geomID[0], -m.c[0], -m.c[1], -m.c[2] );
+
+    // set geometry 2 - left box
+    this->body[id].geomID[1] = dCreateBox(this->space, this->end_depth, this->end_radius, this->end_height - 2*this->end_radius );
+    dGeomSetBody( this->body[id].geomID[1], this->body[id].bodyID);
+    dGeomSetOffsetPosition( this->body[id].geomID[1], -m.c[0], -this->end_width/2 + this->end_radius/2 - m.c[1], -m.c[2] );
+
+    // set geometry 3 - right box
+    this->body[id].geomID[2] = dCreateBox(this->space, this->end_depth, this->end_radius, this->end_height - 2*this->end_radius );
+    dGeomSetBody( this->body[id].geomID[2], this->body[id].bodyID);
+    dGeomSetOffsetPosition( this->body[id].geomID[2], -m.c[0], this->end_width/2 - this->end_radius/2 - m.c[1], -m.c[2] );
+
+    // set geometry 4 - fillet upper left
+    this->body[id].geomID[3] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
+    dGeomSetBody( this->body[id].geomID[3], this->body[id].bodyID);
+    dGeomSetOffsetPosition( this->body[id].geomID[3], -m.c[0], -this->end_width/2 + this->end_radius - m.c[1], this->end_width/2 - this->end_radius - m.c[2] );
+    dGeomSetOffsetRotation( this->body[id].geomID[3], R1);
+
+    // set geometry 5 - fillet upper right
+    this->body[id].geomID[4] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
+    dGeomSetBody( this->body[id].geomID[4], this->body[id].bodyID);
+    dGeomSetOffsetPosition( this->body[id].geomID[4], -m.c[0], this->end_width/2 - this->end_radius - m.c[1], this->end_width/2 - this->end_radius - m.c[2] );
+    dGeomSetOffsetRotation( this->body[id].geomID[4], R1);
+
+    // set geometry 6 - fillet lower right
+    this->body[id].geomID[5] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
+    dGeomSetBody( this->body[id].geomID[5], this->body[id].bodyID);
+    dGeomSetOffsetPosition( this->body[id].geomID[5], -m.c[0], this->end_width/2 - this->end_radius - m.c[1], -this->end_width/2 + this->end_radius - m.c[2] );
+    dGeomSetOffsetRotation( this->body[id].geomID[5], R1);
+
+    // set geometry 7 - fillet lower left
+    this->body[id].geomID[6] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
+    dGeomSetBody( this->body[id].geomID[6], this->body[id].bodyID);
+    dGeomSetOffsetPosition( this->body[id].geomID[6], -m.c[0], -this->end_width/2 + this->end_radius - m.c[1], -this->end_width/2 + this->end_radius - m.c[2] );
+    dGeomSetOffsetRotation( this->body[id].geomID[6], R1);
+
+    // set mass center to (0,0,0) of this->bodyID
+    dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+    dBodySetMass(this->body[id].bodyID, &m);
+
+    #ifdef ENABLE_DRAWSTUFF
+    this->body[id].color[0] = 0;
+    this->body[id].color[1] = 0;
+    this->body[id].color[2] = 1;
+    #endif
 }
 
 void Mobot::create_fixed_joint(Mobot *attach, int face1, int face2) {
@@ -2665,9 +2903,42 @@ void Mobot::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &ph
 }
 
 #ifdef ENABLE_DRAWSTUFF
-void Mobot::drawMobot(void) {
+void Mobot::drawRobot(void) {
     for (int i = 0; i < NUM_PARTS; i++) {
-        this->body[i]->drawBody();
+        this->draw_body(i);
+    }
+}
+
+void Mobot::draw_body(int id) {
+    if ( dBodyIsEnabled(this->body[id].bodyID) )
+        dsSetColor(this->body[id].color[0], this->body[id].color[1], this->body[id].color[2]);
+    else
+        dsSetColor(0.5, 0.5, 0.5);
+
+    for (int i = 0; i < this->body[id].num_geomID; i++) {
+        const dReal *position = dGeomGetPosition(this->body[id].geomID[i]);     // get position
+        const dReal *rotation = dGeomGetRotation(this->body[id].geomID[i]);     // get rotation
+        dReal r, l;
+        dVector3 sides;
+
+        switch (dGeomGetClass(this->body[id].geomID[i])) {
+            case dSphereClass:
+                r = dGeomSphereGetRadius(this->body[id].geomID[i]);
+                dsDrawSphere(position, rotation, r);
+                break;
+            case dBoxClass:
+                dGeomBoxGetLengths(this->body[id].geomID[i], sides);
+                dsDrawBox(position, rotation, sides);
+                break;
+            case dCylinderClass:
+                dGeomCylinderGetParams(this->body[id].geomID[i], &r, &l);
+                dsDrawCylinder(position, rotation, l, r);
+                break;
+            case dCapsuleClass:
+                dGeomCapsuleGetParams(this->body[id].geomID[i], &r, &l);
+                dsDrawCapsule(position, rotation, l, r);
+                break;
+        }
     }
 }
 #endif

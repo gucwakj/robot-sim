@@ -34,6 +34,10 @@ endif (ENABLE_DOUBLE)
 option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." ON)
 if (ENABLE_DRAWSTUFF)
 	include_directories("../opende/include")
+	link_directories("../opende/drawstuff/src/.libs")
+	find_package(GLUT)
+	find_package(OpenGL)
+	set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
 endif (ENABLE_DRAWSTUFF)
 
 # Add CMobotIK library subdirectory
