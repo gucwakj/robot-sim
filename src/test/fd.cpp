@@ -3,13 +3,19 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CMobotFD fd(2, 1);
+	CMobotFD fd;
+	//Mobot robot1(0), robot2(0);
+	//CMobotSim robot1, robot2;
+	CiMobotSim robot1, robot2;
 
 	//double ang[] = { 0, 45, 45, -45, 45, 45, 45, 0};
 	//fd.setAngles(ang);
 
-	fd.iMobotBuild(0, 0, 0, 0, 0, 0, 0);
-	fd.iMobotBuildAttached(1, 0, 6, 1, 0, 45, 45, 0);
+	fd.addiMobot(robot1);
+	//fd.addiMobotConnected(robot2, robot1, MOBOT_FACE6, MOBOT_FACE1);
+
+	robot1.move(0, 45, 45, 0);
+	robot1.move(0, 45, 45, 45);
 
 	fd.runSimulation(argc, argv);
 	cout << "Reply Message: " << fd.getReplyMessage() << endl;

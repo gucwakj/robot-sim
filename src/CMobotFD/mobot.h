@@ -67,6 +67,15 @@ enum robot_pieces_e {       // each body part which is built
     ENDCAP_R,
     NUM_PARTS
 };
+enum robot_faces_e {
+	MOBOT_FACE1 = 1,
+	MOBOT_FACE2,
+	MOBOT_FACE3,
+	MOBOT_FACE4,
+	MOBOT_FACE5,
+	MOBOT_FACE6
+};
+
 typedef struct robot_body_s {
 	dBodyID bodyID;                         // id of body part
 	dGeomID *geomID;                        // ids of geoms which make up each body part
@@ -78,10 +87,9 @@ typedef struct robot_body_s {
 
 class Mobot {
     public:
-        Mobot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type);
+        Mobot(int bot_type);
         ~Mobot(void);
-
-        void setAngles(dReal *ang);
+		void addToSim(dWorldID &world, dSpaceID &space);
         void setAngularVelocity(dReal *vel);
 
         dReal getCurrentAngle(int i);
@@ -96,6 +104,8 @@ class Mobot {
         void buildAttached10(Mobot *attach, int face1, int face2);
         void buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
         void buildAttached11(Mobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+
+		void move(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 
         void enable(void);
         void resetPID(int i = NUM_DOF);
@@ -148,6 +158,16 @@ class Mobot {
         #ifdef ENABLE_DRAWSTUFF
         void draw_body(int id);
         #endif
+};
+
+class CMobotSim: public Mobot {
+	public:
+		CMobotSim() : Mobot(1) {}
+};
+
+class CiMobotSim: public Mobot {
+	public:
+		CiMobotSim() : Mobot(0) {}
 };
 
 #endif  /* MOBOT_H_ */

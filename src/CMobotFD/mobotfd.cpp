@@ -8,7 +8,7 @@ using namespace std;
 CMobotFD *g_imobotfd;
 #endif
 
-CMobotFD::CMobotFD(int num_bot, int num_stp) {
+CMobotFD::CMobotFD(void) {
     // create ODE simulation space
     dInitODE2(0);                                               // initialized ode library
     this->world = dWorldCreate();                               // create world for simulation
@@ -34,10 +34,13 @@ CMobotFD::CMobotFD(int num_bot, int num_stp) {
 
 	// variables to keep track of progress of simulation
 	this->m_cur_stp = 0;
-	this->m_flag_comp = new bool[num_bot];
-    this->m_flag_disable = new bool[num_bot];
-    this->m_num_bot = num_bot;
-    this->m_num_stp = num_stp;
+	//this->m_flag_comp = new bool[num_bot];
+    //this->m_flag_disable = new bool[num_bot];
+	this->m_flag_comp = NULL;
+	this->m_flag_disable = NULL;
+    //this->m_num_bot = num_bot;
+    this->m_num_stp = 1;
+	this->m_number = 0;
     this->m_num_statics = 0;
     this->m_num_targets = 0;
     this->m_t_step = 0.004;
@@ -45,7 +48,8 @@ CMobotFD::CMobotFD(int num_bot, int num_stp) {
     this->m_t_cur_step = 0;
 
 	// create instance for each module in simulation
-    this->bot = new Mobot * [num_bot];
+    //this->bot = new Mobot * [num_bot];
+	this->bot = NULL;
     /*for ( int i = 0; i < num_bot; i++ ) {
         this->bot[i] = new Mobot(this->world, this->space, num_stp);
     }*/
@@ -69,7 +73,7 @@ CMobotFD::CMobotFD(int num_bot, int num_stp) {
 
 CMobotFD::~CMobotFD(void) {
 	// free all arrays created dynamically in constructor
-	for ( int i = this->m_num_bot - 1; i >= 0; i-- ) { delete this->bot[i]; }
+	//for ( int i = this->m_number - 1; i >= 0; i-- ) { delete this->bot[i]; }
 	delete [] this->bot;
 	delete [] this->m_flag_comp;
 	delete [] this->m_flag_disable;
@@ -87,17 +91,7 @@ CMobotFD::~CMobotFD(void) {
 /**********************************************************
 	Public Member Functions
  **********************************************************/
-void CMobotFD::setAngles(dReal *ang) {
-    dReal ang2[NUM_DOF*this->m_num_stp];
-    for ( int i = 0; i < this->m_num_bot; i++ ) {
-        for ( int j = 0; j < NUM_DOF*this->m_num_stp; j++ ) {
-            ang2[j] = ang[NUM_DOF*i + NUM_DOF*this->m_num_bot*(j/NUM_DOF) + j%NUM_DOF];
-        }
-        this->bot[i]->setAngles(ang2);
-    }
-}
-
-void CMobotFD::setAngularVelocity(dReal *vel) {
+/*void CMobotFD::setAngularVelocity(dReal *vel) {
 	dReal vel2[NUM_DOF*this->m_num_stp];
 	for ( int i = 0; i < this->m_num_bot; i++ ) {
         for ( int j = 0; j < NUM_DOF*this->m_num_stp; j++ ) {
@@ -105,7 +99,7 @@ void CMobotFD::setAngularVelocity(dReal *vel) {
         }
         this->bot[i]->setAngularVelocity(vel2);
     }
-}
+}*/
 
 void CMobotFD::setCOR(dReal cor_g, dReal cor_b) {
 	this->m_cor_g = cor_g;
@@ -254,7 +248,7 @@ void CMobotFD::update_angles(void) {
 	int i, j;
 
 	// update stored data in struct with data from ODE
-	for ( i = 0; i < this->m_num_bot; i++ ) {
+	for ( i = 0; i < this->m_number; i++ ) {
 		// must be done for each degree of freedom
 		for ( j = 0; j < NUM_DOF; j++ ) {
 			// update current angle
@@ -317,7 +311,7 @@ void CMobotFD::set_flags(void) {
 	int c, i, j;
 
 	// set flags for each module in simulation
-	for ( i = 0; i < this->m_num_bot; i++ ) {
+	for ( i = 0; i < this->m_number; i++ ) {
 		// restart counter for each robot
 		c = 0;
 
@@ -334,7 +328,7 @@ void CMobotFD::set_flags(void) {
 
 void CMobotFD::increment_step(void) {
 	// if completed step and bodies are at rest, then increment
-	if ( this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
+	if ( this->is_true(this->m_number, this->m_flag_comp) && this->is_true(this->m_number, this->m_flag_disable) ) {
 		// if haven't reached last step, increment
 		if ( this->m_cur_stp != this->m_num_stp - 1 ) {
 			this->m_cur_stp++;
@@ -348,7 +342,7 @@ void CMobotFD::increment_step(void) {
 		}
 
 		// reset all flags to zero
-		for ( int i = 0; i < this->m_num_bot; i++ ) {
+		for ( int i = 0; i < this->m_number; i++ ) {
 			this->m_flag_comp[i] = false;
 			this->m_flag_disable[i] = false;
             this->bot[i]->resetPID();
@@ -360,7 +354,7 @@ void CMobotFD::increment_step(void) {
 
 void CMobotFD::set_angles(void) {
 	// set arrays of angles for new step
-	for ( int i = 0; i < this->m_num_bot; i++ ) {
+	for ( int i = 0; i < this->m_number; i++ ) {
 		for ( int j = 0; j < NUM_DOF; j++ ) {
             if ( this->bot[i]->isJointDisabled(j, this->m_cur_stp) ) {
 				dJointDisable(this->bot[i]->getMotorID(j));
@@ -390,7 +384,7 @@ void CMobotFD::print_intermediate_data(void) {
     //for ( i = 0; i < 1; i++ ) {
     cout.width(10);// cout.precision(4);
     cout.setf(ios::fixed, ios::floatfield);
-	for (i = 1; i < this->m_num_bot; i++) {
+	for (i = 1; i < this->m_number; i++) {
 		//cout << this->bot[i]->fut_ang[LE] << " ";
 		//cout << this->bot[i]->body[ENDCAP_L].ang << " ";
 		//cout << this->bot[i]->cur_ang[LE] << ", ";
@@ -429,9 +423,9 @@ void CMobotFD::print_intermediate_data(void) {
         //cout << "\t\t";
 	}
 	//cout << ">" << endl;
-	//for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flag_comp[i] << " "; }
+	//for (i = 0; i < this->m_number; i++) { cout << this->m_flag_comp[i] << " "; }
 	//cout << " ";
-	for (i = 0; i < this->m_num_bot; i++) { cout << this->m_flag_disable[i] << " "; }
+	for (i = 0; i < this->m_number; i++) { cout << this->m_flag_disable[i] << " "; }
 	cout << endl;
     //pos = dBodyGetPosition(this->bot[1]->body[ENDCAP_R].bodyID);
     //cout << "<" << this->target[0].x << "\t" << this->target[0].y << "\t" << this->target[0].z << ">";
@@ -440,7 +434,7 @@ void CMobotFD::print_intermediate_data(void) {
 
 void CMobotFD::end_simulation(bool &loop) {
 	// have not completed steps && stalled
-	if ( !this->is_true(this->m_num_bot, this->m_flag_comp) && this->is_true(this->m_num_bot, this->m_flag_disable) ) {
+	if ( !this->is_true(this->m_number, this->m_flag_comp) && this->is_true(this->m_number, this->m_flag_disable) ) {
 		this->m_reply->message = FD_ERROR_STALL;
 		loop = false;
 	}
@@ -451,43 +445,76 @@ void CMobotFD::end_simulation(bool &loop) {
 /**********************************************************
 	Build iMobot Functions
  **********************************************************/
-void CMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z) {
-	this->bot[botNum] = new Mobot(this->world, this->space, this->m_num_stp, 0);
-	this->bot[botNum]->build(x, y, z, 0, 0, 0);
+void CMobotFD::addiMobot(Mobot &mobot) {
+	this->bot = (Mobot **)realloc(this->bot, (this->m_number + 1)*sizeof(Mobot *));
+	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
+    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
+	this->bot[this->m_number] = &mobot;
+	this->bot[this->m_number]->addToSim(this->world, this->space);
+	this->bot[this->m_number++]->build(0, 0, 0, 0, 0, 0);
 }
 
-void CMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
-	this->bot[botNum] = new Mobot(this->world, this->space, this->m_num_stp, 0);
-    this->bot[botNum]->build(x, y, z, psi, theta, phi);
+void CMobotFD::addiMobot(Mobot &mobot, dReal x, dReal y, dReal z) {
+	this->bot = (Mobot **)realloc(this->bot, (this->m_number + 1)*sizeof(Mobot *));
+	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
+    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
+	this->bot[this->m_number] = &mobot;
+	this->bot[this->m_number]->addToSim(this->world, this->space);
+	this->bot[this->m_number++]->build(x, y, z, 0, 0, 0);
 }
 
-void CMobotFD::iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	this->bot[botNum] = new Mobot(this->world, this->space, this->m_num_stp, 0);
-    this->bot[botNum]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
+void CMobotFD::addiMobot(Mobot &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+	this->bot = (Mobot **)realloc(this->bot, (this->m_number + 1)*sizeof(Mobot *));
+	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
+    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
+	this->bot[this->m_number] = &mobot;
+	this->bot[this->m_number]->addToSim(this->world, this->space);
+    this->bot[this->m_number++]->build(x, y, z, psi, theta, phi);
 }
 
-void CMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2) {
-	this->bot[botNum] = new Mobot(this->world, this->space, this->m_num_stp, 0);
-	if ( this->bot[attNum]->isHome() )
-        this->bot[botNum]->buildAttached00(this->bot[attNum], face1, face2);
+void CMobotFD::addiMobot(Mobot &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	this->bot = (Mobot **)realloc(this->bot, (this->m_number + 1)*sizeof(Mobot *));
+	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
+    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
+	this->bot[this->m_number] = &mobot;
+	this->bot[this->m_number]->addToSim(this->world, this->space);
+    this->bot[this->m_number++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
+}
+
+void CMobotFD::addiMobotConnected(Mobot &mobot, Mobot &base, int face1, int face2) {
+	this->bot = (Mobot **)realloc(this->bot, (this->m_number + 1)*sizeof(Mobot *));
+	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
+    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
+	this->bot[this->m_number] = &mobot;
+	this->bot[this->m_number]->addToSim(this->world, this->space);
+	if ( base.isHome() )
+        this->bot[this->m_number]->buildAttached00(&base, face1, face2);
     else
-        this->bot[botNum]->buildAttached10(this->bot[attNum], face1, face2);
+        this->bot[this->m_number]->buildAttached10(&base, face1, face2);
+	this->m_number++;
 }
 
-void CMobotFD::iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	this->bot[botNum] = new Mobot(this->world, this->space, this->m_num_stp, 0);
-    if ( this->bot[attNum]->isHome() )
-        this->bot[botNum]->buildAttached01(this->bot[attNum], face1, face2, r_le, r_lb, r_rb, r_re);
-	else
-        this->bot[botNum]->buildAttached11(this->bot[attNum], face1, face2, r_le, r_lb, r_rb, r_re);
+void CMobotFD::addiMobotConnected(Mobot &mobot, Mobot &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	this->bot = (Mobot **)realloc(this->bot, (this->m_number + 1)*sizeof(Mobot *));
+	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, this->m_number + 1);
+    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, this->m_number + 1);
+	this->bot[this->m_number] = &mobot;
+	this->bot[this->m_number]->addToSim(this->world, this->space);
+	printf("11111111111111\n");
+	if ( base.isHome() ) {
+		printf("2222222222222\n");
+        this->bot[this->m_number]->buildAttached01(&base, face1, face2, r_le, r_lb, r_rb, r_re); }
+	else {
+		printf("33333333333333\n");
+        this->bot[this->m_number]->buildAttached11(&base, face1, face2, r_le, r_lb, r_rb, r_re); }
+	this->m_number++;
 }
 
-void CMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	this->bot[botNum] = new Mobot(this->world, this->space, this->m_num_stp, 0);
+/*void CMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     if ( end == ENDCAP_L )
-        this->iMobotBuild(botNum, x + IMOBOT_END_DEPTH + IMOBOT_BODY_END_DEPTH + IMOBOT_BODY_LENGTH + 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
+        this->addiMobot(botNum, x + IMOBOT_END_DEPTH + IMOBOT_BODY_END_DEPTH + IMOBOT_BODY_LENGTH + 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
     else
-        this->iMobotBuild(botNum, x - IMOBOT_END_DEPTH - IMOBOT_BODY_END_DEPTH - IMOBOT_BODY_LENGTH - 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
+        this->addiMobot(botNum, x - IMOBOT_END_DEPTH - IMOBOT_BODY_END_DEPTH - IMOBOT_BODY_LENGTH - 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
 
     // add fixed joint to attach 'END' to static environment
     dJointID joint = dJointCreateFixed(this->world, 0);
@@ -495,7 +522,7 @@ void CMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dRea
     dJointSetFixed(joint);
     dJointSetFixedParam(joint, dParamCFM, 0);
     dJointSetFixedParam(joint, dParamERP, 0.9);
-}
+}*/
 
 /**********************************************************
 	Utility Functions
@@ -513,7 +540,7 @@ bool CMobotFD::is_true(int length, bool *a) {
 	Drawstuff Functions
  **********************************************************/
 void CMobotFD::ds_drawBodies(void) {
-	for (int i = 0; i < this->m_num_bot; i++) {
+	for (int i = 0; i < this->m_number; i++) {
         this->bot[i]->drawRobot();
     }
 }

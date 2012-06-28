@@ -1,9 +1,7 @@
 #include "mobot.h"
 
-Mobot::Mobot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type) {
-    this->world = world;
-    this->space = dHashSpaceCreate(space);
-    this->m_num_stp = num_stp;
+Mobot::Mobot(int bot_type) {
+    this->m_num_stp = 0;
 
     if ( bot_type == IMOBOT ) {
         this->m_motor_res = D2R(0.5);
@@ -73,6 +71,50 @@ Mobot::Mobot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type) {
     }
 
     this->body = new Body[NUM_PARTS];
+    this->joints = new dJointID[6];
+    this->motors = new dJointID[4];
+    this->pid = new PID[NUM_DOF];
+    //this->ang = new dReal[NUM_DOF]();
+	this->ang = NULL;
+    this->vel = new dReal[NUM_DOF]();
+    this->cur_ang = new dReal[NUM_DOF]();
+    this->fut_ang = new dReal[NUM_DOF]();
+    this->jnt_vel = new dReal[NUM_DOF]();
+    this->pos = new dReal[3]();
+    this->rot = new dReal[3]();
+    this->ori = new dReal[4]();
+
+    for ( int i = 0; i < NUM_DOF; i++ ) {
+		this->vel[i] = this->m_joint_vel_min[i%NUM_DOF] + 0.5*(this->m_joint_vel_max[i%NUM_DOF] - this->m_joint_vel_min[i%NUM_DOF]);
+    }
+
+    for ( int i = 0; i < NUM_DOF; i++ ) {
+        this->pid[i].init(100, 1, 10, 0.1, 0.004);
+#ifdef ENABLE_DRAWSTUFF
+        this->jnt_vel[i] = this->vel[i];
+#endif
+    }
+}
+
+Mobot::~Mobot(void) {
+	//delete [] this->body;
+	delete [] this->pid;
+	delete [] this->joints;
+	delete [] this->motors;
+	delete [] this->fut_ang;
+	delete [] this->cur_ang;
+	delete [] this->jnt_vel;
+	delete [] this->ang;
+	delete [] this->vel;
+	delete [] this->pos;
+	delete [] this->rot;
+	delete [] this->ori;
+	dSpaceDestroy(this->space);
+}
+
+void Mobot::addToSim(dWorldID &world, dSpaceID &space) {
+	this->world = world;
+    this->space = dHashSpaceCreate(space);
 	for ( int i = 0; i < NUM_PARTS; i++ ) {
 		this->body[i].bodyID = dBodyCreate(this->world);
 	}
@@ -88,53 +130,6 @@ Mobot::Mobot(dWorldID &world, dSpaceID &space, int num_stp, int bot_type) {
     this->body[BODY_R].num_geomID = 5;
     this->body[ENDCAP_R].num_geomID = 7;
 #endif
-    this->joints = new dJointID[6];
-    this->motors = new dJointID[4];
-    this->pid = new PID[NUM_DOF];
-    this->ang = new dReal[NUM_DOF*num_stp]();
-    this->vel = new dReal[NUM_DOF*num_stp]();
-    this->cur_ang = new dReal[NUM_DOF]();
-    this->fut_ang = new dReal[NUM_DOF]();
-    this->jnt_vel = new dReal[NUM_DOF]();
-    this->pos = new dReal[3]();
-    this->rot = new dReal[3]();
-    this->ori = new dReal[4]();
-
-    for ( int i = 0; i < NUM_DOF*num_stp; i++ ) {
-        this->vel[i] = this->m_joint_vel_max[i%NUM_DOF];
-    }
-
-    for ( int i = 0; i < NUM_DOF; i++ ) {
-        this->pid[i].init(100, 1, 10, 0.1, 0.004);
-        #ifdef ENABLE_DRAWSTUFF
-        this->jnt_vel[i] = this->vel[i];
-        #endif
-    }
-}
-
-Mobot::~Mobot(void) {
-    delete [] this->body;
-    delete [] this->pid;
-    delete [] this->joints;
-    delete [] this->motors;
-    delete [] this->fut_ang;
-    delete [] this->cur_ang;
-    delete [] this->jnt_vel;
-    delete [] this->ang;
-    delete [] this->vel;
-    delete [] this->pos;
-    delete [] this->rot;
-    delete [] this->ori;
-    dSpaceDestroy(this->space);
-}
-
-void Mobot::setAngles(dReal *ang) {
-    for ( int j = 0; j < NUM_DOF*this->m_num_stp; j++ ) {
-        this->ang[j] = D2R(ang[j]);
-    }
-    for ( int j = 0; j < NUM_DOF; j++ ) {
-        this->fut_ang[j] = this->ang[j];
-    }
 }
 
 void Mobot::setAngularVelocity(dReal *vel) {
@@ -168,6 +163,31 @@ dJointID Mobot::getMotorID(int motor) {
 
 void Mobot::enable(void) {
     dBodyEnable(this->body[CENTER].bodyID);
+}
+
+
+
+
+void Mobot::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+	this->ang = (dReal *)realloc(this->ang, (this->m_num_stp+1)*NUM_DOF*sizeof(dReal));
+	this->vel = (dReal *)realloc(this->vel, (this->m_num_stp+1)*NUM_DOF*sizeof(dReal));
+	if (!this->m_num_stp) {
+		this->ang[this->m_num_stp + LE] = D2R(angle1);
+		this->ang[this->m_num_stp + LB] = D2R(angle2);
+		this->ang[this->m_num_stp + RB] = D2R(angle3);
+		this->ang[this->m_num_stp + RE] = D2R(angle4);
+	}
+	else {
+		this->ang[this->m_num_stp*NUM_DOF + LE] = this->ang[(this->m_num_stp-1)*NUM_DOF + LE] + D2R(angle1);
+		this->ang[this->m_num_stp*NUM_DOF + LB] = this->ang[(this->m_num_stp-1)*NUM_DOF + LB] + D2R(angle2);
+		this->ang[this->m_num_stp*NUM_DOF + RB] = this->ang[(this->m_num_stp-1)*NUM_DOF + RB] + D2R(angle3);
+		this->ang[this->m_num_stp*NUM_DOF + RE] = this->ang[(this->m_num_stp-1)*NUM_DOF + RE] + D2R(angle4);
+		this->vel[this->m_num_stp*NUM_DOF + LE] = this->vel[(this->m_num_stp-1)*NUM_DOF + LE];
+		this->vel[this->m_num_stp*NUM_DOF + LB] = this->vel[(this->m_num_stp-1)*NUM_DOF + LB];
+		this->vel[this->m_num_stp*NUM_DOF + RB] = this->vel[(this->m_num_stp-1)*NUM_DOF + RB];
+		this->vel[this->m_num_stp*NUM_DOF + RE] = this->vel[(this->m_num_stp-1)*NUM_DOF + RE];
+	}
+	this->m_num_stp++;
 }
 
 void Mobot::resetPID(int i) {
@@ -689,6 +709,7 @@ void Mobot::buildAttached00(Mobot *attach, int face1, int face2) {
         m[1] = this->end_depth + 0.5*this->body_width + this->body_end_depth + this->body_length + 0.5*this->center_length;
     }
     else if ( face1 == 6 && face2 == 1 ) {
+		printf("6161616161\n");
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + 2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length;
@@ -1266,6 +1287,7 @@ void Mobot::buildAttached01(Mobot *attach, int face1, int face2, dReal r_le, dRe
 
     // generate rotation matrix for base robot
     this->create_rotation_matrix(R_att, attach->getRotation(0), attach->getRotation(1), attach->getRotation(2));
+	printf("444444444444444444");
 
     // rotation of body about fixed point
     if ( face2 == 1 ) {

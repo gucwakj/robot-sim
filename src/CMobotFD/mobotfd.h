@@ -11,12 +11,12 @@ enum simulation_reply_message_e {
 };
 
 class CMobotFD {
+	//friend class Mobot;
 	public:
-        CMobotFD(int num_bot, int num_stp);
+        CMobotFD(void);
 		~CMobotFD(void);
 
 		// set simulation variables
-        void setAngles(dReal *ang);
         void setAngularVelocity(dReal *vel);
         void setCOR(dReal cor_g, dReal cor_b);
         void setMu(dReal mu_g, dReal mu_b);
@@ -30,12 +30,13 @@ class CMobotFD {
         void setTarget(int num, dReal x, dReal y, dReal z);
 
 		// build models of iMobot
-		void iMobotBuild(int botNum, dReal x, dReal y, dReal z);
-		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
-		void iMobotBuild(int botNum, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2);
-		void iMobotBuildAttached(int botNum, int attNum, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-        void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void addiMobot(Mobot &mobot);
+		void addiMobot(Mobot &mobot, dReal x, dReal y, dReal z);
+		void addiMobot(Mobot &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
+		void addiMobot(Mobot &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void addiMobotConnected(Mobot &mobot, Mobot &base, int face1, int face2);
+		void addiMobotConnected(Mobot &mobot, Mobot &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+        //void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		// run the simulation
 		void runSimulation(int argc, char **argv);
@@ -67,13 +68,14 @@ class CMobotFD {
 				m_mu_b,								// coefficient of friction of body_body
 				m_cor_g,							// coefficient of restitution of body_ground
 				m_cor_b;							// coefficient of restitution of body_body
-		int		m_num_bot,							// number of modules in simulation
+		int		//m_num_bot,							// number of modules in simulation
                 m_num_stp,							// total number of steps
                 m_num_statics,                      // number of pieces of ground
                 m_num_targets,                      // total number of targets
 				m_cur_stp,							// current step number
 				m_t_tot_step,						// total number of time steps
 				m_t_cur_step;						// current time step
+		int m_number;
 		bool	*m_flag_comp,						// flag for each bot - completed step
 				*m_flag_disable;					// flag for each bot - disabled/enabled
 		#ifdef ENABLE_DRAWSTUFF
