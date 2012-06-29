@@ -185,6 +185,7 @@ void CMobotFD::setTime(dReal time_total) {
 }
 
 void CMobotFD::runSimulation(int argc, char **argv) {
+	printf("steps: %d\n", this->m_num_stp);
 	#ifdef ENABLE_DRAWSTUFF
 	dsSimulationLoop(argc, argv, 352, 288, &m_fn);
 	#else
@@ -445,17 +446,18 @@ void CMobotFD::end_simulation(bool &loop) {
 /**********************************************************
 	Build iMobot Functions
  **********************************************************/
-void CMobotFD::addiMobot(Mobot &mobot) {
-	this->bot = (Mobot **)realloc(this->bot, (this->m_number + 1)*sizeof(Mobot *));
+void CMobotFD::addiMobot(CiMobotSim &mobot) {
 	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
     this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
+	this->bot = (void **)realloc(this->bot, (this->m_number + 1)*sizeof(void *));
+	this->bot[this->m_number] = reinterpret_cast<CiMobotSim *>(this->bot[this->m_number]);
 	this->bot[this->m_number] = &mobot;
 	this->bot[this->m_number]->addToSim(this->world, this->space);
 	this->bot[this->m_number++]->build(0, 0, 0, 0, 0, 0);
 }
 
-void CMobotFD::addiMobot(Mobot &mobot, dReal x, dReal y, dReal z) {
-	this->bot = (Mobot **)realloc(this->bot, (this->m_number + 1)*sizeof(Mobot *));
+void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z) {
+	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number + 1)*sizeof(CiMobotSim *));
 	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
     this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
 	this->bot[this->m_number] = &mobot;
@@ -463,8 +465,8 @@ void CMobotFD::addiMobot(Mobot &mobot, dReal x, dReal y, dReal z) {
 	this->bot[this->m_number++]->build(x, y, z, 0, 0, 0);
 }
 
-void CMobotFD::addiMobot(Mobot &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
-	this->bot = (Mobot **)realloc(this->bot, (this->m_number + 1)*sizeof(Mobot *));
+void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number + 1)*sizeof(CiMobotSim *));
 	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
     this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
 	this->bot[this->m_number] = &mobot;
@@ -472,8 +474,8 @@ void CMobotFD::addiMobot(Mobot &mobot, dReal x, dReal y, dReal z, dReal psi, dRe
     this->bot[this->m_number++]->build(x, y, z, psi, theta, phi);
 }
 
-void CMobotFD::addiMobot(Mobot &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	this->bot = (Mobot **)realloc(this->bot, (this->m_number + 1)*sizeof(Mobot *));
+void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number + 1)*sizeof(CiMobotSim *));
 	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
     this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
 	this->bot[this->m_number] = &mobot;
@@ -481,8 +483,8 @@ void CMobotFD::addiMobot(Mobot &mobot, dReal x, dReal y, dReal z, dReal psi, dRe
     this->bot[this->m_number++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
 }
 
-void CMobotFD::addiMobotConnected(Mobot &mobot, Mobot &base, int face1, int face2) {
-	this->bot = (Mobot **)realloc(this->bot, (this->m_number + 1)*sizeof(Mobot *));
+void CMobotFD::addiMobotConnected(CiMobotSim &mobot, CiMobotSim &base, int face1, int face2) {
+	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number + 1)*sizeof(CiMobotSim *));
 	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
     this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
 	this->bot[this->m_number] = &mobot;
@@ -494,19 +496,16 @@ void CMobotFD::addiMobotConnected(Mobot &mobot, Mobot &base, int face1, int face
 	this->m_number++;
 }
 
-void CMobotFD::addiMobotConnected(Mobot &mobot, Mobot &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	this->bot = (Mobot **)realloc(this->bot, (this->m_number + 1)*sizeof(Mobot *));
+void CMobotFD::addiMobotConnected(CiMobotSim &mobot, CiMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number + 1)*sizeof(CiMobotSim *));
 	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, this->m_number + 1);
     this->m_flag_disable = (bool *)realloc(this->m_flag_disable, this->m_number + 1);
 	this->bot[this->m_number] = &mobot;
 	this->bot[this->m_number]->addToSim(this->world, this->space);
-	printf("11111111111111\n");
-	if ( base.isHome() ) {
-		printf("2222222222222\n");
-        this->bot[this->m_number]->buildAttached01(&base, face1, face2, r_le, r_lb, r_rb, r_re); }
-	else {
-		printf("33333333333333\n");
-        this->bot[this->m_number]->buildAttached11(&base, face1, face2, r_le, r_lb, r_rb, r_re); }
+	if ( base.isHome() )
+        this->bot[this->m_number]->buildAttached01(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+	else
+        this->bot[this->m_number]->buildAttached11(&base, face1, face2, r_le, r_lb, r_rb, r_re);
 	this->m_number++;
 }
 
@@ -515,6 +514,85 @@ void CMobotFD::addiMobotConnected(Mobot &mobot, Mobot &base, int face1, int face
         this->addiMobot(botNum, x + IMOBOT_END_DEPTH + IMOBOT_BODY_END_DEPTH + IMOBOT_BODY_LENGTH + 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
     else
         this->addiMobot(botNum, x - IMOBOT_END_DEPTH - IMOBOT_BODY_END_DEPTH - IMOBOT_BODY_LENGTH - 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
+
+    // add fixed joint to attach 'END' to static environment
+    dJointID joint = dJointCreateFixed(this->world, 0);
+    dJointAttach(joint, 0, this->bot[botNum]->getBodyID(end));
+    dJointSetFixed(joint);
+    dJointSetFixedParam(joint, dParamCFM, 0);
+    dJointSetFixedParam(joint, dParamERP, 0.9);
+}*/
+
+/**********************************************************
+	Build Mobot Functions
+ **********************************************************/
+void CMobotFD::addMobot(CMobotSim &mobot) {
+	this->bot = (CMobotSim **)realloc(this->bot, (this->m_number + 1)*sizeof(CMobotSim *));
+	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
+    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
+	this->bot[this->m_number] = &mobot;
+	this->bot[this->m_number]->addToSim(this->world, this->space);
+	this->bot[this->m_number++]->build(0, 0, 0, 0, 0, 0);
+}
+
+void CMobotFD::addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z) {
+	this->bot = (CMobotSim **)realloc(this->bot, (this->m_number + 1)*sizeof(CMobotSim *));
+	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
+    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
+	this->bot[this->m_number] = &mobot;
+	this->bot[this->m_number]->addToSim(this->world, this->space);
+	this->bot[this->m_number++]->build(x, y, z, 0, 0, 0);
+}
+
+void CMobotFD::addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+	this->bot = (CMobotSim **)realloc(this->bot, (this->m_number + 1)*sizeof(CMobotSim *));
+	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
+    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
+	this->bot[this->m_number] = &mobot;
+	this->bot[this->m_number]->addToSim(this->world, this->space);
+    this->bot[this->m_number++]->build(x, y, z, psi, theta, phi);
+}
+
+void CMobotFD::addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	this->bot = (CMobotSim **)realloc(this->bot, (this->m_number + 1)*sizeof(CMobotSim *));
+	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
+    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
+	this->bot[this->m_number] = &mobot;
+	this->bot[this->m_number]->addToSim(this->world, this->space);
+    this->bot[this->m_number++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
+}
+
+void CMobotFD::addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, int face2) {
+	this->bot = (CMobotSim **)realloc(this->bot, (this->m_number + 1)*sizeof(CMobotSim *));
+	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number + 1)*sizeof(bool));
+    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number + 1)*sizeof(bool));
+	this->bot[this->m_number] = &mobot;
+	this->bot[this->m_number]->addToSim(this->world, this->space);
+	if ( base.isHome() )
+        this->bot[this->m_number]->buildAttached00(&base, face1, face2);
+    else
+        this->bot[this->m_number]->buildAttached10(&base, face1, face2);
+	this->m_number++;
+}
+
+void CMobotFD::addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	this->bot = (CMobotSim **)realloc(this->bot, (this->m_number + 1)*sizeof(CMobotSim *));
+	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, this->m_number + 1);
+    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, this->m_number + 1);
+	this->bot[this->m_number] = &mobot;
+	this->bot[this->m_number]->addToSim(this->world, this->space);
+	if ( base.isHome() )
+        this->bot[this->m_number]->buildAttached01(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+	else
+        this->bot[this->m_number]->buildAttached11(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+	this->m_number++;
+}
+
+/*void CMobotFD::MobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+    if ( end == ENDCAP_L )
+        this->addMobot(botNum, x + IMOBOT_END_DEPTH + IMOBOT_BODY_END_DEPTH + IMOBOT_BODY_LENGTH + 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
+    else
+        this->addMobot(botNum, x - IMOBOT_END_DEPTH - IMOBOT_BODY_END_DEPTH - IMOBOT_BODY_LENGTH - 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
 
     // add fixed joint to attach 'END' to static environment
     dJointID joint = dJointCreateFixed(this->world, 0);

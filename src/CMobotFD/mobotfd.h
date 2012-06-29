@@ -11,7 +11,6 @@ enum simulation_reply_message_e {
 };
 
 class CMobotFD {
-	//friend class Mobot;
 	public:
         CMobotFD(void);
 		~CMobotFD(void);
@@ -29,13 +28,23 @@ class CMobotFD {
         void setTime(dReal time_total);
         void setTarget(int num, dReal x, dReal y, dReal z);
 
-		// build models of iMobot
-		void addiMobot(Mobot &mobot);
-		void addiMobot(Mobot &mobot, dReal x, dReal y, dReal z);
-		void addiMobot(Mobot &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
-		void addiMobot(Mobot &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		void addiMobotConnected(Mobot &mobot, Mobot &base, int face1, int face2);
-		void addiMobotConnected(Mobot &mobot, Mobot &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		// build models of the iMobot
+		void addiMobot(CiMobotSim &mobot);
+		void addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z);
+		void addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
+		void addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void addiMobotConnected(CiMobotSim &mobot, CiMobotSim &base, int face1, int face2);
+		void addiMobotConnected(CiMobotSim &mobot, CiMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+        //void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+
+
+		// build models of the Mobot
+		void addMobot(CMobotSim &mobot);
+		void addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z);
+		void addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
+		void addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, int face2);
+		void addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
         //void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		// run the simulation
@@ -60,7 +69,7 @@ class CMobotFD {
 		dJointGroupID group;                        // group to store joints
 		dGeomID ground;                             // ground plane
 		dGeomID *m_statics;                         // array of ground objects
-		Mobot **bot;                                 // array of robots in simulation
+		CiMobotSim **iMobot;                                 // array of robots in simulation
 		CMobotFDReply *m_reply;					// struct of data to return after finishing simulation
 		CMobotFDTarget *m_targets;                 // array of targets
 		dReal   m_t_step,							// time of each step of simulation
@@ -68,8 +77,7 @@ class CMobotFD {
 				m_mu_b,								// coefficient of friction of body_body
 				m_cor_g,							// coefficient of restitution of body_ground
 				m_cor_b;							// coefficient of restitution of body_body
-		int		//m_num_bot,							// number of modules in simulation
-                m_num_stp,							// total number of steps
+		int		m_num_stp,							// total number of steps
                 m_num_statics,                      // number of pieces of ground
                 m_num_targets,                      // total number of targets
 				m_cur_stp,							// current step number
