@@ -1,4 +1,5 @@
 #include "mobot.h"
+#include "mobotfd.h"
 
 CRobot4Sim::CRobot4Sim(void) {
     this->m_num_stp = 0;
@@ -39,9 +40,12 @@ CRobot4Sim::~CRobot4Sim(void) {
 	dSpaceDestroy(this->space);
 }
 
-void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space) {
+void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int type, int num) {
 	this->world = world;
     this->space = dHashSpaceCreate(space);
+	this->sim = sim;
+	this->m_type = type;
+	this->m_num = num;
 	this->body = new Body[NUM_PARTS];
 	for ( int i = 0; i < NUM_PARTS; i++ ) {
 		this->body[i].bodyID = dBodyCreate(this->world);
@@ -118,9 +122,36 @@ void CRobot4Sim::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 		this->vel[this->m_num_stp*NUM_DOF + RB] = this->vel[(this->m_num_stp-1)*NUM_DOF + RB];
 		this->vel[this->m_num_stp*NUM_DOF + RE] = this->vel[(this->m_num_stp-1)*NUM_DOF + RE];
 	}
+	sim->add_pose(this->m_type, this->m_num, this->m_num_stp, false);
 	this->m_num_stp++;
 }
 
+void CRobot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+	this->ang = (dReal *)realloc(this->ang, (this->m_num_stp+1)*NUM_DOF*sizeof(dReal));
+	this->vel = (dReal *)realloc(this->vel, (this->m_num_stp+1)*NUM_DOF*sizeof(dReal));
+	if (!this->m_num_stp) {
+		this->fut_ang[this->m_num_stp + LE] = this->ang[this->m_num_stp + LE] = D2R(angle1);
+		this->fut_ang[this->m_num_stp + LB] = this->ang[this->m_num_stp + LB] = D2R(angle2);
+		this->fut_ang[this->m_num_stp + RB] = this->ang[this->m_num_stp + RB] = D2R(angle3);
+		this->fut_ang[this->m_num_stp + RE] = this->ang[this->m_num_stp + RE] = D2R(angle4);
+	}
+	else {
+		this->ang[this->m_num_stp*NUM_DOF + LE] = this->ang[(this->m_num_stp-1)*NUM_DOF + LE] + D2R(angle1);
+		this->ang[this->m_num_stp*NUM_DOF + LB] = this->ang[(this->m_num_stp-1)*NUM_DOF + LB] + D2R(angle2);
+		this->ang[this->m_num_stp*NUM_DOF + RB] = this->ang[(this->m_num_stp-1)*NUM_DOF + RB] + D2R(angle3);
+		this->ang[this->m_num_stp*NUM_DOF + RE] = this->ang[(this->m_num_stp-1)*NUM_DOF + RE] + D2R(angle4);
+		this->vel[this->m_num_stp*NUM_DOF + LE] = this->vel[(this->m_num_stp-1)*NUM_DOF + LE];
+		this->vel[this->m_num_stp*NUM_DOF + LB] = this->vel[(this->m_num_stp-1)*NUM_DOF + LB];
+		this->vel[this->m_num_stp*NUM_DOF + RB] = this->vel[(this->m_num_stp-1)*NUM_DOF + RB];
+		this->vel[this->m_num_stp*NUM_DOF + RE] = this->vel[(this->m_num_stp-1)*NUM_DOF + RE];
+	}
+	sim->add_pose(this->m_type, this->m_num, this->m_num_stp, true);
+	this->m_num_stp++;
+}
+
+void CRobot4Sim::moveWait(void) {
+	sim->add_wait(this->m_type, this->m_num);
+}
 
 bool CRobot4Sim::isDisabled(void) {
     return !(bool)dBodyIsEnabled(this->body[CENTER].bodyID);

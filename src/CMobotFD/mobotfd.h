@@ -10,6 +10,14 @@ enum simulation_reply_message_e {
 	FD_ERROR_STALL
 };
 
+enum robot_types_e {
+	IMOBOT,
+	MOBOT,
+	KIDBOT,
+	NXT,
+	NUM_TYPES
+};
+
 class CMobotFD {
 	public:
         CMobotFD(void);
@@ -53,6 +61,11 @@ class CMobotFD {
 		// return message on completion
 		int getReplyMessage(void);
 		double getReplyTime(void);
+
+
+		void add_pose(int type, int id, int step, bool nb);
+		//void add_poseNB(int type, int id, int step);
+		void add_wait(int type, int num);
 	private:
 		typedef struct cimobotfdreply_s {			// information on success to reply
 			dReal time;								// time to successful completion
@@ -62,6 +75,17 @@ class CMobotFD {
             dReal x, y, z;
             dGeomID geomID;
         } CMobotFDTarget;
+		typedef struct pose_s {
+			int id;					// pose id
+			int type;				// individual robot: type
+			int num;				// individual robot: number
+			int step;				// individual robot: step
+			bool wait;				// individual robot: to wait or not to wait
+			bool complete;			// flag: pose completion
+			struct pose_s *parent;	// parent pose
+			struct pose_s *block;	// next pose
+			struct pose_s *nonblock;// side pose (non-blocked)
+		} Pose;
 
 		// private variables to store general information about simulation
 		dWorldID world;								// world in which simulation occurs
@@ -69,7 +93,8 @@ class CMobotFD {
 		dJointGroupID group;                        // group to store joints
 		dGeomID ground;                             // ground plane
 		dGeomID *m_statics;                         // array of ground objects
-		CiMobotSim **iMobot;                                 // array of robots in simulation
+		CiMobotSim **bot;                                 // array of robots in simulation
+		Pose *pose;
 		CMobotFDReply *m_reply;					// struct of data to return after finishing simulation
 		CMobotFDTarget *m_targets;                 // array of targets
 		dReal   m_t_step,							// time of each step of simulation
@@ -83,13 +108,16 @@ class CMobotFD {
 				m_cur_stp,							// current step number
 				m_t_tot_step,						// total number of time steps
 				m_t_cur_step;						// current time step
-		int m_number;
+		int m_number[NUM_TYPES];
+		void *bots[NUM_TYPES];
 		bool	*m_flag_comp,						// flag for each bot - completed step
 				*m_flag_disable;					// flag for each bot - disabled/enabled
 		#ifdef ENABLE_DRAWSTUFF
 		dsFunctions m_fn;							// struct to store drawstuff functions
 		#endif
 
+
+		void print_pose(Pose *head);
 		// simulation functions
 		#ifdef ENABLE_DRAWSTUFF
 		void ds_start(void);						// initialization of drawstuff scene

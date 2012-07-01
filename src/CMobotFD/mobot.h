@@ -48,11 +48,12 @@ typedef struct robot_body_s {
 #endif
 } Body;
 
+class CMobotFD;
 class CRobot4Sim {
     public:
         CRobot4Sim(void);
         ~CRobot4Sim(void);
-		void addToSim(dWorldID &world, dSpaceID &space);
+		void addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int type, int num);
         //void setAngularVelocity(dReal *vel);
 
         dReal getCurrentAngle(int i);
@@ -70,6 +71,8 @@ class CRobot4Sim {
 		void buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		void move(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		void moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		void moveWait(void);
 
         void enable(void);
         void resetPID(int i = NUM_DOF);
@@ -88,6 +91,7 @@ class CRobot4Sim {
     private:
         dWorldID world;                         // world for all robots
         dSpaceID space;                         // space for this robot
+        CMobotFD *sim;		//simulation
         dJointID *joints,                       // joints between body parts
                  *motors;                       // motors to drive body parts
         Body     *body;                        // body parts
@@ -100,7 +104,9 @@ class CRobot4Sim {
                  *cur_ang,                      // current angle of each body part
                  *fut_ang,                      // future angle being driven toward
                  *jnt_vel;                      // desired joint velocity
-        int      m_num_stp;
+        int m_num_stp;
+		int m_type;
+		int m_num;
 
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
 		void build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);
