@@ -45,7 +45,6 @@ class CMobotFD {
 		void addiMobotConnected(CiMobotSim &mobot, CiMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
         //void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
-
 		// build models of the Mobot
 		void addMobot(CMobotSim &mobot);
 		void addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z);
@@ -64,7 +63,6 @@ class CMobotFD {
 
 
 		void add_pose(int type, int id, int step, bool nb);
-		//void add_poseNB(int type, int id, int step);
 		void add_wait(int type, int num);
 	private:
 		typedef struct cimobotfdreply_s {			// information on success to reply
@@ -109,7 +107,7 @@ class CMobotFD {
 				m_t_tot_step,						// total number of time steps
 				m_t_cur_step;						// current time step
 		int m_number[NUM_TYPES];
-		void *bots[NUM_TYPES];
+		//void *bots[NUM_TYPES];
 		bool	*m_flag_comp,						// flag for each bot - completed step
 				*m_flag_disable;					// flag for each bot - disabled/enabled
 		#ifdef ENABLE_DRAWSTUFF

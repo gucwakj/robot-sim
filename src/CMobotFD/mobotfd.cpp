@@ -52,7 +52,7 @@ CMobotFD::CMobotFD(void) {
 
 	this->bot = NULL;
 	this->pose = NULL;
-	this->bots[IMOBOT] = new CiMobotSim;
+	//this->bots[IMOBOT] = new CiMobotSim;
 	//this->bots[MOBOT] = new CMobotSim;
 	//this->bots[KIDBOT] = new CKidbotSim;
 	//this->bots[NXT] = new CNXTSim;
@@ -188,7 +188,6 @@ void CMobotFD::setTime(dReal time_total) {
 }
 
 void CMobotFD::runSimulation(int argc, char **argv) {
-	printf("steps: %d\n", this->m_num_stp);
 	#ifdef ENABLE_DRAWSTUFF
 	dsSimulationLoop(argc, argv, 352, 288, &m_fn);
 	#else
@@ -447,6 +446,7 @@ void CMobotFD::end_simulation(bool &loop) {
 }
 
 void CMobotFD::add_pose(int type, int num, int step, bool nb) {
+	static bool blocking = false;
 	Pose *newPose = new Pose;
 	newPose->type = type;
 	newPose->num = num;
@@ -461,37 +461,27 @@ void CMobotFD::add_pose(int type, int num, int step, bool nb) {
 		this->pose = newPose;
 	}
 	else {
-		while (tmp->block) tmp = tmp->block;
-
-		if (nb) {
-			while (tmp->nonblock) tmp = tmp->nonblock;
-			newPose->id = tmp->id+1;
-			newPose->parent = tmp;
+		while (tmp->block || tmp->nonblock) tmp = tmp->block ? tmp->block : tmp->nonblock;
+		newPose->id = tmp->id+1;
+		newPose->parent = tmp;
+		if (blocking)
 			tmp->nonblock = newPose;
-		}
-		else {
-			newPose->id = tmp->id+1;
-			newPose->parent = tmp;
+		else
 			tmp->block = newPose;
-		}
+		blocking = ~nb;
 	}
 }
 
 void CMobotFD::add_wait(int type, int num) {
 	Pose *tmp = this->pose;
-	while (tmp->block || tmp->nonblock) {
-		if (tmp->block)
-			tmp = tmp->block;
-		else
-			tmp = tmp->nonblock;
-	}
+	while (tmp->block || tmp->nonblock) tmp = tmp->block ? tmp->block : tmp->nonblock;
 	while (tmp->type != type || tmp->num != num) tmp = tmp->parent;
 	tmp->wait = true;
 }
 
 void CMobotFD::print_pose(Pose *head) {
 	while (head) {
-		printf("Node %d:\n\ttype: %d\n\tnum: %d\n\tstep: %d\n\tcomplete: %d\n\twait: %d\n\tparent: %p\n\tnonblock: %p\n\tblock: %p\n", head->id, head->type, head->num, head->step, head->complete, head->wait, head->parent, head->nonblock, head->block);
+		printf("Node %d (%p):\n\ttype: %d\n\tnum: %d\n\tstep: %d\n\tcomplete: %d\n\twait: %d\n\tparent: %p\n\tnonblock: %p\n\tblock: %p\n", head->id, head, head->type, head->num, head->step, head->complete, head->wait, head->parent, head->nonblock, head->block);
 		if (head->block)
 			head = head->block;
 		else

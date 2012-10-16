@@ -67,15 +67,6 @@ void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int t
 	}
 }
 
-/*void CRobot4Sim::setAngularVelocity(dReal *vel) {
-    for ( int j = 0; j < NUM_DOF*this->m_num_stp; j++ ) {
-        this->vel[j] = this->m_joint_vel_min[j%NUM_DOF] + vel[j]*(this->m_joint_vel_max[j%NUM_DOF] - this->m_joint_vel_min[j%NUM_DOF]);
-    }
-    for ( int j = 0; j < NUM_DOF; j++ ) {
-        this->jnt_vel[j] = this->vel[j];
-    }
-}*/
-
 dReal CRobot4Sim::getCurrentAngle(int i) {
     return this->cur_ang[i];
 }

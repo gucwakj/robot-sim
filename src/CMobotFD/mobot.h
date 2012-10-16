@@ -54,14 +54,12 @@ class CRobot4Sim {
         CRobot4Sim(void);
         ~CRobot4Sim(void);
 		void addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int type, int num);
-        //void setAngularVelocity(dReal *vel);
 
         dReal getCurrentAngle(int i);
         dReal getPosition(int i);
         dReal getRotation(int i);
         dBodyID getBodyID(int body);
         dJointID getMotorID(int motor);
-
 
 		void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
