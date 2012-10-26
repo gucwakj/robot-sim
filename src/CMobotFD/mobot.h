@@ -58,7 +58,7 @@ typedef struct robot_body_s {
 	float color[3];                         // rgb color for each body part
 	int num_geomID;                         // total number of geomID for part
 #endif
-} Body;
+} mobotBody_t;
 
 class CMobotFD;
 class CRobot4Sim : public robotSimThreads {
@@ -68,7 +68,6 @@ class CRobot4Sim : public robotSimThreads {
 		void addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int type, int num);
 
         dReal getAngle(int i);
-		bool getSuccess(void);
         dReal getPosition(int i);
         dReal getRotation(int i);
         dBodyID getBodyID(int body);
@@ -85,62 +84,38 @@ class CRobot4Sim : public robotSimThreads {
 		void moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 		void moveWait(void);
 
-        void enable(void);
         void resetPID(int i = NUM_DOF);
-        void updateAngle(int i);
-        //void updateFutureAngle(int i, int current_step, int enable);
-        //void updateJointVelocity(int i, int current_step);
         void updateMotorSpeed(int i);
 
-		//bool isDisabled(void);
 		bool isComplete(void);
 		bool isHome(void);
-		bool isJointDisabled(int i, int current_step);
 
         #ifdef ENABLE_DRAWSTUFF
         void drawRobot(void);
         #endif
     private:
-        dWorldID world;                         // world for all robots
-        dSpaceID space;                         // space for this robot
-        //CMobotFD *sim;		//simulation
-        dJointID *joints;                       // joints between body parts
-                 //*motors;                       // motors to drive body parts
-        Body     *body;                        // body parts
-        PID      *pid;                          // PID control for each joint
-        double   *pos,                          // initial position of robot
-                 *rot,                          // initial rotation of robot by three Euler angles
-                 //*ang,                          // array of angles
-                 //*vel,                          // array of velocities
-                 *ori;                          // initial orientation of body parts
-                 //*cur_ang,                      // current angle of each body part
-                 //*fut_ang,                      // future angle being driven toward
-                 //*jnt_vel;                      // desired joint velocity
-		//int m_num_stp;
-		int m_type;
-		int m_num;
-
-		/* THREADED */		
-		// angles
-		double angle[4];
-		// velocities
-		double velocity[4];
-		// goals
-		double goal[4];
-		// motors
-		dJointID motors[4];
-		// states
-		mobotJointState_t state[4];
-		// trigger for goal
-		bool success;
+        dWorldID world;				// world for all robots
+        dSpaceID space;				// space for this robot
+		dJointID motor[4];			// motors
+        dJointID joint[6];			// joints between body parts
+        PID *pid;					// PID control for each joint
+		mobotJointState_t state[4];	// states
+        mobotBody_t *body;			// body parts
+		dReal angle[4];				// angles
+		dReal velocity[4];			// velocities
+		dReal goal[4];				// goals
+		dReal position[3];			// initial position
+		dReal rotation[3];			// initial rotation
+		dReal orientation[4];		// initial joint orientation
+		bool success;				// trigger for goal
 
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
-		void build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);
-		void build_center(dReal x, dReal y, dReal z, dMatrix3 R);
-		void build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);
-		void create_fixed_joint(CRobot4Sim *attach, int face1, int face2);                   // create fixed joint between modules
-		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);     // get rotation matrix from euler angles
-		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);    // get euler angles from rotation matrix
+		void build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);	// build body of mobot
+		void build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
+		void build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap
+		void create_fixed_joint(CRobot4Sim *attach, int face1, int face2);				// create fixed joint between modules
+		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
+		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
 #ifdef ENABLE_DRAWSTUFF
 		void draw_body(int id);
 #endif
@@ -148,13 +123,15 @@ class CRobot4Sim : public robotSimThreads {
 		dReal D2R(dReal x);              // convert degrees to radians
 		dReal R2D(dReal x);              // convert radians to degrees
 		double	m_motor_res,
-                *m_joint_vel_max,              // maximum joint velocity possible
+                //*m_joint_vel_max,              // maximum joint velocity possible
                 //*m_joint_vel_min,              // minimum joint velocity possible
-                *m_joint_frc_max,              // maximum force that can be applied to each body part
+                //*m_joint_frc_max,              // maximum force that can be applied to each body part
 				center_length, center_width, center_height, center_radius, center_offset,
 				body_length, body_width, body_height, body_radius,
 				body_inner_width_left, body_inner_width_right, body_end_depth, body_mount_center,
 				end_width, end_height, end_depth, end_radius;
+		dReal m_joint_vel_max[4];
+		dReal m_joint_frc_max[4];
 };
 
 class CMobotSim : public CRobot4Sim {

@@ -2,8 +2,8 @@
 
 CRobot4Sim::CRobot4Sim(void) {
     //this->m_num_stp = 0;
-	this->joints = new dJointID[6];
-	//this->motors = new dJointID[4];
+	//this->joint = new dJointID[6];
+	//this->motor = new dJointID[4];
 	this->pid = new PID[NUM_DOF];
 	//this->ang = new dReal[NUM_DOF]();
 	//this->ang = NULL;
@@ -11,9 +11,9 @@ CRobot4Sim::CRobot4Sim(void) {
 	//this->cur_ang = new dReal[NUM_DOF]();
 	//this->fut_ang = new dReal[NUM_DOF]();
 	//this->jnt_vel = new dReal[NUM_DOF]();
-	this->pos = new dReal[3]();
-	this->rot = new dReal[3]();
-	this->ori = new dReal[4]();
+	//this->pos = new dReal[3]();
+	//this->rot = new dReal[3]();
+	//this->ori = new dReal[4]();
 	
 	this->angle[0] = 0;
 	this->angle[1] = 0;
@@ -24,33 +24,34 @@ CRobot4Sim::CRobot4Sim(void) {
 	this->velocity[2] = 0.7854;	// 45 deg/sec
 	this->velocity[3] = 0.7854;	// 45 deg/sec
 	this->success = true;
+
 	// init locks
 	pthread_mutex_init(&angle_mutex, NULL);
 	this->simThreadsGoalInit(NULL);
 	pthread_mutex_init(&success_mutex, NULL);
 	pthread_cond_init(&success_cond, NULL);
 
-    for ( int i = 0; i < NUM_DOF; i++ ) {
-        this->pid[i].init(100, 1, 10, 0.1, 0.004);
+    //for ( int i = 0; i < NUM_DOF; i++ ) {
+        //this->pid[i].init(100, 1, 10, 0.1, 0.004);
 /*#ifdef ENABLE_DRAWSTUFF
         this->jnt_vel[i] = this->vel[i];
 #endif*/
-    }
+   // }
 }
 
 CRobot4Sim::~CRobot4Sim(void) {
 	//delete [] this->body;
 	delete [] this->pid;
-	delete [] this->joints;
-	//delete [] this->motors;
+	//delete [] this->joint;
+	//delete [] this->motor;
 	//delete [] this->fut_ang;
 	//delete [] this->cur_ang;
 	//delete [] this->jnt_vel;
 	//delete [] this->ang;
 	//delete [] this->vel;
-	delete [] this->pos;
-	delete [] this->rot;
-	delete [] this->ori;
+	//delete [] this->pos;
+	//delete [] this->rot;
+	//delete [] this->ori;
 	//dSpaceDestroy(this->space); //sigsegv
 }
 
@@ -58,9 +59,11 @@ void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int t
 	this->world = world;
     this->space = dHashSpaceCreate(space);
 	//this->sim = sim;
-	this->m_type = type;
-	this->m_num = num;
-	this->body = new Body[NUM_PARTS];
+	//this->m_type = type;
+	//this->m_num = num;
+
+	// init body parts
+	this->body = new mobotBody_t[NUM_PARTS];
 	for ( int i = 0; i < NUM_PARTS; i++ ) {
 		this->body[i].bodyID = dBodyCreate(this->world);
 	}
@@ -69,6 +72,11 @@ void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int t
     this->body[CENTER].geomID = new dGeomID[3];
     this->body[BODY_R].geomID = new dGeomID[5];
     this->body[ENDCAP_R].geomID = new dGeomID[7];
+
+	// initialize PID class
+	for ( int i = 0; i < NUM_DOF; i++ ) {
+        this->pid[i].init(100, 1, 10, 0.1, 0.004);
+	}
 #ifdef ENABLE_DRAWSTUFF
 	this->body[ENDCAP_L].num_geomID = 7;
     this->body[BODY_L].num_geomID = 5;
@@ -82,19 +90,23 @@ void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int t
 }
 
 dReal CRobot4Sim::getAngle(int i) {
+	if (i == LE || i == RE)
+		this->angle[i] = mod_angle(this->angle[i], dJointGetHingeAngle(this->joint[i]), dJointGetHingeAngleRate(this->joint[i]));
+	else
+		this->angle[i] = dJointGetHingeAngle(this->joint[i]);
     return this->angle[i];
 }
 
-bool CRobot4Sim::getSuccess(void) {
+/*bool CRobot4Sim::getSuccess(void) {
     return this->success;
-}
+}*/
 
 dReal CRobot4Sim::getPosition(int i) {
-    return this->pos[i];
+    return this->position[i];
 }
 
 dReal CRobot4Sim::getRotation(int i) {
-    return this->rot[i];
+    return this->rotation[i];
 }
 
 dBodyID CRobot4Sim::getBodyID(int body) {
@@ -102,99 +114,8 @@ dBodyID CRobot4Sim::getBodyID(int body) {
 }
 
 dJointID CRobot4Sim::getMotorID(int motor) {
-    return this->motors[motor];
+    return this->motor[motor];
 }
-
-/*void CRobot4Sim::enable(void) {
-    dBodyEnable(this->body[CENTER].bodyID);
-}*/
-
-void CRobot4Sim::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
-	// store angles into array
-	dReal delta[4] = {angle1, angle2, angle3, angle4};
-
-	// lock goal
-	this->simThreadsGoalWLock();
-
-	// set new goal angles
-	this->goal[0] += D2R(angle1);
-	this->goal[1] += D2R(angle2);
-	this->goal[2] += D2R(angle3);
-	this->goal[3] += D2R(angle4);
-
-	// enable motors
-	pthread_mutex_lock(&(this->angle_mutex));
-	for (int j = 0; j < NUM_DOF; j++) {
-		dJointEnable(this->motors[j]);
-		dJointSetAMotorAngle(this->motors[j], 0, this->angle[j]);
-		if ( delta[j] > 0 ) {
-			this->state[j] = MOBOT_FORWARD;
-			dJointSetAMotorParam(this->motors[j], dParamVel, this->velocity[j]);
-		}
-		else if ( delta[j] < 0 ) {
-			this->state[j] = MOBOT_BACKWARD;
-			dJointSetAMotorParam(this->motors[j], dParamVel, -this->velocity[j]);
-		}
-		else if ( fabs(delta[j]-0) < EPSILON ) {
-			this->state[j] = MOBOT_HOLD;
-			dJointSetAMotorParam(this->motors[j], dParamVel, 0);
-		}
-	}
-    dBodyEnable(this->body[CENTER].bodyID);
-	pthread_mutex_unlock(&(this->angle_mutex));
-
-	// lock success
-	pthread_mutex_lock(&(this->success_mutex));
-	this->success = false;
-	this->simThreadsGoalWUnlock();
-
-	// wait for motion to complete
-	while ( !this->success ) { pthread_cond_wait(&(this->success_cond), &(this->success_mutex)); }
-	this->success = true;
-	pthread_mutex_unlock(&(this->success_mutex));
-}
-
-void CRobot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
-	// lock goal
-	this->simThreadsGoalWLock();
-
-	// set new goal angles
-	this->goal[0] = D2R(angle1);
-	this->goal[1] = D2R(angle2);
-	this->goal[2] = D2R(angle3);
-	this->goal[3] = D2R(angle4);
-
-	// enable motors
-	pthread_mutex_lock(&(this->angle_mutex));
-	for ( int j = 0; j < NUM_DOF; j++ ) {
-		dJointEnable(this->motors[j]);
-		dJointSetAMotorAngle(this->motors[j], 0, this->angle[j]);
-	}
-    dBodyEnable(this->body[CENTER].bodyID);
-	pthread_mutex_unlock(&(this->angle_mutex));
-
-	// set success to false
-	pthread_mutex_lock(&(this->success_mutex));
-	this->success = false;
-	pthread_mutex_unlock(&(this->success_mutex));
-
-	// unlock goal
-	this->simThreadsGoalWUnlock();
-}
-
-void CRobot4Sim::moveWait(void) {
-	printf("movewait time\n");
-	// wait for motion to complete
-	pthread_mutex_lock(&(this->success_mutex));
-	//this->success = false;
-	while ( !this->success ) { pthread_cond_wait(&(this->success_cond), &(this->success_mutex)); }
-	this->success = true;
-	pthread_mutex_unlock(&(this->success_mutex));
-}
-
-/*bool CRobot4Sim::isJointDisabled(int i, int current_step) {
-    return ( (int)(this->ang[NUM_DOF*current_step + i]) == (int)(D2R(123456789)) );
-}*/
 
 bool CRobot4Sim::isHome(void) {
     return ( fabs(this->angle[LE]) < EPSILON && fabs(this->angle[LB]) < EPSILON && fabs(this->angle[RB]) < EPSILON && fabs(this->angle[RE]) < EPSILON );
@@ -216,6 +137,133 @@ bool CRobot4Sim::isComplete(void) {
 	return this->success;
 }
 
+void CRobot4Sim::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+	// store angles into array
+	dReal delta[4] = {angle1, angle2, angle3, angle4};
+
+	// lock goal
+	this->simThreadsGoalWLock();
+
+	// set new goal angles
+	this->goal[0] += D2R(angle1);
+	this->goal[1] += D2R(angle2);
+	this->goal[2] += D2R(angle3);
+	this->goal[3] += D2R(angle4);
+
+	// enable motor
+	pthread_mutex_lock(&(this->angle_mutex));
+	for (int j = 0; j < NUM_DOF; j++) {
+		dJointEnable(this->motor[j]);
+		dJointSetAMotorAngle(this->motor[j], 0, this->angle[j]);
+		if ( delta[j] > 0 ) {
+			this->state[j] = MOBOT_FORWARD;
+			dJointSetAMotorParam(this->motor[j], dParamVel, this->velocity[j]);
+		}
+		else if ( delta[j] < 0 ) {
+			this->state[j] = MOBOT_BACKWARD;
+			dJointSetAMotorParam(this->motor[j], dParamVel, -this->velocity[j]);
+		}
+		else if ( fabs(delta[j]-0) < EPSILON ) {
+			this->state[j] = MOBOT_HOLD;
+			dJointSetAMotorParam(this->motor[j], dParamVel, 0);
+		}
+	}
+    dBodyEnable(this->body[CENTER].bodyID);
+	pthread_mutex_unlock(&(this->angle_mutex));
+
+	// lock success
+	pthread_mutex_lock(&(this->success_mutex));
+	this->success = false;
+	this->simThreadsGoalWUnlock();
+
+	// wait for motion to complete
+	while ( !this->success ) { pthread_cond_wait(&(this->success_cond), &(this->success_mutex)); }
+	this->success = true;
+	pthread_mutex_unlock(&(this->success_mutex));
+}
+
+void CRobot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+	// store angles into array
+	dReal delta[4] = {angle1, angle2, angle3, angle4};
+
+	// lock goal
+	this->simThreadsGoalWLock();
+
+	// set new goal angles
+	this->goal[0] += D2R(angle1);
+	this->goal[1] += D2R(angle2);
+	this->goal[2] += D2R(angle3);
+	this->goal[3] += D2R(angle4);
+
+	// enable motor
+	pthread_mutex_lock(&(this->angle_mutex));
+	for ( int j = 0; j < NUM_DOF; j++ ) {
+		dJointEnable(this->motor[j]);
+		dJointSetAMotorAngle(this->motor[j], 0, this->angle[j]);
+		if ( delta[j] > 0 ) {
+			this->state[j] = MOBOT_FORWARD;
+			dJointSetAMotorParam(this->motor[j], dParamVel, this->velocity[j]);
+		}
+		else if ( delta[j] < 0 ) {
+			this->state[j] = MOBOT_BACKWARD;
+			dJointSetAMotorParam(this->motor[j], dParamVel, -this->velocity[j]);
+		}
+		else if ( fabs(delta[j]-0) < EPSILON ) {
+			this->state[j] = MOBOT_HOLD;
+			dJointSetAMotorParam(this->motor[j], dParamVel, 0);
+		}
+	}
+    dBodyEnable(this->body[CENTER].bodyID);
+	pthread_mutex_unlock(&(this->angle_mutex));
+
+	// set success to false
+	pthread_mutex_lock(&(this->success_mutex));
+	this->success = false;
+	pthread_mutex_unlock(&(this->success_mutex));
+
+	// unlock goal
+	this->simThreadsGoalWUnlock();
+}
+
+void CRobot4Sim::moveWait(void) {
+	// wait for motion to complete
+	pthread_mutex_lock(&(this->success_mutex));
+	while ( !this->success ) { pthread_cond_wait(&(this->success_cond), &(this->success_mutex)); }
+	this->success = true;
+	pthread_mutex_unlock(&(this->success_mutex));
+}
+
+void CRobot4Sim::updateMotorSpeed(int i) {
+    /*// with PID
+    if (this->cur_ang[i] < this->fut_ang[i] - 10*this->m_motor_res)
+        dJointSetA*MotorParam(this->motor[i], dParamVel, this->jnt_vel[i]);
+    else if (this->cur_ang[i] > this->fut_ang[i] + 10*this->m_motor_res)
+        dJointSetAMotorParam(this->motor[i], dParamVel, -this->jnt_vel[i]);
+    else if (this->fut_ang[i] - 10*this->m_motor_res < this->cur_ang[i] &&  this->cur_ang[i] < this->fut_ang[i] - this->m_motor_res)
+        dJointSetAMotorParam(this->motor[i], dParamVel, this->pid[i].update(this->fut_ang[i] - this->cur_ang[i]));
+    else if (this->cur_ang[i] < this->fut_ang[i] + 10*this->m_motor_res && this->cur_ang[i] > this->fut_ang[i] + this->m_motor_res)
+        dJointSetAMotorParam(this->motor[i], dParamVel, this->pid[i].update(this->cur_ang[i] - this->fut_ang[i]));
+    else
+        dJointSetAMotorParam(this->motor[i], dParamVel, 0);*/
+    // without PID
+    if (this->angle[i] < this->goal[i] - this->m_motor_res)
+        dJointSetAMotorParam(this->motor[i], dParamVel, this->velocity[i]);
+    else if (this->angle[i] > this->goal[i] + this->m_motor_res)
+        dJointSetAMotorParam(this->motor[i], dParamVel, -this->velocity[i]);
+    else
+        dJointSetAMotorParam(this->motor[i], dParamVel, 0);
+}
+
+/*void CRobot4Sim::updateMotorState(int i) {
+    if (this->goal[i] - this->m_motor_res < this->angle[i] && this->angle[i] < this->goal[i] + this->m_motor_res) {
+        dJointSetAMotorParam(this->motor[i], dParamVel, 0);
+		this->state[i] = MOTOR_HOLD;
+	}	
+}*/
+
+/**********************************************************
+	private functions
+ **********************************************************/
 dReal CRobot4Sim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     dReal new_ang = 0;
     int stp = (int)( fabs(past_ang) / M_PI );
@@ -410,63 +458,9 @@ void CRobot4Sim::resetPID(int i) {
         this->pid[i].restart();
 }
 
-void CRobot4Sim::updateAngle(int i) {
-	if (i == LE || i == RE)
-		this->angle[i] = mod_angle(this->angle[i], dJointGetHingeAngle(this->joints[i]), dJointGetHingeAngleRate(this->joints[i]));
-	else
-		this->angle[i] = dJointGetHingeAngle(this->joints[i]);
-}
-
-/*void CRobot4Sim::updateFutureAngle(int i, int current_step, int enable) {
-    if ( enable ) {
-        if ( i == LE || i == RE ) {
-            this->fut_ang[i] = this->ori[i];
-            for ( int j = 0; j <= current_step; j++ ) { this->fut_ang[i] += this->ang[NUM_DOF*j + i]; }
-        }
-        else {
-            this->fut_ang[i] = this->ang[NUM_DOF*current_step + i];
-        }
-    }
-    else {
-        this->fut_ang[i] = this->cur_ang[i];
-    }
-}*/
-
-/*void CRobot4Sim::updateJointVelocity(int i, int current_step) {
-    this->jnt_vel[i] = this->vel[NUM_DOF*current_step + i];
-}*/
-
-void CRobot4Sim::updateMotorSpeed(int i) {
-    /*// with PID
-    if (this->cur_ang[i] < this->fut_ang[i] - 10*this->m_motor_res)
-        dJointSetA*MotorParam(this->motors[i], dParamVel, this->jnt_vel[i]);
-    else if (this->cur_ang[i] > this->fut_ang[i] + 10*this->m_motor_res)
-        dJointSetAMotorParam(this->motors[i], dParamVel, -this->jnt_vel[i]);
-    else if (this->fut_ang[i] - 10*this->m_motor_res < this->cur_ang[i] &&  this->cur_ang[i] < this->fut_ang[i] - this->m_motor_res)
-        dJointSetAMotorParam(this->motors[i], dParamVel, this->pid[i].update(this->fut_ang[i] - this->cur_ang[i]));
-    else if (this->cur_ang[i] < this->fut_ang[i] + 10*this->m_motor_res && this->cur_ang[i] > this->fut_ang[i] + this->m_motor_res)
-        dJointSetAMotorParam(this->motors[i], dParamVel, this->pid[i].update(this->cur_ang[i] - this->fut_ang[i]));
-    else
-        dJointSetAMotorParam(this->motors[i], dParamVel, 0);*/
-    // without PID
-    if (this->angle[i] < this->goal[i] - this->m_motor_res)
-        dJointSetAMotorParam(this->motors[i], dParamVel, this->velocity[i]);
-    else if (this->angle[i] > this->goal[i] + this->m_motor_res)
-        dJointSetAMotorParam(this->motors[i], dParamVel, -this->velocity[i]);
-    else
-        dJointSetAMotorParam(this->motors[i], dParamVel, 0);
-}
-
-/*void CRobot4Sim::updateMotorState(int i) {
-    if (this->goal[i] - this->m_motor_res < this->angle[i] && this->angle[i] < this->goal[i] + this->m_motor_res) {
-        dJointSetAMotorParam(this->motors[i], dParamVel, 0);
-		this->state[i] = MOTOR_HOLD;
-	}	
-}*/
-
 CiMobotSim::CiMobotSim(void) {
 	this->m_motor_res = D2R(0.5);
-	this->m_joint_vel_max = new dReal[NUM_DOF];
+	//this->m_joint_vel_max = new dReal[NUM_DOF];
 	this->m_joint_vel_max[LE] = 6.70;
 	this->m_joint_vel_max[LB] = 2.61;
 	this->m_joint_vel_max[RB] = 2.61;
@@ -476,7 +470,7 @@ CiMobotSim::CiMobotSim(void) {
 	//this->m_joint_vel_min[LB] = 1.25;
 	//this->m_joint_vel_min[RB] = 1.25;
 	//this->m_joint_vel_min[RE] = 3.22;
-	this->m_joint_frc_max = new dReal[NUM_DOF];
+	//this->m_joint_frc_max = new dReal[NUM_DOF];
 	this->m_joint_frc_max[LE] = 0.260;
 	this->m_joint_frc_max[LB] = 1.059;
 	this->m_joint_frc_max[RB] = 1.059;
@@ -502,7 +496,7 @@ CiMobotSim::CiMobotSim(void) {
 
 CMobotSim::CMobotSim(void) {
 	this->m_motor_res = D2R(0.5);
-	this->m_joint_vel_max = new dReal[NUM_DOF];
+	//this->m_joint_vel_max = new dReal[NUM_DOF];
 	this->m_joint_vel_max[LE] = 6.70;
 	this->m_joint_vel_max[LB] = 2.61;
 	this->m_joint_vel_max[RB] = 2.61;
@@ -512,7 +506,7 @@ CMobotSim::CMobotSim(void) {
 	this->m_joint_vel_min[LB] = 1.25;
 	this->m_joint_vel_min[RB] = 1.25;
 	this->m_joint_vel_min[RE] = 3.22;*/
-	this->m_joint_frc_max = new dReal[NUM_DOF];
+	//this->m_joint_frc_max = new dReal[NUM_DOF];
 	this->m_joint_frc_max[LE] = 0.260;
 	this->m_joint_frc_max[LB] = 1.059;
 	this->m_joint_frc_max[RB] = 1.059;
@@ -563,94 +557,98 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 
     // store position and rotation of center of module
-    this->pos[0] = x;
-    this->pos[1] = y;
-    this->pos[2] = z - this->body_height/2;
-    this->rot[0] = psi;
-    this->rot[1] = theta;
-    this->rot[2] = phi;
+    this->position[0] = x;
+    this->position[1] = y;
+    this->position[2] = z - this->body_height/2;
+    this->rotation[0] = psi;
+    this->rotation[1] = theta;
+    this->rotation[2] = phi;
+    this->orientation[0] = 0;
+    this->orientation[1] = 0;
+    this->orientation[2] = 0;
+    this->orientation[3] = 0;
 
     // joint for left endcap to body
-    this->joints[0] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
-    dJointSetHingeAnchor(this->joints[0], R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
-    dJointSetHingeAxis(this->joints[0], R[0], R[4], R[8]);
-    dJointSetHingeParam(this->joints[0], dParamCFM, 0);
+    this->joint[0] = dJointCreateHinge(this->world, 0);
+    dJointAttach(this->joint[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
+    dJointSetHingeAnchor(this->joint[0], R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
+    dJointSetHingeAxis(this->joint[0], R[0], R[4], R[8]);
+    dJointSetHingeParam(this->joint[0], dParamCFM, 0);
 
     // joint for center to left body 1
-    this->joints[1] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
-    dJointSetHingeAnchor(this->joints[1], R[0]*lb[3] + R[1]*(this->center_offset+lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset+lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset+lb[4]) + R[10]*lb[5] + z);
-    dJointSetHingeAxis(this->joints[1], -R[1], -R[5], -R[9]);
-    dJointSetHingeParam(this->joints[1], dParamCFM, 0);
+    this->joint[1] = dJointCreateHinge(this->world, 0);
+    dJointAttach(this->joint[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
+    dJointSetHingeAnchor(this->joint[1], R[0]*lb[3] + R[1]*(this->center_offset+lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset+lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset+lb[4]) + R[10]*lb[5] + z);
+    dJointSetHingeAxis(this->joint[1], -R[1], -R[5], -R[9]);
+    dJointSetHingeParam(this->joint[1], dParamCFM, 0);
 
     // joint for center to left body 2
-    this->joints[4] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[4], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
-    dJointSetHingeAnchor(this->joints[4], R[0]*lb[3] + R[1]*(this->center_offset-lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset-lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset-lb[4]) + R[10]*lb[5] + z);
-    dJointSetHingeAxis(this->joints[4], R[1], R[5], R[9]);
-    dJointSetHingeParam(this->joints[4], dParamCFM, 0);
+    this->joint[4] = dJointCreateHinge(this->world, 0);
+    dJointAttach(this->joint[4], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
+    dJointSetHingeAnchor(this->joint[4], R[0]*lb[3] + R[1]*(this->center_offset-lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset-lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset-lb[4]) + R[10]*lb[5] + z);
+    dJointSetHingeAxis(this->joint[4], R[1], R[5], R[9]);
+    dJointSetHingeParam(this->joint[4], dParamCFM, 0);
 
     // joint for center to right body 1
-    this->joints[2] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
-    dJointSetHingeAnchor(this->joints[2], R[0]*rb[3] + R[1]*(this->center_offset+rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset+rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset+rb[4]) + R[10]*rb[5] + z);
-    dJointSetHingeAxis(this->joints[2], R[1], R[5], R[9]);
-    dJointSetHingeParam(this->joints[2], dParamCFM, 0);
+    this->joint[2] = dJointCreateHinge(this->world, 0);
+    dJointAttach(this->joint[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
+    dJointSetHingeAnchor(this->joint[2], R[0]*rb[3] + R[1]*(this->center_offset+rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset+rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset+rb[4]) + R[10]*rb[5] + z);
+    dJointSetHingeAxis(this->joint[2], R[1], R[5], R[9]);
+    dJointSetHingeParam(this->joint[2], dParamCFM, 0);
 
     // joint for center to right body 2
-    this->joints[5] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[5], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
-    dJointSetHingeAnchor(this->joints[5], R[0]*rb[3] + R[1]*(this->center_offset-rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset-rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset-rb[4]) + R[10]*rb[5] + z);
-    dJointSetHingeAxis(this->joints[5], -R[1], -R[5], -R[9]);
-    dJointSetHingeParam(this->joints[5], dParamCFM, 0);
+    this->joint[5] = dJointCreateHinge(this->world, 0);
+    dJointAttach(this->joint[5], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
+    dJointSetHingeAnchor(this->joint[5], R[0]*rb[3] + R[1]*(this->center_offset-rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset-rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset-rb[4]) + R[10]*rb[5] + z);
+    dJointSetHingeAxis(this->joint[5], -R[1], -R[5], -R[9]);
+    dJointSetHingeParam(this->joint[5], dParamCFM, 0);
 
     // joint for right body to endcap
-    this->joints[3] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
-    dJointSetHingeAnchor(this->joints[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
-    dJointSetHingeAxis(this->joints[3], -R[0], -R[4], -R[8]);
-    dJointSetHingeParam(this->joints[3], dParamCFM, 0);
+    this->joint[3] = dJointCreateHinge(this->world, 0);
+    dJointAttach(this->joint[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
+    dJointSetHingeAnchor(this->joint[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
+    dJointSetHingeAxis(this->joint[3], -R[0], -R[4], -R[8]);
+    dJointSetHingeParam(this->joint[3], dParamCFM, 0);
 
     // motor for left endcap to body
-    this->motors[0] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
-    dJointSetAMotorMode(this->motors[0], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motors[0], 1);
-    dJointSetAMotorAxis(this->motors[0], 0, 1, R[0], R[4], R[8]);
-    dJointSetAMotorAngle(this->motors[0], 0, 0);
-    dJointSetAMotorParam(this->motors[0], dParamCFM, 0);
-    dJointSetAMotorParam(this->motors[0], dParamFMax, this->m_joint_frc_max[LE]);
+    this->motor[0] = dJointCreateAMotor(this->world, 0);
+    dJointAttach(this->motor[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
+    dJointSetAMotorMode(this->motor[0], dAMotorUser);
+    dJointSetAMotorNumAxes(this->motor[0], 1);
+    dJointSetAMotorAxis(this->motor[0], 0, 1, R[0], R[4], R[8]);
+    dJointSetAMotorAngle(this->motor[0], 0, 0);
+    dJointSetAMotorParam(this->motor[0], dParamCFM, 0);
+    dJointSetAMotorParam(this->motor[0], dParamFMax, this->m_joint_frc_max[LE]);
 
     // motor for center to left body
-    this->motors[1] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
-    dJointSetAMotorMode(this->motors[1], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motors[1], 1);
-    dJointSetAMotorAxis(this->motors[1], 0, 1, -R[1], -R[5], -R[9]);
-    dJointSetAMotorAngle(this->motors[1], 0, 0);
-    dJointSetAMotorParam(this->motors[1], dParamCFM, 0);
-    dJointSetAMotorParam(this->motors[1], dParamFMax, this->m_joint_frc_max[LB]);
+    this->motor[1] = dJointCreateAMotor(this->world, 0);
+    dJointAttach(this->motor[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
+    dJointSetAMotorMode(this->motor[1], dAMotorUser);
+    dJointSetAMotorNumAxes(this->motor[1], 1);
+    dJointSetAMotorAxis(this->motor[1], 0, 1, -R[1], -R[5], -R[9]);
+    dJointSetAMotorAngle(this->motor[1], 0, 0);
+    dJointSetAMotorParam(this->motor[1], dParamCFM, 0);
+    dJointSetAMotorParam(this->motor[1], dParamFMax, this->m_joint_frc_max[LB]);
 
     // motor for center to right body
-    this->motors[2] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
-    dJointSetAMotorMode(this->motors[2], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motors[2], 1);
-    dJointSetAMotorAxis(this->motors[2], 0, 1, R[1], R[5], R[9]);
-    dJointSetAMotorAngle(this->motors[2], 0, 0);
-    dJointSetAMotorParam(this->motors[2], dParamCFM, 0);
-    dJointSetAMotorParam(this->motors[2], dParamFMax, this->m_joint_frc_max[RB]);
+    this->motor[2] = dJointCreateAMotor(this->world, 0);
+    dJointAttach(this->motor[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
+    dJointSetAMotorMode(this->motor[2], dAMotorUser);
+    dJointSetAMotorNumAxes(this->motor[2], 1);
+    dJointSetAMotorAxis(this->motor[2], 0, 1, R[1], R[5], R[9]);
+    dJointSetAMotorAngle(this->motor[2], 0, 0);
+    dJointSetAMotorParam(this->motor[2], dParamCFM, 0);
+    dJointSetAMotorParam(this->motor[2], dParamFMax, this->m_joint_frc_max[RB]);
 
     // motor for right body to endcap
-    this->motors[3] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
-    dJointSetAMotorMode(this->motors[3], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motors[3], 1);
-    dJointSetAMotorAxis(this->motors[3], 0, 1, -R[0], -R[4], -R[8]);
-    dJointSetAMotorAngle(this->motors[3], 0, 0);
-    dJointSetAMotorParam(this->motors[3], dParamCFM, 0);
-    dJointSetAMotorParam(this->motors[3], dParamFMax, this->m_joint_frc_max[RE]);
+    this->motor[3] = dJointCreateAMotor(this->world, 0);
+    dJointAttach(this->motor[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
+    dJointSetAMotorMode(this->motor[3], dAMotorUser);
+    dJointSetAMotorNumAxes(this->motor[3], 1);
+    dJointSetAMotorAxis(this->motor[3], 0, 1, -R[0], -R[4], -R[8]);
+    dJointSetAMotorAngle(this->motor[3], 0, 0);
+    dJointSetAMotorParam(this->motor[3], dParamCFM, 0);
+    dJointSetAMotorParam(this->motor[3], dParamFMax, this->m_joint_frc_max[RE]);
 
     // set damping on all bodies to 0.1
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i].bodyID, 0.1, 0.1);
@@ -698,58 +696,58 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 
     // store position and rotation of center of module
-    this->pos[0] = x;
-    this->pos[1] = y;
-    this->pos[2] = z - this->body_height/2;
-    this->rot[0] = psi;
-    this->rot[1] = theta;
-    this->rot[2] = phi;
-    this->ori[0] = r_le;
-    this->ori[1] = r_lb;
-    this->ori[2] = r_rb;
-    this->ori[3] = r_re;
+    this->position[0] = x;
+    this->position[1] = y;
+    this->position[2] = z - this->body_height/2;
+    this->rotation[0] = psi;
+    this->rotation[1] = theta;
+    this->rotation[2] = phi;
+    this->orientation[0] = r_le;
+    this->orientation[1] = r_lb;
+    this->orientation[2] = r_rb;
+    this->orientation[3] = r_re;
 
     // joint for left endcap to body
-    this->joints[0] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
-    dJointSetHingeAnchor(this->joints[0], R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
-    dJointSetHingeAxis(this->joints[0], R[0], R[4], R[8]);
-    dJointSetHingeParam(this->joints[0], dParamCFM, 0);
+    this->joint[0] = dJointCreateHinge(this->world, 0);
+    dJointAttach(this->joint[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
+    dJointSetHingeAnchor(this->joint[0], R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
+    dJointSetHingeAxis(this->joint[0], R[0], R[4], R[8]);
+    dJointSetHingeParam(this->joint[0], dParamCFM, 0);
 
     // joint for center to left body 1
-    this->joints[1] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
-    dJointSetHingeAnchor(this->joints[1], R[0]*lb[3] + R[1]*(this->center_offset+lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset+lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset+lb[4]) + R[10]*lb[5] + z);
-    dJointSetHingeAxis(this->joints[1], -R[1], -R[5], -R[9]);
-    dJointSetHingeParam(this->joints[1], dParamCFM, 0);
+    this->joint[1] = dJointCreateHinge(this->world, 0);
+    dJointAttach(this->joint[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
+    dJointSetHingeAnchor(this->joint[1], R[0]*lb[3] + R[1]*(this->center_offset+lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset+lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset+lb[4]) + R[10]*lb[5] + z);
+    dJointSetHingeAxis(this->joint[1], -R[1], -R[5], -R[9]);
+    dJointSetHingeParam(this->joint[1], dParamCFM, 0);
 
     // joint for center to left body 2
-    this->joints[4] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[4], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
-    dJointSetHingeAnchor(this->joints[4], R[0]*lb[3] + R[1]*(this->center_offset-lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset-lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset-lb[4]) + R[10]*lb[5] + z);
-    dJointSetHingeAxis(this->joints[4], R[1], R[5], R[9]);
-    dJointSetHingeParam(this->joints[4], dParamCFM, 0);
+    this->joint[4] = dJointCreateHinge(this->world, 0);
+    dJointAttach(this->joint[4], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
+    dJointSetHingeAnchor(this->joint[4], R[0]*lb[3] + R[1]*(this->center_offset-lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset-lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset-lb[4]) + R[10]*lb[5] + z);
+    dJointSetHingeAxis(this->joint[4], R[1], R[5], R[9]);
+    dJointSetHingeParam(this->joint[4], dParamCFM, 0);
 
     // joint for center to right body 1
-    this->joints[2] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
-    dJointSetHingeAnchor(this->joints[2], R[0]*rb[3] + R[1]*(this->center_offset+rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset+rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset+rb[4]) + R[10]*rb[5] + z);
-    dJointSetHingeAxis(this->joints[2], R[1], R[5], R[9]);
-    dJointSetHingeParam(this->joints[2], dParamCFM, 0);
+    this->joint[2] = dJointCreateHinge(this->world, 0);
+    dJointAttach(this->joint[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
+    dJointSetHingeAnchor(this->joint[2], R[0]*rb[3] + R[1]*(this->center_offset+rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset+rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset+rb[4]) + R[10]*rb[5] + z);
+    dJointSetHingeAxis(this->joint[2], R[1], R[5], R[9]);
+    dJointSetHingeParam(this->joint[2], dParamCFM, 0);
 
     // joint for center to right body 2
-    this->joints[5] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[5], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
-    dJointSetHingeAnchor(this->joints[5], R[0]*rb[3] + R[1]*(this->center_offset-rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset-rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset-rb[4]) + R[10]*rb[5] + z);
-    dJointSetHingeAxis(this->joints[5], -R[1], -R[5], -R[9]);
-    dJointSetHingeParam(this->joints[5], dParamCFM, 0);
+    this->joint[5] = dJointCreateHinge(this->world, 0);
+    dJointAttach(this->joint[5], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
+    dJointSetHingeAnchor(this->joint[5], R[0]*rb[3] + R[1]*(this->center_offset-rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset-rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset-rb[4]) + R[10]*rb[5] + z);
+    dJointSetHingeAxis(this->joint[5], -R[1], -R[5], -R[9]);
+    dJointSetHingeParam(this->joint[5], dParamCFM, 0);
 
     // joint for right body to endcap
-    this->joints[3] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joints[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
-    dJointSetHingeAnchor(this->joints[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
-    dJointSetHingeAxis(this->joints[3], -R[0], -R[4], -R[8]);
-    dJointSetHingeParam(this->joints[3], dParamCFM, 0);
+    this->joint[3] = dJointCreateHinge(this->world, 0);
+    dJointAttach(this->joint[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
+    dJointSetHingeAnchor(this->joint[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
+    dJointSetHingeAxis(this->joint[3], -R[0], -R[4], -R[8]);
+    dJointSetHingeParam(this->joint[3], dParamCFM, 0);
 
     // create rotation matrices for each body part
     dMatrix3 R_e, R_b, R_le, R_lb, R_rb, R_re;
@@ -775,44 +773,44 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
     this->build_endcap(ENDCAP_R, R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re);
 
     // motor for left endcap to body
-    this->motors[0] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
-    dJointSetAMotorMode(this->motors[0], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motors[0], 1);
-    dJointSetAMotorAxis(this->motors[0], 0, 1, R_lb[0], R_lb[4], R_lb[8]);
-    dJointSetAMotorAngle(this->motors[0], 0, 0);
-    dJointSetAMotorParam(this->motors[0], dParamCFM, 0);
-    dJointSetAMotorParam(this->motors[0], dParamFMax, this->m_joint_frc_max[LE]);
+    this->motor[0] = dJointCreateAMotor(this->world, 0);
+    dJointAttach(this->motor[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
+    dJointSetAMotorMode(this->motor[0], dAMotorUser);
+    dJointSetAMotorNumAxes(this->motor[0], 1);
+    dJointSetAMotorAxis(this->motor[0], 0, 1, R_lb[0], R_lb[4], R_lb[8]);
+    dJointSetAMotorAngle(this->motor[0], 0, 0);
+    dJointSetAMotorParam(this->motor[0], dParamCFM, 0);
+    dJointSetAMotorParam(this->motor[0], dParamFMax, this->m_joint_frc_max[LE]);
 
     // motor for center to left body
-    this->motors[1] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
-    dJointSetAMotorMode(this->motors[1], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motors[1], 1);
-    dJointSetAMotorAxis(this->motors[1], 0, 1, -R[1], -R[5], -R[9]);
-    dJointSetAMotorAngle(this->motors[1], 0, 0);
-    dJointSetAMotorParam(this->motors[1], dParamCFM, 0);
-    dJointSetAMotorParam(this->motors[1], dParamFMax, this->m_joint_frc_max[LB]);
+    this->motor[1] = dJointCreateAMotor(this->world, 0);
+    dJointAttach(this->motor[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
+    dJointSetAMotorMode(this->motor[1], dAMotorUser);
+    dJointSetAMotorNumAxes(this->motor[1], 1);
+    dJointSetAMotorAxis(this->motor[1], 0, 1, -R[1], -R[5], -R[9]);
+    dJointSetAMotorAngle(this->motor[1], 0, 0);
+    dJointSetAMotorParam(this->motor[1], dParamCFM, 0);
+    dJointSetAMotorParam(this->motor[1], dParamFMax, this->m_joint_frc_max[LB]);
 
     // motor for center to right body
-    this->motors[2] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
-    dJointSetAMotorMode(this->motors[2], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motors[2], 1);
-    dJointSetAMotorAxis(this->motors[2], 0, 1, R[1], R[5], R[9]);
-    dJointSetAMotorAngle(this->motors[2], 0, 0);
-    dJointSetAMotorParam(this->motors[2], dParamCFM, 0);
-    dJointSetAMotorParam(this->motors[2], dParamFMax, this->m_joint_frc_max[RB]);
+    this->motor[2] = dJointCreateAMotor(this->world, 0);
+    dJointAttach(this->motor[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
+    dJointSetAMotorMode(this->motor[2], dAMotorUser);
+    dJointSetAMotorNumAxes(this->motor[2], 1);
+    dJointSetAMotorAxis(this->motor[2], 0, 1, R[1], R[5], R[9]);
+    dJointSetAMotorAngle(this->motor[2], 0, 0);
+    dJointSetAMotorParam(this->motor[2], dParamCFM, 0);
+    dJointSetAMotorParam(this->motor[2], dParamFMax, this->m_joint_frc_max[RB]);
 
     // motor for right body to endcap
-    this->motors[3] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motors[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
-    dJointSetAMotorMode(this->motors[3], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motors[3], 1);
-    dJointSetAMotorAxis(this->motors[3], 0, 1, -R_rb[0], -R_rb[4], -R_rb[8]);
-    dJointSetAMotorAngle(this->motors[3], 0, 0);
-    dJointSetAMotorParam(this->motors[3], dParamCFM, 0);
-    dJointSetAMotorParam(this->motors[3], dParamFMax, this->m_joint_frc_max[RE]);
+    this->motor[3] = dJointCreateAMotor(this->world, 0);
+    dJointAttach(this->motor[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
+    dJointSetAMotorMode(this->motor[3], dAMotorUser);
+    dJointSetAMotorNumAxes(this->motor[3], 1);
+    dJointSetAMotorAxis(this->motor[3], 0, 1, -R_rb[0], -R_rb[4], -R_rb[8]);
+    dJointSetAMotorAngle(this->motor[3], 0, 0);
+    dJointSetAMotorParam(this->motor[3], dParamCFM, 0);
+    dJointSetAMotorParam(this->motor[3], dParamFMax, this->m_joint_frc_max[RE]);
 
     // set damping on all bodies to 0.1
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i].bodyID, 0.1, 0.1);

@@ -310,24 +310,18 @@ void CMobotFD::update_angles(void) {
 
 	// update stored data in struct with data from ODE
 	for ( i = 0; i < this->m_number[0]; i++ ) {
-		//printf("bot: %d\t", i);
+
 		// must be done for each degree of freedom
 		for ( j = 0; j < NUM_DOF; j++ ) {
-			//printf("joint: %d\t", j);
 			// update current angle
-			this->bot[i]->updateAngle(j);
-			//printf("angle: %lf\t", this->bot[i]->getAngle(j));
+			//this->bot[i]->updateAngle(j);
 
 			// set motor angle to current angle
 			//dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getAngle(j));
 
 			// drive motor to get current angle to match future angle
-			//if ( dJointIsEnabled(this->bot[i]->getMotorID(j)) ) {
-				//printf("updating speeds\n");
 			this->bot[i]->updateMotorSpeed(j);
-			//}
 		}
-		//printf("\n");
 	}
 }
 
