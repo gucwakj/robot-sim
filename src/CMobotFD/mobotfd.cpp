@@ -33,34 +33,37 @@ CMobotFD::CMobotFD(void) {
 	this->m_cor_g = 0.3;
 	this->m_cor_b = 0.3;
 
+	pthread_create(&(this->simulation), NULL, (void* (*)(void *))&CMobotFD::simulation_wrapper, (void *)this);
+	//pthread_create(&visualization, NULL, (void *)vizLoop, NULL);
+
 	// variables to keep track of progress of simulation
-	this->m_cur_stp = 0;
+	//this->m_cur_stp = 0;
 	//this->m_flag_comp = new bool[num_bot];
     //this->m_flag_disable = new bool[num_bot];
-	this->m_flag_comp = NULL;
-	this->m_flag_disable = NULL;
+	//this->m_flag_comp = NULL;
+	//this->m_flag_disable = NULL;
     //this->m_num_bot = num_bot;
-    this->m_num_stp = 1;
-    for ( int i = 0; i < NUM_TYPES; i++ ) {
+    //this->m_num_stp = 1;
+	for ( int i = 0; i < NUM_TYPES; i++ ) {
 		this->m_number[i] = 0;
-    }
+	}
     this->m_num_statics = 0;
     this->m_num_targets = 0;
     this->m_t_step = 0.004;
-    this->m_t_tot_step = (int)((1.0 + this->m_t_step) / this->m_t_step);
-    this->m_t_cur_step = 0;
+    //this->m_t_tot_step = (int)((1.0 + this->m_t_step) / this->m_t_step);
+    //this->m_t_cur_step = 0;
 
 	this->bot = NULL;
-	this->pose = NULL;
+	//this->pose = NULL;
 	//this->bots[IMOBOT] = new CiMobotSim;
 	//this->bots[MOBOT] = new CMobotSim;
 	//this->bots[KIDBOT] = new CKidbotSim;
 	//this->bots[NXT] = new CNXTSim;
 
     // initialze reply struct
-    this->m_reply = new CMobotFDReply;
-    this->m_reply->time = 0.0;
-    this->m_reply->message = FD_ERROR_TIME;
+    //this->m_reply = new CMobotFDReply;
+    //this->m_reply->time = 0.0;
+    //this->m_reply->message = FD_ERROR_TIME;
 
 	#ifdef ENABLE_DRAWSTUFF
 	// drawstuff simulation parameters
@@ -71,6 +74,7 @@ CMobotFD::CMobotFD(void) {
 	m_fn.stop = 0;												// stopping parameter
 	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;				// path to texture files
 	g_imobotfd = this;											// pointer to class
+	printf("g: %p\n", g_imobotfd);
 	#endif
 }
 
@@ -78,11 +82,11 @@ CMobotFD::~CMobotFD(void) {
 	// free all arrays created dynamically in constructor
 	//for ( int i = this->m_number - 1; i >= 0; i-- ) { delete this->bot[i]; }
 	delete [] this->bot;
-	delete [] this->m_flag_comp;
-	delete [] this->m_flag_disable;
+	//delete [] this->m_flag_comp;
+	//delete [] this->m_flag_disable;
 	if ( this->m_num_statics ) delete [] this->m_statics;
     if ( this->m_num_targets ) delete [] this->m_targets;
-	delete this->m_reply;
+	//delete this->m_reply;
 
 	// destroy all ODE objects
 	dJointGroupDestroy(this->group);
@@ -183,25 +187,26 @@ void CMobotFD::setTarget(int num, dReal x, dReal y, dReal z) {
     dGeomDisable(this->m_targets[num].geomID);
 }
 
-void CMobotFD::setTime(dReal time_total) {
+/*void CMobotFD::setTime(dReal time_total) {
 	this->m_t_tot_step = (int)((time_total + this->m_t_step) / this->m_t_step);
-}
+}*/
 
-void CMobotFD::runSimulation(int argc, char **argv) {
+void* CMobotFD::simulation_wrapper(void *arg) {
+	CMobotFD *sim = (CMobotFD *)arg;
 	#ifdef ENABLE_DRAWSTUFF
-	dsSimulationLoop(argc, argv, 352, 288, &m_fn);
+	dsSimulationLoop(0, NULL, 352, 288, &(sim->m_fn));
 	#else
-	simulation_loop();
+	sim->simulation_loop();
 	#endif
 }
 
-int CMobotFD::getReplyMessage(void) {
+/*int CMobotFD::getReplyMessage(void) {
 	return this->m_reply->message;
 }
 
 double CMobotFD::getReplyTime(void) {
 	return (double)(this->m_reply->time);
-}
+}*/
 
 /**********************************************************
 	Private Simulation Functions
@@ -213,38 +218,91 @@ double CMobotFD::getReplyTime(void) {
  * global variable, g_imobotfd */
 #define this g_imobotfd
 void CMobotFD::ds_simulationLoop(int pause) {
-	bool loop = true;												// initialize
+	int i;
+	//bool loop = true;												// initialize
+	for (i = 0; i < this->m_number[0]; i++) {
+		this->bot[i]->simThreadsGoalRLock();
+		this->bot[i]->simThreadsAngleLock();
+	}
 	this->update_angles();											// update angles for current step
 	dSpaceCollide(this->space, this, &this->collision_wrapper);		// collide all geometries together
 	dWorldStep(this->world, this->m_t_step);						// step world time by one
 	dJointGroupEmpty(this->group);									// clear out all contact joints
-	this->print_intermediate_data();								// print out incremental data
-	this->set_flags();												// set flags for completion of steps
-	this->increment_step();											// check whether to increment to next step
-	this->end_simulation(loop);										// check whether to end simulation
+	//this->print_intermediate_data();								// print out incremental data
+	this->check_success();										// check success of current motion
+	//this->set_flags();												// set flags for completion of steps
+	//this->increment_step();											// check whether to increment to next step
+	//this->end_simulation(loop);										// check whether to end simulation
+	for (i = 0; i < this->m_number[0]; i++) {
+		this->bot[i]->simThreadsAngleUnlock();
+		this->bot[i]->simThreadsGoalRUnlock();
+	}
 
 	this->ds_drawBodies();											// draw bodies onto screen
     this->ds_drawStatics();                                         // draw ground onto screen
     this->ds_drawTargets();                                         // draw targets onto screen
-	if ((this->m_t_cur_step == this->m_t_tot_step+1) || !loop) dsStop();// stop simulation
+	//if (!loop) dsStop();											// stop simulation
 }
 #undef this
 #else
 void CMobotFD::simulation_loop(void) {
-	bool loop = true;												// initialize loop tracker
-	this->set_angles();                                             // initialize angles for simulation
-	while (this->m_t_cur_step <= this->m_t_tot_step && loop) {		// loop continuously until simulation is stopped
+	//struct timespec cur_time, itime;
+	//unsigned int dt;
+	//bool loop = true;												// initialize loop tracker
+	int i;
+	while (1) {													// loop continuously until simulation is stopped
+		// prevent viz from running until next step if over
+		//pthread_rw_rlock(&viz_rwlock);
+
+		// get start time of execution
+		//clock_gettime(CLOCK_REALTIME, &cur_time);
+
+		// lock goal and angle
+		for (i = 0; i < this->m_number[0]; i++) {
+			this->bot[i]->simThreadsGoalRLock();
+			this->bot[i]->simThreadsAngleLock();
+		}
+		//printf("locking done\t");
+
 		this->update_angles();										// update angles for current step
+
+		// step world
 		dSpaceCollide(this->space, this, &this->collision_wrapper);	// collide all geometries together
 		dWorldStep(this->world, this->m_t_step);					// step world time by one
 		dJointGroupEmpty(this->group);								// clear out all contact joints
+
 		this->print_intermediate_data();							// print out incremental data
-		this->set_flags();											// set flags for completion of steps
+		this->check_success();										// check success of current motion
+
+		/*this->set_flags();											// set flags for completion of steps
 		this->increment_step();										// check whether to increment to next step
-		this->end_simulation(loop);									// check whether to end simulation
+		this->end_simulation(loop);									// check whether to end simulation*/
+
+		// unlock goal and angle
+		for (i = 0; i < this->m_number[0]; i++) {
+			this->bot[i]->simThreadsAngleUnlock();
+			this->bot[i]->simThreadsGoalRUnlock();
+		}
+		//printf("unlocking done\n");
+
+		// check end time of execution
+		//clock_gettime(CLOCK_REALTIME, &itime);
+		// sleep until next step
+		//dt = diff_nsecs(cur_time, itime);
+		//if ( dt < 500000 ) { usleep(500 - dt/1000); }
+
+		// allow viz to run if requesting access
+		//pthread_rw_runlock(&viz_rwlock);
 	}
 }
 #endif
+
+void CMobotFD::check_success(void) {
+	int i;
+	for ( i = 0; i < this->m_number[0]; i++ ) {
+		this->bot[i]->isComplete();
+	}
+}
 
 void CMobotFD::update_angles(void) {
 	// initialze loop counters
@@ -252,19 +310,24 @@ void CMobotFD::update_angles(void) {
 
 	// update stored data in struct with data from ODE
 	for ( i = 0; i < this->m_number[0]; i++ ) {
+		//printf("bot: %d\t", i);
 		// must be done for each degree of freedom
 		for ( j = 0; j < NUM_DOF; j++ ) {
+			//printf("joint: %d\t", j);
 			// update current angle
-            this->bot[i]->updateCurrentAngle(j);
+			this->bot[i]->updateAngle(j);
+			//printf("angle: %lf\t", this->bot[i]->getAngle(j));
 
 			// set motor angle to current angle
-			dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getCurrentAngle(j));
+			//dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getAngle(j));
 
 			// drive motor to get current angle to match future angle
-			if ( dJointIsEnabled(this->bot[i]->getMotorID(j)) ) {
-                this->bot[i]->updateMotorSpeed(j);
-			}
+			//if ( dJointIsEnabled(this->bot[i]->getMotorID(j)) ) {
+				//printf("updating speeds\n");
+			this->bot[i]->updateMotorSpeed(j);
+			//}
 		}
+		//printf("\n");
 	}
 }
 
@@ -309,7 +372,7 @@ void CMobotFD::collision(dGeomID o1, dGeomID o2) {
 	}
 }
 
-void CMobotFD::set_flags(void) {
+/*void CMobotFD::set_flags(void) {
 	// initialze loop counters
 	int c, i, j;
 
@@ -327,9 +390,9 @@ void CMobotFD::set_flags(void) {
 		// module is disabled
         this->m_flag_disable[i] = this->bot[i]->isDisabled();
 	}
-}
+}*/
 
-void CMobotFD::increment_step(void) {
+/*void CMobotFD::increment_step(void) {
 	// if completed step and bodies are at rest, then increment
 	if ( this->is_true(this->m_number[0], this->m_flag_comp) && this->is_true(this->m_number[0], this->m_flag_disable) ) {
 		// if haven't reached last step, increment
@@ -353,89 +416,49 @@ void CMobotFD::increment_step(void) {
 	}
 	// increment time step
 	this->m_t_cur_step++;
-}
+}*/
 
-void CMobotFD::set_angles(void) {
+/*void CMobotFD::set_angles(void) {
 	// set arrays of angles for new step
 	for ( int i = 0; i < this->m_number[0]; i++ ) {
 		for ( int j = 0; j < NUM_DOF; j++ ) {
-            if ( this->bot[i]->isJointDisabled(j, this->m_cur_stp) ) {
+            //if ( this->bot[i]->isJointDisabled(j, this->m_cur_stp) ) {
+            if ( this->bot[i]->isJointDisabled(j, 0) ) {
 				dJointDisable(this->bot[i]->getMotorID(j));
-                this->bot[i]->updateFutureAngle(j, this->m_cur_stp, 0);
+                //this->bot[i]->updateFutureAngle(j, this->m_cur_stp, 0);
+                this->bot[i]->updateFutureAngle(j, 0, 0);
 				dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getCurrentAngle(j));
 			}
 			else {
 				dJointEnable(this->bot[i]->getMotorID(j));
-				this->bot[i]->updateFutureAngle(j, this->m_cur_stp, 1);
-                this->bot[i]->updateJointVelocity(j, this->m_cur_stp);
+				//this->bot[i]->updateFutureAngle(j, this->m_cur_stp, 1);
+				this->bot[i]->updateFutureAngle(j, 0, 1);
+                //this->bot[i]->updateJointVelocity(j, 0);
 				dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getCurrentAngle(j));
 			}
 		}
 		this->bot[i]->enable();     // re-enable robots for next step
 	}
-}
+}*/
 
 void CMobotFD::print_intermediate_data(void) {
 	// initialze loop counters
 	int i;
 
-	//cout.width(3); cout << this->m_t_cur_step;
-	//cout.width(4); cout << this->m_t_tot_step;
-	cout.width(3); cout << this->m_cur_stp;
-	cout << "\t\t";
-	const dReal *pos;
-    //for ( i = 0; i < 1; i++ ) {
-    cout.width(10);// cout.precision(4);
+    cout.width(10);		// cout.precision(4);
     cout.setf(ios::fixed, ios::floatfield);
-	for (i = 1; i < this->m_number[0]; i++) {
-		//cout << this->bot[i]->fut_ang[LE] << " ";
-		//cout << this->bot[i]->body[ENDCAP_L].ang << " ";
-		//cout << this->bot[i]->cur_ang[LE] << ", ";
-		//cout << this->bot[i]->jnt_vel[LE] << " ";
-		//cout << dJointGetAMotorParam(this->bot[i]->motors[LE], dParamVel) << " ";
-		//cout << dJointGetHingeAngle(this->bot[i]->joints[LE]) << " ";
-		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[LE]) << " ";
-		//
-		//cout << this->bot[i]->fut_ang[LB] << " ";
-		//cout << this->bot[i]->body[BODY_L].ang << " ";
-		//cout << this->bot[i]->cur_ang[LB] << ", ";
-		//cout << this->bot[i]->jnt_vel[LB] << " ";
-		//cout << dJointGetAMotorParam(this->bot[i]->motors[LB], dParamVel) << " ";
-		//cout << dJointGetHingeAngle(this->bot[i]->joints[LB]) << " ";
-		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[LB]) << " ";
-		//
-		//pos = dBodyGetPosition(this->bot[i]->body[CENTER].bodyID);
-		//printf("[%f %f %f]\t", pos[0], pos[1], pos[2]);
-		//cout << dBodyIsEnabled(this->bot[i]->body[CENTER].bodyID) << " ";
-		//
-		//cout << this->bot[i]->fut_ang[RB] << " ";
-		//cout << this->bot[i]->body[BODY_R].ang << " ";
-		//cout << this->bot[i]->cur_ang[RB] << ", ";
-		//cout << this->bot[i]->jnt_vel[RB] << " ";
-		//cout << dJointGetAMotorParam(this->bot[i]->motors[RB], dParamVel) << " ";
-		//cout << dJointGetHingeAngle(this->bot[i]->joints[RB]) << " ";
-		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RB]) << " ";
-		//
-		//cout << this->bot[i]->fut_ang[RE] << " ";
-		//cout << this->bot[i]->body[ENDCAP_R].ang << " ";
-		//cout << this->bot[i]->cur_ang[RE] << " ";
-		//cout << this->bot[i]->jnt_vel[RE] << " ";
-		//cout << dJointGetAMotorParam(this->bot[i]->motors[RE], dParamVel) << " ";
-		//cout << dJointGetHingeAngle(this->bot[i]->joints[RE]) << " ";
-		//cout << dJointGetHingeAngleRate(this->bot[i]->joints[RE]) << " ";
-        //cout << "\t\t";
+	for (i = 0; i < this->m_number[0]; i++) {
+		//cout << "bot: " << i << " success: " << this->bot[i]->getSuccess() << " enabled: " << dJointIsEnabled(this->bot[i]->getMotorID(0)) << " ";
+		//cout << "bot: " << i << " vel: " << dJointGetAMotorParam(this->bot[i]->getMotorID(0), dParamVel) << " ";
+		cout << this->bot[i]->getAngle(LE) << " ";
+		cout << this->bot[i]->getAngle(LB) << " ";
+		cout << this->bot[i]->getAngle(RB) << " ";
+		cout << this->bot[i]->getAngle(RE) << "\t";
 	}
-	//cout << ">" << endl;
-	//for (i = 0; i < this->m_number; i++) { cout << this->m_flag_comp[i] << " "; }
-	//cout << " ";
-	for (i = 0; i < this->m_number[0]; i++) { cout << this->m_flag_disable[i] << " "; }
 	cout << endl;
-    //pos = dBodyGetPosition(this->bot[1]->body[ENDCAP_R].bodyID);
-    //cout << "<" << this->target[0].x << "\t" << this->target[0].y << "\t" << this->target[0].z << ">";
-    //cout << "<" << pos[0] << "\t" << pos[1] << "\t" << pos[2] << ">" << endl;
 }
 
-void CMobotFD::end_simulation(bool &loop) {
+/*void CMobotFD::end_simulation(bool &loop) {
 	// have not completed steps && stalled
 	if ( !this->is_true(this->m_number[0], this->m_flag_comp) && this->is_true(this->m_number[0], this->m_flag_disable) ) {
 		this->m_reply->message = FD_ERROR_STALL;
@@ -443,59 +466,14 @@ void CMobotFD::end_simulation(bool &loop) {
 	}
 	// success on all steps
 	else if ( !this->m_reply->message ) { loop = false; }
-}
-
-void CMobotFD::add_pose(int type, int num, int step, bool nb) {
-	static bool blocking = false;
-	Pose *newPose = new Pose;
-	newPose->type = type;
-	newPose->num = num;
-	newPose->step = step;
-	newPose->complete = false;
-	newPose->wait = false;
-	newPose->block = NULL;
-	newPose->nonblock = NULL;
-
-	Pose *tmp = this->pose;
-	if ( pose == NULL ) {
-		this->pose = newPose;
-	}
-	else {
-		while (tmp->block || tmp->nonblock) tmp = tmp->block ? tmp->block : tmp->nonblock;
-		newPose->id = tmp->id+1;
-		newPose->parent = tmp;
-		if (blocking)
-			tmp->nonblock = newPose;
-		else
-			tmp->block = newPose;
-		blocking = ~nb;
-	}
-}
-
-void CMobotFD::add_wait(int type, int num) {
-	Pose *tmp = this->pose;
-	while (tmp->block || tmp->nonblock) tmp = tmp->block ? tmp->block : tmp->nonblock;
-	while (tmp->type != type || tmp->num != num) tmp = tmp->parent;
-	tmp->wait = true;
-}
-
-void CMobotFD::print_pose(Pose *head) {
-	while (head) {
-		printf("Node %d (%p):\n\ttype: %d\n\tnum: %d\n\tstep: %d\n\tcomplete: %d\n\twait: %d\n\tparent: %p\n\tnonblock: %p\n\tblock: %p\n", head->id, head, head->type, head->num, head->step, head->complete, head->wait, head->parent, head->nonblock, head->block);
-		if (head->block)
-			head = head->block;
-		else
-			head = head->nonblock;
-	}
-	printf("\n\n");
-}
+}*/
 
 /**********************************************************
 	Build iMobot Functions
  **********************************************************/
 void CMobotFD::addiMobot(CiMobotSim &mobot) {
-	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
-    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
+	//this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
+    //this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
 	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
 	this->bot[this->m_number[IMOBOT]] = &mobot;
 	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space, this, IMOBOT, this->m_number[IMOBOT]);
@@ -504,8 +482,8 @@ void CMobotFD::addiMobot(CiMobotSim &mobot) {
 
 void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z) {
 	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
-    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
+	//this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
+    //this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
 	this->bot[this->m_number[IMOBOT]] = &mobot;
 	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space, this, IMOBOT, this->m_number[IMOBOT]);
 	this->bot[this->m_number[IMOBOT]++]->build(x, y, z, 0, 0, 0);
@@ -513,8 +491,8 @@ void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z) {
 
 void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
-    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
+	//this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
+    //this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
 	this->bot[this->m_number[IMOBOT]] = &mobot;
 	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space, this, IMOBOT, this->m_number[IMOBOT]);
     this->bot[this->m_number[IMOBOT]++]->build(x, y, z, psi, theta, phi);
@@ -522,8 +500,8 @@ void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi
 
 void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
-    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
+	//this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
+    //this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
 	this->bot[this->m_number[IMOBOT]] = &mobot;
 	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space, this, IMOBOT, this->m_number[IMOBOT]);
     this->bot[this->m_number[IMOBOT]++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
@@ -531,8 +509,8 @@ void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi
 
 void CMobotFD::addiMobotConnected(CiMobotSim &mobot, CiMobotSim &base, int face1, int face2) {
 	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
-    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
+	//this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
+    //this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
 	this->bot[this->m_number[IMOBOT]] = &mobot;
 	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space, this, IMOBOT, this->m_number[IMOBOT]);
 	if ( base.isHome() )
@@ -544,8 +522,8 @@ void CMobotFD::addiMobotConnected(CiMobotSim &mobot, CiMobotSim &base, int face1
 
 void CMobotFD::addiMobotConnected(CiMobotSim &mobot, CiMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	this->m_flag_comp = (bool *)realloc(this->m_flag_comp, this->m_number[IMOBOT] + 1);
-    this->m_flag_disable = (bool *)realloc(this->m_flag_disable, this->m_number[IMOBOT] + 1);
+	//this->m_flag_comp = (bool *)realloc(this->m_flag_comp, this->m_number[IMOBOT] + 1);
+    //this->m_flag_disable = (bool *)realloc(this->m_flag_disable, this->m_number[IMOBOT] + 1);
 	this->bot[this->m_number[IMOBOT]] = &mobot;
 	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space, this, IMOBOT, this->m_number[IMOBOT]);
 	if ( base.isHome() )
@@ -651,12 +629,17 @@ void CMobotFD::addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, i
 /**********************************************************
 	Utility Functions
  **********************************************************/
+// check if all elements in array are true
 bool CMobotFD::is_true(int length, bool *a) {
 	for (int i = 0; i < length; i++) {
 		if ( a[i] == false )
 			return false;
 	}
 	return true;
+}
+// get difference in two time stamps in nanoseconds
+unsigned int CMobotFD::diff_nsecs(struct timespec t1, struct timespec t2) {
+	return (t2.tv_sec - t1.tv_sec) * 1000000000 + (t2.tv_nsec - t1.tv_nsec);
 }
 
 #ifdef ENABLE_DRAWSTUFF

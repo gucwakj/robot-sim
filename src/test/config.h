@@ -5,6 +5,6 @@
 #define CMOBOTIK_test_VERSION_MINOR 
 #define CMOBOTFD_test_VERSION_MAJOR 
 #define CMOBOTFD_test_VERSION_MINOR 
-#define ENABLE_DRAWSTUFF
+/* #undef ENABLE_DRAWSTUFF */
 
 #endif

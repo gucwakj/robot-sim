@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "pid.h"
+#include "threads.h"
 #include <ode/ode.h>
 #ifdef ENABLE_DRAWSTUFF
     #include <drawstuff/drawstuff.h>
@@ -13,6 +14,11 @@
         #define dsDrawCylinder dsDrawCylinderD
         #define dsDrawCapsule dsDrawCapsuleD
     #endif
+#endif
+#ifdef ENABLE_DOUBLE
+#define EPSILON DBL_EPSILON
+#else
+#define EPSILON FLT_EPSILON
 #endif
 
 enum robot_bodies_e {       // each body which has a degree of freedom
@@ -38,6 +44,12 @@ enum robot_faces_e {
 	MOBOT_FACE5,
 	MOBOT_FACE6
 };
+typedef enum mobot_joint_state_e {
+	MOBOT_NEUTRAL	= 0,
+	MOBOT_FORWARD	= 1,
+	MOBOT_BACKWARD	= 2,
+	MOBOT_HOLD		= 3
+} mobotJointState_t;
 
 typedef struct robot_body_s {
 	dBodyID bodyID;                         // id of body part
@@ -49,13 +61,14 @@ typedef struct robot_body_s {
 } Body;
 
 class CMobotFD;
-class CRobot4Sim {
+class CRobot4Sim : public robotSimThreads {
     public:
         CRobot4Sim(void);
         ~CRobot4Sim(void);
 		void addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int type, int num);
 
-        dReal getCurrentAngle(int i);
+        dReal getAngle(int i);
+		bool getSuccess(void);
         dReal getPosition(int i);
         dReal getRotation(int i);
         dBodyID getBodyID(int body);
@@ -74,14 +87,15 @@ class CRobot4Sim {
 
         void enable(void);
         void resetPID(int i = NUM_DOF);
-        void updateCurrentAngle(int i);
-        void updateFutureAngle(int i, int current_step, int enable);
-        void updateJointVelocity(int i, int current_step);
+        void updateAngle(int i);
+        //void updateFutureAngle(int i, int current_step, int enable);
+        //void updateJointVelocity(int i, int current_step);
         void updateMotorSpeed(int i);
 
-        bool isDisabled(void);
-        bool isJointDisabled(int i, int current_step);
-        bool isHome(void);
+		//bool isDisabled(void);
+		bool isComplete(void);
+		bool isHome(void);
+		bool isJointDisabled(int i, int current_step);
 
         #ifdef ENABLE_DRAWSTUFF
         void drawRobot(void);
@@ -89,22 +103,36 @@ class CRobot4Sim {
     private:
         dWorldID world;                         // world for all robots
         dSpaceID space;                         // space for this robot
-        CMobotFD *sim;		//simulation
-        dJointID *joints,                       // joints between body parts
-                 *motors;                       // motors to drive body parts
+        //CMobotFD *sim;		//simulation
+        dJointID *joints;                       // joints between body parts
+                 //*motors;                       // motors to drive body parts
         Body     *body;                        // body parts
         PID      *pid;                          // PID control for each joint
         double   *pos,                          // initial position of robot
                  *rot,                          // initial rotation of robot by three Euler angles
-                 *ang,                          // array of angles
-                 *vel,                          // array of velocities
-                 *ori,                          // initial orientation of body parts
-                 *cur_ang,                      // current angle of each body part
-                 *fut_ang,                      // future angle being driven toward
-                 *jnt_vel;                      // desired joint velocity
-        int m_num_stp;
+                 //*ang,                          // array of angles
+                 //*vel,                          // array of velocities
+                 *ori;                          // initial orientation of body parts
+                 //*cur_ang,                      // current angle of each body part
+                 //*fut_ang,                      // future angle being driven toward
+                 //*jnt_vel;                      // desired joint velocity
+		//int m_num_stp;
 		int m_type;
 		int m_num;
+
+		/* THREADED */		
+		// angles
+		double angle[4];
+		// velocities
+		double velocity[4];
+		// goals
+		double goal[4];
+		// motors
+		dJointID motors[4];
+		// states
+		mobotJointState_t state[4];
+		// trigger for goal
+		bool success;
 
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
 		void build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);
@@ -121,7 +149,7 @@ class CRobot4Sim {
 		dReal R2D(dReal x);              // convert radians to degrees
 		double	m_motor_res,
                 *m_joint_vel_max,              // maximum joint velocity possible
-                *m_joint_vel_min,              // minimum joint velocity possible
+                //*m_joint_vel_min,              // minimum joint velocity possible
                 *m_joint_frc_max,              // maximum force that can be applied to each body part
 				center_length, center_width, center_height, center_radius, center_offset,
 				body_length, body_width, body_height, body_radius,
@@ -129,7 +157,7 @@ class CRobot4Sim {
 				end_width, end_height, end_depth, end_radius;
 };
 
-class CMobotSim: public CRobot4Sim {
+class CMobotSim : public CRobot4Sim {
 	public:
 		CMobotSim(void);
 };

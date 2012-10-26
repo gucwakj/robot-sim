@@ -39,10 +39,15 @@ else (ENABLE_DOUBLE)
 	add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 
+# Add pthreads
+find_package(Threads)
+set (EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+
 # Add the library
 add_library( mobotfd SHARED
 	mobotfd.cpp
 	mobot.cpp
 	pid.cpp
+	threads.cpp
 )
-target_link_libraries(mobotfd ode ${EXTRA_LIBS})
+target_link_libraries(mobotfd ode ${EXTRA_LIBS} rt)

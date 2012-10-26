@@ -1,26 +1,40 @@
 #include "mobot.h"
-#include "mobotfd.h"
 
 CRobot4Sim::CRobot4Sim(void) {
-    this->m_num_stp = 0;
+    //this->m_num_stp = 0;
 	this->joints = new dJointID[6];
-	this->motors = new dJointID[4];
+	//this->motors = new dJointID[4];
 	this->pid = new PID[NUM_DOF];
-	this->ang = new dReal[NUM_DOF]();
-	this->ang = NULL;
-	this->vel = new dReal[NUM_DOF]();
-	this->cur_ang = new dReal[NUM_DOF]();
-	this->fut_ang = new dReal[NUM_DOF]();
-	this->jnt_vel = new dReal[NUM_DOF]();
+	//this->ang = new dReal[NUM_DOF]();
+	//this->ang = NULL;
+	//this->vel = new dReal[NUM_DOF]();
+	//this->cur_ang = new dReal[NUM_DOF]();
+	//this->fut_ang = new dReal[NUM_DOF]();
+	//this->jnt_vel = new dReal[NUM_DOF]();
 	this->pos = new dReal[3]();
 	this->rot = new dReal[3]();
 	this->ori = new dReal[4]();
+	
+	this->angle[0] = 0;
+	this->angle[1] = 0;
+	this->angle[2] = 0;
+	this->angle[3] = 0;
+	this->velocity[0] = 0.7854;	// 45 deg/sec
+	this->velocity[1] = 0.7854;	// 45 deg/sec
+	this->velocity[2] = 0.7854;	// 45 deg/sec
+	this->velocity[3] = 0.7854;	// 45 deg/sec
+	this->success = true;
+	// init locks
+	pthread_mutex_init(&angle_mutex, NULL);
+	this->simThreadsGoalInit(NULL);
+	pthread_mutex_init(&success_mutex, NULL);
+	pthread_cond_init(&success_cond, NULL);
 
     for ( int i = 0; i < NUM_DOF; i++ ) {
         this->pid[i].init(100, 1, 10, 0.1, 0.004);
-#ifdef ENABLE_DRAWSTUFF
+/*#ifdef ENABLE_DRAWSTUFF
         this->jnt_vel[i] = this->vel[i];
-#endif
+#endif*/
     }
 }
 
@@ -28,22 +42,22 @@ CRobot4Sim::~CRobot4Sim(void) {
 	//delete [] this->body;
 	delete [] this->pid;
 	delete [] this->joints;
-	delete [] this->motors;
-	delete [] this->fut_ang;
-	delete [] this->cur_ang;
-	delete [] this->jnt_vel;
-	delete [] this->ang;
-	delete [] this->vel;
+	//delete [] this->motors;
+	//delete [] this->fut_ang;
+	//delete [] this->cur_ang;
+	//delete [] this->jnt_vel;
+	//delete [] this->ang;
+	//delete [] this->vel;
 	delete [] this->pos;
 	delete [] this->rot;
 	delete [] this->ori;
-	dSpaceDestroy(this->space);
+	//dSpaceDestroy(this->space); //sigsegv
 }
 
 void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int type, int num) {
 	this->world = world;
     this->space = dHashSpaceCreate(space);
-	this->sim = sim;
+	//this->sim = sim;
 	this->m_type = type;
 	this->m_num = num;
 	this->body = new Body[NUM_PARTS];
@@ -62,13 +76,17 @@ void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int t
     this->body[BODY_R].num_geomID = 5;
     this->body[ENDCAP_R].num_geomID = 7;
 #endif
-	for ( int i = 0; i < NUM_DOF; i++ ) {
-		this->jnt_vel[i] = this->vel[i] = this->m_joint_vel_min[i%NUM_DOF] + 0.5*(this->m_joint_vel_max[i%NUM_DOF] - this->m_joint_vel_min[i%NUM_DOF]);
-	}
+	//for ( int i = 0; i < NUM_DOF; i++ ) {
+	//	this->jnt_vel[i] = this->vel[i] = this->m_joint_vel_min[i%NUM_DOF] + 0.5*(this->m_joint_vel_max[i%NUM_DOF] - this->m_joint_vel_min[i%NUM_DOF]);
+	//}
 }
 
-dReal CRobot4Sim::getCurrentAngle(int i) {
-    return this->cur_ang[i];
+dReal CRobot4Sim::getAngle(int i) {
+    return this->angle[i];
+}
+
+bool CRobot4Sim::getSuccess(void) {
+    return this->success;
 }
 
 dReal CRobot4Sim::getPosition(int i) {
@@ -87,73 +105,115 @@ dJointID CRobot4Sim::getMotorID(int motor) {
     return this->motors[motor];
 }
 
-void CRobot4Sim::enable(void) {
+/*void CRobot4Sim::enable(void) {
     dBodyEnable(this->body[CENTER].bodyID);
-}
-
-
-
+}*/
 
 void CRobot4Sim::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
-	this->ang = (dReal *)realloc(this->ang, (this->m_num_stp+1)*NUM_DOF*sizeof(dReal));
-	this->vel = (dReal *)realloc(this->vel, (this->m_num_stp+1)*NUM_DOF*sizeof(dReal));
-	if (!this->m_num_stp) {
-		this->fut_ang[this->m_num_stp + LE] = this->ang[this->m_num_stp + LE] = D2R(angle1);
-		this->fut_ang[this->m_num_stp + LB] = this->ang[this->m_num_stp + LB] = D2R(angle2);
-		this->fut_ang[this->m_num_stp + RB] = this->ang[this->m_num_stp + RB] = D2R(angle3);
-		this->fut_ang[this->m_num_stp + RE] = this->ang[this->m_num_stp + RE] = D2R(angle4);
+	// store angles into array
+	dReal delta[4] = {angle1, angle2, angle3, angle4};
+
+	// lock goal
+	this->simThreadsGoalWLock();
+
+	// set new goal angles
+	this->goal[0] += D2R(angle1);
+	this->goal[1] += D2R(angle2);
+	this->goal[2] += D2R(angle3);
+	this->goal[3] += D2R(angle4);
+
+	// enable motors
+	pthread_mutex_lock(&(this->angle_mutex));
+	for (int j = 0; j < NUM_DOF; j++) {
+		dJointEnable(this->motors[j]);
+		dJointSetAMotorAngle(this->motors[j], 0, this->angle[j]);
+		if ( delta[j] > 0 ) {
+			this->state[j] = MOBOT_FORWARD;
+			dJointSetAMotorParam(this->motors[j], dParamVel, this->velocity[j]);
+		}
+		else if ( delta[j] < 0 ) {
+			this->state[j] = MOBOT_BACKWARD;
+			dJointSetAMotorParam(this->motors[j], dParamVel, -this->velocity[j]);
+		}
+		else if ( fabs(delta[j]-0) < EPSILON ) {
+			this->state[j] = MOBOT_HOLD;
+			dJointSetAMotorParam(this->motors[j], dParamVel, 0);
+		}
 	}
-	else {
-		this->ang[this->m_num_stp*NUM_DOF + LE] = this->ang[(this->m_num_stp-1)*NUM_DOF + LE] + D2R(angle1);
-		this->ang[this->m_num_stp*NUM_DOF + LB] = this->ang[(this->m_num_stp-1)*NUM_DOF + LB] + D2R(angle2);
-		this->ang[this->m_num_stp*NUM_DOF + RB] = this->ang[(this->m_num_stp-1)*NUM_DOF + RB] + D2R(angle3);
-		this->ang[this->m_num_stp*NUM_DOF + RE] = this->ang[(this->m_num_stp-1)*NUM_DOF + RE] + D2R(angle4);
-		this->vel[this->m_num_stp*NUM_DOF + LE] = this->vel[(this->m_num_stp-1)*NUM_DOF + LE];
-		this->vel[this->m_num_stp*NUM_DOF + LB] = this->vel[(this->m_num_stp-1)*NUM_DOF + LB];
-		this->vel[this->m_num_stp*NUM_DOF + RB] = this->vel[(this->m_num_stp-1)*NUM_DOF + RB];
-		this->vel[this->m_num_stp*NUM_DOF + RE] = this->vel[(this->m_num_stp-1)*NUM_DOF + RE];
-	}
-	sim->add_pose(this->m_type, this->m_num, this->m_num_stp, false);
-	this->m_num_stp++;
+    dBodyEnable(this->body[CENTER].bodyID);
+	pthread_mutex_unlock(&(this->angle_mutex));
+
+	// lock success
+	pthread_mutex_lock(&(this->success_mutex));
+	this->success = false;
+	this->simThreadsGoalWUnlock();
+
+	// wait for motion to complete
+	while ( !this->success ) { pthread_cond_wait(&(this->success_cond), &(this->success_mutex)); }
+	this->success = true;
+	pthread_mutex_unlock(&(this->success_mutex));
 }
 
 void CRobot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
-	this->ang = (dReal *)realloc(this->ang, (this->m_num_stp+1)*NUM_DOF*sizeof(dReal));
-	this->vel = (dReal *)realloc(this->vel, (this->m_num_stp+1)*NUM_DOF*sizeof(dReal));
-	if (!this->m_num_stp) {
-		this->fut_ang[this->m_num_stp + LE] = this->ang[this->m_num_stp + LE] = D2R(angle1);
-		this->fut_ang[this->m_num_stp + LB] = this->ang[this->m_num_stp + LB] = D2R(angle2);
-		this->fut_ang[this->m_num_stp + RB] = this->ang[this->m_num_stp + RB] = D2R(angle3);
-		this->fut_ang[this->m_num_stp + RE] = this->ang[this->m_num_stp + RE] = D2R(angle4);
+	// lock goal
+	this->simThreadsGoalWLock();
+
+	// set new goal angles
+	this->goal[0] = D2R(angle1);
+	this->goal[1] = D2R(angle2);
+	this->goal[2] = D2R(angle3);
+	this->goal[3] = D2R(angle4);
+
+	// enable motors
+	pthread_mutex_lock(&(this->angle_mutex));
+	for ( int j = 0; j < NUM_DOF; j++ ) {
+		dJointEnable(this->motors[j]);
+		dJointSetAMotorAngle(this->motors[j], 0, this->angle[j]);
 	}
-	else {
-		this->ang[this->m_num_stp*NUM_DOF + LE] = this->ang[(this->m_num_stp-1)*NUM_DOF + LE] + D2R(angle1);
-		this->ang[this->m_num_stp*NUM_DOF + LB] = this->ang[(this->m_num_stp-1)*NUM_DOF + LB] + D2R(angle2);
-		this->ang[this->m_num_stp*NUM_DOF + RB] = this->ang[(this->m_num_stp-1)*NUM_DOF + RB] + D2R(angle3);
-		this->ang[this->m_num_stp*NUM_DOF + RE] = this->ang[(this->m_num_stp-1)*NUM_DOF + RE] + D2R(angle4);
-		this->vel[this->m_num_stp*NUM_DOF + LE] = this->vel[(this->m_num_stp-1)*NUM_DOF + LE];
-		this->vel[this->m_num_stp*NUM_DOF + LB] = this->vel[(this->m_num_stp-1)*NUM_DOF + LB];
-		this->vel[this->m_num_stp*NUM_DOF + RB] = this->vel[(this->m_num_stp-1)*NUM_DOF + RB];
-		this->vel[this->m_num_stp*NUM_DOF + RE] = this->vel[(this->m_num_stp-1)*NUM_DOF + RE];
-	}
-	sim->add_pose(this->m_type, this->m_num, this->m_num_stp, true);
-	this->m_num_stp++;
+    dBodyEnable(this->body[CENTER].bodyID);
+	pthread_mutex_unlock(&(this->angle_mutex));
+
+	// set success to false
+	pthread_mutex_lock(&(this->success_mutex));
+	this->success = false;
+	pthread_mutex_unlock(&(this->success_mutex));
+
+	// unlock goal
+	this->simThreadsGoalWUnlock();
 }
 
 void CRobot4Sim::moveWait(void) {
-	sim->add_wait(this->m_type, this->m_num);
+	printf("movewait time\n");
+	// wait for motion to complete
+	pthread_mutex_lock(&(this->success_mutex));
+	//this->success = false;
+	while ( !this->success ) { pthread_cond_wait(&(this->success_cond), &(this->success_mutex)); }
+	this->success = true;
+	pthread_mutex_unlock(&(this->success_mutex));
 }
 
-bool CRobot4Sim::isDisabled(void) {
-    return !(bool)dBodyIsEnabled(this->body[CENTER].bodyID);
-}
-
-bool CRobot4Sim::isJointDisabled(int i, int current_step) {
+/*bool CRobot4Sim::isJointDisabled(int i, int current_step) {
     return ( (int)(this->ang[NUM_DOF*current_step + i]) == (int)(D2R(123456789)) );
-}
+}*/
 
 bool CRobot4Sim::isHome(void) {
-    return ( fabs(this->cur_ang[LE]) < DBL_EPSILON && fabs(this->cur_ang[LB]) < DBL_EPSILON && fabs(this->cur_ang[RB]) < DBL_EPSILON && fabs(this->cur_ang[RE]) < DBL_EPSILON );
+    return ( fabs(this->angle[LE]) < EPSILON && fabs(this->angle[LB]) < EPSILON && fabs(this->angle[RB]) < EPSILON && fabs(this->angle[RE]) < EPSILON );
+}
+
+bool CRobot4Sim::isComplete(void) {
+	// initialze loop counters
+	int c = 0, i;
+
+	// check if joint speed is zero -> joint has completed step
+	for (i = 0; i < NUM_DOF; i++) {
+		if ( !(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) ) 
+			c++;
+	}
+	if ( c == NUM_DOF ) {
+		this->success = true;
+		pthread_cond_signal(&(this->success_cond));
+	}
+	return this->success;
 }
 
 dReal CRobot4Sim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
@@ -161,7 +221,7 @@ dReal CRobot4Sim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     int stp = (int)( fabs(past_ang) / M_PI );
     dReal past_ang_mod = fabs(past_ang) - stp*M_PI;
 
-    if ( (int)ang_rate == 0 ) {
+    if ( (int)(ang_rate*1000) == 0 ) {
         new_ang = past_ang;
     }
     // positive angular velocity, positive angle
@@ -350,14 +410,14 @@ void CRobot4Sim::resetPID(int i) {
         this->pid[i].restart();
 }
 
-void CRobot4Sim::updateCurrentAngle(int i) {
-    if ( i == LE || i == RE )
-        this->cur_ang[i] = mod_angle(this->cur_ang[i], dJointGetHingeAngle(this->joints[i]), dJointGetHingeAngleRate(this->joints[i]));
-    else
-        this->cur_ang[i] = dJointGetHingeAngle(this->joints[i]);
+void CRobot4Sim::updateAngle(int i) {
+	if (i == LE || i == RE)
+		this->angle[i] = mod_angle(this->angle[i], dJointGetHingeAngle(this->joints[i]), dJointGetHingeAngleRate(this->joints[i]));
+	else
+		this->angle[i] = dJointGetHingeAngle(this->joints[i]);
 }
 
-void CRobot4Sim::updateFutureAngle(int i, int current_step, int enable) {
+/*void CRobot4Sim::updateFutureAngle(int i, int current_step, int enable) {
     if ( enable ) {
         if ( i == LE || i == RE ) {
             this->fut_ang[i] = this->ori[i];
@@ -370,11 +430,11 @@ void CRobot4Sim::updateFutureAngle(int i, int current_step, int enable) {
     else {
         this->fut_ang[i] = this->cur_ang[i];
     }
-}
+}*/
 
-void CRobot4Sim::updateJointVelocity(int i, int current_step) {
+/*void CRobot4Sim::updateJointVelocity(int i, int current_step) {
     this->jnt_vel[i] = this->vel[NUM_DOF*current_step + i];
-}
+}*/
 
 void CRobot4Sim::updateMotorSpeed(int i) {
     /*// with PID
@@ -389,14 +449,20 @@ void CRobot4Sim::updateMotorSpeed(int i) {
     else
         dJointSetAMotorParam(this->motors[i], dParamVel, 0);*/
     // without PID
-    if (this->cur_ang[i] < this->fut_ang[i] - this->m_motor_res)
-        dJointSetAMotorParam(this->motors[i], dParamVel, this->jnt_vel[i]);
-    else if (this->cur_ang[i] > this->fut_ang[i] + this->m_motor_res)
-        dJointSetAMotorParam(this->motors[i], dParamVel, -this->jnt_vel[i]);
+    if (this->angle[i] < this->goal[i] - this->m_motor_res)
+        dJointSetAMotorParam(this->motors[i], dParamVel, this->velocity[i]);
+    else if (this->angle[i] > this->goal[i] + this->m_motor_res)
+        dJointSetAMotorParam(this->motors[i], dParamVel, -this->velocity[i]);
     else
         dJointSetAMotorParam(this->motors[i], dParamVel, 0);
 }
 
+/*void CRobot4Sim::updateMotorState(int i) {
+    if (this->goal[i] - this->m_motor_res < this->angle[i] && this->angle[i] < this->goal[i] + this->m_motor_res) {
+        dJointSetAMotorParam(this->motors[i], dParamVel, 0);
+		this->state[i] = MOTOR_HOLD;
+	}	
+}*/
 
 CiMobotSim::CiMobotSim(void) {
 	this->m_motor_res = D2R(0.5);
@@ -405,11 +471,11 @@ CiMobotSim::CiMobotSim(void) {
 	this->m_joint_vel_max[LB] = 2.61;
 	this->m_joint_vel_max[RB] = 2.61;
 	this->m_joint_vel_max[RE] = 6.70;
-	this->m_joint_vel_min = new dReal[NUM_DOF];
-	this->m_joint_vel_min[LE] = 3.22;
-	this->m_joint_vel_min[LB] = 1.25;
-	this->m_joint_vel_min[RB] = 1.25;
-	this->m_joint_vel_min[RE] = 3.22;
+	//this->m_joint_vel_min = new dReal[NUM_DOF];
+	//this->m_joint_vel_min[LE] = 3.22;
+	//this->m_joint_vel_min[LB] = 1.25;
+	//this->m_joint_vel_min[RB] = 1.25;
+	//this->m_joint_vel_min[RE] = 3.22;
 	this->m_joint_frc_max = new dReal[NUM_DOF];
 	this->m_joint_frc_max[LE] = 0.260;
 	this->m_joint_frc_max[LB] = 1.059;
@@ -441,11 +507,11 @@ CMobotSim::CMobotSim(void) {
 	this->m_joint_vel_max[LB] = 2.61;
 	this->m_joint_vel_max[RB] = 2.61;
 	this->m_joint_vel_max[RE] = 6.70;
-	this->m_joint_vel_min = new dReal[NUM_DOF];
+	/*this->m_joint_vel_min = new dReal[NUM_DOF];
 	this->m_joint_vel_min[LE] = 3.22;
 	this->m_joint_vel_min[LB] = 1.25;
 	this->m_joint_vel_min[RB] = 1.25;
-	this->m_joint_vel_min[RE] = 3.22;
+	this->m_joint_vel_min[RE] = 3.22;*/
 	this->m_joint_frc_max = new dReal[NUM_DOF];
 	this->m_joint_frc_max[LE] = 0.260;
 	this->m_joint_frc_max[LB] = 1.059;
@@ -607,12 +673,16 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
     this->create_rotation_matrix(R, psi, theta, phi);
 
     // store initial body angles into array
-    this->cur_ang[LE] = r_le;
+    /*this->cur_ang[LE] = r_le;
     this->cur_ang[LB] = r_lb;
     this->cur_ang[RB] = r_rb;
     this->cur_ang[RE] = r_re;
     this->fut_ang[LE] += r_le;
-    this->fut_ang[RE] += r_re;
+    this->fut_ang[RE] += r_re;*/
+    this->angle[LE] = r_le;
+    this->angle[LB] = r_lb;
+    this->angle[RB] = r_rb;
+    this->angle[RE] = r_re;
 
     // offset values for each body part[0-2] and joint[3-5] from center
     dReal le[6] = {-this->center_length/2 - this->body_length - this->body_end_depth - this->end_depth/2, 0, 0, -this->center_length/2 - this->body_length - this->body_end_depth, 0, 0};
@@ -999,14 +1069,14 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], attach->getAngle(LE));
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth) + R3[0]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
         m[1] =                      R1[4]*(-this->body_length - this->body_end_depth) + R3[4]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
@@ -1016,14 +1086,14 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getAngle(LE));
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
         m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
@@ -1032,14 +1102,14 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
     else if ( face1 == 1 && face2 == 3 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getAngle(LE));
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
         m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
@@ -1049,14 +1119,14 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getAngle(LE));
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
         m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
@@ -1066,14 +1136,14 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getAngle(LE));
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
         m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
@@ -1083,14 +1153,14 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -attach->getAngle(LE));
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth) + R3[0]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
         m[1] =                      R1[4]*(-this->body_length - this->body_end_depth) + R3[4]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
@@ -1100,11 +1170,11 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(LB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                               + R1[1]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
         m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->end_depth - 0.5*this->body_width  + R1[5]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
         m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                               + R1[9]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
@@ -1113,22 +1183,22 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getAngle(LB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[0]*(-0.5*this->center_length);
         m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->body_width    + R1[4]*(-0.5*this->center_length);
         m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 3 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         m[0] = -0.5*this->center_length                   + R1[0]*(0.5*this->center_length);
         m[1] =                      - this->body_width    + R1[4]*(0.5*this->center_length);
         m[2] =                                      + R1[8]*(0.5*this->center_length);
@@ -1137,22 +1207,22 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getAngle(LB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         m[0] = -0.5*this->center_length                   + R1[0]*(0.5*this->center_length);
         m[1] =                      - this->body_width    + R1[4]*(0.5*this->center_length);
         m[2] =                                      + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 2 && face2 == 5 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[0]*(-0.5*this->center_length);
         m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->body_width    + R1[4]*(-0.5*this->center_length);
         m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[8]*(-0.5*this->center_length);
@@ -1161,11 +1231,11 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(LB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[1]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
         m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
         m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[9]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
@@ -1174,22 +1244,22 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(LB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[1]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
         m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
         m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[9]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 2 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         m[0] = -0.5*this->center_length               + R1[0]*(0.5*this->center_length);
         m[1] =                      this->body_width  + R1[4]*(0.5*this->center_length);
         m[2] =                                  + R1[8]*(0.5*this->center_length);
@@ -1198,22 +1268,22 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getAngle(LB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[0]*(-0.5*this->center_length);
         m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->body_width    + R1[4]*(-0.5*this->center_length);
         m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 3 && face2 == 4 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[0]*(-0.5*this->center_length);
         m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->body_width    + R1[4]*(-0.5*this->center_length);
         m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[8]*(-0.5*this->center_length);
@@ -1222,11 +1292,11 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getAngle(LB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         m[0] = -0.5*this->center_length               + R1[0]*(0.5*this->center_length);
         m[1] =                      this->body_width  + R1[4]*(0.5*this->center_length);
         m[2] =                                  + R1[8]*(0.5*this->center_length);
@@ -1235,11 +1305,11 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(LB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[1]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
         m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
         m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[9]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
@@ -1248,11 +1318,11 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(RB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[1]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
         m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) -  this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
         m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[9]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
@@ -1261,22 +1331,22 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getAngle(RB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
         m[1] =                      -this->body_width + R1[4]*(-0.5*this->center_length);
         m[2] =                                  + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 3 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[0]*(0.5*this->center_length);
         m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  - this->body_width    + R1[4]*(0.5*this->center_length);
         m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[8]*(0.5*this->center_length);
@@ -1285,22 +1355,22 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getAngle(RB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[0]*(0.5*this->center_length);
         m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  - this->body_width    + R1[4]*(0.5*this->center_length);
         m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[8]*(0.5*this->center_length);
     }
     else if ( face1 == 4 && face2 == 5 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         m[0] = 0.5*this->center_length                    + R1[0]*(-0.5*this->center_length);
         m[1] =                      - this->body_width    + R1[4]*(-0.5*this->center_length);
         m[2] =                                      + R1[8]*(-0.5*this->center_length);
@@ -1309,11 +1379,11 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(RB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[1]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
         m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) -  this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
         m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[9]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
@@ -1322,22 +1392,22 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(RB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[1]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
         m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) +  this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
         m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[9]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 2 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[0]*(0.5*this->center_length);
         m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  + this->body_width    + R1[4]*(0.5*this->center_length);
         m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[8]*(0.5*this->center_length);
@@ -1346,22 +1416,22 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getAngle(RB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
         m[1] =                      this->body_width  + R1[4]*(-0.5*this->center_length);
         m[2] =                                  + R1[8]*(-0.5*this->center_length);
     }
     else if ( face1 == 5 && face2 == 4 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
         m[1] =                      this->body_width  + R1[4]*(-0.5*this->center_length);
         m[2] =                                  + R1[8]*(-0.5*this->center_length);
@@ -1370,11 +1440,11 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getAngle(RB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[0]*(0.5*this->center_length);
         m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  + this->body_width    + R1[4]*(0.5*this->center_length);
         m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[8]*(0.5*this->center_length);
@@ -1383,11 +1453,11 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(RB));
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[1]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
         m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) +  this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
         m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[9]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
@@ -1396,14 +1466,14 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], attach->getAngle(RE));
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth) + R3[0]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
         m[1] =                      R1[4]*(this->body_length + this->body_end_depth) + R3[4]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
@@ -1413,14 +1483,14 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getAngle(RE));
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
         m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
@@ -1430,14 +1500,14 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getAngle(RE));
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
         m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
@@ -1447,14 +1517,14 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getAngle(RE));
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
         m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
@@ -1464,14 +1534,14 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getAngle(RE));
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
         m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
@@ -1481,14 +1551,14 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -attach->getAngle(RE));
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth) + R3[0]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
         m[1] =                      R1[4]*(this->body_length + this->body_end_depth) + R3[4]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
@@ -2094,9 +2164,9 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], attach->getAngle(LE));
         dMultiply0(R6, R5, R4, 3, 3, 3);
         dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], r_e);
         dMultiply0(R8, R7, R6, 3, 3, 3);
@@ -2104,8 +2174,8 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         dMultiply0(R, R9, R8, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_e);
         dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2119,16 +2189,16 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getAngle(LE));
         dMultiply0(R6, R5, R4, 3, 3, 3);
         dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2140,16 +2210,16 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getAngle(LE));
         dMultiply0(R6, R5, R4, 3, 3, 3);
         dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2161,16 +2231,16 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getAngle(LE));
         dMultiply0(R6, R5, R4, 3, 3, 3);
         dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2182,16 +2252,16 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getAngle(LE));
         dMultiply0(R6, R5, R4, 3, 3, 3);
         dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2203,9 +2273,9 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -attach->getAngle(LE));
         dMultiply0(R6, R5, R4, 3, 3, 3);
         dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], -r_e);
         dMultiply0(R8, R7, R6, 3, 3, 3);
@@ -2213,8 +2283,8 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         dMultiply0(R, R9, R8, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getCurrentAngle(LE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_e);
         dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2228,7 +2298,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
         dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2236,7 +2306,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
@@ -2249,13 +2319,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[0]*(-0.5*this->center_length);
@@ -2264,13 +2334,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
     }
     else if ( face1 == 2 && face2 == 3 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
         dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length                   + R3[0]*(0.5*this->center_length);
@@ -2281,13 +2351,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length                   + R3[0]*(0.5*this->center_length);
@@ -2296,13 +2366,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
     }
     else if ( face1 == 2 && face2 == 5 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
         dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[0]*(-0.5*this->center_length);
@@ -2313,7 +2383,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
         dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2321,7 +2391,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
@@ -2334,7 +2404,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
         dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2342,7 +2412,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
@@ -2353,13 +2423,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
     }
     else if ( face1 == 3 && face2 == 2 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
         dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length               + R3[0]*(0.5*this->center_length);
@@ -2370,13 +2440,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[0]*(-0.5*this->center_length);
@@ -2385,13 +2455,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
     }
     else if ( face1 == 3 && face2 == 4 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
         dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[0]*(-0.5*this->center_length);
@@ -2402,13 +2472,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = -0.5*this->center_length               + R3[0]*(0.5*this->center_length);
@@ -2419,7 +2489,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(LB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
         dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2427,7 +2497,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getCurrentAngle(LB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
@@ -2440,7 +2510,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
         dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2448,7 +2518,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
@@ -2461,13 +2531,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length                + R3[0]*(-0.5*this->center_length);
@@ -2476,13 +2546,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
     }
     else if ( face1 == 4 && face2 == 3 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
         dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[0]*(0.5*this->center_length);
@@ -2493,13 +2563,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[0]*(0.5*this->center_length);
@@ -2508,13 +2578,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
     }
     else if ( face1 == 4 && face2 == 5 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
         dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length                    + R3[0]*(-0.5*this->center_length);
@@ -2525,7 +2595,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
         dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2533,7 +2603,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_e);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
@@ -2546,7 +2616,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], r_e);
         dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2554,7 +2624,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
@@ -2565,13 +2635,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
     }
     else if ( face1 == 5 && face2 == 2 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
         dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -r_b);
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[0]*(0.5*this->center_length);
@@ -2582,13 +2652,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -r_b);
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length                + R3[0]*(-0.5*this->center_length);
@@ -2597,13 +2667,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
     }
     else if ( face1 == 5 && face2 == 4 ) {
         // generate rotation matrix
-        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
         dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], r_b);
         dMultiply0(R, R3, R2, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length                + R3[0]*(-0.5*this->center_length);
@@ -2614,13 +2684,13 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], r_b);
         dMultiply0(R, R5, R4, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[0]*(0.5*this->center_length);
@@ -2631,7 +2701,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
         dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -r_e);
         dMultiply0(R6, R5, R4, 3, 3, 3);
@@ -2639,7 +2709,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_e);
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
@@ -2652,9 +2722,9 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], attach->getAngle(RE));
         dMultiply0(R6, R5, R4, 3, 3, 3);
         dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], r_e);
         dMultiply0(R8, R7, R6, 3, 3, 3);
@@ -2662,8 +2732,8 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         dMultiply0(R, R9, R8, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_e);
         dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2677,16 +2747,16 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getAngle(RE));
         dMultiply0(R6, R5, R4, 3, 3, 3);
         dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2698,16 +2768,16 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getAngle(RE));
         dMultiply0(R6, R5, R4, 3, 3, 3);
         dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], -r_b);
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2719,16 +2789,16 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], attach->getAngle(RE));
         dMultiply0(R6, R5, R4, 3, 3, 3);
         dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2740,16 +2810,16 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -attach->getAngle(RE));
         dMultiply0(R6, R5, R4, 3, 3, 3);
         dRFromAxisAndAngle(R7, R6[1], R6[5], R6[9], r_b);
         dMultiply0(R, R7, R6, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
@@ -2761,9 +2831,9 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
-        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getCurrentAngle(RB));
+        dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], attach->getAngle(RB));
         dMultiply0(R4, R3, R2, 3, 3, 3);
-        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], -attach->getAngle(RE));
         dMultiply0(R6, R5, R4, 3, 3, 3);
         dRFromAxisAndAngle(R7, R6[0], R6[4], R6[8], -r_e);
         dMultiply0(R8, R7, R6, 3, 3, 3);
@@ -2771,8 +2841,8 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
         dMultiply0(R, R9, R8, 3, 3, 3);
 
         // generate offset for mass center of new module
-        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getCurrentAngle(RB));
-        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getCurrentAngle(RE));
+        dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
+        dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_e);
         dMultiply0(R5, R4, R3, 3, 3, 3);

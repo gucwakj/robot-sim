@@ -35,10 +35,14 @@ option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visuali
 if (ENABLE_DRAWSTUFF)
 	include_directories("../opende/include")
 	link_directories("../opende/drawstuff/src/.libs")
-	find_package(GLUT)
-	find_package(OpenGL)
-	set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
+	#find_package(GLUT)
+	#find_package(OpenGL)
+	#set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
 endif (ENABLE_DRAWSTUFF)
+
+# Add pthreads
+#find_package(Threads)
+#set (EXTRA_LIBS ${EXTRA_LIBS} ${THREADS_LIBRARY})
 
 # Add CMobotIK library subdirectory
 include_directories("../CMobotIK")

@@ -3,6 +3,6 @@
 
 #define CMOBOTFD_VERSION_MAJOR 
 #define CMOBOTFD_VERSION_MINOR 
-#define ENABLE_DRAWSTUFF
+/* #undef ENABLE_DRAWSTUFF */
 
 #endif
