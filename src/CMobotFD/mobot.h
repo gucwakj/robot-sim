@@ -44,6 +44,18 @@ enum robot_faces_e {
 	MOBOT_FACE5,
 	MOBOT_FACE6
 };
+typedef enum imobot_joints_e {
+	IMOBOT_JOINT1,
+	IMOBOT_JOINT2,
+	IMOBOT_JOINT3,
+	IMOBOT_JOINT4
+} iMobotJointID_t;
+typedef enum mobot_joints_e {
+	MOBOT_JOINT1,
+	MOBOT_JOINT2,
+	MOBOT_JOINT3,
+	MOBOT_JOINT4
+} mobotJointID_t;
 typedef enum mobot_joint_state_e {
 	MOBOT_NEUTRAL	= 0,
 	MOBOT_FORWARD	= 1,
@@ -80,15 +92,18 @@ class CRobot4Sim : public robotSimThreads {
 		void buildAttached01(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		void buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
-		void move(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		void moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		void moveWait(void);
+		int move(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		int moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		int moveJoint(int id, dReal angle);
+		int moveJointNB(int id, dReal angle);
+		int moveJointWait(int id);
+		int moveWait(void);
 
         void resetPID(int i = NUM_DOF);
         void updateMotorSpeed(int i);
 
-		bool isComplete(void);
 		bool isHome(void);
+		bool isComplete(void);
 
         #ifdef ENABLE_DRAWSTUFF
         void drawRobot(void);
@@ -107,7 +122,7 @@ class CRobot4Sim : public robotSimThreads {
 		dReal position[3];			// initial position
 		dReal rotation[3];			// initial rotation
 		dReal orientation[4];		// initial joint orientation
-		bool success;				// trigger for goal
+		bool success[4];				// trigger for goal
 
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
 		void build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);	// build body of mobot
@@ -116,6 +131,7 @@ class CRobot4Sim : public robotSimThreads {
 		void create_fixed_joint(CRobot4Sim *attach, int face1, int face2);				// create fixed joint between modules
 		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
 		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
+		bool is_joint_complete(int id);
 #ifdef ENABLE_DRAWSTUFF
 		void draw_body(int id);
 #endif

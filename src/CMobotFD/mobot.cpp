@@ -23,7 +23,10 @@ CRobot4Sim::CRobot4Sim(void) {
 	this->velocity[1] = 0.7854;	// 45 deg/sec
 	this->velocity[2] = 0.7854;	// 45 deg/sec
 	this->velocity[3] = 0.7854;	// 45 deg/sec
-	this->success = true;
+	this->success[0] = true;
+	this->success[1] = true;
+	this->success[2] = true;
+	this->success[3] = true;
 
 	// init locks
 	pthread_mutex_init(&angle_mutex, NULL);
@@ -127,62 +130,36 @@ bool CRobot4Sim::isComplete(void) {
 
 	// check if joint speed is zero -> joint has completed step
 	for (i = 0; i < NUM_DOF; i++) {
-		if ( !(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) ) 
-			c++;
+		//if ( !(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) ) 
+		//	c++;
+		this->success[i] = this->is_joint_complete(i);
 	}
-	if ( c == NUM_DOF ) {
-		this->success = true;
+	//if ( c == NUM_DOF ) {
+	if ( this->success[0] && this->success[1] && this->success[2] && this->success[3] ) {
+		//this->success = true;
 		pthread_cond_signal(&(this->success_cond));
+		return true;
 	}
-	return this->success;
+	return false;
 }
 
-void CRobot4Sim::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
-	// store angles into array
-	dReal delta[4] = {angle1, angle2, angle3, angle4};
-
-	// lock goal
-	this->simThreadsGoalWLock();
-
-	// set new goal angles
-	this->goal[0] += D2R(angle1);
-	this->goal[1] += D2R(angle2);
-	this->goal[2] += D2R(angle3);
-	this->goal[3] += D2R(angle4);
-
-	// enable motor
-	pthread_mutex_lock(&(this->angle_mutex));
-	for (int j = 0; j < NUM_DOF; j++) {
-		dJointEnable(this->motor[j]);
-		dJointSetAMotorAngle(this->motor[j], 0, this->angle[j]);
-		if ( delta[j] > 0 ) {
-			this->state[j] = MOBOT_FORWARD;
-			dJointSetAMotorParam(this->motor[j], dParamVel, this->velocity[j]);
-		}
-		else if ( delta[j] < 0 ) {
-			this->state[j] = MOBOT_BACKWARD;
-			dJointSetAMotorParam(this->motor[j], dParamVel, -this->velocity[j]);
-		}
-		else if ( fabs(delta[j]-0) < EPSILON ) {
-			this->state[j] = MOBOT_HOLD;
-			dJointSetAMotorParam(this->motor[j], dParamVel, 0);
-		}
-	}
-    dBodyEnable(this->body[CENTER].bodyID);
-	pthread_mutex_unlock(&(this->angle_mutex));
-
-	// lock success
-	pthread_mutex_lock(&(this->success_mutex));
-	this->success = false;
-	this->simThreadsGoalWUnlock();
-
-	// wait for motion to complete
-	while ( !this->success ) { pthread_cond_wait(&(this->success_cond), &(this->success_mutex)); }
-	this->success = true;
-	pthread_mutex_unlock(&(this->success_mutex));
+bool CRobot4Sim::is_joint_complete(int id) {
+	// check if joint speed is zero -> joint has completed step
+	if ( !(int)(dJointGetAMotorParam(this->getMotorID(id), dParamVel)*1000) ) 
+		return true;
+	else
+		return false;
 }
 
-void CRobot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int CRobot4Sim::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+	this->moveNB(angle1, angle2, angle3, angle4);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	// store angles into array
 	dReal delta[4] = {angle1, angle2, angle3, angle4};
 
@@ -218,19 +195,91 @@ void CRobot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) 
 
 	// set success to false
 	pthread_mutex_lock(&(this->success_mutex));
-	this->success = false;
+	this->success[0] = false;
+	this->success[1] = false;
+	this->success[2] = false;
+	this->success[3] = false;
 	pthread_mutex_unlock(&(this->success_mutex));
 
 	// unlock goal
 	this->simThreadsGoalWUnlock();
+
+	// success
+	return 0;
 }
 
-void CRobot4Sim::moveWait(void) {
+int CRobot4Sim::moveJoint(int id, dReal angle) {
+	this->moveJointNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::moveJointNB(int id, dReal angle) {
+	// lock goal
+	this->simThreadsGoalWLock();
+
+	// set new goal angles
+	this->goal[id] += D2R(angle);
+
+	// enable motor
+	pthread_mutex_lock(&(this->angle_mutex));
+	dJointEnable(this->motor[id]);
+
+	// set motor state and velocity
+	if ( angle > 0 ) {
+		this->state[id] = MOBOT_FORWARD;
+		dJointSetAMotorParam(this->motor[id], dParamVel, this->velocity[id]);
+	}
+	else if ( angle < 0 ) {
+		this->state[id] = MOBOT_BACKWARD;
+		dJointSetAMotorParam(this->motor[id], dParamVel, -this->velocity[id]);
+	}
+	else if ( fabs(angle-0) < EPSILON ) {
+		this->state[id] = MOBOT_HOLD;
+		dJointSetAMotorParam(this->motor[id], dParamVel, 0);
+	}
+	dBodyEnable(this->body[CENTER].bodyID);
+	pthread_mutex_unlock(&(this->angle_mutex));
+
+	// set success to false
+	pthread_mutex_lock(&(this->success_mutex));
+	this->success[id] = false;
+	pthread_mutex_unlock(&(this->success_mutex));
+
+	// unlock goal
+	this->simThreadsGoalWUnlock();
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::moveJointWait(int id) {
 	// wait for motion to complete
 	pthread_mutex_lock(&(this->success_mutex));
-	while ( !this->success ) { pthread_cond_wait(&(this->success_cond), &(this->success_mutex)); }
-	this->success = true;
+	while ( !this->success[id] ) { pthread_cond_wait(&(this->success_cond), &(this->success_mutex)); }
+	this->success[id] = true;
 	pthread_mutex_unlock(&(this->success_mutex));
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::moveWait(void) {
+	// wait for motion to complete
+	pthread_mutex_lock(&(this->success_mutex));
+	while ( !this->success[0] && !this->success[1] && !this->success[2] && !this->success[3]) {
+		pthread_cond_wait(&(this->success_cond), &(this->success_mutex));
+	}
+	this->success[0] = true;
+	this->success[1] = true;
+	this->success[2] = true;
+	this->success[3] = true;
+	pthread_mutex_unlock(&(this->success_mutex));
+
+	// success
+	return 0;
 }
 
 void CRobot4Sim::updateMotorSpeed(int i) {
