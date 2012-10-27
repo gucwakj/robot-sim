@@ -2,13 +2,6 @@
 #include "mobotfd.h"
 using namespace std;
 
-#ifdef ENABLE_DRAWSTUFF
-/* If drawstuff is enabled, we need a global pointer to an instantiated
- * CMobotFD class so that the callback functions can access the necessary
- * data. */
-CMobotFD *g_imobotfd;
-#endif
-
 CMobotFD::CMobotFD(void) {
     // create ODE simulation space
     dInitODE2(0);                                               // initialized ode library
@@ -64,18 +57,6 @@ CMobotFD::CMobotFD(void) {
     //this->m_reply = new CMobotFDReply;
     //this->m_reply->time = 0.0;
     //this->m_reply->message = FD_ERROR_TIME;
-
-	#ifdef ENABLE_DRAWSTUFF
-	// drawstuff simulation parameters
-	m_fn.version = DS_VERSION;									// version of drawstuff
-	m_fn.start = (void (*)(void))&CMobotFD::ds_start;			// initialization function
-	m_fn.step = (void (*)(int))&CMobotFD::ds_simulationLoop;	// function for each step of simulation
-	m_fn.command = (void (*)(int))&CMobotFD::ds_command;		// keyboard commands to control simulation
-	m_fn.stop = 0;												// stopping parameter
-	m_fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;				// path to texture files
-	g_imobotfd = this;											// pointer to class
-	printf("g: %p\n", g_imobotfd);
-	#endif
 }
 
 CMobotFD::~CMobotFD(void) {
@@ -193,11 +174,7 @@ void CMobotFD::setTarget(int num, dReal x, dReal y, dReal z) {
 
 void* CMobotFD::simulation_wrapper(void *arg) {
 	CMobotFD *sim = (CMobotFD *)arg;
-	#ifdef ENABLE_DRAWSTUFF
-	dsSimulationLoop(0, NULL, 352, 288, &(sim->m_fn));
-	#else
 	sim->simulation_loop();
-	#endif
 }
 
 /*int CMobotFD::getReplyMessage(void) {
@@ -211,40 +188,6 @@ double CMobotFD::getReplyTime(void) {
 /**********************************************************
 	Private Simulation Functions
  **********************************************************/
-#ifdef ENABLE_DRAWSTUFF
-/* If drawstuff is enabled, we cannot use any reference to 'this', because
- * simulationLoop is called as a callback function and any reference to 'this'
- * will be NULL. Instead, if we are using Drawstuff, we sholud reference the
- * global variable, g_imobotfd */
-#define this g_imobotfd
-void CMobotFD::ds_simulationLoop(int pause) {
-	int i;
-	//bool loop = true;												// initialize
-	for (i = 0; i < this->m_number[0]; i++) {
-		this->bot[i]->simThreadsGoalRLock();
-		this->bot[i]->simThreadsAngleLock();
-	}
-	this->update_angles();											// update angles for current step
-	dSpaceCollide(this->space, this, &this->collision_wrapper);		// collide all geometries together
-	dWorldStep(this->world, this->m_t_step);						// step world time by one
-	dJointGroupEmpty(this->group);									// clear out all contact joints
-	//this->print_intermediate_data();								// print out incremental data
-	this->check_success();										// check success of current motion
-	//this->set_flags();												// set flags for completion of steps
-	//this->increment_step();											// check whether to increment to next step
-	//this->end_simulation(loop);										// check whether to end simulation
-	for (i = 0; i < this->m_number[0]; i++) {
-		this->bot[i]->simThreadsAngleUnlock();
-		this->bot[i]->simThreadsGoalRUnlock();
-	}
-
-	this->ds_drawBodies();											// draw bodies onto screen
-    this->ds_drawStatics();                                         // draw ground onto screen
-    this->ds_drawTargets();                                         // draw targets onto screen
-	//if (!loop) dsStop();											// stop simulation
-}
-#undef this
-#else
 void CMobotFD::simulation_loop(void) {
 	//struct timespec cur_time, itime;
 	//unsigned int dt;
@@ -295,7 +238,6 @@ void CMobotFD::simulation_loop(void) {
 		//pthread_rw_runlock(&viz_rwlock);
 	}
 }
-#endif
 
 void CMobotFD::check_success(void) {
 	int i;
@@ -623,78 +565,7 @@ void CMobotFD::addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, i
 /**********************************************************
 	Utility Functions
  **********************************************************/
-// check if all elements in array are true
-bool CMobotFD::is_true(int length, bool *a) {
-	for (int i = 0; i < length; i++) {
-		if ( a[i] == false )
-			return false;
-	}
-	return true;
-}
 // get difference in two time stamps in nanoseconds
 unsigned int CMobotFD::diff_nsecs(struct timespec t1, struct timespec t2) {
 	return (t2.tv_sec - t1.tv_sec) * 1000000000 + (t2.tv_nsec - t1.tv_nsec);
 }
-
-#ifdef ENABLE_DRAWSTUFF
-/**********************************************************
-	Drawstuff Functions
- **********************************************************/
-void CMobotFD::ds_drawBodies(void) {
-	for (int i = 0; i < this->m_number[0]; i++) {
-        this->bot[i]->drawRobot();
-    }
-}
-
-void CMobotFD::ds_drawStatics(void) {
-    for (int i = 0; i < this->m_num_statics; i++) {
-        const dReal *position = dGeomGetPosition(this->m_statics[i]);     // get position
-        const dReal *rotation = dGeomGetRotation(this->m_statics[i]);     // get rotation
-        dReal r, l;
-        dVector3 sides;
-        dsSetColor(0.5, 0.5, 0.5);
-        switch (dGeomGetClass(this->m_statics[i])) {
-            case dSphereClass:
-                r = dGeomSphereGetRadius(this->m_statics[i]);
-                dsDrawSphere(position, rotation, r);
-                break;
-            case dBoxClass:
-                dGeomBoxGetLengths(this->m_statics[i], sides);
-                dsDrawBox(position, rotation, sides);
-                break;
-            case dCylinderClass:
-                dGeomCylinderGetParams(this->m_statics[i], &r, &l);
-                dsDrawCylinder(position, rotation, l, r);
-                break;
-            case dCapsuleClass:
-                dGeomCapsuleGetParams(this->m_statics[i], &r, &l);
-                dsDrawCapsule(position, rotation, l, r);
-                break;
-        }
-    }
-}
-
-void CMobotFD::ds_drawTargets(void) {
-    for (int i = 0; i < this->m_num_targets; i++) {
-        const dReal *position = dGeomGetPosition(this->m_targets[i].geomID);     // get position
-        const dReal *rotation = dGeomGetRotation(this->m_targets[i].geomID);     // get rotation
-        dReal r = dGeomSphereGetRadius(this->m_targets[i].geomID);
-        dsSetColor(1, 0, 0);
-        dsDrawSphere(position, rotation, r);
-    }
-}
-
-void CMobotFD::ds_start(void) {
-	dAllocateODEDataForThread(dAllocateMaskAll);
-	static float xyz[3] = {-0.35, -0.254, 0.127};		// left side
-	static float hpr[3] = {45.0, -15.0, 0.0};			// defined in degrees
-	dsSetViewpoint(xyz, hpr);
-}
-
-void CMobotFD::ds_command(int cmd) {
-	switch (cmd) {
-		case 'q': case 'Q':
-			dsStop();
-	}
-}
-#endif

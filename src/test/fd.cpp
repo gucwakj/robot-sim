@@ -16,6 +16,11 @@ int main(int argc, char *argv[]) {
 	//robot1.moveJoint(IMOBOT_JOINT2, 45);
 	//robot1.moveJointNB(IMOBOT_JOINT2, 45);
 	//robot1.moveJointWait(IMOBOT_JOINT2);
+	//robot1.moveTo(0, 45, 45, 45);
+	//robot1.moveTo(0, 45, 45, 45);
+	//robot1.moveJointTo(IMOBOT_JOINT2, 45);
+	robot1.moveJointToNB(IMOBOT_JOINT2, 45);
+	robot1.moveJointWait(IMOBOT_JOINT2);
 	//robot2.move(0, 45, 65, 45);
 	//robot2.moveNB(0, 45, 45, 0);
 	//robot2.moveWait();

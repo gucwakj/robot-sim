@@ -33,13 +33,6 @@ CRobot4Sim::CRobot4Sim(void) {
 	this->simThreadsGoalInit(NULL);
 	pthread_mutex_init(&success_mutex, NULL);
 	pthread_cond_init(&success_cond, NULL);
-
-    //for ( int i = 0; i < NUM_DOF; i++ ) {
-        //this->pid[i].init(100, 1, 10, 0.1, 0.004);
-/*#ifdef ENABLE_DRAWSTUFF
-        this->jnt_vel[i] = this->vel[i];
-#endif*/
-   // }
 }
 
 CRobot4Sim::~CRobot4Sim(void) {
@@ -80,16 +73,6 @@ void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int t
 	for ( int i = 0; i < NUM_DOF; i++ ) {
         this->pid[i].init(100, 1, 10, 0.1, 0.004);
 	}
-#ifdef ENABLE_DRAWSTUFF
-	this->body[ENDCAP_L].num_geomID = 7;
-    this->body[BODY_L].num_geomID = 5;
-    this->body[CENTER].num_geomID = 3;
-    this->body[BODY_R].num_geomID = 5;
-    this->body[ENDCAP_R].num_geomID = 7;
-#endif
-	//for ( int i = 0; i < NUM_DOF; i++ ) {
-	//	this->jnt_vel[i] = this->vel[i] = this->m_joint_vel_min[i%NUM_DOF] + 0.5*(this->m_joint_vel_max[i%NUM_DOF] - this->m_joint_vel_min[i%NUM_DOF]);
-	//}
 }
 
 dReal CRobot4Sim::getAngle(int i) {
@@ -255,12 +238,133 @@ int CRobot4Sim::moveJointNB(int id, dReal angle) {
 	return 0;
 }
 
+int CRobot4Sim::moveJointTo(int id, dReal angle) {
+	this->moveJointToNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::moveJointToNB(int id, dReal angle) {
+	// store delta angle
+	dReal delta = angle - this->angle[id];
+
+	// lock goal
+	this->simThreadsGoalWLock();
+
+	// set new goal angles
+	this->goal[id] = D2R(angle);
+
+	// enable motor
+	pthread_mutex_lock(&(this->angle_mutex));
+	dJointEnable(this->motor[id]);
+
+	// set motor state and velocity
+	if ( delta > 0 ) {
+		this->state[id] = MOBOT_FORWARD;
+		dJointSetAMotorParam(this->motor[id], dParamVel, this->velocity[id]);
+	}
+	else if ( delta < 0 ) {
+		this->state[id] = MOBOT_BACKWARD;
+		dJointSetAMotorParam(this->motor[id], dParamVel, -this->velocity[id]);
+	}
+	else if ( fabs(delta-0) < EPSILON ) {
+		this->state[id] = MOBOT_HOLD;
+		dJointSetAMotorParam(this->motor[id], dParamVel, 0);
+	}
+	dBodyEnable(this->body[CENTER].bodyID);
+	pthread_mutex_unlock(&(this->angle_mutex));
+
+	// set success to false
+	pthread_mutex_lock(&(this->success_mutex));
+	this->success[id] = false;
+	pthread_mutex_unlock(&(this->success_mutex));
+
+	// unlock goal
+	this->simThreadsGoalWUnlock();
+
+	// success
+	return 0;
+}
+
 int CRobot4Sim::moveJointWait(int id) {
 	// wait for motion to complete
 	pthread_mutex_lock(&(this->success_mutex));
 	while ( !this->success[id] ) { pthread_cond_wait(&(this->success_cond), &(this->success_mutex)); }
 	this->success[id] = true;
 	pthread_mutex_unlock(&(this->success_mutex));
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+	this->moveToNB(angle1, angle2, angle3, angle4);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+	// store angles into array
+	dReal delta[4] = {angle1 - this->angle[0], angle2 - this->angle[1], angle3 - this->angle[2], angle4 - this->angle[3]};
+
+	// lock goal
+	this->simThreadsGoalWLock();
+
+	// set new goal angles
+	this->goal[0] = D2R(angle1);
+	this->goal[1] = D2R(angle2);
+	this->goal[2] = D2R(angle3);
+	this->goal[3] = D2R(angle4);
+
+	// enable motor
+	pthread_mutex_lock(&(this->angle_mutex));
+	for ( int j = 0; j < NUM_DOF; j++ ) {
+		dJointEnable(this->motor[j]);
+		dJointSetAMotorAngle(this->motor[j], 0, this->angle[j]);
+		if ( delta[j] > 0 ) {
+			this->state[j] = MOBOT_FORWARD;
+			dJointSetAMotorParam(this->motor[j], dParamVel, this->velocity[j]);
+		}
+		else if ( delta[j] < 0 ) {
+			this->state[j] = MOBOT_BACKWARD;
+			dJointSetAMotorParam(this->motor[j], dParamVel, -this->velocity[j]);
+		}
+		else if ( fabs(delta[j]-0) < EPSILON ) {
+			this->state[j] = MOBOT_HOLD;
+			dJointSetAMotorParam(this->motor[j], dParamVel, 0);
+		}
+	}
+    dBodyEnable(this->body[CENTER].bodyID);
+	pthread_mutex_unlock(&(this->angle_mutex));
+
+	// set success to false
+	pthread_mutex_lock(&(this->success_mutex));
+	this->success[0] = false;
+	this->success[1] = false;
+	this->success[2] = false;
+	this->success[3] = false;
+	pthread_mutex_unlock(&(this->success_mutex));
+
+	// unlock goal
+	this->simThreadsGoalWUnlock();
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::moveToZero(void) {
+	this->moveTo(0, 0, 0, 0);
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::moveToZeroNB(void) {
+	this->moveToNB(0, 0, 0, 0);
 
 	// success
 	return 0;
@@ -458,47 +562,6 @@ void CRobot4Sim::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dRea
         phi = atan2(R[4]/cos(theta), R[0]/cos(theta));
     }
 }
-
-#ifdef ENABLE_DRAWSTUFF
-void CRobot4Sim::drawRobot(void) {
-    for (int i = 0; i < NUM_PARTS; i++) {
-        this->draw_body(i);
-    }
-}
-
-void CRobot4Sim::draw_body(int id) {
-    if ( dBodyIsEnabled(this->body[id].bodyID) )
-        dsSetColor(this->body[id].color[0], this->body[id].color[1], this->body[id].color[2]);
-    else
-        dsSetColor(0.5, 0.5, 0.5);
-
-    for (int i = 0; i < this->body[id].num_geomID; i++) {
-        const dReal *position = dGeomGetPosition(this->body[id].geomID[i]);     // get position
-        const dReal *rotation = dGeomGetRotation(this->body[id].geomID[i]);     // get rotation
-        dReal r, l;
-        dVector3 sides;
-
-        switch (dGeomGetClass(this->body[id].geomID[i])) {
-            case dSphereClass:
-                r = dGeomSphereGetRadius(this->body[id].geomID[i]);
-                dsDrawSphere(position, rotation, r);
-                break;
-            case dBoxClass:
-                dGeomBoxGetLengths(this->body[id].geomID[i], sides);
-                dsDrawBox(position, rotation, sides);
-                break;
-            case dCylinderClass:
-                dGeomCylinderGetParams(this->body[id].geomID[i], &r, &l);
-                dsDrawCylinder(position, rotation, l, r);
-                break;
-            case dCapsuleClass:
-                dGeomCapsuleGetParams(this->body[id].geomID[i], &r, &l);
-                dsDrawCapsule(position, rotation, l, r);
-                break;
-        }
-    }
-}
-#endif
 
 void CRobot4Sim::resetPID(int i) {
     if ( i == NUM_DOF )
@@ -2981,12 +3044,6 @@ void CRobot4Sim::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal
     // set mass center to (0,0,0) of this->bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
     dBodySetMass(this->body[id].bodyID, &m);
-
-#ifdef ENABLE_DRAWSTUFF
-    this->body[id].color[0] = 1;
-    this->body[id].color[1] = 0;
-    this->body[id].color[2] = 0;
-#endif
 }
 
 void CRobot4Sim::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
@@ -3032,12 +3089,6 @@ void CRobot4Sim::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
     // set mass center to (0,0,0) of body
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
     dBodySetMass(this->body[CENTER].bodyID, &m);
-
-#ifdef ENABLE_DRAWSTUFF
-    this->body[CENTER].color[0] = 0;
-    this->body[CENTER].color[1] = 1;
-    this->body[CENTER].color[2] = 0;
-#endif
 }
 
 void CRobot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
@@ -3103,10 +3154,4 @@ void CRobot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
     // set mass center to (0,0,0) of this->bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
     dBodySetMass(this->body[id].bodyID, &m);
-
-    #ifdef ENABLE_DRAWSTUFF
-    this->body[id].color[0] = 0;
-    this->body[id].color[1] = 0;
-    this->body[id].color[2] = 1;
-    #endif
 }

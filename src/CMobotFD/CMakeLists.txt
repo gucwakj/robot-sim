@@ -21,16 +21,6 @@ include_directories("${PROJECT_BINARY_DIR}")
 include_directories("../opende/sys/include")
 link_directories("../opende/sys/lib")
 
-# Option to enable drawstuff visualization
-option (ENABLE_DRAWSTUFF "Enable usage of the ODE drawstuff routines for visualization." ON)
-if (ENABLE_DRAWSTUFF)
-	include_directories("../opende/include")
-	link_directories("../opende/drawstuff/src/.libs")
-	find_package(GLUT)
-	find_package(OpenGL)
-	set (EXTRA_LIBS ${EXTRA_LIBS} drawstuff ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
-endif (ENABLE_DRAWSTUFF)
-
 # Option to enable double precision
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
 if (ENABLE_DOUBLE)
