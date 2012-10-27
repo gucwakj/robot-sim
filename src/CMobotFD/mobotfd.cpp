@@ -408,8 +408,6 @@ void CMobotFD::print_intermediate_data(void) {
 	Build iMobot Functions
  **********************************************************/
 void CMobotFD::addiMobot(CiMobotSim &mobot) {
-	//this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
-    //this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
 	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
 	this->bot[this->m_number[IMOBOT]] = &mobot;
 	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space, this, IMOBOT, this->m_number[IMOBOT]);
@@ -418,8 +416,6 @@ void CMobotFD::addiMobot(CiMobotSim &mobot) {
 
 void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z) {
 	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	//this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
-    //this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
 	this->bot[this->m_number[IMOBOT]] = &mobot;
 	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space, this, IMOBOT, this->m_number[IMOBOT]);
 	this->bot[this->m_number[IMOBOT]++]->build(x, y, z, 0, 0, 0);
@@ -427,8 +423,6 @@ void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z) {
 
 void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	//this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
-    //this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
 	this->bot[this->m_number[IMOBOT]] = &mobot;
 	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space, this, IMOBOT, this->m_number[IMOBOT]);
     this->bot[this->m_number[IMOBOT]++]->build(x, y, z, psi, theta, phi);
@@ -436,8 +430,6 @@ void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi
 
 void CMobotFD::addiMobot(CiMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	//this->m_flag_comp = (bool *)realloc(this->m_flag_comp, (this->m_number[IMOBOT] + 1)*sizeof(bool));
-    //this->m_flag_disable = (bool *)realloc(this->m_flag_disable, (this->m_number[IMOBOT] + 1)*sizeof(bool));
 	this->bot[this->m_number[IMOBOT]] = &mobot;
 	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space, this, IMOBOT, this->m_number[IMOBOT]);
     this->bot[this->m_number[IMOBOT]++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);

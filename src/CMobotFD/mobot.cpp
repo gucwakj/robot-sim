@@ -51,7 +51,7 @@ CRobot4Sim::~CRobot4Sim(void) {
 	//dSpaceDestroy(this->space); //sigsegv
 }
 
-void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int type, int num) {
+void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space/*, CMobotFD *sim, int type, int num*/) {
 	this->world = world;
     this->space = dHashSpaceCreate(space);
 	//this->sim = sim;

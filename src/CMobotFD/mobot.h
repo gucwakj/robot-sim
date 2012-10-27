@@ -63,7 +63,7 @@ class CRobot4Sim : public robotSimThreads {
     public:
         CRobot4Sim(void);
         ~CRobot4Sim(void);
-		void addToSim(dWorldID &world, dSpaceID &space, CMobotFD *sim, int type, int num);
+		void addToSim(dWorldID &world, dSpaceID &space/*, CMobotFD *sim, int type, int num*/);
 
         dReal getAngle(int i);
         dReal getPosition(int i);
