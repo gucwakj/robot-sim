@@ -78,6 +78,8 @@ class CRobot4Sim : public robotSimThreads {
 		void buildAttached01(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		void buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
+		int motionArch(dReal angle);
+
 		int move(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 		int moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 		int moveJoint(int id, dReal angle);

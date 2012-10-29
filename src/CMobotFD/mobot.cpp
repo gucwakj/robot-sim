@@ -134,6 +134,16 @@ bool CRobot4Sim::is_joint_complete(int id) {
 		return false;
 }
 
+int CRobot4Sim::motionArch(dReal angle) {
+	this->moveJointToNB(MOBOT_JOINT2, -angle/2.0);
+	this->moveJointToNB(MOBOT_JOINT3, angle/2.0);
+	this->moveJointWait(MOBOT_JOINT2);
+	this->moveJointWait(MOBOT_JOINT3);
+
+	// success
+	return 0;
+}
+
 int CRobot4Sim::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	this->moveNB(angle1, angle2, angle3, angle4);
 	this->moveWait();
