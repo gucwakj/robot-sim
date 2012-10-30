@@ -129,7 +129,7 @@ class CRobot4Sim : public robotSimThreads {
 		dReal position[3];			// initial position
 		dReal rotation[3];			// initial rotation
 		dReal orientation[4];		// initial joint orientation
-		bool success[4];				// trigger for goal
+		bool success[4];			// trigger for goal
 
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
 		void build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);	// build body of mobot

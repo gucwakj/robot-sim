@@ -758,17 +758,10 @@ void CRobot4Sim::resetPID(int i) {
 
 CiMobotSim::CiMobotSim(void) {
 	this->m_motor_res = D2R(0.5);
-	//this->m_joint_vel_max = new dReal[NUM_DOF];
 	this->m_joint_vel_max[LE] = 6.70;
 	this->m_joint_vel_max[LB] = 2.61;
 	this->m_joint_vel_max[RB] = 2.61;
 	this->m_joint_vel_max[RE] = 6.70;
-	//this->m_joint_vel_min = new dReal[NUM_DOF];
-	//this->m_joint_vel_min[LE] = 3.22;
-	//this->m_joint_vel_min[LB] = 1.25;
-	//this->m_joint_vel_min[RB] = 1.25;
-	//this->m_joint_vel_min[RE] = 3.22;
-	//this->m_joint_frc_max = new dReal[NUM_DOF];
 	this->m_joint_frc_max[LE] = 0.260;
 	this->m_joint_frc_max[LB] = 1.059;
 	this->m_joint_frc_max[RB] = 1.059;
