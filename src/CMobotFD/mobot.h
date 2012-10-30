@@ -4,6 +4,7 @@
 #include "config.h"
 #include "pid.h"
 #include "threads.h"
+#include <unistd.h>
 #include <ode/ode.h>
 #ifdef ENABLE_DOUBLE
 #define EPSILON DBL_EPSILON
@@ -60,16 +61,17 @@ typedef struct robot_body_s {
 
 class CMobotFD;
 class CRobot4Sim : public robotSimThreads {
-    public:
+	public:
         CRobot4Sim(void);
         ~CRobot4Sim(void);
-		void addToSim(dWorldID &world, dSpaceID &space/*, CMobotFD *sim, int type, int num*/);
+		void addToSim(dWorldID &world, dSpaceID &space);
 
-        dReal getAngle(int i);
-        dReal getPosition(int i);
-        dReal getRotation(int i);
-        dBodyID getBodyID(int body);
-        dJointID getMotorID(int motor);
+		dReal getAngle(int i);
+		int getJointAngle(int id, dReal &angle);
+		dReal getPosition(int i);
+		dReal getRotation(int i);
+		dBodyID getBodyID(int body);
+		dJointID getMotorID(int motor);
 
 		void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
@@ -79,6 +81,17 @@ class CRobot4Sim : public robotSimThreads {
 		void buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		int motionArch(dReal angle);
+		int motionInchwormLeft(int num);
+		int motionInchwormRight(int num);
+		int motionRollBackward(dReal angle);
+		int motionRollForward(dReal angle);
+		int motionSkinny(dReal angle);
+		int motionStand(void);
+		int motionTurnLeft(dReal angle);
+		int motionTurnRight(dReal angle);
+		int motionTumbleRight(int num);
+		int motionTumbleLeft(int num);
+		int motionUnstand(void);
 
 		int move(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 		int moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
@@ -88,10 +101,14 @@ class CRobot4Sim : public robotSimThreads {
 		int moveJointToNB(int id, dReal angle);
 		int moveJointWait(int id);
 		int moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		int moveToDirect(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 		int moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		int moveToDirectNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
+
+		int resetToZero(void);
 
         void resetPID(int i = NUM_DOF);
         void updateMotorSpeed(int i);
@@ -99,13 +116,13 @@ class CRobot4Sim : public robotSimThreads {
 		bool isHome(void);
 		bool isComplete(void);
     private:
-        dWorldID world;				// world for all robots
-        dSpaceID space;				// space for this robot
+		dWorldID world;				// world for all robots
+		dSpaceID space;				// space for this robot
 		dJointID motor[4];			// motors
-        dJointID joint[6];			// joints between body parts
-        PID *pid;					// PID control for each joint
+		dJointID joint[6];			// joints between body parts
+		PID pid[4];					// PID control for each joint
 		mobotJointState_t state[4];	// states
-        mobotBody_t *body;			// body parts
+        mobotBody_t body[NUM_PARTS];// body parts
 		dReal angle[4];				// angles
 		dReal velocity[4];			// velocities
 		dReal goal[4];				// goals

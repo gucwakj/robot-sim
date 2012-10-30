@@ -1,20 +1,6 @@
 #include "mobot.h"
 
 CRobot4Sim::CRobot4Sim(void) {
-    //this->m_num_stp = 0;
-	//this->joint = new dJointID[6];
-	//this->motor = new dJointID[4];
-	this->pid = new PID[NUM_DOF];
-	//this->ang = new dReal[NUM_DOF]();
-	//this->ang = NULL;
-	//this->vel = new dReal[NUM_DOF]();
-	//this->cur_ang = new dReal[NUM_DOF]();
-	//this->fut_ang = new dReal[NUM_DOF]();
-	//this->jnt_vel = new dReal[NUM_DOF]();
-	//this->pos = new dReal[3]();
-	//this->rot = new dReal[3]();
-	//this->ori = new dReal[4]();
-	
 	this->angle[0] = 0;
 	this->angle[1] = 0;
 	this->angle[2] = 0;
@@ -36,30 +22,14 @@ CRobot4Sim::CRobot4Sim(void) {
 }
 
 CRobot4Sim::~CRobot4Sim(void) {
-	//delete [] this->body;
-	delete [] this->pid;
-	//delete [] this->joint;
-	//delete [] this->motor;
-	//delete [] this->fut_ang;
-	//delete [] this->cur_ang;
-	//delete [] this->jnt_vel;
-	//delete [] this->ang;
-	//delete [] this->vel;
-	//delete [] this->pos;
-	//delete [] this->rot;
-	//delete [] this->ori;
 	//dSpaceDestroy(this->space); //sigsegv
 }
 
 void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space/*, CMobotFD *sim, int type, int num*/) {
 	this->world = world;
     this->space = dHashSpaceCreate(space);
-	//this->sim = sim;
-	//this->m_type = type;
-	//this->m_num = num;
 
 	// init body parts
-	this->body = new mobotBody_t[NUM_PARTS];
 	for ( int i = 0; i < NUM_PARTS; i++ ) {
 		this->body[i].bodyID = dBodyCreate(this->world);
 	}
@@ -83,9 +53,12 @@ dReal CRobot4Sim::getAngle(int i) {
     return this->angle[i];
 }
 
-/*bool CRobot4Sim::getSuccess(void) {
-    return this->success;
-}*/
+int CRobot4Sim::getJointAngle(int id, dReal &angle) {
+	angle = R2D(this->getAngle(id));
+
+	// success
+	return 0;
+}
 
 dReal CRobot4Sim::getPosition(int i) {
     return this->position[i];
@@ -139,6 +112,187 @@ int CRobot4Sim::motionArch(dReal angle) {
 	this->moveJointToNB(MOBOT_JOINT3, angle/2.0);
 	this->moveJointWait(MOBOT_JOINT2);
 	this->moveJointWait(MOBOT_JOINT3);
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::motionInchwormLeft(int num) {
+	this->moveJointToNB(MOBOT_JOINT2, 0);
+	this->moveJointToNB(MOBOT_JOINT3, 0);
+	this->moveWait();
+
+	for (int i = 0; i < num; i++) {
+		this->moveJointTo(MOBOT_JOINT2, -50);
+		this->moveJointTo(MOBOT_JOINT3, 50);
+		this->moveJointTo(MOBOT_JOINT2, 0);
+		this->moveJointTo(MOBOT_JOINT3, 0);
+	}
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::motionInchwormRight(int num) {
+	this->moveJointToNB(MOBOT_JOINT2, 0);
+	this->moveJointToNB(MOBOT_JOINT3, 0);
+	this->moveWait();
+
+	for (int i = 0; i < num; i++) {
+		this->moveJointTo(MOBOT_JOINT3, 50);
+		this->moveJointTo(MOBOT_JOINT2, -50);
+		this->moveJointTo(MOBOT_JOINT3, 0);
+		this->moveJointTo(MOBOT_JOINT2, 0);
+	}
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::motionRollBackward(dReal angle) {
+	dReal motorPosition[2];
+	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
+	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
+	this->moveJointToNB(MOBOT_JOINT1, motorPosition[0] - angle);
+	this->moveJointToNB(MOBOT_JOINT4, motorPosition[1] - angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::motionRollForward(dReal angle) {
+	dReal motorPosition[2];
+	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
+	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
+	this->moveJointToNB(MOBOT_JOINT1, motorPosition[0] + angle);
+	this->moveJointToNB(MOBOT_JOINT4, motorPosition[1] + angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::motionSkinny(dReal angle) {
+	this->moveJointToNB(MOBOT_JOINT2, angle);
+	this->moveJointToNB(MOBOT_JOINT3, angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::motionStand(void) {
+	this->resetToZero();
+	this->moveJointTo(MOBOT_JOINT2, -85);
+	this->moveJointTo(MOBOT_JOINT3, 70);
+	this->moveWait();
+	this->moveJointTo(MOBOT_JOINT1, 45);
+#ifndef _WIN32
+	usleep(1000000);
+#else
+	Sleep(1000);
+#endif
+	this->moveJointTo(MOBOT_JOINT2, 20);
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::motionTumbleLeft(int num) {
+	this->resetToZero();
+#ifndef _WIN32
+	usleep(1000000);
+#else
+	Sleep(1000);
+#endif
+
+	for (int i = 0; i < num; i++) {
+		this->moveJointTo(MOBOT_JOINT2, -85);
+		this->moveJointTo(MOBOT_JOINT3, 80);
+		this->moveJointTo(MOBOT_JOINT2, 0);
+		this->moveJointTo(MOBOT_JOINT3, 0);
+		this->moveJointTo(MOBOT_JOINT2, 80);
+		this->moveJointTo(MOBOT_JOINT2, 45);
+		this->moveJointTo(MOBOT_JOINT3, -85);
+		this->moveJointTo(MOBOT_JOINT2, 80);
+		this->moveJointTo(MOBOT_JOINT3, 0);
+		this->moveJointTo(MOBOT_JOINT2, 0);
+		this->moveJointTo(MOBOT_JOINT3, 80);
+		if (i != (num-1)) {
+			this->moveJointTo(MOBOT_JOINT3, 45);
+		}
+	}
+	this->moveJointToNB(MOBOT_JOINT2, 0);
+	this->moveJointToNB(MOBOT_JOINT3, 0);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::motionTumbleRight(int num) {
+	this->resetToZero();
+#ifndef _WIN32
+	usleep(1000000);
+#else
+	Sleep(1000);
+#endif
+
+	for (int i = 0; i < num; i++) {
+		this->moveJointTo(MOBOT_JOINT3, 85);
+		this->moveJointTo(MOBOT_JOINT2, -80);
+		this->moveJointTo(MOBOT_JOINT3, 0);
+		this->moveJointTo(MOBOT_JOINT2, 0);
+		this->moveJointTo(MOBOT_JOINT3, -80);
+		this->moveJointTo(MOBOT_JOINT3, -45);
+		this->moveJointTo(MOBOT_JOINT2, 85);
+		this->moveJointTo(MOBOT_JOINT3, -80);
+		this->moveJointTo(MOBOT_JOINT2, 0);
+		this->moveJointTo(MOBOT_JOINT3, 0);
+		this->moveJointTo(MOBOT_JOINT2, -80);
+		if (i != (num-1)) {
+			this->moveJointTo(MOBOT_JOINT2, -45);
+		}
+	}
+	this->moveJointToNB(MOBOT_JOINT3, 0);
+	this->moveJointToNB(MOBOT_JOINT2, 0);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::motionTurnLeft(dReal angle) {
+	dReal motorPosition[2];
+	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
+	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
+	this->moveJointToNB(MOBOT_JOINT1, motorPosition[0] - angle);
+	this->moveJointToNB(MOBOT_JOINT4, motorPosition[1] + angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::motionTurnRight(dReal angle) {
+	dReal motorPosition[2];
+	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
+	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
+	this->moveJointToNB(MOBOT_JOINT1, motorPosition[0] + angle);
+	this->moveJointToNB(MOBOT_JOINT4, motorPosition[1] - angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::motionUnstand(void) {
+	this->moveToDirect(0, 0, 0, 0);
+	this->moveJointToNB(MOBOT_JOINT3, 45);
+	this->moveJointToNB(MOBOT_JOINT2, -85);
+	this->moveWait();
+	this->moveToDirect(0, 0, 0, 0);
 
 	// success
 	return 0;
@@ -317,6 +471,9 @@ int CRobot4Sim::moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	return 0;
 }
 
+int moveToDirect(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+}
+
 int CRobot4Sim::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	// store angles into array
 	dReal delta[4] = {angle1 - this->angle[0], angle2 - this->angle[1], angle3 - this->angle[2], angle4 - this->angle[3]};
@@ -366,6 +523,9 @@ int CRobot4Sim::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4)
 	return 0;
 }
 
+int moveToDirectNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+}
+
 int CRobot4Sim::moveToZero(void) {
 	this->moveTo(0, 0, 0, 0);
 
@@ -391,6 +551,22 @@ int CRobot4Sim::moveWait(void) {
 	this->success[2] = true;
 	this->success[3] = true;
 	pthread_mutex_unlock(&(this->success_mutex));
+
+	// success
+	return 0;
+}
+
+int CRobot4Sim::resetToZero(void) {
+	// reset absolute counter to 0 -> 2M_PI
+	pthread_mutex_lock(&(this->angle_mutex));
+	int rev = (int)(this->angle[LE]/2/M_PI);
+	if (rev) this->angle[LE] -= 2*rev*M_PI;
+	rev = (int)(this->angle[RE]/2/M_PI);
+	if (rev) this->angle[RE] -= 2*rev*M_PI;
+	pthread_mutex_unlock(&(this->angle_mutex));
+
+	// move to zero position
+	this->moveToZero();
 
 	// success
 	return 0;
