@@ -56,6 +56,10 @@ class CMobotFD {
             dReal x, y, z;
             dGeomID geomID;
         } CMobotFDTarget;
+		typedef struct lockingArguments_s {
+			void *parent;
+			int num;
+		} lockingArguments_t;
 
 		// private variables to store general information about simulation
 		dWorldID world;				// world in which simulation occurs
@@ -74,14 +78,15 @@ class CMobotFD {
 			m_num_targets;			// total number of targets
 		int m_number[NUM_TYPES];	// number of each type of robot in simulation
 		pthread_t simulation;		// simulation thread
-		pthread_t visualization;	// visualization thread
 
 		// simulation functions
 		void simulation_loop(void);		// loop to complete simulation
-		void update_angles(void);					// update struct with modified angles
 		void print_intermediate_data(void);			// print data out at each time step for analysis
-		void check_success(void);					// check if motion is complete
 		void collision(dGeomID o1, dGeomID o2);		// callback function for contact of bodies
+		template <class T>
+		static void* pre_collision(void *arg);
+		template <class T>
+		static void* post_collision(void *arg);
 		static void collision_wrapper(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 		static void* simulation_wrapper(void *arg);
 

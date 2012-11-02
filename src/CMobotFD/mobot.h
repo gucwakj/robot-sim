@@ -111,6 +111,7 @@ class CRobot4Sim : public robotSimThreads {
 		int resetToZero(void);
 
         void resetPID(int i = NUM_DOF);
+		void updateAngles(void);
         void updateMotorSpeed(int i);
 
 		bool isHome(void);

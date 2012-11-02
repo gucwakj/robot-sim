@@ -27,7 +27,6 @@ CMobotFD::CMobotFD(void) {
 	this->m_cor_b = 0.3;
 
 	pthread_create(&(this->simulation), NULL, (void* (*)(void *))&CMobotFD::simulation_wrapper, (void *)this);
-	//pthread_create(&visualization, NULL, (void *)vizLoop, NULL);
 
 	// variables to keep track of progress of simulation
 	for ( int i = 0; i < NUM_TYPES; i++ ) {
@@ -38,7 +37,7 @@ CMobotFD::CMobotFD(void) {
     this->m_t_step = 0.004;
 
 	this->bot = NULL;
-	//this->bots[IMOBOT] = new CiMobotSim;
+	//this->bot[IMOBOT] = dynamic_cast<CiMobotSim *>(this->bot[IMOBOT]);;
 	//this->bots[MOBOT] = new CMobotSim;
 	//this->bots[KIDBOT] = new CKidbotSim;
 	//this->bots[NXT] = new CNXTSim;
@@ -151,23 +150,20 @@ void* CMobotFD::simulation_wrapper(void *arg) {
 void CMobotFD::simulation_loop(void) {
 	//struct timespec cur_time, itime;
 	//unsigned int dt;
-	//bool loop = true;												// initialize loop tracker
 	int i;
-	while (1) {													// loop continuously until simulation is stopped
-		// prevent viz from running until next step if over
-		//pthread_rw_rlock(&viz_rwlock);
+	pthread_t imobot[this->m_number[IMOBOT]];
 
+	while (1) {													// loop continuously until simulation is stopped
 		// get start time of execution
 		//clock_gettime(CLOCK_REALTIME, &cur_time);
 
-		// lock goal and angle
-		for (i = 0; i < this->m_number[0]; i++) {
-			this->bot[i]->simThreadsGoalRLock();
-			this->bot[i]->simThreadsAngleLock();
+		// perform pre-collision updates
+		//  - lock angle and goal
+		//  - update angles 
+		for (i = 0; i < this->m_number[IMOBOT]; i++) {
+			pthread_create(&imobot[i], NULL, (void* (*)(void *))&CMobotFD::pre_collision<CiMobotSim>, (void *)(this->bot[i]));
+			pthread_join(imobot[i], NULL);
 		}
-		//printf("locking done\t");
-
-		this->update_angles();										// update angles for current step
 
 		// step world
 		dSpaceCollide(this->space, this, &this->collision_wrapper);	// collide all geometries together
@@ -175,64 +171,67 @@ void CMobotFD::simulation_loop(void) {
 		dJointGroupEmpty(this->group);								// clear out all contact joints
 
 		this->print_intermediate_data();							// print out incremental data
-		this->check_success();										// check success of current motion
 
-		/*this->set_flags();											// set flags for completion of steps
-		this->increment_step();										// check whether to increment to next step
-		this->end_simulation(loop);									// check whether to end simulation*/
-
-		// unlock goal and angle
-		for (i = 0; i < this->m_number[0]; i++) {
-			this->bot[i]->simThreadsAngleUnlock();
-			this->bot[i]->simThreadsGoalRUnlock();
+		// perform post-collision updates
+		//  - unlock angle and goal
+		//  - check if success 
+		for (i = 0; i < this->m_number[IMOBOT]; i++) {
+			pthread_create(&imobot[i], NULL, (void* (*)(void *))&CMobotFD::post_collision<CiMobotSim>, (void *)(this->bot[i]));
+			pthread_join(imobot[i], NULL);
 		}
-		//printf("unlocking done\n");
 
 		// check end time of execution
 		//clock_gettime(CLOCK_REALTIME, &itime);
 		// sleep until next step
 		//dt = diff_nsecs(cur_time, itime);
 		//if ( dt < 500000 ) { usleep(500 - dt/1000); }
-
-		// allow viz to run if requesting access
-		//pthread_rw_runlock(&viz_rwlock);
 	}
 }
 
-void CMobotFD::check_success(void) {
-	int i;
-	for ( i = 0; i < this->m_number[0]; i++ ) {
-		this->bot[i]->isComplete();
-	}
+template <class T> 
+void* CMobotFD::pre_collision(void *arg) {
+	// cast to type T
+	T *bot = (T *)arg;
+
+	// lock angle and goal
+	bot->simThreadsGoalRLock();
+	bot->simThreadsAngleLock();
+
+	// update angle values
+	bot->updateAngles();
+
+	// unlock angle and goal
+	bot->simThreadsAngleUnlock();
+	bot->simThreadsGoalRUnlock();
+
+	//delete bot;
+	return 0;
 }
 
-void CMobotFD::update_angles(void) {
-	// initialze loop counters
-	int i, j;
+template <class T> 
+void* CMobotFD::post_collision(void *arg) {
+	// cast to type T
+	T *bot = (T *)arg;
 
-	// update stored data in struct with data from ODE
-	for ( i = 0; i < this->m_number[0]; i++ ) {
+	// lock angle and goal
+	bot->simThreadsGoalRLock();
+	bot->simThreadsAngleLock();
 
-		// must be done for each degree of freedom
-		for ( j = 0; j < NUM_DOF; j++ ) {
-			// update current angle
-			//this->bot[i]->updateAngle(j);
+	// check if complete
+	bot->isComplete();
 
-			// set motor angle to current angle
-			//dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getAngle(j));
+	// unlock angle and goal
+	bot->simThreadsAngleUnlock();
+	bot->simThreadsGoalRUnlock();
 
-			// drive motor to get current angle to match future angle
-			this->bot[i]->updateMotorSpeed(j);
-		}
-	}
+	//delete bot;
+	return 0;
 }
 
 void CMobotFD::collision_wrapper(void *data, dGeomID o1, dGeomID o2) {
 	// cast void pointer to pointer to class
-	CMobotFD *ptr;
-	ptr = (CMobotFD *) data;
-	if (ptr)
-	    ptr->collision(o1, o2);
+	CMobotFD *ptr = (CMobotFD *)data;
+	ptr->collision(o1, o2);
 
 }
 
@@ -268,75 +267,6 @@ void CMobotFD::collision(dGeomID o1, dGeomID o2) {
 	}
 }
 
-/*void CMobotFD::set_flags(void) {
-	// initialze loop counters
-	int c, i, j;
-
-	// set flags for each module in simulation
-	for ( i = 0; i < this->m_number[0]; i++ ) {
-		// restart counter for each robot
-		c = 0;
-
-		// check if joint speed is zero -> joint has completed step
-		for ( j = 0; j < NUM_DOF; j++ ) { if ( !(int)dJointGetAMotorParam(this->bot[i]->getMotorID(j), dParamVel) ) c++; }
-
-		// set flag for each robot that has completed all four joint motions
-		if ( c == 4 ) this->m_flag_comp[i] = true;
-
-		// module is disabled
-        this->m_flag_disable[i] = this->bot[i]->isDisabled();
-	}
-}*/
-
-/*void CMobotFD::increment_step(void) {
-	// if completed step and bodies are at rest, then increment
-	if ( this->is_true(this->m_number[0], this->m_flag_comp) && this->is_true(this->m_number[0], this->m_flag_disable) ) {
-		// if haven't reached last step, increment
-		if ( this->m_cur_stp != this->m_num_stp - 1 ) {
-			this->m_cur_stp++;
-			this->set_angles();
-		}
-		// otherwise successfully reached last step
-		else {
-			this->m_reply->message = FD_SUCCESS;
-			//this->m_reply->time = this->m_t;
-            this->m_reply->time = this->m_t_cur_step*this->m_t_step;
-		}
-
-		// reset all flags to zero
-		for ( int i = 0; i < this->m_number[0]; i++ ) {
-			this->m_flag_comp[i] = false;
-			this->m_flag_disable[i] = false;
-            this->bot[i]->resetPID();
-		}
-	}
-	// increment time step
-	this->m_t_cur_step++;
-}*/
-
-/*void CMobotFD::set_angles(void) {
-	// set arrays of angles for new step
-	for ( int i = 0; i < this->m_number[0]; i++ ) {
-		for ( int j = 0; j < NUM_DOF; j++ ) {
-            //if ( this->bot[i]->isJointDisabled(j, this->m_cur_stp) ) {
-            if ( this->bot[i]->isJointDisabled(j, 0) ) {
-				dJointDisable(this->bot[i]->getMotorID(j));
-                //this->bot[i]->updateFutureAngle(j, this->m_cur_stp, 0);
-                this->bot[i]->updateFutureAngle(j, 0, 0);
-				dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getCurrentAngle(j));
-			}
-			else {
-				dJointEnable(this->bot[i]->getMotorID(j));
-				//this->bot[i]->updateFutureAngle(j, this->m_cur_stp, 1);
-				this->bot[i]->updateFutureAngle(j, 0, 1);
-                //this->bot[i]->updateJointVelocity(j, 0);
-				dJointSetAMotorAngle(this->bot[i]->getMotorID(j), 0, this->bot[i]->getCurrentAngle(j));
-			}
-		}
-		this->bot[i]->enable();     // re-enable robots for next step
-	}
-}*/
-
 void CMobotFD::print_intermediate_data(void) {
 	// initialze loop counters
 	int i;
@@ -344,8 +274,6 @@ void CMobotFD::print_intermediate_data(void) {
     cout.width(10);		// cout.precision(4);
     cout.setf(ios::fixed, ios::floatfield);
 	for (i = 0; i < this->m_number[0]; i++) {
-		//cout << "bot: " << i << " success: " << this->bot[i]->getSuccess() << " enabled: " << dJointIsEnabled(this->bot[i]->getMotorID(0)) << " ";
-		//cout << "bot: " << i << " vel: " << dJointGetAMotorParam(this->bot[i]->getMotorID(0), dParamVel) << " ";
 		cout << this->bot[i]->getAngle(LE) << " ";
 		cout << this->bot[i]->getAngle(LB) << " ";
 		cout << this->bot[i]->getAngle(RB) << " ";
@@ -353,16 +281,6 @@ void CMobotFD::print_intermediate_data(void) {
 	}
 	cout << endl;
 }
-
-/*void CMobotFD::end_simulation(bool &loop) {
-	// have not completed steps && stalled
-	if ( !this->is_true(this->m_number[0], this->m_flag_comp) && this->is_true(this->m_number[0], this->m_flag_disable) ) {
-		this->m_reply->message = FD_ERROR_STALL;
-		loop = false;
-	}
-	// success on all steps
-	else if ( !this->m_reply->message ) { loop = false; }
-}*/
 
 /**********************************************************
 	Build iMobot Functions
