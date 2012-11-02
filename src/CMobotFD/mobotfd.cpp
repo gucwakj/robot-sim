@@ -26,7 +26,7 @@ CMobotFD::CMobotFD(void) {
 	this->m_cor_g = 0.3;
 	this->m_cor_b = 0.3;
 
-	pthread_create(&(this->simulation), NULL, (void* (*)(void *))&CMobotFD::simulation_wrapper, (void *)this);
+	pthread_create(&(this->simulation), NULL, (void* (*)(void *))&CMobotFD::simulationThread, (void *)this);
 
 	// variables to keep track of progress of simulation
 	for ( int i = 0; i < NUM_TYPES; i++ ) {
@@ -138,45 +138,43 @@ void CMobotFD::setTarget(int num, dReal x, dReal y, dReal z) {
     dGeomDisable(this->m_targets[num].geomID);
 }
 
-void* CMobotFD::simulation_wrapper(void *arg) {
-	CMobotFD *sim = (CMobotFD *)arg;
-	sim->simulation_loop();
-	free(sim);
-}
-
 /**********************************************************
 	Private Simulation Functions
  **********************************************************/
-void CMobotFD::simulation_loop(void) {
+void* CMobotFD::simulationThread(void *arg) {
+	// cast to type sim 
+	CMobotFD *sim = (CMobotFD *)arg;
+
+	// initialize local variables
 	//struct timespec cur_time, itime;
 	//unsigned int dt;
 	int i;
-	pthread_t imobot[this->m_number[IMOBOT]];
+	pthread_t imobot[sim->m_number[IMOBOT]];
 
-	while (1) {													// loop continuously until simulation is stopped
+	while (1) {
 		// get start time of execution
 		//clock_gettime(CLOCK_REALTIME, &cur_time);
 
 		// perform pre-collision updates
 		//  - lock angle and goal
 		//  - update angles 
-		for (i = 0; i < this->m_number[IMOBOT]; i++) {
-			pthread_create(&imobot[i], NULL, (void* (*)(void *))&CMobotFD::pre_collision<CiMobotSim>, (void *)(this->bot[i]));
+		for (i = 0; i < sim->m_number[IMOBOT]; i++) {
+			pthread_create(&imobot[i], NULL, (void* (*)(void *))&CMobotFD::preCollisionThread<CiMobotSim>, (void *)(sim->bot[i]));
 			pthread_join(imobot[i], NULL);
 		}
 
 		// step world
-		dSpaceCollide(this->space, this, &this->collision_wrapper);	// collide all geometries together
-		dWorldStep(this->world, this->m_t_step);					// step world time by one
-		dJointGroupEmpty(this->group);								// clear out all contact joints
+		dSpaceCollide(sim->space, sim, &sim->collision_wrapper);	// collide all geometries together
+		dWorldStep(sim->world, sim->m_t_step);					// step world time by one
+		dJointGroupEmpty(sim->group);								// clear out all contact joints
 
-		this->print_intermediate_data();							// print out incremental data
+		//sim->print_intermediate_data();							// print out incremental data
 
 		// perform post-collision updates
 		//  - unlock angle and goal
 		//  - check if success 
-		for (i = 0; i < this->m_number[IMOBOT]; i++) {
-			pthread_create(&imobot[i], NULL, (void* (*)(void *))&CMobotFD::post_collision<CiMobotSim>, (void *)(this->bot[i]));
+		for (i = 0; i < sim->m_number[IMOBOT]; i++) {
+			pthread_create(&imobot[i], NULL, (void* (*)(void *))&CMobotFD::postCollisionThread<CiMobotSim>, (void *)(sim->bot[i]));
 			pthread_join(imobot[i], NULL);
 		}
 
@@ -186,10 +184,11 @@ void CMobotFD::simulation_loop(void) {
 		//dt = diff_nsecs(cur_time, itime);
 		//if ( dt < 500000 ) { usleep(500 - dt/1000); }
 	}
+	free(sim);
 }
 
 template <class T> 
-void* CMobotFD::pre_collision(void *arg) {
+void* CMobotFD::preCollisionThread(void *arg) {
 	// cast to type T
 	T *bot = (T *)arg;
 
@@ -209,7 +208,7 @@ void* CMobotFD::pre_collision(void *arg) {
 }
 
 template <class T> 
-void* CMobotFD::post_collision(void *arg) {
+void* CMobotFD::postCollisionThread(void *arg) {
 	// cast to type T
 	T *bot = (T *)arg;
 
