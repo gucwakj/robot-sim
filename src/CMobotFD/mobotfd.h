@@ -80,13 +80,8 @@ class CMobotFD {
 
 		// simulation functions
 		void print_intermediate_data(void);			// print data out at each time step for analysis
-		void collision(dGeomID o1, dGeomID o2);		// callback function for contact of bodies
 		static void* simulationThread(void *arg);
-		/*template <class T>
-		static void* preCollisionThread(void *arg);
-		template <class T>
-		static void* postCollisionThread(void *arg);*/
-		static void collision_wrapper(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
+		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 
         // utility functions
 		unsigned int diff_nsecs(struct timespec t1, struct timespec t2);

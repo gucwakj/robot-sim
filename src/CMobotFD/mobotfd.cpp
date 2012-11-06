@@ -166,11 +166,11 @@ void* CMobotFD::simulationThread(void *arg) {
 		}
 
 		// step world
-		dSpaceCollide(sim->space, sim, &sim->collision_wrapper);// collide all geometries together
-		dWorldStep(sim->world, sim->m_t_step);					// step world time by one
-		dJointGroupEmpty(sim->group);							// clear out all contact joints
+		dSpaceCollide(sim->space, sim, &sim->collision);// collide all geometries together
+		dWorldStep(sim->world, sim->m_t_step);			// step world time by one
+		dJointGroupEmpty(sim->group);					// clear out all contact joints
 
-		sim->print_intermediate_data();							// print out incremental data
+		sim->print_intermediate_data();
 
 		// perform post-collision updates
 		//  - unlock angle and goal
@@ -194,14 +194,10 @@ void* CMobotFD::simulationThread(void *arg) {
 	free(sim);
 }
 
-void CMobotFD::collision_wrapper(void *data, dGeomID o1, dGeomID o2) {
+void CMobotFD::collision(void *data, dGeomID o1, dGeomID o2) {
 	// cast void pointer to pointer to class
 	CMobotFD *ptr = (CMobotFD *)data;
-	ptr->collision(o1, o2);
 
-}
-
-void CMobotFD::collision(dGeomID o1, dGeomID o2) {
 	// get bodies of geoms
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);
@@ -211,24 +207,23 @@ void CMobotFD::collision(dGeomID o1, dGeomID o2) {
 
 	// special case for collision of spaces
 	if (dGeomIsSpace(o1) || dGeomIsSpace(o2)) {
-		dSpaceCollide2(o1, o2, this, &this->collision_wrapper);
-		if ( dGeomIsSpace(o1) )	dSpaceCollide((dSpaceID)o1, this, &this->collision_wrapper);
-		if ( dGeomIsSpace(o2) ) dSpaceCollide((dSpaceID)o2, this, &this->collision_wrapper);
+		dSpaceCollide2(o1, o2, ptr, &ptr->collision);
+		if ( dGeomIsSpace(o1) )	dSpaceCollide((dSpaceID)o1, ptr, &ptr->collision);
+		if ( dGeomIsSpace(o2) ) dSpaceCollide((dSpaceID)o2, ptr, &ptr->collision);
 	}
 	else {
 		dContact contact[8];
 		for ( int i = 0; i < dCollide(o1, o2, 8, &contact[0].geom, sizeof(dContact)); i++ ) {
-			// different properties for ground contact vs body contact
-			if ( dGeomGetSpace(o1) == this->space || dGeomGetSpace(o2) == this->space ) {
-				contact[i].surface.mu = this->m_mu_g;
-				contact[i].surface.bounce = this->m_cor_g;
+			if ( dGeomGetSpace(o1) == ptr->space || dGeomGetSpace(o2) == ptr->space ) {
+				contact[i].surface.mu = ptr->m_mu_g;
+				contact[i].surface.bounce = ptr->m_cor_g;
 			}
 			else {
-				contact[i].surface.mu = this->m_mu_b;
-				contact[i].surface.bounce = this->m_cor_b;
+				contact[i].surface.mu = ptr->m_mu_b;
+				contact[i].surface.bounce = ptr->m_cor_b;
 			}
 			contact[i].surface.mode = dContactBounce | dContactApprox1;
-			dJointAttach( dJointCreateContact(this->world, this->group, contact + i), b1, b2);
+			dJointAttach( dJointCreateContact(ptr->world, ptr->group, contact + i), b1, b2);
 		}
 	}
 }
