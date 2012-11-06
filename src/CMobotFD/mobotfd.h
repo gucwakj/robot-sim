@@ -56,10 +56,6 @@ class CMobotFD {
             dReal x, y, z;
             dGeomID geomID;
         } CMobotFDTarget;
-		typedef struct lockingArguments_s {
-			void *parent;
-			int num;
-		} lockingArguments_t;
 
 		// private variables to store general information about simulation
 		dWorldID world;				// world in which simulation occurs
@@ -67,7 +63,11 @@ class CMobotFD {
 		dJointGroupID group;		// group to store joints
 		dGeomID ground;				// ground plane
 		dGeomID *m_statics;			// array of ground objects
-		CiMobotSim **bot;			// array of robots in simulation
+		robotSim **robot[NUM_TYPES];
+		pthread_mutex_t robot_mutex;
+		int robotNumber[NUM_TYPES];
+		pthread_t *robotThread[NUM_TYPES];
+
 		CMobotFDTarget *m_targets;	// array of targets
 		dReal   m_t_step,			// time of each step of simulation
 				m_mu_g,				//coefficient of friction of body_ground
@@ -76,17 +76,16 @@ class CMobotFD {
 				m_cor_b;			// coefficient of restitution of body_body
 		int	m_num_statics,			// number of pieces of ground
 			m_num_targets;			// total number of targets
-		int m_number[NUM_TYPES];	// number of each type of robot in simulation
 		pthread_t simulation;		// simulation thread
 
 		// simulation functions
 		void print_intermediate_data(void);			// print data out at each time step for analysis
 		void collision(dGeomID o1, dGeomID o2);		// callback function for contact of bodies
 		static void* simulationThread(void *arg);
-		template <class T>
+		/*template <class T>
 		static void* preCollisionThread(void *arg);
 		template <class T>
-		static void* postCollisionThread(void *arg);
+		static void* postCollisionThread(void *arg);*/
 		static void collision_wrapper(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 
         // utility functions

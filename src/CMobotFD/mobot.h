@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "pid.h"
+#include "robot.h"
 #include "threads.h"
 #include <unistd.h>
 #include <ode/ode.h>
@@ -54,31 +55,12 @@ typedef enum mobot_joint_state_e {
 	MOBOT_HOLD		= 3
 } mobotJointState_t;
 
-typedef struct robot_body_s {
-	dBodyID bodyID;                         // id of body part
-	dGeomID *geomID;                        // ids of geoms which make up each body part
-} mobotBody_t;
-
-class CMobotFD;
-class CRobot4Sim : public robotSimThreads {
+class CRobot4Sim : virtual public robotSim , public robotSimThreads {
 	public:
         CRobot4Sim(void);
         ~CRobot4Sim(void);
-		void addToSim(dWorldID &world, dSpaceID &space);
 
-		dReal getAngle(int i);
 		int getJointAngle(int id, dReal &angle);
-		dReal getPosition(int i);
-		dReal getRotation(int i);
-		dBodyID getBodyID(int body);
-		dJointID getMotorID(int motor);
-
-		void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
-		void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		void buildAttached00(CRobot4Sim *attach, int face1, int face2);
-		void buildAttached10(CRobot4Sim *attach, int face1, int face2);
-		void buildAttached01(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		void buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		int motionArch(dReal angle);
 		int motionInchwormLeft(int num);
@@ -110,13 +92,28 @@ class CRobot4Sim : public robotSimThreads {
 
 		int resetToZero(void);
 
-        void resetPID(int i = NUM_DOF);
-		void updateAngles(void);
-        void updateMotorSpeed(int i);
-
-		bool isHome(void);
-		bool isComplete(void);
+		virtual dReal getAngle(int i);
+		virtual bool getSuccess(int i);
+		virtual dReal getPosition(int i);
+		virtual dReal getRotation(int i);
+		virtual dBodyID getBodyID(int body);
+		virtual dJointID getMotorID(int motor);
+		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
+		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		virtual void buildAttached00(CRobot4Sim *attach, int face1, int face2);
+		virtual void buildAttached10(CRobot4Sim *attach, int face1, int face2);
+		virtual void buildAttached01(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		virtual void buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		virtual bool isHome(void);
+		virtual void simPreCollisionThread(void);
+		virtual void simPostCollisionThread(void);
+		virtual void simAddRobot(dWorldID &world, dSpaceID &space);
     private:
+		typedef struct robot_body_s {
+			dBodyID bodyID;                         // id of body part
+			dGeomID *geomID;                        // ids of geoms which make up each body part
+		} mobotBody_t;
+
 		dWorldID world;				// world for all robots
 		dSpaceID space;				// space for this robot
 		dJointID motor[4];			// motors
@@ -132,7 +129,9 @@ class CRobot4Sim : public robotSimThreads {
 		dReal orientation[4];		// initial joint orientation
 		bool success[4];			// trigger for goal
 
+        //void resetPID(int i = NUM_DOF);
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
+        void update_joint_speed(int i);
 		void build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);	// build body of mobot
 		void build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
 		void build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap

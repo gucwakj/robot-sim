@@ -30,22 +30,20 @@ CMobotFD::CMobotFD(void) {
 
 	// variables to keep track of progress of simulation
 	for ( int i = 0; i < NUM_TYPES; i++ ) {
-		this->m_number[i] = 0;
+		this->robot[i] = NULL;
+		this->robotNumber[i] = 0;
+		this->robotThread[i] = NULL;
 	}
     this->m_num_statics = 0;
     this->m_num_targets = 0;
     this->m_t_step = 0.004;
 
-	this->bot = NULL;
-	//this->bot[IMOBOT] = dynamic_cast<CiMobotSim *>(this->bot[IMOBOT]);;
-	//this->bots[MOBOT] = new CMobotSim;
-	//this->bots[KIDBOT] = new CKidbotSim;
-	//this->bots[NXT] = new CNXTSim;
+	pthread_mutex_init(&robot_mutex, NULL);
 }
 
 CMobotFD::~CMobotFD(void) {
 	// free all arrays created dynamically in constructor
-	delete [] this->bot;
+	//delete [] this->bot;
 	if ( this->m_num_statics ) delete [] this->m_statics;
     if ( this->m_num_targets ) delete [] this->m_targets;
 
@@ -148,34 +146,40 @@ void* CMobotFD::simulationThread(void *arg) {
 	// initialize local variables
 	//struct timespec cur_time, itime;
 	//unsigned int dt;
-	int i;
-	pthread_t imobot[sim->m_number[IMOBOT]];
+	int i, j;
 
 	while (1) {
+		// lock array of robots for sim step
+		pthread_mutex_lock(&(sim->robot_mutex));
+
 		// get start time of execution
 		//clock_gettime(CLOCK_REALTIME, &cur_time);
 
 		// perform pre-collision updates
 		//  - lock angle and goal
 		//  - update angles 
-		for (i = 0; i < sim->m_number[IMOBOT]; i++) {
-			pthread_create(&imobot[i], NULL, (void* (*)(void *))&CMobotFD::preCollisionThread<CiMobotSim>, (void *)(sim->bot[i]));
-			pthread_join(imobot[i], NULL);
+		for (i = 0; i < NUM_TYPES; i++) {
+			for (j = 0; j < sim->robotNumber[i]; j++) {
+				pthread_create(&(sim->robotThread[i][j]), NULL, (void* (*)(void *))&robotSim::simPreCollisionThreadEntry, (void *)(sim->robot[i][j]));
+				pthread_join(sim->robotThread[i][j], NULL);
+			}
 		}
 
 		// step world
-		dSpaceCollide(sim->space, sim, &sim->collision_wrapper);	// collide all geometries together
+		dSpaceCollide(sim->space, sim, &sim->collision_wrapper);// collide all geometries together
 		dWorldStep(sim->world, sim->m_t_step);					// step world time by one
-		dJointGroupEmpty(sim->group);								// clear out all contact joints
+		dJointGroupEmpty(sim->group);							// clear out all contact joints
 
-		//sim->print_intermediate_data();							// print out incremental data
+		sim->print_intermediate_data();							// print out incremental data
 
 		// perform post-collision updates
 		//  - unlock angle and goal
 		//  - check if success 
-		for (i = 0; i < sim->m_number[IMOBOT]; i++) {
-			pthread_create(&imobot[i], NULL, (void* (*)(void *))&CMobotFD::postCollisionThread<CiMobotSim>, (void *)(sim->bot[i]));
-			pthread_join(imobot[i], NULL);
+		for (i = 0; i < NUM_TYPES; i++) {
+			for (j = 0; j < sim->robotNumber[i]; j++) {
+				pthread_create(&(sim->robotThread[i][j]), NULL, (void* (*)(void *))&robotSim::simPostCollisionThreadEntry, (void *)(sim->robot[i][j]));
+				pthread_join(sim->robotThread[i][j], NULL);
+			}
 		}
 
 		// check end time of execution
@@ -183,48 +187,11 @@ void* CMobotFD::simulationThread(void *arg) {
 		// sleep until next step
 		//dt = diff_nsecs(cur_time, itime);
 		//if ( dt < 500000 ) { usleep(500 - dt/1000); }
+
+		// unlock array of robots to allow another to be 
+		pthread_mutex_unlock(&(sim->robot_mutex));
 	}
 	free(sim);
-}
-
-template <class T> 
-void* CMobotFD::preCollisionThread(void *arg) {
-	// cast to type T
-	T *bot = (T *)arg;
-
-	// lock angle and goal
-	bot->simThreadsGoalRLock();
-	bot->simThreadsAngleLock();
-
-	// update angle values
-	bot->updateAngles();
-
-	// unlock angle and goal
-	bot->simThreadsAngleUnlock();
-	bot->simThreadsGoalRUnlock();
-
-	//delete bot;
-	return 0;
-}
-
-template <class T> 
-void* CMobotFD::postCollisionThread(void *arg) {
-	// cast to type T
-	T *bot = (T *)arg;
-
-	// lock angle and goal
-	bot->simThreadsGoalRLock();
-	bot->simThreadsAngleLock();
-
-	// check if complete
-	bot->isComplete();
-
-	// unlock angle and goal
-	bot->simThreadsAngleUnlock();
-	bot->simThreadsGoalRUnlock();
-
-	//delete bot;
-	return 0;
 }
 
 void CMobotFD::collision_wrapper(void *data, dGeomID o1, dGeomID o2) {
@@ -272,11 +239,15 @@ void CMobotFD::print_intermediate_data(void) {
 
     cout.width(10);		// cout.precision(4);
     cout.setf(ios::fixed, ios::floatfield);
-	for (i = 0; i < this->m_number[0]; i++) {
-		cout << this->bot[i]->getAngle(LE) << " ";
-		cout << this->bot[i]->getAngle(LB) << " ";
-		cout << this->bot[i]->getAngle(RB) << " ";
-		cout << this->bot[i]->getAngle(RE) << "\t";
+	for (i = 0; i < this->robotNumber[IMOBOT]; i++) {
+		cout << this->robot[IMOBOT][i]->getAngle(LE) << " ";
+		cout << this->robot[IMOBOT][i]->getAngle(LB) << " ";
+		cout << this->robot[IMOBOT][i]->getAngle(RB) << " ";
+		cout << this->robot[IMOBOT][i]->getAngle(RE) << "\t";
+		cout << this->robot[IMOBOT][i]->getSuccess(LE) << " ";
+		cout << this->robot[IMOBOT][i]->getSuccess(LB) << " ";
+		cout << this->robot[IMOBOT][i]->getSuccess(RB) << " ";
+		cout << this->robot[IMOBOT][i]->getSuccess(RE) << "\t";
 	}
 	cout << endl;
 }
@@ -285,52 +256,85 @@ void CMobotFD::print_intermediate_data(void) {
 	Build iMobot Functions
  **********************************************************/
 void CMobotFD::addiMobot(CiMobotSim &imobot) {
-	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	this->bot[this->m_number[IMOBOT]] = &imobot;
-	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space);
-	this->bot[this->m_number[IMOBOT]++]->build(0, 0, 0, 0, 0, 0);
+	this->addiMobot(imobot, 0, 0, 0);
 }
 
 void CMobotFD::addiMobot(CiMobotSim &imobot, dReal x, dReal y, dReal z) {
-	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	this->bot[this->m_number[IMOBOT]] = &imobot;
-	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space);
-	this->bot[this->m_number[IMOBOT]++]->build(x, y, z, 0, 0, 0);
+	this->addiMobot(imobot, x, y, z, 0, 0, 0);
 }
 
 void CMobotFD::addiMobot(CiMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
-	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	this->bot[this->m_number[IMOBOT]] = &imobot;
-	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space);
-    this->bot[this->m_number[IMOBOT]++]->build(x, y, z, psi, theta, phi);
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&(this->robot_mutex));
+	// add new imobot
+	this->robot[IMOBOT] =  (robotSim **)realloc(this->robot[IMOBOT], (this->robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
+	this->robot[IMOBOT][this->robotNumber[IMOBOT]] = &imobot;
+	// add imobot to simulation
+	this->robot[IMOBOT][this->robotNumber[IMOBOT]]->simAddRobot(this->world, this->space);
+	// create new thread array for imobots
+	delete this->robotThread[IMOBOT];
+	this->robotThread[IMOBOT] = new pthread_t[this->robotNumber[IMOBOT]];
+	// build new imobot geometry
+	this->robot[IMOBOT][this->robotNumber[IMOBOT]++]->build(x, y, z, psi, theta, phi);
+	// unlock robot data
+	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
 void CMobotFD::addiMobot(CiMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	this->bot[this->m_number[IMOBOT]] = &imobot;
-	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space);
-    this->bot[this->m_number[IMOBOT]++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&(this->robot_mutex));
+	// add new imobot
+	this->robot[IMOBOT] =  (robotSim **)realloc(this->robot[IMOBOT], (this->robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
+	this->robot[IMOBOT][this->robotNumber[IMOBOT]] = &imobot;
+	// add imobot to simulation
+	this->robot[IMOBOT][this->robotNumber[IMOBOT]]->simAddRobot(this->world, this->space);
+	// create new thread array for imobots
+	delete this->robotThread[IMOBOT];
+	this->robotThread[IMOBOT] = new pthread_t[this->robotNumber[IMOBOT]];
+	// build new imobot geometry
+	this->robot[IMOBOT][this->robotNumber[IMOBOT]++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
+	// unlock robot data
+	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
 void CMobotFD::addiMobotConnected(CiMobotSim &imobot, CiMobotSim &base, int face1, int face2) {
-	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	this->bot[this->m_number[IMOBOT]] = &imobot;
-	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space);
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&(this->robot_mutex));
+	// add new imobot
+	this->robot[IMOBOT] =  (robotSim **)realloc(this->robot[IMOBOT], (this->robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
+	this->robot[IMOBOT][this->robotNumber[IMOBOT]] = &imobot;
+	// add imobot to simulation
+	this->robot[IMOBOT][this->robotNumber[IMOBOT]]->simAddRobot(this->world, this->space);
+	// create new thread array for imobots
+	delete this->robotThread[IMOBOT];
+	this->robotThread[IMOBOT] = new pthread_t[this->robotNumber[IMOBOT]];
+	// build new imobot geometry
 	if ( base.isHome() )
-        this->bot[this->m_number[IMOBOT]]->buildAttached00(&base, face1, face2);
-    else
-        this->bot[this->m_number[IMOBOT]]->buildAttached10(&base, face1, face2);
-	this->m_number[IMOBOT]++;
+		this->robot[IMOBOT][this->robotNumber[IMOBOT]++]->buildAttached00(&base, face1, face2);
+	else
+		this->robot[IMOBOT][this->robotNumber[IMOBOT]++]->buildAttached10(&base, face1, face2);
+	// unlock robot data
+	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
 void CMobotFD::addiMobotConnected(CiMobotSim &imobot, CiMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	this->bot = (CiMobotSim **)realloc(this->bot, (this->m_number[IMOBOT] + 1)*sizeof(CiMobotSim *));
-	this->bot[this->m_number[IMOBOT]] = &imobot;
-	this->bot[this->m_number[IMOBOT]]->addToSim(this->world, this->space);
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&(this->robot_mutex));
+	// add new imobot
+	this->robot[IMOBOT] =  (robotSim **)realloc(this->robot[IMOBOT], (this->robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
+	this->robot[IMOBOT][this->robotNumber[IMOBOT]] = &imobot;
+	// add imobot to simulation
+	this->robot[IMOBOT][this->robotNumber[IMOBOT]]->simAddRobot(this->world, this->space);
+	// create new thread array for imobots
+	delete this->robotThread[IMOBOT];
+	this->robotThread[IMOBOT] = new pthread_t[this->robotNumber[IMOBOT]];
+	// build new imobot geometry
 	if ( base.isHome() )
-        this->bot[this->m_number[IMOBOT]++]->buildAttached01(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+		this->robot[IMOBOT][this->robotNumber[IMOBOT]++]->buildAttached01(&base, face1, face2, r_le, r_lb, r_rb, r_re);
 	else
-        this->bot[this->m_number[IMOBOT]++]->buildAttached11(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+		this->robot[IMOBOT][this->robotNumber[IMOBOT]++]->buildAttached11(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+	// unlock robot data
+	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
 /*void CMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {

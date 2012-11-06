@@ -25,24 +25,45 @@ CRobot4Sim::~CRobot4Sim(void) {
 	//dSpaceDestroy(this->space); //sigsegv
 }
 
-void CRobot4Sim::addToSim(dWorldID &world, dSpaceID &space/*, CMobotFD *sim, int type, int num*/) {
+void CRobot4Sim::simPreCollisionThread(void) {
+	// lock angle and goal
+	this->simThreadsGoalRLock();
+	this->simThreadsAngleLock();
+
+	// update angle values for each degree of freedom
+	for ( int j = 0; j < NUM_DOF; j++ ) {
+		// set motor angle to current angle
+		dJointSetAMotorAngle(this->getMotorID(j), 0, this->getAngle(j));
+		// drive motor to get current angle to match future angle
+		this->update_joint_speed(j);
+	}
+
+	// unlock angle and goal
+	this->simThreadsAngleUnlock();
+	this->simThreadsGoalRUnlock();
+}
+
+void CRobot4Sim::simPostCollisionThread(void) {
+	// lock angle and goal
+	this->simThreadsGoalRLock();
+	this->simThreadsAngleLock();
+
+	// check if joint speed is zero -> joint has completed step
+	for (int i = 0; i < NUM_DOF; i++) {
+		this->success[i] = this->is_joint_complete(i);
+	}
+	if ( this->success[0] && this->success[1] && this->success[2] && this->success[3] ) {
+		pthread_cond_signal(&(this->success_cond));
+	}
+
+	// unlock angle and goal
+	this->simThreadsAngleUnlock();
+	this->simThreadsGoalRUnlock();
+}
+
+void CRobot4Sim::simAddRobot(dWorldID &world, dSpaceID &space) {
 	this->world = world;
     this->space = dHashSpaceCreate(space);
-
-	// init body parts
-	for ( int i = 0; i < NUM_PARTS; i++ ) {
-		this->body[i].bodyID = dBodyCreate(this->world);
-	}
-    this->body[ENDCAP_L].geomID = new dGeomID[7];
-    this->body[BODY_L].geomID = new dGeomID[5];
-    this->body[CENTER].geomID = new dGeomID[3];
-    this->body[BODY_R].geomID = new dGeomID[5];
-    this->body[ENDCAP_R].geomID = new dGeomID[7];
-
-	// initialize PID class
-	for ( int i = 0; i < NUM_DOF; i++ ) {
-        this->pid[i].init(100, 1, 10, 0.1, 0.004);
-	}
 }
 
 dReal CRobot4Sim::getAngle(int i) {
@@ -51,6 +72,10 @@ dReal CRobot4Sim::getAngle(int i) {
 	else
 		this->angle[i] = dJointGetHingeAngle(this->joint[i]);
     return this->angle[i];
+}
+
+bool CRobot4Sim::getSuccess(int i) {
+	return this->success[i];
 }
 
 int CRobot4Sim::getJointAngle(int id, dReal &angle) {
@@ -80,7 +105,7 @@ bool CRobot4Sim::isHome(void) {
     return ( fabs(this->angle[LE]) < EPSILON && fabs(this->angle[LB]) < EPSILON && fabs(this->angle[RB]) < EPSILON && fabs(this->angle[RE]) < EPSILON );
 }
 
-bool CRobot4Sim::isComplete(void) {
+/*bool CRobot4Sim::isComplete(void) {
 	// initialze loop counters
 	int c = 0, i;
 
@@ -93,7 +118,7 @@ bool CRobot4Sim::isComplete(void) {
 		return true;
 	}
 	return false;
-}
+}*/
 
 bool CRobot4Sim::is_joint_complete(int id) {
 	// check if joint speed is zero -> joint has completed step
@@ -568,7 +593,7 @@ int CRobot4Sim::resetToZero(void) {
 	return 0;
 }
 
-void CRobot4Sim::updateAngles(void) {
+/*void CRobot4Sim::updateAngles(void) {
 	// must be done for each degree of freedom
 	for ( int j = 0; j < NUM_DOF; j++ ) {
 		// set motor angle to current angle
@@ -576,9 +601,9 @@ void CRobot4Sim::updateAngles(void) {
 		// drive motor to get current angle to match future angle
 		this->updateMotorSpeed(j);
 	}
-}
+}*/
 
-void CRobot4Sim::updateMotorSpeed(int i) {
+void CRobot4Sim::update_joint_speed(int i) {
     /*// with PID
     if (this->cur_ang[i] < this->fut_ang[i] - 10*this->m_motor_res)
         dJointSetA*MotorParam(this->motor[i], dParamVel, this->jnt_vel[i]);
@@ -755,12 +780,12 @@ void CRobot4Sim::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dRea
     }
 }
 
-void CRobot4Sim::resetPID(int i) {
+/*void CRobot4Sim::resetPID(int i) {
     if ( i == NUM_DOF )
         for ( int j = 0; j < NUM_DOF; j++ ) this->pid[j].restart();
     else
         this->pid[i].restart();
-}
+}*/
 
 CiMobotSim::CiMobotSim(void) {
 	this->m_motor_res = D2R(0.5);
@@ -828,6 +853,21 @@ CMobotSim::CMobotSim(void) {
 }
 
 void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+	// init body parts
+	for ( int i = 0; i < NUM_PARTS; i++ ) {
+		this->body[i].bodyID = dBodyCreate(this->world);
+	}
+    this->body[ENDCAP_L].geomID = new dGeomID[7];
+    this->body[BODY_L].geomID = new dGeomID[5];
+    this->body[CENTER].geomID = new dGeomID[3];
+    this->body[BODY_R].geomID = new dGeomID[5];
+    this->body[ENDCAP_R].geomID = new dGeomID[7];
+
+	// initialize PID class
+	for ( int i = 0; i < NUM_DOF; i++ ) {
+        this->pid[i].init(100, 1, 10, 0.1, 0.004);
+	}
+
     // adjust input height by body height
     z += this->body_height/2;
     // convert input angles to radians
@@ -952,6 +992,21 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
 }
 
 void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	// init body parts
+	for ( int i = 0; i < NUM_PARTS; i++ ) {
+		this->body[i].bodyID = dBodyCreate(this->world);
+	}
+    this->body[ENDCAP_L].geomID = new dGeomID[7];
+    this->body[BODY_L].geomID = new dGeomID[5];
+    this->body[CENTER].geomID = new dGeomID[3];
+    this->body[BODY_R].geomID = new dGeomID[5];
+    this->body[ENDCAP_R].geomID = new dGeomID[7];
+
+	// initialize PID class
+	for ( int i = 0; i < NUM_DOF; i++ ) {
+        this->pid[i].init(100, 1, 10, 0.1, 0.004);
+	}
+
     // adjust input height by body height
     z += this->body_height/2;
     // convert input angles to radians

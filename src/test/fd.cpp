@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
 	fd.addiMobot(robot2, 0, 0.3, 0);
 	//fd.addiMobotConnected(robot2, robot1, MOBOT_FACE6, MOBOT_FACE1);
 
-	//robot1.move(0, 45, 45, 45);
+	robot1.move(0, 45, 45, 45);
 	//robot1.moveNB(0, 0, 0, 45);
 	//robot1.moveWait();
 	//robot1.moveJoint(IMOBOT_JOINT2, 45);
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 	//robot2.moveWait();
 
 	// motions
-	robot1.motionArch(10);
+	//robot1.motionArch(10);
 
 	return 0;
 }
