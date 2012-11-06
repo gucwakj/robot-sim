@@ -93,12 +93,12 @@ dReal CRobot4Sim::getRotation(int i) {
     return this->rotation[i];
 }
 
-dBodyID CRobot4Sim::getBodyID(int body) {
-    return this->body[body].bodyID;
+dBodyID CRobot4Sim::getBodyID(int id) {
+    return this->body[id];
 }
 
-dJointID CRobot4Sim::getMotorID(int motor) {
-    return this->motor[motor];
+dJointID CRobot4Sim::getMotorID(int id) {
+    return this->motor[id];
 }
 
 bool CRobot4Sim::isHome(void) {
@@ -358,7 +358,7 @@ int CRobot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 			dJointSetAMotorParam(this->motor[j], dParamVel, 0);
 		}
 	}
-    dBodyEnable(this->body[CENTER].bodyID);
+    dBodyEnable(this->body[CENTER]);
 	this->simThreadsAngleUnlock();
 
 	// set success to false
@@ -408,7 +408,7 @@ int CRobot4Sim::moveJointNB(int id, dReal angle) {
 		this->state[id] = MOBOT_HOLD;
 		dJointSetAMotorParam(this->motor[id], dParamVel, 0);
 	}
-	dBodyEnable(this->body[CENTER].bodyID);
+	dBodyEnable(this->body[CENTER]);
 	this->simThreadsAngleUnlock();
 
 	// set success to false
@@ -458,7 +458,7 @@ int CRobot4Sim::moveJointToNB(int id, dReal angle) {
 		this->state[id] = MOBOT_HOLD;
 		dJointSetAMotorParam(this->motor[id], dParamVel, 0);
 	}
-	dBodyEnable(this->body[CENTER].bodyID);
+	dBodyEnable(this->body[CENTER]);
 	this->simThreadsAngleUnlock();
 
 	// set success to false
@@ -526,7 +526,7 @@ int CRobot4Sim::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4)
 			dJointSetAMotorParam(this->motor[j], dParamVel, 0);
 		}
 	}
-    dBodyEnable(this->body[CENTER].bodyID);
+    dBodyEnable(this->body[CENTER]);
 	this->simThreadsAngleUnlock();
 
 	// set success to false
@@ -818,17 +818,10 @@ CiMobotSim::CiMobotSim(void) {
 
 CMobotSim::CMobotSim(void) {
 	this->m_motor_res = D2R(0.5);
-	//this->m_joint_vel_max = new dReal[NUM_DOF];
 	this->m_joint_vel_max[LE] = 6.70;
 	this->m_joint_vel_max[LB] = 2.61;
 	this->m_joint_vel_max[RB] = 2.61;
 	this->m_joint_vel_max[RE] = 6.70;
-	/*this->m_joint_vel_min = new dReal[NUM_DOF];
-	this->m_joint_vel_min[LE] = 3.22;
-	this->m_joint_vel_min[LB] = 1.25;
-	this->m_joint_vel_min[RB] = 1.25;
-	this->m_joint_vel_min[RE] = 3.22;*/
-	//this->m_joint_frc_max = new dReal[NUM_DOF];
 	this->m_joint_frc_max[LE] = 0.260;
 	this->m_joint_frc_max[LB] = 1.059;
 	this->m_joint_frc_max[RB] = 1.059;
@@ -854,19 +847,15 @@ CMobotSim::CMobotSim(void) {
 
 void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	// init body parts
-	for ( int i = 0; i < NUM_PARTS; i++ ) {
-		this->body[i].bodyID = dBodyCreate(this->world);
-	}
-    this->body[ENDCAP_L].geomID = new dGeomID[7];
-    this->body[BODY_L].geomID = new dGeomID[5];
-    this->body[CENTER].geomID = new dGeomID[3];
-    this->body[BODY_R].geomID = new dGeomID[5];
-    this->body[ENDCAP_R].geomID = new dGeomID[7];
+	for ( int i = 0; i < NUM_PARTS; i++ ) { this->body[i] = dBodyCreate(this->world); }
+    this->geom[ENDCAP_L] = new dGeomID[7];
+    this->geom[BODY_L] = new dGeomID[5];
+    this->geom[CENTER] = new dGeomID[3];
+    this->geom[BODY_R] = new dGeomID[5];
+    this->geom[ENDCAP_R] = new dGeomID[7];
 
 	// initialize PID class
-	for ( int i = 0; i < NUM_DOF; i++ ) {
-        this->pid[i].init(100, 1, 10, 0.1, 0.004);
-	}
+	for ( int i = 0; i < NUM_DOF; i++ ) { this->pid[i].init(100, 1, 10, 0.1, 0.004); }
 
     // adjust input height by body height
     z += this->body_height/2;
@@ -907,49 +896,49 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
 
     // joint for left endcap to body
     this->joint[0] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
+    dJointAttach(this->joint[0], this->body[BODY_L], this->body[ENDCAP_L]);
     dJointSetHingeAnchor(this->joint[0], R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
     dJointSetHingeAxis(this->joint[0], R[0], R[4], R[8]);
     dJointSetHingeParam(this->joint[0], dParamCFM, 0);
 
     // joint for center to left body 1
     this->joint[1] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
+    dJointAttach(this->joint[1], this->body[CENTER], this->body[BODY_L]);
     dJointSetHingeAnchor(this->joint[1], R[0]*lb[3] + R[1]*(this->center_offset+lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset+lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset+lb[4]) + R[10]*lb[5] + z);
     dJointSetHingeAxis(this->joint[1], -R[1], -R[5], -R[9]);
     dJointSetHingeParam(this->joint[1], dParamCFM, 0);
 
     // joint for center to left body 2
     this->joint[4] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[4], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
+    dJointAttach(this->joint[4], this->body[CENTER], this->body[BODY_L]);
     dJointSetHingeAnchor(this->joint[4], R[0]*lb[3] + R[1]*(this->center_offset-lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset-lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset-lb[4]) + R[10]*lb[5] + z);
     dJointSetHingeAxis(this->joint[4], R[1], R[5], R[9]);
     dJointSetHingeParam(this->joint[4], dParamCFM, 0);
 
     // joint for center to right body 1
     this->joint[2] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
+    dJointAttach(this->joint[2], this->body[CENTER], this->body[BODY_R]);
     dJointSetHingeAnchor(this->joint[2], R[0]*rb[3] + R[1]*(this->center_offset+rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset+rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset+rb[4]) + R[10]*rb[5] + z);
     dJointSetHingeAxis(this->joint[2], R[1], R[5], R[9]);
     dJointSetHingeParam(this->joint[2], dParamCFM, 0);
 
     // joint for center to right body 2
     this->joint[5] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[5], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
+    dJointAttach(this->joint[5], this->body[CENTER], this->body[BODY_R]);
     dJointSetHingeAnchor(this->joint[5], R[0]*rb[3] + R[1]*(this->center_offset-rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset-rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset-rb[4]) + R[10]*rb[5] + z);
     dJointSetHingeAxis(this->joint[5], -R[1], -R[5], -R[9]);
     dJointSetHingeParam(this->joint[5], dParamCFM, 0);
 
     // joint for right body to endcap
     this->joint[3] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
+    dJointAttach(this->joint[3], this->body[BODY_R], this->body[ENDCAP_R]);
     dJointSetHingeAnchor(this->joint[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
     dJointSetHingeAxis(this->joint[3], -R[0], -R[4], -R[8]);
     dJointSetHingeParam(this->joint[3], dParamCFM, 0);
 
     // motor for left endcap to body
     this->motor[0] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
+    dJointAttach(this->motor[0], this->body[BODY_L], this->body[ENDCAP_L]);
     dJointSetAMotorMode(this->motor[0], dAMotorUser);
     dJointSetAMotorNumAxes(this->motor[0], 1);
     dJointSetAMotorAxis(this->motor[0], 0, 1, R[0], R[4], R[8]);
@@ -959,7 +948,7 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
 
     // motor for center to left body
     this->motor[1] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
+    dJointAttach(this->motor[1], this->body[CENTER], this->body[BODY_L]);
     dJointSetAMotorMode(this->motor[1], dAMotorUser);
     dJointSetAMotorNumAxes(this->motor[1], 1);
     dJointSetAMotorAxis(this->motor[1], 0, 1, -R[1], -R[5], -R[9]);
@@ -969,7 +958,7 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
 
     // motor for center to right body
     this->motor[2] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
+    dJointAttach(this->motor[2], this->body[CENTER], this->body[BODY_R]);
     dJointSetAMotorMode(this->motor[2], dAMotorUser);
     dJointSetAMotorNumAxes(this->motor[2], 1);
     dJointSetAMotorAxis(this->motor[2], 0, 1, R[1], R[5], R[9]);
@@ -979,7 +968,7 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
 
     // motor for right body to endcap
     this->motor[3] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
+    dJointAttach(this->motor[3], this->body[BODY_R], this->body[ENDCAP_R]);
     dJointSetAMotorMode(this->motor[3], dAMotorUser);
     dJointSetAMotorNumAxes(this->motor[3], 1);
     dJointSetAMotorAxis(this->motor[3], 0, 1, -R[0], -R[4], -R[8]);
@@ -988,24 +977,20 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
     dJointSetAMotorParam(this->motor[3], dParamFMax, this->m_joint_frc_max[RE]);
 
     // set damping on all bodies to 0.1
-    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i].bodyID, 0.1, 0.1);
+    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i], 0.1, 0.1);
 }
 
 void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// init body parts
-	for ( int i = 0; i < NUM_PARTS; i++ ) {
-		this->body[i].bodyID = dBodyCreate(this->world);
-	}
-    this->body[ENDCAP_L].geomID = new dGeomID[7];
-    this->body[BODY_L].geomID = new dGeomID[5];
-    this->body[CENTER].geomID = new dGeomID[3];
-    this->body[BODY_R].geomID = new dGeomID[5];
-    this->body[ENDCAP_R].geomID = new dGeomID[7];
+	for ( int i = 0; i < NUM_PARTS; i++ ) { this->body[i] = dBodyCreate(this->world); }
+    this->geom[ENDCAP_L] = new dGeomID[7];
+    this->geom[BODY_L] = new dGeomID[5];
+    this->geom[CENTER] = new dGeomID[3];
+    this->geom[BODY_R] = new dGeomID[5];
+    this->geom[ENDCAP_R] = new dGeomID[7];
 
 	// initialize PID class
-	for ( int i = 0; i < NUM_DOF; i++ ) {
-        this->pid[i].init(100, 1, 10, 0.1, 0.004);
-	}
+	for ( int i = 0; i < NUM_DOF; i++ ) { this->pid[i].init(100, 1, 10, 0.1, 0.004); }
 
     // adjust input height by body height
     z += this->body_height/2;
@@ -1061,42 +1046,42 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
 
     // joint for left endcap to body
     this->joint[0] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
+    dJointAttach(this->joint[0], this->body[BODY_L], this->body[ENDCAP_L]);
     dJointSetHingeAnchor(this->joint[0], R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
     dJointSetHingeAxis(this->joint[0], R[0], R[4], R[8]);
     dJointSetHingeParam(this->joint[0], dParamCFM, 0);
 
     // joint for center to left body 1
     this->joint[1] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
+    dJointAttach(this->joint[1], this->body[CENTER], this->body[BODY_L]);
     dJointSetHingeAnchor(this->joint[1], R[0]*lb[3] + R[1]*(this->center_offset+lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset+lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset+lb[4]) + R[10]*lb[5] + z);
     dJointSetHingeAxis(this->joint[1], -R[1], -R[5], -R[9]);
     dJointSetHingeParam(this->joint[1], dParamCFM, 0);
 
     // joint for center to left body 2
     this->joint[4] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[4], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
+    dJointAttach(this->joint[4], this->body[CENTER], this->body[BODY_L]);
     dJointSetHingeAnchor(this->joint[4], R[0]*lb[3] + R[1]*(this->center_offset-lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset-lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset-lb[4]) + R[10]*lb[5] + z);
     dJointSetHingeAxis(this->joint[4], R[1], R[5], R[9]);
     dJointSetHingeParam(this->joint[4], dParamCFM, 0);
 
     // joint for center to right body 1
     this->joint[2] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
+    dJointAttach(this->joint[2], this->body[CENTER], this->body[BODY_R]);
     dJointSetHingeAnchor(this->joint[2], R[0]*rb[3] + R[1]*(this->center_offset+rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset+rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset+rb[4]) + R[10]*rb[5] + z);
     dJointSetHingeAxis(this->joint[2], R[1], R[5], R[9]);
     dJointSetHingeParam(this->joint[2], dParamCFM, 0);
 
     // joint for center to right body 2
     this->joint[5] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[5], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
+    dJointAttach(this->joint[5], this->body[CENTER], this->body[BODY_R]);
     dJointSetHingeAnchor(this->joint[5], R[0]*rb[3] + R[1]*(this->center_offset-rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset-rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset-rb[4]) + R[10]*rb[5] + z);
     dJointSetHingeAxis(this->joint[5], -R[1], -R[5], -R[9]);
     dJointSetHingeParam(this->joint[5], dParamCFM, 0);
 
     // joint for right body to endcap
     this->joint[3] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
+    dJointAttach(this->joint[3], this->body[BODY_R], this->body[ENDCAP_R]);
     dJointSetHingeAnchor(this->joint[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
     dJointSetHingeAxis(this->joint[3], -R[0], -R[4], -R[8]);
     dJointSetHingeParam(this->joint[3], dParamCFM, 0);
@@ -1126,7 +1111,7 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
 
     // motor for left endcap to body
     this->motor[0] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[0], this->body[BODY_L].bodyID, this->body[ENDCAP_L].bodyID);
+    dJointAttach(this->motor[0], this->body[BODY_L], this->body[ENDCAP_L]);
     dJointSetAMotorMode(this->motor[0], dAMotorUser);
     dJointSetAMotorNumAxes(this->motor[0], 1);
     dJointSetAMotorAxis(this->motor[0], 0, 1, R_lb[0], R_lb[4], R_lb[8]);
@@ -1136,7 +1121,7 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
 
     // motor for center to left body
     this->motor[1] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[1], this->body[CENTER].bodyID, this->body[BODY_L].bodyID);
+    dJointAttach(this->motor[1], this->body[CENTER], this->body[BODY_L]);
     dJointSetAMotorMode(this->motor[1], dAMotorUser);
     dJointSetAMotorNumAxes(this->motor[1], 1);
     dJointSetAMotorAxis(this->motor[1], 0, 1, -R[1], -R[5], -R[9]);
@@ -1146,7 +1131,7 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
 
     // motor for center to right body
     this->motor[2] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[2], this->body[CENTER].bodyID, this->body[BODY_R].bodyID);
+    dJointAttach(this->motor[2], this->body[CENTER], this->body[BODY_R]);
     dJointSetAMotorMode(this->motor[2], dAMotorUser);
     dJointSetAMotorNumAxes(this->motor[2], 1);
     dJointSetAMotorAxis(this->motor[2], 0, 1, R[1], R[5], R[9]);
@@ -1156,7 +1141,7 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
 
     // motor for right body to endcap
     this->motor[3] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[3], this->body[BODY_R].bodyID, this->body[ENDCAP_R].bodyID);
+    dJointAttach(this->motor[3], this->body[BODY_R], this->body[ENDCAP_R]);
     dJointSetAMotorMode(this->motor[3], dAMotorUser);
     dJointSetAMotorNumAxes(this->motor[3], 1);
     dJointSetAMotorAxis(this->motor[3], 0, 1, -R_rb[0], -R_rb[4], -R_rb[8]);
@@ -1165,7 +1150,7 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
     dJointSetAMotorParam(this->motor[3], dParamFMax, this->m_joint_frc_max[RE]);
 
     // set damping on all bodies to 0.1
-    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i].bodyID, 0.1, 0.1);
+    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i], 0.1, 0.1);
 }
 
 void CRobot4Sim::buildAttached00(CRobot4Sim *attach, int face1, int face2) {
@@ -3246,8 +3231,8 @@ void CRobot4Sim::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal
     z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
     // set body parameters
-    dBodySetPosition(this->body[id].bodyID, x, y, z);
-    dBodySetRotation(this->body[id].bodyID, R);
+    dBodySetPosition(this->body[id], x, y, z);
+    dBodySetRotation(this->body[id], R);
 
     // rotation matrix for curves of d-shapes
     dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
@@ -3255,35 +3240,35 @@ void CRobot4Sim::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal
     dMultiply0(R2, R1, R3, 3, 3, 3);
 
     // set geometry 1 - face
-    this->body[id].geomID[0] = dCreateBox(this->space, this->body_end_depth, this->body_width, this->body_height);
-    dGeomSetBody(this->body[id].geomID[0], this->body[id].bodyID);
-    dGeomSetOffsetPosition(this->body[id].geomID[0], -m.c[0], -m.c[1], -m.c[2]);
+    this->geom[id][0] = dCreateBox(this->space, this->body_end_depth, this->body_width, this->body_height);
+    dGeomSetBody(this->geom[id][0], this->body[id]);
+    dGeomSetOffsetPosition(this->geom[id][0], -m.c[0], -m.c[1], -m.c[2]);
 
     // set geometry 2 - side square
-    this->body[id].geomID[1] = dCreateBox( this->space, this->body_length, this->body_inner_width_left, this->body_height);
-    dGeomSetBody( this->body[id].geomID[1], this->body[id].bodyID);
-    dGeomSetOffsetPosition( this->body[id].geomID[1], i*this->body_length/2 + i*this->body_end_depth/2 - m.c[0], -this->body_radius + this->body_inner_width_left/2 - m.c[1], -m.c[2] );
+    this->geom[id][1] = dCreateBox( this->space, this->body_length, this->body_inner_width_left, this->body_height);
+    dGeomSetBody( this->geom[id][1], this->body[id]);
+    dGeomSetOffsetPosition( this->geom[id][1], i*this->body_length/2 + i*this->body_end_depth/2 - m.c[0], -this->body_radius + this->body_inner_width_left/2 - m.c[1], -m.c[2] );
 
     // set geometry 3 - side square
-    this->body[id].geomID[2] = dCreateBox( this->space, this->body_length, this->body_inner_width_right, this->body_height);
-    dGeomSetBody( this->body[id].geomID[2], this->body[id].bodyID);
-    dGeomSetOffsetPosition( this->body[id].geomID[2], i*this->body_length/2 + i*this->body_end_depth/2 - m.c[0], this->body_radius - this->body_inner_width_right/2 - m.c[1], -m.c[2] );
+    this->geom[id][2] = dCreateBox( this->space, this->body_length, this->body_inner_width_right, this->body_height);
+    dGeomSetBody( this->geom[id][2], this->body[id]);
+    dGeomSetOffsetPosition( this->geom[id][2], i*this->body_length/2 + i*this->body_end_depth/2 - m.c[0], this->body_radius - this->body_inner_width_right/2 - m.c[1], -m.c[2] );
 
     // set geometry 4 - side curve
-    this->body[id].geomID[3] = dCreateCylinder( this->space, this->body_radius, this->body_inner_width_left);
-    dGeomSetBody( this->body[id].geomID[3], this->body[id].bodyID);
-    dGeomSetOffsetPosition( this->body[id].geomID[3], i*this->body_length + i*this->body_end_depth/2 - m.c[0], -this->body_radius + this->body_inner_width_left/2 - m.c[1], -m.c[2] );
-    dGeomSetOffsetRotation( this->body[id].geomID[3], R2);
+    this->geom[id][3] = dCreateCylinder( this->space, this->body_radius, this->body_inner_width_left);
+    dGeomSetBody( this->geom[id][3], this->body[id]);
+    dGeomSetOffsetPosition( this->geom[id][3], i*this->body_length + i*this->body_end_depth/2 - m.c[0], -this->body_radius + this->body_inner_width_left/2 - m.c[1], -m.c[2] );
+    dGeomSetOffsetRotation( this->geom[id][3], R2);
 
     // set geometry 5 - side curve
-    this->body[id].geomID[4] = dCreateCylinder( this->space, this->body_radius, this->body_inner_width_right);
-    dGeomSetBody( this->body[id].geomID[4], this->body[id].bodyID);
-    dGeomSetOffsetPosition( this->body[id].geomID[4], i*this->body_length + i*this->body_end_depth/2 - m.c[0], this->body_radius - this->body_inner_width_right/2 - m.c[1], -m.c[2] );
-    dGeomSetOffsetRotation( this->body[id].geomID[4], R2);
+    this->geom[id][4] = dCreateCylinder( this->space, this->body_radius, this->body_inner_width_right);
+    dGeomSetBody( this->geom[id][4], this->body[id]);
+    dGeomSetOffsetPosition( this->geom[id][4], i*this->body_length + i*this->body_end_depth/2 - m.c[0], this->body_radius - this->body_inner_width_right/2 - m.c[1], -m.c[2] );
+    dGeomSetOffsetRotation( this->geom[id][4], R2);
 
     // set mass center to (0,0,0) of this->bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-    dBodySetMass(this->body[id].bodyID, &m);
+    dBodySetMass(this->body[id], &m);
 }
 
 void CRobot4Sim::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
@@ -3303,32 +3288,32 @@ void CRobot4Sim::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
     z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
     // set body parameters
-    dBodySetPosition(this->body[CENTER].bodyID, x, y, z);
-    dBodySetRotation(this->body[CENTER].bodyID, R);
+    dBodySetPosition(this->body[CENTER], x, y, z);
+    dBodySetRotation(this->body[CENTER], R);
 
     // rotation matrix for curves of d-shapes
     dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
 
     // set geometry 1 - center rectangle
-    this->body[CENTER].geomID[0] = dCreateBox(this->space, this->center_length, this->center_width, this->center_height );
-    dGeomSetBody( this->body[CENTER].geomID[0], this->body[CENTER].bodyID);
-    dGeomSetOffsetPosition( this->body[CENTER].geomID[0], -m.c[0], -m.c[1], -m.c[2] );
+    this->geom[CENTER][0] = dCreateBox(this->space, this->center_length, this->center_width, this->center_height );
+    dGeomSetBody( this->geom[CENTER][0], this->body[CENTER]);
+    dGeomSetOffsetPosition( this->geom[CENTER][0], -m.c[0], -m.c[1], -m.c[2] );
 
     // set geometry 2 - side curve
-    this->body[CENTER].geomID[1] = dCreateCylinder(this->space, this->center_radius, this->center_width );
-    dGeomSetBody( this->body[CENTER].geomID[1], this->body[CENTER].bodyID);
-    dGeomSetOffsetPosition( this->body[CENTER].geomID[1], -this->center_length/2 - m.c[0], -m.c[1], -m.c[2] );
-    dGeomSetOffsetRotation( this->body[CENTER].geomID[1], R1);
+    this->geom[CENTER][1] = dCreateCylinder(this->space, this->center_radius, this->center_width );
+    dGeomSetBody( this->geom[CENTER][1], this->body[CENTER]);
+    dGeomSetOffsetPosition( this->geom[CENTER][1], -this->center_length/2 - m.c[0], -m.c[1], -m.c[2] );
+    dGeomSetOffsetRotation( this->geom[CENTER][1], R1);
 
     // set geometry 3 - side curve
-    this->body[CENTER].geomID[2] = dCreateCylinder(this->space, this->center_radius, this->center_width );
-    dGeomSetBody( this->body[CENTER].geomID[2], this->body[CENTER].bodyID);
-    dGeomSetOffsetPosition( this->body[CENTER].geomID[2], this->center_length/2 - m.c[0], -m.c[1], -m.c[2] );
-    dGeomSetOffsetRotation( this->body[CENTER].geomID[2], R1);
+    this->geom[CENTER][2] = dCreateCylinder(this->space, this->center_radius, this->center_width );
+    dGeomSetBody( this->geom[CENTER][2], this->body[CENTER]);
+    dGeomSetOffsetPosition( this->geom[CENTER][2], this->center_length/2 - m.c[0], -m.c[1], -m.c[2] );
+    dGeomSetOffsetRotation( this->geom[CENTER][2], R1);
 
     // set mass center to (0,0,0) of body
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-    dBodySetMass(this->body[CENTER].bodyID, &m);
+    dBodySetMass(this->body[CENTER], &m);
 }
 
 void CRobot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
@@ -3346,52 +3331,52 @@ void CRobot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
     z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
     // set body parameters
-    dBodySetPosition(this->body[id].bodyID, x, y, z);
-    dBodySetRotation(this->body[id].bodyID, R);
+    dBodySetPosition(this->body[id], x, y, z);
+    dBodySetRotation(this->body[id], R);
 
     // rotation matrix for curves
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 
     // set geometry 1 - center box
-    this->body[id].geomID[0] = dCreateBox(this->space, this->end_depth, this->end_width - 2*this->end_radius, this->end_height );
-    dGeomSetBody( this->body[id].geomID[0], this->body[id].bodyID);
-    dGeomSetOffsetPosition( this->body[id].geomID[0], -m.c[0], -m.c[1], -m.c[2] );
+    this->geom[id][0] = dCreateBox(this->space, this->end_depth, this->end_width - 2*this->end_radius, this->end_height );
+    dGeomSetBody( this->geom[id][0], this->body[id]);
+    dGeomSetOffsetPosition( this->geom[id][0], -m.c[0], -m.c[1], -m.c[2] );
 
     // set geometry 2 - left box
-    this->body[id].geomID[1] = dCreateBox(this->space, this->end_depth, this->end_radius, this->end_height - 2*this->end_radius );
-    dGeomSetBody( this->body[id].geomID[1], this->body[id].bodyID);
-    dGeomSetOffsetPosition( this->body[id].geomID[1], -m.c[0], -this->end_width/2 + this->end_radius/2 - m.c[1], -m.c[2] );
+    this->geom[id][1] = dCreateBox(this->space, this->end_depth, this->end_radius, this->end_height - 2*this->end_radius );
+    dGeomSetBody( this->geom[id][1], this->body[id]);
+    dGeomSetOffsetPosition( this->geom[id][1], -m.c[0], -this->end_width/2 + this->end_radius/2 - m.c[1], -m.c[2] );
 
     // set geometry 3 - right box
-    this->body[id].geomID[2] = dCreateBox(this->space, this->end_depth, this->end_radius, this->end_height - 2*this->end_radius );
-    dGeomSetBody( this->body[id].geomID[2], this->body[id].bodyID);
-    dGeomSetOffsetPosition( this->body[id].geomID[2], -m.c[0], this->end_width/2 - this->end_radius/2 - m.c[1], -m.c[2] );
+    this->geom[id][2] = dCreateBox(this->space, this->end_depth, this->end_radius, this->end_height - 2*this->end_radius );
+    dGeomSetBody( this->geom[id][2], this->body[id]);
+    dGeomSetOffsetPosition( this->geom[id][2], -m.c[0], this->end_width/2 - this->end_radius/2 - m.c[1], -m.c[2] );
 
     // set geometry 4 - fillet upper left
-    this->body[id].geomID[3] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
-    dGeomSetBody( this->body[id].geomID[3], this->body[id].bodyID);
-    dGeomSetOffsetPosition( this->body[id].geomID[3], -m.c[0], -this->end_width/2 + this->end_radius - m.c[1], this->end_width/2 - this->end_radius - m.c[2] );
-    dGeomSetOffsetRotation( this->body[id].geomID[3], R1);
+    this->geom[id][3] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
+    dGeomSetBody( this->geom[id][3], this->body[id]);
+    dGeomSetOffsetPosition( this->geom[id][3], -m.c[0], -this->end_width/2 + this->end_radius - m.c[1], this->end_width/2 - this->end_radius - m.c[2] );
+    dGeomSetOffsetRotation( this->geom[id][3], R1);
 
     // set geometry 5 - fillet upper right
-    this->body[id].geomID[4] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
-    dGeomSetBody( this->body[id].geomID[4], this->body[id].bodyID);
-    dGeomSetOffsetPosition( this->body[id].geomID[4], -m.c[0], this->end_width/2 - this->end_radius - m.c[1], this->end_width/2 - this->end_radius - m.c[2] );
-    dGeomSetOffsetRotation( this->body[id].geomID[4], R1);
+    this->geom[id][4] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
+    dGeomSetBody( this->geom[id][4], this->body[id]);
+    dGeomSetOffsetPosition( this->geom[id][4], -m.c[0], this->end_width/2 - this->end_radius - m.c[1], this->end_width/2 - this->end_radius - m.c[2] );
+    dGeomSetOffsetRotation( this->geom[id][4], R1);
 
     // set geometry 6 - fillet lower right
-    this->body[id].geomID[5] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
-    dGeomSetBody( this->body[id].geomID[5], this->body[id].bodyID);
-    dGeomSetOffsetPosition( this->body[id].geomID[5], -m.c[0], this->end_width/2 - this->end_radius - m.c[1], -this->end_width/2 + this->end_radius - m.c[2] );
-    dGeomSetOffsetRotation( this->body[id].geomID[5], R1);
+    this->geom[id][5] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
+    dGeomSetBody( this->geom[id][5], this->body[id]);
+    dGeomSetOffsetPosition( this->geom[id][5], -m.c[0], this->end_width/2 - this->end_radius - m.c[1], -this->end_width/2 + this->end_radius - m.c[2] );
+    dGeomSetOffsetRotation( this->geom[id][5], R1);
 
     // set geometry 7 - fillet lower left
-    this->body[id].geomID[6] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
-    dGeomSetBody( this->body[id].geomID[6], this->body[id].bodyID);
-    dGeomSetOffsetPosition( this->body[id].geomID[6], -m.c[0], -this->end_width/2 + this->end_radius - m.c[1], -this->end_width/2 + this->end_radius - m.c[2] );
-    dGeomSetOffsetRotation( this->body[id].geomID[6], R1);
+    this->geom[id][6] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
+    dGeomSetBody( this->geom[id][6], this->body[id]);
+    dGeomSetOffsetPosition( this->geom[id][6], -m.c[0], -this->end_width/2 + this->end_radius - m.c[1], -this->end_width/2 + this->end_radius - m.c[2] );
+    dGeomSetOffsetRotation( this->geom[id][6], R1);
 
     // set mass center to (0,0,0) of this->bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-    dBodySetMass(this->body[id].bodyID, &m);
+    dBodySetMass(this->body[id], &m);
 }

@@ -96,8 +96,8 @@ class CRobot4Sim : virtual public robotSim , public robotSimThreads {
 		virtual bool getSuccess(int i);
 		virtual dReal getPosition(int i);
 		virtual dReal getRotation(int i);
-		virtual dBodyID getBodyID(int body);
-		virtual dJointID getMotorID(int motor);
+		virtual dBodyID getBodyID(int id);
+		virtual dJointID getMotorID(int id);
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		virtual void buildAttached00(CRobot4Sim *attach, int face1, int face2);
@@ -109,18 +109,14 @@ class CRobot4Sim : virtual public robotSim , public robotSimThreads {
 		virtual void simPostCollisionThread(void);
 		virtual void simAddRobot(dWorldID &world, dSpaceID &space);
     private:
-		typedef struct robot_body_s {
-			dBodyID bodyID;                         // id of body part
-			dGeomID *geomID;                        // ids of geoms which make up each body part
-		} mobotBody_t;
-
 		dWorldID world;				// world for all robots
 		dSpaceID space;				// space for this robot
+		dBodyID body[5];			// body parts
+		dGeomID *geom[5];			// geometries of each body part
 		dJointID motor[4];			// motors
 		dJointID joint[6];			// joints between body parts
 		PID pid[4];					// PID control for each joint
 		mobotJointState_t state[4];	// states
-        mobotBody_t body[NUM_PARTS];// body parts
 		dReal angle[4];				// angles
 		dReal velocity[4];			// velocities
 		dReal goal[4];				// goals
