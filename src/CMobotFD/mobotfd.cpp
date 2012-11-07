@@ -4,11 +4,12 @@ using namespace std;
 
 CMobotFD::CMobotFD(void) {
     // create ODE simulation space
-    dInitODE2(0);                                               // initialized ode library
-    this->world = dWorldCreate();                               // create world for simulation
-    this->space = dHashSpaceCreate(0);                          // create space for robots
-    this->group = dJointGroupCreate(0);                         // create group for joints
-    this->ground = dCreatePlane(this->space, 0, 0, 1, 0);       // create ground plane
+    dInitODE2(0);												// initialized ode library
+    this->world = dWorldCreate();								// create world for simulation
+    this->space = dHashSpaceCreate(0);							// create space for robots
+    this->group = dJointGroupCreate(0);							// create group for joints
+	this->ground = new dGeomID[1];								// create array for ground objects
+    this->ground[0] = dCreatePlane(this->space, 0, 0, 1, 0);	// create ground plane
 
     // simulation parameters
     dWorldSetAutoDisableFlag(this->world, 1);                   // auto-disable bodies that are not moving
@@ -26,6 +27,7 @@ CMobotFD::CMobotFD(void) {
 	this->m_cor_g = 0.3;
 	this->m_cor_b = 0.3;
 
+	// create simulation thread variables
 	pthread_create(&(this->simulation), NULL, (void* (*)(void *))&CMobotFD::simulationThread, (void *)this);
 	pthread_mutex_init(&robot_mutex, NULL);
 
@@ -35,8 +37,7 @@ CMobotFD::CMobotFD(void) {
 		this->robotNumber[i] = 0;
 		this->robotThread[i] = NULL;
 	}
-    this->m_num_statics = 0;
-    this->m_num_targets = 0;
+	this->groundNumber = 1;
     this->m_t_step = 0.004;
 
 
@@ -130,9 +131,13 @@ CMobotFD::CMobotFD(void) {
 
 CMobotFD::~CMobotFD(void) {
 	// free all arrays created dynamically in constructor
-	//delete [] this->bot;
-	if ( this->m_num_statics ) delete [] this->m_statics;
-    if ( this->m_num_targets ) delete [] this->m_targets;
+	delete [] this->ground;
+	for ( int i = 0; i < NUM_TYPES; i++) {
+		delete [] this->robot[i];
+		delete [] this->robotThread[i];
+	}
+	delete [] this->robot;
+	delete [] this->robotThread;
 
 	// destroy all ODE objects
 	dJointGroupDestroy(this->group);
@@ -154,17 +159,10 @@ void CMobotFD::setMu(dReal mu_g, dReal mu_b) {
 	this->m_mu_b = mu_b;
 }
 
-void CMobotFD::setNumStatics(int num_statics) {
-    this->m_num_statics = num_statics;
-    this->m_statics = new dGeomID[num_statics];
-}
+void CMobotFD::setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+	// resize ground array
+	this->ground = (dGeomID *)realloc(this->ground, (this->groundNumber + 1)*sizeof(dGeomID));
 
-void CMobotFD::setNumTargets(int num_targets) {
-    this->m_num_targets = num_targets;
-    this->m_targets = new CMobotFDTarget[num_targets];
-}
-
-void CMobotFD::setStaticBox(int num, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
     // create rotation matrix
     dMatrix3 R, R_x, R_y, R_z, R_xy;
     dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
@@ -174,12 +172,15 @@ void CMobotFD::setStaticBox(int num, dReal lx, dReal ly, dReal lz, dReal px, dRe
     dMultiply0(R, R_xy, R_z, 3, 3, 3);
 
     // position box
-    this->m_statics[num] = dCreateBox(this->space, lx, ly, lz);
-    dGeomSetPosition(this->m_statics[num], px, py, pz);
-    dGeomSetRotation(this->m_statics[num], R);
+    this->ground[this->groundNumber] = dCreateBox(this->space, lx, ly, lz);
+    dGeomSetPosition(this->ground[this->groundNumber], px, py, pz);
+    dGeomSetRotation(this->ground[this->groundNumber++], R);
 }
 
-void CMobotFD::setStaticCapsule(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+void CMobotFD::setGroundCapsule(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+	// resize ground array
+	this->ground = (dGeomID *)realloc(this->ground, (this->groundNumber + 1)*sizeof(dGeomID));
+
     // create rotation matrix
     dMatrix3 R, R_x, R_y, R_z, R_xy;
     dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
@@ -189,12 +190,15 @@ void CMobotFD::setStaticCapsule(int num, dReal r, dReal l, dReal px, dReal py, d
     dMultiply0(R, R_xy, R_z, 3, 3, 3);
 
     // position capsule
-    this->m_statics[num] = dCreateCapsule(this->space, r, l);
-    dGeomSetPosition(this->m_statics[num], px, py, pz);
-    dGeomSetRotation(this->m_statics[num], R);
+    this->ground[this->groundNumber] = dCreateCapsule(this->space, r, l);
+    dGeomSetPosition(this->ground[this->groundNumber], px, py, pz);
+    dGeomSetRotation(this->ground[this->groundNumber++], R);
 }
 
-void CMobotFD::setStaticCylinder(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+void CMobotFD::setGroundCylinder(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+	// resize ground array
+	this->ground = (dGeomID *)realloc(this->ground, (this->groundNumber + 1)*sizeof(dGeomID));
+
     // create rotation matrix
     dMatrix3 R, R_x, R_y, R_z, R_xy;
     dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
@@ -204,23 +208,18 @@ void CMobotFD::setStaticCylinder(int num, dReal r, dReal l, dReal px, dReal py, 
     dMultiply0(R, R_xy, R_z, 3, 3, 3);
 
     // position cylinder
-    this->m_statics[num] = dCreateCylinder(this->space, r, l);
-    dGeomSetPosition(this->m_statics[num], px, py, pz);
-    dGeomSetRotation(this->m_statics[num], R);
+    this->ground[this->groundNumber] = dCreateCylinder(this->space, r, l);
+    dGeomSetPosition(this->ground[this->groundNumber], px, py, pz);
+    dGeomSetRotation(this->ground[this->groundNumber++], R);
 }
 
-void CMobotFD::setStaticSphere(int num, dReal r, dReal px, dReal py, dReal pz) {
-    this->m_statics[num] = dCreateSphere(this->space, r);
-    dGeomSetPosition(this->m_statics[num], px, py, pz);
-}
+void CMobotFD::setGroundSphere(dReal r, dReal px, dReal py, dReal pz) {
+	// resize ground array
+	this->ground = (dGeomID *)realloc(this->ground, (this->groundNumber + 1)*sizeof(dGeomID));
 
-void CMobotFD::setTarget(int num, dReal x, dReal y, dReal z) {
-    this->m_targets[num].x = x;
-    this->m_targets[num].y = y;
-    this->m_targets[num].z = z;
-    this->m_targets[num].geomID = dCreateSphere(this->space, 0.01);
-    dGeomSetPosition(this->m_targets[num].geomID, x, y, z);
-    dGeomDisable(this->m_targets[num].geomID);
+	// add sphere
+    ground[groundNumber] = dCreateSphere(this->space, r);
+    dGeomSetPosition(this->ground[this->groundNumber++], px, py, pz);
 }
 
 /**********************************************************

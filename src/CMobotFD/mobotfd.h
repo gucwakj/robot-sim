@@ -17,15 +17,12 @@ class CMobotFD {
 		~CMobotFD(void);
 
 		// set simulation variables
-        void setCOR(dReal cor_g, dReal cor_b);
-        void setMu(dReal mu_g, dReal mu_b);
-        void setNumStatics(int num_statics);
-        void setNumTargets(int num_targets);
-        void setStaticBox(int num, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
-        void setStaticCapsule(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
-        void setStaticCylinder(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
-        void setStaticSphere(int num, dReal r, dReal px, dReal py, dReal pz);
-        void setTarget(int num, dReal x, dReal y, dReal z);
+		void setCOR(dReal cor_g, dReal cor_b);
+		void setMu(dReal mu_g, dReal mu_b);
+		void setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
+		void setGroundCapsule(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
+		void setGroundCylinder(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
+		void setGroundSphere(dReal r, dReal px, dReal py, dReal pz);
 
 		// build models of the iMobot
 		void addiMobot(iMobotSim &imobot);
@@ -45,30 +42,22 @@ class CMobotFD {
 		void addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
         //void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 	private:
-        typedef struct cimobotfdtarget_s {
-            dReal x, y, z;
-            dGeomID geomID;
-        } CMobotFDTarget;
-
 		// private variables to store general information about simulation
 		dWorldID world;				// world in which simulation occurs
 		dSpaceID space;				// space for robots in which to live
 		dJointGroupID group;		// group to store joints
-		dGeomID ground;				// ground plane
-		dGeomID *m_statics;			// array of ground objects
+		dGeomID *ground;
+		int groundNumber;
 		robotSim **robot[NUM_TYPES];
 		pthread_mutex_t robot_mutex;
 		int robotNumber[NUM_TYPES];
 		pthread_t *robotThread[NUM_TYPES];
 
-		CMobotFDTarget *m_targets;	// array of targets
 		dReal   m_t_step,			// time of each step of simulation
 				m_mu_g,				//coefficient of friction of body_ground
 				m_mu_b,				// coefficient of friction of body_body
 				m_cor_g,			// coefficient of restitution of body_ground
 				m_cor_b;			// coefficient of restitution of body_body
-		int	m_num_statics,			// number of pieces of ground
-			m_num_targets;			// total number of targets
 		pthread_t simulation;		// simulation thread
 		osg::ref_ptr<osgViewer::Viewer> viewer;
 
