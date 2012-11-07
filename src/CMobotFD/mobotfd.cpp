@@ -30,6 +30,7 @@ CMobotFD::CMobotFD(void) {
 	// create simulation thread variables
 	pthread_create(&(this->simulation), NULL, (void* (*)(void *))&CMobotFD::simulationThread, (void *)this);
 	pthread_mutex_init(&robot_mutex, NULL);
+	pthread_mutex_init(&ground_mutex, NULL);
 
 	// variables to keep track of progress of simulation
 	for ( int i = 0; i < NUM_TYPES; i++ ) {
@@ -252,9 +253,11 @@ void* CMobotFD::simulationThread(void *arg) {
 		}
 
 		// step world
+		pthread_mutex_lock(&(sim->ground_mutex));
 		dSpaceCollide(sim->space, sim, &sim->collision);// collide all geometries together
 		dWorldStep(sim->world, sim->m_t_step);			// step world time by one
 		dJointGroupEmpty(sim->group);					// clear out all contact joints
+		pthread_mutex_unlock(&(sim->ground_mutex));
 
 		sim->print_intermediate_data();
 

@@ -43,15 +43,16 @@ class CMobotFD {
         //void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 	private:
 		// private variables to store general information about simulation
-		dWorldID world;				// world in which simulation occurs
-		dSpaceID space;				// space for robots in which to live
-		dJointGroupID group;		// group to store joints
-		dGeomID *ground;
-		int groundNumber;
-		robotSim **robot[NUM_TYPES];
-		pthread_mutex_t robot_mutex;
-		int robotNumber[NUM_TYPES];
-		pthread_t *robotThread[NUM_TYPES];
+		dWorldID world;						// world in which simulation occurs
+		dSpaceID space;						// space for robots in which to live
+		dJointGroupID group;				// group to store joints
+		dGeomID *ground;					// ground (static) objects
+		pthread_mutex_t ground_mutex;		// mutex for ground collisions
+		int groundNumber;					// number of ground objects
+		robotSim **robot[NUM_TYPES];		// array of robots
+		pthread_mutex_t robot_mutex;		// mutex for robots
+		int robotNumber[NUM_TYPES];			// number of robots
+		pthread_t *robotThread[NUM_TYPES];	// thread for each robot
 
 		dReal   m_t_step,			// time of each step of simulation
 				m_mu_g,				//coefficient of friction of body_ground

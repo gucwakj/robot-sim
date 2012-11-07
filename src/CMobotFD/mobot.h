@@ -4,9 +4,6 @@
 #include "config.h"
 #include "pid.h"
 #include "robot.h"
-//#include "threads.h"
-//#include <unistd.h>
-//#include <ode/ode.h>
 #ifdef ENABLE_DOUBLE
 #define EPSILON DBL_EPSILON
 #else
@@ -55,7 +52,7 @@ typedef enum mobot_joint_state_e {
 	MOBOT_HOLD		= 3
 } mobotJointState_t;
 
-class CRobot4Sim : virtual private robotSim/* , public robotSimThreads*/ {
+class CRobot4Sim : virtual private robotSim {
 	friend class CMobotFD;
 	public:
         CRobot4Sim(void);
