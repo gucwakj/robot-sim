@@ -63,9 +63,6 @@ class CMobotFD {
 		void print_intermediate_data(void);			// print data out at each time step for analysis
 		static void* simulationThread(void *arg);
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
-
-        // utility functions
-		unsigned int diff_nsecs(struct timespec t1, struct timespec t2);
 };
 
 #endif	/* CMOBOTFD_H_ */

@@ -228,17 +228,12 @@ void* CMobotFD::simulationThread(void *arg) {
 	// cast to type sim 
 	CMobotFD *sim = (CMobotFD *)arg;
 
-	// initialize local variables
-	//struct timespec cur_time, itime;
-	//unsigned int dt;
+	// initialize counters
 	int i, j;
 
 	while (1) {
 		// lock array of robots for sim step
 		pthread_mutex_lock(&(sim->robot_mutex));
-
-		// get start time of execution
-		//clock_gettime(CLOCK_REALTIME, &cur_time);
 
 		// perform pre-collision updates
 		//  - lock angle and goal
@@ -268,12 +263,6 @@ void* CMobotFD::simulationThread(void *arg) {
 				pthread_join(sim->robotThread[i][j], NULL);
 			}
 		}
-
-		// check end time of execution
-		//clock_gettime(CLOCK_REALTIME, &itime);
-		// sleep until next step
-		//dt = diff_nsecs(cur_time, itime);
-		//if ( dt < 500000 ) { usleep(500 - dt/1000); }
 
 		// unlock array of robots to allow another to be 
 		pthread_mutex_unlock(&(sim->robot_mutex));
@@ -313,6 +302,7 @@ void CMobotFD::collision(void *data, dGeomID o1, dGeomID o2) {
 			dJointAttach( dJointCreateContact(ptr->world, ptr->group, contact + i), b1, b2);
 		}
 	}
+	free(ptr);
 }
 
 void CMobotFD::print_intermediate_data(void) {
@@ -531,11 +521,3 @@ void CMobotFD::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int
     dJointSetFixedParam(joint, dParamCFM, 0);
     dJointSetFixedParam(joint, dParamERP, 0.9);
 }*/
-
-/**********************************************************
-	Utility Functions
- **********************************************************/
-// get difference in two time stamps in nanoseconds
-unsigned int CMobotFD::diff_nsecs(struct timespec t1, struct timespec t2) {
-	return (t2.tv_sec - t1.tv_sec) * 1000000000 + (t2.tv_nsec - t1.tv_nsec);
-}
