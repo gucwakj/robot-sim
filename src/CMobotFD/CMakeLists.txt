@@ -37,7 +37,8 @@ set (EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 add_library( mobotfd SHARED
 	mobotfd.cpp
 	mobot.cpp
+	robot.cpp
 	pid.cpp
-	threads.cpp
+	#threads.cpp
 )
 target_link_libraries(mobotfd ode ${EXTRA_LIBS} rt)

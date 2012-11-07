@@ -15,10 +15,9 @@ CRobot4Sim::CRobot4Sim(void) {
 	this->success[3] = true;
 
 	// init locks
-	pthread_mutex_init(&angle_mutex, NULL);
+	this->simThreadsAngleInit();
 	this->simThreadsGoalInit(NULL);
-	pthread_mutex_init(&success_mutex, NULL);
-	pthread_cond_init(&success_cond, NULL);
+	this->simThreadsSuccessInit();
 }
 
 CRobot4Sim::~CRobot4Sim(void) {
@@ -53,7 +52,7 @@ void CRobot4Sim::simPostCollisionThread(void) {
 		this->success[i] = this->is_joint_complete(i);
 	}
 	if ( this->success[0] && this->success[1] && this->success[2] && this->success[3] ) {
-		pthread_cond_signal(&(this->success_cond));
+		this->simThreadsSuccessSignal();
 	}
 
 	// unlock angle and goal
@@ -476,7 +475,7 @@ int CRobot4Sim::moveJointToNB(int id, dReal angle) {
 int CRobot4Sim::moveJointWait(int id) {
 	// wait for motion to complete
 	this->simThreadsSuccessLock();
-	while ( !this->success[id] ) { pthread_cond_wait(&(this->success_cond), &(this->success_mutex)); }
+	while ( !this->success[id] ) { this->simThreadsSuccessWait(); }
 	this->success[id] = true;
 	this->simThreadsSuccessUnlock();
 
@@ -565,7 +564,7 @@ int CRobot4Sim::moveWait(void) {
 	// wait for motion to complete
 	this->simThreadsSuccessLock();
 	while ( !this->success[0] && !this->success[1] && !this->success[2] && !this->success[3]) {
-		pthread_cond_wait(&(this->success_cond), &(this->success_mutex));
+		this->simThreadsSuccessWait();
 	}
 	this->success[0] = true;
 	this->success[1] = true;

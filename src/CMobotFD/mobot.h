@@ -4,9 +4,9 @@
 #include "config.h"
 #include "pid.h"
 #include "robot.h"
-#include "threads.h"
-#include <unistd.h>
-#include <ode/ode.h>
+//#include "threads.h"
+//#include <unistd.h>
+//#include <ode/ode.h>
 #ifdef ENABLE_DOUBLE
 #define EPSILON DBL_EPSILON
 #else
@@ -55,7 +55,8 @@ typedef enum mobot_joint_state_e {
 	MOBOT_HOLD		= 3
 } mobotJointState_t;
 
-class CRobot4Sim : virtual public robotSim , public robotSimThreads {
+class CRobot4Sim : virtual private robotSim/* , public robotSimThreads*/ {
+	friend class CMobotFD;
 	public:
         CRobot4Sim(void);
         ~CRobot4Sim(void);
@@ -92,6 +93,7 @@ class CRobot4Sim : virtual public robotSim , public robotSimThreads {
 
 		int resetToZero(void);
 
+    private:
 		virtual dReal getAngle(int i);
 		virtual bool getSuccess(int i);
 		virtual dReal getPosition(int i);
@@ -108,7 +110,6 @@ class CRobot4Sim : virtual public robotSim , public robotSimThreads {
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
 		virtual void simAddRobot(dWorldID &world, dSpaceID &space);
-    private:
 		dWorldID world;				// world for all robots
 		dSpaceID space;				// space for this robot
 		dBodyID body[5];			// body parts
