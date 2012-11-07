@@ -3,19 +3,12 @@
 
 #include <iostream>
 #include "mobot.h"
+#include "graphics.h"
 
 enum simulation_reply_message_e {
 	FD_SUCCESS,
 	FD_ERROR_TIME,
 	FD_ERROR_STALL
-};
-
-enum robot_types_e {
-	IMOBOT,
-	MOBOT,
-	KIDBOT,
-	NXT,
-	NUM_TYPES
 };
 
 class CMobotFD {
@@ -77,6 +70,7 @@ class CMobotFD {
 		int	m_num_statics,			// number of pieces of ground
 			m_num_targets;			// total number of targets
 		pthread_t simulation;		// simulation thread
+		osg::ref_ptr<osgViewer::Viewer> viewer;
 
 		// simulation functions
 		void print_intermediate_data(void);			// print data out at each time step for analysis

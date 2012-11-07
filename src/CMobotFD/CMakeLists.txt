@@ -33,12 +33,25 @@ endif (ENABLE_DOUBLE)
 find_package(Threads)
 set (EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
+# Add OSG
+find_package(OpenSceneGraph 2.8.0 REQUIRED osgViewer osgSim osgUtil OpenThreads osgGA osgDB osgFX)
+if (OPENSCENEGRAPH_FOUND)
+	include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS})
+	set (EXTRA_LIBS ${EXTRA_LIBS} ${OPENSCENEGRAPH_LIBRARIES})
+endif (OPENSCENEGRAPH_FOUND)
+
+find_package(OpenGL REQUIRED)
+if (OPENGL_FOUND)
+	include_directories(${OPENGL_INCLUDE_DIR})
+	set (EXTRA_LIBS ${EXTRA_LIBS} ${OPENGL_LIBRARIES})
+endif (OPENGL_FOUND)
+
 # Add the library
 add_library( mobotfd SHARED
 	mobotfd.cpp
+	graphics.cpp
 	mobot.cpp
 	robot.cpp
 	pid.cpp
-	#threads.cpp
 )
 target_link_libraries(mobotfd ode ${EXTRA_LIBS} rt)

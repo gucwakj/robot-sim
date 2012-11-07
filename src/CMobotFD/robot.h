@@ -5,6 +5,14 @@
 #include <unistd.h>
 #include <pthread.h>
 
+enum robot_types_e {
+	IMOBOT,
+	MOBOT,
+	KIDBOT,
+	NXT,
+	NUM_TYPES
+};
+
 // single read/write lock
 typedef struct rw_var {
 	bool lock;
