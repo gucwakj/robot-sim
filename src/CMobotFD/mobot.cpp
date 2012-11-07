@@ -16,7 +16,7 @@ CRobot4Sim::CRobot4Sim(void) {
 
 	// init locks
 	this->simThreadsAngleInit();
-	this->simThreadsGoalInit(NULL);
+	this->simThreadsGoalInit();
 	this->simThreadsSuccessInit();
 }
 
@@ -24,107 +24,11 @@ CRobot4Sim::~CRobot4Sim(void) {
 	//dSpaceDestroy(this->space); //sigsegv
 }
 
-void CRobot4Sim::simPreCollisionThread(void) {
-	// lock angle and goal
-	this->simThreadsGoalRLock();
-	this->simThreadsAngleLock();
-
-	// update angle values for each degree of freedom
-	for ( int j = 0; j < NUM_DOF; j++ ) {
-		// set motor angle to current angle
-		dJointSetAMotorAngle(this->getMotorID(j), 0, this->getAngle(j));
-		// drive motor to get current angle to match future angle
-		this->update_joint_speed(j);
-	}
-
-	// unlock angle and goal
-	this->simThreadsAngleUnlock();
-	this->simThreadsGoalRUnlock();
-}
-
-void CRobot4Sim::simPostCollisionThread(void) {
-	// lock angle and goal
-	this->simThreadsGoalRLock();
-	this->simThreadsAngleLock();
-
-	// check if joint speed is zero -> joint has completed step
-	for (int i = 0; i < NUM_DOF; i++) {
-		this->success[i] = this->is_joint_complete(i);
-	}
-	if ( this->success[0] && this->success[1] && this->success[2] && this->success[3] ) {
-		this->simThreadsSuccessSignal();
-	}
-
-	// unlock angle and goal
-	this->simThreadsAngleUnlock();
-	this->simThreadsGoalRUnlock();
-}
-
-void CRobot4Sim::simAddRobot(dWorldID &world, dSpaceID &space) {
-	this->world = world;
-    this->space = dHashSpaceCreate(space);
-}
-
-dReal CRobot4Sim::getAngle(int i) {
-	if (i == LE || i == RE)
-		this->angle[i] = mod_angle(this->angle[i], dJointGetHingeAngle(this->joint[i]), dJointGetHingeAngleRate(this->joint[i]));
-	else
-		this->angle[i] = dJointGetHingeAngle(this->joint[i]);
-    return this->angle[i];
-}
-
-bool CRobot4Sim::getSuccess(int i) {
-	return this->success[i];
-}
-
 int CRobot4Sim::getJointAngle(int id, dReal &angle) {
 	angle = R2D(this->getAngle(id));
 
 	// success
 	return 0;
-}
-
-dReal CRobot4Sim::getPosition(int i) {
-    return this->position[i];
-}
-
-dReal CRobot4Sim::getRotation(int i) {
-    return this->rotation[i];
-}
-
-dBodyID CRobot4Sim::getBodyID(int id) {
-    return this->body[id];
-}
-
-dJointID CRobot4Sim::getMotorID(int id) {
-    return this->motor[id];
-}
-
-bool CRobot4Sim::isHome(void) {
-    return ( fabs(this->angle[LE]) < EPSILON && fabs(this->angle[LB]) < EPSILON && fabs(this->angle[RB]) < EPSILON && fabs(this->angle[RE]) < EPSILON );
-}
-
-/*bool CRobot4Sim::isComplete(void) {
-	// initialze loop counters
-	int c = 0, i;
-
-	// check if joint speed is zero -> joint has completed step
-	for (i = 0; i < NUM_DOF; i++) {
-		this->success[i] = this->is_joint_complete(i);
-	}
-	if ( this->success[0] && this->success[1] && this->success[2] && this->success[3] ) {
-		pthread_cond_signal(&(this->success_cond));
-		return true;
-	}
-	return false;
-}*/
-
-bool CRobot4Sim::is_joint_complete(int id) {
-	// check if joint speed is zero -> joint has completed step
-	if ( !(int)(dJointGetAMotorParam(this->getMotorID(id), dParamVel)*1000) ) 
-		return true;
-	else
-		return false;
 }
 
 int CRobot4Sim::motionArch(dReal angle) {
@@ -592,47 +496,87 @@ int CRobot4Sim::resetToZero(void) {
 	return 0;
 }
 
-/*void CRobot4Sim::updateAngles(void) {
-	// must be done for each degree of freedom
-	for ( int j = 0; j < NUM_DOF; j++ ) {
-		// set motor angle to current angle
-		dJointSetAMotorAngle(this->getMotorID(j), 0, this->getAngle(j));
-		// drive motor to get current angle to match future angle
-		this->updateMotorSpeed(j);
-	}
-}*/
-
-void CRobot4Sim::update_joint_speed(int i) {
-    /*// with PID
-    if (this->cur_ang[i] < this->fut_ang[i] - 10*this->m_motor_res)
-        dJointSetA*MotorParam(this->motor[i], dParamVel, this->jnt_vel[i]);
-    else if (this->cur_ang[i] > this->fut_ang[i] + 10*this->m_motor_res)
-        dJointSetAMotorParam(this->motor[i], dParamVel, -this->jnt_vel[i]);
-    else if (this->fut_ang[i] - 10*this->m_motor_res < this->cur_ang[i] &&  this->cur_ang[i] < this->fut_ang[i] - this->m_motor_res)
-        dJointSetAMotorParam(this->motor[i], dParamVel, this->pid[i].update(this->fut_ang[i] - this->cur_ang[i]));
-    else if (this->cur_ang[i] < this->fut_ang[i] + 10*this->m_motor_res && this->cur_ang[i] > this->fut_ang[i] + this->m_motor_res)
-        dJointSetAMotorParam(this->motor[i], dParamVel, this->pid[i].update(this->cur_ang[i] - this->fut_ang[i]));
-    else
-        dJointSetAMotorParam(this->motor[i], dParamVel, 0);*/
-    // without PID
-    if (this->angle[i] < this->goal[i] - this->m_motor_res)
-        dJointSetAMotorParam(this->motor[i], dParamVel, this->velocity[i]);
-    else if (this->angle[i] > this->goal[i] + this->m_motor_res)
-        dJointSetAMotorParam(this->motor[i], dParamVel, -this->velocity[i]);
-    else
-        dJointSetAMotorParam(this->motor[i], dParamVel, 0);
-}
-
-/*void CRobot4Sim::updateMotorState(int i) {
-    if (this->goal[i] - this->m_motor_res < this->angle[i] && this->angle[i] < this->goal[i] + this->m_motor_res) {
-        dJointSetAMotorParam(this->motor[i], dParamVel, 0);
-		this->state[i] = MOTOR_HOLD;
-	}	
-}*/
-
 /**********************************************************
 	private functions
  **********************************************************/
+void CRobot4Sim::simPreCollisionThread(void) {
+	// lock angle and goal
+	this->simThreadsGoalRLock();
+	this->simThreadsAngleLock();
+
+	// update angle values for each degree of freedom
+	for ( int i = 0; i < NUM_DOF; i++ ) {
+		// set motor angle to current angle
+		dJointSetAMotorAngle(this->motor[i], 0, this->angle[i]);
+		// drive motor to get current angle to match future angle
+		if (this->angle[i] < this->goal[i] - this->m_motor_res)
+			dJointSetAMotorParam(this->motor[i], dParamVel, this->velocity[i]);
+		else if (this->angle[i] > this->goal[i] + this->m_motor_res)
+			dJointSetAMotorParam(this->motor[i], dParamVel, -this->velocity[i]);
+		else
+			dJointSetAMotorParam(this->motor[i], dParamVel, 0);
+	}
+
+	// unlock angle and goal
+	this->simThreadsAngleUnlock();
+	this->simThreadsGoalRUnlock();
+}
+
+void CRobot4Sim::simPostCollisionThread(void) {
+	// lock angle and goal
+	this->simThreadsGoalRLock();
+	this->simThreadsAngleLock();
+
+	// check if joint speed is zero -> joint has completed step
+	for (int i = 0; i < NUM_DOF; i++) {
+		this->success[i] = (bool)(!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
+	}
+	if ( this->success[0] && this->success[1] && this->success[2] && this->success[3] ) {
+		this->simThreadsSuccessSignal();
+	}
+
+	// unlock angle and goal
+	this->simThreadsAngleUnlock();
+	this->simThreadsGoalRUnlock();
+}
+
+void CRobot4Sim::simAddRobot(dWorldID &world, dSpaceID &space) {
+	this->world = world;
+    this->space = dHashSpaceCreate(space);
+}
+
+dReal CRobot4Sim::getAngle(int i) {
+	if (i == LE || i == RE)
+		this->angle[i] = mod_angle(this->angle[i], dJointGetHingeAngle(this->joint[i]), dJointGetHingeAngleRate(this->joint[i]));
+	else
+		this->angle[i] = dJointGetHingeAngle(this->joint[i]);
+    return this->angle[i];
+}
+
+bool CRobot4Sim::getSuccess(int i) {
+	return this->success[i];
+}
+
+dReal CRobot4Sim::getPosition(int i) {
+    return this->position[i];
+}
+
+dReal CRobot4Sim::getRotation(int i) {
+    return this->rotation[i];
+}
+
+dBodyID CRobot4Sim::getBodyID(int id) {
+    return this->body[id];
+}
+
+dJointID CRobot4Sim::getMotorID(int id) {
+    return this->motor[id];
+}
+
+bool CRobot4Sim::isHome(void) {
+    return ( fabs(this->angle[LE]) < EPSILON && fabs(this->angle[LB]) < EPSILON && fabs(this->angle[RB]) < EPSILON && fabs(this->angle[RE]) < EPSILON );
+}
+
 dReal CRobot4Sim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     dReal new_ang = 0;
     int stp = (int)( fabs(past_ang) / M_PI );
@@ -696,8 +640,6 @@ dReal CRobot4Sim::D2R( dReal x ) {
 dReal CRobot4Sim::R2D( dReal x ) {
     return x/M_PI*180;
 }
-
-
 
 void CRobot4Sim::create_fixed_joint(CRobot4Sim *attach, int face1, int face2) {
     int part1, part2;
@@ -785,64 +727,6 @@ void CRobot4Sim::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dRea
     else
         this->pid[i].restart();
 }*/
-
-CiMobotSim::CiMobotSim(void) {
-	this->m_motor_res = D2R(0.5);
-	this->m_joint_vel_max[LE] = 6.70;
-	this->m_joint_vel_max[LB] = 2.61;
-	this->m_joint_vel_max[RB] = 2.61;
-	this->m_joint_vel_max[RE] = 6.70;
-	this->m_joint_frc_max[LE] = 0.260;
-	this->m_joint_frc_max[LB] = 1.059;
-	this->m_joint_frc_max[RB] = 1.059;
-	this->m_joint_frc_max[RE] = 0.260;
-	this->center_length = 0.07303;
-	this->center_width = 0.02540;
-	this->center_height = 0.06909;
-	this->center_radius = 0.03554;
-	this->center_offset = 0;
-	this->body_length = 0.03785;
-	this->body_width = 0.07239;
-	this->body_height = 0.07239;
-	this->body_radius = 0.03620;
-	this->body_inner_width_left = 0.02287;
-	this->body_inner_width_right = 0.02287;
-	this->body_end_depth = 0.01994;
-	this->body_mount_center = 0.03792;
-	this->end_width = 0.07239;
-	this->end_height = 0.07239;
-	this->end_depth = 0.00476;
-	this->end_radius = 0.01778;
-}
-
-CMobotSim::CMobotSim(void) {
-	this->m_motor_res = D2R(0.5);
-	this->m_joint_vel_max[LE] = 6.70;
-	this->m_joint_vel_max[LB] = 2.61;
-	this->m_joint_vel_max[RB] = 2.61;
-	this->m_joint_vel_max[RE] = 6.70;
-	this->m_joint_frc_max[LE] = 0.260;
-	this->m_joint_frc_max[LB] = 1.059;
-	this->m_joint_frc_max[RB] = 1.059;
-	this->m_joint_frc_max[RE] = 0.260;
-	this->center_length = 0.07303;
-	this->center_width = 0.02540;
-	this->center_height = 0.06909;
-	this->center_radius = 0.03554;
-	this->center_offset = 0;
-	this->body_length = 0.03785;
-	this->body_width = 0.07239;
-	this->body_height = 0.07239;
-	this->body_radius = 0.03620;
-	this->body_inner_width_left = 0.02287;
-	this->body_inner_width_right = 0.02287;
-	this->body_end_depth = 0.01994;
-	this->body_mount_center = 0.03792;
-	this->end_width = 0.07239;
-	this->end_height = 0.07239;
-	this->end_depth = 0.00476;
-	this->end_radius = 0.01778;
-}
 
 void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	// init body parts
@@ -3379,3 +3263,68 @@ void CRobot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
     dBodySetMass(this->body[id], &m);
 }
+
+/**********************************************************
+	iMobotSim Class
+ **********************************************************/
+iMobotSim::iMobotSim(void) {
+	this->m_motor_res = D2R(0.5);
+	this->m_joint_vel_max[LE] = 6.70;
+	this->m_joint_vel_max[LB] = 2.61;
+	this->m_joint_vel_max[RB] = 2.61;
+	this->m_joint_vel_max[RE] = 6.70;
+	this->m_joint_frc_max[LE] = 0.260;
+	this->m_joint_frc_max[LB] = 1.059;
+	this->m_joint_frc_max[RB] = 1.059;
+	this->m_joint_frc_max[RE] = 0.260;
+	this->center_length = 0.07303;
+	this->center_width = 0.02540;
+	this->center_height = 0.06909;
+	this->center_radius = 0.03554;
+	this->center_offset = 0;
+	this->body_length = 0.03785;
+	this->body_width = 0.07239;
+	this->body_height = 0.07239;
+	this->body_radius = 0.03620;
+	this->body_inner_width_left = 0.02287;
+	this->body_inner_width_right = 0.02287;
+	this->body_end_depth = 0.01994;
+	this->body_mount_center = 0.03792;
+	this->end_width = 0.07239;
+	this->end_height = 0.07239;
+	this->end_depth = 0.00476;
+	this->end_radius = 0.01778;
+}
+
+/**********************************************************
+	mobotSim Class
+ **********************************************************/
+mobotSim::mobotSim(void) {
+	this->m_motor_res = D2R(0.5);
+	this->m_joint_vel_max[LE] = 6.70;
+	this->m_joint_vel_max[LB] = 2.61;
+	this->m_joint_vel_max[RB] = 2.61;
+	this->m_joint_vel_max[RE] = 6.70;
+	this->m_joint_frc_max[LE] = 0.260;
+	this->m_joint_frc_max[LB] = 1.059;
+	this->m_joint_frc_max[RB] = 1.059;
+	this->m_joint_frc_max[RE] = 0.260;
+	this->center_length = 0.07303;
+	this->center_width = 0.02540;
+	this->center_height = 0.06909;
+	this->center_radius = 0.03554;
+	this->center_offset = 0;
+	this->body_length = 0.03785;
+	this->body_width = 0.07239;
+	this->body_height = 0.07239;
+	this->body_radius = 0.03620;
+	this->body_inner_width_left = 0.02287;
+	this->body_inner_width_right = 0.02287;
+	this->body_end_depth = 0.01994;
+	this->body_mount_center = 0.03792;
+	this->end_width = 0.07239;
+	this->end_height = 0.07239;
+	this->end_depth = 0.00476;
+	this->end_radius = 0.01778;
+}
+

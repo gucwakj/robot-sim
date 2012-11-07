@@ -250,15 +250,15 @@ void CMobotFD::print_intermediate_data(void) {
 /**********************************************************
 	Build iMobot Functions
  **********************************************************/
-void CMobotFD::addiMobot(CiMobotSim &imobot) {
+void CMobotFD::addiMobot(iMobotSim &imobot) {
 	this->addiMobot(imobot, 0, 0, 0);
 }
 
-void CMobotFD::addiMobot(CiMobotSim &imobot, dReal x, dReal y, dReal z) {
+void CMobotFD::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z) {
 	this->addiMobot(imobot, x, y, z, 0, 0, 0);
 }
 
-void CMobotFD::addiMobot(CiMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+void CMobotFD::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&(this->robot_mutex));
 	// add new imobot
@@ -275,7 +275,7 @@ void CMobotFD::addiMobot(CiMobotSim &imobot, dReal x, dReal y, dReal z, dReal ps
 	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
-void CMobotFD::addiMobot(CiMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CMobotFD::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&(this->robot_mutex));
 	// add new imobot
@@ -292,7 +292,7 @@ void CMobotFD::addiMobot(CiMobotSim &imobot, dReal x, dReal y, dReal z, dReal ps
 	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
-void CMobotFD::addiMobotConnected(CiMobotSim &imobot, CiMobotSim &base, int face1, int face2) {
+void CMobotFD::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&(this->robot_mutex));
 	// add new imobot
@@ -312,7 +312,7 @@ void CMobotFD::addiMobotConnected(CiMobotSim &imobot, CiMobotSim &base, int face
 	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
-void CMobotFD::addiMobotConnected(CiMobotSim &imobot, CiMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CMobotFD::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&(this->robot_mutex));
 	// add new imobot
@@ -349,15 +349,15 @@ void CMobotFD::addiMobotConnected(CiMobotSim &imobot, CiMobotSim &base, int face
 /**********************************************************
 	Build Mobot Functions
  **********************************************************/
-void CMobotFD::addMobot(CMobotSim &mobot) {
+void CMobotFD::addMobot(mobotSim &mobot) {
 	this->addMobot(mobot, 0, 0, 0);
 }
 
-void CMobotFD::addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z) {
+void CMobotFD::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z) {
 	this->addMobot(mobot, x, y, z, 0, 0, 0);
 }
 
-void CMobotFD::addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+void CMobotFD::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&(this->robot_mutex));
 	// add new imobot
@@ -374,7 +374,7 @@ void CMobotFD::addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, 
 	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
-void CMobotFD::addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CMobotFD::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&(this->robot_mutex));
 	// add new imobot
@@ -391,7 +391,7 @@ void CMobotFD::addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, 
 	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
-void CMobotFD::addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, int face2) {
+void CMobotFD::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&(this->robot_mutex));
 	// add new imobot
@@ -411,7 +411,7 @@ void CMobotFD::addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, i
 	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
-void CMobotFD::addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CMobotFD::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&(this->robot_mutex));
 	// add new imobot

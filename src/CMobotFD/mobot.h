@@ -128,14 +128,12 @@ class CRobot4Sim : virtual private robotSim/* , public robotSimThreads*/ {
 
         //void resetPID(int i = NUM_DOF);
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
-        void update_joint_speed(int i);
 		void build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);	// build body of mobot
 		void build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
 		void build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap
 		void create_fixed_joint(CRobot4Sim *attach, int face1, int face2);				// create fixed joint between modules
 		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
 		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
-		bool is_joint_complete(int id);
 	protected:
 		dReal D2R(dReal x);              // convert degrees to radians
 		dReal R2D(dReal x);              // convert radians to degrees
@@ -148,14 +146,14 @@ class CRobot4Sim : virtual private robotSim/* , public robotSimThreads*/ {
 		dReal m_joint_frc_max[4];
 };
 
-class CMobotSim : public CRobot4Sim {
+class mobotSim : public CRobot4Sim {
 	public:
-		CMobotSim(void);
+		mobotSim(void);
 };
 
-class CiMobotSim: public CRobot4Sim {
+class iMobotSim : public CRobot4Sim {
 	public:
-		CiMobotSim(void);
+		iMobotSim(void);
 };
 
 #endif  /* MOBOT_H_ */

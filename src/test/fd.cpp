@@ -4,7 +4,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 	CMobotFD fd;
-	CiMobotSim robot1, robot2;
+	iMobotSim robot1, robot2;
 
 	fd.addiMobot(robot1);
 	fd.addiMobot(robot2, 0, 0.3, 0);

@@ -1,5 +1,15 @@
 #include "robot.h"
 
+void* robotSim::simPreCollisionThreadEntry(void *arg) {
+	robotSim *p = (robotSim *)arg;
+	p->simPreCollisionThread();
+}
+
+void* robotSim::simPostCollisionThreadEntry(void *arg) {
+	robotSim *p = (robotSim *)arg;
+	p->simPostCollisionThread();
+}
+
 void robotSim::simThreadsAngleInit(void) {
 	pthread_mutex_init(&angle_mutex, NULL);
 }
@@ -33,7 +43,7 @@ void robotSim::simThreadsSuccessWait(void) {
 	pthread_cond_wait(&(this->success_cond), &(this->success_mutex));
 }
 
-int robotSim::simThreadsRWInit(pthread_rw_t *rwp, pthread_rwattr_t *attrp) {
+int robotSim::simThreadsRWInit(pthread_rw_t *rwp) {
 	rwp->lock = 0;
 	pthread_mutex_init(&(rwp->mutex), NULL);
 	pthread_cond_init(&(rwp->cond), NULL);
@@ -88,7 +98,7 @@ int robotSim::simThreadsRWWUnlock(pthread_rw_t *rwp) {
 	}
 }
 
-int robotSim::simThreadsGoalInit(pthread_rwattr_t *attrp) { simThreadsRWInit(&(this->goal_rwlock), attrp); }
+int robotSim::simThreadsGoalInit(void) { simThreadsRWInit(&(this->goal_rwlock)); }
 int robotSim::simThreadsGoalRLock(void) { simThreadsRWRLock(&(this->goal_rwlock)); }
 int robotSim::simThreadsGoalRUnlock(void) { simThreadsRWRUnlock(&(this->goal_rwlock)); }
 int robotSim::simThreadsGoalWLock(void) { simThreadsRWWLock(&(this->goal_rwlock)); }

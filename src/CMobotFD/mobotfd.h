@@ -35,21 +35,21 @@ class CMobotFD {
         void setTarget(int num, dReal x, dReal y, dReal z);
 
 		// build models of the iMobot
-		void addiMobot(CiMobotSim &imobot);
-		void addiMobot(CiMobotSim &imobot, dReal x, dReal y, dReal z);
-		void addiMobot(CiMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
-		void addiMobot(CiMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		void addiMobotConnected(CiMobotSim &imobot, CiMobotSim &base, int face1, int face2);
-		void addiMobotConnected(CiMobotSim &imobot, CiMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void addiMobot(iMobotSim &imobot);
+		void addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z);
+		void addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
+		void addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2);
+		void addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
         //void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		// build models of the Mobot
-		void addMobot(CMobotSim &mobot);
-		void addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z);
-		void addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
-		void addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		void addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, int face2);
-		void addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void addMobot(mobotSim &mobot);
+		void addMobot(mobotSim &mobot, dReal x, dReal y, dReal z);
+		void addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
+		void addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2);
+		void addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
         //void iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 	private:
         typedef struct cimobotfdtarget_s {
