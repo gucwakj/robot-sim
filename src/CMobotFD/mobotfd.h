@@ -53,13 +53,10 @@ class CMobotFD {
 		pthread_mutex_t robot_mutex;		// mutex for robots
 		int robotNumber[NUM_TYPES];			// number of robots
 		pthread_t *robotThread[NUM_TYPES];	// thread for each robot
-
-		dReal   m_t_step,			// time of each step of simulation
-				m_mu_g,				//coefficient of friction of body_ground
-				m_mu_b,				// coefficient of friction of body_body
-				m_cor_g,			// coefficient of restitution of body_ground
-				m_cor_b;			// coefficient of restitution of body_body
-		pthread_t simulation;		// simulation thread
+		pthread_t simulation;				// simulation thread
+		dReal _time_step;					// time of each step of simulation
+		dReal _mu[2];						// coefficient of friction [body/ground, body/body]
+		dReal _cor[2];						// coefficient of restitution [body/ground, body/body]
 		osg::ref_ptr<osgViewer::Viewer> viewer;
 
 		// simulation functions

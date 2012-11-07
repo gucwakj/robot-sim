@@ -22,10 +22,8 @@ CMobotFD::CMobotFD(void) {
     dWorldSetGravity(this->world, 0, 0, -9.81);                 // gravity
 
 	// default collision parameters
-	this->m_mu_g = 0.4;
-	this->m_mu_b = 0.3;
-	this->m_cor_g = 0.3;
-	this->m_cor_b = 0.3;
+	_mu[0] = 0.4; _mu[1] = 0.3;
+	_cor[0] = 0.3; _cor[1] = 0.3;
 
 	// create simulation thread variables
 	pthread_create(&(this->simulation), NULL, (void* (*)(void *))&CMobotFD::simulationThread, (void *)this);
@@ -39,7 +37,7 @@ CMobotFD::CMobotFD(void) {
 		this->robotThread[i] = NULL;
 	}
 	this->groundNumber = 1;
-    this->m_t_step = 0.004;
+    _time_step = 0.004;
 
 
 
@@ -151,13 +149,13 @@ CMobotFD::~CMobotFD(void) {
 	Public Member Functions
  **********************************************************/
 void CMobotFD::setCOR(dReal cor_g, dReal cor_b) {
-	this->m_cor_g = cor_g;
-	this->m_cor_b = cor_b;
+	_cor[0] = cor_g;
+	_cor[1] = cor_b;
 }
 
 void CMobotFD::setMu(dReal mu_g, dReal mu_b) {
-	this->m_mu_g = mu_g;
-	this->m_mu_b = mu_b;
+	_mu[0] = mu_g;
+	_mu[1] = mu_b;
 }
 
 void CMobotFD::setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
@@ -255,7 +253,7 @@ void* CMobotFD::simulationThread(void *arg) {
 		// step world
 		pthread_mutex_lock(&(sim->ground_mutex));
 		dSpaceCollide(sim->space, sim, &sim->collision);// collide all geometries together
-		dWorldStep(sim->world, sim->m_t_step);			// step world time by one
+		dWorldStep(sim->world, sim->_time_step);			// step world time by one
 		dJointGroupEmpty(sim->group);					// clear out all contact joints
 		pthread_mutex_unlock(&(sim->ground_mutex));
 
@@ -304,12 +302,12 @@ void CMobotFD::collision(void *data, dGeomID o1, dGeomID o2) {
 		dContact contact[8];
 		for ( int i = 0; i < dCollide(o1, o2, 8, &contact[0].geom, sizeof(dContact)); i++ ) {
 			if ( dGeomGetSpace(o1) == ptr->space || dGeomGetSpace(o2) == ptr->space ) {
-				contact[i].surface.mu = ptr->m_mu_g;
-				contact[i].surface.bounce = ptr->m_cor_g;
+				contact[i].surface.mu = ptr->_mu[0];
+				contact[i].surface.bounce = ptr->_cor[0];
 			}
 			else {
-				contact[i].surface.mu = ptr->m_mu_b;
-				contact[i].surface.bounce = ptr->m_cor_b;
+				contact[i].surface.mu = ptr->_mu[1];
+				contact[i].surface.bounce = ptr->_cor[1];
 			}
 			contact[i].surface.mode = dContactBounce | dContactApprox1;
 			dJointAttach( dJointCreateContact(ptr->world, ptr->group, contact + i), b1, b2);
