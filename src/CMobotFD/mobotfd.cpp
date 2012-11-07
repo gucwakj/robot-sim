@@ -349,55 +349,87 @@ void CMobotFD::addiMobotConnected(CiMobotSim &imobot, CiMobotSim &base, int face
 /**********************************************************
 	Build Mobot Functions
  **********************************************************/
-/*void CMobotFD::addMobot(CMobotSim &mobot) {
-	this->bot = (CMobotSim **)realloc(this->bot, (this->m_number[MOBOT] + 1)*sizeof(CMobotSim *));
-	this->bot[this->m_number[MOBOT]] = &mobot;
-	this->bot[this->m_number[MOBOT]]->addToSim(this->world, this->space);
-	this->bot[this->m_number[MOBOT]++]->build(0, 0, 0, 0, 0, 0);
+void CMobotFD::addMobot(CMobotSim &mobot) {
+	this->addMobot(mobot, 0, 0, 0);
 }
 
 void CMobotFD::addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z) {
-	this->bot = (CMobotSim **)realloc(this->bot, (this->m_number[MOBOT] + 1)*sizeof(CMobotSim *));
-	this->bot[this->m_number[MOBOT]] = &mobot;
-	this->bot[this->m_number[MOBOT]]->addToSim(this->world, this->space);
-	this->bot[this->m_number[MOBOT]++]->build(x, y, z, 0, 0, 0);
+	this->addMobot(mobot, x, y, z, 0, 0, 0);
 }
 
 void CMobotFD::addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
-	this->bot = (CMobotSim **)realloc(this->bot, (this->m_number[MOBOT] + 1)*sizeof(CMobotSim *));
-	this->bot[this->m_number[MOBOT]] = &mobot;
-	this->bot[this->m_number[MOBOT]]->addToSim(this->world, this->space);
-    this->bot[this->m_number[MOBOT]++]->build(x, y, z, psi, theta, phi);
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&(this->robot_mutex));
+	// add new imobot
+	this->robot[MOBOT] =  (robotSim **)realloc(this->robot[MOBOT], (this->robotNumber[MOBOT] + 1)*sizeof(robotSim *));
+	this->robot[MOBOT][this->robotNumber[MOBOT]] = &mobot;
+	// add mobot to simulation
+	this->robot[MOBOT][this->robotNumber[MOBOT]]->simAddRobot(this->world, this->space);
+	// create new thread array for imobots
+	delete this->robotThread[MOBOT];
+	this->robotThread[MOBOT] = new pthread_t[this->robotNumber[MOBOT]];
+	// build new mobot geometry
+	this->robot[MOBOT][this->robotNumber[MOBOT]++]->build(x, y, z, psi, theta, phi);
+	// unlock robot data
+	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
 void CMobotFD::addMobot(CMobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	this->bot = (CMobotSim **)realloc(this->bot, (this->m_number[MOBOT] + 1)*sizeof(CMobotSim *));
-	this->bot[this->m_number[MOBOT]] = &mobot;
-	this->bot[this->m_number[MOBOT]]->addToSim(this->world, this->space);
-    this->bot[this->m_number[MOBOT]++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&(this->robot_mutex));
+	// add new imobot
+	this->robot[MOBOT] =  (robotSim **)realloc(this->robot[MOBOT], (this->robotNumber[MOBOT] + 1)*sizeof(robotSim *));
+	this->robot[MOBOT][this->robotNumber[MOBOT]] = &mobot;
+	// add mobot to simulation
+	this->robot[MOBOT][this->robotNumber[MOBOT]]->simAddRobot(this->world, this->space);
+	// create new thread array for imobots
+	delete this->robotThread[MOBOT];
+	this->robotThread[MOBOT] = new pthread_t[this->robotNumber[MOBOT]];
+	// build new mobot geometry
+	this->robot[MOBOT][this->robotNumber[MOBOT]++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
+	// unlock robot data
+	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
 void CMobotFD::addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, int face2) {
-	this->bot = (CMobotSim **)realloc(this->bot, (this->m_number[MOBOT] + 1)*sizeof(CMobotSim *));
-	this->bot[this->m_number[MOBOT]] = &mobot;
-	this->bot[this->m_number[MOBOT]]->addToSim(this->world, this->space);
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&(this->robot_mutex));
+	// add new imobot
+	this->robot[MOBOT] =  (robotSim **)realloc(this->robot[MOBOT], (this->robotNumber[MOBOT] + 1)*sizeof(robotSim *));
+	this->robot[MOBOT][this->robotNumber[MOBOT]] = &mobot;
+	// add mobot to simulation
+	this->robot[MOBOT][this->robotNumber[MOBOT]]->simAddRobot(this->world, this->space);
+	// create new thread array for imobots
+	delete this->robotThread[MOBOT];
+	this->robotThread[MOBOT] = new pthread_t[this->robotNumber[MOBOT]];
+	// build new mobot geometry
 	if ( base.isHome() )
-        this->bot[this->m_number[MOBOT]]->buildAttached00(&base, face1, face2);
-    else
-        this->bot[this->m_number[MOBOT]]->buildAttached10(&base, face1, face2);
-	this->m_number[MOBOT]++;
+		this->robot[MOBOT][this->robotNumber[MOBOT]++]->buildAttached00(&base, face1, face2);
+	else
+		this->robot[MOBOT][this->robotNumber[MOBOT]++]->buildAttached10(&base, face1, face2);
+	// unlock robot data
+	pthread_mutex_unlock(&(this->robot_mutex));
 }
 
 void CMobotFD::addMobotConnected(CMobotSim &mobot, CMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	this->bot = (CMobotSim **)realloc(this->bot, (this->m_number[MOBOT] + 1)*sizeof(CMobotSim *));
-	this->bot[this->m_number[MOBOT]] = &mobot;
-	this->bot[this->m_number[MOBOT]]->addToSim(this->world, this->space);
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&(this->robot_mutex));
+	// add new imobot
+	this->robot[MOBOT] =  (robotSim **)realloc(this->robot[MOBOT], (this->robotNumber[MOBOT] + 1)*sizeof(robotSim *));
+	this->robot[MOBOT][this->robotNumber[MOBOT]] = &mobot;
+	// add mobot to simulation
+	this->robot[MOBOT][this->robotNumber[MOBOT]]->simAddRobot(this->world, this->space);
+	// create new thread array for imobots
+	delete this->robotThread[MOBOT];
+	this->robotThread[MOBOT] = new pthread_t[this->robotNumber[MOBOT]];
+	// build new mobot geometry
 	if ( base.isHome() )
-        this->bot[this->m_number[MOBOT]]->buildAttached01(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+		this->robot[MOBOT][this->robotNumber[MOBOT]++]->buildAttached01(&base, face1, face2, r_le, r_lb, r_rb, r_re);
 	else
-        this->bot[this->m_number[MOBOT]]->buildAttached11(&base, face1, face2, r_le, r_lb, r_rb, r_re);
-	this->m_number[MOBOT]++;
-}*/
+		this->robot[MOBOT][this->robotNumber[MOBOT]++]->buildAttached11(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+	// unlock robot data
+	pthread_mutex_unlock(&(this->robot_mutex));
+}
 
 /*void CMobotFD::MobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     if ( end == ENDCAP_L )
