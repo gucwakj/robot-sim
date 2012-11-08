@@ -3,13 +3,13 @@
 void* robotSim::simPreCollisionThreadEntry(void *arg) {
 	robotSim *p = (robotSim *)arg;
 	p->simPreCollisionThread();
-	free(p);
+	//free(p);
 }
 
 void* robotSim::simPostCollisionThreadEntry(void *arg) {
 	robotSim *p = (robotSim *)arg;
 	p->simPostCollisionThread();
-	free(p);
+	//free(p);
 }
 
 void robotSim::simThreadsAngleInit(void) {

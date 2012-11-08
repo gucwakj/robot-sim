@@ -43,7 +43,7 @@ CMobotFD::CMobotFD(void) {
 
 	// Graphics init
 	viewer = new osgViewer::Viewer();
-    osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+    /*osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
     traits->x = 200;
     traits->y = 200;
     traits->width = 800;
@@ -60,7 +60,7 @@ CMobotFD::CMobotFD(void) {
 
     // Creating the viewer  
     viewer->getCamera()->setGraphicsContext(gc.get());
-    viewer->getCamera()->setViewport(0,0,800,600);
+    viewer->getCamera()->setViewport(0,0,800,600);*/
 
     // Creating the root node
     osg::ref_ptr<osg::Group> root (new osg::Group);
@@ -97,7 +97,7 @@ CMobotFD::CMobotFD(void) {
     root->addChild(mobotBody2PAT.get());*/
 
     // array
-    osg::ref_ptr<osg::Geode> mobotBody[5];
+    /*osg::ref_ptr<osg::Geode> mobotBody[5];
     osg::ref_ptr<osg::PositionAttitudeTransform> mobotBodyPAT[5];
     for ( int i = 0; i < 5; i++ ) {
         mobotBody[i] = new osg::Geode;
@@ -107,25 +107,26 @@ CMobotFD::CMobotFD(void) {
         mobotBodyPAT[i]->setPosition(osg::Vec3f(0.1+i,0.5+i,0.3+i));
         mobotBodyPAT[i]->setUpdateCallback(new mobotNodeCallback(this, i));
         root->addChild(mobotBodyPAT[i].get());
-    }
+    }*/
 
     //Loading the terrain node
-    osg::ref_ptr<osg::MatrixTransform> terrainScaleMat (new osg::MatrixTransform);
+    /*osg::ref_ptr<osg::MatrixTransform> terrainScaleMat (new osg::MatrixTransform);
     osg::Matrix terrainScaleMatrix;
     terrainScaleMatrix.makeScale(0.05f,0.05f,0.03f);
     osg::Vec3f terrainScale = osg::Vec3f(0.5f,0.5f,0.5f);
     osg::ref_ptr<osg::Node> terrainnode (osgDB::readNodeFile("Terrain2.3ds"));
     terrainScaleMat->addChild(terrainnode.get());
     terrainScaleMat->setMatrix(terrainScaleMatrix);
-    root->addChild(terrainScaleMat.get());
+    root->addChild(terrainScaleMat.get());*/
 
     // Event Handlers
-    viewer->addEventHandler( new osgGA::StateSetManipulator(viewer->getCamera()->getOrCreateStateSet()) );
+    //viewer->addEventHandler( new osgGA::StateSetManipulator(viewer->getCamera()->getOrCreateStateSet()) );
 
     // Set viewable
     viewer->setSceneData( root.get() );
-	ViewerFrameThread viewerThread(viewer.get(), true);
-	viewerThread.startThread();
+	//viewer.run();
+	//ViewerFrameThread viewerThread(viewer.get(), true);
+	//viewerThread.startThread();
 }
 
 CMobotFD::~CMobotFD(void) {
@@ -135,8 +136,6 @@ CMobotFD::~CMobotFD(void) {
 		delete [] this->robot[i];
 		delete [] this->robotThread[i];
 	}
-	delete [] this->robot;
-	delete [] this->robotThread;
 
 	// destroy all ODE objects
 	dJointGroupDestroy(this->group);
@@ -246,11 +245,11 @@ void* CMobotFD::simulationThread(void *arg) {
 		}
 
 		// step world
-		pthread_mutex_lock(&(sim->ground_mutex));
+		//pthread_mutex_lock(&(sim->ground_mutex));
 		dSpaceCollide(sim->space, sim, &sim->collision);// collide all geometries together
 		dWorldStep(sim->world, sim->_time_step);			// step world time by one
 		dJointGroupEmpty(sim->group);					// clear out all contact joints
-		pthread_mutex_unlock(&(sim->ground_mutex));
+		//pthread_mutex_unlock(&(sim->ground_mutex));
 
 		sim->print_intermediate_data();
 
@@ -283,9 +282,9 @@ void CMobotFD::collision(void *data, dGeomID o1, dGeomID o2) {
 
 	// special case for collision of spaces
 	if (dGeomIsSpace(o1) || dGeomIsSpace(o2)) {
-		dSpaceCollide2(o1, o2, ptr, &ptr->collision);
-		if ( dGeomIsSpace(o1) )	dSpaceCollide((dSpaceID)o1, ptr, &ptr->collision);
-		if ( dGeomIsSpace(o2) ) dSpaceCollide((dSpaceID)o2, ptr, &ptr->collision);
+		dSpaceCollide2(o1, o2, (void *)ptr, &ptr->collision);
+		if ( dGeomIsSpace(o1) )	dSpaceCollide((dSpaceID)o1, (void *)ptr, &ptr->collision);
+		if ( dGeomIsSpace(o2) ) dSpaceCollide((dSpaceID)o2, (void *)ptr, &ptr->collision);
 	}
 	else {
 		dContact contact[8];
@@ -302,7 +301,7 @@ void CMobotFD::collision(void *data, dGeomID o1, dGeomID o2) {
 			dJointAttach( dJointCreateContact(ptr->world, ptr->group, contact + i), b1, b2);
 		}
 	}
-	free(ptr);
+	//free(ptr);
 }
 
 void CMobotFD::print_intermediate_data(void) {
