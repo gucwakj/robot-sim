@@ -54,6 +54,7 @@ typedef enum mobot_joint_state_e {
 
 class CRobot4Sim : virtual private robotSim {
 	friend class CMobotFD;
+	friend class iMobotNodeCallback;
 	public:
         CRobot4Sim(void);
         ~CRobot4Sim(void);
@@ -95,8 +96,7 @@ class CRobot4Sim : virtual private robotSim {
 		virtual bool getSuccess(int i);
 		virtual dReal getPosition(int i);
 		virtual dReal getRotation(int i);
-		virtual dBodyID getBodyID(int id);
-		virtual dJointID getMotorID(int id);
+		virtual dBodyID getBodyID(int i);
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		virtual void buildAttached00(CRobot4Sim *attach, int face1, int face2);

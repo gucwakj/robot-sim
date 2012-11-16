@@ -529,7 +529,7 @@ void CRobot4Sim::simPostCollisionThread(void) {
 
 	// check if joint speed is zero -> joint has completed step
 	for (int i = 0; i < NUM_DOF; i++) {
-		this->success[i] = (bool)(!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
+		this->success[i] = (bool)(!(int)(dJointGetAMotorParam(this->motor[i], dParamVel)*1000) );
 	}
 	if ( this->success[0] && this->success[1] && this->success[2] && this->success[3] ) {
 		this->simThreadsSuccessSignal();
@@ -565,12 +565,8 @@ dReal CRobot4Sim::getRotation(int i) {
     return this->rotation[i];
 }
 
-dBodyID CRobot4Sim::getBodyID(int id) {
-    return this->body[id];
-}
-
-dJointID CRobot4Sim::getMotorID(int id) {
-    return this->motor[id];
+dBodyID CRobot4Sim::getBodyID(int i) {
+	return this->body[i];
 }
 
 bool CRobot4Sim::isHome(void) {
@@ -678,7 +674,7 @@ void CRobot4Sim::create_fixed_joint(CRobot4Sim *attach, int face1, int face2) {
     }
 
     dJointID joint = dJointCreateFixed(this->world, 0);
-    dJointAttach(joint, attach->getBodyID(part1), this->getBodyID(part2));
+    dJointAttach(joint, attach->body[part1], this->body[part2]);
     dJointSetFixed(joint);
     dJointSetFixedParam(joint, dParamCFM, 0);
     dJointSetFixedParam(joint, dParamERP, 0.9);

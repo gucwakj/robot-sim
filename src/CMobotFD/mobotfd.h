@@ -2,6 +2,7 @@
 #define CMOBOTFD_H_
 
 #include <iostream>
+#include <stdbool.h>
 #include "mobot.h"
 #include "graphics.h"
 
@@ -12,6 +13,8 @@ enum simulation_reply_message_e {
 };
 
 class CMobotFD {
+	//friend class ViewerFrameThread;
+	friend class iMobotNodeCallback;
 	public:
         CMobotFD(void);
 		~CMobotFD(void);
@@ -57,12 +60,38 @@ class CMobotFD {
 		dReal _time_step;					// time of each step of simulation
 		dReal _mu[2];						// coefficient of friction [body/ground, body/body]
 		dReal _cor[2];						// coefficient of restitution [body/ground, body/body]
-		osg::ref_ptr<osgViewer::Viewer> viewer;
+		ViewerFrameThread *_osgThread;		// osg thread
+		osg::Group *_osgRoot;				// osg root node
 
 		// simulation functions
+		int graphics_init(void);
 		void print_intermediate_data(void);			// print data out at each time step for analysis
 		static void* simulationThread(void *arg);
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 };
 
+class iMobotNodeCallback : public osg::NodeCallback {
+    public:
+        iMobotNodeCallback(CMobotFD *sim, int number, int part) : _sim(sim), _number(number), _part(part) {}
+        virtual void operator()(osg::Node* node, osg::NodeVisitor* nv) {
+            osg::PositionAttitudeTransform *pat = dynamic_cast<osg::PositionAttitudeTransform *> (node);
+            if (pat) {
+                osg::Vec3f current = pat->getPosition();
+				//_sim->robot[IMOBOT][_number]->simThreadsAngleLock();
+				const dReal *position = dBodyGetPosition(_sim->robot[IMOBOT][_number]->getBodyID(_part));
+				const dReal *quaternion = dBodyGetQuaternion(_sim->robot[IMOBOT][_number]->getBodyID(_part));
+				printf("[%lf, %lf, %lf, %lf]\n", quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
+				osg::Vec3f pos = osg::Vec3f(position[0], position[1], position[2]);
+                //osg::Quat quat = osg::Quat(quaternion[1], quaternion[2], quaternion[3], quaternion[0]);
+				//_sim->robot[IMOBOT][_number]->simThreadsAngleUnlock();
+                pat->setPosition(pos);
+                //pat->setAttitude(quat);
+            }
+            traverse(node, nv);
+        }
+    private:
+        int _number;
+		int _part;
+		CMobotFD *_sim;
+};
 #endif	/* CMOBOTFD_H_ */

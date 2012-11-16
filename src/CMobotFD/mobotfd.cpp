@@ -1,4 +1,3 @@
-#include <stdbool.h>
 #include "mobotfd.h"
 using namespace std;
 
@@ -21,16 +20,14 @@ CMobotFD::CMobotFD(void) {
     dWorldSetERP(this->world, 0.95);                            // error reduction parameter (0-1) - how much error is corrected on each step
     dWorldSetGravity(this->world, 0, 0, -9.81);                 // gravity
 
-	// default collision parameters
-	_mu[0] = 0.4; _mu[1] = 0.3;
-	_cor[0] = 0.3; _cor[1] = 0.3;
-
 	// create simulation thread variables
 	pthread_create(&(this->simulation), NULL, (void* (*)(void *))&CMobotFD::simulationThread, (void *)this);
 	pthread_mutex_init(&robot_mutex, NULL);
 	pthread_mutex_init(&ground_mutex, NULL);
 
 	// variables to keep track of progress of simulation
+	_mu[0] = 0.4; _mu[1] = 0.3;
+	_cor[0] = 0.3; _cor[1] = 0.3;
 	for ( int i = 0; i < NUM_TYPES; i++ ) {
 		this->robot[i] = NULL;
 		this->robotNumber[i] = 0;
@@ -39,11 +36,13 @@ CMobotFD::CMobotFD(void) {
 	this->groundNumber = 1;
     _time_step = 0.004;
 
+	// init graphics
+	graphics_init();
+}
 
-
-	// Graphics init
-	viewer = new osgViewer::Viewer();
-    /*osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+int CMobotFD::graphics_init(void) {
+	// window traits
+    osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
     traits->x = 200;
     traits->y = 200;
     traits->width = 800;
@@ -54,79 +53,54 @@ CMobotFD::CMobotFD(void) {
     osg::ref_ptr<osg::GraphicsContext> gc = osg::GraphicsContext::createGraphicsContext(traits.get());
     osgViewer::GraphicsWindow* gw = dynamic_cast<osgViewer::GraphicsWindow*>(gc.get());
     if (!gw) {
-        osg::notify(osg::NOTICE)<<"Error: unable to create graphics window."<<std::endl;
-        //return 1;
+		osg::notify(osg::NOTICE)<<"Error: unable to create graphics window."<<std::endl;
+		return 1;
     }
 
     // Creating the viewer  
+	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
     viewer->getCamera()->setGraphicsContext(gc.get());
-    viewer->getCamera()->setViewport(0,0,800,600);*/
+    viewer->getCamera()->setViewport(0,0,800,600);
 
     // Creating the root node
-    osg::ref_ptr<osg::Group> root (new osg::Group);
+	_osgRoot = new osg::Group();
 
-    // Add Capsule to scene
-    /*osg::ref_ptr<osg::Geode> myshapegeode (new osg::Geode);
-    myshapegeode->addDrawable(new osg::ShapeDrawable(new osg::Capsule(osg::Vec3f(),1,2)));
-    osg::ref_ptr<osg::PositionAttitudeTransform> objectPat (new osg::PositionAttitudeTransform);
-    osg::Vec3f objectPosTrans = osg::Vec3f(-1,3,5);
-    objectPat->addChild(myshapegeode.get());
-    objectPat->setPosition(objectPosTrans);
-    root->addChild(objectPat.get());*/
-    // StateSet for capsule
-    //osg::ref_ptr<osg::StateSet> nodess (myshapegeode->getOrCreateStateSet());
-    //osg::ref_ptr<osg::Image> image (osgDB::readImageFile("wood.png"));
-    //osg::ref_ptr<osg::Texture2D> tex (new osg::Texture2D);
-    //tex->setImage(image.get());
-    //nodess->setMode(GL_CULL_FACE,osg::StateAttribute::OFF);
-    //nodess->setTextureAttributeAndModes(0,tex.get(),osg::StateAttribute::ON);
-    // Moving Body 2
-    /*osg::ref_ptr<osg::Geode> mobotBody1 (new osg::Geode);
-    osg::ref_ptr<osg::Geode> mobotBody2 (new osg::Geode);
-    mobotBody1->addDrawable(new osg::ShapeDrawable(new osg::Capsule(osg::Vec3f(),1,2)));
-    osg::ref_ptr<osg::PositionAttitudeTransform> mobotBody1PAT (new osg::PositionAttitudeTransform);
-    mobotBody1PAT->addChild(mobotBody1.get());
-    mobotBody1PAT->setPosition(osg::Vec3f(1,3,5));
-    mobotBody1PAT->setUpdateCallback(new mobotNodeCallback(0));
-    root->addChild(mobotBody1PAT.get());
-    mobotBody2->addDrawable(new osg::ShapeDrawable(new osg::Capsule(osg::Vec3f(),1,2)));
-    osg::ref_ptr<osg::PositionAttitudeTransform> mobotBody2PAT (new osg::PositionAttitudeTransform);
-    mobotBody2PAT->addChild(mobotBody2.get());
-    mobotBody2PAT->setPosition(osg::Vec3f(1,6,10));
-    mobotBody2PAT->setUpdateCallback(new mobotNodeCallback(1));
-    root->addChild(mobotBody2PAT.get());*/
-
-    // array
-    /*osg::ref_ptr<osg::Geode> mobotBody[5];
-    osg::ref_ptr<osg::PositionAttitudeTransform> mobotBodyPAT[5];
-    for ( int i = 0; i < 5; i++ ) {
-        mobotBody[i] = new osg::Geode;
-        mobotBodyPAT[i] = new osg::PositionAttitudeTransform;
-        mobotBody[i]->addDrawable(new osg::ShapeDrawable(new osg::Capsule(osg::Vec3f(),1,2)));
-        mobotBodyPAT[i]->addChild(mobotBody[i].get());
-        mobotBodyPAT[i]->setPosition(osg::Vec3f(0.1+i,0.5+i,0.3+i));
-        mobotBodyPAT[i]->setUpdateCallback(new mobotNodeCallback(this, i));
-        root->addChild(mobotBodyPAT[i].get());
+	// test array of modules
+	/*osg::ref_ptr<osg::Geode> mobotBody[5];
+	osg::ref_ptr<osg::PositionAttitudeTransform> mobotBodyPAT[5];
+	for ( int i = 0; i < 5; i++ ) {
+		mobotBody[i] = new osg::Geode;
+		mobotBodyPAT[i] = new osg::PositionAttitudeTransform;
+		mobotBody[i]->addDrawable(new osg::ShapeDrawable(new osg::Capsule(osg::Vec3f(),1,2)));
+		mobotBodyPAT[i]->addChild(mobotBody[i].get());
+		mobotBodyPAT[i]->setPosition(osg::Vec3f(0.1+i,0.5+i,0.3+i));
+		mobotBodyPAT[i]->setUpdateCallback(new iMobotNodeCallback(this, 0, i));
+		_osgRoot->addChild(mobotBodyPAT[i].get());
     }*/
 
-    //Loading the terrain node
-    /*osg::ref_ptr<osg::MatrixTransform> terrainScaleMat (new osg::MatrixTransform);
-    osg::Matrix terrainScaleMatrix;
-    terrainScaleMatrix.makeScale(0.05f,0.05f,0.03f);
-    osg::Vec3f terrainScale = osg::Vec3f(0.5f,0.5f,0.5f);
-    osg::ref_ptr<osg::Node> terrainnode (osgDB::readNodeFile("Terrain2.3ds"));
-    terrainScaleMat->addChild(terrainnode.get());
-    terrainScaleMat->setMatrix(terrainScaleMatrix);
-    root->addChild(terrainScaleMat.get());*/
+	// loading a body part from part file
+    //osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("body.stl");
+	//_osgRoot->addChild(terrainnode.get());
+
+	// load the terrain node
+	osg::ref_ptr<osg::MatrixTransform> terrainScaleMat = new osg::MatrixTransform();
+	osg::Matrix terrainScaleMatrix;
+	terrainScaleMatrix.makeScale(0.05f,0.05f,0.03f);
+	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("Terrain2.3ds");
+	terrainScaleMat->addChild(terrainnode.get());
+	terrainScaleMat->setMatrix(terrainScaleMatrix);
+	_osgRoot->addChild(terrainScaleMat.get());
 
     // Event Handlers
     //viewer->addEventHandler( new osgGA::StateSetManipulator(viewer->getCamera()->getOrCreateStateSet()) );
 
     // Set viewable
-    viewer->setSceneData( root.get() );
-	//viewer.run();
-	//ViewerFrameThread viewerThread(viewer.get(), true);
-	//viewerThread.startThread();
+    //viewer->setSceneData(_osgRoot.get());
+    viewer->setSceneData(_osgRoot);
+	_osgThread = new ViewerFrameThread(viewer.get(), true);
+	_osgThread->startThread();
+
+	return 0;
 }
 
 CMobotFD::~CMobotFD(void) {

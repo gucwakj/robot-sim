@@ -48,8 +48,7 @@ class robotSim {
 		virtual bool getSuccess(int i) = 0;
 		virtual dReal getPosition(int i) = 0;
 		virtual dReal getRotation(int i) = 0;
-		virtual dBodyID getBodyID(int body) = 0;
-		virtual dJointID getMotorID(int motor) = 0;
+		virtual dBodyID getBodyID(int i) = 0;
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) = 0;
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
 		virtual void buildAttached00(CRobot4Sim *attach, int face1, int face2) = 0;
