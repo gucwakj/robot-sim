@@ -10,10 +10,10 @@ enum simulation_reply_message_e {
 	FD_ERROR_STALL
 };
 
-class CMobotFD {
+class IRSE {
 	public:
-        CMobotFD(void);
-		~CMobotFD(void);
+		IRSE(void);
+		~IRSE(void);
 
 		// set simulation variables
         void setCOR(dReal cor_g, dReal cor_b);

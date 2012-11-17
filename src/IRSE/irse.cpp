@@ -1,8 +1,8 @@
 #include <stdbool.h>
-#include "mobotfd.h"
+#include "irse.h"
 using namespace std;
 
-CMobotFD::CMobotFD(void) {
+IRSE::IRSE(void) {
     // create ODE simulation space
     dInitODE2(0);                                               // initialized ode library
     _world = dWorldCreate();                               // create world for simulation
@@ -27,7 +27,7 @@ CMobotFD::CMobotFD(void) {
 	_cor_b = 0.3;
 
 	// thread variables
-	pthread_create(&_simulation, NULL, (void* (*)(void *))&CMobotFD::simulationThread, (void *)this);
+	pthread_create(&_simulation, NULL, (void* (*)(void *))&IRSE::simulationThread, (void *)this);
 	pthread_mutex_init(&_robot_mutex, NULL);
 
 	// variables to keep track of progress of simulation
@@ -40,7 +40,7 @@ CMobotFD::CMobotFD(void) {
     _step = 0.004;
 }
 
-CMobotFD::~CMobotFD(void) {
+IRSE::~IRSE(void) {
 	// free all arrays created dynamically in constructor
 	if ( this->m_num_statics ) delete [] this->m_statics;
 
@@ -54,22 +54,22 @@ CMobotFD::~CMobotFD(void) {
 /**********************************************************
 	Public Member Functions
  **********************************************************/
-void CMobotFD::setCOR(dReal cor_g, dReal cor_b) {
+void IRSE::setCOR(dReal cor_g, dReal cor_b) {
 	_cor_g = cor_g;
 	_cor_b = cor_b;
 }
 
-void CMobotFD::setMu(dReal mu_g, dReal mu_b) {
+void IRSE::setMu(dReal mu_g, dReal mu_b) {
 	_mu_g = mu_g;
 	_mu_b = mu_b;
 }
 
-void CMobotFD::setNumStatics(int num_statics) {
+void IRSE::setNumStatics(int num_statics) {
     this->m_num_statics = num_statics;
     this->m_statics = new dGeomID[num_statics];
 }
 
-void CMobotFD::setStaticBox(int num, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+void IRSE::setStaticBox(int num, dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
     // create rotation matrix
     dMatrix3 R, R_x, R_y, R_z, R_xy;
     dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
@@ -84,7 +84,7 @@ void CMobotFD::setStaticBox(int num, dReal lx, dReal ly, dReal lz, dReal px, dRe
     dGeomSetRotation(this->m_statics[num], R);
 }
 
-void CMobotFD::setStaticCapsule(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+void IRSE::setStaticCapsule(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
     // create rotation matrix
     dMatrix3 R, R_x, R_y, R_z, R_xy;
     dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
@@ -99,7 +99,7 @@ void CMobotFD::setStaticCapsule(int num, dReal r, dReal l, dReal px, dReal py, d
     dGeomSetRotation(this->m_statics[num], R);
 }
 
-void CMobotFD::setStaticCylinder(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+void IRSE::setStaticCylinder(int num, dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
     // create rotation matrix
     dMatrix3 R, R_x, R_y, R_z, R_xy;
     dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
@@ -114,7 +114,7 @@ void CMobotFD::setStaticCylinder(int num, dReal r, dReal l, dReal px, dReal py, 
     dGeomSetRotation(this->m_statics[num], R);
 }
 
-void CMobotFD::setStaticSphere(int num, dReal r, dReal px, dReal py, dReal pz) {
+void IRSE::setStaticSphere(int num, dReal r, dReal px, dReal py, dReal pz) {
     this->m_statics[num] = dCreateSphere(_space, r);
     dGeomSetPosition(this->m_statics[num], px, py, pz);
 }
@@ -122,9 +122,9 @@ void CMobotFD::setStaticSphere(int num, dReal r, dReal px, dReal py, dReal pz) {
 /**********************************************************
 	Private Simulation Functions
  **********************************************************/
-void* CMobotFD::simulationThread(void *arg) {
+void* IRSE::simulationThread(void *arg) {
 	// cast to type sim 
-	CMobotFD *sim = (CMobotFD *)arg;
+	IRSE *sim = (IRSE *)arg;
 
 	// initialize local variables
 	//struct timespec cur_time, itime;
@@ -177,9 +177,9 @@ void* CMobotFD::simulationThread(void *arg) {
 	free(sim);
 }
 
-void CMobotFD::collision(void *data, dGeomID o1, dGeomID o2) {
+void IRSE::collision(void *data, dGeomID o1, dGeomID o2) {
 	// cast void pointer to pointer to class
-	CMobotFD *ptr = (CMobotFD *)data;
+	IRSE *ptr = (IRSE *)data;
 
 	// get bodies of geoms
 	dBodyID b1 = dGeomGetBody(o1);
@@ -211,7 +211,7 @@ void CMobotFD::collision(void *data, dGeomID o1, dGeomID o2) {
 	}
 }
 
-void CMobotFD::print_intermediate_data(void) {
+void IRSE::print_intermediate_data(void) {
 	// initialze loop counters
 	int i;
 
@@ -236,15 +236,15 @@ void CMobotFD::print_intermediate_data(void) {
 /**********************************************************
 	Build iMobot Functions
  **********************************************************/
-void CMobotFD::addiMobot(iMobotSim &imobot) {
+void IRSE::addiMobot(iMobotSim &imobot) {
 	this->addiMobot(imobot, 0, 0, 0);
 }
 
-void CMobotFD::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z) {
+void IRSE::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z) {
 	this->addiMobot(imobot, x, y, z, 0, 0, 0);
 }
 
-void CMobotFD::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+void IRSE::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
@@ -261,7 +261,7 @@ void CMobotFD::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi
 	pthread_mutex_unlock(&_robot_mutex);
 }
 
-void CMobotFD::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void IRSE::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
@@ -278,7 +278,7 @@ void CMobotFD::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi
 	pthread_mutex_unlock(&_robot_mutex);
 }
 
-void CMobotFD::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2) {
+void IRSE::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
@@ -298,7 +298,7 @@ void CMobotFD::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1,
 	pthread_mutex_unlock(&_robot_mutex);
 }
 
-void CMobotFD::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void IRSE::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
@@ -318,7 +318,7 @@ void CMobotFD::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1,
 	pthread_mutex_unlock(&_robot_mutex);
 }
 
-/*void CMobotFD::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+/*void IRSE::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     if ( end == ENDCAP_L )
         this->addiMobot(botNum, x + IMOBOT_END_DEPTH + IMOBOT_BODY_END_DEPTH + IMOBOT_BODY_LENGTH + 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
     else
@@ -335,15 +335,15 @@ void CMobotFD::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1,
 /**********************************************************
 	Build Mobot Functions
  **********************************************************/
-void CMobotFD::addMobot(mobotSim &mobot) {
+void IRSE::addMobot(mobotSim &mobot) {
 	this->addMobot(mobot, 0, 0, 0);
 }
 
-void CMobotFD::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z) {
+void IRSE::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z) {
 	this->addMobot(mobot, x, y, z, 0, 0, 0);
 }
 
-void CMobotFD::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+void IRSE::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
@@ -360,7 +360,7 @@ void CMobotFD::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, d
 	pthread_mutex_unlock(&_robot_mutex);
 }
 
-void CMobotFD::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void IRSE::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
@@ -377,7 +377,7 @@ void CMobotFD::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, d
 	pthread_mutex_unlock(&_robot_mutex);
 }
 
-void CMobotFD::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2) {
+void IRSE::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
@@ -397,7 +397,7 @@ void CMobotFD::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int
 	pthread_mutex_unlock(&_robot_mutex);
 }
 
-void CMobotFD::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void IRSE::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
@@ -417,7 +417,7 @@ void CMobotFD::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int
 	pthread_mutex_unlock(&_robot_mutex);
 }
 
-/*void CMobotFD::MobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+/*void IRSE::MobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     if ( end == ENDCAP_L )
         this->addMobot(botNum, x + IMOBOT_END_DEPTH + IMOBOT_BODY_END_DEPTH + IMOBOT_BODY_LENGTH + 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
     else
@@ -435,6 +435,6 @@ void CMobotFD::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int
 	Utility Functions
  **********************************************************/
 // get difference in two time stamps in nanoseconds
-unsigned int CMobotFD::diff_nsecs(struct timespec t1, struct timespec t2) {
+unsigned int IRSE::diff_nsecs(struct timespec t1, struct timespec t2) {
 	return (t2.tv_sec - t1.tv_sec) * 1000000000 + (t2.tv_nsec - t1.tv_nsec);
 }

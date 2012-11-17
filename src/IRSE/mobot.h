@@ -46,7 +46,7 @@ typedef enum mobot_joint_state_e {
 } mobotJointState_t;
 
 class robot4Sim : virtual private robotSim {
-	friend class CMobotFD;
+	friend class IRSE;
 
 	// public api to mimic CMobot clas
 	public:
