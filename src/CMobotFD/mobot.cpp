@@ -1,18 +1,22 @@
 #include "mobot.h"
 
 robot4Sim::robot4Sim(void) {
-	this->angle[0] = 0;
-	this->angle[1] = 0;
-	this->angle[2] = 0;
-	this->angle[3] = 0;
-	this->velocity[0] = 0.7854;	// 45 deg/sec
-	this->velocity[1] = 0.7854;	// 45 deg/sec
-	this->velocity[2] = 0.7854;	// 45 deg/sec
-	this->velocity[3] = 0.7854;	// 45 deg/sec
-	this->success[0] = true;
-	this->success[1] = true;
-	this->success[2] = true;
-	this->success[3] = true;
+	this->angle[LE] = 0;
+	this->angle[LB] = 0;
+	this->angle[RB] = 0;
+	this->angle[RE] = 0;
+	this->goal[LE] = 0;
+	this->goal[LB] = 0;
+	this->goal[RB] = 0;
+	this->goal[RE] = 0;
+	this->velocity[LE] = 0.7854;	// 45 deg/sec
+	this->velocity[LB] = 0.7854;	// 45 deg/sec
+	this->velocity[RB] = 0.7854;	// 45 deg/sec
+	this->velocity[RE] = 0.7854;	// 45 deg/sec
+	this->success[LE] = true;
+	this->success[LB] = true;
+	this->success[RB] = true;
+	this->success[RE] = true;
 
 	// init locks
 	this->simThreadsAngleInit();
@@ -749,6 +753,17 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     dMatrix3 R;
     this->create_rotation_matrix(R, psi, theta, phi);
 
+    // store initial body angles into array
+    this->angle[LE] = 0;
+    this->angle[LB] = 0;
+    this->angle[RB] = 0;
+    this->angle[RE] = 0;
+
+    // store rotation of center of module
+    this->rotation[0] = psi;
+    this->rotation[1] = theta;
+    this->rotation[2] = phi;
+
     // offset values for each body part[0-2] and joint[3-5] from center
     dReal le[6] = {-this->center_length/2 - this->body_length - this->body_end_depth - this->end_depth/2, 0, 0, -this->center_length/2 - this->body_length - this->body_end_depth, 0, 0};
     dReal lb[6] = {-this->center_length/2 - this->body_length - this->body_end_depth/2, 0, 0, -this->center_length/2, this->center_width/2, 0};
@@ -762,15 +777,6 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->build_center(R[0]*ce[0] + x, R[4]*ce[0] + y, R[8]*ce[0] + z, R);
     this->build_body(BODY_R, R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0);
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
-
-    // store position and rotation of center of module
-    this->rotation[0] = psi;
-    this->rotation[1] = theta;
-    this->rotation[2] = phi;
-    this->orientation[0] = 0;
-    this->orientation[1] = 0;
-    this->orientation[2] = 0;
-    this->orientation[3] = 0;
 
     // joint for left endcap to body
     this->joint[0] = dJointCreateHinge(this->world, 0);
@@ -891,6 +897,11 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->angle[RB] = r_rb;
     this->angle[RE] = r_re;
 
+    // store rotation of center of module
+    this->rotation[0] = psi;
+    this->rotation[1] = theta;
+    this->rotation[2] = phi;
+
     // offset values for each body part[0-2] and joint[3-5] from center
     dReal le[6] = {-this->center_length/2 - this->body_length - this->body_end_depth - this->end_depth/2, 0, 0, -this->center_length/2 - this->body_length - this->body_end_depth, 0, 0};
     dReal lb[6] = {-this->center_length/2 - this->body_length - this->body_end_depth/2, 0, 0, -this->center_length/2, this->center_width/2, 0};
@@ -903,15 +914,6 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->build_center(R[0]*ce[0] + x, R[4]*ce[0] + y, R[8]*ce[0] + z, R);
     this->build_body(BODY_R, R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0);
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
-
-    // store position and rotation of center of module
-    this->rotation[0] = psi;
-    this->rotation[1] = theta;
-    this->rotation[2] = phi;
-    this->orientation[0] = r_le;
-    this->orientation[1] = r_lb;
-    this->orientation[2] = r_rb;
-    this->orientation[3] = r_re;
 
     // joint for left endcap to body
     this->joint[0] = dJointCreateHinge(this->world, 0);

@@ -114,7 +114,6 @@ class robot4Sim : virtual private robotSim {
 		dReal velocity[NUM_DOF];			// velocities
 		dReal goal[NUM_DOF];				// goals
 		dReal rotation[3];					// initial rotation
-		dReal orientation[NUM_DOF];			// initial joint orientation
 		bool success[NUM_DOF];				// trigger for goal
 
 		// private functions inherited from robotSim class
