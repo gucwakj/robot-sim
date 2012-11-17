@@ -39,8 +39,8 @@ class robotSim {
 		virtual void buildAttached11(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
 		virtual dReal getAngle(int i) = 0;
 		virtual bool getSuccess(int i) = 0;
-		virtual dReal getPosition(int i) = 0;
-		virtual dReal getRotation(int i) = 0;
+		virtual dReal getPosition(int body, int i) = 0;
+		virtual dReal getRotation(int body, int i) = 0;
 		virtual dBodyID getBodyID(int body) = 0;
 		virtual dJointID getMotorID(int motor) = 0;
 		virtual bool isHome(void) = 0;

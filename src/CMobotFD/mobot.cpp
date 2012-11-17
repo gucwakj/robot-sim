@@ -563,18 +563,17 @@ bool robot4Sim::getSuccess(int i) {
 	return this->success[i];
 }
 
-dReal robot4Sim::getPosition(int i) {
-	const dReal *pos = dBodyGetPosition(this->body[CENTER]);
+dReal robot4Sim::getPosition(int body, int i) {
+	const dReal *pos = dBodyGetPosition(this->body[body]);
 	return pos[i];
 }
 
-dReal robot4Sim::getRotation(int i) {
-	/*const dReal *rot = dBodyGetRotation(this->body[CENTER]);
-	dReal *rot2 = rot;
+dReal robot4Sim::getRotation(int body, int i) {
+	const dReal *rot = dBodyGetRotation(this->body[body]);
+	dMatrix3 rot2 = {rot[0], rot[1], rot[2], rot[3], rot[4], rot[5], rot[6], rot[7], rot[8], rot[9], rot[10], rot[11]};
 	dReal angles[3] = {0};
-	extract_euler_angles(const_cast<dReal>rot2, angles[0], angles[1], angles[2]);
-	return angles[i];*/
-	return this->rotation[i];
+	extract_euler_angles(rot2, angles[0], angles[1], angles[2]);
+	return angles[i];
 }
 
 dBodyID robot4Sim::getBodyID(int id) {
@@ -761,11 +760,6 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->angle[RB] = 0;
     this->angle[RE] = 0;
 
-    // store rotation of center of module
-    this->rotation[0] = psi;
-    this->rotation[1] = theta;
-    this->rotation[2] = phi;
-
     // offset values for each body part[0-2] and joint[3-5] from center
     dReal le[6] = {-this->center_length/2 - this->body_length - this->body_end_depth - this->end_depth/2, 0, 0, -this->center_length/2 - this->body_length - this->body_end_depth, 0, 0};
     dReal lb[6] = {-this->center_length/2 - this->body_length - this->body_end_depth/2, 0, 0, -this->center_length/2, this->center_width/2, 0};
@@ -899,11 +893,6 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->angle[RB] = r_rb;
     this->angle[RE] = r_re;
 
-    // store rotation of center of module
-    this->rotation[0] = psi;
-    this->rotation[1] = theta;
-    this->rotation[2] = phi;
-
     // offset values for each body part[0-2] and joint[3-5] from center
     dReal le[6] = {-this->center_length/2 - this->body_length - this->body_end_depth - this->end_depth/2, 0, 0, -this->center_length/2 - this->body_length - this->body_end_depth, 0, 0};
     dReal lb[6] = {-this->center_length/2 - this->body_length - this->body_end_depth/2, 0, 0, -this->center_length/2, this->center_width/2, 0};
@@ -1032,7 +1021,7 @@ void robot4Sim::buildAttached00(robot4Sim *attach, int face1, int face2) {
     dMatrix3 R, R1, R_att;
 
     // generate rotation matrix for base robot
-    this->create_rotation_matrix(R_att, attach->getRotation(0), attach->getRotation(1), attach->getRotation(2));
+    this->create_rotation_matrix(R_att, attach->getRotation(CENTER, 0), attach->getRotation(CENTER, 1), attach->getRotation(CENTER, 2));
 
     if ( face1 == 1 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
@@ -1256,9 +1245,9 @@ void robot4Sim::buildAttached00(robot4Sim *attach, int face1, int face2) {
     this->extract_euler_angles(R, psi, theta, phi);
 
     // build new module
-    this->build(attach->getPosition(0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
-                attach->getPosition(1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
-                attach->getPosition(2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
+    this->build(attach->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
+                attach->getPosition(CENTER, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
+                attach->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
                 RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi));
 
     // add fixed joint to attach two modules
@@ -1271,7 +1260,7 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
     dMatrix3 R, R1, R2, R3, R4, R5, R_att;
 
     // generate rotation matrix for base robot
-    this->create_rotation_matrix(R_att, attach->getRotation(0), attach->getRotation(1), attach->getRotation(2));
+    this->create_rotation_matrix(R_att, attach->getRotation(CENTER, 0), attach->getRotation(CENTER, 1), attach->getRotation(CENTER, 2));
 
     if ( face1 == 1 && face2 == 1 ) {
         // generate rotation matrix
@@ -1777,9 +1766,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
     this->extract_euler_angles(R, psi, theta, phi);
 
     // build new module
-    this->build(attach->getPosition(0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
-                attach->getPosition(1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
-                attach->getPosition(2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
+    this->build(attach->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
+                attach->getPosition(CENTER, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
+                attach->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
                 RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi));
 
     // add fixed joint to attach two modules
@@ -1792,7 +1781,7 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
     dMatrix3 R, R1, R2, R3, R4, R5, R_att;
 
     // generate rotation matrix for base robot
-    this->create_rotation_matrix(R_att, attach->getRotation(0), attach->getRotation(1), attach->getRotation(2));
+    this->create_rotation_matrix(R_att, attach->getRotation(CENTER, 0), attach->getRotation(CENTER, 1), attach->getRotation(CENTER, 2));
 
     // rotation of body about fixed point
     if ( face2 == 1 ) {
@@ -2325,9 +2314,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
     this->extract_euler_angles(R, psi, theta, phi);
 
     // build new module
-    this->build(attach->getPosition(0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
-                attach->getPosition(1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
-                attach->getPosition(2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
+    this->build(attach->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
+                attach->getPosition(CENTER, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
+                attach->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
                 RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi), r_le, r_lb, r_rb, r_re);
 
     // add fixed joint to attach two modules
@@ -2340,7 +2329,7 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
     dMatrix3 R, R1, R2, R3, R4, R5, R6, R7, R8, R9, R_att;
 
     // generate rotation matrix for base robot
-    this->create_rotation_matrix(R_att, attach->getRotation(0), attach->getRotation(1), attach->getRotation(2));
+    this->create_rotation_matrix(R_att, attach->getRotation(CENTER, 0), attach->getRotation(CENTER, 1), attach->getRotation(CENTER, 2));
 
     // rotation of body about fixed point
     if ( face2 == 1 ) {
@@ -3065,9 +3054,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
     this->extract_euler_angles(R, psi, theta, phi);
 
     // build new module
-    this->build(attach->getPosition(0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
-                attach->getPosition(1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
-                attach->getPosition(2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
+    this->build(attach->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
+                attach->getPosition(CENTER, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
+                attach->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
                 RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi), r_le, r_lb, r_rb, r_re);
 
     // add fixed joint to attach two modules

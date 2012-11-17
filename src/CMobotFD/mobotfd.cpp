@@ -239,9 +239,9 @@ void CMobotFD::print_intermediate_data(void) {
 		//cout << this->robot[IMOBOT][i]->getAngle(IMOBOT_JOINT2) << " ";
 		//cout << this->robot[IMOBOT][i]->getAngle(IMOBOT_JOINT3) << " ";
 		//cout << this->robot[IMOBOT][i]->getAngle(IMOBOT_JOINT4) << "\t";
-		cout << this->robot[IMOBOT][i]->getPosition(0) << " ";
-		cout << this->robot[IMOBOT][i]->getPosition(1) << " ";
-		cout << this->robot[IMOBOT][i]->getPosition(2) << "\t";
+		cout << this->robot[IMOBOT][i]->getPosition(2, 0) << " ";
+		cout << this->robot[IMOBOT][i]->getPosition(2, 1) << " ";
+		cout << this->robot[IMOBOT][i]->getPosition(2, 2) << "\t";
 		//cout << this->robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
 		//cout << this->robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
 		//cout << this->robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";

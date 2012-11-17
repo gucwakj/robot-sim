@@ -113,7 +113,6 @@ class robot4Sim : virtual private robotSim {
 		dReal angle[NUM_DOF];				// angles
 		dReal velocity[NUM_DOF];			// velocities
 		dReal goal[NUM_DOF];				// goals
-		dReal rotation[3];					// initial rotation
 		bool success[NUM_DOF];				// trigger for goal
 
 		// private functions inherited from robotSim class
@@ -125,8 +124,8 @@ class robot4Sim : virtual private robotSim {
 		virtual void buildAttached11(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		virtual dReal getAngle(int i);
 		virtual bool getSuccess(int i);
-		virtual dReal getPosition(int i);
-		virtual dReal getRotation(int i);
+		virtual dReal getPosition(int body, int i);
+		virtual dReal getRotation(int body, int i);
 		virtual dBodyID getBodyID(int id);
 		virtual dJointID getMotorID(int id);
 		virtual bool isHome(void);
