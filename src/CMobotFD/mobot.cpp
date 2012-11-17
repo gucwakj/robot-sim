@@ -510,6 +510,8 @@ void robot4Sim::simPreCollisionThread(void) {
 
 	// update angle values for each degree of freedom
 	for ( int i = 0; i < NUM_DOF; i++ ) {
+		// update current angle
+		this->angle[i] = getAngle(i);
 		// set motor angle to current angle
 		dJointSetAMotorAngle(this->motor[i], 0, this->angle[i]);
 		// drive motor to get current angle to match future angle
