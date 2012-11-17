@@ -3269,14 +3269,14 @@ void CRobot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
  **********************************************************/
 iMobotSim::iMobotSim(void) {
 	this->m_motor_res = D2R(0.5);
-	this->m_joint_vel_max[LE] = 6.70;
-	this->m_joint_vel_max[LB] = 2.61;
-	this->m_joint_vel_max[RB] = 2.61;
-	this->m_joint_vel_max[RE] = 6.70;
-	this->m_joint_frc_max[LE] = 0.260;
-	this->m_joint_frc_max[LB] = 1.059;
-	this->m_joint_frc_max[RB] = 1.059;
-	this->m_joint_frc_max[RE] = 0.260;
+	this->m_joint_vel_max[IMOBOT_JOINT1] = 6.70;
+	this->m_joint_vel_max[IMOBOT_JOINT2] = 2.61;
+	this->m_joint_vel_max[IMOBOT_JOINT3] = 2.61;
+	this->m_joint_vel_max[IMOBOT_JOINT4] = 6.70;
+	this->m_joint_frc_max[IMOBOT_JOINT1] = 0.260;
+	this->m_joint_frc_max[IMOBOT_JOINT2] = 1.059;
+	this->m_joint_frc_max[IMOBOT_JOINT3] = 1.059;
+	this->m_joint_frc_max[IMOBOT_JOINT4] = 0.260;
 	this->center_length = 0.07303;
 	this->center_width = 0.02540;
 	this->center_height = 0.06909;
@@ -3301,14 +3301,14 @@ iMobotSim::iMobotSim(void) {
  **********************************************************/
 mobotSim::mobotSim(void) {
 	this->m_motor_res = D2R(0.5);
-	this->m_joint_vel_max[LE] = 6.70;
-	this->m_joint_vel_max[LB] = 2.61;
-	this->m_joint_vel_max[RB] = 2.61;
-	this->m_joint_vel_max[RE] = 6.70;
-	this->m_joint_frc_max[LE] = 0.260;
-	this->m_joint_frc_max[LB] = 1.059;
-	this->m_joint_frc_max[RB] = 1.059;
-	this->m_joint_frc_max[RE] = 0.260;
+	this->m_joint_vel_max[MOBOT_JOINT1] = 6.70;
+	this->m_joint_vel_max[MOBOT_JOINT2] = 2.61;
+	this->m_joint_vel_max[MOBOT_JOINT3] = 2.61;
+	this->m_joint_vel_max[MOBOT_JOINT4] = 6.70;
+	this->m_joint_frc_max[MOBOT_JOINT1] = 0.260;
+	this->m_joint_frc_max[MOBOT_JOINT2] = 1.059;
+	this->m_joint_frc_max[MOBOT_JOINT3] = 1.059;
+	this->m_joint_frc_max[MOBOT_JOINT4] = 0.260;
 	this->center_length = 0.07303;
 	this->center_width = 0.02540;
 	this->center_height = 0.06909;

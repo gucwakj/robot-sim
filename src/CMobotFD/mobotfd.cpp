@@ -235,14 +235,14 @@ void CMobotFD::print_intermediate_data(void) {
     cout.width(10);		// cout.precision(4);
     cout.setf(ios::fixed, ios::floatfield);
 	for (i = 0; i < this->robotNumber[IMOBOT]; i++) {
-		cout << this->robot[IMOBOT][i]->getAngle(LE) << " ";
-		cout << this->robot[IMOBOT][i]->getAngle(LB) << " ";
-		cout << this->robot[IMOBOT][i]->getAngle(RB) << " ";
-		cout << this->robot[IMOBOT][i]->getAngle(RE) << "\t";
-		cout << this->robot[IMOBOT][i]->getSuccess(LE) << " ";
-		cout << this->robot[IMOBOT][i]->getSuccess(LB) << " ";
-		cout << this->robot[IMOBOT][i]->getSuccess(RB) << " ";
-		cout << this->robot[IMOBOT][i]->getSuccess(RE) << "\t";
+		cout << this->robot[IMOBOT][i]->getAngle(IMOBOT_JOINT1) << " ";
+		cout << this->robot[IMOBOT][i]->getAngle(IMOBOT_JOINT2) << " ";
+		cout << this->robot[IMOBOT][i]->getAngle(IMOBOT_JOINT3) << " ";
+		cout << this->robot[IMOBOT][i]->getAngle(IMOBOT_JOINT4) << "\t";
+		cout << this->robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
+		cout << this->robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
+		cout << this->robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";
+		cout << this->robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT4) << "\t";
 	}
 	cout << endl;
 }
