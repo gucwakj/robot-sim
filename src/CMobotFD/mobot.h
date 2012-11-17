@@ -102,18 +102,18 @@ class robot4Sim : virtual private robotSim {
 		};
 
 		// private member variables
-		dWorldID world;						// world for all robots
-		dSpaceID space;						// space for this robot
-		dBodyID body[NUM_PARTS];			// body parts
-		dGeomID *geom[NUM_PARTS];			// geometries of each body part
-		dJointID motor[NUM_DOF];			// motors
-		dJointID joint[6];					// joints between body parts
-		PID pid[NUM_DOF];					// PID control for each joint
-		mobotJointState_t state[NUM_DOF];	// states
-		dReal angle[NUM_DOF];				// angles
-		dReal velocity[NUM_DOF];			// velocities
-		dReal goal[NUM_DOF];				// goals
-		bool success[NUM_DOF];				// trigger for goal
+		dWorldID _world;			// world for all robots
+		dSpaceID _space;			// space for this robot
+		dBodyID  _body[NUM_PARTS];	// body parts
+		dGeomID* _geom[NUM_PARTS];	// geometries of each body part
+		dJointID _motor[NUM_DOF];	// motors
+		dJointID _joint[6];			// joints between body parts
+		dReal _angle[NUM_DOF];		// angles
+		dReal _velocity[NUM_DOF];	// velocities
+		dReal _goal[NUM_DOF];		// goals
+		PID _pid[NUM_DOF];			// PID control for each joint
+		int  _state[NUM_DOF];		// states
+		bool _success[NUM_DOF];		// trigger for goal
 
 		// private functions inherited from robotSim class
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
@@ -143,13 +143,13 @@ class robot4Sim : virtual private robotSim {
 		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
 		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
 	protected:
-		double	m_motor_res,
-				center_length, center_width, center_height, center_radius, center_offset,
-				body_length, body_width, body_height, body_radius,
-				body_inner_width_left, body_inner_width_right, body_end_depth, body_mount_center,
-				end_width, end_height, end_depth, end_radius;
-		dReal m_joint_vel_max[NUM_DOF];
-		dReal m_joint_frc_max[NUM_DOF];
+		double	_encoderResolution,
+				_center_length, _center_width, _center_height, _center_radius, _center_offset,
+				_body_length, _body_width, _body_height, _body_radius,
+				_body_inner_width_left, _body_inner_width_right, _body_end_depth, _body_mount_center,
+				_end_width, _end_height, _end_depth, _end_radius;
+		dReal _maxJointVelocity[NUM_DOF];
+		dReal _maxJointForce[NUM_DOF];
 };
 
 class mobotSim : public robot4Sim {

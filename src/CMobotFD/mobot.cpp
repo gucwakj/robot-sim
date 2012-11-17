@@ -1,22 +1,22 @@
 #include "mobot.h"
 
 robot4Sim::robot4Sim(void) {
-	this->angle[LE] = 0;
-	this->angle[LB] = 0;
-	this->angle[RB] = 0;
-	this->angle[RE] = 0;
-	this->goal[LE] = 0;
-	this->goal[LB] = 0;
-	this->goal[RB] = 0;
-	this->goal[RE] = 0;
-	this->velocity[LE] = 0.7854;	// 45 deg/sec
-	this->velocity[LB] = 0.7854;	// 45 deg/sec
-	this->velocity[RB] = 0.7854;	// 45 deg/sec
-	this->velocity[RE] = 0.7854;	// 45 deg/sec
-	this->success[LE] = true;
-	this->success[LB] = true;
-	this->success[RB] = true;
-	this->success[RE] = true;
+	_angle[LE] = 0;
+	_angle[LB] = 0;
+	_angle[RB] = 0;
+	_angle[RE] = 0;
+	_goal[LE] = 0;
+	_goal[LB] = 0;
+	_goal[RB] = 0;
+	_goal[RE] = 0;
+	_velocity[LE] = 0.7854;	// 45 deg/sec
+	_velocity[LB] = 0.7854;	// 45 deg/sec
+	_velocity[RB] = 0.7854;	// 45 deg/sec
+	_velocity[RE] = 0.7854;	// 45 deg/sec
+	_success[LE] = true;
+	_success[LB] = true;
+	_success[RB] = true;
+	_success[RE] = true;
 
 	// init locks
 	this->simThreadsAngleInit();
@@ -25,7 +25,7 @@ robot4Sim::robot4Sim(void) {
 }
 
 robot4Sim::~robot4Sim(void) {
-	//dSpaceDestroy(this->space); //sigsegv
+	//dSpaceDestroy(_space); //sigsegv
 }
 
 int robot4Sim::getJointAngle(int id, dReal &angle) {
@@ -242,38 +242,38 @@ int robot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	this->simThreadsGoalWLock();
 
 	// set new goal angles
-	this->goal[0] += DEG2RAD(angle1);
-	this->goal[1] += DEG2RAD(angle2);
-	this->goal[2] += DEG2RAD(angle3);
-	this->goal[3] += DEG2RAD(angle4);
+	_goal[0] += DEG2RAD(angle1);
+	_goal[1] += DEG2RAD(angle2);
+	_goal[2] += DEG2RAD(angle3);
+	_goal[3] += DEG2RAD(angle4);
 
 	// enable motor
 	this->simThreadsAngleLock();
 	for ( int j = 0; j < NUM_DOF; j++ ) {
-		dJointEnable(this->motor[j]);
-		dJointSetAMotorAngle(this->motor[j], 0, this->angle[j]);
+		dJointEnable(_motor[j]);
+		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
-			this->state[j] = MOBOT_FORWARD;
-			dJointSetAMotorParam(this->motor[j], dParamVel, this->velocity[j]);
+			_state[j] = MOBOT_FORWARD;
+			dJointSetAMotorParam(_motor[j], dParamVel, _velocity[j]);
 		}
 		else if ( delta[j] < 0 ) {
-			this->state[j] = MOBOT_BACKWARD;
-			dJointSetAMotorParam(this->motor[j], dParamVel, -this->velocity[j]);
+			_state[j] = MOBOT_BACKWARD;
+			dJointSetAMotorParam(_motor[j], dParamVel, -_velocity[j]);
 		}
 		else if ( fabs(delta[j]-0) < EPSILON ) {
-			this->state[j] = MOBOT_HOLD;
-			dJointSetAMotorParam(this->motor[j], dParamVel, 0);
+			_state[j] = MOBOT_HOLD;
+			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
 	}
-    dBodyEnable(this->body[CENTER]);
+    dBodyEnable(_body[CENTER]);
 	this->simThreadsAngleUnlock();
 
 	// set success to false
 	this->simThreadsSuccessLock();
-	this->success[0] = false;
-	this->success[1] = false;
-	this->success[2] = false;
-	this->success[3] = false;
+	_success[0] = false;
+	_success[1] = false;
+	_success[2] = false;
+	_success[3] = false;
 	this->simThreadsSuccessUnlock();
 
 	// unlock goal
@@ -296,31 +296,31 @@ int robot4Sim::moveJointNB(int id, dReal angle) {
 	this->simThreadsGoalWLock();
 
 	// set new goal angles
-	this->goal[id] += DEG2RAD(angle);
+	_goal[id] += DEG2RAD(angle);
 
 	// enable motor
 	this->simThreadsAngleLock();
-	dJointEnable(this->motor[id]);
+	dJointEnable(_motor[id]);
 
 	// set motor state and velocity
 	if ( angle > 0 ) {
-		this->state[id] = MOBOT_FORWARD;
-		dJointSetAMotorParam(this->motor[id], dParamVel, this->velocity[id]);
+		_state[id] = MOBOT_FORWARD;
+		dJointSetAMotorParam(_motor[id], dParamVel, _velocity[id]);
 	}
 	else if ( angle < 0 ) {
-		this->state[id] = MOBOT_BACKWARD;
-		dJointSetAMotorParam(this->motor[id], dParamVel, -this->velocity[id]);
+		_state[id] = MOBOT_BACKWARD;
+		dJointSetAMotorParam(_motor[id], dParamVel, -_velocity[id]);
 	}
 	else if ( fabs(angle-0) < EPSILON ) {
-		this->state[id] = MOBOT_HOLD;
-		dJointSetAMotorParam(this->motor[id], dParamVel, 0);
+		_state[id] = MOBOT_HOLD;
+		dJointSetAMotorParam(_motor[id], dParamVel, 0);
 	}
-	dBodyEnable(this->body[CENTER]);
+	dBodyEnable(_body[CENTER]);
 	this->simThreadsAngleUnlock();
 
 	// set success to false
 	this->simThreadsSuccessLock();
-	this->success[id] = false;
+	_success[id] = false;
 	this->simThreadsSuccessUnlock();
 
 	// unlock goal
@@ -340,37 +340,37 @@ int robot4Sim::moveJointTo(int id, dReal angle) {
 
 int robot4Sim::moveJointToNB(int id, dReal angle) {
 	// store delta angle
-	dReal delta = angle - this->angle[id];
+	dReal delta = angle - _angle[id];
 
 	// lock goal
 	this->simThreadsGoalWLock();
 
 	// set new goal angles
-	this->goal[id] = DEG2RAD(angle);
+	_goal[id] = DEG2RAD(angle);
 
 	// enable motor
 	this->simThreadsAngleLock();
-	dJointEnable(this->motor[id]);
+	dJointEnable(_motor[id]);
 
 	// set motor state and velocity
 	if ( delta > 0 ) {
-		this->state[id] = MOBOT_FORWARD;
-		dJointSetAMotorParam(this->motor[id], dParamVel, this->velocity[id]);
+		_state[id] = MOBOT_FORWARD;
+		dJointSetAMotorParam(_motor[id], dParamVel, _velocity[id]);
 	}
 	else if ( delta < 0 ) {
-		this->state[id] = MOBOT_BACKWARD;
-		dJointSetAMotorParam(this->motor[id], dParamVel, -this->velocity[id]);
+		_state[id] = MOBOT_BACKWARD;
+		dJointSetAMotorParam(_motor[id], dParamVel, -_velocity[id]);
 	}
 	else if ( fabs(delta-0) < EPSILON ) {
-		this->state[id] = MOBOT_HOLD;
-		dJointSetAMotorParam(this->motor[id], dParamVel, 0);
+		_state[id] = MOBOT_HOLD;
+		dJointSetAMotorParam(_motor[id], dParamVel, 0);
 	}
-	dBodyEnable(this->body[CENTER]);
+	dBodyEnable(_body[CENTER]);
 	this->simThreadsAngleUnlock();
 
 	// set success to false
 	this->simThreadsSuccessLock();
-	this->success[id] = false;
+	_success[id] = false;
 	this->simThreadsSuccessUnlock();
 
 	// unlock goal
@@ -383,8 +383,8 @@ int robot4Sim::moveJointToNB(int id, dReal angle) {
 int robot4Sim::moveJointWait(int id) {
 	// wait for motion to complete
 	this->simThreadsSuccessLock();
-	while ( !this->success[id] ) { this->simThreadsSuccessWait(); }
-	this->success[id] = true;
+	while ( !_success[id] ) { this->simThreadsSuccessWait(); }
+	_success[id] = true;
 	this->simThreadsSuccessUnlock();
 
 	// success
@@ -404,44 +404,44 @@ int robot4Sim::moveToDirect(dReal angle1, dReal angle2, dReal angle3, dReal angl
 
 int robot4Sim::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	// store angles into array
-	dReal delta[4] = {angle1 - this->angle[0], angle2 - this->angle[1], angle3 - this->angle[2], angle4 - this->angle[3]};
+	dReal delta[4] = {angle1 - _angle[0], angle2 - _angle[1], angle3 - _angle[2], angle4 - _angle[3]};
 
 	// lock goal
 	this->simThreadsGoalWLock();
 
 	// set new goal angles
-	this->goal[0] = DEG2RAD(angle1);
-	this->goal[1] = DEG2RAD(angle2);
-	this->goal[2] = DEG2RAD(angle3);
-	this->goal[3] = DEG2RAD(angle4);
+	_goal[0] = DEG2RAD(angle1);
+	_goal[1] = DEG2RAD(angle2);
+	_goal[2] = DEG2RAD(angle3);
+	_goal[3] = DEG2RAD(angle4);
 
 	// enable motor
 	this->simThreadsAngleLock();
 	for ( int j = 0; j < NUM_DOF; j++ ) {
-		dJointEnable(this->motor[j]);
-		dJointSetAMotorAngle(this->motor[j], 0, this->angle[j]);
+		dJointEnable(_motor[j]);
+		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
-			this->state[j] = MOBOT_FORWARD;
-			dJointSetAMotorParam(this->motor[j], dParamVel, this->velocity[j]);
+			_state[j] = MOBOT_FORWARD;
+			dJointSetAMotorParam(_motor[j], dParamVel, _velocity[j]);
 		}
 		else if ( delta[j] < 0 ) {
-			this->state[j] = MOBOT_BACKWARD;
-			dJointSetAMotorParam(this->motor[j], dParamVel, -this->velocity[j]);
+			_state[j] = MOBOT_BACKWARD;
+			dJointSetAMotorParam(_motor[j], dParamVel, -_velocity[j]);
 		}
 		else if ( fabs(delta[j]-0) < EPSILON ) {
-			this->state[j] = MOBOT_HOLD;
-			dJointSetAMotorParam(this->motor[j], dParamVel, 0);
+			_state[j] = MOBOT_HOLD;
+			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
 	}
-    dBodyEnable(this->body[CENTER]);
+    dBodyEnable(_body[CENTER]);
 	this->simThreadsAngleUnlock();
 
 	// set success to false
 	this->simThreadsSuccessLock();
-	this->success[0] = false;
-	this->success[1] = false;
-	this->success[2] = false;
-	this->success[3] = false;
+	_success[0] = false;
+	_success[1] = false;
+	_success[2] = false;
+	_success[3] = false;
 	this->simThreadsSuccessUnlock();
 
 	// unlock goal
@@ -471,13 +471,13 @@ int robot4Sim::moveToZeroNB(void) {
 int robot4Sim::moveWait(void) {
 	// wait for motion to complete
 	this->simThreadsSuccessLock();
-	while ( !this->success[0] && !this->success[1] && !this->success[2] && !this->success[3]) {
+	while ( !_success[0] && !_success[1] && !_success[2] && !_success[3]) {
 		this->simThreadsSuccessWait();
 	}
-	this->success[0] = true;
-	this->success[1] = true;
-	this->success[2] = true;
-	this->success[3] = true;
+	_success[0] = true;
+	_success[1] = true;
+	_success[2] = true;
+	_success[3] = true;
 	this->simThreadsSuccessUnlock();
 
 	// success
@@ -487,10 +487,10 @@ int robot4Sim::moveWait(void) {
 int robot4Sim::resetToZero(void) {
 	// reset absolute counter to 0 -> 2M_PI
 	this->simThreadsAngleLock();
-	int rev = (int)(this->angle[LE]/2/M_PI);
-	if (rev) this->angle[LE] -= 2*rev*M_PI;
-	rev = (int)(this->angle[RE]/2/M_PI);
-	if (rev) this->angle[RE] -= 2*rev*M_PI;
+	int rev = (int)(_angle[LE]/2/M_PI);
+	if (rev) _angle[LE] -= 2*rev*M_PI;
+	rev = (int)(_angle[RE]/2/M_PI);
+	if (rev) _angle[RE] -= 2*rev*M_PI;
 	this->simThreadsAngleUnlock();
 
 	// move to zero position
@@ -511,16 +511,16 @@ void robot4Sim::simPreCollisionThread(void) {
 	// update angle values for each degree of freedom
 	for ( int i = 0; i < NUM_DOF; i++ ) {
 		// update current angle
-		this->angle[i] = getAngle(i);
+		_angle[i] = getAngle(i);
 		// set motor angle to current angle
-		dJointSetAMotorAngle(this->motor[i], 0, this->angle[i]);
+		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
 		// drive motor to get current angle to match future angle
-		if (this->angle[i] < this->goal[i] - this->m_motor_res)
-			dJointSetAMotorParam(this->motor[i], dParamVel, this->velocity[i]);
-		else if (this->angle[i] > this->goal[i] + this->m_motor_res)
-			dJointSetAMotorParam(this->motor[i], dParamVel, -this->velocity[i]);
+		if (_angle[i] < _goal[i] - _encoderResolution)
+			dJointSetAMotorParam(_motor[i], dParamVel, _velocity[i]);
+		else if (_angle[i] > _goal[i] + _encoderResolution)
+			dJointSetAMotorParam(_motor[i], dParamVel, -_velocity[i]);
 		else
-			dJointSetAMotorParam(this->motor[i], dParamVel, 0);
+			dJointSetAMotorParam(_motor[i], dParamVel, 0);
 	}
 
 	// unlock angle and goal
@@ -535,9 +535,9 @@ void robot4Sim::simPostCollisionThread(void) {
 
 	// check if joint speed is zero -> joint has completed step
 	for (int i = 0; i < NUM_DOF; i++) {
-		this->success[i] = (bool)(!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
+		_success[i] = (bool)(!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
 	}
-	if ( this->success[0] && this->success[1] && this->success[2] && this->success[3] ) {
+	if ( _success[0] && _success[1] && _success[2] && _success[3] ) {
 		this->simThreadsSuccessSignal();
 	}
 
@@ -547,29 +547,29 @@ void robot4Sim::simPostCollisionThread(void) {
 }
 
 void robot4Sim::simAddRobot(dWorldID &world, dSpaceID &space) {
-	this->world = world;
-    this->space = dHashSpaceCreate(space);
+	_world = world;
+    _space = dHashSpaceCreate(space);
 }
 
 dReal robot4Sim::getAngle(int i) {
 	if (i == LE || i == RE)
-		this->angle[i] = mod_angle(this->angle[i], dJointGetHingeAngle(this->joint[i]), dJointGetHingeAngleRate(this->joint[i]));
+		_angle[i] = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
 	else
-		this->angle[i] = dJointGetHingeAngle(this->joint[i]);
-    return this->angle[i];
+		_angle[i] = dJointGetHingeAngle(_joint[i]);
+    return _angle[i];
 }
 
 bool robot4Sim::getSuccess(int i) {
-	return this->success[i];
+	return _success[i];
 }
 
 dReal robot4Sim::getPosition(int body, int i) {
-	const dReal *pos = dBodyGetPosition(this->body[body]);
+	const dReal *pos = dBodyGetPosition(_body[body]);
 	return pos[i];
 }
 
 dReal robot4Sim::getRotation(int body, int i) {
-	const dReal *rot = dBodyGetRotation(this->body[body]);
+	const dReal *rot = dBodyGetRotation(_body[body]);
 	dMatrix3 rot2 = {rot[0], rot[1], rot[2], rot[3], rot[4], rot[5], rot[6], rot[7], rot[8], rot[9], rot[10], rot[11]};
 	dReal angles[3] = {0};
 	extract_euler_angles(rot2, angles[0], angles[1], angles[2]);
@@ -577,15 +577,15 @@ dReal robot4Sim::getRotation(int body, int i) {
 }
 
 dBodyID robot4Sim::getBodyID(int id) {
-    return this->body[id];
+    return _body[id];
 }
 
 dJointID robot4Sim::getMotorID(int id) {
-    return this->motor[id];
+    return _motor[id];
 }
 
 bool robot4Sim::isHome(void) {
-    return ( fabs(this->angle[LE]) < EPSILON && fabs(this->angle[LB]) < EPSILON && fabs(this->angle[RB]) < EPSILON && fabs(this->angle[RE]) < EPSILON );
+    return ( fabs(_angle[LE]) < EPSILON && fabs(_angle[LB]) < EPSILON && fabs(_angle[RB]) < EPSILON && fabs(_angle[RE]) < EPSILON );
 }
 
 dReal robot4Sim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
@@ -680,7 +680,7 @@ void robot4Sim::create_fixed_joint(robot4Sim *attach, int face1, int face2) {
             break;
     }
 
-    dJointID joint = dJointCreateFixed(this->world, 0);
+    dJointID joint = dJointCreateFixed(_world, 0);
     dJointAttach(joint, attach->getBodyID(part1), this->getBodyID(part2));
     dJointSetFixed(joint);
     dJointSetFixedParam(joint, dParamCFM, 0);
@@ -733,18 +733,18 @@ void robot4Sim::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal
 
 void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	// init body parts
-	for ( int i = 0; i < NUM_PARTS; i++ ) { this->body[i] = dBodyCreate(this->world); }
-    this->geom[ENDCAP_L] = new dGeomID[7];
-    this->geom[BODY_L] = new dGeomID[5];
-    this->geom[CENTER] = new dGeomID[3];
-    this->geom[BODY_R] = new dGeomID[5];
-    this->geom[ENDCAP_R] = new dGeomID[7];
+	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
+    _geom[ENDCAP_L] = new dGeomID[7];
+    _geom[BODY_L] = new dGeomID[5];
+    _geom[CENTER] = new dGeomID[3];
+    _geom[BODY_R] = new dGeomID[5];
+    _geom[ENDCAP_R] = new dGeomID[7];
 
 	// initialize PID class
-	for ( int i = 0; i < NUM_DOF; i++ ) { this->pid[i].init(100, 1, 10, 0.1, 0.004); }
+	for ( int i = 0; i < NUM_DOF; i++ ) { _pid[i].init(100, 1, 10, 0.1, 0.004); }
 
     // adjust input height by body height
-    z += this->body_height/2;
+    z += _body_height/2;
     // convert input angles to radians
     psi = DEG2RAD(psi);         // roll: x
     theta = DEG2RAD(theta);     // pitch: -y
@@ -755,17 +755,17 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->create_rotation_matrix(R, psi, theta, phi);
 
     // store initial body angles into array
-    this->angle[LE] = 0;
-    this->angle[LB] = 0;
-    this->angle[RB] = 0;
-    this->angle[RE] = 0;
+    _angle[LE] = 0;
+    _angle[LB] = 0;
+    _angle[RB] = 0;
+    _angle[RE] = 0;
 
     // offset values for each body part[0-2] and joint[3-5] from center
-    dReal le[6] = {-this->center_length/2 - this->body_length - this->body_end_depth - this->end_depth/2, 0, 0, -this->center_length/2 - this->body_length - this->body_end_depth, 0, 0};
-    dReal lb[6] = {-this->center_length/2 - this->body_length - this->body_end_depth/2, 0, 0, -this->center_length/2, this->center_width/2, 0};
-	dReal ce[3] = {0, this->center_offset, 0};
-    dReal rb[6] = {this->center_length/2 + this->body_length + this->body_end_depth/2, 0, 0, this->center_length/2, this->center_width/2, 0};
-    dReal re[6] = {this->center_length/2 + this->body_length + this->body_end_depth + this->end_depth/2, 0, 0, this->center_length/2 + this->body_length + this->body_end_depth, 0, 0};
+    dReal le[6] = {-_center_length/2 - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_center_length/2 - _body_length - _body_end_depth, 0, 0};
+    dReal lb[6] = {-_center_length/2 - _body_length - _body_end_depth/2, 0, 0, -_center_length/2, _center_width/2, 0};
+	dReal ce[3] = {0, _center_offset, 0};
+    dReal rb[6] = {_center_length/2 + _body_length + _body_end_depth/2, 0, 0, _center_length/2, _center_width/2, 0};
+    dReal re[6] = {_center_length/2 + _body_length + _body_end_depth + _end_depth/2, 0, 0, _center_length/2 + _body_length + _body_end_depth, 0, 0};
 
     // build pieces of module
     this->build_endcap(ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R);
@@ -775,105 +775,105 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 
     // joint for left endcap to body
-    this->joint[0] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[0], this->body[BODY_L], this->body[ENDCAP_L]);
-    dJointSetHingeAnchor(this->joint[0], R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
-    dJointSetHingeAxis(this->joint[0], R[0], R[4], R[8]);
-    dJointSetHingeParam(this->joint[0], dParamCFM, 0);
+    _joint[0] = dJointCreateHinge(_world, 0);
+    dJointAttach(_joint[0], _body[BODY_L], _body[ENDCAP_L]);
+    dJointSetHingeAnchor(_joint[0], R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
+    dJointSetHingeAxis(_joint[0], R[0], R[4], R[8]);
+    dJointSetHingeParam(_joint[0], dParamCFM, 0);
 
     // joint for center to left body 1
-    this->joint[1] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[1], this->body[CENTER], this->body[BODY_L]);
-    dJointSetHingeAnchor(this->joint[1], R[0]*lb[3] + R[1]*(this->center_offset+lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset+lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset+lb[4]) + R[10]*lb[5] + z);
-    dJointSetHingeAxis(this->joint[1], -R[1], -R[5], -R[9]);
-    dJointSetHingeParam(this->joint[1], dParamCFM, 0);
+    _joint[1] = dJointCreateHinge(_world, 0);
+    dJointAttach(_joint[1], _body[CENTER], _body[BODY_L]);
+    dJointSetHingeAnchor(_joint[1], R[0]*lb[3] + R[1]*(_center_offset+lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(_center_offset+lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(_center_offset+lb[4]) + R[10]*lb[5] + z);
+    dJointSetHingeAxis(_joint[1], -R[1], -R[5], -R[9]);
+    dJointSetHingeParam(_joint[1], dParamCFM, 0);
 
     // joint for center to left body 2
-    this->joint[4] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[4], this->body[CENTER], this->body[BODY_L]);
-    dJointSetHingeAnchor(this->joint[4], R[0]*lb[3] + R[1]*(this->center_offset-lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset-lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset-lb[4]) + R[10]*lb[5] + z);
-    dJointSetHingeAxis(this->joint[4], R[1], R[5], R[9]);
-    dJointSetHingeParam(this->joint[4], dParamCFM, 0);
+    _joint[4] = dJointCreateHinge(_world, 0);
+    dJointAttach(_joint[4], _body[CENTER], _body[BODY_L]);
+    dJointSetHingeAnchor(_joint[4], R[0]*lb[3] + R[1]*(_center_offset-lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(_center_offset-lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(_center_offset-lb[4]) + R[10]*lb[5] + z);
+    dJointSetHingeAxis(_joint[4], R[1], R[5], R[9]);
+    dJointSetHingeParam(_joint[4], dParamCFM, 0);
 
     // joint for center to right body 1
-    this->joint[2] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[2], this->body[CENTER], this->body[BODY_R]);
-    dJointSetHingeAnchor(this->joint[2], R[0]*rb[3] + R[1]*(this->center_offset+rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset+rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset+rb[4]) + R[10]*rb[5] + z);
-    dJointSetHingeAxis(this->joint[2], R[1], R[5], R[9]);
-    dJointSetHingeParam(this->joint[2], dParamCFM, 0);
+    _joint[2] = dJointCreateHinge(_world, 0);
+    dJointAttach(_joint[2], _body[CENTER], _body[BODY_R]);
+    dJointSetHingeAnchor(_joint[2], R[0]*rb[3] + R[1]*(_center_offset+rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(_center_offset+rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(_center_offset+rb[4]) + R[10]*rb[5] + z);
+    dJointSetHingeAxis(_joint[2], R[1], R[5], R[9]);
+    dJointSetHingeParam(_joint[2], dParamCFM, 0);
 
     // joint for center to right body 2
-    this->joint[5] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[5], this->body[CENTER], this->body[BODY_R]);
-    dJointSetHingeAnchor(this->joint[5], R[0]*rb[3] + R[1]*(this->center_offset-rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset-rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset-rb[4]) + R[10]*rb[5] + z);
-    dJointSetHingeAxis(this->joint[5], -R[1], -R[5], -R[9]);
-    dJointSetHingeParam(this->joint[5], dParamCFM, 0);
+    _joint[5] = dJointCreateHinge(_world, 0);
+    dJointAttach(_joint[5], _body[CENTER], _body[BODY_R]);
+    dJointSetHingeAnchor(_joint[5], R[0]*rb[3] + R[1]*(_center_offset-rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(_center_offset-rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(_center_offset-rb[4]) + R[10]*rb[5] + z);
+    dJointSetHingeAxis(_joint[5], -R[1], -R[5], -R[9]);
+    dJointSetHingeParam(_joint[5], dParamCFM, 0);
 
     // joint for right body to endcap
-    this->joint[3] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[3], this->body[BODY_R], this->body[ENDCAP_R]);
-    dJointSetHingeAnchor(this->joint[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
-    dJointSetHingeAxis(this->joint[3], -R[0], -R[4], -R[8]);
-    dJointSetHingeParam(this->joint[3], dParamCFM, 0);
+    _joint[3] = dJointCreateHinge(_world, 0);
+    dJointAttach(_joint[3], _body[BODY_R], _body[ENDCAP_R]);
+    dJointSetHingeAnchor(_joint[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
+    dJointSetHingeAxis(_joint[3], -R[0], -R[4], -R[8]);
+    dJointSetHingeParam(_joint[3], dParamCFM, 0);
 
     // motor for left endcap to body
-    this->motor[0] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[0], this->body[BODY_L], this->body[ENDCAP_L]);
-    dJointSetAMotorMode(this->motor[0], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motor[0], 1);
-    dJointSetAMotorAxis(this->motor[0], 0, 1, R[0], R[4], R[8]);
-    dJointSetAMotorAngle(this->motor[0], 0, 0);
-    dJointSetAMotorParam(this->motor[0], dParamCFM, 0);
-    dJointSetAMotorParam(this->motor[0], dParamFMax, this->m_joint_frc_max[LE]);
+    _motor[0] = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[0], _body[BODY_L], _body[ENDCAP_L]);
+    dJointSetAMotorMode(_motor[0], dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[0], 1);
+    dJointSetAMotorAxis(_motor[0], 0, 1, R[0], R[4], R[8]);
+    dJointSetAMotorAngle(_motor[0], 0, 0);
+    dJointSetAMotorParam(_motor[0], dParamCFM, 0);
+    dJointSetAMotorParam(_motor[0], dParamFMax, _maxJointForce[LE]);
 
     // motor for center to left body
-    this->motor[1] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[1], this->body[CENTER], this->body[BODY_L]);
-    dJointSetAMotorMode(this->motor[1], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motor[1], 1);
-    dJointSetAMotorAxis(this->motor[1], 0, 1, -R[1], -R[5], -R[9]);
-    dJointSetAMotorAngle(this->motor[1], 0, 0);
-    dJointSetAMotorParam(this->motor[1], dParamCFM, 0);
-    dJointSetAMotorParam(this->motor[1], dParamFMax, this->m_joint_frc_max[LB]);
+    _motor[1] = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[1], _body[CENTER], _body[BODY_L]);
+    dJointSetAMotorMode(_motor[1], dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[1], 1);
+    dJointSetAMotorAxis(_motor[1], 0, 1, -R[1], -R[5], -R[9]);
+    dJointSetAMotorAngle(_motor[1], 0, 0);
+    dJointSetAMotorParam(_motor[1], dParamCFM, 0);
+    dJointSetAMotorParam(_motor[1], dParamFMax, _maxJointForce[LB]);
 
     // motor for center to right body
-    this->motor[2] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[2], this->body[CENTER], this->body[BODY_R]);
-    dJointSetAMotorMode(this->motor[2], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motor[2], 1);
-    dJointSetAMotorAxis(this->motor[2], 0, 1, R[1], R[5], R[9]);
-    dJointSetAMotorAngle(this->motor[2], 0, 0);
-    dJointSetAMotorParam(this->motor[2], dParamCFM, 0);
-    dJointSetAMotorParam(this->motor[2], dParamFMax, this->m_joint_frc_max[RB]);
+    _motor[2] = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[2], _body[CENTER], _body[BODY_R]);
+    dJointSetAMotorMode(_motor[2], dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[2], 1);
+    dJointSetAMotorAxis(_motor[2], 0, 1, R[1], R[5], R[9]);
+    dJointSetAMotorAngle(_motor[2], 0, 0);
+    dJointSetAMotorParam(_motor[2], dParamCFM, 0);
+    dJointSetAMotorParam(_motor[2], dParamFMax, _maxJointForce[RB]);
 
     // motor for right body to endcap
-    this->motor[3] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[3], this->body[BODY_R], this->body[ENDCAP_R]);
-    dJointSetAMotorMode(this->motor[3], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motor[3], 1);
-    dJointSetAMotorAxis(this->motor[3], 0, 1, -R[0], -R[4], -R[8]);
-    dJointSetAMotorAngle(this->motor[3], 0, 0);
-    dJointSetAMotorParam(this->motor[3], dParamCFM, 0);
-    dJointSetAMotorParam(this->motor[3], dParamFMax, this->m_joint_frc_max[RE]);
+    _motor[3] = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[3], _body[BODY_R], _body[ENDCAP_R]);
+    dJointSetAMotorMode(_motor[3], dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[3], 1);
+    dJointSetAMotorAxis(_motor[3], 0, 1, -R[0], -R[4], -R[8]);
+    dJointSetAMotorAngle(_motor[3], 0, 0);
+    dJointSetAMotorParam(_motor[3], dParamCFM, 0);
+    dJointSetAMotorParam(_motor[3], dParamFMax, _maxJointForce[RE]);
 
     // set damping on all bodies to 0.1
-    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i], 0.1, 0.1);
+    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(_body[i], 0.1, 0.1);
 }
 
 void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// init body parts
-	for ( int i = 0; i < NUM_PARTS; i++ ) { this->body[i] = dBodyCreate(this->world); }
-    this->geom[ENDCAP_L] = new dGeomID[7];
-    this->geom[BODY_L] = new dGeomID[5];
-    this->geom[CENTER] = new dGeomID[3];
-    this->geom[BODY_R] = new dGeomID[5];
-    this->geom[ENDCAP_R] = new dGeomID[7];
+	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
+    _geom[ENDCAP_L] = new dGeomID[7];
+    _geom[BODY_L] = new dGeomID[5];
+    _geom[CENTER] = new dGeomID[3];
+    _geom[BODY_R] = new dGeomID[5];
+    _geom[ENDCAP_R] = new dGeomID[7];
 
 	// initialize PID class
-	for ( int i = 0; i < NUM_DOF; i++ ) { this->pid[i].init(100, 1, 10, 0.1, 0.004); }
+	for ( int i = 0; i < NUM_DOF; i++ ) { _pid[i].init(100, 1, 10, 0.1, 0.004); }
 
     // adjust input height by body height
-    z += this->body_height/2;
+    z += _body_height/2;
     // convert input angles to radians
     psi = DEG2RAD(psi);         // roll: x
     theta = DEG2RAD(theta);     // pitch: -y
@@ -888,17 +888,17 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->create_rotation_matrix(R, psi, theta, phi);
 
     // store initial body angles into array
-    this->angle[LE] = r_le;
-    this->angle[LB] = r_lb;
-    this->angle[RB] = r_rb;
-    this->angle[RE] = r_re;
+    _angle[LE] = r_le;
+    _angle[LB] = r_lb;
+    _angle[RB] = r_rb;
+    _angle[RE] = r_re;
 
     // offset values for each body part[0-2] and joint[3-5] from center
-    dReal le[6] = {-this->center_length/2 - this->body_length - this->body_end_depth - this->end_depth/2, 0, 0, -this->center_length/2 - this->body_length - this->body_end_depth, 0, 0};
-    dReal lb[6] = {-this->center_length/2 - this->body_length - this->body_end_depth/2, 0, 0, -this->center_length/2, this->center_width/2, 0};
-	dReal ce[3] = {0, this->center_offset, 0};
-    dReal rb[6] = {this->center_length/2 + this->body_length + this->body_end_depth/2, 0, 0, this->center_length/2, this->center_width/2, 0};
-    dReal re[6] = {this->center_length/2 + this->body_length + this->body_end_depth + this->end_depth/2, 0, 0, this->center_length/2 + this->body_length + this->body_end_depth, 0, 0};
+    dReal le[6] = {-_center_length/2 - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_center_length/2 - _body_length - _body_end_depth, 0, 0};
+    dReal lb[6] = {-_center_length/2 - _body_length - _body_end_depth/2, 0, 0, -_center_length/2, _center_width/2, 0};
+	dReal ce[3] = {0, _center_offset, 0};
+    dReal rb[6] = {_center_length/2 + _body_length + _body_end_depth/2, 0, 0, _center_length/2, _center_width/2, 0};
+    dReal re[6] = {_center_length/2 + _body_length + _body_end_depth + _end_depth/2, 0, 0, _center_length/2 + _body_length + _body_end_depth, 0, 0};
 
     this->build_endcap(ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R);
     this->build_body(BODY_L, R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0);
@@ -907,46 +907,46 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 
     // joint for left endcap to body
-    this->joint[0] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[0], this->body[BODY_L], this->body[ENDCAP_L]);
-    dJointSetHingeAnchor(this->joint[0], R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
-    dJointSetHingeAxis(this->joint[0], R[0], R[4], R[8]);
-    dJointSetHingeParam(this->joint[0], dParamCFM, 0);
+    _joint[0] = dJointCreateHinge(_world, 0);
+    dJointAttach(_joint[0], _body[BODY_L], _body[ENDCAP_L]);
+    dJointSetHingeAnchor(_joint[0], R[0]*le[3] + R[1]*le[4] + R[2]*le[5] + x, R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y, R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
+    dJointSetHingeAxis(_joint[0], R[0], R[4], R[8]);
+    dJointSetHingeParam(_joint[0], dParamCFM, 0);
 
     // joint for center to left body 1
-    this->joint[1] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[1], this->body[CENTER], this->body[BODY_L]);
-    dJointSetHingeAnchor(this->joint[1], R[0]*lb[3] + R[1]*(this->center_offset+lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset+lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset+lb[4]) + R[10]*lb[5] + z);
-    dJointSetHingeAxis(this->joint[1], -R[1], -R[5], -R[9]);
-    dJointSetHingeParam(this->joint[1], dParamCFM, 0);
+    _joint[1] = dJointCreateHinge(_world, 0);
+    dJointAttach(_joint[1], _body[CENTER], _body[BODY_L]);
+    dJointSetHingeAnchor(_joint[1], R[0]*lb[3] + R[1]*(_center_offset+lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(_center_offset+lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(_center_offset+lb[4]) + R[10]*lb[5] + z);
+    dJointSetHingeAxis(_joint[1], -R[1], -R[5], -R[9]);
+    dJointSetHingeParam(_joint[1], dParamCFM, 0);
 
     // joint for center to left body 2
-    this->joint[4] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[4], this->body[CENTER], this->body[BODY_L]);
-    dJointSetHingeAnchor(this->joint[4], R[0]*lb[3] + R[1]*(this->center_offset-lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(this->center_offset-lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(this->center_offset-lb[4]) + R[10]*lb[5] + z);
-    dJointSetHingeAxis(this->joint[4], R[1], R[5], R[9]);
-    dJointSetHingeParam(this->joint[4], dParamCFM, 0);
+    _joint[4] = dJointCreateHinge(_world, 0);
+    dJointAttach(_joint[4], _body[CENTER], _body[BODY_L]);
+    dJointSetHingeAnchor(_joint[4], R[0]*lb[3] + R[1]*(_center_offset-lb[4]) + R[2]*lb[5] + x, R[4]*lb[3] + R[5]*(_center_offset-lb[4]) + R[6]*lb[5] + y, R[8]*lb[3] + R[9]*(_center_offset-lb[4]) + R[10]*lb[5] + z);
+    dJointSetHingeAxis(_joint[4], R[1], R[5], R[9]);
+    dJointSetHingeParam(_joint[4], dParamCFM, 0);
 
     // joint for center to right body 1
-    this->joint[2] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[2], this->body[CENTER], this->body[BODY_R]);
-    dJointSetHingeAnchor(this->joint[2], R[0]*rb[3] + R[1]*(this->center_offset+rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset+rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset+rb[4]) + R[10]*rb[5] + z);
-    dJointSetHingeAxis(this->joint[2], R[1], R[5], R[9]);
-    dJointSetHingeParam(this->joint[2], dParamCFM, 0);
+    _joint[2] = dJointCreateHinge(_world, 0);
+    dJointAttach(_joint[2], _body[CENTER], _body[BODY_R]);
+    dJointSetHingeAnchor(_joint[2], R[0]*rb[3] + R[1]*(_center_offset+rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(_center_offset+rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(_center_offset+rb[4]) + R[10]*rb[5] + z);
+    dJointSetHingeAxis(_joint[2], R[1], R[5], R[9]);
+    dJointSetHingeParam(_joint[2], dParamCFM, 0);
 
     // joint for center to right body 2
-    this->joint[5] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[5], this->body[CENTER], this->body[BODY_R]);
-    dJointSetHingeAnchor(this->joint[5], R[0]*rb[3] + R[1]*(this->center_offset-rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(this->center_offset-rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(this->center_offset-rb[4]) + R[10]*rb[5] + z);
-    dJointSetHingeAxis(this->joint[5], -R[1], -R[5], -R[9]);
-    dJointSetHingeParam(this->joint[5], dParamCFM, 0);
+    _joint[5] = dJointCreateHinge(_world, 0);
+    dJointAttach(_joint[5], _body[CENTER], _body[BODY_R]);
+    dJointSetHingeAnchor(_joint[5], R[0]*rb[3] + R[1]*(_center_offset-rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(_center_offset-rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(_center_offset-rb[4]) + R[10]*rb[5] + z);
+    dJointSetHingeAxis(_joint[5], -R[1], -R[5], -R[9]);
+    dJointSetHingeParam(_joint[5], dParamCFM, 0);
 
     // joint for right body to endcap
-    this->joint[3] = dJointCreateHinge(this->world, 0);
-    dJointAttach(this->joint[3], this->body[BODY_R], this->body[ENDCAP_R]);
-    dJointSetHingeAnchor(this->joint[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
-    dJointSetHingeAxis(this->joint[3], -R[0], -R[4], -R[8]);
-    dJointSetHingeParam(this->joint[3], dParamCFM, 0);
+    _joint[3] = dJointCreateHinge(_world, 0);
+    dJointAttach(_joint[3], _body[BODY_R], _body[ENDCAP_R]);
+    dJointSetHingeAnchor(_joint[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
+    dJointSetHingeAxis(_joint[3], -R[0], -R[4], -R[8]);
+    dJointSetHingeParam(_joint[3], dParamCFM, 0);
 
     // create rotation matrices for each body part
     dMatrix3 R_e, R_b, R_le, R_lb, R_rb, R_re;
@@ -960,10 +960,10 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     dMultiply0(R_re, R_rb, R_e, 3, 3, 3);
 
     // offset values from center of robot
-    dReal le_r[3] = {-this->center_length/2 - (this->body_length + this->body_end_depth + this->end_depth/2)*cos(r_lb), 0, (this->body_length + this->body_end_depth + this->end_depth/2)*sin(r_lb)};
-    dReal lb_r[3] = {-this->center_length/2 - (this->body_length + this->body_end_depth/2)*cos(r_lb), 0, (this->body_length + this->body_end_depth/2)*sin(r_lb)};
-    dReal rb_r[3] = {this->center_length/2 + (this->body_length + this->body_end_depth/2)*cos(r_rb), 0, (this->body_length + this->body_end_depth/2)*sin(r_rb)};
-    dReal re_r[3] = {this->center_length/2 + (this->body_length + this->body_end_depth + this->end_depth/2)*cos(r_rb), 0, (this->body_length + this->body_end_depth + this->end_depth/2)*sin(r_rb)};
+    dReal le_r[3] = {-_center_length/2 - (_body_length + _body_end_depth + _end_depth/2)*cos(r_lb), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(r_lb)};
+    dReal lb_r[3] = {-_center_length/2 - (_body_length + _body_end_depth/2)*cos(r_lb), 0, (_body_length + _body_end_depth/2)*sin(r_lb)};
+    dReal rb_r[3] = {_center_length/2 + (_body_length + _body_end_depth/2)*cos(r_rb), 0, (_body_length + _body_end_depth/2)*sin(r_rb)};
+    dReal re_r[3] = {_center_length/2 + (_body_length + _body_end_depth + _end_depth/2)*cos(r_rb), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(r_rb)};
 
     // re-build pieces of module
     this->build_endcap(ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le);
@@ -972,47 +972,47 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->build_endcap(ENDCAP_R, R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re);
 
     // motor for left endcap to body
-    this->motor[0] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[0], this->body[BODY_L], this->body[ENDCAP_L]);
-    dJointSetAMotorMode(this->motor[0], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motor[0], 1);
-    dJointSetAMotorAxis(this->motor[0], 0, 1, R_lb[0], R_lb[4], R_lb[8]);
-    dJointSetAMotorAngle(this->motor[0], 0, 0);
-    dJointSetAMotorParam(this->motor[0], dParamCFM, 0);
-    dJointSetAMotorParam(this->motor[0], dParamFMax, this->m_joint_frc_max[LE]);
+    _motor[0] = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[0], _body[BODY_L], _body[ENDCAP_L]);
+    dJointSetAMotorMode(_motor[0], dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[0], 1);
+    dJointSetAMotorAxis(_motor[0], 0, 1, R_lb[0], R_lb[4], R_lb[8]);
+    dJointSetAMotorAngle(_motor[0], 0, 0);
+    dJointSetAMotorParam(_motor[0], dParamCFM, 0);
+    dJointSetAMotorParam(_motor[0], dParamFMax, _maxJointForce[LE]);
 
     // motor for center to left body
-    this->motor[1] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[1], this->body[CENTER], this->body[BODY_L]);
-    dJointSetAMotorMode(this->motor[1], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motor[1], 1);
-    dJointSetAMotorAxis(this->motor[1], 0, 1, -R[1], -R[5], -R[9]);
-    dJointSetAMotorAngle(this->motor[1], 0, 0);
-    dJointSetAMotorParam(this->motor[1], dParamCFM, 0);
-    dJointSetAMotorParam(this->motor[1], dParamFMax, this->m_joint_frc_max[LB]);
+    _motor[1] = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[1], _body[CENTER], _body[BODY_L]);
+    dJointSetAMotorMode(_motor[1], dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[1], 1);
+    dJointSetAMotorAxis(_motor[1], 0, 1, -R[1], -R[5], -R[9]);
+    dJointSetAMotorAngle(_motor[1], 0, 0);
+    dJointSetAMotorParam(_motor[1], dParamCFM, 0);
+    dJointSetAMotorParam(_motor[1], dParamFMax, _maxJointForce[LB]);
 
     // motor for center to right body
-    this->motor[2] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[2], this->body[CENTER], this->body[BODY_R]);
-    dJointSetAMotorMode(this->motor[2], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motor[2], 1);
-    dJointSetAMotorAxis(this->motor[2], 0, 1, R[1], R[5], R[9]);
-    dJointSetAMotorAngle(this->motor[2], 0, 0);
-    dJointSetAMotorParam(this->motor[2], dParamCFM, 0);
-    dJointSetAMotorParam(this->motor[2], dParamFMax, this->m_joint_frc_max[RB]);
+    _motor[2] = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[2], _body[CENTER], _body[BODY_R]);
+    dJointSetAMotorMode(_motor[2], dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[2], 1);
+    dJointSetAMotorAxis(_motor[2], 0, 1, R[1], R[5], R[9]);
+    dJointSetAMotorAngle(_motor[2], 0, 0);
+    dJointSetAMotorParam(_motor[2], dParamCFM, 0);
+    dJointSetAMotorParam(_motor[2], dParamFMax, _maxJointForce[RB]);
 
     // motor for right body to endcap
-    this->motor[3] = dJointCreateAMotor(this->world, 0);
-    dJointAttach(this->motor[3], this->body[BODY_R], this->body[ENDCAP_R]);
-    dJointSetAMotorMode(this->motor[3], dAMotorUser);
-    dJointSetAMotorNumAxes(this->motor[3], 1);
-    dJointSetAMotorAxis(this->motor[3], 0, 1, -R_rb[0], -R_rb[4], -R_rb[8]);
-    dJointSetAMotorAngle(this->motor[3], 0, 0);
-    dJointSetAMotorParam(this->motor[3], dParamCFM, 0);
-    dJointSetAMotorParam(this->motor[3], dParamFMax, this->m_joint_frc_max[RE]);
+    _motor[3] = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[3], _body[BODY_R], _body[ENDCAP_R]);
+    dJointSetAMotorMode(_motor[3], dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[3], 1);
+    dJointSetAMotorAxis(_motor[3], 0, 1, -R_rb[0], -R_rb[4], -R_rb[8]);
+    dJointSetAMotorAngle(_motor[3], 0, 0);
+    dJointSetAMotorParam(_motor[3], dParamCFM, 0);
+    dJointSetAMotorParam(_motor[3], dParamFMax, _maxJointForce[RE]);
 
     // set damping on all bodies to 0.1
-    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i], 0.1, 0.1);
+    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(_body[i], 0.1, 0.1);
 }
 
 void robot4Sim::buildAttached00(robot4Sim *attach, int face1, int face2) {
@@ -1026,218 +1026,218 @@ void robot4Sim::buildAttached00(robot4Sim *attach, int face1, int face2) {
     if ( face1 == 1 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - 2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length;
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - 2*_end_depth - _body_end_depth - _body_length - 0.5*_center_length;
         m[1] = 0;
     }
     else if ( face1 == 1 && face2 == 2 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width;
-        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length;
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width;
+        m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
     }
     else if ( face1 == 1 && face2 == 3 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width;
-        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length;
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width;
+        m[1] = -_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length;
     }
     else if ( face1 == 1 && face2 == 4 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width;
-        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length;
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width;
+        m[1] = -_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length;
     }
     else if ( face1 == 1 && face2 == 5 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width;
-        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length;
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width;
+        m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
     }
     else if ( face1 == 1 && face2 == 6 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - 2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length;
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - 2*_end_depth - _body_end_depth - _body_length - 0.5*_center_length;
         m[1] = 0;
     }
     else if ( face1 == 2 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center;
-        m[1] = -this->end_depth - 0.5*this->body_width - this->body_end_depth - this->body_length - 0.5*this->center_length;
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
+        m[1] = -_end_depth - 0.5*_body_width - _body_end_depth - _body_length - 0.5*_center_length;
     }
     else if ( face1 == 2 && face2 == 2 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) - 0.5*this->center_length;
-        m[1] = -this->body_width;
+        m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
+        m[1] = -_body_width;
     }
     else if ( face1 == 2 && face2 == 3 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length + 0.5*this->center_length;
-        m[1] = -this->body_width;
+        m[0] = -0.5*_center_length + 0.5*_center_length;
+        m[1] = -_body_width;
     }
     else if ( face1 == 2 && face2 == 4 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length + 0.5*this->center_length;
-        m[1] = -this->body_width;
+        m[0] = -0.5*_center_length + 0.5*_center_length;
+        m[1] = -_body_width;
     }
     else if ( face1 == 2 && face2 == 5 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) - 0.5*this->center_length;
-        m[1] = -this->body_width;
+        m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
+        m[1] = -_body_width;
     }
     else if ( face1 == 2 && face2 == 6 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center;
-        m[1] = -this->end_depth - 0.5*this->body_width - this->body_end_depth - this->body_length - 0.5*this->center_length;
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
+        m[1] = -_end_depth - 0.5*_body_width - _body_end_depth - _body_length - 0.5*_center_length;
     }
     else if ( face1 == 3 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center;
-        m[1] = this->end_depth + 0.5*this->body_width + this->body_end_depth + this->body_length + 0.5*this->center_length;
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
+        m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
     }
     else if ( face1 == 3 && face2 == 2 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length + 0.5*this->center_length;
-        m[1] = this->body_width;
+        m[0] = -0.5*_center_length + 0.5*_center_length;
+        m[1] = _body_width;
     }
     else if ( face1 == 3 && face2 == 3 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) - 0.5*this->center_length;
-        m[1] = this->body_width;
+        m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
+        m[1] = _body_width;
     }
     else if ( face1 == 3 && face2 == 4 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) - 0.5*this->center_length;
-        m[1] = this->body_width;
+        m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
+        m[1] = _body_width;
     }
     else if ( face1 == 3 && face2 == 5 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length + 0.5*this->center_length;
-        m[1] = this->body_width;
+        m[0] = -0.5*_center_length + 0.5*_center_length;
+        m[1] = _body_width;
     }
     else if ( face1 == 3 && face2 == 6 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center;
-        m[1] = this->end_depth + 0.5*this->body_width + this->body_end_depth + this->body_length + 0.5*this->center_length;
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
+        m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
     }
     else if ( face1 == 4 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center;
-        m[1] = -this->end_depth - 0.5*this->body_width - this->body_end_depth - this->body_length - 0.5*this->center_length;
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center;
+        m[1] = -_end_depth - 0.5*_body_width - _body_end_depth - _body_length - 0.5*_center_length;
     }
     else if ( face1 == 4 && face2 == 2 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length - 0.5*this->center_length;
-        m[1] = -this->body_width;
+        m[0] = 0.5*_center_length - 0.5*_center_length;
+        m[1] = -_body_width;
     }
     else if ( face1 == 4 && face2 == 3 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length + 2*(this->body_length + this->body_end_depth - this->body_mount_center) + 0.5*this->center_length;
-        m[1] = -this->body_width;
+        m[0] = 0.5*_center_length + 2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
+        m[1] = -_body_width;
     }
     else if ( face1 == 4 && face2 == 4 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  2*(this->body_length + this->body_end_depth - this->body_mount_center) + 0.5*this->center_length;
-        m[1] = -this->body_width;
+        m[0] = 0.5*_center_length +  2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
+        m[1] = -_body_width;
     }
     else if ( face1 == 4 && face2 == 5 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length - 0.5*this->center_length;
-        m[1] = -this->body_width;
+        m[0] = 0.5*_center_length - 0.5*_center_length;
+        m[1] = -_body_width;
     }
     else if ( face1 == 4 && face2 == 6 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center;
-        m[1] = -this->end_depth - 0.5*this->body_width - this->body_end_depth - this->body_length - 0.5*this->center_length;
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center;
+        m[1] = -_end_depth - 0.5*_body_width - _body_end_depth - _body_length - 0.5*_center_length;
     }
     else if ( face1 == 5 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center;
-        m[1] = this->end_depth + 0.5*this->body_width + this->body_end_depth + this->body_length + 0.5*this->center_length;
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center;
+        m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
     }
     else if ( face1 == 5 && face2 == 2 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length + 2*(this->body_length + this->body_end_depth - this->body_mount_center) + 0.5*this->center_length;
-        m[1] = this->body_width;
+        m[0] = 0.5*_center_length + 2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
+        m[1] = _body_width;
     }
     else if ( face1 == 5 && face2 == 3 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length - 0.5*this->center_length;
-        m[1] = this->body_width;
+        m[0] = 0.5*_center_length - 0.5*_center_length;
+        m[1] = _body_width;
     }
     else if ( face1 == 5 && face2 == 4 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length - 0.5*this->center_length;
-        m[1] = this->body_width;
+        m[0] = 0.5*_center_length - 0.5*_center_length;
+        m[1] = _body_width;
     }
     else if ( face1 == 5 && face2 == 5 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length    +   2*(this->body_length + this->body_end_depth - this->body_mount_center) + 0.5*this->center_length;
-        m[1] = this->body_width;
+        m[0] = 0.5*_center_length    +   2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
+        m[1] = _body_width;
     }
     else if ( face1 == 5 && face2 == 6 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center;
-        m[1] = this->end_depth + 0.5*this->body_width + this->body_end_depth + this->body_length + 0.5*this->center_length;
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center;
+        m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
     }
     else if ( face1 == 6 && face2 == 1 ) {
 		printf("6161616161\n");
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + 2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length;
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth + 2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length;
         m[1] = 0;
     }
     else if ( face1 == 6 && face2 == 2 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width;
-        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length;
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
+        m[1] = -_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length;
     }
     else if ( face1 == 6 && face2 == 3 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width;
-        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length;
+        m[0] = 0.5*_center_length +  _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
+        m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
     }
     else if ( face1 == 6 && face2 == 4 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width;
-        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length;
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
+        m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
     }
     else if ( face1 == 6 && face2 == 5 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width;
-        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length;
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
+        m[1] = -_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length;
     }
     else if ( face1 == 6 && face2 == 6 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + 2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length;
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth + 2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length;
         m[1] = 0;
     }
 
@@ -1275,9 +1275,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth) + R3[0]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth) + R3[4]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth) + R3[8]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth) + R3[0]*(-2*_end_depth - _body_end_depth - _body_length - 0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth) + R3[4]*(-2*_end_depth - _body_end_depth - _body_length - 0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth) + R3[8]*(-2*_end_depth - _body_end_depth - _body_length - 0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 2 ) {
         // generate rotation matrix
@@ -1292,9 +1292,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[1]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 3 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
@@ -1308,9 +1308,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[1]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 4 ) {
         // generate rotation matrix
@@ -1325,9 +1325,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[1]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 5 ) {
         // generate rotation matrix
@@ -1342,9 +1342,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[1]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 6 ) {
         // generate rotation matrix
@@ -1359,9 +1359,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -attach->getAngle(LE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth) + R3[0]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth) + R3[4]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth) + R3[8]*(-2*this->end_depth - this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth) + R3[0]*(-2*_end_depth - _body_end_depth - _body_length - 0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth) + R3[4]*(-2*_end_depth - _body_end_depth - _body_length - 0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth) + R3[8]*(-2*_end_depth - _body_end_depth - _body_length - 0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 1 ) {
         // generate rotation matrix
@@ -1372,9 +1372,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                               + R1[1]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->end_depth - 0.5*this->body_width  + R1[5]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                               + R1[9]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth + _body_mount_center)                               + R1[1]*(-_body_end_depth - _body_length - 0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _end_depth - 0.5*_body_width  + R1[5]*(-_body_end_depth - _body_length - 0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                               + R1[9]*(-_body_end_depth - _body_length - 0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 2 ) {
         // generate rotation matrix
@@ -1385,9 +1385,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
-        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[0]*(-0.5*this->center_length);
-        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->body_width    + R1[4]*(-0.5*this->center_length);
-        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length   +   2*R1[0]*(-_body_length - _body_end_depth + _body_mount_center)                 + R1[0]*(-0.5*_center_length);
+        m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _body_width    + R1[4]*(-0.5*_center_length);
+        m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 3 ) {
         // generate rotation matrix
@@ -1396,9 +1396,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
-        m[0] = -0.5*this->center_length                   + R1[0]*(0.5*this->center_length);
-        m[1] =                      - this->body_width    + R1[4]*(0.5*this->center_length);
-        m[2] =                                      + R1[8]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length                   + R1[0]*(0.5*_center_length);
+        m[1] =                      - _body_width    + R1[4]*(0.5*_center_length);
+        m[2] =                                      + R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 4 ) {
         // generate rotation matrix
@@ -1409,9 +1409,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
-        m[0] = -0.5*this->center_length                   + R1[0]*(0.5*this->center_length);
-        m[1] =                      - this->body_width    + R1[4]*(0.5*this->center_length);
-        m[2] =                                      + R1[8]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length                   + R1[0]*(0.5*_center_length);
+        m[1] =                      - _body_width    + R1[4]*(0.5*_center_length);
+        m[2] =                                      + R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 5 ) {
         // generate rotation matrix
@@ -1420,9 +1420,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
-        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[0]*(-0.5*this->center_length);
-        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->body_width    + R1[4]*(-0.5*this->center_length);
-        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length   +   2*R1[0]*(-_body_length - _body_end_depth + _body_mount_center)                 + R1[0]*(-0.5*_center_length);
+        m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _body_width    + R1[4]*(-0.5*_center_length);
+        m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 6 ) {
         // generate rotation matrix
@@ -1433,9 +1433,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[1]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[9]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth + _body_mount_center) +                              R1[1]*(-_body_end_depth - _body_length - 0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _end_depth - 0.5*_body_width + R1[5]*(-_body_end_depth - _body_length - 0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth + _body_mount_center) +                              R1[9]*(-_body_end_depth - _body_length - 0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 1 ) {
         // generate rotation matrix
@@ -1446,9 +1446,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[1]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[9]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth + _body_mount_center) +                              R1[1]*(_body_end_depth + _body_length + 0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length + 0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth + _body_mount_center) +                              R1[9]*(_body_end_depth + _body_length + 0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 2 ) {
         // generate rotation matrix
@@ -1457,9 +1457,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
-        m[0] = -0.5*this->center_length               + R1[0]*(0.5*this->center_length);
-        m[1] =                      this->body_width  + R1[4]*(0.5*this->center_length);
-        m[2] =                                  + R1[8]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length               + R1[0]*(0.5*_center_length);
+        m[1] =                      _body_width  + R1[4]*(0.5*_center_length);
+        m[2] =                                  + R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 3 ) {
         // generate rotation matrix
@@ -1470,9 +1470,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
-        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[0]*(-0.5*this->center_length);
-        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->body_width    + R1[4]*(-0.5*this->center_length);
-        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length   +   2*R1[0]*(-_body_length - _body_end_depth + _body_mount_center)                 + R1[0]*(-0.5*_center_length);
+        m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _body_width    + R1[4]*(-0.5*_center_length);
+        m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 4 ) {
         // generate rotation matrix
@@ -1481,9 +1481,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
-        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[0]*(-0.5*this->center_length);
-        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->body_width    + R1[4]*(-0.5*this->center_length);
-        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R1[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length   +   2*R1[0]*(-_body_length - _body_end_depth + _body_mount_center)                 + R1[0]*(-0.5*_center_length);
+        m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _body_width    + R1[4]*(-0.5*_center_length);
+        m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 5 ) {
         // generate rotation matrix
@@ -1494,9 +1494,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
-        m[0] = -0.5*this->center_length               + R1[0]*(0.5*this->center_length);
-        m[1] =                      this->body_width  + R1[4]*(0.5*this->center_length);
-        m[2] =                                  + R1[8]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length               + R1[0]*(0.5*_center_length);
+        m[1] =                      _body_width  + R1[4]*(0.5*_center_length);
+        m[2] =                                  + R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 6 ) {
         // generate rotation matrix
@@ -1507,9 +1507,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[1]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R1[9]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth + _body_mount_center) +                              R1[1]*(_body_end_depth + _body_length + 0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length + 0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth + _body_mount_center) +                              R1[9]*(_body_end_depth + _body_length + 0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 1 ) {
         // generate rotation matrix
@@ -1520,9 +1520,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[1]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) -  this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[9]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth - _body_mount_center) +                               R1[1]*(-_body_end_depth - _body_length - 0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) -  _end_depth - 0.5*_body_width + R1[5]*(-_body_end_depth - _body_length - 0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R1[9]*(-_body_end_depth - _body_length - 0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 2 ) {
         // generate rotation matrix
@@ -1533,9 +1533,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
-        m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
-        m[1] =                      -this->body_width + R1[4]*(-0.5*this->center_length);
-        m[2] =                                  + R1[8]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length                + R1[0]*(-0.5*_center_length);
+        m[1] =                      -_body_width + R1[4]*(-0.5*_center_length);
+        m[2] =                                  + R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 3 ) {
         // generate rotation matrix
@@ -1544,9 +1544,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
-        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[0]*(0.5*this->center_length);
-        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  - this->body_width    + R1[4]*(0.5*this->center_length);
-        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length    +   2*R1[0]*(_body_length + _body_end_depth - _body_mount_center)                  + R1[0]*(0.5*_center_length);
+        m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  - _body_width    + R1[4]*(0.5*_center_length);
+        m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 4 ) {
         // generate rotation matrix
@@ -1557,9 +1557,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
-        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[0]*(0.5*this->center_length);
-        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  - this->body_width    + R1[4]*(0.5*this->center_length);
-        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length    +   2*R1[0]*(_body_length + _body_end_depth - _body_mount_center)                  + R1[0]*(0.5*_center_length);
+        m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  - _body_width    + R1[4]*(0.5*_center_length);
+        m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 5 ) {
         // generate rotation matrix
@@ -1568,9 +1568,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
-        m[0] = 0.5*this->center_length                    + R1[0]*(-0.5*this->center_length);
-        m[1] =                      - this->body_width    + R1[4]*(-0.5*this->center_length);
-        m[2] =                                      + R1[8]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length                    + R1[0]*(-0.5*_center_length);
+        m[1] =                      - _body_width    + R1[4]*(-0.5*_center_length);
+        m[2] =                                      + R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 6 ) {
         // generate rotation matrix
@@ -1581,9 +1581,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[1]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) -  this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[9]*(-this->body_end_depth - this->body_length - 0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth - _body_mount_center) +                               R1[1]*(-_body_end_depth - _body_length - 0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) -  _end_depth - 0.5*_body_width + R1[5]*(-_body_end_depth - _body_length - 0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R1[9]*(-_body_end_depth - _body_length - 0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 1 ) {
         // generate rotation matrix
@@ -1594,9 +1594,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[1]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) +  this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[9]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth - _body_mount_center) +                               R1[1]*(_body_end_depth + _body_length + 0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) +  _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length + 0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R1[9]*(_body_end_depth + _body_length + 0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 2 ) {
         // generate rotation matrix
@@ -1605,9 +1605,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
-        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[0]*(0.5*this->center_length);
-        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  + this->body_width    + R1[4]*(0.5*this->center_length);
-        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length    +   2*R1[0]*(_body_length + _body_end_depth - _body_mount_center)                  + R1[0]*(0.5*_center_length);
+        m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  + _body_width    + R1[4]*(0.5*_center_length);
+        m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 3 ) {
         // generate rotation matrix
@@ -1618,9 +1618,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
-        m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
-        m[1] =                      this->body_width  + R1[4]*(-0.5*this->center_length);
-        m[2] =                                  + R1[8]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length                + R1[0]*(-0.5*_center_length);
+        m[1] =                      _body_width  + R1[4]*(-0.5*_center_length);
+        m[2] =                                  + R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 4 ) {
         // generate rotation matrix
@@ -1629,9 +1629,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
-        m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
-        m[1] =                      this->body_width  + R1[4]*(-0.5*this->center_length);
-        m[2] =                                  + R1[8]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length                + R1[0]*(-0.5*_center_length);
+        m[1] =                      _body_width  + R1[4]*(-0.5*_center_length);
+        m[2] =                                  + R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 5 ) {
         // generate rotation matrix
@@ -1642,9 +1642,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
-        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[0]*(0.5*this->center_length);
-        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  + this->body_width    + R1[4]*(0.5*this->center_length);
-        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R1[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length    +   2*R1[0]*(_body_length + _body_end_depth - _body_mount_center)                  + R1[0]*(0.5*_center_length);
+        m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  + _body_width    + R1[4]*(0.5*_center_length);
+        m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 6 ) {
         // generate rotation matrix
@@ -1655,9 +1655,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[1]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) +  this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R1[9]*(this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth - _body_mount_center) +                               R1[1]*(_body_end_depth + _body_length + 0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) +  _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length + 0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R1[9]*(_body_end_depth + _body_length + 0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 1 ) {
         // generate rotation matrix
@@ -1672,9 +1672,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth) + R3[0]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth) + R3[4]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth) + R3[8]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth) + R3[0]*(2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth) + R3[4]*(2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth) + R3[8]*(2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 2 ) {
         // generate rotation matrix
@@ -1689,9 +1689,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[1]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 3 ) {
         // generate rotation matrix
@@ -1706,9 +1706,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[1]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 4 ) {
         // generate rotation matrix
@@ -1723,9 +1723,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center + 0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[1]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 5 ) {
         // generate rotation matrix
@@ -1740,9 +1740,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center - 0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[1]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 6 ) {
         // generate rotation matrix
@@ -1757,9 +1757,9 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], attach->getAngle(RE));
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth) + R3[0]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth) + R3[4]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth) + R3[8]*(2*this->end_depth + this->body_end_depth + this->body_length + 0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth) + R3[0]*(2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth) + R3[4]*(2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth) + R3[8]*(2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length);
     }
 
     // extract euler angles from rotation matrix
@@ -1822,9 +1822,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 1, 0, 0, -r_e);
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - 2*this->end_depth + R1[0]*(-this->body_end_depth - this->body_length) + R3[0]*(-0.5*this->center_length);
-        m[1] =                                                                   R1[4]*(-this->body_end_depth - this->body_length) + R3[4]*(-0.5*this->center_length);
-        m[2] =                                                                   R1[8]*(-this->body_end_depth - this->body_length) + R3[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - 2*_end_depth + R1[0]*(-_body_end_depth - _body_length) + R3[0]*(-0.5*_center_length);
+        m[1] =                                                                   R1[4]*(-_body_end_depth - _body_length) + R3[4]*(-0.5*_center_length);
+        m[2] =                                                                   R1[8]*(-_body_end_depth - _body_length) + R3[8]*(-0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 2 ) {
         // generate rotation matrix
@@ -1835,9 +1835,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, r_b);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width + R1[1]*(0.5*this->center_length);
-        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + R1[5]*(0.5*this->center_length);
-        m[2] = R1[9]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width + R1[1]*(0.5*_center_length);
+        m[1] = _body_end_depth + _body_length - _body_mount_center + R1[5]*(0.5*_center_length);
+        m[2] = R1[9]*(0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 3 ) {
         // generate rotation matrix
@@ -1848,9 +1848,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, -r_b);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width + R1[1]*(-0.5*this->center_length);
-        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center + R1[5]*(-0.5*this->center_length);
-        m[2] = R1[9]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width + R1[1]*(-0.5*_center_length);
+        m[1] = -_body_end_depth - _body_length + _body_mount_center + R1[5]*(-0.5*_center_length);
+        m[2] = R1[9]*(-0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 4 ) {
         // generate rotation matrix
@@ -1861,9 +1861,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, -r_b);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width + R1[1]*(-0.5*this->center_length);
-        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center + R1[5]*(-0.5*this->center_length);
-        m[2] = R1[9]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width + R1[1]*(-0.5*_center_length);
+        m[1] = -_body_end_depth - _body_length + _body_mount_center + R1[5]*(-0.5*_center_length);
+        m[2] = R1[9]*(-0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 5 ) {
         // generate rotation matrix
@@ -1874,9 +1874,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, r_b);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width + R1[1]*(0.5*this->center_length);
-        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + R1[5]*(0.5*this->center_length);
-        m[2] = R1[9]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width + R1[1]*(0.5*_center_length);
+        m[1] = _body_end_depth + _body_length - _body_mount_center + R1[5]*(0.5*_center_length);
+        m[2] = R1[9]*(0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 6 ) {
         // generate rotation matrix
@@ -1891,9 +1891,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 1, 0, 0, -r_e);
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth - 2*this->end_depth + R1[0]*(-this->body_end_depth - this->body_length) + R3[0]*(-0.5*this->center_length);
-        m[1] = R1[4]*(-this->body_end_depth - this->body_length) + R3[4]*(-0.5*this->center_length);
-        m[2] = R1[8]*(-this->body_end_depth - this->body_length) + R3[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - 2*_end_depth + R1[0]*(-_body_end_depth - _body_length) + R3[0]*(-0.5*_center_length);
+        m[1] = R1[4]*(-_body_end_depth - _body_length) + R3[4]*(-0.5*_center_length);
+        m[2] = R1[8]*(-_body_end_depth - _body_length) + R3[8]*(-0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 1 ) {
         // generate rotation matrix
@@ -1908,9 +1908,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center + R1[1]*(-this->body_end_depth - this->body_length) + R3[1]*(-0.5*this->center_length);
-        m[1] = -this->end_depth - 0.5*this->body_width  + R1[5]*(-this->body_end_depth - this->body_length) + R3[5]*(-0.5*this->center_length);
-        m[2] = R1[9]*(-this->body_end_depth - this->body_length) + R3[9]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center + R1[1]*(-_body_end_depth - _body_length) + R3[1]*(-0.5*_center_length);
+        m[1] = -_end_depth - 0.5*_body_width  + R1[5]*(-_body_end_depth - _body_length) + R3[5]*(-0.5*_center_length);
+        m[2] = R1[9]*(-_body_end_depth - _body_length) + R3[9]*(-0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 2 ) {
         // generate rotation matrix
@@ -1921,9 +1921,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) + R1[0]*(-0.5*this->center_length);
-        m[1] = -this->body_width + R1[4]*(-0.5*this->center_length);
-        m[2] = R1[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) + R1[0]*(-0.5*_center_length);
+        m[1] = -_body_width + R1[4]*(-0.5*_center_length);
+        m[2] = R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 3 ) {
         // generate rotation matrix
@@ -1932,9 +1932,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = -0.5*this->center_length                   + R1[0]*(0.5*this->center_length);
-        m[1] =                      - this->body_width    + R1[4]*(0.5*this->center_length);
-        m[2] =                                      + R1[8]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length                   + R1[0]*(0.5*_center_length);
+        m[1] =                      - _body_width    + R1[4]*(0.5*_center_length);
+        m[2] =                                      + R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 4 ) {
         // generate rotation matrix
@@ -1945,9 +1945,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = -0.5*this->center_length                   + R1[0]*(0.5*this->center_length);
-        m[1] =                      - this->body_width    + R1[4]*(0.5*this->center_length);
-        m[2] =                                      + R1[8]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length                   + R1[0]*(0.5*_center_length);
+        m[1] =                      - _body_width    + R1[4]*(0.5*_center_length);
+        m[2] =                                      + R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 5 ) {
         // generate rotation matrix
@@ -1956,9 +1956,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) + R1[0]*(-0.5*this->center_length);
-        m[1] = -this->body_width + R1[4]*(-0.5*this->center_length);
-        m[2] = R1[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) + R1[0]*(-0.5*_center_length);
+        m[1] = -_body_width + R1[4]*(-0.5*_center_length);
+        m[2] = R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 6 ) {
         // generate rotation matrix
@@ -1973,9 +1973,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center + R1[1]*(-this->body_end_depth - this->body_length) + R3[1]*(-0.5*this->center_length);
-        m[1] = -this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length) + R5[5]*(-0.5*this->center_length);
-        m[2] = R1[9]*(-this->body_end_depth - this->body_length) + R5[9]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center + R1[1]*(-_body_end_depth - _body_length) + R3[1]*(-0.5*_center_length);
+        m[1] = -_end_depth - 0.5*_body_width + R1[5]*(-_body_end_depth - _body_length) + R5[5]*(-0.5*_center_length);
+        m[2] = R1[9]*(-_body_end_depth - _body_length) + R5[9]*(-0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 1 ) {
         // generate rotation matrix
@@ -1990,9 +1990,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center + R1[1]*(this->body_end_depth + this->body_length) + R3[1]*(0.5*this->center_length);
-        m[1] = this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length) + R2[5]*(0.5*this->center_length);
-        m[2] = R1[9]*(this->body_end_depth + this->body_length) + R3[9]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center + R1[1]*(_body_end_depth + _body_length) + R3[1]*(0.5*_center_length);
+        m[1] = _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length) + R2[5]*(0.5*_center_length);
+        m[2] = R1[9]*(_body_end_depth + _body_length) + R3[9]*(0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 2 ) {
         // generate rotation matrix
@@ -2001,9 +2001,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = -0.5*this->center_length               + R1[0]*(0.5*this->center_length);
-        m[1] =                      this->body_width  + R1[4]*(0.5*this->center_length);
-        m[2] =                                  + R1[8]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length               + R1[0]*(0.5*_center_length);
+        m[1] =                      _body_width  + R1[4]*(0.5*_center_length);
+        m[2] =                                  + R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 3 ) {
         // generate rotation matrix
@@ -2014,9 +2014,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center + R1[0]*(-0.5*this->center_length);
-        m[1] = this->body_width + R1[4]*(-0.5*this->center_length);
-        m[2] = R1[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center + R1[0]*(-0.5*_center_length);
+        m[1] = _body_width + R1[4]*(-0.5*_center_length);
+        m[2] = R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 4 ) {
         // generate rotation matrix
@@ -2025,9 +2025,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = -0.5*this->center_length + 2*(-this->body_length - this->body_end_depth + this->body_mount_center) + R1[0]*(-0.5*this->center_length);
-        m[1] = this->body_width + R1[4]*(-0.5*this->center_length);
-        m[2] = R1[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) + R1[0]*(-0.5*_center_length);
+        m[1] = _body_width + R1[4]*(-0.5*_center_length);
+        m[2] = R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 5 ) {
         // generate rotation matrix
@@ -2038,9 +2038,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = -0.5*this->center_length               + R1[0]*(0.5*this->center_length);
-        m[1] =                      this->body_width  + R1[4]*(0.5*this->center_length);
-        m[2] =                                  + R1[8]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length               + R1[0]*(0.5*_center_length);
+        m[1] =                      _body_width  + R1[4]*(0.5*_center_length);
+        m[2] =                                  + R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 6 ) {
         // generate rotation matrix
@@ -2055,9 +2055,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length - this->body_length - this->body_end_depth + this->body_mount_center + R1[1]*(this->body_end_depth + this->body_length) + R3[1]*(0.5*this->center_length);
-        m[1] = this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length) + R3[5]*(0.5*this->center_length);
-        m[2] = R1[9]*(this->body_end_depth + this->body_length) + R3[9]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center + R1[1]*(_body_end_depth + _body_length) + R3[1]*(0.5*_center_length);
+        m[1] = _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length) + R3[5]*(0.5*_center_length);
+        m[2] = R1[9]*(_body_end_depth + _body_length) + R3[9]*(0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 1 ) {
         // generate rotation matrix
@@ -2072,9 +2072,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center + R1[1]*(-this->body_end_depth - this->body_length) + R3[1]*(-0.5*this->center_length);
-        m[1] = -this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length) + R3[5]*(-0.5*this->center_length);
-        m[2] = R1[9]*(-this->body_end_depth - this->body_length) + R3[9]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center + R1[1]*(-_body_end_depth - _body_length) + R3[1]*(-0.5*_center_length);
+        m[1] = -_end_depth - 0.5*_body_width + R1[5]*(-_body_end_depth - _body_length) + R3[5]*(-0.5*_center_length);
+        m[2] = R1[9]*(-_body_end_depth - _body_length) + R3[9]*(-0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 2 ) {
         // generate rotation matrix
@@ -2085,9 +2085,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
-        m[1] =                      -this->body_width + R1[4]*(-0.5*this->center_length);
-        m[2] =                                  + R1[8]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length                + R1[0]*(-0.5*_center_length);
+        m[1] =                      -_body_width + R1[4]*(-0.5*_center_length);
+        m[2] =                                  + R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 3 ) {
         // generate rotation matrix
@@ -2096,9 +2096,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = 0.5*this->center_length + 2*(this->body_length + this->body_end_depth - this->body_mount_center) + R1[0]*(0.5*this->center_length);
-        m[1] = -this->body_width + R1[4]*(0.5*this->center_length);
-        m[2] = R1[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length + 2*(_body_length + _body_end_depth - _body_mount_center) + R1[0]*(0.5*_center_length);
+        m[1] = -_body_width + R1[4]*(0.5*_center_length);
+        m[2] = R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 4 ) {
         // generate rotation matrix
@@ -2109,9 +2109,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = 0.5*this->center_length + 2*(this->body_length + this->body_end_depth - this->body_mount_center) + R1[0]*(0.5*this->center_length);
-        m[1] = -this->body_width + R1[4]*(0.5*this->center_length);
-        m[2] = R1[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length + 2*(_body_length + _body_end_depth - _body_mount_center) + R1[0]*(0.5*_center_length);
+        m[1] = -_body_width + R1[4]*(0.5*_center_length);
+        m[2] = R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 5 ) {
         // generate rotation matrix
@@ -2120,9 +2120,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = 0.5*this->center_length                    + R1[0]*(-0.5*this->center_length);
-        m[1] =                      - this->body_width    + R1[4]*(-0.5*this->center_length);
-        m[2] =                                      + R1[8]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length                    + R1[0]*(-0.5*_center_length);
+        m[1] =                      - _body_width    + R1[4]*(-0.5*_center_length);
+        m[2] =                                      + R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 6 ) {
         // generate rotation matrix
@@ -2137,9 +2137,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center + R1[1]*(-this->body_end_depth - this->body_length) + R3[1]*(-0.5*this->center_length);
-        m[1] = -this->end_depth - 0.5*this->body_width + R1[5]*(-this->body_end_depth - this->body_length) + R3[5]*(-0.5*this->center_length);
-        m[2] = R1[9]*(-this->body_end_depth - this->body_length) + R3[9]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center + R1[1]*(-_body_end_depth - _body_length) + R3[1]*(-0.5*_center_length);
+        m[1] = -_end_depth - 0.5*_body_width + R1[5]*(-_body_end_depth - _body_length) + R3[5]*(-0.5*_center_length);
+        m[2] = R1[9]*(-_body_end_depth - _body_length) + R3[9]*(-0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 1 ) {
         // generate rotation matrix
@@ -2154,9 +2154,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center + R1[1]*(this->body_end_depth + this->body_length) + R3[1]*(0.5*this->center_length);
-        m[1] = this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length) + R3[5]*(0.5*this->center_length);
-        m[2] = R1[9]*(this->body_end_depth + this->body_length) + R3[9]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center + R1[1]*(_body_end_depth + _body_length) + R3[1]*(0.5*_center_length);
+        m[1] = _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length) + R3[5]*(0.5*_center_length);
+        m[2] = R1[9]*(_body_end_depth + _body_length) + R3[9]*(0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 2 ) {
         // generate rotation matrix
@@ -2165,9 +2165,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = 0.5*this->center_length + 2*(this->body_length + this->body_end_depth - this->body_mount_center) + R1[0]*(0.5*this->center_length);
-        m[1] = this->body_width + R1[4]*(0.5*this->center_length);
-        m[2] = R1[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length + 2*(_body_length + _body_end_depth - _body_mount_center) + R1[0]*(0.5*_center_length);
+        m[1] = _body_width + R1[4]*(0.5*_center_length);
+        m[2] = R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 3 ) {
         // generate rotation matrix
@@ -2178,9 +2178,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
-        m[1] =                      this->body_width  + R1[4]*(-0.5*this->center_length);
-        m[2] =                                  + R1[8]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length                + R1[0]*(-0.5*_center_length);
+        m[1] =                      _body_width  + R1[4]*(-0.5*_center_length);
+        m[2] =                                  + R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 4 ) {
         // generate rotation matrix
@@ -2189,9 +2189,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, r_b);
-        m[0] = 0.5*this->center_length                + R1[0]*(-0.5*this->center_length);
-        m[1] =                      this->body_width  + R1[4]*(-0.5*this->center_length);
-        m[2] =                                  + R1[8]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length                + R1[0]*(-0.5*_center_length);
+        m[1] =                      _body_width  + R1[4]*(-0.5*_center_length);
+        m[2] =                                  + R1[8]*(-0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 5 ) {
         // generate rotation matrix
@@ -2202,9 +2202,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 0, 1, 0, -r_b);
-        m[0] = 0.5*this->center_length + 2*(this->body_length + this->body_end_depth - this->body_mount_center) + R1[0]*(0.5*this->center_length);
-        m[1] = this->body_width + R1[4]*(0.5*this->center_length);
-        m[2] = R1[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length + 2*(_body_length + _body_end_depth - _body_mount_center) + R1[0]*(0.5*_center_length);
+        m[1] = _body_width + R1[4]*(0.5*_center_length);
+        m[2] = R1[8]*(0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 6 ) {
         // generate rotation matrix
@@ -2219,9 +2219,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, r_e);
         dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth - this->body_mount_center + R1[1]*(this->body_end_depth + this->body_length) + R3[1]*(0.5*this->center_length);
-        m[1] = this->end_depth + 0.5*this->body_width + R1[5]*(this->body_end_depth + this->body_length) + R3[5]*(0.5*this->center_length);
-        m[2] = R1[9]*(this->body_end_depth + this->body_length) + R3[9]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center + R1[1]*(_body_end_depth + _body_length) + R3[1]*(0.5*_center_length);
+        m[1] = _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length) + R3[5]*(0.5*_center_length);
+        m[2] = R1[9]*(_body_end_depth + _body_length) + R3[9]*(0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 1 ) {
         // generate rotation matrix
@@ -2236,9 +2236,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 1, 0, 0, r_e);
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + 2*this->end_depth + R1[0]*(this->body_end_depth + this->body_length) + R3[0]*(0.5*this->center_length);
-        m[1] = R1[4]*(this->body_end_depth + this->body_length) + R3[4]*(0.5*this->center_length);
-        m[2] = R1[8]*(this->body_end_depth + this->body_length) + R3[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth + 2*_end_depth + R1[0]*(_body_end_depth + _body_length) + R3[0]*(0.5*_center_length);
+        m[1] = R1[4]*(_body_end_depth + _body_length) + R3[4]*(0.5*_center_length);
+        m[2] = R1[8]*(_body_end_depth + _body_length) + R3[8]*(0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 2 ) {
         // generate rotation matrix
@@ -2249,9 +2249,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, -r_b);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width + R1[1]*(-0.5*this->center_length);
-        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center + R1[5]*(-0.5*this->center_length);
-        m[2] = R1[9]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width + R1[1]*(-0.5*_center_length);
+        m[1] = -_body_end_depth - _body_length + _body_mount_center + R1[5]*(-0.5*_center_length);
+        m[2] = R1[9]*(-0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 3 ) {
         // generate rotation matrix
@@ -2262,9 +2262,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, r_b);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width + R1[1]*(0.5*this->center_length);
-        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + R1[5]*(0.5*this->center_length);
-        m[2] = R1[9]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width + R1[1]*(0.5*_center_length);
+        m[1] = _body_end_depth + _body_length - _body_mount_center + R1[5]*(0.5*_center_length);
+        m[2] = R1[9]*(0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 4 ) {
         // generate rotation matrix
@@ -2275,9 +2275,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, r_b);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width + R1[1]*(0.5*this->center_length);
-        m[1] = this->body_end_depth + this->body_length - this->body_mount_center + R1[5]*(0.5*this->center_length);
-        m[2] = R1[9]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width + R1[1]*(0.5*_center_length);
+        m[1] = _body_end_depth + _body_length - _body_mount_center + R1[5]*(0.5*_center_length);
+        m[2] = R1[9]*(0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 5 ) {
         // generate rotation matrix
@@ -2288,9 +2288,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
         // generate offset for mass center of new module
         dRFromAxisAndAngle(R1, 1, 0, 0, -r_b);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width + R1[1]*(-0.5*this->center_length);
-        m[1] = -this->body_end_depth - this->body_length + this->body_mount_center + R1[5]*(-0.5*this->center_length);
-        m[2] = R1[9]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width + R1[1]*(-0.5*_center_length);
+        m[1] = -_body_end_depth - _body_length + _body_mount_center + R1[5]*(-0.5*_center_length);
+        m[2] = R1[9]*(-0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 6 ) {
         // generate rotation matrix
@@ -2305,9 +2305,9 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 1, 0, 0, r_e);
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length + this->body_length + this->body_end_depth + 2*this->end_depth + R1[0]*(this->body_end_depth + this->body_length) + R3[0]*(0.5*this->center_length);
-        m[1] = R1[4]*(this->body_end_depth + this->body_length) + R3[4]*(0.5*this->center_length);
-        m[2] = R1[8]*(this->body_end_depth + this->body_length) + R3[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth + 2*_end_depth + R1[0]*(_body_end_depth + _body_length) + R3[0]*(0.5*_center_length);
+        m[1] = R1[4]*(_body_end_depth + _body_length) + R3[4]*(0.5*_center_length);
+        m[2] = R1[8]*(_body_end_depth + _body_length) + R3[8]*(0.5*_center_length);
     }
 
     // extract euler angles from rotation matrix
@@ -2378,9 +2378,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R5, R4, R3, 3, 3, 3);
         dRFromAxisAndAngle(R6, R5[1], R5[5], R5[9], r_b);
         dMultiply0(R7, R6, R5, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth) + R3[0]*(-2*this->end_depth) + R5[0]*(-this->body_end_depth - this->body_length) + R7[0]*(-0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth) + R3[4]*(-2*this->end_depth) + R5[4]*(-this->body_end_depth - this->body_length) + R7[4]*(-0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth) + R3[8]*(-2*this->end_depth) + R5[8]*(-this->body_end_depth - this->body_length) + R7[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth) + R3[0]*(-2*_end_depth) + R5[0]*(-_body_end_depth - _body_length) + R7[0]*(-0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth) + R3[4]*(-2*_end_depth) + R5[4]*(-_body_end_depth - _body_length) + R7[4]*(-0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth) + R3[8]*(-2*_end_depth) + R5[8]*(-_body_end_depth - _body_length) + R7[8]*(-0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 2 ) {
         // generate rotation matrix
@@ -2399,9 +2399,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[1]*(0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[5]*(0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[9]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[1]*(_body_end_depth + _body_length - _body_mount_center) + R5[1]*(0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center) + R5[5]*(0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center) + R5[9]*(0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 3 ) {
         // generate rotation matrix
@@ -2420,9 +2420,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[1]*(-0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[5]*(-0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[9]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[1]*(-_body_end_depth - _body_length + _body_mount_center) + R5[1]*(-0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center) + R5[5]*(-0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center) + R5[9]*(-0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 4 ) {
         // generate rotation matrix
@@ -2441,9 +2441,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[1]*(-0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[5]*(-0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[9]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[1]*(-_body_end_depth - _body_length + _body_mount_center) + R5[1]*(-0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center) + R5[5]*(-0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center) + R5[9]*(-0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 5 ) {
         // generate rotation matrix
@@ -2462,9 +2462,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[1]*(0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[5]*(0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth - this->end_depth - 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[9]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[1]*(_body_end_depth + _body_length - _body_mount_center) + R5[1]*(0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center) + R5[5]*(0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center) + R5[9]*(0.5*_center_length);
     }
     else if ( face1 == 1 && face2 == 6 ) {
         // generate rotation matrix
@@ -2487,9 +2487,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R5, R4, R3, 3, 3, 3);
         dRFromAxisAndAngle(R6, R5[1], R5[5], R5[9], r_b);
         dMultiply0(R7, R6, R5, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth) + R3[0]*(-2*this->end_depth) + R5[0]*(-this->body_end_depth - this->body_length) + R7[0]*(-0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth) + R3[4]*(-2*this->end_depth) + R5[4]*(-this->body_end_depth - this->body_length) + R7[4]*(-0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth) + R3[8]*(-2*this->end_depth) + R5[8]*(-this->body_end_depth - this->body_length) + R7[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth) + R3[0]*(-2*_end_depth) + R5[0]*(-_body_end_depth - _body_length) + R7[0]*(-0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth) + R3[4]*(-2*_end_depth) + R5[4]*(-_body_end_depth - _body_length) + R7[4]*(-0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth) + R3[8]*(-2*_end_depth) + R5[8]*(-_body_end_depth - _body_length) + R7[8]*(-0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 1 ) {
         // generate rotation matrix
@@ -2508,9 +2508,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                               + R3[1]*(-this->body_end_depth - this->body_length) + R5[1]*(-0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->end_depth - 0.5*this->body_width  + R3[5]*(-this->body_end_depth - this->body_length) + R5[5]*(-0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                               + R3[9]*(-this->body_end_depth - this->body_length) + R5[9]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth + _body_mount_center)                               + R3[1]*(-_body_end_depth - _body_length) + R5[1]*(-0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _end_depth - 0.5*_body_width  + R3[5]*(-_body_end_depth - _body_length) + R5[5]*(-0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                               + R3[9]*(-_body_end_depth - _body_length) + R5[9]*(-0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 2 ) {
         // generate rotation matrix
@@ -2525,9 +2525,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[0]*(-0.5*this->center_length);
-        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->body_width    + R3[4]*(-0.5*this->center_length);
-        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length   +   2*R1[0]*(-_body_length - _body_end_depth + _body_mount_center)                 + R3[0]*(-0.5*_center_length);
+        m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _body_width    + R3[4]*(-0.5*_center_length);
+        m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R3[8]*(-0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 3 ) {
         // generate rotation matrix
@@ -2540,9 +2540,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length                   + R3[0]*(0.5*this->center_length);
-        m[1] =                      - this->body_width    + R3[4]*(0.5*this->center_length);
-        m[2] =                                      + R3[8]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length                   + R3[0]*(0.5*_center_length);
+        m[1] =                      - _body_width    + R3[4]*(0.5*_center_length);
+        m[2] =                                      + R3[8]*(0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 4 ) {
         // generate rotation matrix
@@ -2557,9 +2557,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length                   + R3[0]*(0.5*this->center_length);
-        m[1] =                      - this->body_width    + R3[4]*(0.5*this->center_length);
-        m[2] =                                      + R3[8]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length                   + R3[0]*(0.5*_center_length);
+        m[1] =                      - _body_width    + R3[4]*(0.5*_center_length);
+        m[2] =                                      + R3[8]*(0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 5 ) {
         // generate rotation matrix
@@ -2572,9 +2572,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[0]*(-0.5*this->center_length);
-        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->body_width    + R3[4]*(-0.5*this->center_length);
-        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length   +   2*R1[0]*(-_body_length - _body_end_depth + _body_mount_center)                 + R3[0]*(-0.5*_center_length);
+        m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _body_width    + R3[4]*(-0.5*_center_length);
+        m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R3[8]*(-0.5*_center_length);
     }
     else if ( face1 == 2 && face2 == 6 ) {
         // generate rotation matrix
@@ -2593,9 +2593,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R3[1]*(-this->body_end_depth - this->body_length) + R5[1]*(-0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) - this->end_depth - 0.5*this->body_width + R3[5]*(-this->body_end_depth - this->body_length) + R5[5]*(-0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R3[9]*(-this->body_end_depth - this->body_length) + R5[9]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth + _body_mount_center) +                              R3[1]*(-_body_end_depth - _body_length) + R5[1]*(-0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _end_depth - 0.5*_body_width + R3[5]*(-_body_end_depth - _body_length) + R5[5]*(-0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth + _body_mount_center) +                              R3[9]*(-_body_end_depth - _body_length) + R5[9]*(-0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 1 ) {
         // generate rotation matrix
@@ -2614,9 +2614,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R3[1]*(this->body_end_depth + this->body_length) + R5[1]*(0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->end_depth + 0.5*this->body_width + R3[5]*(this->body_end_depth + this->body_length) + R5[5]*(0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R3[9]*(this->body_end_depth + this->body_length) + R5[9]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth + _body_mount_center) +                              R3[1]*(_body_end_depth + _body_length) + R5[1]*(0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _end_depth + 0.5*_body_width + R3[5]*(_body_end_depth + _body_length) + R5[5]*(0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth + _body_mount_center) +                              R3[9]*(_body_end_depth + _body_length) + R5[9]*(0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 2 ) {
         // generate rotation matrix
@@ -2629,9 +2629,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length               + R3[0]*(0.5*this->center_length);
-        m[1] =                      this->body_width  + R3[4]*(0.5*this->center_length);
-        m[2] =                                  + R3[8]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length               + R3[0]*(0.5*_center_length);
+        m[1] =                      _body_width  + R3[4]*(0.5*_center_length);
+        m[2] =                                  + R3[8]*(0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 3 ) {
         // generate rotation matrix
@@ -2646,9 +2646,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[0]*(-0.5*this->center_length);
-        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->body_width    + R3[4]*(-0.5*this->center_length);
-        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length   +   2*R1[0]*(-_body_length - _body_end_depth + _body_mount_center)                 + R3[0]*(-0.5*_center_length);
+        m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _body_width    + R3[4]*(-0.5*_center_length);
+        m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R3[8]*(-0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 4 ) {
         // generate rotation matrix
@@ -2661,9 +2661,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length   +   2*R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[0]*(-0.5*this->center_length);
-        m[1] =                          2*R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->body_width    + R3[4]*(-0.5*this->center_length);
-        m[2] =                          2*R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center)                 + R3[8]*(-0.5*this->center_length);
+        m[0] = -0.5*_center_length   +   2*R1[0]*(-_body_length - _body_end_depth + _body_mount_center)                 + R3[0]*(-0.5*_center_length);
+        m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _body_width    + R3[4]*(-0.5*_center_length);
+        m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R3[8]*(-0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 5 ) {
         // generate rotation matrix
@@ -2678,9 +2678,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, attach->getAngle(LB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = -0.5*this->center_length               + R3[0]*(0.5*this->center_length);
-        m[1] =                      this->body_width  + R3[4]*(0.5*this->center_length);
-        m[2] =                                  + R3[8]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length               + R3[0]*(0.5*_center_length);
+        m[1] =                      _body_width  + R3[4]*(0.5*_center_length);
+        m[2] =                                  + R3[8]*(0.5*_center_length);
     }
     else if ( face1 == 3 && face2 == 6 ) {
         // generate rotation matrix
@@ -2699,9 +2699,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = -0.5*this->center_length + R1[0]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R3[1]*(this->body_end_depth + this->body_length) + R5[1]*(0.5*this->center_length);
-        m[1] =                      R1[4]*(-this->body_length - this->body_end_depth + this->body_mount_center) + this->end_depth + 0.5*this->body_width + R3[5]*(this->body_end_depth + this->body_length) + R5[5]*(0.5*this->center_length);
-        m[2] =                      R1[8]*(-this->body_length - this->body_end_depth + this->body_mount_center) +                              R3[9]*(this->body_end_depth + this->body_length) + R5[9]*(0.5*this->center_length);
+        m[0] = -0.5*_center_length + R1[0]*(-_body_length - _body_end_depth + _body_mount_center) +                              R3[1]*(_body_end_depth + _body_length) + R5[1]*(0.5*_center_length);
+        m[1] =                      R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _end_depth + 0.5*_body_width + R3[5]*(_body_end_depth + _body_length) + R5[5]*(0.5*_center_length);
+        m[2] =                      R1[8]*(-_body_length - _body_end_depth + _body_mount_center) +                              R3[9]*(_body_end_depth + _body_length) + R5[9]*(0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 1 ) {
         // generate rotation matrix
@@ -2720,9 +2720,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[1]*(-this->body_end_depth - this->body_length) + R5[1]*(-0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) -  this->end_depth - 0.5*this->body_width + R3[5]*(-this->body_end_depth - this->body_length) + R5[5]*(-0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[9]*(-this->body_end_depth - this->body_length) + R5[9]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth - _body_mount_center) +                               R3[1]*(-_body_end_depth - _body_length) + R5[1]*(-0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) -  _end_depth - 0.5*_body_width + R3[5]*(-_body_end_depth - _body_length) + R5[5]*(-0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R3[9]*(-_body_end_depth - _body_length) + R5[9]*(-0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 2 ) {
         // generate rotation matrix
@@ -2737,9 +2737,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length                + R3[0]*(-0.5*this->center_length);
-        m[1] =                      -this->body_width + R3[4]*(-0.5*this->center_length);
-        m[2] =                                  + R3[8]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length                + R3[0]*(-0.5*_center_length);
+        m[1] =                      -_body_width + R3[4]*(-0.5*_center_length);
+        m[2] =                                  + R3[8]*(-0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 3 ) {
         // generate rotation matrix
@@ -2752,9 +2752,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[0]*(0.5*this->center_length);
-        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  - this->body_width    + R3[4]*(0.5*this->center_length);
-        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length    +   2*R1[0]*(_body_length + _body_end_depth - _body_mount_center)                  + R3[0]*(0.5*_center_length);
+        m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  - _body_width    + R3[4]*(0.5*_center_length);
+        m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R3[8]*(0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 4 ) {
         // generate rotation matrix
@@ -2769,9 +2769,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[0]*(0.5*this->center_length);
-        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  - this->body_width    + R3[4]*(0.5*this->center_length);
-        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length    +   2*R1[0]*(_body_length + _body_end_depth - _body_mount_center)                  + R3[0]*(0.5*_center_length);
+        m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  - _body_width    + R3[4]*(0.5*_center_length);
+        m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R3[8]*(0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 5 ) {
         // generate rotation matrix
@@ -2784,9 +2784,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length                    + R3[0]*(-0.5*this->center_length);
-        m[1] =                      - this->body_width    + R3[4]*(-0.5*this->center_length);
-        m[2] =                                      + R3[8]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length                    + R3[0]*(-0.5*_center_length);
+        m[1] =                      - _body_width    + R3[4]*(-0.5*_center_length);
+        m[2] =                                      + R3[8]*(-0.5*_center_length);
     }
     else if ( face1 == 4 && face2 == 6 ) {
         // generate rotation matrix
@@ -2805,9 +2805,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[1]*(-this->body_end_depth - this->body_length) + R5[1]*(-0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) -  this->end_depth - 0.5*this->body_width + R3[5]*(-this->body_end_depth - this->body_length) + R5[5]*(-0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[9]*(-this->body_end_depth - this->body_length) + R5[9]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth - _body_mount_center) +                               R3[1]*(-_body_end_depth - _body_length) + R5[1]*(-0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) -  _end_depth - 0.5*_body_width + R3[5]*(-_body_end_depth - _body_length) + R5[5]*(-0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R3[9]*(-_body_end_depth - _body_length) + R5[9]*(-0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 1 ) {
         // generate rotation matrix
@@ -2826,9 +2826,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[1]*(this->body_end_depth + this->body_length) + R5[1]*(0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) +  this->end_depth + 0.5*this->body_width + R3[5]*(this->body_end_depth + this->body_length) + R5[5]*(0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[9]*(this->body_end_depth + this->body_length) + R5[9]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth - _body_mount_center) +                               R3[1]*(_body_end_depth + _body_length) + R5[1]*(0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) +  _end_depth + 0.5*_body_width + R3[5]*(_body_end_depth + _body_length) + R5[5]*(0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R3[9]*(_body_end_depth + _body_length) + R5[9]*(0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 2 ) {
         // generate rotation matrix
@@ -2841,9 +2841,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[0]*(0.5*this->center_length);
-        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  + this->body_width    + R3[4]*(0.5*this->center_length);
-        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length    +   2*R1[0]*(_body_length + _body_end_depth - _body_mount_center)                  + R3[0]*(0.5*_center_length);
+        m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  + _body_width    + R3[4]*(0.5*_center_length);
+        m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R3[8]*(0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 3 ) {
         // generate rotation matrix
@@ -2858,9 +2858,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length                + R3[0]*(-0.5*this->center_length);
-        m[1] =                      this->body_width  + R3[4]*(-0.5*this->center_length);
-        m[2] =                                  + R3[8]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length                + R3[0]*(-0.5*_center_length);
+        m[1] =                      _body_width  + R3[4]*(-0.5*_center_length);
+        m[2] =                                  + R3[8]*(-0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 4 ) {
         // generate rotation matrix
@@ -2873,9 +2873,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length                + R3[0]*(-0.5*this->center_length);
-        m[1] =                      this->body_width  + R3[4]*(-0.5*this->center_length);
-        m[2] =                                  + R3[8]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length                + R3[0]*(-0.5*_center_length);
+        m[1] =                      _body_width  + R3[4]*(-0.5*_center_length);
+        m[2] =                                  + R3[8]*(-0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 5 ) {
         // generate rotation matrix
@@ -2890,9 +2890,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dRFromAxisAndAngle(R1, 0, 1, 0, -attach->getAngle(RB));
         dRFromAxisAndAngle(R2, R1[1], R1[5], R1[9], -r_b);
         dMultiply0(R3, R2, R1, 3, 3, 3);
-        m[0] = 0.5*this->center_length    +   2*R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[0]*(0.5*this->center_length);
-        m[1] =                          2*R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center)  + this->body_width    + R3[4]*(0.5*this->center_length);
-        m[2] =                          2*R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center)                  + R3[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length    +   2*R1[0]*(_body_length + _body_end_depth - _body_mount_center)                  + R3[0]*(0.5*_center_length);
+        m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  + _body_width    + R3[4]*(0.5*_center_length);
+        m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R3[8]*(0.5*_center_length);
     }
     else if ( face1 == 5 && face2 == 6 ) {
         // generate rotation matrix
@@ -2911,9 +2911,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[1]*(this->body_end_depth + this->body_length) + R5[1]*(0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth - this->body_mount_center) +  this->end_depth + 0.5*this->body_width + R3[5]*(this->body_end_depth + this->body_length) + R5[5]*(0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth - this->body_mount_center) +                               R3[9]*(this->body_end_depth + this->body_length) + R5[9]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth - _body_mount_center) +                               R3[1]*(_body_end_depth + _body_length) + R5[1]*(0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) +  _end_depth + 0.5*_body_width + R3[5]*(_body_end_depth + _body_length) + R5[5]*(0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R3[9]*(_body_end_depth + _body_length) + R5[9]*(0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 1 ) {
         // generate rotation matrix
@@ -2936,9 +2936,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R5, R4, R3, 3, 3, 3);
         dRFromAxisAndAngle(R6, R5[1], R5[5], R5[9], -r_b);
         dMultiply0(R7, R6, R5, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth) + R3[0]*(2*this->end_depth) + R5[0]*(this->body_end_depth + this->body_length) + R7[0]*(0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth) + R3[4]*(2*this->end_depth) + R5[4]*(this->body_end_depth + this->body_length) + R7[4]*(0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth) + R3[8]*(2*this->end_depth) + R5[8]*(this->body_end_depth + this->body_length) + R7[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth) + R3[0]*(2*_end_depth) + R5[0]*(_body_end_depth + _body_length) + R7[0]*(0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth) + R3[4]*(2*_end_depth) + R5[4]*(_body_end_depth + _body_length) + R7[4]*(0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth) + R3[8]*(2*_end_depth) + R5[8]*(_body_end_depth + _body_length) + R7[8]*(0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 2 ) {
         // generate rotation matrix
@@ -2957,9 +2957,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[1]*(-0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[5]*(-0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[9]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[1]*(-_body_end_depth - _body_length + _body_mount_center) + R5[1]*(-0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center) + R5[5]*(-0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center) + R5[9]*(-0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 3 ) {
         // generate rotation matrix
@@ -2978,9 +2978,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[1]*(0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[5]*(0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[9]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[1]*(_body_end_depth + _body_length - _body_mount_center) + R5[1]*(0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center) + R5[5]*(0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center) + R5[9]*(0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 4 ) {
         // generate rotation matrix
@@ -2999,9 +2999,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[1]*(0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[5]*(0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(this->body_end_depth + this->body_length - this->body_mount_center) + R5[9]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[1]*(_body_end_depth + _body_length - _body_mount_center) + R5[1]*(0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center) + R5[5]*(0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center) + R5[9]*(0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 5 ) {
         // generate rotation matrix
@@ -3020,9 +3020,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R3, R2, R1, 3, 3, 3);
         dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -r_b);
         dMultiply0(R5, R4, R3, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[1]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[1]*(-0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[5]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[5]*(-0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth + this->end_depth + 0.5*this->body_width) + R3[9]*(-this->body_end_depth - this->body_length + this->body_mount_center) + R5[9]*(-0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[1]*(-_body_end_depth - _body_length + _body_mount_center) + R5[1]*(-0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center) + R5[5]*(-0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center) + R5[9]*(-0.5*_center_length);
     }
     else if ( face1 == 6 && face2 == 6 ) {
         // generate rotation matrix
@@ -3045,9 +3045,9 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
         dMultiply0(R5, R4, R3, 3, 3, 3);
         dRFromAxisAndAngle(R6, R5[1], R5[5], R5[9], -r_b);
         dMultiply0(R7, R6, R5, 3, 3, 3);
-        m[0] = 0.5*this->center_length +  R1[0]*(this->body_length + this->body_end_depth) + R3[0]*(2*this->end_depth) + R5[0]*(this->body_end_depth + this->body_length) + R7[0]*(0.5*this->center_length);
-        m[1] =                      R1[4]*(this->body_length + this->body_end_depth) + R3[4]*(2*this->end_depth) + R5[4]*(this->body_end_depth + this->body_length) + R7[4]*(0.5*this->center_length);
-        m[2] =                      R1[8]*(this->body_length + this->body_end_depth) + R3[8]*(2*this->end_depth) + R5[8]*(this->body_end_depth + this->body_length) + R7[8]*(0.5*this->center_length);
+        m[0] = 0.5*_center_length +  R1[0]*(_body_length + _body_end_depth) + R3[0]*(2*_end_depth) + R5[0]*(_body_end_depth + _body_length) + R7[0]*(0.5*_center_length);
+        m[1] =                      R1[4]*(_body_length + _body_end_depth) + R3[4]*(2*_end_depth) + R5[4]*(_body_end_depth + _body_length) + R7[4]*(0.5*_center_length);
+        m[2] =                      R1[8]*(_body_length + _body_end_depth) + R3[8]*(2*_end_depth) + R5[8]*(_body_end_depth + _body_length) + R7[8]*(0.5*_center_length);
     }
 
     // extract euler angles from rotation matrix
@@ -3075,14 +3075,14 @@ void robot4Sim::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal 
     // set mass of body
     dMassSetZero(&m);
     // create mass 1
-    dMassSetBox(&m1, 2700, this->body_end_depth, this->center_height, this->body_width );
+    dMassSetBox(&m1, 2700, _body_end_depth, _center_height, _body_width );
     dMassAdd(&m, &m1);
     // create mass 2
-    dMassSetBox(&m2, 2700, this->body_inner_width_left, this->end_depth, this->body_width );
+    dMassSetBox(&m2, 2700, _body_inner_width_left, _end_depth, _body_width );
     dMassTranslate(&m2, 0.01524*i, -0.0346, 0 );
     dMassAdd(&m, &m2);
     // create mass 3
-    dMassSetBox(&m3, 2700, this->body_inner_width_right, this->end_depth, this->body_width );
+    dMassSetBox(&m3, 2700, _body_inner_width_right, _end_depth, _body_width );
     dMassTranslate(&m3, 0.01524*i, 0.0346, 0 );
     dMassAdd(&m, &m3);
     //dMassSetParameters( &m, 500, 1, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
@@ -3093,8 +3093,8 @@ void robot4Sim::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal 
     z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
     // set body parameters
-    dBodySetPosition(this->body[id], x, y, z);
-    dBodySetRotation(this->body[id], R);
+    dBodySetPosition(_body[id], x, y, z);
+    dBodySetRotation(_body[id], R);
 
     // rotation matrix for curves of d-shapes
     dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
@@ -3102,35 +3102,35 @@ void robot4Sim::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal 
     dMultiply0(R2, R1, R3, 3, 3, 3);
 
     // set geometry 1 - face
-    this->geom[id][0] = dCreateBox(this->space, this->body_end_depth, this->body_width, this->body_height);
-    dGeomSetBody(this->geom[id][0], this->body[id]);
-    dGeomSetOffsetPosition(this->geom[id][0], -m.c[0], -m.c[1], -m.c[2]);
+    _geom[id][0] = dCreateBox(_space, _body_end_depth, _body_width, _body_height);
+    dGeomSetBody(_geom[id][0], _body[id]);
+    dGeomSetOffsetPosition(_geom[id][0], -m.c[0], -m.c[1], -m.c[2]);
 
     // set geometry 2 - side square
-    this->geom[id][1] = dCreateBox( this->space, this->body_length, this->body_inner_width_left, this->body_height);
-    dGeomSetBody( this->geom[id][1], this->body[id]);
-    dGeomSetOffsetPosition( this->geom[id][1], i*this->body_length/2 + i*this->body_end_depth/2 - m.c[0], -this->body_radius + this->body_inner_width_left/2 - m.c[1], -m.c[2] );
+    _geom[id][1] = dCreateBox( _space, _body_length, _body_inner_width_left, _body_height);
+    dGeomSetBody( _geom[id][1], _body[id]);
+    dGeomSetOffsetPosition( _geom[id][1], i*_body_length/2 + i*_body_end_depth/2 - m.c[0], -_body_radius + _body_inner_width_left/2 - m.c[1], -m.c[2] );
 
     // set geometry 3 - side square
-    this->geom[id][2] = dCreateBox( this->space, this->body_length, this->body_inner_width_right, this->body_height);
-    dGeomSetBody( this->geom[id][2], this->body[id]);
-    dGeomSetOffsetPosition( this->geom[id][2], i*this->body_length/2 + i*this->body_end_depth/2 - m.c[0], this->body_radius - this->body_inner_width_right/2 - m.c[1], -m.c[2] );
+    _geom[id][2] = dCreateBox( _space, _body_length, _body_inner_width_right, _body_height);
+    dGeomSetBody( _geom[id][2], _body[id]);
+    dGeomSetOffsetPosition( _geom[id][2], i*_body_length/2 + i*_body_end_depth/2 - m.c[0], _body_radius - _body_inner_width_right/2 - m.c[1], -m.c[2] );
 
     // set geometry 4 - side curve
-    this->geom[id][3] = dCreateCylinder( this->space, this->body_radius, this->body_inner_width_left);
-    dGeomSetBody( this->geom[id][3], this->body[id]);
-    dGeomSetOffsetPosition( this->geom[id][3], i*this->body_length + i*this->body_end_depth/2 - m.c[0], -this->body_radius + this->body_inner_width_left/2 - m.c[1], -m.c[2] );
-    dGeomSetOffsetRotation( this->geom[id][3], R2);
+    _geom[id][3] = dCreateCylinder( _space, _body_radius, _body_inner_width_left);
+    dGeomSetBody( _geom[id][3], _body[id]);
+    dGeomSetOffsetPosition( _geom[id][3], i*_body_length + i*_body_end_depth/2 - m.c[0], -_body_radius + _body_inner_width_left/2 - m.c[1], -m.c[2] );
+    dGeomSetOffsetRotation( _geom[id][3], R2);
 
     // set geometry 5 - side curve
-    this->geom[id][4] = dCreateCylinder( this->space, this->body_radius, this->body_inner_width_right);
-    dGeomSetBody( this->geom[id][4], this->body[id]);
-    dGeomSetOffsetPosition( this->geom[id][4], i*this->body_length + i*this->body_end_depth/2 - m.c[0], this->body_radius - this->body_inner_width_right/2 - m.c[1], -m.c[2] );
-    dGeomSetOffsetRotation( this->geom[id][4], R2);
+    _geom[id][4] = dCreateCylinder( _space, _body_radius, _body_inner_width_right);
+    dGeomSetBody( _geom[id][4], _body[id]);
+    dGeomSetOffsetPosition( _geom[id][4], i*_body_length + i*_body_end_depth/2 - m.c[0], _body_radius - _body_inner_width_right/2 - m.c[1], -m.c[2] );
+    dGeomSetOffsetRotation( _geom[id][4], R2);
 
-    // set mass center to (0,0,0) of this->bodyID
+    // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-    dBodySetMass(this->body[id], &m);
+    dBodySetMass(_body[id], &m);
 }
 
 void robot4Sim::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
@@ -3140,7 +3140,7 @@ void robot4Sim::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
 
     // set mass of body
     dMassSetZero(&m);
-    dMassSetCapsule(&m, 2700, 1, this->center_radius, this->center_length );
+    dMassSetCapsule(&m, 2700, 1, _center_radius, _center_length );
     dMassAdjust(&m, 0.24);
     //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
@@ -3150,32 +3150,32 @@ void robot4Sim::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
     z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
     // set body parameters
-    dBodySetPosition(this->body[CENTER], x, y, z);
-    dBodySetRotation(this->body[CENTER], R);
+    dBodySetPosition(_body[CENTER], x, y, z);
+    dBodySetRotation(_body[CENTER], R);
 
     // rotation matrix for curves of d-shapes
     dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
 
     // set geometry 1 - center rectangle
-    this->geom[CENTER][0] = dCreateBox(this->space, this->center_length, this->center_width, this->center_height );
-    dGeomSetBody( this->geom[CENTER][0], this->body[CENTER]);
-    dGeomSetOffsetPosition( this->geom[CENTER][0], -m.c[0], -m.c[1], -m.c[2] );
+    _geom[CENTER][0] = dCreateBox(_space, _center_length, _center_width, _center_height );
+    dGeomSetBody( _geom[CENTER][0], _body[CENTER]);
+    dGeomSetOffsetPosition( _geom[CENTER][0], -m.c[0], -m.c[1], -m.c[2] );
 
     // set geometry 2 - side curve
-    this->geom[CENTER][1] = dCreateCylinder(this->space, this->center_radius, this->center_width );
-    dGeomSetBody( this->geom[CENTER][1], this->body[CENTER]);
-    dGeomSetOffsetPosition( this->geom[CENTER][1], -this->center_length/2 - m.c[0], -m.c[1], -m.c[2] );
-    dGeomSetOffsetRotation( this->geom[CENTER][1], R1);
+    _geom[CENTER][1] = dCreateCylinder(_space, _center_radius, _center_width );
+    dGeomSetBody( _geom[CENTER][1], _body[CENTER]);
+    dGeomSetOffsetPosition( _geom[CENTER][1], -_center_length/2 - m.c[0], -m.c[1], -m.c[2] );
+    dGeomSetOffsetRotation( _geom[CENTER][1], R1);
 
     // set geometry 3 - side curve
-    this->geom[CENTER][2] = dCreateCylinder(this->space, this->center_radius, this->center_width );
-    dGeomSetBody( this->geom[CENTER][2], this->body[CENTER]);
-    dGeomSetOffsetPosition( this->geom[CENTER][2], this->center_length/2 - m.c[0], -m.c[1], -m.c[2] );
-    dGeomSetOffsetRotation( this->geom[CENTER][2], R1);
+    _geom[CENTER][2] = dCreateCylinder(_space, _center_radius, _center_width );
+    dGeomSetBody( _geom[CENTER][2], _body[CENTER]);
+    dGeomSetOffsetPosition( _geom[CENTER][2], _center_length/2 - m.c[0], -m.c[1], -m.c[2] );
+    dGeomSetOffsetRotation( _geom[CENTER][2], R1);
 
     // set mass center to (0,0,0) of body
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-    dBodySetMass(this->body[CENTER], &m);
+    dBodySetMass(_body[CENTER], &m);
 }
 
 void robot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
@@ -3184,7 +3184,7 @@ void robot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
     dMatrix3 R1;
 
     // set mass of body
-    dMassSetBox(&m, 2700, this->end_depth, this->end_width, this->end_height );
+    dMassSetBox(&m, 2700, _end_depth, _end_width, _end_height );
     //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
@@ -3193,117 +3193,117 @@ void robot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
     z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
     // set body parameters
-    dBodySetPosition(this->body[id], x, y, z);
-    dBodySetRotation(this->body[id], R);
+    dBodySetPosition(_body[id], x, y, z);
+    dBodySetRotation(_body[id], R);
 
     // rotation matrix for curves
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 
     // set geometry 1 - center box
-    this->geom[id][0] = dCreateBox(this->space, this->end_depth, this->end_width - 2*this->end_radius, this->end_height );
-    dGeomSetBody( this->geom[id][0], this->body[id]);
-    dGeomSetOffsetPosition( this->geom[id][0], -m.c[0], -m.c[1], -m.c[2] );
+    _geom[id][0] = dCreateBox(_space, _end_depth, _end_width - 2*_end_radius, _end_height );
+    dGeomSetBody( _geom[id][0], _body[id]);
+    dGeomSetOffsetPosition( _geom[id][0], -m.c[0], -m.c[1], -m.c[2] );
 
     // set geometry 2 - left box
-    this->geom[id][1] = dCreateBox(this->space, this->end_depth, this->end_radius, this->end_height - 2*this->end_radius );
-    dGeomSetBody( this->geom[id][1], this->body[id]);
-    dGeomSetOffsetPosition( this->geom[id][1], -m.c[0], -this->end_width/2 + this->end_radius/2 - m.c[1], -m.c[2] );
+    _geom[id][1] = dCreateBox(_space, _end_depth, _end_radius, _end_height - 2*_end_radius );
+    dGeomSetBody( _geom[id][1], _body[id]);
+    dGeomSetOffsetPosition( _geom[id][1], -m.c[0], -_end_width/2 + _end_radius/2 - m.c[1], -m.c[2] );
 
     // set geometry 3 - right box
-    this->geom[id][2] = dCreateBox(this->space, this->end_depth, this->end_radius, this->end_height - 2*this->end_radius );
-    dGeomSetBody( this->geom[id][2], this->body[id]);
-    dGeomSetOffsetPosition( this->geom[id][2], -m.c[0], this->end_width/2 - this->end_radius/2 - m.c[1], -m.c[2] );
+    _geom[id][2] = dCreateBox(_space, _end_depth, _end_radius, _end_height - 2*_end_radius );
+    dGeomSetBody( _geom[id][2], _body[id]);
+    dGeomSetOffsetPosition( _geom[id][2], -m.c[0], _end_width/2 - _end_radius/2 - m.c[1], -m.c[2] );
 
     // set geometry 4 - fillet upper left
-    this->geom[id][3] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
-    dGeomSetBody( this->geom[id][3], this->body[id]);
-    dGeomSetOffsetPosition( this->geom[id][3], -m.c[0], -this->end_width/2 + this->end_radius - m.c[1], this->end_width/2 - this->end_radius - m.c[2] );
-    dGeomSetOffsetRotation( this->geom[id][3], R1);
+    _geom[id][3] = dCreateCylinder(_space, _end_radius, _end_depth );
+    dGeomSetBody( _geom[id][3], _body[id]);
+    dGeomSetOffsetPosition( _geom[id][3], -m.c[0], -_end_width/2 + _end_radius - m.c[1], _end_width/2 - _end_radius - m.c[2] );
+    dGeomSetOffsetRotation( _geom[id][3], R1);
 
     // set geometry 5 - fillet upper right
-    this->geom[id][4] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
-    dGeomSetBody( this->geom[id][4], this->body[id]);
-    dGeomSetOffsetPosition( this->geom[id][4], -m.c[0], this->end_width/2 - this->end_radius - m.c[1], this->end_width/2 - this->end_radius - m.c[2] );
-    dGeomSetOffsetRotation( this->geom[id][4], R1);
+    _geom[id][4] = dCreateCylinder(_space, _end_radius, _end_depth );
+    dGeomSetBody( _geom[id][4], _body[id]);
+    dGeomSetOffsetPosition( _geom[id][4], -m.c[0], _end_width/2 - _end_radius - m.c[1], _end_width/2 - _end_radius - m.c[2] );
+    dGeomSetOffsetRotation( _geom[id][4], R1);
 
     // set geometry 6 - fillet lower right
-    this->geom[id][5] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
-    dGeomSetBody( this->geom[id][5], this->body[id]);
-    dGeomSetOffsetPosition( this->geom[id][5], -m.c[0], this->end_width/2 - this->end_radius - m.c[1], -this->end_width/2 + this->end_radius - m.c[2] );
-    dGeomSetOffsetRotation( this->geom[id][5], R1);
+    _geom[id][5] = dCreateCylinder(_space, _end_radius, _end_depth );
+    dGeomSetBody( _geom[id][5], _body[id]);
+    dGeomSetOffsetPosition( _geom[id][5], -m.c[0], _end_width/2 - _end_radius - m.c[1], -_end_width/2 + _end_radius - m.c[2] );
+    dGeomSetOffsetRotation( _geom[id][5], R1);
 
     // set geometry 7 - fillet lower left
-    this->geom[id][6] = dCreateCylinder(this->space, this->end_radius, this->end_depth );
-    dGeomSetBody( this->geom[id][6], this->body[id]);
-    dGeomSetOffsetPosition( this->geom[id][6], -m.c[0], -this->end_width/2 + this->end_radius - m.c[1], -this->end_width/2 + this->end_radius - m.c[2] );
-    dGeomSetOffsetRotation( this->geom[id][6], R1);
+    _geom[id][6] = dCreateCylinder(_space, _end_radius, _end_depth );
+    dGeomSetBody( _geom[id][6], _body[id]);
+    dGeomSetOffsetPosition( _geom[id][6], -m.c[0], -_end_width/2 + _end_radius - m.c[1], -_end_width/2 + _end_radius - m.c[2] );
+    dGeomSetOffsetRotation( _geom[id][6], R1);
 
-    // set mass center to (0,0,0) of this->bodyID
+    // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-    dBodySetMass(this->body[id], &m);
+    dBodySetMass(_body[id], &m);
 }
 
 /**********************************************************
 	iMobotSim Class
  **********************************************************/
 iMobotSim::iMobotSim(void) {
-	this->m_motor_res = DEG2RAD(0.5);
-	this->m_joint_vel_max[IMOBOT_JOINT1] = 6.70;
-	this->m_joint_vel_max[IMOBOT_JOINT2] = 2.61;
-	this->m_joint_vel_max[IMOBOT_JOINT3] = 2.61;
-	this->m_joint_vel_max[IMOBOT_JOINT4] = 6.70;
-	this->m_joint_frc_max[IMOBOT_JOINT1] = 0.260;
-	this->m_joint_frc_max[IMOBOT_JOINT2] = 1.059;
-	this->m_joint_frc_max[IMOBOT_JOINT3] = 1.059;
-	this->m_joint_frc_max[IMOBOT_JOINT4] = 0.260;
-	this->center_length = 0.07303;
-	this->center_width = 0.02540;
-	this->center_height = 0.06909;
-	this->center_radius = 0.03554;
-	this->center_offset = 0;
-	this->body_length = 0.03785;
-	this->body_width = 0.07239;
-	this->body_height = 0.07239;
-	this->body_radius = 0.03620;
-	this->body_inner_width_left = 0.02287;
-	this->body_inner_width_right = 0.02287;
-	this->body_end_depth = 0.01994;
-	this->body_mount_center = 0.03792;
-	this->end_width = 0.07239;
-	this->end_height = 0.07239;
-	this->end_depth = 0.00476;
-	this->end_radius = 0.01778;
+	_encoderResolution = DEG2RAD(0.5);
+	_maxJointVelocity[IMOBOT_JOINT1] = 6.70;
+	_maxJointVelocity[IMOBOT_JOINT2] = 2.61;
+	_maxJointVelocity[IMOBOT_JOINT3] = 2.61;
+	_maxJointVelocity[IMOBOT_JOINT4] = 6.70;
+	_maxJointForce[IMOBOT_JOINT1] = 0.260;
+	_maxJointForce[IMOBOT_JOINT2] = 1.059;
+	_maxJointForce[IMOBOT_JOINT3] = 1.059;
+	_maxJointForce[IMOBOT_JOINT4] = 0.260;
+	_center_length = 0.07303;
+	_center_width = 0.02540;
+	_center_height = 0.06909;
+	_center_radius = 0.03554;
+	_center_offset = 0;
+	_body_length = 0.03785;
+	_body_width = 0.07239;
+	_body_height = 0.07239;
+	_body_radius = 0.03620;
+	_body_inner_width_left = 0.02287;
+	_body_inner_width_right = 0.02287;
+	_body_end_depth = 0.01994;
+	_body_mount_center = 0.03792;
+	_end_width = 0.07239;
+	_end_height = 0.07239;
+	_end_depth = 0.00476;
+	_end_radius = 0.01778;
 }
 
 /**********************************************************
 	mobotSim Class
  **********************************************************/
 mobotSim::mobotSim(void) {
-	this->m_motor_res = DEG2RAD(0.5);
-	this->m_joint_vel_max[MOBOT_JOINT1] = 6.70;
-	this->m_joint_vel_max[MOBOT_JOINT2] = 2.61;
-	this->m_joint_vel_max[MOBOT_JOINT3] = 2.61;
-	this->m_joint_vel_max[MOBOT_JOINT4] = 6.70;
-	this->m_joint_frc_max[MOBOT_JOINT1] = 0.260;
-	this->m_joint_frc_max[MOBOT_JOINT2] = 1.059;
-	this->m_joint_frc_max[MOBOT_JOINT3] = 1.059;
-	this->m_joint_frc_max[MOBOT_JOINT4] = 0.260;
-	this->center_length = 0.07303;
-	this->center_width = 0.02540;
-	this->center_height = 0.06909;
-	this->center_radius = 0.03554;
-	this->center_offset = 0;
-	this->body_length = 0.03785;
-	this->body_width = 0.07239;
-	this->body_height = 0.07239;
-	this->body_radius = 0.03620;
-	this->body_inner_width_left = 0.02287;
-	this->body_inner_width_right = 0.02287;
-	this->body_end_depth = 0.01994;
-	this->body_mount_center = 0.03792;
-	this->end_width = 0.07239;
-	this->end_height = 0.07239;
-	this->end_depth = 0.00476;
-	this->end_radius = 0.01778;
+	_encoderResolution = DEG2RAD(0.5);
+	_maxJointVelocity[MOBOT_JOINT1] = 6.70;
+	_maxJointVelocity[MOBOT_JOINT2] = 2.61;
+	_maxJointVelocity[MOBOT_JOINT3] = 2.61;
+	_maxJointVelocity[MOBOT_JOINT4] = 6.70;
+	_maxJointForce[MOBOT_JOINT1] = 0.260;
+	_maxJointForce[MOBOT_JOINT2] = 1.059;
+	_maxJointForce[MOBOT_JOINT3] = 1.059;
+	_maxJointForce[MOBOT_JOINT4] = 0.260;
+	_center_length = 0.07303;
+	_center_width = 0.02540;
+	_center_height = 0.06909;
+	_center_radius = 0.03554;
+	_center_offset = 0;
+	_body_length = 0.03785;
+	_body_width = 0.07239;
+	_body_height = 0.07239;
+	_body_radius = 0.03620;
+	_body_inner_width_left = 0.02287;
+	_body_inner_width_right = 0.02287;
+	_body_end_depth = 0.01994;
+	_body_mount_center = 0.03792;
+	_end_width = 0.07239;
+	_end_height = 0.07239;
+	_end_depth = 0.00476;
+	_end_radius = 0.01778;
 }
 
