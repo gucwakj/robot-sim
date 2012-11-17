@@ -12,7 +12,7 @@ typedef struct rw_var {
 	pthread_cond_t cond;
 } pthread_rw_t;
 
-class CRobot4Sim;
+class robot4Sim;
 
 class robotSim {
 	public:
@@ -44,10 +44,10 @@ class robotSim {
 		virtual dJointID getMotorID(int motor) = 0;
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) = 0;
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
-		virtual void buildAttached00(CRobot4Sim *attach, int face1, int face2) = 0;
-		virtual void buildAttached10(CRobot4Sim *attach, int face1, int face2) = 0;
-		virtual void buildAttached01(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
-		virtual void buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
+		virtual void buildAttached00(robot4Sim *attach, int face1, int face2) = 0;
+		virtual void buildAttached10(robot4Sim *attach, int face1, int face2) = 0;
+		virtual void buildAttached01(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
+		virtual void buildAttached11(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
 		virtual bool isHome(void) = 0;
 		virtual void simAddRobot(dWorldID &world, dSpaceID &space) = 0;
 		virtual void simPreCollisionThread(void) = 0;

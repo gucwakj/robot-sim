@@ -1,6 +1,6 @@
 #include "mobot.h"
 
-CRobot4Sim::CRobot4Sim(void) {
+robot4Sim::robot4Sim(void) {
 	this->angle[0] = 0;
 	this->angle[1] = 0;
 	this->angle[2] = 0;
@@ -20,18 +20,18 @@ CRobot4Sim::CRobot4Sim(void) {
 	this->simThreadsSuccessInit();
 }
 
-CRobot4Sim::~CRobot4Sim(void) {
+robot4Sim::~robot4Sim(void) {
 	//dSpaceDestroy(this->space); //sigsegv
 }
 
-int CRobot4Sim::getJointAngle(int id, dReal &angle) {
+int robot4Sim::getJointAngle(int id, dReal &angle) {
 	angle = R2D(this->getAngle(id));
 
 	// success
 	return 0;
 }
 
-int CRobot4Sim::motionArch(dReal angle) {
+int robot4Sim::motionArch(dReal angle) {
 	this->moveJointToNB(MOBOT_JOINT2, -angle/2.0);
 	this->moveJointToNB(MOBOT_JOINT3, angle/2.0);
 	this->moveJointWait(MOBOT_JOINT2);
@@ -41,7 +41,7 @@ int CRobot4Sim::motionArch(dReal angle) {
 	return 0;
 }
 
-int CRobot4Sim::motionInchwormLeft(int num) {
+int robot4Sim::motionInchwormLeft(int num) {
 	this->moveJointToNB(MOBOT_JOINT2, 0);
 	this->moveJointToNB(MOBOT_JOINT3, 0);
 	this->moveWait();
@@ -57,7 +57,7 @@ int CRobot4Sim::motionInchwormLeft(int num) {
 	return 0;
 }
 
-int CRobot4Sim::motionInchwormRight(int num) {
+int robot4Sim::motionInchwormRight(int num) {
 	this->moveJointToNB(MOBOT_JOINT2, 0);
 	this->moveJointToNB(MOBOT_JOINT3, 0);
 	this->moveWait();
@@ -73,7 +73,7 @@ int CRobot4Sim::motionInchwormRight(int num) {
 	return 0;
 }
 
-int CRobot4Sim::motionRollBackward(dReal angle) {
+int robot4Sim::motionRollBackward(dReal angle) {
 	dReal motorPosition[2];
 	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
 	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
@@ -85,7 +85,7 @@ int CRobot4Sim::motionRollBackward(dReal angle) {
 	return 0;
 }
 
-int CRobot4Sim::motionRollForward(dReal angle) {
+int robot4Sim::motionRollForward(dReal angle) {
 	dReal motorPosition[2];
 	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
 	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
@@ -97,7 +97,7 @@ int CRobot4Sim::motionRollForward(dReal angle) {
 	return 0;
 }
 
-int CRobot4Sim::motionSkinny(dReal angle) {
+int robot4Sim::motionSkinny(dReal angle) {
 	this->moveJointToNB(MOBOT_JOINT2, angle);
 	this->moveJointToNB(MOBOT_JOINT3, angle);
 	this->moveWait();
@@ -106,7 +106,7 @@ int CRobot4Sim::motionSkinny(dReal angle) {
 	return 0;
 }
 
-int CRobot4Sim::motionStand(void) {
+int robot4Sim::motionStand(void) {
 	this->resetToZero();
 	this->moveJointTo(MOBOT_JOINT2, -85);
 	this->moveJointTo(MOBOT_JOINT3, 70);
@@ -123,7 +123,7 @@ int CRobot4Sim::motionStand(void) {
 	return 0;
 }
 
-int CRobot4Sim::motionTumbleLeft(int num) {
+int robot4Sim::motionTumbleLeft(int num) {
 	this->resetToZero();
 #ifndef _WIN32
 	usleep(1000000);
@@ -155,7 +155,7 @@ int CRobot4Sim::motionTumbleLeft(int num) {
 	return 0;
 }
 
-int CRobot4Sim::motionTumbleRight(int num) {
+int robot4Sim::motionTumbleRight(int num) {
 	this->resetToZero();
 #ifndef _WIN32
 	usleep(1000000);
@@ -187,7 +187,7 @@ int CRobot4Sim::motionTumbleRight(int num) {
 	return 0;
 }
 
-int CRobot4Sim::motionTurnLeft(dReal angle) {
+int robot4Sim::motionTurnLeft(dReal angle) {
 	dReal motorPosition[2];
 	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
 	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
@@ -199,7 +199,7 @@ int CRobot4Sim::motionTurnLeft(dReal angle) {
 	return 0;
 }
 
-int CRobot4Sim::motionTurnRight(dReal angle) {
+int robot4Sim::motionTurnRight(dReal angle) {
 	dReal motorPosition[2];
 	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
 	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
@@ -211,7 +211,7 @@ int CRobot4Sim::motionTurnRight(dReal angle) {
 	return 0;
 }
 
-int CRobot4Sim::motionUnstand(void) {
+int robot4Sim::motionUnstand(void) {
 	this->moveToDirect(0, 0, 0, 0);
 	this->moveJointToNB(MOBOT_JOINT3, 45);
 	this->moveJointToNB(MOBOT_JOINT2, -85);
@@ -222,7 +222,7 @@ int CRobot4Sim::motionUnstand(void) {
 	return 0;
 }
 
-int CRobot4Sim::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int robot4Sim::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	this->moveNB(angle1, angle2, angle3, angle4);
 	this->moveWait();
 
@@ -230,7 +230,7 @@ int CRobot4Sim::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	return 0;
 }
 
-int CRobot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int robot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	// store angles into array
 	dReal delta[4] = {angle1, angle2, angle3, angle4};
 
@@ -279,7 +279,7 @@ int CRobot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	return 0;
 }
 
-int CRobot4Sim::moveJoint(int id, dReal angle) {
+int robot4Sim::moveJoint(int id, dReal angle) {
 	this->moveJointNB(id, angle);
 	this->moveJointWait(id);
 
@@ -287,7 +287,7 @@ int CRobot4Sim::moveJoint(int id, dReal angle) {
 	return 0;
 }
 
-int CRobot4Sim::moveJointNB(int id, dReal angle) {
+int robot4Sim::moveJointNB(int id, dReal angle) {
 	// lock goal
 	this->simThreadsGoalWLock();
 
@@ -326,7 +326,7 @@ int CRobot4Sim::moveJointNB(int id, dReal angle) {
 	return 0;
 }
 
-int CRobot4Sim::moveJointTo(int id, dReal angle) {
+int robot4Sim::moveJointTo(int id, dReal angle) {
 	this->moveJointToNB(id, angle);
 	this->moveJointWait(id);
 
@@ -334,7 +334,7 @@ int CRobot4Sim::moveJointTo(int id, dReal angle) {
 	return 0;
 }
 
-int CRobot4Sim::moveJointToNB(int id, dReal angle) {
+int robot4Sim::moveJointToNB(int id, dReal angle) {
 	// store delta angle
 	dReal delta = angle - this->angle[id];
 
@@ -376,7 +376,7 @@ int CRobot4Sim::moveJointToNB(int id, dReal angle) {
 	return 0;
 }
 
-int CRobot4Sim::moveJointWait(int id) {
+int robot4Sim::moveJointWait(int id) {
 	// wait for motion to complete
 	this->simThreadsSuccessLock();
 	while ( !this->success[id] ) { this->simThreadsSuccessWait(); }
@@ -387,7 +387,7 @@ int CRobot4Sim::moveJointWait(int id) {
 	return 0;
 }
 
-int CRobot4Sim::moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int robot4Sim::moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	this->moveToNB(angle1, angle2, angle3, angle4);
 	this->moveWait();
 
@@ -395,10 +395,10 @@ int CRobot4Sim::moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	return 0;
 }
 
-int CRobot4Sim::moveToDirect(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int robot4Sim::moveToDirect(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 }
 
-int CRobot4Sim::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int robot4Sim::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	// store angles into array
 	dReal delta[4] = {angle1 - this->angle[0], angle2 - this->angle[1], angle3 - this->angle[2], angle4 - this->angle[3]};
 
@@ -450,21 +450,21 @@ int CRobot4Sim::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4)
 int moveToDirectNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 }
 
-int CRobot4Sim::moveToZero(void) {
+int robot4Sim::moveToZero(void) {
 	this->moveTo(0, 0, 0, 0);
 
 	// success
 	return 0;
 }
 
-int CRobot4Sim::moveToZeroNB(void) {
+int robot4Sim::moveToZeroNB(void) {
 	this->moveToNB(0, 0, 0, 0);
 
 	// success
 	return 0;
 }
 
-int CRobot4Sim::moveWait(void) {
+int robot4Sim::moveWait(void) {
 	// wait for motion to complete
 	this->simThreadsSuccessLock();
 	while ( !this->success[0] && !this->success[1] && !this->success[2] && !this->success[3]) {
@@ -480,7 +480,7 @@ int CRobot4Sim::moveWait(void) {
 	return 0;
 }
 
-int CRobot4Sim::resetToZero(void) {
+int robot4Sim::resetToZero(void) {
 	// reset absolute counter to 0 -> 2M_PI
 	this->simThreadsAngleLock();
 	int rev = (int)(this->angle[LE]/2/M_PI);
@@ -499,7 +499,7 @@ int CRobot4Sim::resetToZero(void) {
 /**********************************************************
 	private functions
  **********************************************************/
-void CRobot4Sim::simPreCollisionThread(void) {
+void robot4Sim::simPreCollisionThread(void) {
 	// lock angle and goal
 	this->simThreadsGoalRLock();
 	this->simThreadsAngleLock();
@@ -522,7 +522,7 @@ void CRobot4Sim::simPreCollisionThread(void) {
 	this->simThreadsGoalRUnlock();
 }
 
-void CRobot4Sim::simPostCollisionThread(void) {
+void robot4Sim::simPostCollisionThread(void) {
 	// lock angle and goal
 	this->simThreadsGoalRLock();
 	this->simThreadsAngleLock();
@@ -540,12 +540,12 @@ void CRobot4Sim::simPostCollisionThread(void) {
 	this->simThreadsGoalRUnlock();
 }
 
-void CRobot4Sim::simAddRobot(dWorldID &world, dSpaceID &space) {
+void robot4Sim::simAddRobot(dWorldID &world, dSpaceID &space) {
 	this->world = world;
     this->space = dHashSpaceCreate(space);
 }
 
-dReal CRobot4Sim::getAngle(int i) {
+dReal robot4Sim::getAngle(int i) {
 	if (i == LE || i == RE)
 		this->angle[i] = mod_angle(this->angle[i], dJointGetHingeAngle(this->joint[i]), dJointGetHingeAngleRate(this->joint[i]));
 	else
@@ -553,31 +553,31 @@ dReal CRobot4Sim::getAngle(int i) {
     return this->angle[i];
 }
 
-bool CRobot4Sim::getSuccess(int i) {
+bool robot4Sim::getSuccess(int i) {
 	return this->success[i];
 }
 
-dReal CRobot4Sim::getPosition(int i) {
+dReal robot4Sim::getPosition(int i) {
     return this->position[i];
 }
 
-dReal CRobot4Sim::getRotation(int i) {
+dReal robot4Sim::getRotation(int i) {
     return this->rotation[i];
 }
 
-dBodyID CRobot4Sim::getBodyID(int id) {
+dBodyID robot4Sim::getBodyID(int id) {
     return this->body[id];
 }
 
-dJointID CRobot4Sim::getMotorID(int id) {
+dJointID robot4Sim::getMotorID(int id) {
     return this->motor[id];
 }
 
-bool CRobot4Sim::isHome(void) {
+bool robot4Sim::isHome(void) {
     return ( fabs(this->angle[LE]) < EPSILON && fabs(this->angle[LB]) < EPSILON && fabs(this->angle[RB]) < EPSILON && fabs(this->angle[RE]) < EPSILON );
 }
 
-dReal CRobot4Sim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
+dReal robot4Sim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     dReal new_ang = 0;
     int stp = (int)( fabs(past_ang) / M_PI );
     dReal past_ang_mod = fabs(past_ang) - stp*M_PI;
@@ -633,15 +633,15 @@ dReal CRobot4Sim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     return new_ang;
 }
 
-dReal CRobot4Sim::D2R( dReal x ) {
+dReal robot4Sim::D2R( dReal x ) {
     return x*M_PI/180;
 }
 
-dReal CRobot4Sim::R2D( dReal x ) {
+dReal robot4Sim::R2D( dReal x ) {
     return x/M_PI*180;
 }
 
-void CRobot4Sim::create_fixed_joint(CRobot4Sim *attach, int face1, int face2) {
+void robot4Sim::create_fixed_joint(robot4Sim *attach, int face1, int face2) {
     int part1, part2;
 
     switch (face1) {
@@ -684,7 +684,7 @@ void CRobot4Sim::create_fixed_joint(CRobot4Sim *attach, int face1, int face2) {
     dJointSetFixedParam(joint, dParamERP, 0.9);
 }
 
-void CRobot4Sim::create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
+void robot4Sim::create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
     dReal   sphi = sin(phi),        cphi = cos(phi),
     stheta = sin(theta),    ctheta = cos(theta),
     spsi = sin(psi),        cpsi = cos(psi);
@@ -703,7 +703,7 @@ void CRobot4Sim::create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dRea
     R[11] = 0;
 }
 
-void CRobot4Sim::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi) {
+void robot4Sim::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi) {
     if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
         psi = atan2(-R[1], -R[2]);
         theta = M_PI/2;
@@ -721,14 +721,14 @@ void CRobot4Sim::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dRea
     }
 }
 
-/*void CRobot4Sim::resetPID(int i) {
+/*void robot4Sim::resetPID(int i) {
     if ( i == NUM_DOF )
         for ( int j = 0; j < NUM_DOF; j++ ) this->pid[j].restart();
     else
         this->pid[i].restart();
 }*/
 
-void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { this->body[i] = dBodyCreate(this->world); }
     this->geom[ENDCAP_L] = new dGeomID[7];
@@ -863,7 +863,7 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i], 0.1, 0.1);
 }
 
-void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { this->body[i] = dBodyCreate(this->world); }
     this->geom[ENDCAP_L] = new dGeomID[7];
@@ -1036,7 +1036,7 @@ void CRobot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal 
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(this->body[i], 0.1, 0.1);
 }
 
-void CRobot4Sim::buildAttached00(CRobot4Sim *attach, int face1, int face2) {
+void robot4Sim::buildAttached00(robot4Sim *attach, int face1, int face2) {
     // initialize variables
     dReal psi, theta, phi, m[3] = {0};
     dMatrix3 R, R1, R_att;
@@ -1275,7 +1275,7 @@ void CRobot4Sim::buildAttached00(CRobot4Sim *attach, int face1, int face2) {
     this->create_fixed_joint(attach, face1, face2);
 }
 
-void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
+void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
     // initialize variables
     dReal psi, theta, phi, m[3];
     dMatrix3 R, R1, R2, R3, R4, R5, R_att;
@@ -1796,7 +1796,7 @@ void CRobot4Sim::buildAttached10(CRobot4Sim *attach, int face1, int face2) {
     this->create_fixed_joint(attach, face1, face2);
 }
 
-void CRobot4Sim::buildAttached01(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     // initialize variables
     dReal psi, theta, phi, r_e, r_b, m[3];
     dMatrix3 R, R1, R2, R3, R4, R5, R_att;
@@ -2344,7 +2344,7 @@ void CRobot4Sim::buildAttached01(CRobot4Sim *attach, int face1, int face2, dReal
     this->create_fixed_joint(attach, face1, face2);
 }
 
-void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     // initialize variables
     dReal psi, theta, phi, r_e, r_b, m[3];
     dMatrix3 R, R1, R2, R3, R4, R5, R6, R7, R8, R9, R_att;
@@ -3084,7 +3084,7 @@ void CRobot4Sim::buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal
     this->create_fixed_joint(attach, face1, face2);
 }
 
-void CRobot4Sim::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta) {
+void robot4Sim::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta) {
 	int i = 1;
 	if ( id == BODY_R )
 		i = -1;
@@ -3154,7 +3154,7 @@ void CRobot4Sim::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal
     dBodySetMass(this->body[id], &m);
 }
 
-void CRobot4Sim::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
+void robot4Sim::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
     // define parameters
     dMass m;
     dMatrix3 R1;
@@ -3199,7 +3199,7 @@ void CRobot4Sim::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
     dBodySetMass(this->body[CENTER], &m);
 }
 
-void CRobot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
+void robot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
     // define parameters
     dMass m;
     dMatrix3 R1;

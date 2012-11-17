@@ -45,13 +45,13 @@ typedef enum mobot_joint_state_e {
 	MOBOT_HOLD		= 3
 } mobotJointState_t;
 
-class CRobot4Sim : virtual private robotSim {
+class robot4Sim : virtual private robotSim {
 	friend class CMobotFD;
 
 	// public api to mimic CMobot clas
 	public:
-        CRobot4Sim(void);
-        ~CRobot4Sim(void);
+		robot4Sim(void);
+		~robot4Sim(void);
 
 		int getJointAngle(int id, dReal &angle);
 
@@ -121,10 +121,10 @@ class CRobot4Sim : virtual private robotSim {
 		// private functions inherited from robotSim class
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		virtual void buildAttached00(CRobot4Sim *attach, int face1, int face2);
-		virtual void buildAttached10(CRobot4Sim *attach, int face1, int face2);
-		virtual void buildAttached01(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		virtual void buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		virtual void buildAttached00(robot4Sim *attach, int face1, int face2);
+		virtual void buildAttached10(robot4Sim *attach, int face1, int face2);
+		virtual void buildAttached01(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		virtual void buildAttached11(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		virtual dReal getAngle(int i);
 		virtual bool getSuccess(int i);
 		virtual dReal getPosition(int i);
@@ -142,7 +142,7 @@ class CRobot4Sim : virtual private robotSim {
 		void build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);	// build body of mobot
 		void build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
 		void build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap
-		void create_fixed_joint(CRobot4Sim *attach, int face1, int face2);				// create fixed joint between modules
+		void create_fixed_joint(robot4Sim *attach, int face1, int face2);				// create fixed joint between modules
 		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
 		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
 	protected:
@@ -157,12 +157,12 @@ class CRobot4Sim : virtual private robotSim {
 		dReal m_joint_frc_max[4];
 };
 
-class mobotSim : public CRobot4Sim {
+class mobotSim : public robot4Sim {
 	public:
 		mobotSim(void);
 };
 
-class iMobotSim : public CRobot4Sim {
+class iMobotSim : public robot4Sim {
 	public:
 		iMobotSim(void);
 };
