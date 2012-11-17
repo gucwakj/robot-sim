@@ -11,36 +11,36 @@ void* robotSim::simPostCollisionThreadEntry(void *arg) {
 }
 
 void robotSim::simThreadsAngleInit(void) {
-	pthread_mutex_init(&angle_mutex, NULL);
+	pthread_mutex_init(&_angle_mutex, NULL);
 }
 
 void robotSim::simThreadsAngleLock(void) {
-	pthread_mutex_lock(&(this->angle_mutex));
+	pthread_mutex_lock(&_angle_mutex);
 }
 
 void robotSim::simThreadsAngleUnlock(void) {
-	pthread_mutex_unlock(&(this->angle_mutex));
+	pthread_mutex_unlock(&_angle_mutex);
 }
 
 void robotSim::simThreadsSuccessInit(void) {
-	pthread_mutex_init(&success_mutex, NULL);
-	pthread_cond_init(&success_cond, NULL);
+	pthread_mutex_init(&_success_mutex, NULL);
+	pthread_cond_init(&_success_cond, NULL);
 }
 
 void robotSim::simThreadsSuccessLock(void) {
-	pthread_mutex_lock(&(this->success_mutex));
+	pthread_mutex_lock(&_success_mutex);
 }
 
 void robotSim::simThreadsSuccessUnlock(void) {
-	pthread_mutex_unlock(&(this->success_mutex));
+	pthread_mutex_unlock(&_success_mutex);
 }
 
 void robotSim::simThreadsSuccessSignal(void) {
-	pthread_cond_signal(&(this->success_cond));
+	pthread_cond_signal(&_success_cond);
 }
 
 void robotSim::simThreadsSuccessWait(void) {
-	pthread_cond_wait(&(this->success_cond), &(this->success_mutex));
+	pthread_cond_wait(&_success_cond, &_success_mutex);
 }
 
 int robotSim::simThreadsRWInit(pthread_rw_t *rwp) {
@@ -98,9 +98,9 @@ int robotSim::simThreadsRWWUnlock(pthread_rw_t *rwp) {
 	}
 }
 
-int robotSim::simThreadsGoalInit(void) { simThreadsRWInit(&(this->goal_rwlock)); }
-int robotSim::simThreadsGoalRLock(void) { simThreadsRWRLock(&(this->goal_rwlock)); }
-int robotSim::simThreadsGoalRUnlock(void) { simThreadsRWRUnlock(&(this->goal_rwlock)); }
-int robotSim::simThreadsGoalWLock(void) { simThreadsRWWLock(&(this->goal_rwlock)); }
-int robotSim::simThreadsGoalWUnlock(void) { simThreadsRWWUnlock(&(this->goal_rwlock)); }
+int robotSim::simThreadsGoalInit(void) { simThreadsRWInit(&_goal_rwlock); }
+int robotSim::simThreadsGoalRLock(void) { simThreadsRWRLock(&_goal_rwlock); }
+int robotSim::simThreadsGoalRUnlock(void) { simThreadsRWRUnlock(&_goal_rwlock); }
+int robotSim::simThreadsGoalWLock(void) { simThreadsRWWLock(&_goal_rwlock); }
+int robotSim::simThreadsGoalWUnlock(void) { simThreadsRWWUnlock(&_goal_rwlock); }
 

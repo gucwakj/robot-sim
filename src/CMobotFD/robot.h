@@ -63,10 +63,10 @@ class robotSim {
 		int simThreadsRWWUnlock(pthread_rw_t *rwp);
 
 		// threading locks for each robot
-		pthread_mutex_t angle_mutex;
-		pthread_rw_t goal_rwlock;
-		pthread_mutex_t success_mutex;
-		pthread_cond_t success_cond;
+		pthread_mutex_t _angle_mutex;
+		pthread_rw_t _goal_rwlock;
+		pthread_mutex_t _success_mutex;
+		pthread_cond_t _success_cond;
 };
 
 #endif /* ROBOT_H_ */
