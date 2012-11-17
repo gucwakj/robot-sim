@@ -10,14 +10,6 @@ enum simulation_reply_message_e {
 	FD_ERROR_STALL
 };
 
-enum robot_types_e {
-	IMOBOT,
-	MOBOT,
-	KIDBOT,
-	NXT,
-	NUM_TYPES
-};
-
 class CMobotFD {
 	public:
         CMobotFD(void);
