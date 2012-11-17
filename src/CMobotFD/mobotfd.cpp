@@ -81,11 +81,34 @@ int CMobotFD::graphics_init(void) {
 	// loading a body part from part file
     //osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("body.stl");
 	//_osgRoot->addChild(terrainnode.get());
+	//osg::ref_ptr<osg::Geode> mobotBody = new osg::Geode();
+	//osg::ref_ptr<osg::MatrixTransform> transformation1 = new osg::MatrixTransform;
+	//transformation1->setMatrix(osg::Matrix::translate(-1.0f, 0.0f, 0.0f));
+	//transformation1->setUpdateCallback(new iMobotNodeCallback(this, 0, CENTER));
+	//transformation1->addChild(mobotBody.get());
+	//_osgRoot->addChild(transformation1.get());
+	//osg::ref_ptr<osg::MatrixTransform> transformation2 = new osg::MatrixTransform;
+	//transformation2->setMatrix(osg::Matrix::translate(1.0f, 0.0f, 4.0f));
+	//transformation2->setUpdateCallback(new iMobotNodeCallback(this, 0, CENTER));
+	//transformation2->addChild(mobotBody.get());
+	//_osgRoot->addChild(transformation2.get());
+	
+    /*osg::ref_ptr<osg::Node> mobotBody = osgDB::readNodeFile("body.stl");
+	osg::ref_ptr<osg::PositionAttitudeTransform> mobotBodyPAT1 = new osg::PositionAttitudeTransform;
+	mobotBodyPAT1->addChild(mobotBody.get());
+	mobotBodyPAT1->setPosition(osg::Vec3f(0.1,0.5,1.4));
+	mobotBodyPAT1->setUpdateCallback(new iMobotNodeCallback(this, 0, ENDCAP_R));
+	_osgRoot->addChild(mobotBodyPAT1.get());
+	osg::ref_ptr<osg::PositionAttitudeTransform> mobotBodyPAT2 = new osg::PositionAttitudeTransform;
+	mobotBodyPAT2->addChild(mobotBody.get());
+	mobotBodyPAT2->setPosition(osg::Vec3f(0.1,0.5,-1.4));
+	mobotBodyPAT2->setUpdateCallback(new iMobotNodeCallback(this, 0, ENDCAP_L));
+	_osgRoot->addChild(mobotBodyPAT2.get());*/
 
 	// load the terrain node
 	osg::ref_ptr<osg::MatrixTransform> terrainScaleMat = new osg::MatrixTransform();
 	osg::Matrix terrainScaleMatrix;
-	terrainScaleMatrix.makeScale(0.05f,0.05f,0.03f);
+	//terrainScaleMatrix.makeScale(0.05f,0.05f,0.03f);
 	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("Terrain2.3ds");
 	terrainScaleMat->addChild(terrainnode.get());
 	terrainScaleMat->setMatrix(terrainScaleMatrix);
@@ -95,7 +118,6 @@ int CMobotFD::graphics_init(void) {
     //viewer->addEventHandler( new osgGA::StateSetManipulator(viewer->getCamera()->getOrCreateStateSet()) );
 
     // Set viewable
-    //viewer->setSceneData(_osgRoot.get());
     viewer->setSceneData(_osgRoot);
 	_osgThread = new ViewerFrameThread(viewer.get(), true);
 	_osgThread->startThread();
@@ -321,6 +343,8 @@ void CMobotFD::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi
 	this->robotThread[IMOBOT] = new pthread_t[this->robotNumber[IMOBOT]];
 	// build new imobot geometry
 	this->robot[IMOBOT][this->robotNumber[IMOBOT]++]->build(x, y, z, psi, theta, phi);
+	// draw robot
+	this->robot[IMOBOT][this->robotNumber[IMOBOT]-1]->draw();
 	// unlock robot data
 	pthread_mutex_unlock(&(this->robot_mutex));
 }

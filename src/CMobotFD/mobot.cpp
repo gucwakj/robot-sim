@@ -3260,6 +3260,10 @@ void CRobot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
     dBodySetMass(this->body[id], &m);
 }
 
+void CRobot4Sim::draw(void) {
+
+}
+
 /**********************************************************
 	iMobotSim Class
  **********************************************************/

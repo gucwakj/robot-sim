@@ -55,6 +55,7 @@ class robotSim {
 		virtual void buildAttached10(CRobot4Sim *attach, int face1, int face2) = 0;
 		virtual void buildAttached01(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
 		virtual void buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
+		virtual void draw(void) = 0;
 		virtual bool isHome(void) = 0;
 		virtual void simAddRobot(dWorldID &world, dSpaceID &space) = 0;
 		virtual void simPreCollisionThread(void) = 0;

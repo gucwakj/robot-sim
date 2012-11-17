@@ -103,6 +103,7 @@ class CRobot4Sim : virtual private robotSim {
 		virtual void buildAttached10(CRobot4Sim *attach, int face1, int face2);
 		virtual void buildAttached01(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		virtual void buildAttached11(CRobot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		virtual void draw(void);
 		virtual bool isHome(void);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
