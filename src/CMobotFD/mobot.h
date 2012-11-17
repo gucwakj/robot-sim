@@ -146,8 +146,6 @@ class robot4Sim : virtual private robotSim {
 		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
 		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
 	protected:
-		dReal D2R(dReal x);              // convert degrees to radians
-		dReal R2D(dReal x);              // convert radians to degrees
 		double	m_motor_res,
 				center_length, center_width, center_height, center_radius, center_offset,
 				body_length, body_width, body_height, body_radius,

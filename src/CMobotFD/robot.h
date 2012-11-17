@@ -4,6 +4,8 @@
 #include <ode/ode.h>
 #include <unistd.h>
 #include <pthread.h>
+#define DEG2RAD(x) ((x) * M_PI / 180.0)
+#define RAD2DEG(x) ((x) * 180.0 / M_PI)
 
 class robot4Sim;
 

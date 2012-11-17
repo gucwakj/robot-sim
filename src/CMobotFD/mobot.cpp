@@ -25,7 +25,7 @@ robot4Sim::~robot4Sim(void) {
 }
 
 int robot4Sim::getJointAngle(int id, dReal &angle) {
-	angle = R2D(this->getAngle(id));
+	angle = RAD2DEG(this->getAngle(id));
 
 	// success
 	return 0;
@@ -238,10 +238,10 @@ int robot4Sim::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	this->simThreadsGoalWLock();
 
 	// set new goal angles
-	this->goal[0] += D2R(angle1);
-	this->goal[1] += D2R(angle2);
-	this->goal[2] += D2R(angle3);
-	this->goal[3] += D2R(angle4);
+	this->goal[0] += DEG2RAD(angle1);
+	this->goal[1] += DEG2RAD(angle2);
+	this->goal[2] += DEG2RAD(angle3);
+	this->goal[3] += DEG2RAD(angle4);
 
 	// enable motor
 	this->simThreadsAngleLock();
@@ -292,7 +292,7 @@ int robot4Sim::moveJointNB(int id, dReal angle) {
 	this->simThreadsGoalWLock();
 
 	// set new goal angles
-	this->goal[id] += D2R(angle);
+	this->goal[id] += DEG2RAD(angle);
 
 	// enable motor
 	this->simThreadsAngleLock();
@@ -342,7 +342,7 @@ int robot4Sim::moveJointToNB(int id, dReal angle) {
 	this->simThreadsGoalWLock();
 
 	// set new goal angles
-	this->goal[id] = D2R(angle);
+	this->goal[id] = DEG2RAD(angle);
 
 	// enable motor
 	this->simThreadsAngleLock();
@@ -406,10 +406,10 @@ int robot4Sim::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) 
 	this->simThreadsGoalWLock();
 
 	// set new goal angles
-	this->goal[0] = D2R(angle1);
-	this->goal[1] = D2R(angle2);
-	this->goal[2] = D2R(angle3);
-	this->goal[3] = D2R(angle4);
+	this->goal[0] = DEG2RAD(angle1);
+	this->goal[1] = DEG2RAD(angle2);
+	this->goal[2] = DEG2RAD(angle3);
+	this->goal[3] = DEG2RAD(angle4);
 
 	// enable motor
 	this->simThreadsAngleLock();
@@ -633,13 +633,13 @@ dReal robot4Sim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     return new_ang;
 }
 
-dReal robot4Sim::D2R( dReal x ) {
+/*dReal robot4Sim::DEG2RAD( dReal x ) {
     return x*M_PI/180;
 }
 
-dReal robot4Sim::R2D( dReal x ) {
+dReal robot4Sim::RAD2DEG( dReal x ) {
     return x/M_PI*180;
-}
+}*/
 
 void robot4Sim::create_fixed_joint(robot4Sim *attach, int face1, int face2) {
     int part1, part2;
@@ -743,9 +743,9 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     // adjust input height by body height
     z += this->body_height/2;
     // convert input angles to radians
-    psi = D2R(psi);         // roll: x
-    theta = D2R(theta);     // pitch: -y
-    phi = D2R(phi);         // yaw: z
+    psi = DEG2RAD(psi);         // roll: x
+    theta = DEG2RAD(theta);     // pitch: -y
+    phi = DEG2RAD(phi);         // yaw: z
 
     // create rotation matrix for robot
     dMatrix3 R;
@@ -878,13 +878,13 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     // adjust input height by body height
     z += this->body_height/2;
     // convert input angles to radians
-    psi = D2R(psi);         // roll: x
-    theta = D2R(theta);     // pitch: -y
-    phi = D2R(phi);         // yaw: z
-    r_le = D2R(r_le);       // left end
-    r_lb = D2R(r_lb);       // left body
-    r_rb = D2R(r_rb);       // right body
-    r_re = D2R(r_re);       // right end
+    psi = DEG2RAD(psi);         // roll: x
+    theta = DEG2RAD(theta);     // pitch: -y
+    phi = DEG2RAD(phi);         // yaw: z
+    r_le = DEG2RAD(r_le);       // left end
+    r_lb = DEG2RAD(r_lb);       // left body
+    r_rb = DEG2RAD(r_rb);       // right body
+    r_re = DEG2RAD(r_re);       // right end
 
     // create rotation matrix for robot
     dMatrix3 R;
@@ -1269,7 +1269,7 @@ void robot4Sim::buildAttached00(robot4Sim *attach, int face1, int face2) {
     this->build(attach->getPosition(0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
                 attach->getPosition(1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
                 attach->getPosition(2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
-                R2D(psi), R2D(theta), R2D(phi));
+                RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi));
 
     // add fixed joint to attach two modules
     this->create_fixed_joint(attach, face1, face2);
@@ -1790,7 +1790,7 @@ void robot4Sim::buildAttached10(robot4Sim *attach, int face1, int face2) {
     this->build(attach->getPosition(0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
                 attach->getPosition(1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
                 attach->getPosition(2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
-                R2D(psi), R2D(theta), R2D(phi));
+                RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi));
 
     // add fixed joint to attach two modules
     this->create_fixed_joint(attach, face1, face2);
@@ -1806,28 +1806,28 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
 
     // rotation of body about fixed point
     if ( face2 == 1 ) {
-        r_e = D2R(r_le);
-        r_b = D2R(r_lb);
+        r_e = DEG2RAD(r_le);
+        r_b = DEG2RAD(r_lb);
     }
     else if ( face2 == 2 ) {
         r_e = 0;
-        r_b = D2R(r_lb);
+        r_b = DEG2RAD(r_lb);
     }
     else if ( face2 == 3 ) {
         r_e = 0;
-        r_b = D2R(r_lb);
+        r_b = DEG2RAD(r_lb);
     }
     else if ( face2 == 4 ) {
         r_e = 0;
-        r_b = D2R(r_rb);
+        r_b = DEG2RAD(r_rb);
     }
     else if ( face2 == 5 ) {
         r_e = 0;
-        r_b = D2R(r_rb);
+        r_b = DEG2RAD(r_rb);
     }
     else if ( face2 == 6 ) {
-        r_e = D2R(r_re);
-        r_b = D2R(r_rb);
+        r_e = DEG2RAD(r_re);
+        r_b = DEG2RAD(r_rb);
     }
 
     if ( face1 == 1 && face2 == 1 ) {
@@ -2338,7 +2338,7 @@ void robot4Sim::buildAttached01(robot4Sim *attach, int face1, int face2, dReal r
     this->build(attach->getPosition(0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
                 attach->getPosition(1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
                 attach->getPosition(2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
-                R2D(psi), R2D(theta), R2D(phi), r_le, r_lb, r_rb, r_re);
+                RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi), r_le, r_lb, r_rb, r_re);
 
     // add fixed joint to attach two modules
     this->create_fixed_joint(attach, face1, face2);
@@ -2354,28 +2354,28 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
 
     // rotation of body about fixed point
     if ( face2 == 1 ) {
-        r_e = D2R(r_le);
-        r_b = D2R(r_lb);
+        r_e = DEG2RAD(r_le);
+        r_b = DEG2RAD(r_lb);
     }
     else if ( face2 == 2 ) {
         r_e = 0;
-        r_b = D2R(r_lb);
+        r_b = DEG2RAD(r_lb);
     }
     else if ( face2 == 3 ) {
         r_e = 0;
-        r_b = D2R(r_lb);
+        r_b = DEG2RAD(r_lb);
     }
     else if ( face2 == 4 ) {
         r_e = 0;
-        r_b = D2R(r_rb);
+        r_b = DEG2RAD(r_rb);
     }
     else if ( face2 == 5 ) {
         r_e = 0;
-        r_b = D2R(r_rb);
+        r_b = DEG2RAD(r_rb);
     }
     else if ( face2 == 6 ) {
-        r_e = D2R(r_re);
-        r_b = D2R(r_rb);
+        r_e = DEG2RAD(r_re);
+        r_b = DEG2RAD(r_rb);
     }
 
     if ( face1 == 1 && face2 == 1 ) {
@@ -3078,7 +3078,7 @@ void robot4Sim::buildAttached11(robot4Sim *attach, int face1, int face2, dReal r
     this->build(attach->getPosition(0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
                 attach->getPosition(1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
                 attach->getPosition(2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
-                R2D(psi), R2D(theta), R2D(phi), r_le, r_lb, r_rb, r_re);
+                RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi), r_le, r_lb, r_rb, r_re);
 
     // add fixed joint to attach two modules
     this->create_fixed_joint(attach, face1, face2);
@@ -3268,7 +3268,7 @@ void robot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
 	iMobotSim Class
  **********************************************************/
 iMobotSim::iMobotSim(void) {
-	this->m_motor_res = D2R(0.5);
+	this->m_motor_res = DEG2RAD(0.5);
 	this->m_joint_vel_max[IMOBOT_JOINT1] = 6.70;
 	this->m_joint_vel_max[IMOBOT_JOINT2] = 2.61;
 	this->m_joint_vel_max[IMOBOT_JOINT3] = 2.61;
@@ -3300,7 +3300,7 @@ iMobotSim::iMobotSim(void) {
 	mobotSim Class
  **********************************************************/
 mobotSim::mobotSim(void) {
-	this->m_motor_res = D2R(0.5);
+	this->m_motor_res = DEG2RAD(0.5);
 	this->m_joint_vel_max[MOBOT_JOINT1] = 6.70;
 	this->m_joint_vel_max[MOBOT_JOINT2] = 2.61;
 	this->m_joint_vel_max[MOBOT_JOINT3] = 2.61;
