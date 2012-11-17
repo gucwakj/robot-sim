@@ -102,21 +102,20 @@ class robot4Sim : virtual private robotSim {
 		};
 
 		// private member variables
-		dWorldID world;				// world for all robots
-		dSpaceID space;				// space for this robot
-		dBodyID body[5];			// body parts
-		dGeomID *geom[5];			// geometries of each body part
-		dJointID motor[4];			// motors
-		dJointID joint[6];			// joints between body parts
-		PID pid[4];					// PID control for each joint
-		mobotJointState_t state[4];	// states
-		dReal angle[4];				// angles
-		dReal velocity[4];			// velocities
-		dReal goal[4];				// goals
-		dReal position[3];			// initial position
-		dReal rotation[3];			// initial rotation
-		dReal orientation[4];		// initial joint orientation
-		bool success[4];			// trigger for goal
+		dWorldID world;						// world for all robots
+		dSpaceID space;						// space for this robot
+		dBodyID body[NUM_PARTS];			// body parts
+		dGeomID *geom[NUM_PARTS];			// geometries of each body part
+		dJointID motor[NUM_DOF];			// motors
+		dJointID joint[6];					// joints between body parts
+		PID pid[NUM_DOF];					// PID control for each joint
+		mobotJointState_t state[NUM_DOF];	// states
+		dReal angle[NUM_DOF];				// angles
+		dReal velocity[NUM_DOF];			// velocities
+		dReal goal[NUM_DOF];				// goals
+		dReal rotation[3];					// initial rotation
+		dReal orientation[NUM_DOF];			// initial joint orientation
+		bool success[NUM_DOF];				// trigger for goal
 
 		// private functions inherited from robotSim class
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
@@ -151,8 +150,8 @@ class robot4Sim : virtual private robotSim {
 				body_length, body_width, body_height, body_radius,
 				body_inner_width_left, body_inner_width_right, body_end_depth, body_mount_center,
 				end_width, end_height, end_depth, end_radius;
-		dReal m_joint_vel_max[4];
-		dReal m_joint_frc_max[4];
+		dReal m_joint_vel_max[NUM_DOF];
+		dReal m_joint_frc_max[NUM_DOF];
 };
 
 class mobotSim : public robot4Sim {

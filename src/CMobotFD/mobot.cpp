@@ -558,11 +558,17 @@ bool robot4Sim::getSuccess(int i) {
 }
 
 dReal robot4Sim::getPosition(int i) {
-    return this->position[i];
+	const dReal *pos = dBodyGetPosition(this->body[CENTER]);
+	return pos[i];
 }
 
 dReal robot4Sim::getRotation(int i) {
-    return this->rotation[i];
+	/*const dReal *rot = dBodyGetRotation(this->body[CENTER]);
+	dReal *rot2 = rot;
+	dReal angles[3] = {0};
+	extract_euler_angles(const_cast<dReal>rot2, angles[0], angles[1], angles[2]);
+	return angles[i];*/
+	return this->rotation[i];
 }
 
 dBodyID robot4Sim::getBodyID(int id) {
@@ -632,14 +638,6 @@ dReal robot4Sim::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
 
     return new_ang;
 }
-
-/*dReal robot4Sim::DEG2RAD( dReal x ) {
-    return x*M_PI/180;
-}
-
-dReal robot4Sim::RAD2DEG( dReal x ) {
-    return x/M_PI*180;
-}*/
 
 void robot4Sim::create_fixed_joint(robot4Sim *attach, int face1, int face2) {
     int part1, part2;
@@ -766,9 +764,6 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 
     // store position and rotation of center of module
-    this->position[0] = x;
-    this->position[1] = y;
-    this->position[2] = z - this->body_height/2;
     this->rotation[0] = psi;
     this->rotation[1] = theta;
     this->rotation[2] = phi;
@@ -891,12 +886,6 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->create_rotation_matrix(R, psi, theta, phi);
 
     // store initial body angles into array
-    /*this->cur_ang[LE] = r_le;
-    this->cur_ang[LB] = r_lb;
-    this->cur_ang[RB] = r_rb;
-    this->cur_ang[RE] = r_re;
-    this->fut_ang[LE] += r_le;
-    this->fut_ang[RE] += r_re;*/
     this->angle[LE] = r_le;
     this->angle[LB] = r_lb;
     this->angle[RB] = r_rb;
@@ -916,9 +905,6 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 
     // store position and rotation of center of module
-    this->position[0] = x;
-    this->position[1] = y;
-    this->position[2] = z - this->body_height/2;
     this->rotation[0] = psi;
     this->rotation[1] = theta;
     this->rotation[2] = phi;
