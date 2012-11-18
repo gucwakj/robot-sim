@@ -1,9 +1,9 @@
 #include <iostream>
-#include "mobotfd.h"
+#include "irse.h"
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CMobotFD fd;
+	IRSE fd;
 	iMobotSim robot1, robot2;
 
 	fd.addiMobot(robot1);

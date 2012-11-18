@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
-project(CMobotFD)
+project(IRSE)
 
 # Set the version number
-set(CMobotFD_VERSION_MAJOR 0)
-set(CMobotFD_VERSION_MINOR 1)
+set(IRSE_VERSION_MAJOR 0)
+set(IRSE_VERSION_MINOR 1)
 
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)
@@ -47,11 +47,11 @@ if (OPENGL_FOUND)
 endif (OPENGL_FOUND)
 
 # Add the library
-add_library( mobotfd SHARED
-	mobotfd.cpp
+add_library( irse SHARED
+	irse.cpp
 	graphics.cpp
 	mobot.cpp
 	robot.cpp
 	pid.cpp
 )
-target_link_libraries(mobotfd ode ${EXTRA_LIBS} rt)
+target_link_libraries(irse ode ${EXTRA_LIBS} rt)

@@ -1,0 +1,544 @@
+#include <stdbool.h>
+#include "irse.h"
+using namespace std;
+
+IRSE::IRSE(void) {
+    // create ODE simulation space
+    dInitODE2(0);										// initialized ode library
+    _world = dWorldCreate();							// create world for simulation
+    _space = dHashSpaceCreate(0);						// create space for robots
+    _group = dJointGroupCreate(0);						// create group for joints
+	_ground = new dGeomID[1];							// create array for ground objects
+	_ground[0] = dCreatePlane(_space, 0, 0, 1, 0);		// create ground plane
+
+    // simulation parameters
+    dWorldSetAutoDisableFlag(_world, 1);				// auto-disable bodies that are not moving
+    dWorldSetAutoDisableAngularThreshold(_world, 0.01);	// threshold velocity for defining movement
+    dWorldSetAutoDisableLinearThreshold(_world, 0.01);	// linear velocity threshold
+    dWorldSetAutoDisableSteps(_world, 4);				// number of steps below thresholds before stationary
+    dWorldSetCFM(_world, 0.0000000001);					// constraint force mixing - how much a joint can be violated by excess force
+    dWorldSetContactSurfaceLayer(_world, 0.001);		// depth each body can sink into another body before resting
+    dWorldSetERP(_world, 0.95);							// error reduction parameter (0-1) - how much error is corrected on each step
+    dWorldSetGravity(_world, 0, 0, -9.81);				// gravity
+
+	// default collision parameters
+	_mu[0] = 0.4;	_mu[1] = 0.3;
+	_cor[0] = 0.3;	_cor[1] = 0.3;
+
+	// thread variables
+	pthread_create(&_simulation, NULL, (void* (*)(void *))&IRSE::simulationThread, (void *)this);
+	pthread_mutex_init(&_robot_mutex, NULL);
+	pthread_mutex_init(&_ground_mutex, NULL);
+
+	// variables to keep track of progress of simulation
+	for ( int i = 0; i < NUM_TYPES; i++ ) {
+		_robot[i] = NULL;
+		_robotNumber[i] = 0;
+		_robotThread[i] = NULL;
+	}
+	_groundNumber = 1;
+    _step = 0.004;
+
+	graphics_init();
+}
+
+IRSE::~IRSE(void) {
+	//delete [] _ground;
+	for ( int i = 0; i < NUM_TYPES; i++) {
+		//delete [] _robot[i];
+		//delete [] _robotThread[i];
+	}
+	//delete [] _robot;
+	//delete [] _robotThread;
+
+	// destroy all ODE objects
+	dJointGroupDestroy(_group);
+	dSpaceDestroy(_space);
+	dWorldDestroy(_world);
+	dCloseODE();
+}
+
+int IRSE::graphics_init(void) {
+	// window traits
+    osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+    traits->x = 200;
+    traits->y = 200;
+    traits->width = 800;
+    traits->height = 600;
+    traits->windowDecoration = true;
+    traits->doubleBuffer = true;
+    traits->sharedContext = 0;
+    osg::ref_ptr<osg::GraphicsContext> gc = osg::GraphicsContext::createGraphicsContext(traits.get());
+    osgViewer::GraphicsWindow* gw = dynamic_cast<osgViewer::GraphicsWindow*>(gc.get());
+    if (!gw) {
+		osg::notify(osg::NOTICE)<<"Error: unable to create graphics window."<<std::endl;
+		return 1;
+    }
+
+    // Creating the viewer  
+	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
+    viewer->getCamera()->setGraphicsContext(gc.get());
+    viewer->getCamera()->setViewport(0,0,800,600);
+
+    // Creating the root node
+	_osgRoot = new osg::Group();
+
+	// test array of modules
+	/*osg::ref_ptr<osg::Geode> mobotBody[5];
+	osg::ref_ptr<osg::PositionAttitudeTransform> mobotBodyPAT[5];
+	for ( int i = 0; i < 5; i++ ) {
+		mobotBody[i] = new osg::Geode;
+		mobotBodyPAT[i] = new osg::PositionAttitudeTransform;
+		mobotBody[i]->addDrawable(new osg::ShapeDrawable(new osg::Capsule(osg::Vec3f(),1,2)));
+		mobotBodyPAT[i]->addChild(mobotBody[i].get());
+		mobotBodyPAT[i]->setPosition(osg::Vec3f(0.1+i,0.5+i,0.3+i));
+		mobotBodyPAT[i]->setUpdateCallback(new iMobotNodeCallback(this, 0, i));
+		_osgRoot->addChild(mobotBodyPAT[i].get());
+    }*/
+
+	// loading a body part from part file
+    //osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("body.stl");
+	//_osgRoot->addChild(terrainnode.get());
+
+	// load the terrain node
+	osg::ref_ptr<osg::MatrixTransform> terrainScaleMat = new osg::MatrixTransform();
+	osg::Matrix terrainScaleMatrix;
+	terrainScaleMatrix.makeScale(0.05f,0.05f,0.03f);
+	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("Terrain2.3ds");
+	terrainScaleMat->addChild(terrainnode.get());
+	terrainScaleMat->setMatrix(terrainScaleMatrix);
+	_osgRoot->addChild(terrainScaleMat.get());
+
+    // Event Handlers
+    //viewer->addEventHandler( new osgGA::StateSetManipulator(viewer->getCamera()->getOrCreateStateSet()) );
+
+    // Set viewable
+    //viewer->setSceneData(_osgRoot.get());
+    viewer->setSceneData(_osgRoot);
+	_osgThread = new ViewerFrameThread(viewer.get(), true);
+	_osgThread->startThread();
+
+	return 0;
+}
+
+/**********************************************************
+	Public Member Functions
+ **********************************************************/
+void IRSE::setCOR(dReal cor_g, dReal cor_b) {
+	_cor[0] = cor_g;
+	_cor[1] = cor_b;
+}
+
+void IRSE::setMu(dReal mu_g, dReal mu_b) {
+	_mu[0] = mu_g;
+	_mu[1] = mu_b;
+}
+
+void IRSE::setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+	// lock ground objects
+	pthread_mutex_lock(&_ground_mutex);
+
+	// resize ground array
+	_ground = (dGeomID *)realloc(_ground, (_groundNumber + 1)*sizeof(dGeomID));
+
+    // create rotation matrix
+    dMatrix3 R, R_x, R_y, R_z, R_xy;
+    dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+    dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+    dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+    dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+    dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+    // position box
+	_ground[_groundNumber] = dCreateBox(_space, lx, ly, lz);
+	dGeomSetPosition(_ground[_groundNumber], px, py, pz);
+	dGeomSetRotation(_ground[_groundNumber++], R);
+
+	// unlock ground objects
+	pthread_mutex_unlock(&_ground_mutex);
+}
+
+void IRSE::setGroundCapsule(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+	// lock ground objects
+	pthread_mutex_lock(&_ground_mutex);
+
+	// resize ground array
+	_ground = (dGeomID *)realloc(_ground, (_groundNumber + 1)*sizeof(dGeomID));
+
+    // create rotation matrix
+    dMatrix3 R, R_x, R_y, R_z, R_xy;
+    dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+    dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+    dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+    dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+    dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+    // position capsule
+    _ground[_groundNumber] = dCreateCapsule(_space, r, l);
+    dGeomSetPosition(_ground[_groundNumber], px, py, pz);
+    dGeomSetRotation(_ground[_groundNumber++], R);
+
+	// unlock ground objects
+	pthread_mutex_unlock(&_ground_mutex);
+}
+
+void IRSE::setGroundCylinder(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+	// lock ground objects
+	pthread_mutex_lock(&_ground_mutex);
+
+	// resize ground array
+	_ground = (dGeomID *)realloc(_ground, (_groundNumber + 1)*sizeof(dGeomID));
+
+    // create rotation matrix
+    dMatrix3 R, R_x, R_y, R_z, R_xy;
+    dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
+    dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
+    dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
+    dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+    dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+    // position cylinder
+    _ground[_groundNumber] = dCreateCylinder(_space, r, l);
+    dGeomSetPosition(_ground[_groundNumber], px, py, pz);
+    dGeomSetRotation(_ground[_groundNumber++], R);
+
+	// unlock ground objects
+	pthread_mutex_unlock(&_ground_mutex);
+}
+
+void IRSE::setGroundSphere(dReal r, dReal px, dReal py, dReal pz) {
+	// lock ground objects
+	pthread_mutex_lock(&_ground_mutex);
+
+	// resize ground array
+	_ground = (dGeomID *)realloc(_ground, (_groundNumber + 1)*sizeof(dGeomID));
+
+	// position sphere
+    _ground[_groundNumber] = dCreateSphere(_space, r);
+    dGeomSetPosition(_ground[_groundNumber++], px, py, pz);
+
+	// unlock ground objects
+	pthread_mutex_unlock(&_ground_mutex);
+}
+
+/**********************************************************
+	Private Simulation Functions
+ **********************************************************/
+void* IRSE::simulationThread(void *arg) {
+	// cast to type sim 
+	IRSE *sim = (IRSE *)arg;
+
+	// initialize local variables
+	//struct timespec cur_time, itime;
+	//unsigned int dt;
+	int i, j;
+
+	while (1) {
+		// lock array of robots for sim step
+		pthread_mutex_lock(&(sim->_robot_mutex));
+
+		// get start time of execution
+		//clock_gettime(CLOCK_REALTIME, &cur_time);
+
+		// perform pre-collision updates
+		//  - lock angle and goal
+		//  - update angles 
+		for (i = 0; i < NUM_TYPES; i++) {
+			for (j = 0; j < sim->_robotNumber[i]; j++) {
+				pthread_create(&(sim->_robotThread[i][j]), NULL, (void* (*)(void *))&robotSim::simPreCollisionThreadEntry, (void *)(sim->_robot[i][j]));
+				pthread_join(sim->_robotThread[i][j], NULL);
+			}
+		}
+
+		// step world
+		pthread_mutex_lock(&(sim->_ground_mutex));			// lock ground objects
+		dSpaceCollide(sim->_space, sim, &sim->collision);	// collide all geometries together
+		dWorldStep(sim->_world, sim->_step);				// step world time by one
+		dJointGroupEmpty(sim->_group);						// clear out all contact joints
+		pthread_mutex_unlock(&(sim->_ground_mutex));		// unlock ground objects
+
+		sim->print_intermediate_data();
+
+		// perform post-collision updates
+		//  - unlock angle and goal
+		//  - check if success 
+		for (i = 0; i < NUM_TYPES; i++) {
+			for (j = 0; j < sim->_robotNumber[i]; j++) {
+				pthread_create(&(sim->_robotThread[i][j]), NULL, (void* (*)(void *))&robotSim::simPostCollisionThreadEntry, (void *)(sim->_robot[i][j]));
+				pthread_join(sim->_robotThread[i][j], NULL);
+			}
+		}
+
+		// check end time of execution
+		//clock_gettime(CLOCK_REALTIME, &itime);
+		// sleep until next step
+		//dt = diff_nsecs(cur_time, itime);
+		//if ( dt < 500000 ) { usleep(500 - dt/1000); }
+
+		// unlock array of robots to allow another to be 
+		pthread_mutex_unlock(&(sim->_robot_mutex));
+	}
+	//free(sim);
+}
+
+void IRSE::collision(void *data, dGeomID o1, dGeomID o2) {
+	// cast void pointer to pointer to class
+	IRSE *ptr = (IRSE *)data;
+
+	// get bodies of geoms
+	dBodyID b1 = dGeomGetBody(o1);
+	dBodyID b2 = dGeomGetBody(o2);
+
+	// if geom bodies are connected, do not intersect
+	if ( b1 && b2 && dAreConnected(b1, b2) ) return;
+
+	// special case for collision of spaces
+	if (dGeomIsSpace(o1) || dGeomIsSpace(o2)) {
+		dSpaceCollide2(o1, o2, ptr, &ptr->collision);
+		if ( dGeomIsSpace(o1) )	dSpaceCollide((dSpaceID)o1, ptr, &ptr->collision);
+		if ( dGeomIsSpace(o2) ) dSpaceCollide((dSpaceID)o2, ptr, &ptr->collision);
+	}
+	else {
+		dContact contact[8];
+		for ( int i = 0; i < dCollide(o1, o2, 8, &contact[0].geom, sizeof(dContact)); i++ ) {
+			if ( dGeomGetSpace(o1) == ptr->_space || dGeomGetSpace(o2) == ptr->_space ) {
+				contact[i].surface.mu = ptr->_mu[0];
+				contact[i].surface.bounce = ptr->_cor[0];
+			}
+			else {
+				contact[i].surface.mu = ptr->_mu[1];
+				contact[i].surface.bounce = ptr->_cor[1];
+			}
+			contact[i].surface.mode = dContactBounce | dContactApprox1;
+			dJointAttach( dJointCreateContact(ptr->_world, ptr->_group, contact + i), b1, b2);
+		}
+	}
+}
+
+void IRSE::print_intermediate_data(void) {
+	// initialze loop counters
+	int i;
+
+    cout.width(10);		// cout.precision(4);
+    cout.setf(ios::fixed, ios::floatfield);
+	for (i = 0; i < _robotNumber[IMOBOT]; i++) {
+		//cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT1) << " ";
+		//cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT2) << " ";
+		//cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT3) << " ";
+		//cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT4) << "\t";
+		cout << _robot[IMOBOT][i]->getPosition(2, 0) << " ";
+		cout << _robot[IMOBOT][i]->getPosition(2, 1) << " ";
+		cout << _robot[IMOBOT][i]->getPosition(2, 2) << "\t";
+		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
+		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
+		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";
+		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT4) << "\t";
+	}
+	cout << endl;
+}
+
+/**********************************************************
+	Build iMobot Functions
+ **********************************************************/
+void IRSE::addiMobot(iMobotSim &imobot) {
+	this->addiMobot(imobot, 0, 0, 0);
+}
+
+void IRSE::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z) {
+	this->addiMobot(imobot, x, y, z, 0, 0, 0);
+}
+
+void IRSE::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&_robot_mutex);
+	// add new imobot
+	_robot[IMOBOT] =  (robotSim **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
+	_robot[IMOBOT][_robotNumber[IMOBOT]] = &imobot;
+	// add imobot to simulation
+	_robot[IMOBOT][_robotNumber[IMOBOT]]->simAddRobot(_world, _space);
+	// create new thread array for imobots
+	delete _robotThread[IMOBOT];
+	_robotThread[IMOBOT] = new pthread_t[_robotNumber[IMOBOT]];
+	// build new imobot geometry
+	_robot[IMOBOT][_robotNumber[IMOBOT]++]->build(x, y, z, psi, theta, phi);
+	// unlock robot data
+	pthread_mutex_unlock(&_robot_mutex);
+}
+
+void IRSE::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&_robot_mutex);
+	// add new imobot
+	_robot[IMOBOT] =  (robotSim **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
+	_robot[IMOBOT][_robotNumber[IMOBOT]] = &imobot;
+	// add imobot to simulation
+	_robot[IMOBOT][_robotNumber[IMOBOT]]->simAddRobot(_world, _space);
+	// create new thread array for imobots
+	delete _robotThread[IMOBOT];
+	_robotThread[IMOBOT] = new pthread_t[_robotNumber[IMOBOT]];
+	// build new imobot geometry
+	_robot[IMOBOT][_robotNumber[IMOBOT]++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
+	// unlock robot data
+	pthread_mutex_unlock(&_robot_mutex);
+}
+
+void IRSE::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2) {
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&_robot_mutex);
+	// add new imobot
+	_robot[IMOBOT] =  (robotSim **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
+	_robot[IMOBOT][_robotNumber[IMOBOT]] = &imobot;
+	// add imobot to simulation
+	_robot[IMOBOT][_robotNumber[IMOBOT]]->simAddRobot(_world, _space);
+	// create new thread array for imobots
+	delete _robotThread[IMOBOT];
+	_robotThread[IMOBOT] = new pthread_t[_robotNumber[IMOBOT]];
+	// build new imobot geometry
+	if ( base.isHome() )
+		_robot[IMOBOT][_robotNumber[IMOBOT]++]->buildAttached00(&base, face1, face2);
+	else
+		_robot[IMOBOT][_robotNumber[IMOBOT]++]->buildAttached10(&base, face1, face2);
+	// unlock robot data
+	pthread_mutex_unlock(&_robot_mutex);
+}
+
+void IRSE::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&_robot_mutex);
+	// add new imobot
+	_robot[IMOBOT] =  (robotSim **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
+	_robot[IMOBOT][_robotNumber[IMOBOT]] = &imobot;
+	// add imobot to simulation
+	_robot[IMOBOT][_robotNumber[IMOBOT]]->simAddRobot(_world, _space);
+	// create new thread array for imobots
+	delete _robotThread[IMOBOT];
+	_robotThread[IMOBOT] = new pthread_t[_robotNumber[IMOBOT]];
+	// build new imobot geometry
+	if ( base.isHome() )
+		_robot[IMOBOT][_robotNumber[IMOBOT]++]->buildAttached01(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+	else
+		_robot[IMOBOT][_robotNumber[IMOBOT]++]->buildAttached11(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+	// unlock robot data
+	pthread_mutex_unlock(&_robot_mutex);
+}
+
+/*void IRSE::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+    if ( end == ENDCAP_L )
+        this->addiMobot(botNum, x + IMOBOT_END_DEPTH + IMOBOT_BODY_END_DEPTH + IMOBOT_BODY_LENGTH + 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
+    else
+        this->addiMobot(botNum, x - IMOBOT_END_DEPTH - IMOBOT_BODY_END_DEPTH - IMOBOT_BODY_LENGTH - 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
+
+    // add fixed joint to attach 'END' to static environment
+    dJointID joint = dJointCreateFixed(_world, 0);
+    dJointAttach(joint, 0, this->bot[botNum]->getBodyID(end));
+    dJointSetFixed(joint);
+    dJointSetFixedParam(joint, dParamCFM, 0);
+    dJointSetFixedParam(joint, dParamERP, 0.9);
+}*/
+
+/**********************************************************
+	Build Mobot Functions
+ **********************************************************/
+void IRSE::addMobot(mobotSim &mobot) {
+	this->addMobot(mobot, 0, 0, 0);
+}
+
+void IRSE::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z) {
+	this->addMobot(mobot, x, y, z, 0, 0, 0);
+}
+
+void IRSE::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&_robot_mutex);
+	// add new imobot
+	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
+	_robot[MOBOT][_robotNumber[MOBOT]] = &mobot;
+	// add mobot to simulation
+	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space);
+	// create new thread array for imobots
+	delete _robotThread[MOBOT];
+	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
+	// build new mobot geometry
+	_robot[MOBOT][_robotNumber[MOBOT]++]->build(x, y, z, psi, theta, phi);
+	// unlock robot data
+	pthread_mutex_unlock(&_robot_mutex);
+}
+
+void IRSE::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&_robot_mutex);
+	// add new imobot
+	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
+	_robot[MOBOT][_robotNumber[MOBOT]] = &mobot;
+	// add mobot to simulation
+	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space);
+	// create new thread array for imobots
+	delete _robotThread[MOBOT];
+	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
+	// build new mobot geometry
+	_robot[MOBOT][_robotNumber[MOBOT]++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
+	// unlock robot data
+	pthread_mutex_unlock(&_robot_mutex);
+}
+
+void IRSE::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2) {
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&_robot_mutex);
+	// add new imobot
+	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
+	_robot[MOBOT][_robotNumber[MOBOT]] = &mobot;
+	// add mobot to simulation
+	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space);
+	// create new thread array for imobots
+	delete _robotThread[MOBOT];
+	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
+	// build new mobot geometry
+	if ( base.isHome() )
+		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached00(&base, face1, face2);
+	else
+		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached10(&base, face1, face2);
+	// unlock robot data
+	pthread_mutex_unlock(&_robot_mutex);
+}
+
+void IRSE::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&_robot_mutex);
+	// add new imobot
+	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
+	_robot[MOBOT][_robotNumber[MOBOT]] = &mobot;
+	// add mobot to simulation
+	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space);
+	// create new thread array for imobots
+	delete _robotThread[MOBOT];
+	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
+	// build new mobot geometry
+	if ( base.isHome() )
+		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached01(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+	else
+		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached11(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+	// unlock robot data
+	pthread_mutex_unlock(&_robot_mutex);
+}
+
+/*void IRSE::MobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+    if ( end == ENDCAP_L )
+        this->addMobot(botNum, x + IMOBOT_END_DEPTH + IMOBOT_BODY_END_DEPTH + IMOBOT_BODY_LENGTH + 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
+    else
+        this->addMobot(botNum, x - IMOBOT_END_DEPTH - IMOBOT_BODY_END_DEPTH - IMOBOT_BODY_LENGTH - 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
+
+    // add fixed joint to attach 'END' to static environment
+    dJointID joint = dJointCreateFixed(_world, 0);
+    dJointAttach(joint, 0, this->bot[botNum]->getBodyID(end));
+    dJointSetFixed(joint);
+    dJointSetFixedParam(joint, dParamCFM, 0);
+    dJointSetFixedParam(joint, dParamERP, 0.9);
+}*/
+
+/**********************************************************
+	Utility Functions
+ **********************************************************/
+// get difference in two time stamps in nanoseconds
+unsigned int IRSE::diff_nsecs(struct timespec t1, struct timespec t2) {
+	return (t2.tv_sec - t1.tv_sec) * 1000000000 + (t2.tv_nsec - t1.tv_nsec);
+}
