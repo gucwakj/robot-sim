@@ -88,11 +88,11 @@ int IRSE::graphics_init(void) {
 		return 1;
 	}
     viewer->getCamera()->setGraphicsContext(gc.get());
-	viewer->getCamera()->setProjectionMatrix(osg::Matrix::identity());
-	viewer->getCamera()->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
-	//viewer->getCamera()->setViewMatrix(osg::Matrix::identity());
-	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 1, 0));
     viewer->getCamera()->setViewport(0, 0, traits->width, traits->height);
+	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(20, 20, 40), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 1, 0));
+	// set up the camera manipulators.
+	viewer->setCameraManipulator(new osgGA::TerrainManipulator);
+	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(20, 20, 40), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 1, 0));
 
     // Creating the root node
 	_osgRoot = new osg::Group();
@@ -115,8 +115,6 @@ int IRSE::graphics_init(void) {
     viewer->addEventHandler(new osgViewer::WindowSizeHandler);
     // add the stats handler
     viewer->addEventHandler(new osgViewer::StatsHandler);
-	// set up the camera manipulators.
-	viewer->setCameraManipulator(new osgGA::TerrainManipulator);
 
 	// optimize the scene graph, remove redundant nodes and state etc.
 	osgUtil::Optimizer optimizer;
