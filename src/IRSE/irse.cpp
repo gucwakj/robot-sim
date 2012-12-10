@@ -89,10 +89,10 @@ int IRSE::graphics_init(void) {
 	}
     viewer->getCamera()->setGraphicsContext(gc.get());
     viewer->getCamera()->setViewport(0, 0, traits->width, traits->height);
-	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(20, 20, 40), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 1, 0));
-	// set up the camera manipulators.
+	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(20, -20, 40), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	// set up the camera manipulators
 	viewer->setCameraManipulator(new osgGA::TerrainManipulator);
-	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(20, 20, 40), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 1, 0));
+	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(20, -20, 40), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
     // Creating the root node
 	_osgRoot = new osg::Group();
@@ -544,40 +544,6 @@ void IRSE::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int fac
     dJointSetFixed(joint);
     dJointSetFixedParam(joint, dParamCFM, 0);
     dJointSetFixedParam(joint, dParamERP, 0.9);
-}*/
-
-/**********************************************************
-	Drawing Functions
- **********************************************************/
-/*void IRSE::drawiMobot(int number) {
-	osg::ref_ptr<osg::Node> mobotBody[5];
-	osg::ref_ptr<osg::PositionAttitudeTransform> mobotBodyPAT[5];
-	const dReal *ode_pos;
-	osg::Vec3f osg_pos; 
-    mobotBody[0] = osgDB::readNodeFile("body1.stl");
-    mobotBody[1] = osgDB::readNodeFile("body2.stl");
-    mobotBody[2] = osgDB::readNodeFile("body3.stl");
-    mobotBody[3] = osgDB::readNodeFile("body4.stl");
-    mobotBody[4] = osgDB::readNodeFile("body5.stl");
-	for (int i = 0; i < 5; i++) {
-		mobotBodyPAT[i] = new osg::PositionAttitudeTransform;
-		mobotBodyPAT[i]->addChild(mobotBody[i].get());
-		ode_pos = dBodyGetPosition(_robot[IMOBOT][number]->getBodyID(i));
-		osg_pos = osg::Vec3f(ode_pos[0], ode_pos[1], ode_pos[2]);
-		mobotBodyPAT[i]->setPosition(osg_pos);
-		mobotBodyPAT[i]->setUpdateCallback(new iMobotNodeCallback(this, number, i));
-		_osgRoot->addChild(mobotBodyPAT[i].get());
-	}
-	osg::ref_ptr<osg::Node> body = osgDB::readNodeFile("body.stl");
-	osg::ref_ptr<osg::PositionAttitudeTransform> mobotBodyPAT = new osg::PositionAttitudeTransform;
-	mobotBodyPAT->addChild(body.get());
-	const dReal *ode_pos = dBodyGetPosition(_robot[IMOBOT][number]->getBodyID(0));
-	osg::Vec3f osg_pos = osg::Vec3f(ode_pos[0], ode_pos[1], ode_pos[2]);
-	mobotBodyPAT->setPosition(osg_pos);
-	mobotBodyPAT->setUpdateCallback(new iMobotNodeCallback(this, number, 0));
-	_osgRoot->addChild(mobotBodyPAT.get());
-	
-    //osg::ref_ptr<osg::Node> body = osgDB::readNodeFile("body.stl");
 }*/
 
 /**********************************************************

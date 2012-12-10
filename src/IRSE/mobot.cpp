@@ -552,27 +552,28 @@ void robot4Sim::simAddRobot(dWorldID &world, dSpaceID &space) {
 }
 
 void robot4Sim::draw(osg::Group *root) {
+	// initialize variables
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
 	osg::ref_ptr<osg::Node> body[5];
-	osg::ref_ptr<osg::PositionAttitudeTransform> bodyPAT[5];
-	const dReal *ode_pos;
-	osg::Vec3f osg_pos; 
-    body[0] = osgDB::readNodeFile("body1.stl");
-    //body[1] = osgDB::readNodeFile("body2.stl");
-    //body[2] = osgDB::readNodeFile("body3.stl");
-    //body[3] = osgDB::readNodeFile("body4.stl");
-    //body[4] = osgDB::readNodeFile("body5.stl");
-	robot->setUpdateCallback(new robot4NodeCallback(this));
-	for (int i = 0; i < 5; i++) {
-		bodyPAT[i] = new osg::PositionAttitudeTransform;
-		bodyPAT[i]->addChild(body[i].get());
-		ode_pos = dBodyGetPosition(_body[i]);
-		osg_pos = osg::Vec3f(ode_pos[0], ode_pos[1], ode_pos[2]);
-		bodyPAT[i]->setPosition(osg_pos);
-		robot->addChild(bodyPAT[i].get());
-		//mobotBodyPAT[i]->setUpdateCallback(new iMobotNodeCallback(this, number, i));
-		//_osgRoot->addChild(mobotBodyPAT[i].get());
+	osg::ref_ptr<osg::PositionAttitudeTransform> pat[5];
+	const dReal *pos, *quat;
+
+	// load nodes
+    body[ENDCAP_L] = osgDB::readNodeFile("body1.stl");
+    //body[BODY_L] = osgDB::readNodeFile("body2.stl");
+    //body[CENTER] = osgDB::readNodeFile("body3.stl");
+    //body[BODY_R] = osgDB::readNodeFile("body4.stl");
+    //body[ENDCAP_R] = osgDB::readNodeFile("body5.stl");
+	for (int i = 0; i < NUM_PARTS; i++) {
+		pat[i] = new osg::PositionAttitudeTransform;
+		pat[i]->addChild(body[i].get());
+		pos = dBodyGetPosition(_body[i]);
+		quat = dBodyGetQuaternion(_body[i]);
+		pat[i]->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
+		pat[i]->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+		robot->addChild(pat[i].get());
 	}
+	robot->setUpdateCallback(new robot4NodeCallback(this));
 	root->addChild(robot);
 }
 
