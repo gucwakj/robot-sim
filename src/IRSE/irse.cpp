@@ -59,62 +59,71 @@ IRSE::~IRSE(void) {
 }
 
 int IRSE::graphics_init(void) {
-	// window traits
-    osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
-    traits->x = 200;
-    traits->y = 200;
-    traits->width = 800;
-    traits->height = 600;
-    traits->windowDecoration = true;
-    traits->doubleBuffer = true;
-    traits->sharedContext = 0;
-    osg::ref_ptr<osg::GraphicsContext> gc = osg::GraphicsContext::createGraphicsContext(traits.get());
-    osgViewer::GraphicsWindow* gw = dynamic_cast<osgViewer::GraphicsWindow*>(gc.get());
-    if (!gw) {
-		osg::notify(osg::NOTICE)<<"Error: unable to create graphics window."<<std::endl;
-		return 1;
-    }
-
     // Creating the viewer  
 	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
+
+	// window traits
+	osg::GraphicsContext::WindowingSystemInterface *wsi = osg::GraphicsContext::getWindowingSystemInterface();
+	if (!wsi) {
+		osg::notify(osg::NOTICE)<<"View::setUpViewAcrossAllScreens() : Error, no WindowSystemInterface available, cannot create windows."<<endl;
+		return 1;
+	}
+    osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+	traits->x = 250;
+	traits->y = 200;
+	traits->width = 800;
+	traits->height = 600;
+	traits->windowDecoration = true;
+	traits->doubleBuffer = true;
+	traits->sharedContext = 0;
+	osg::ref_ptr<osg::GraphicsContext> gc = osg::GraphicsContext::createGraphicsContext(traits.get());
+	if (gc.valid()) {
+		// need to ensure that the window is cleared make sure that the complete window is set the correct colour
+		// rather than just the parts of the window that are under the camera's viewports
+		gc->setClearColor(osg::Vec4f(0.2f,0.2f,0.6f,1.0f));
+		gc->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+	else {
+		osg::notify(osg::NOTICE)<<"  GraphicsWindow has not been created successfully."<<endl;
+		return 1;
+	}
     viewer->getCamera()->setGraphicsContext(gc.get());
-    viewer->getCamera()->setViewport(0,0,800,600);
+	viewer->getCamera()->setProjectionMatrix(osg::Matrix::identity());
+	viewer->getCamera()->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
+	//viewer->getCamera()->setViewMatrix(osg::Matrix::identity());
+	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 1, 0));
+    viewer->getCamera()->setViewport(0, 0, traits->width, traits->height);
 
     // Creating the root node
 	_osgRoot = new osg::Group();
-
-	// test array of modules
-	/*osg::ref_ptr<osg::Geode> mobotBody[5];
-	osg::ref_ptr<osg::PositionAttitudeTransform> mobotBodyPAT[5];
-	for ( int i = 0; i < 5; i++ ) {
-		mobotBody[i] = new osg::Geode;
-		mobotBodyPAT[i] = new osg::PositionAttitudeTransform;
-		mobotBody[i]->addDrawable(new osg::ShapeDrawable(new osg::Capsule(osg::Vec3f(),1,2)));
-		mobotBodyPAT[i]->addChild(mobotBody[i].get());
-		mobotBodyPAT[i]->setPosition(osg::Vec3f(0.1+i,0.5+i,0.3+i));
-		mobotBodyPAT[i]->setUpdateCallback(new iMobotNodeCallback(this, 0, i));
-		_osgRoot->addChild(mobotBodyPAT[i].get());
-    }*/
-
-	// loading a body part from part file
-    //osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("body.stl");
-	//_osgRoot->addChild(terrainnode.get());
+	_osgRoot->setUpdateCallback(new rootNodeCallback(this, _robot, _osgRoot));
 
 	// load the terrain node
-	osg::ref_ptr<osg::MatrixTransform> terrainScaleMat = new osg::MatrixTransform();
+	/*osg::ref_ptr<osg::MatrixTransform> terrainScaleMat = new osg::MatrixTransform();
 	osg::Matrix terrainScaleMatrix;
 	terrainScaleMatrix.makeScale(0.05f,0.05f,0.03f);
 	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("Terrain2.3ds");
 	terrainScaleMat->addChild(terrainnode.get());
 	terrainScaleMat->setMatrix(terrainScaleMatrix);
-	_osgRoot->addChild(terrainScaleMat.get());
+	_osgRoot->addChild(terrainScaleMat.get());*/
 
-    // Event Handlers
-    //viewer->addEventHandler( new osgGA::StateSetManipulator(viewer->getCamera()->getOrCreateStateSet()) );
+	// viewer event handlers
+	viewer->addEventHandler(new osgGA::StateSetManipulator(viewer->getCamera()->getOrCreateStateSet()));
+    // add the thread model handler
+    viewer->addEventHandler(new osgViewer::ThreadingHandler);
+    // add the window size toggle handler
+    viewer->addEventHandler(new osgViewer::WindowSizeHandler);
+    // add the stats handler
+    viewer->addEventHandler(new osgViewer::StatsHandler);
+	// set up the camera manipulators.
+	viewer->setCameraManipulator(new osgGA::TerrainManipulator);
 
-    // Set viewable
-    //viewer->setSceneData(_osgRoot.get());
-    viewer->setSceneData(_osgRoot);
+	// optimize the scene graph, remove redundant nodes and state etc.
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(_osgRoot);
+
+	// Set viewable
+	viewer->setSceneData(_osgRoot);
 	_osgThread = new ViewerFrameThread(viewer.get(), true);
 	_osgThread->startThread();
 
@@ -124,6 +133,10 @@ int IRSE::graphics_init(void) {
 /**********************************************************
 	Public Member Functions
  **********************************************************/
+int IRSE::getNumberOfRobots(int type) {
+	return _robotNumber[type];
+}
+
 void IRSE::setCOR(dReal cor_g, dReal cor_b) {
 	_cor[0] = cor_g;
 	_cor[1] = cor_b;
@@ -322,13 +335,13 @@ void IRSE::print_intermediate_data(void) {
     cout.width(10);		// cout.precision(4);
     cout.setf(ios::fixed, ios::floatfield);
 	for (i = 0; i < _robotNumber[IMOBOT]; i++) {
-		//cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT1) << " ";
-		//cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT2) << " ";
-		//cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT3) << " ";
-		//cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT4) << "\t";
-		cout << _robot[IMOBOT][i]->getPosition(2, 0) << " ";
-		cout << _robot[IMOBOT][i]->getPosition(2, 1) << " ";
-		cout << _robot[IMOBOT][i]->getPosition(2, 2) << "\t";
+		cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT1) << " ";
+		cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT2) << " ";
+		cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT3) << " ";
+		cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT4) << "\t";
+		//cout << _robot[IMOBOT][i]->getPosition(2, 0) << " ";
+		//cout << _robot[IMOBOT][i]->getPosition(2, 1) << " ";
+		//cout << _robot[IMOBOT][i]->getPosition(2, 2) << "\t";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";
@@ -533,6 +546,40 @@ void IRSE::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int fac
     dJointSetFixed(joint);
     dJointSetFixedParam(joint, dParamCFM, 0);
     dJointSetFixedParam(joint, dParamERP, 0.9);
+}*/
+
+/**********************************************************
+	Drawing Functions
+ **********************************************************/
+/*void IRSE::drawiMobot(int number) {
+	osg::ref_ptr<osg::Node> mobotBody[5];
+	osg::ref_ptr<osg::PositionAttitudeTransform> mobotBodyPAT[5];
+	const dReal *ode_pos;
+	osg::Vec3f osg_pos; 
+    mobotBody[0] = osgDB::readNodeFile("body1.stl");
+    mobotBody[1] = osgDB::readNodeFile("body2.stl");
+    mobotBody[2] = osgDB::readNodeFile("body3.stl");
+    mobotBody[3] = osgDB::readNodeFile("body4.stl");
+    mobotBody[4] = osgDB::readNodeFile("body5.stl");
+	for (int i = 0; i < 5; i++) {
+		mobotBodyPAT[i] = new osg::PositionAttitudeTransform;
+		mobotBodyPAT[i]->addChild(mobotBody[i].get());
+		ode_pos = dBodyGetPosition(_robot[IMOBOT][number]->getBodyID(i));
+		osg_pos = osg::Vec3f(ode_pos[0], ode_pos[1], ode_pos[2]);
+		mobotBodyPAT[i]->setPosition(osg_pos);
+		mobotBodyPAT[i]->setUpdateCallback(new iMobotNodeCallback(this, number, i));
+		_osgRoot->addChild(mobotBodyPAT[i].get());
+	}
+	osg::ref_ptr<osg::Node> body = osgDB::readNodeFile("body.stl");
+	osg::ref_ptr<osg::PositionAttitudeTransform> mobotBodyPAT = new osg::PositionAttitudeTransform;
+	mobotBodyPAT->addChild(body.get());
+	const dReal *ode_pos = dBodyGetPosition(_robot[IMOBOT][number]->getBodyID(0));
+	osg::Vec3f osg_pos = osg::Vec3f(ode_pos[0], ode_pos[1], ode_pos[2]);
+	mobotBodyPAT->setPosition(osg_pos);
+	mobotBodyPAT->setUpdateCallback(new iMobotNodeCallback(this, number, 0));
+	_osgRoot->addChild(mobotBodyPAT.get());
+	
+    //osg::ref_ptr<osg::Node> body = osgDB::readNodeFile("body.stl");
 }*/
 
 /**********************************************************

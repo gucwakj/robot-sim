@@ -8,6 +8,9 @@ set(IRSE_VERSION_MINOR 1)
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)
 
+# Verbose ouptut
+set(CMAKE_VERBOSE_MAKEFILE off)
+
 # Set up a configure file
 configure_file (
 	"${PROJECT_SOURCE_DIR}/config.h.in"

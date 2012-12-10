@@ -13,10 +13,12 @@ enum simulation_reply_message_e {
 };
 
 class IRSE {
-	friend class iMobotNodeCallback;
+	friend class robot4Sim;
 	public:
 		IRSE(void);
 		~IRSE(void);
+
+		int getNumberOfRobots(int type);
 
 		// set simulation variables
 		void setCOR(dReal cor_g, dReal cor_b);
@@ -69,26 +71,4 @@ class IRSE {
 		unsigned int diff_nsecs(struct timespec t1, struct timespec t2);
 };
 
-class iMobotNodeCallback : public osg::NodeCallback {
-    public:
-        iMobotNodeCallback(IRSE *sim, int number, int part) : _sim(sim), _number(number), _part(part) {}
-        virtual void operator()(osg::Node* node, osg::NodeVisitor* nv) {
-            osg::PositionAttitudeTransform *pat = dynamic_cast<osg::PositionAttitudeTransform *> (node);
-            if (pat) {
-				//osg::Vec3f current = mat->getPosition();
-				const dReal *position = dBodyGetPosition(_sim->_robot[IMOBOT][_number]->getBodyID(_part));
-				const dReal *quaternion = dBodyGetQuaternion(_sim->_robot[IMOBOT][_number]->getBodyID(_part));
-				//printf("[%lf, %lf, %lf, %lf]\n", quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
-				osg::Vec3f pos = osg::Vec3f(position[0], position[1], position[2]);
-                //osg::Quat quat = osg::Quat(quaternion[1], quaternion[2], quaternion[3], quaternion[0]);
-                pat->setPosition(pos);
-                //pat->setAttitude(quat);
-            }
-            traverse(node, nv);
-        }
-    private:
-        int _number;
-		int _part;
-		IRSE *_sim;
-};
 #endif	/* CMOBOTFD_H_ */

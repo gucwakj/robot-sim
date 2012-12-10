@@ -471,7 +471,7 @@ int robot4Sim::moveToZeroNB(void) {
 int robot4Sim::moveWait(void) {
 	// wait for motion to complete
 	this->simThreadsSuccessLock();
-	while ( !_success[0] && !_success[1] && !_success[2] && !_success[3]) {
+	while ( !(_success[0]) && !(_success[1]) && !(_success[2]) && !(_success[3]) ) {
 		this->simThreadsSuccessWait();
 	}
 	_success[0] = true;
@@ -549,6 +549,31 @@ void robot4Sim::simPostCollisionThread(void) {
 void robot4Sim::simAddRobot(dWorldID &world, dSpaceID &space) {
 	_world = world;
     _space = dHashSpaceCreate(space);
+}
+
+void robot4Sim::draw(osg::Group *root) {
+	osg::ref_ptr<osg::Group> robot = new osg::Group();
+	osg::ref_ptr<osg::Node> body[5];
+	osg::ref_ptr<osg::PositionAttitudeTransform> bodyPAT[5];
+	const dReal *ode_pos;
+	osg::Vec3f osg_pos; 
+    body[0] = osgDB::readNodeFile("body1.stl");
+    //body[1] = osgDB::readNodeFile("body2.stl");
+    //body[2] = osgDB::readNodeFile("body3.stl");
+    //body[3] = osgDB::readNodeFile("body4.stl");
+    //body[4] = osgDB::readNodeFile("body5.stl");
+	robot->setUpdateCallback(new robot4NodeCallback(this));
+	for (int i = 0; i < 5; i++) {
+		bodyPAT[i] = new osg::PositionAttitudeTransform;
+		bodyPAT[i]->addChild(body[i].get());
+		ode_pos = dBodyGetPosition(_body[i]);
+		osg_pos = osg::Vec3f(ode_pos[0], ode_pos[1], ode_pos[2]);
+		bodyPAT[i]->setPosition(osg_pos);
+		robot->addChild(bodyPAT[i].get());
+		//mobotBodyPAT[i]->setUpdateCallback(new iMobotNodeCallback(this, number, i));
+		//_osgRoot->addChild(mobotBodyPAT[i].get());
+	}
+	root->addChild(robot);
 }
 
 dReal robot4Sim::getAngle(int i) {
@@ -3241,10 +3266,6 @@ void robot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
     dBodySetMass(_body[id], &m);
-}
-
-void robot4Sim::draw(void) {
-
 }
 
 /**********************************************************

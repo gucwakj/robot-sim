@@ -4,17 +4,22 @@
 #include <ode/ode.h>
 #include <unistd.h>
 #include <pthread.h>
+//#include "graphics.h"
+#include <osg/Group>
 #define DEG2RAD(x) ((x) * M_PI / 180.0)
 #define RAD2DEG(x) ((x) * 180.0 / M_PI)
 
+// types of robots available for simulation
 enum robot_types_e {
 	IMOBOT,
 	MOBOT,
-	KIDBOT,
-	NXT,
+	//KIDBOT,
+	//NXT,
 	NUM_TYPES
 };
 
+// classes forward declared
+class IRSE;
 class robot4Sim;
 
 class robotSim {
@@ -45,6 +50,7 @@ class robotSim {
 		virtual void buildAttached10(robot4Sim *attach, int face1, int face2) = 0;
 		virtual void buildAttached01(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
 		virtual void buildAttached11(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
+		virtual void draw(osg::Group *root) = 0;
 		virtual dReal getAngle(int i) = 0;
 		virtual bool getSuccess(int i) = 0;
 		virtual dReal getPosition(int body, int i) = 0;

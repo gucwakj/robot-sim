@@ -4,6 +4,7 @@
 #include "config.h"
 #include "pid.h"
 #include "robot.h"
+#include "graphics.h"
 #ifdef ENABLE_DOUBLE
 #define EPSILON DBL_EPSILON
 #else
@@ -47,7 +48,7 @@ typedef enum mobot_joint_state_e {
 
 class robot4Sim : virtual private robotSim {
 	friend class IRSE;
-	friend class iMobotNodeCallback;
+	friend class robot4NodeCallback;
 
 	// public api to mimic CMobot clas
 	public:
@@ -123,13 +124,13 @@ class robot4Sim : virtual private robotSim {
 		virtual void buildAttached10(robot4Sim *attach, int face1, int face2);
 		virtual void buildAttached01(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		virtual void buildAttached11(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		virtual void draw(osg::Group *root);
 		virtual dReal getAngle(int i);
 		virtual bool getSuccess(int i);
 		virtual dReal getPosition(int body, int i);
 		virtual dReal getRotation(int body, int i);
 		virtual dBodyID getBodyID(int id);
 		virtual dJointID getMotorID(int id);
-		virtual void draw(void);
 		virtual bool isHome(void);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
