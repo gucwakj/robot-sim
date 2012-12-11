@@ -88,6 +88,7 @@ int IRSE::graphics_init(void) {
 		return 1;
 	}
     viewer->getCamera()->setGraphicsContext(gc.get());
+	viewer->getCamera()->setClearColor(osg::Vec4(0.2, 0.2, 0.4, 0.0));
     viewer->getCamera()->setViewport(0, 0, traits->width, traits->height);
 	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(20, -20, 40), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 	// set up the camera manipulators

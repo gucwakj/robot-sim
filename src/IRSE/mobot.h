@@ -153,6 +153,7 @@ class robot4Sim : virtual private robotSim {
 				_end_width, _end_height, _end_depth, _end_radius;
 		dReal _maxJointVelocity[NUM_DOF];
 		dReal _maxJointForce[NUM_DOF];
+		int _type;
 };
 
 class mobotSim : public robot4Sim {

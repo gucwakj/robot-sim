@@ -559,11 +559,22 @@ void robot4Sim::draw(osg::Group *root) {
 	const dReal *pos, *quat;
 
 	// load nodes
-    body[ENDCAP_L] = osgDB::readNodeFile("body1.stl");
-    //body[BODY_L] = osgDB::readNodeFile("body2.stl");
-    //body[CENTER] = osgDB::readNodeFile("body3.stl");
-    //body[BODY_R] = osgDB::readNodeFile("body4.stl");
-    //body[ENDCAP_R] = osgDB::readNodeFile("body5.stl");
+	if (_type == IMOBOT) {
+		body[ENDCAP_L] = osgDB::readNodeFile("imobot/endcap.stl");
+		body[BODY_L] = osgDB::readNodeFile("imobot/lbody.stl");
+		body[CENTER] = osgDB::readNodeFile("imobot/center.stl");
+		body[BODY_R] = osgDB::readNodeFile("imobot/rbody.stl");
+		body[ENDCAP_R] = osgDB::readNodeFile("imobot/endcap.stl");
+	}
+	else {
+		body[ENDCAP_L] = osgDB::readNodeFile("mobot/endcap.stl");
+		body[BODY_L] = osgDB::readNodeFile("mobot/lbody.stl");
+		body[CENTER] = osgDB::readNodeFile("mobot/center.stl");
+		body[BODY_R] = osgDB::readNodeFile("mobot/rbody.stl");
+		body[ENDCAP_R] = osgDB::readNodeFile("mobot/endcap.stl");
+	}
+
+	// load position and quaternion of body nodes
 	for (int i = 0; i < NUM_PARTS; i++) {
 		pat[i] = new osg::PositionAttitudeTransform;
 		pat[i]->addChild(body[i].get());
@@ -573,7 +584,11 @@ void robot4Sim::draw(osg::Group *root) {
 		pat[i]->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		robot->addChild(pat[i].get());
 	}
+
+	// set update callback for robot
 	robot->setUpdateCallback(new robot4NodeCallback(this));
+
+	// add to scenegraph
 	root->addChild(robot);
 }
 
@@ -3299,6 +3314,7 @@ iMobotSim::iMobotSim(void) {
 	_end_height = 0.07239;
 	_end_depth = 0.00476;
 	_end_radius = 0.01778;
+	_type = IMOBOT;
 }
 
 /**********************************************************
@@ -3314,22 +3330,22 @@ mobotSim::mobotSim(void) {
 	_maxJointForce[MOBOT_JOINT2] = 1.059;
 	_maxJointForce[MOBOT_JOINT3] = 1.059;
 	_maxJointForce[MOBOT_JOINT4] = 0.260;
-	_center_length = 0.07303;
-	_center_width = 0.02540;
-	_center_height = 0.06909;
-	_center_radius = 0.03554;
-	_center_offset = 0;
-	_body_length = 0.03785;
-	_body_width = 0.07239;
-	_body_height = 0.07239;
-	_body_radius = 0.03620;
-	_body_inner_width_left = 0.02287;
-	_body_inner_width_right = 0.02287;
-	_body_end_depth = 0.01994;
-	_body_mount_center = 0.03792;
-	_end_width = 0.07239;
-	_end_height = 0.07239;
-	_end_depth = 0.00476;
-	_end_radius = 0.01778;
+	_center_length = 0.0516;
+	_center_width = 0.0327;
+	_center_height = 0.0508;
+	_center_radius = 0.0254;
+	_center_offset = 0.0149;
+	_body_length = 0.0258;
+	_body_width = 0.0762;
+	_body_height = 0.0508;
+	_body_radius = 0.0254;
+	_body_inner_width_left = 0.0069;
+	_body_inner_width_right = 0.0366;
+	_body_end_depth = 0.0352;
+	_body_mount_center = 0.0374;
+	_end_width = 0.0762;
+	_end_height = 0.0762;
+	_end_depth = 0.0080;
+	_end_radius = 0.0254;
+	_type = MOBOT;
 }
-
