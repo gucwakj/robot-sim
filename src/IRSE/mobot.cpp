@@ -554,34 +554,164 @@ void robot4Sim::simAddRobot(dWorldID &world, dSpaceID &space) {
 void robot4Sim::draw(osg::Group *root) {
 	// initialize variables
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
-	osg::ref_ptr<osg::Node> body[5];
+	osg::ref_ptr<osg::Geode> body[5];
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat[5];
-	const dReal *pos, *quat;
-
-	// load nodes
-	if (_type == IMOBOT) {
-		body[ENDCAP_L] = osgDB::readNodeFile("imobot/endcap.stl");
-		body[BODY_L] = osgDB::readNodeFile("imobot/lbody.stl");
-		body[CENTER] = osgDB::readNodeFile("imobot/center.stl");
-		body[BODY_R] = osgDB::readNodeFile("imobot/rbody.stl");
-		body[ENDCAP_R] = osgDB::readNodeFile("imobot/endcap.stl");
-	}
-	else {
-		body[ENDCAP_L] = osgDB::readNodeFile("mobot/endcap.stl");
-		body[BODY_L] = osgDB::readNodeFile("mobot/lbody.stl");
-		body[CENTER] = osgDB::readNodeFile("mobot/center.stl");
-		body[BODY_R] = osgDB::readNodeFile("mobot/rbody.stl");
-		body[ENDCAP_R] = osgDB::readNodeFile("mobot/endcap.stl");
+	const dReal *pos;
+	dQuaternion quat;
+	osg::Box *box;
+	osg::Cylinder *cyl;
+	for ( int i = 0; i < 5; i++) {
+		body[i] = new osg::Geode;
 	}
 
-	// load position and quaternion of body nodes
+	// left endcap
+	pos = dGeomGetOffsetPosition(_geom[0][0]);
+	dGeomGetOffsetQuaternion(_geom[0][0], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_depth, _end_width - 2*_end_radius, _end_height);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[0]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[0][1]);
+	dGeomGetOffsetQuaternion(_geom[0][1], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_depth, _end_radius, _end_height - 2*_end_radius);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[0]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[0][2]);
+	dGeomGetOffsetQuaternion(_geom[0][2], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_depth, _end_radius, _end_height - 2*_end_radius);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[0]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[0][3]);
+	dGeomGetOffsetQuaternion(_geom[0][3], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
+	pos = dGeomGetOffsetPosition(_geom[0][4]);
+	dGeomGetOffsetQuaternion(_geom[0][4], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
+	pos = dGeomGetOffsetPosition(_geom[0][5]);
+	dGeomGetOffsetQuaternion(_geom[0][5], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
+	pos = dGeomGetOffsetPosition(_geom[0][6]);
+	dGeomGetOffsetQuaternion(_geom[0][6], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
+    
+    // left body 
+	pos = dGeomGetOffsetPosition(_geom[BODY_L][0]);
+	dGeomGetOffsetQuaternion(_geom[BODY_L][0], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_end_depth, _body_width, _body_height);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[BODY_L]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[BODY_L][1]);
+	dGeomGetOffsetQuaternion(_geom[BODY_L][1], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_length, _body_inner_width_left, _body_height);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[BODY_L]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[BODY_L][2]);
+	dGeomGetOffsetQuaternion(_geom[BODY_L][2], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_length, _body_inner_width_right, _body_height);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[BODY_L]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[BODY_L][3]);
+	dGeomGetOffsetQuaternion(_geom[BODY_L][3], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _body_radius, _body_inner_width_left);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[BODY_L]->addDrawable(new osg::ShapeDrawable(cyl));
+	pos = dGeomGetOffsetPosition(_geom[BODY_L][4]);
+	dGeomGetOffsetQuaternion(_geom[BODY_L][4], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _body_radius, _body_inner_width_right);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[BODY_L]->addDrawable(new osg::ShapeDrawable(cyl));
+
+	// center
+	pos = dGeomGetOffsetPosition(_geom[CENTER][0]);
+	dGeomGetOffsetQuaternion(_geom[CENTER][0], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _center_length, _center_width, _center_height);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[CENTER]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[CENTER][1]);
+	dGeomGetOffsetQuaternion(_geom[CENTER][1], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _center_radius, _center_width);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[CENTER]->addDrawable(new osg::ShapeDrawable(cyl));
+	pos = dGeomGetOffsetPosition(_geom[CENTER][2]);
+	dGeomGetOffsetQuaternion(_geom[CENTER][2], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _center_radius, _center_width);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[CENTER]->addDrawable(new osg::ShapeDrawable(cyl));
+
+    // right body 
+	pos = dGeomGetOffsetPosition(_geom[BODY_R][0]);
+	dGeomGetOffsetQuaternion(_geom[BODY_R][0], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_end_depth, _body_width, _body_height);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[BODY_R]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[BODY_R][1]);
+	dGeomGetOffsetQuaternion(_geom[BODY_R][1], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_length, _body_inner_width_left, _body_height);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[BODY_R]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[BODY_R][2]);
+	dGeomGetOffsetQuaternion(_geom[BODY_R][2], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_length, _body_inner_width_right, _body_height);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[BODY_R]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[BODY_R][3]);
+	dGeomGetOffsetQuaternion(_geom[BODY_R][3], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _body_radius, _body_inner_width_left);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[BODY_R]->addDrawable(new osg::ShapeDrawable(cyl));
+	pos = dGeomGetOffsetPosition(_geom[BODY_R][4]);
+	dGeomGetOffsetQuaternion(_geom[BODY_R][4], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _body_radius, _body_inner_width_right);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[BODY_R]->addDrawable(new osg::ShapeDrawable(cyl));
+
+	// right endcap
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_R][0]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_R][0], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_depth, _end_width - 2*_end_radius, _end_height);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[ENDCAP_R]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_R][1]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_R][1], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_depth, _end_radius, _end_height - 2*_end_radius);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[ENDCAP_R]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_R][2]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_R][2], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_depth, _end_radius, _end_height - 2*_end_radius);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[ENDCAP_R]->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_R][3]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_R][3], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[ENDCAP_R]->addDrawable(new osg::ShapeDrawable(cyl));
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_R][4]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_R][4], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[ENDCAP_R]->addDrawable(new osg::ShapeDrawable(cyl));
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_R][5]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_R][5], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[ENDCAP_R]->addDrawable(new osg::ShapeDrawable(cyl));
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_R][6]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_R][6], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body[ENDCAP_R]->addDrawable(new osg::ShapeDrawable(cyl));
+
 	for (int i = 0; i < NUM_PARTS; i++) {
 		pat[i] = new osg::PositionAttitudeTransform;
 		pat[i]->addChild(body[i].get());
-		pos = dBodyGetPosition(_body[i]);
-		quat = dBodyGetQuaternion(_body[i]);
-		pat[i]->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
-		pat[i]->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		robot->addChild(pat[i].get());
 	}
 
@@ -785,7 +915,7 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
 	for ( int i = 0; i < NUM_DOF; i++ ) { _pid[i].init(100, 1, 10, 0.1, 0.004); }
 
     // adjust input height by body height
-    z += _body_height/2;
+    z += _end_height/2;
     // convert input angles to radians
     psi = DEG2RAD(psi);         // roll: x
     theta = DEG2RAD(theta);     // pitch: -y
@@ -802,16 +932,16 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     _angle[RE] = 0;
 
     // offset values for each body part[0-2] and joint[3-5] from center
-    dReal le[6] = {-_center_length/2 - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_center_length/2 - _body_length - _body_end_depth, 0, 0};
-    dReal lb[6] = {-_center_length/2 - _body_length - _body_end_depth/2, 0, 0, -_center_length/2, _center_width/2, 0};
+    dReal le[6] = {-_body_radius - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_body_radius - _body_length - _body_end_depth, 0, 0};
+    dReal lb[6] = {-_body_radius - _body_length - _body_end_depth/2, 0, 0, -_center_length/2, _center_width/2, 0};
 	dReal ce[3] = {0, _center_offset, 0};
-    dReal rb[6] = {_center_length/2 + _body_length + _body_end_depth/2, 0, 0, _center_length/2, _center_width/2, 0};
-    dReal re[6] = {_center_length/2 + _body_length + _body_end_depth + _end_depth/2, 0, 0, _center_length/2 + _body_length + _body_end_depth, 0, 0};
+    dReal rb[6] = { _body_radius + _body_length + _body_end_depth/2, 0, 0, _center_length/2, _center_width/2, 0};
+    dReal re[6] = { _body_radius + _body_length + _body_end_depth + _end_depth/2, 0, 0,  _body_radius + _body_length + _body_end_depth, 0, 0};
 
     // build pieces of module
     this->build_endcap(ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R);
     this->build_body(BODY_L, R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0);
-    this->build_center(R[0]*ce[0] + x, R[4]*ce[0] + y, R[8]*ce[0] + z, R);
+    this->build_center(R[1]*ce[1] + x, R[5]*ce[1] + y, R[9]*ce[1] + z, R);
     this->build_body(BODY_R, R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0);
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 
@@ -935,15 +1065,15 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     _angle[RE] = r_re;
 
     // offset values for each body part[0-2] and joint[3-5] from center
-    dReal le[6] = {-_center_length/2 - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_center_length/2 - _body_length - _body_end_depth, 0, 0};
-    dReal lb[6] = {-_center_length/2 - _body_length - _body_end_depth/2, 0, 0, -_center_length/2, _center_width/2, 0};
+    dReal le[6] = {-_body_radius - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_center_length/2 - _body_length - _body_end_depth, 0, 0};
+    dReal lb[6] = {-_body_radius - _body_length - _body_end_depth/2, 0, 0, -_center_length/2, _center_width/2, 0};
 	dReal ce[3] = {0, _center_offset, 0};
-    dReal rb[6] = {_center_length/2 + _body_length + _body_end_depth/2, 0, 0, _center_length/2, _center_width/2, 0};
-    dReal re[6] = {_center_length/2 + _body_length + _body_end_depth + _end_depth/2, 0, 0, _center_length/2 + _body_length + _body_end_depth, 0, 0};
+    dReal rb[6] = {_body_radius + _body_length + _body_end_depth/2, 0, 0, _center_length/2, _center_width/2, 0};
+    dReal re[6] = {_body_radius + _body_length + _body_end_depth + _end_depth/2, 0, 0, _center_length/2 + _body_length + _body_end_depth, 0, 0};
 
     this->build_endcap(ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R);
     this->build_body(BODY_L, R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0);
-    this->build_center(R[0]*ce[0] + x, R[4]*ce[0] + y, R[8]*ce[0] + z, R);
+    this->build_center(R[1]*ce[1] + x, R[5]*ce[1] + y, R[5]*ce[1] + z, R);
     this->build_body(BODY_R, R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0);
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 
@@ -3150,23 +3280,23 @@ void robot4Sim::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal 
     // set geometry 2 - side square
     _geom[id][1] = dCreateBox( _space, _body_length, _body_inner_width_left, _body_height);
     dGeomSetBody( _geom[id][1], _body[id]);
-    dGeomSetOffsetPosition( _geom[id][1], i*_body_length/2 + i*_body_end_depth/2 - m.c[0], -_body_radius + _body_inner_width_left/2 - m.c[1], -m.c[2] );
+    dGeomSetOffsetPosition( _geom[id][1], i*_body_length/2 + i*_body_end_depth/2 - m.c[0], -_body_width/2 + _body_inner_width_left/2 - m.c[1], -m.c[2] );
 
     // set geometry 3 - side square
     _geom[id][2] = dCreateBox( _space, _body_length, _body_inner_width_right, _body_height);
     dGeomSetBody( _geom[id][2], _body[id]);
-    dGeomSetOffsetPosition( _geom[id][2], i*_body_length/2 + i*_body_end_depth/2 - m.c[0], _body_radius - _body_inner_width_right/2 - m.c[1], -m.c[2] );
+    dGeomSetOffsetPosition( _geom[id][2], i*_body_length/2 + i*_body_end_depth/2 - m.c[0], _body_width/2 - _body_inner_width_right/2 - m.c[1], -m.c[2] );
 
     // set geometry 4 - side curve
     _geom[id][3] = dCreateCylinder( _space, _body_radius, _body_inner_width_left);
     dGeomSetBody( _geom[id][3], _body[id]);
-    dGeomSetOffsetPosition( _geom[id][3], i*_body_length + i*_body_end_depth/2 - m.c[0], -_body_radius + _body_inner_width_left/2 - m.c[1], -m.c[2] );
+    dGeomSetOffsetPosition( _geom[id][3], i*_body_length + i*_body_end_depth/2 - m.c[0], -_body_width/2 + _body_inner_width_left/2 - m.c[1], -m.c[2] );
     dGeomSetOffsetRotation( _geom[id][3], R2);
 
     // set geometry 5 - side curve
     _geom[id][4] = dCreateCylinder( _space, _body_radius, _body_inner_width_right);
     dGeomSetBody( _geom[id][4], _body[id]);
-    dGeomSetOffsetPosition( _geom[id][4], i*_body_length + i*_body_end_depth/2 - m.c[0], _body_radius - _body_inner_width_right/2 - m.c[1], -m.c[2] );
+    dGeomSetOffsetPosition( _geom[id][4], i*_body_length + i*_body_end_depth/2 - m.c[0], _body_width/2 - _body_inner_width_right/2 - m.c[1], -m.c[2] );
     dGeomSetOffsetRotation( _geom[id][4], R2);
 
     // set mass center to (0,0,0) of _bodyID
@@ -3339,8 +3469,8 @@ mobotSim::mobotSim(void) {
 	_body_width = 0.0762;
 	_body_height = 0.0508;
 	_body_radius = 0.0254;
-	_body_inner_width_left = 0.0069;
-	_body_inner_width_right = 0.0366;
+	_body_inner_width_left = 0.0366;
+	_body_inner_width_right = 0.0069;
 	_body_end_depth = 0.0352;
 	_body_mount_center = 0.0374;
 	_end_width = 0.0762;

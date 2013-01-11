@@ -1,5 +1,5 @@
-#ifndef CMOBOTFD_H_
-#define CMOBOTFD_H_
+#ifndef IRSE_H_
+#define IRSE_H_
 
 #include <iostream>
 #include <stdbool.h>
@@ -71,4 +71,4 @@ class IRSE {
 		unsigned int diff_nsecs(struct timespec t1, struct timespec t2);
 };
 
-#endif	/* CMOBOTFD_H_ */
+#endif	/* IRSE_H_ */

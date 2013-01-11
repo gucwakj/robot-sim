@@ -4,10 +4,10 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 	IRSE fd;
-	iMobotSim robot1, robot2;
+	mobotSim robot1/*, robot2*/;
 
-	fd.addiMobot(robot1);
-	fd.addiMobot(robot2, 0, 0.3, 0);
+	fd.addMobot(robot1);
+	//fd.addiMobot(robot2, 0, 0.3, 0);
 	//fd.addiMobotConnected(robot2, robot1, MOBOT_FACE6, MOBOT_FACE1);
 
 	robot1.move(0, 45, 45, 45);
