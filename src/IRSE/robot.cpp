@@ -22,6 +22,27 @@ void robotSim::simThreadsAngleUnlock(void) {
 	pthread_mutex_unlock(&_angle_mutex);
 }
 
+void robotSim::simThreadsRecordingInit(void) {
+	pthread_mutex_init(&_recording_mutex, NULL);
+	pthread_cond_init(&_recording_cond, NULL);
+}
+
+void robotSim::simThreadsRecordingLock(void) {
+	pthread_mutex_lock(&_recording_mutex);
+}
+
+void robotSim::simThreadsRecordingUnlock(void) {
+	pthread_mutex_unlock(&_recording_mutex);
+}
+
+void robotSim::simThreadsRecordingSignal(void) {
+	pthread_cond_signal(&_recording_cond);
+}
+
+void robotSim::simThreadsRecordingWait(void) {
+	pthread_cond_wait(&_recording_cond, &_recording_mutex);
+}
+
 void robotSim::simThreadsSuccessInit(void) {
 	pthread_mutex_init(&_success_mutex, NULL);
 	pthread_cond_init(&_success_cond, NULL);

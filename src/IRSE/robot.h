@@ -31,6 +31,11 @@ class robotSim {
 		void simThreadsAngleInit(void);
 		void simThreadsAngleLock(void);
 		void simThreadsAngleUnlock(void);
+		void simThreadsRecordingInit(void);
+		void simThreadsRecordingLock(void);
+		void simThreadsRecordingUnlock(void);
+		void simThreadsRecordingSignal(void);
+		void simThreadsRecordingWait(void);
 		void simThreadsSuccessInit(void);
 		void simThreadsSuccessLock(void);
 		void simThreadsSuccessUnlock(void);
@@ -80,6 +85,8 @@ class robotSim {
 		pthread_rw_t _goal_rwlock;
 		pthread_mutex_t _success_mutex;
 		pthread_cond_t _success_cond;
+		pthread_mutex_t _recording_mutex;
+		pthread_cond_t _recording_cond;
 };
 
 #endif /* ROBOT_H_ */

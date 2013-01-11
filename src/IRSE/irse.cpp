@@ -231,8 +231,8 @@ void* IRSE::simulationThread(void *arg) {
 	IRSE *sim = (IRSE *)arg;
 
 	// initialize local variables
-	//struct timespec cur_time, itime;
-	//unsigned int dt;
+	struct timespec start_time, end_time;
+	unsigned int dt;
 	int i, j;
 
 	while (1) {
@@ -240,7 +240,7 @@ void* IRSE::simulationThread(void *arg) {
 		pthread_mutex_lock(&(sim->_robot_mutex));
 
 		// get start time of execution
-		//clock_gettime(CLOCK_REALTIME, &cur_time);
+		clock_gettime(CLOCK_REALTIME, &start_time);
 
 		// perform pre-collision updates
 		//  - lock angle and goal
@@ -259,7 +259,7 @@ void* IRSE::simulationThread(void *arg) {
 		dJointGroupEmpty(sim->_group);						// clear out all contact joints
 		pthread_mutex_unlock(&(sim->_ground_mutex));		// unlock ground objects
 
-		//sim->print_intermediate_data();
+		sim->print_intermediate_data();
 
 		// perform post-collision updates
 		//  - unlock angle and goal
@@ -272,15 +272,14 @@ void* IRSE::simulationThread(void *arg) {
 		}
 
 		// check end time of execution
-		//clock_gettime(CLOCK_REALTIME, &itime);
+		clock_gettime(CLOCK_REALTIME, &end_time);
 		// sleep until next step
-		//dt = diff_nsecs(cur_time, itime);
-		//if ( dt < 500000 ) { usleep(500 - dt/1000); }
+		dt = sim->diff_nsecs(start_time, end_time);
+		if ( dt < sim->_step*1000000000 ) { usleep(sim->_step*1000000 - dt/1000); }
 
 		// unlock array of robots to allow another to be 
 		pthread_mutex_unlock(&(sim->_robot_mutex));
 	}
-	//free(sim);
 }
 
 void IRSE::collision(void *data, dGeomID o1, dGeomID o2) {
@@ -323,14 +322,14 @@ void IRSE::print_intermediate_data(void) {
 
     cout.width(10);		// cout.precision(4);
     cout.setf(ios::fixed, ios::floatfield);
-	for (i = 0; i < _robotNumber[IMOBOT]; i++) {
-		//cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT1) << " ";
-		//cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT2) << " ";
-		//cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT3) << " ";
-		//cout << _robot[IMOBOT][i]->getAngle(IMOBOT_JOINT4) << "\t";
-		cout << _robot[IMOBOT][i]->getPosition(0, 0) << " ";
-		cout << _robot[IMOBOT][i]->getPosition(0, 1) << " ";
-		cout << _robot[IMOBOT][i]->getPosition(0, 2) << "\t";
+	for (i = 0; i < _robotNumber[MOBOT]; i++) {
+		cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT1) << " ";
+		cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT2) << " ";
+		cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT3) << " ";
+		cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT4) << "\t";
+		//cout << _robot[IMOBOT][i]->getPosition(0, 0) << " ";
+		//cout << _robot[IMOBOT][i]->getPosition(0, 1) << " ";
+		//cout << _robot[IMOBOT][i]->getPosition(0, 2) << "\t";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";

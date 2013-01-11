@@ -45,6 +45,7 @@ typedef enum mobot_joint_state_e {
 	MOBOT_BACKWARD	= 2,
 	MOBOT_HOLD		= 3
 } mobotJointState_t;
+class robot4Sim;
 
 class robot4Sim : virtual private robotSim {
 	friend class IRSE;
@@ -85,6 +86,10 @@ class robot4Sim : virtual private robotSim {
 		int moveToZeroNB(void);
 		int moveWait(void);
 
+		int recordAngle(int id, dReal *time, dReal *angle, int num, dReal seconds, dReal threshold = 0.0);
+		int recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, dReal *angle4, int num, dReal seconds, dReal threshold = 0.0);
+		int recordWait(void);
+
 		int resetToZero(void);
     private:
 		enum robot_pieces_e {       // each body part which is built
@@ -102,6 +107,17 @@ class robot4Sim : virtual private robotSim {
 			RE,
 			NUM_DOF
 		};
+		typedef struct recordAngleArg_s {
+			robot4Sim *robot;
+			int id;
+			int num;
+			int msecs;
+			double *time;
+			double *angle1;
+			double *angle2;
+			double *angle3;
+			double *angle4;
+		} recordAngleArg_t;
 
 		// private member variables
 		dWorldID _world;			// world for all robots
@@ -116,6 +132,7 @@ class robot4Sim : virtual private robotSim {
 		PID _pid[NUM_DOF];			// PID control for each joint
 		int  _state[NUM_DOF];		// states
 		bool _success[NUM_DOF];		// trigger for goal
+		bool _recording[NUM_DOF];	// recording in progress
 
 		// private functions inherited from robotSim class
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
@@ -145,6 +162,10 @@ class robot4Sim : virtual private robotSim {
 		void create_fixed_joint(robot4Sim *attach, int face1, int face2);				// create fixed joint between modules
 		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
 		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
+		static void* recordAngleThread(void *arg);
+		static void* recordAnglesThread(void *arg);
+		unsigned int diff_msecs(struct timespec t1, struct timespec t2);
+		unsigned int current_msecs(struct timespec t);
 	protected:
 		double	_encoderResolution,
 				_center_length, _center_width, _center_height, _center_radius, _center_offset,

@@ -1,7 +1,7 @@
 #include "mobot.h"
 
 robot4Sim::robot4Sim(void) {
-	_angle[LE] = 0;
+	/*_angle[LE] = 0;
 	_angle[LB] = 0;
 	_angle[RB] = 0;
 	_angle[RE] = 0;
@@ -16,11 +16,19 @@ robot4Sim::robot4Sim(void) {
 	_success[LE] = true;
 	_success[LB] = true;
 	_success[RB] = true;
-	_success[RE] = true;
+	_success[RE] = true;*/
+	for (int i = 0; i < NUM_DOF; i++) {
+		_angle[i] = 0;
+		_goal[i] = 0;
+		_recording[i] = false;
+		_success[i] = true;
+		_velocity[i] = 0.7854;	// 45 deg/sec
+	}
 
 	// init locks
 	this->simThreadsAngleInit();
 	this->simThreadsGoalInit();
+	this->simThreadsRecordingInit();
 	this->simThreadsSuccessInit();
 }
 
@@ -484,6 +492,111 @@ int robot4Sim::moveWait(void) {
 	return 0;
 }
 
+void* robot4Sim::recordAngleThread(void *arg) {
+    recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+    struct timespec cur_time, itime;
+    unsigned int dt;
+    double start_time;
+    for (int i = 0; i < rArg->num; i++) {
+        clock_gettime(CLOCK_REALTIME, &cur_time);
+		rArg->time[i] = rArg->robot->current_msecs(cur_time);
+        if (i == 0) { start_time = rArg->time[i]; }
+        rArg->time[i] = (rArg->time[i] - start_time) / 1000;
+		rArg->robot->getJointAngle(rArg->id, rArg->angle1[i]);
+
+		// pause until next step
+        clock_gettime(CLOCK_REALTIME, &itime);
+        dt = rArg->robot->diff_msecs(cur_time, itime);
+        if (dt < (rArg->msecs)) { usleep(rArg->msecs*1000 - dt*1000); }
+    }
+	rArg->robot->_recording[rArg->id] = false;
+	rArg->robot->simThreadsRecordingSignal();
+	return NULL;
+}
+
+int robot4Sim::recordAngle(int id, dReal *time, dReal *angle, int num, dReal seconds, dReal threshold) {
+	pthread_t recording;
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	if (_recording[id]) { return -1; }
+	rArg->robot = this;
+	rArg->time = time;
+	rArg->angle1 = angle;
+	rArg->id = id;
+	rArg->num = num;
+	rArg->msecs = 1000*seconds;
+	_recording[id] = true;
+	pthread_create(&recording, NULL, (void* (*)(void *))&robot4Sim::recordAngleThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+void* robot4Sim::recordAnglesThread(void *arg) {
+    recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+    struct timespec cur_time, itime;
+    unsigned int dt;
+    double start_time;
+    for (int i = 0; i < rArg->num; i++) {
+        clock_gettime(CLOCK_REALTIME, &cur_time);
+		rArg->time[i] = rArg->robot->current_msecs(cur_time);
+        if (i == 0) { start_time = rArg->time[i]; }
+        rArg->time[i] = (rArg->time[i] - start_time) / 1000;
+		rArg->robot->getJointAngle(0, rArg->angle1[i]);
+		rArg->robot->getJointAngle(1, rArg->angle2[i]);
+		rArg->robot->getJointAngle(2, rArg->angle3[i]);
+		rArg->robot->getJointAngle(3, rArg->angle4[i]);
+
+		// pause until next step
+        clock_gettime(CLOCK_REALTIME, &itime);
+        dt = rArg->robot->diff_msecs(cur_time, itime);
+        if (dt < (rArg->msecs)) { usleep(rArg->msecs*1000 - dt*1000); }
+    }
+    for (int i = 0; i < NUM_DOF; i++) {
+        rArg->robot->_recording[i] = false;
+    }
+	rArg->robot->simThreadsRecordingSignal();
+	return NULL;
+}
+
+int robot4Sim::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, dReal *angle4, int num, dReal seconds, dReal threshold) {
+	pthread_t recording;
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	for (int i = 0; i < NUM_DOF; i++) {
+		if (_recording[i]) { return -1; }
+	}
+	rArg->robot = this;
+	rArg->time = time;
+	rArg->angle1 = angle1;
+	rArg->angle2 = angle2;
+	rArg->angle3 = angle3;
+	rArg->angle4 = angle4;
+	rArg->num = num;
+	rArg->msecs = 1000*seconds;
+	for (int i = 0; i < NUM_DOF; i++) {
+		_recording[i] = true;
+	}
+	pthread_create(&recording, NULL, (void* (*)(void *))&robot4Sim::recordAnglesThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+int robot4Sim::recordWait(void) {
+	// wait for motion to complete
+	this->simThreadsRecordingLock();
+	while ( (_recording[0]) && (_recording[1]) && (_recording[2]) && (_recording[3]) ) {
+		this->simThreadsRecordingWait();
+	}
+	_recording[0] = false;
+	_recording[1] = false;
+	_recording[2] = false;
+	_recording[3] = false;
+	this->simThreadsRecordingUnlock();
+
+	// success
+	return 0;
+}
+
 int robot4Sim::resetToZero(void) {
 	// reset absolute counter to 0 -> 2M_PI
 	this->simThreadsAngleLock();
@@ -895,6 +1008,16 @@ void robot4Sim::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal
     }
 }
 
+unsigned int robot4Sim::diff_msecs(struct timespec t1, struct timespec t2) {
+    unsigned int t;
+    t = (t2.tv_sec - t1.tv_sec) * 1000;
+    t += (t2.tv_nsec - t1.tv_nsec) / 1000000;
+    return t;
+}
+
+unsigned int robot4Sim::current_msecs(struct timespec t) {
+	return t.tv_sec*1000 + t.tv_nsec / 1000000;
+}
 /*void robot4Sim::resetPID(int i) {
     if ( i == NUM_DOF )
         for ( int j = 0; j < NUM_DOF; j++ ) this->pid[j].restart();
