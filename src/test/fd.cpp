@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
 	//fd.addiMobotConnected(robot2, robot1, MOBOT_FACE6, MOBOT_FACE1);
 	//robot1.recordAngles(time, angle1, angle2, angle3, angle4, 20, 0.1);
 	//robot1.recordAngle(1, time, angle1, 20, 0.1);
-	robot1.move(180, 0, 0, 180);
+	robot1.move(0, 0, 0, 0);
 	//robot1.recordWait();
 	//printf("recorded data\n");
 	//for ( int i = 0; i < 20; i++) {
@@ -31,6 +31,11 @@ int main(int argc, char *argv[]) {
 	//robot2.move(0, 45, 65, 45);
 	//robot2.moveNB(0, 45, 45, 0);
 	//robot2.moveWait();
+
+	double speed[4];
+	robot1.setJointSpeeds(87, 23, 35, 22);
+	robot1.getJointSpeeds(speed[0], speed[1], speed[2], speed[3]);
+	printf("joint speed = %lf %lf %lf %lf\n", speed[0], speed[1], speed[2], speed[3]);
 
 	// motions
 	//robot1.motionArch(10);

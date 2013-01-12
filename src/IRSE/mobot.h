@@ -57,7 +57,8 @@ class robot4Sim : virtual private robotSim {
 		~robot4Sim(void);
 
 		int getJointAngle(int id, dReal &angle);
-
+		int getJointSpeed(int id, double &speed);
+		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);
 		int motionArch(dReal angle);
 		int motionInchwormLeft(int num);
 		int motionInchwormRight(int num);
@@ -70,7 +71,6 @@ class robot4Sim : virtual private robotSim {
 		int motionTumbleRight(int num);
 		int motionTumbleLeft(int num);
 		int motionUnstand(void);
-
 		int move(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 		int moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 		int moveJoint(int id, dReal angle);
@@ -85,12 +85,12 @@ class robot4Sim : virtual private robotSim {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
-
 		int recordAngle(int id, dReal *time, dReal *angle, int num, dReal seconds, dReal threshold = 0.0);
 		int recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, dReal *angle4, int num, dReal seconds, dReal threshold = 0.0);
 		int recordWait(void);
-
 		int resetToZero(void);
+		int setJointSpeed(int id, double speed);
+		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
     private:
 		enum robot_pieces_e {       // each body part which is built
 			ENDCAP_L,
@@ -129,6 +129,7 @@ class robot4Sim : virtual private robotSim {
 		dReal _angle[NUM_DOF];		// angles
 		dReal _velocity[NUM_DOF];	// velocities
 		dReal _goal[NUM_DOF];		// goals
+		dReal _maxSpeed[NUM_DOF];	// maximum joint speeds
 		PID _pid[NUM_DOF];			// PID control for each joint
 		int  _state[NUM_DOF];		// states
 		bool _success[NUM_DOF];		// trigger for goal

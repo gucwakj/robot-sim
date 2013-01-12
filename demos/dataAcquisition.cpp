@@ -21,7 +21,6 @@ int main(int argc, char *argv[]) {
 	 * recorded */
 	movementTime = movementTime + 1; 
 	int numDataPoints = movementTime / timeInterval; /* Unitless */
-	printf("numdatapoints = %d\n", numDataPoints);
 
 	/* Initialize the arrays to be used to store data for time and angle */
 	double time[numDataPoints];
@@ -31,8 +30,8 @@ int main(int argc, char *argv[]) {
 	mobot.resetToZero();
 
 	/* Set the joint 1 speed to 45 degrees/second */
-	//mobot.setJointSpeed(MOBOT_JOINT1, speed);
-	//mobot.setJointSpeed(MOBOT_JOINT4, speed);
+	mobot.setJointSpeed(MOBOT_JOINT1, speed);
+	mobot.setJointSpeed(MOBOT_JOINT4, speed);
 
 	/* Start capturing data */
 	mobot.recordAngle(MOBOT_JOINT1, time, angles1, numDataPoints, timeInterval);

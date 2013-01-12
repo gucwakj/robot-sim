@@ -1,28 +1,13 @@
 #include "mobot.h"
 
 robot4Sim::robot4Sim(void) {
-	/*_angle[LE] = 0;
-	_angle[LB] = 0;
-	_angle[RB] = 0;
-	_angle[RE] = 0;
-	_goal[LE] = 0;
-	_goal[LB] = 0;
-	_goal[RB] = 0;
-	_goal[RE] = 0;
-	_velocity[LE] = 0.7854;	// 45 deg/sec
-	_velocity[LB] = 0.7854;	// 45 deg/sec
-	_velocity[RB] = 0.7854;	// 45 deg/sec
-	_velocity[RE] = 0.7854;	// 45 deg/sec
-	_success[LE] = true;
-	_success[LB] = true;
-	_success[RB] = true;
-	_success[RE] = true;*/
 	for (int i = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
 		_goal[i] = 0;
 		_recording[i] = false;
 		_success[i] = true;
 		_velocity[i] = 0.7854;	// 45 deg/sec
+		_maxSpeed[i] = 120;		// deg/sec
 	}
 
 	// init locks
@@ -38,6 +23,23 @@ robot4Sim::~robot4Sim(void) {
 
 int robot4Sim::getJointAngle(int id, dReal &angle) {
 	angle = RAD2DEG(this->getAngle(id));
+
+	// success
+	return 0;
+}
+
+int robot4Sim::getJointSpeed(int id, dReal &speed) {
+	speed = RAD2DEG(_velocity[id]);
+
+	// success
+	return 0;
+}
+
+int robot4Sim::getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4) {
+	speed1 = RAD2DEG(_velocity[0]);
+	speed2 = RAD2DEG(_velocity[1]);
+	speed3 = RAD2DEG(_velocity[2]);
+	speed4 = RAD2DEG(_velocity[3]);
 
 	// success
 	return 0;
@@ -608,6 +610,23 @@ int robot4Sim::resetToZero(void) {
 
 	// move to zero position
 	this->moveToZero();
+
+	// success
+	return 0;
+}
+
+int robot4Sim::setJointSpeed(int id, double speed) {
+	_velocity[id] = DEG2RAD((speed > _maxSpeed[id]) ? _maxSpeed[id] : speed);
+
+	// success
+	return 0;
+}
+
+int robot4Sim::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
+	_velocity[0] = DEG2RAD((speed1 > _maxSpeed[0]) ? _maxSpeed[0] : speed1);
+	_velocity[1] = DEG2RAD((speed2 > _maxSpeed[1]) ? _maxSpeed[1] : speed2);
+	_velocity[2] = DEG2RAD((speed3 > _maxSpeed[2]) ? _maxSpeed[2] : speed3);
+	_velocity[3] = DEG2RAD((speed4 > _maxSpeed[3]) ? _maxSpeed[3] : speed4);
 
 	// success
 	return 0;
