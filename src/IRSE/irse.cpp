@@ -323,13 +323,13 @@ void IRSE::print_intermediate_data(void) {
     cout.width(10);		// cout.precision(4);
     cout.setf(ios::fixed, ios::floatfield);
 	for (i = 0; i < _robotNumber[MOBOT]; i++) {
-		cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT1) << " ";
-		cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT2) << " ";
-		cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT3) << " ";
-		cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT4) << "\t";
-		//cout << _robot[IMOBOT][i]->getPosition(0, 0) << " ";
-		//cout << _robot[IMOBOT][i]->getPosition(0, 1) << " ";
-		//cout << _robot[IMOBOT][i]->getPosition(0, 2) << "\t";
+		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT1) << " ";
+		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT2) << " ";
+		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT3) << " ";
+		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT4) << "\t";
+		cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
+		cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
+		cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";

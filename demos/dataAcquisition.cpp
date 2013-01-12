@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
 	 * recorded */
 	movementTime = movementTime + 1; 
 	int numDataPoints = movementTime / timeInterval; /* Unitless */
+	printf("numdatapoints = %d\n", numDataPoints);
 
 	/* Initialize the arrays to be used to store data for time and angle */
 	double time[numDataPoints];
@@ -43,7 +44,7 @@ int main(int argc, char *argv[]) {
 	mobot.recordWait();
 
 	for (int i = 0; i<numDataPoints; i++) {
-	    printf("%lf %lf\n", time[i], angles1[i]);
+	    printf("%3d: %lf %lf\n", i, time[i], angles1[i]);
 	}
 
 	return 0;

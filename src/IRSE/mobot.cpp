@@ -1093,7 +1093,7 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     _joint[2] = dJointCreateHinge(_world, 0);
     dJointAttach(_joint[2], _body[CENTER], _body[BODY_R]);
     dJointSetHingeAnchor(_joint[2], R[0]*rb[3] + R[1]*(_center_offset+rb[4]) + R[2]*rb[5] + x, R[4]*rb[3] + R[5]*(_center_offset+rb[4]) + R[6]*rb[5] + y, R[8]*rb[3] + R[9]*(_center_offset+rb[4]) + R[10]*rb[5] + z);
-    dJointSetHingeAxis(_joint[2], R[1], R[5], R[9]);
+    dJointSetHingeAxis(_joint[2], -R[1], -R[5], -R[9]);
     dJointSetHingeParam(_joint[2], dParamCFM, 0);
 
     // joint for center to right body 2
@@ -1107,7 +1107,7 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     _joint[3] = dJointCreateHinge(_world, 0);
     dJointAttach(_joint[3], _body[BODY_R], _body[ENDCAP_R]);
     dJointSetHingeAnchor(_joint[3], R[0]*re[3] + R[1]*re[4] + R[2]*re[5] + x, R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y, R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
-    dJointSetHingeAxis(_joint[3], -R[0], -R[4], -R[8]);
+    dJointSetHingeAxis(_joint[3], R[0], R[4], R[8]);
     dJointSetHingeParam(_joint[3], dParamCFM, 0);
 
     // motor for left endcap to body
@@ -1135,7 +1135,7 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     dJointAttach(_motor[2], _body[CENTER], _body[BODY_R]);
     dJointSetAMotorMode(_motor[2], dAMotorUser);
     dJointSetAMotorNumAxes(_motor[2], 1);
-    dJointSetAMotorAxis(_motor[2], 0, 1, R[1], R[5], R[9]);
+    dJointSetAMotorAxis(_motor[2], 0, 1, -R[1], -R[5], -R[9]);
     dJointSetAMotorAngle(_motor[2], 0, 0);
     dJointSetAMotorParam(_motor[2], dParamCFM, 0);
     dJointSetAMotorParam(_motor[2], dParamFMax, _maxJointForce[RB]);
@@ -1145,7 +1145,7 @@ void robot4Sim::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal p
     dJointAttach(_motor[3], _body[BODY_R], _body[ENDCAP_R]);
     dJointSetAMotorMode(_motor[3], dAMotorUser);
     dJointSetAMotorNumAxes(_motor[3], 1);
-    dJointSetAMotorAxis(_motor[3], 0, 1, -R[0], -R[4], -R[8]);
+    dJointSetAMotorAxis(_motor[3], 0, 1, R[0], R[4], R[8]);
     dJointSetAMotorAngle(_motor[3], 0, 0);
     dJointSetAMotorParam(_motor[3], dParamCFM, 0);
     dJointSetAMotorParam(_motor[3], dParamFMax, _maxJointForce[RE]);
