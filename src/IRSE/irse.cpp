@@ -319,17 +319,19 @@ void IRSE::collision(void *data, dGeomID o1, dGeomID o2) {
 void IRSE::print_intermediate_data(void) {
 	// initialze loop counters
 	int i;
+	static int j = 0;
 
     cout.width(10);		// cout.precision(4);
     cout.setf(ios::fixed, ios::floatfield);
+	cout << j++*_step << " ";
 	for (i = 0; i < _robotNumber[MOBOT]; i++) {
-		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT1) << " ";
+		cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT1)) << " ";
 		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT2) << " ";
 		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT3) << " ";
 		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT4) << "\t";
-		cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
-		cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
-		cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
+		//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
+		//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
+		//cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";

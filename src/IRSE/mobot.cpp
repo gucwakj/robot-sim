@@ -511,8 +511,10 @@ void* robot4Sim::recordAngleThread(void *arg) {
         dt = rArg->robot->diff_msecs(cur_time, itime);
         if (dt < (rArg->msecs)) { usleep(rArg->msecs*1000 - dt*1000); }
     }
+	rArg->robot->simThreadsRecordingLock();
 	rArg->robot->_recording[rArg->id] = false;
 	rArg->robot->simThreadsRecordingSignal();
+	rArg->robot->simThreadsRecordingUnlock();
 	return NULL;
 }
 
@@ -553,10 +555,12 @@ void* robot4Sim::recordAnglesThread(void *arg) {
         dt = rArg->robot->diff_msecs(cur_time, itime);
         if (dt < (rArg->msecs)) { usleep(rArg->msecs*1000 - dt*1000); }
     }
+	rArg->robot->simThreadsRecordingLock();
     for (int i = 0; i < NUM_DOF; i++) {
         rArg->robot->_recording[i] = false;
     }
 	rArg->robot->simThreadsRecordingSignal();
+	rArg->robot->simThreadsRecordingUnlock();
 	return NULL;
 }
 
@@ -586,7 +590,7 @@ int robot4Sim::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *an
 int robot4Sim::recordWait(void) {
 	// wait for motion to complete
 	this->simThreadsRecordingLock();
-	while ( (_recording[0]) && (_recording[1]) && (_recording[2]) && (_recording[3]) ) {
+	while ( _recording[0] || _recording[1] || _recording[2] || _recording[3] ) {
 		this->simThreadsRecordingWait();
 	}
 	_recording[0] = false;
@@ -671,6 +675,7 @@ void robot4Sim::simPostCollisionThread(void) {
 	}
 	if ( _success[0] && _success[1] && _success[2] && _success[3] ) {
 		this->simThreadsSuccessSignal();
+		printf("success signal\n");
 	}
 
 	// unlock angle and goal

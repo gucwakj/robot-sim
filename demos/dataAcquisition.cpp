@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
 	fd.addMobot(mobot);
 
 	double speed = 45; /* Degrees/second */
-	double angle = 720; /* Degrees */
+	double angle = 45; /* Degrees */
 	double timeInterval = 0.1; /* Seconds */
 
 	/* Figure out how many data points we will need. First, figure out the
