@@ -53,6 +53,7 @@ class IRSE {
 		dGeomID* _ground;					// ground (static) objects
 		robotSim** _robot[NUM_TYPES];		// array of all robots of every type
 		dReal _step;						// time of each step of simulation
+		dReal _clock;						// clock time of simulation
 		dReal _mu[2];						// coefficient of friction [body/ground, body/body]
 		dReal _cor[2];						// coefficient of restitution [body/ground, body/body]
 		int _groundNumber;					// number of ground objects

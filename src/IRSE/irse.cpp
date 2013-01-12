@@ -38,6 +38,7 @@ IRSE::IRSE(void) {
 	}
 	_groundNumber = 1;
     _step = 0.004;
+	_clock = 0;
 
 	graphics_init();
 }
@@ -256,6 +257,7 @@ void* IRSE::simulationThread(void *arg) {
 		pthread_mutex_lock(&(sim->_ground_mutex));			// lock ground objects
 		dSpaceCollide(sim->_space, sim, &sim->collision);	// collide all geometries together
 		dWorldStep(sim->_world, sim->_step);				// step world time by one
+		sim->_clock += sim->_step;							// increment world clock
 		dJointGroupEmpty(sim->_group);						// clear out all contact joints
 		pthread_mutex_unlock(&(sim->_ground_mutex));		// unlock ground objects
 
@@ -358,7 +360,7 @@ void IRSE::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dR
 	_robot[IMOBOT] =  (robotSim **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
 	_robot[IMOBOT][_robotNumber[IMOBOT]] = &imobot;
 	// add imobot to simulation
-	_robot[IMOBOT][_robotNumber[IMOBOT]]->simAddRobot(_world, _space);
+	_robot[IMOBOT][_robotNumber[IMOBOT]]->simAddRobot(_world, _space, _clock);
 	// create new thread array for imobots
 	delete _robotThread[IMOBOT];
 	_robotThread[IMOBOT] = new pthread_t[_robotNumber[IMOBOT]];
@@ -375,7 +377,7 @@ void IRSE::addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dR
 	_robot[IMOBOT] =  (robotSim **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
 	_robot[IMOBOT][_robotNumber[IMOBOT]] = &imobot;
 	// add imobot to simulation
-	_robot[IMOBOT][_robotNumber[IMOBOT]]->simAddRobot(_world, _space);
+	_robot[IMOBOT][_robotNumber[IMOBOT]]->simAddRobot(_world, _space, _clock);
 	// create new thread array for imobots
 	delete _robotThread[IMOBOT];
 	_robotThread[IMOBOT] = new pthread_t[_robotNumber[IMOBOT]];
@@ -392,7 +394,7 @@ void IRSE::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int
 	_robot[IMOBOT] =  (robotSim **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
 	_robot[IMOBOT][_robotNumber[IMOBOT]] = &imobot;
 	// add imobot to simulation
-	_robot[IMOBOT][_robotNumber[IMOBOT]]->simAddRobot(_world, _space);
+	_robot[IMOBOT][_robotNumber[IMOBOT]]->simAddRobot(_world, _space, _clock);
 	// create new thread array for imobots
 	delete _robotThread[IMOBOT];
 	_robotThread[IMOBOT] = new pthread_t[_robotNumber[IMOBOT]];
@@ -412,7 +414,7 @@ void IRSE::addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int
 	_robot[IMOBOT] =  (robotSim **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
 	_robot[IMOBOT][_robotNumber[IMOBOT]] = &imobot;
 	// add imobot to simulation
-	_robot[IMOBOT][_robotNumber[IMOBOT]]->simAddRobot(_world, _space);
+	_robot[IMOBOT][_robotNumber[IMOBOT]]->simAddRobot(_world, _space, _clock);
 	// create new thread array for imobots
 	delete _robotThread[IMOBOT];
 	_robotThread[IMOBOT] = new pthread_t[_robotNumber[IMOBOT]];
@@ -457,7 +459,7 @@ void IRSE::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal
 	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
 	_robot[MOBOT][_robotNumber[MOBOT]] = &mobot;
 	// add mobot to simulation
-	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space);
+	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space, _clock);
 	// create new thread array for imobots
 	delete _robotThread[MOBOT];
 	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
@@ -474,7 +476,7 @@ void IRSE::addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal
 	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
 	_robot[MOBOT][_robotNumber[MOBOT]] = &mobot;
 	// add mobot to simulation
-	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space);
+	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space, _clock);
 	// create new thread array for imobots
 	delete _robotThread[MOBOT];
 	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
@@ -491,7 +493,7 @@ void IRSE::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int fac
 	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
 	_robot[MOBOT][_robotNumber[MOBOT]] = &mobot;
 	// add mobot to simulation
-	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space);
+	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space, _clock);
 	// create new thread array for imobots
 	delete _robotThread[MOBOT];
 	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
@@ -511,7 +513,7 @@ void IRSE::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int fac
 	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
 	_robot[MOBOT][_robotNumber[MOBOT]] = &mobot;
 	// add mobot to simulation
-	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space);
+	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space, _clock);
 	// create new thread array for imobots
 	delete _robotThread[MOBOT];
 	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];

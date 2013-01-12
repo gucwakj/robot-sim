@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
 	fd.addMobot(mobot);
 
 	double speed = 45; /* Degrees/second */
-	double angle = 45; /* Degrees */
+	double angle = 720; /* Degrees */
 	double timeInterval = 0.1; /* Seconds */
 
 	/* Figure out how many data points we will need. First, figure out the
@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
 	/* Wait for recording to finish */
 	mobot.recordWait();
 
+	printf("data: num points = %d\ttime = %lf\n", numDataPoints, movementTime);
 	for (int i = 0; i<numDataPoints; i++) {
 	    printf("%3d: %lf %lf\n", i, time[i], angles1[i]);
 	}

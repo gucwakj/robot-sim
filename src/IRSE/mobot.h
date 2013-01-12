@@ -126,6 +126,7 @@ class robot4Sim : virtual private robotSim {
 		dGeomID* _geom[NUM_PARTS];	// geometries of each body part
 		dJointID _motor[NUM_DOF];	// motors
 		dJointID _joint[6];			// joints between body parts
+		dReal* _clock;				// world clock
 		dReal _angle[NUM_DOF];		// angles
 		dReal _velocity[NUM_DOF];	// velocities
 		dReal _goal[NUM_DOF];		// goals
@@ -152,7 +153,7 @@ class robot4Sim : virtual private robotSim {
 		virtual bool isHome(void);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
-		virtual void simAddRobot(dWorldID &world, dSpaceID &space);
+		virtual void simAddRobot(dWorldID &world, dSpaceID &space, dReal &clock);
 
 		// private functions
         //void resetPID(int i = NUM_DOF);
