@@ -43,6 +43,11 @@ if (OPENSCENEGRAPH_FOUND)
 	set (EXTRA_LIBS ${EXTRA_LIBS} ${OPENSCENEGRAPH_LIBRARIES})
 endif (OPENSCENEGRAPH_FOUND)
 
+# Add osgEphemeris
+link_directories("/usr/local/lib/")
+set (EXTRA_LIBS ${EXTRA_LIBS} osgEphemeris)
+
+# Add openGL
 find_package(OpenGL REQUIRED)
 if (OPENGL_FOUND)
 	include_directories(${OPENGL_INCLUDE_DIR})

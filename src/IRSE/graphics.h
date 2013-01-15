@@ -14,17 +14,19 @@
 #include <osg/Texture2D>
 #include <osg/Transform>
 
-#include <osgViewer/Viewer>
-#include <osgViewer/ViewerEventHandlers>
-
 #include <osgDB/ReadFile>
 #include <osgDB/Registry>
+
+#include <osgEphemeris/EphemerisModel.h>
 
 #include <osgGA/StateSetManipulator>
 #include <osgGA/TerrainManipulator>
 
 #include <osgUtil/Optimizer>
 #include <osgUtil/CullVisitor>
+
+#include <osgViewer/Viewer>
+#include <osgViewer/ViewerEventHandlers>
 
 #include <ode/ode.h>
 #include "robot.h"

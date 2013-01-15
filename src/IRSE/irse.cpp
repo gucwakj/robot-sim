@@ -98,6 +98,16 @@ int IRSE::graphics_init(void) {
 	_osgRoot = new osg::Group();
 	_osgRoot->setUpdateCallback(new rootNodeCallback(this, _robot, _osgRoot));
 
+    // Define the Ephemeris Model and its radius
+    osg::ref_ptr<osgEphemeris::EphemerisModel> ephemerisModel = new osgEphemeris::EphemerisModel;
+    ephemerisModel->setSkyDomeRadius(1000);
+    ephemerisModel->setSkyDomeCenter(osg::Vec3d(0, 0, 0));
+    // Optionally, Set the AutoDate and Time to false so we can control it with the GUI
+    ephemerisModel->setAutoDateTime(false);
+    // Optionally, uncomment this if you want to move the Skydome, Moon, Planets and StarField with the mouse
+    ephemerisModel->setMoveWithEyePoint(false);
+	// add sky model to root
+    _osgRoot->addChild(ephemerisModel.get());
 
 	// viewer event handlers
 	viewer->addEventHandler(new osgGA::StateSetManipulator(viewer->getCamera()->getOrCreateStateSet()));
