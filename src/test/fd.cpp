@@ -41,6 +41,5 @@ int main(int argc, char *argv[]) {
 
 	// motions
 	//robot1.motionArch(10);
-
 	return 0;
 }

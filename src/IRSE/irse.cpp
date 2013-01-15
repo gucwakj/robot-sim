@@ -79,7 +79,7 @@ int IRSE::graphics_init(void) {
 	traits->sharedContext = 0;
 	osg::ref_ptr<osg::GraphicsContext> gc = osg::GraphicsContext::createGraphicsContext(traits.get());
 	if (gc.valid()) {
-		gc->setClearColor(osg::Vec4f(0.2f,0.2f,0.6f,1.0f));
+		gc->setClearColor(osg::Vec4f(0.f,0.f,0.f,0.f));
 		gc->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 	else {
@@ -89,25 +89,64 @@ int IRSE::graphics_init(void) {
     viewer->getCamera()->setGraphicsContext(gc.get());
 	viewer->getCamera()->setClearColor(osg::Vec4(0.2, 0.2, 0.4, 0.0));
     viewer->getCamera()->setViewport(0, 0, traits->width, traits->height);
-	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(1, -1, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(1, -1, 1), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 	// set up the camera manipulators
 	viewer->setCameraManipulator(new osgGA::TerrainManipulator);
-	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1, -1, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1, -1, 1), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
     // Creating the root node
 	_osgRoot = new osg::Group();
 	_osgRoot->setUpdateCallback(new rootNodeCallback(this, _robot, _osgRoot));
 
+
+
+	// load terrain node
+	osg::ref_ptr<osg::MatrixTransform> terrainScaleMAT (new osg::MatrixTransform);
+	osg::Matrix terrainScaleMatrix;
+	terrainScaleMatrix.makeScale(0.005f,0.005f,0.0003f);
+	osg::ref_ptr<osg::Node> terrainnode (osgDB::readNodeFile("Terrain2.3ds"));
+	terrainScaleMAT->addChild(terrainnode.get());
+	terrainScaleMAT->setMatrix(terrainScaleMatrix);
+	_osgRoot->addChild(terrainScaleMAT.get());
+
+
+	// load heightfield
+    /*osg::Image* heightMap = osgDB::readImageFile(heightFile);
+    osg::HeightField* heightField = new osg::HeightField();
+    heightField->allocate(heightMap->s(), heightMap->t());
+    heightField->setOrigin(osg::Vec3(-heightMap->s() / 2, -heightMap->t() / 2, 0));
+    heightField->setXInterval(1.0f);
+    heightField->setYInterval(1.0f);
+    heightField->setSkirtHeight(1.0f);
+    for (int r = 0; r < heightField->getNumRows(); r++) {
+        for (int c = 0; c < heightField->getNumColumns(); c++) {
+            heightField->setHeight(c, r, ((*heightMap->data(c, r)) / 255.0f) * 80.0f);
+        }
+    }
+    osg::Geode* geode = new osg::Geode();
+    geode->addDrawable(new osg::ShapeDrawable(heightField));
+    //osg::Texture2D* tex = new osg::Texture2D(osgDB::readImageFile(texFile));
+    //tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
+    //tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
+    //tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
+    //tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
+    //geode->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex);*/
+
+
+
     // Define the Ephemeris Model and its radius
-    osg::ref_ptr<osgEphemeris::EphemerisModel> ephemerisModel = new osgEphemeris::EphemerisModel;
-    ephemerisModel->setSkyDomeRadius(1000);
+    /*osg::ref_ptr<osgEphemeris::EphemerisModel> ephemerisModel = new osgEphemeris::EphemerisModel;
+	osg::BoundingSphere bs = terrainScaleMAT->getBound();
+    ephemerisModel->setSkyDomeRadius(bs.radius()*2);
     ephemerisModel->setSkyDomeCenter(osg::Vec3d(0, 0, 0));
     // Optionally, Set the AutoDate and Time to false so we can control it with the GUI
     ephemerisModel->setAutoDateTime(false);
     // Optionally, uncomment this if you want to move the Skydome, Moon, Planets and StarField with the mouse
     ephemerisModel->setMoveWithEyePoint(false);
 	// add sky model to root
-    _osgRoot->addChild(ephemerisModel.get());
+    _osgRoot->addChild(ephemerisModel.get());*/
+
+
 
 	// viewer event handlers
 	viewer->addEventHandler(new osgGA::StateSetManipulator(viewer->getCamera()->getOrCreateStateSet()));
