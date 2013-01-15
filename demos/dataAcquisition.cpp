@@ -6,9 +6,10 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	IRSE fd;
+	IRSE sim;
 	mobotSim mobot;
-	fd.addMobot(mobot);
+	
+	mobot.connect(sim);
 
 	double speed = 45; /* Degrees/second */
 	double angle = 720; /* Degrees */
@@ -44,8 +45,13 @@ int main(int argc, char *argv[]) {
 
 	printf("data: num points = %d\ttime = %lf\n", numDataPoints, movementTime);
 	for (int i = 0; i<numDataPoints; i++) {
-	    printf("%3d: %lf %lf\n", i, time[i], angles1[i]);
+	    printf("%lf, ",time[i]);
 	}
+	printf("\n");
+	for (int i = 0; i<numDataPoints; i++) {
+	    printf("%lf, ",angles1[i]);
+	}
+	printf("\n");
 
 	return 0;
 }

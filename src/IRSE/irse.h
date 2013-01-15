@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <stdbool.h>
+#include "robot.h"
 #include "mobot.h"
 #include "graphics.h"
 
@@ -12,8 +13,12 @@ enum simulation_reply_message_e {
 	FD_ERROR_STALL
 };
 
+class robotSim;
+class robot4Sim;
+class mobotSim;
+class iMobotSim;
+
 class IRSE {
-	friend class robot4Sim;
 	public:
 		IRSE(void);
 		~IRSE(void);
@@ -28,22 +33,24 @@ class IRSE {
 		void setGroundCylinder(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
 		void setGroundSphere(dReal r, dReal px, dReal py, dReal pz);
 
+		void simAddRobot(dWorldID &world, dSpaceID &space, dReal **clock);
+
 		// build models of the iMobot
-		void addiMobot(iMobotSim &imobot);
-		void addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z);
-		void addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
-		void addiMobot(iMobotSim &imobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		void addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2);
-		void addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void addiMobot(robot4Sim *robot);
+		void addiMobot(robot4Sim *robot, dReal x, dReal y, dReal z);
+		void addiMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
+		void addiMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		//void addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2);
+		//void addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		//void addiMobotAnchored(iMobotSim &imobot, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 
 		// build models of the Mobot
-		void addMobot(mobotSim &mobot);
-		void addMobot(mobotSim &mobot, dReal x, dReal y, dReal z);
-		void addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
-		void addMobot(mobotSim &mobot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		void addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2);
-		void addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void addMobot(robot4Sim *robot);
+		void addMobot(robot4Sim *robot, dReal x, dReal y, dReal z);
+		void addMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
+		void addMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		//void addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2);
+		//void addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		//void addMobotAnchored(mobotSim &mobot, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 	private:
 		// private variables to store general information about simulation

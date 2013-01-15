@@ -18,7 +18,6 @@ enum robot_types_e {
 };
 
 // classes forward declared
-class IRSE;
 class robot4Sim;
 
 class robotSim {
@@ -62,7 +61,6 @@ class robotSim {
 		virtual dBodyID getBodyID(int body) = 0;
 		virtual dJointID getMotorID(int motor) = 0;
 		virtual bool isHome(void) = 0;
-		virtual void simAddRobot(dWorldID &world, dSpaceID &space, dReal &clock) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;
 	private:

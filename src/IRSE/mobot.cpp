@@ -678,10 +678,44 @@ void robot4Sim::simPostCollisionThread(void) {
 	this->simThreadsGoalRUnlock();
 }
 
-void robot4Sim::simAddRobot(dWorldID &world, dSpaceID &space, dReal &clock) {
-	_world = world;
+int robot4Sim::connect(IRSE &sim) {
+	dSpaceID space;
+	sim.simAddRobot(_world, space, &_clock);
     _space = dHashSpaceCreate(space);
-	_clock = &clock;
+	sim.addMobot(this);
+
+	// success
+	return 0;
+}
+
+int robot4Sim::connect(IRSE &sim, dReal x, dReal y, dReal z) {
+	dSpaceID space;
+	sim.simAddRobot(_world, space, &_clock);
+    _space = dHashSpaceCreate(space);
+	sim.addMobot(this, x, y, z);
+
+	// success
+	return 0;
+}
+
+int robot4Sim::connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+	dSpaceID space;
+	sim.simAddRobot(_world, space, &_clock);
+    _space = dHashSpaceCreate(space);
+	sim.addMobot(this, x, y, z, psi, theta, phi);
+
+	// success
+	return 0;
+}
+
+int robot4Sim::connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	dSpaceID space;
+	sim.simAddRobot(_world, space, &_clock);
+    _space = dHashSpaceCreate(space);
+	sim.addMobot(this, x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
+
+	// success
+	return 0;
 }
 
 void robot4Sim::draw(osg::Group *root) {

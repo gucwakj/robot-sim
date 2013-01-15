@@ -5,6 +5,7 @@
 #include "pid.h"
 #include "robot.h"
 #include "graphics.h"
+#include "irse.h"
 #ifdef ENABLE_DOUBLE
 #define EPSILON DBL_EPSILON
 #else
@@ -45,7 +46,8 @@ typedef enum mobot_joint_state_e {
 	MOBOT_BACKWARD	= 2,
 	MOBOT_HOLD		= 3
 } mobotJointState_t;
-class robot4Sim;
+
+class IRSE;
 
 class robot4Sim : virtual private robotSim {
 	friend class IRSE;
@@ -56,6 +58,10 @@ class robot4Sim : virtual private robotSim {
 		robot4Sim(void);
 		~robot4Sim(void);
 
+		int connect(IRSE &sim);
+		int connect(IRSE &sim, dReal x, dReal y, dReal z);
+		int connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
+		int connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		int getJointAngle(int id, dReal &angle);
 		int getJointSpeed(int id, double &speed);
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);
@@ -153,7 +159,6 @@ class robot4Sim : virtual private robotSim {
 		virtual bool isHome(void);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
-		virtual void simAddRobot(dWorldID &world, dSpaceID &space, dReal &clock);
 
 		// private functions
         //void resetPID(int i = NUM_DOF);
