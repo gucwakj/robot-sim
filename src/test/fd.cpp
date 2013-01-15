@@ -41,5 +41,8 @@ int main(int argc, char *argv[]) {
 
 	// motions
 	//robot1.motionArch(10);
+
+	sim.setExitState(1);
+	
 	return 0;
 }

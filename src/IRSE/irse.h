@@ -27,11 +27,12 @@ class IRSE {
 
 		// set simulation variables
 		void setCOR(dReal cor_g, dReal cor_b);
-		void setMu(dReal mu_g, dReal mu_b);
+		int setExitState(int state);
 		void setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
 		void setGroundCapsule(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
 		void setGroundCylinder(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
 		void setGroundSphere(dReal r, dReal px, dReal py, dReal pz);
+		void setMu(dReal mu_g, dReal mu_b);
 
 		void simAddRobot(dWorldID &world, dSpaceID &space, dReal **clock);
 

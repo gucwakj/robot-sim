@@ -186,6 +186,14 @@ void IRSE::setMu(dReal mu_g, dReal mu_b) {
 	_mu[1] = mu_b;
 }
 
+int IRSE::setExitState(int state) {
+	while (state == 1) {
+		usleep(1000000);
+	}
+
+	return 0;
+}
+
 void IRSE::setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
 	// lock ground objects
 	pthread_mutex_lock(&_ground_mutex);
