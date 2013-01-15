@@ -98,17 +98,14 @@ int IRSE::graphics_init(void) {
 	_osgRoot = new osg::Group();
 	_osgRoot->setUpdateCallback(new rootNodeCallback(this, _robot, _osgRoot));
 
-
-
 	// load terrain node
 	osg::ref_ptr<osg::MatrixTransform> terrainScaleMAT (new osg::MatrixTransform);
 	osg::Matrix terrainScaleMatrix;
 	terrainScaleMatrix.makeScale(0.005f,0.005f,0.0003f);
-	osg::ref_ptr<osg::Node> terrainnode (osgDB::readNodeFile("Terrain2.3ds"));
+	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("data/ground/terrain.3ds");
 	terrainScaleMAT->addChild(terrainnode.get());
 	terrainScaleMAT->setMatrix(terrainScaleMatrix);
 	_osgRoot->addChild(terrainScaleMAT.get());
-
 
 	// load heightfield
     /*osg::Image* heightMap = osgDB::readImageFile(heightFile);
@@ -145,8 +142,6 @@ int IRSE::graphics_init(void) {
     ephemerisModel->setMoveWithEyePoint(false);
 	// add sky model to root
     _osgRoot->addChild(ephemerisModel.get());*/
-
-
 
 	// viewer event handlers
 	viewer->addEventHandler(new osgGA::StateSetManipulator(viewer->getCamera()->getOrCreateStateSet()));
