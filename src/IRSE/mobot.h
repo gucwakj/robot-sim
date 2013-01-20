@@ -62,6 +62,8 @@ class robot4Sim : virtual private robotSim {
 		int connect(IRSE &sim, dReal x, dReal y, dReal z);
 		int connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		int connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		int connect(IRSE &sim, robot4Sim *base, int face1, int face2);
+		int connect(IRSE &sim, robot4Sim *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		int getJointAngle(int id, dReal &angle);
 		int getJointSpeed(int id, double &speed);
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);

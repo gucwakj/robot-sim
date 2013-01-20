@@ -624,7 +624,7 @@ void IRSE::print_intermediate_data(void) {
     cout.setf(ios::fixed, ios::floatfield);
 	cout << j++*_step << " ";
 	for (i = 0; i < _robotNumber[MOBOT]; i++) {
-		cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT1)) << " ";
+		cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT2)) << " ";
 		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT2) << " ";
 		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT3) << " ";
 		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT4) << "\t";
@@ -762,7 +762,7 @@ void IRSE::addMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi, dRea
 	// add new imobot
 	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
 	_robot[MOBOT][_robotNumber[MOBOT]] = robot;
-	// create new thread array for imobots
+	// create new thread array for mobots
 	delete _robotThread[MOBOT];
 	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
 	// build new mobot geometry
@@ -771,45 +771,41 @@ void IRSE::addMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi, dRea
 	pthread_mutex_unlock(&_robot_mutex);
 }
 
-/*void IRSE::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2) {
+void IRSE::addMobotConnected(robot4Sim *robot, robot4Sim *base, int face1, int face2) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
 	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
-	_robot[MOBOT][_robotNumber[MOBOT]] = &mobot;
-	// add mobot to simulation
-	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space, _clock);
+	_robot[MOBOT][_robotNumber[MOBOT]] = robot;
 	// create new thread array for imobots
 	delete _robotThread[MOBOT];
 	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
 	// build new mobot geometry
-	if ( base.isHome() )
-		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached00(&base, face1, face2);
+	if ( base->isHome() )
+		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached00(base, face1, face2);
 	else
-		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached10(&base, face1, face2);
+		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached10(base, face1, face2);
 	// unlock robot data
 	pthread_mutex_unlock(&_robot_mutex);
 }
 
-void IRSE::addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void IRSE::addMobotConnected(robot4Sim *robot, robot4Sim *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
 	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
-	_robot[MOBOT][_robotNumber[MOBOT]] = &mobot;
-	// add mobot to simulation
-	_robot[MOBOT][_robotNumber[MOBOT]]->simAddRobot(_world, _space, _clock);
+	_robot[MOBOT][_robotNumber[MOBOT]] = robot;
 	// create new thread array for imobots
 	delete _robotThread[MOBOT];
 	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
 	// build new mobot geometry
-	if ( base.isHome() )
-		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached01(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+	if ( base->isHome() )
+		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached01(base, face1, face2, r_le, r_lb, r_rb, r_re);
 	else
-		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached11(&base, face1, face2, r_le, r_lb, r_rb, r_re);
+		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached11(base, face1, face2, r_le, r_lb, r_rb, r_re);
 	// unlock robot data
 	pthread_mutex_unlock(&_robot_mutex);
-}*/
+}
 
 /*void IRSE::MobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     if ( end == ENDCAP_L )

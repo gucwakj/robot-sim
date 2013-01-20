@@ -4,15 +4,34 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 	IRSE sim;
-	mobotSim robot1/*, robot2*/;
+	mobotSim robot1, robot2;
 	//double time[20], angle1[20],angle2[20],angle3[20],angle4[20];
 
 	robot1.connect(sim);
+	robot2.connect(sim, &robot1, 6, 1);
+	//robot1.connect(sim);
 
 	//robot1.recordAngles(time, angle1, angle2, angle3, angle4, 20, 0.1);
 	//robot1.recordAngle(1, time, angle1, 20, 0.1);
 
-	robot1.move(0, 45, -45, 0);
+	//robot1.moveNB(0, 45, -45, 0);
+
+	/* first lift */
+	robot1.moveToNB(0, -90,  0, 0);
+	robot2.moveToNB(0, 0, 90, 0);
+	robot1.moveWait();
+	robot2.moveWait();
+	//delay(1);
+	sleep(1);
+
+	/* second lift */
+	robot1.moveToNB(0, 0, 90,  0);
+	robot2.moveToNB(0,  -90, 0, 0);
+	robot1.moveWait();
+	robot2.moveWait();
+	//delay(1);
+	sleep(1);
+
 
 	//robot1.recordWait();
 	//printf("recorded data\n");

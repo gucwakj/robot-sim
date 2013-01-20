@@ -718,6 +718,26 @@ int robot4Sim::connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal th
 	return 0;
 }
 
+int robot4Sim::connect(IRSE &sim, robot4Sim *base, int face1, int face2) {
+	dSpaceID space;
+	sim.simAddRobot(_world, space, &_clock);
+    _space = dHashSpaceCreate(space);
+	sim.addMobotConnected(this, base, face1, face2);
+
+	// success
+	return 0;
+}
+
+int robot4Sim::connect(IRSE &sim, robot4Sim *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+	dSpaceID space;
+	sim.simAddRobot(_world, space, &_clock);
+    _space = dHashSpaceCreate(space);
+	sim.addMobotConnected(this, base, face1, face2, r_le, r_lb, r_rb, r_re);
+
+	// success
+	return 0;
+}
+
 void robot4Sim::draw(osg::Group *root) {
 	// initialize variables
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
@@ -1561,7 +1581,6 @@ void robot4Sim::buildAttached00(robot4Sim *attach, int face1, int face2) {
         m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
     }
     else if ( face1 == 6 && face2 == 1 ) {
-		printf("6161616161\n");
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth + 2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length;
@@ -1603,8 +1622,8 @@ void robot4Sim::buildAttached00(robot4Sim *attach, int face1, int face2) {
 
     // build new module
     this->build(attach->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
-                attach->getPosition(CENTER, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
-                attach->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
+                attach->getPosition(ENDCAP_L, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
+                R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2],
                 RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi));
 
     // add fixed joint to attach two modules

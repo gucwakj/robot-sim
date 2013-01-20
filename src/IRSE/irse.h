@@ -50,8 +50,8 @@ class IRSE {
 		void addMobot(robot4Sim *robot, dReal x, dReal y, dReal z);
 		void addMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		void addMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		//void addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2);
-		//void addMobotConnected(mobotSim &mobot, mobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		void addMobotConnected(robot4Sim *robot, robot4Sim *base, int face1, int face2);
+		void addMobotConnected(robot4Sim *robot, robot4Sim *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		//void addMobotAnchored(mobotSim &mobot, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 	private:
 		// private variables to store general information about simulation
