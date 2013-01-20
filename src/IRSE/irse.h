@@ -74,6 +74,9 @@ class IRSE {
 		osg::Group *_osgRoot;				// osg root node
 
 		int graphics_init(void);
+		osg::TextureCubeMap* readCubeMap(void);
+		osg::Geometry* createWall(const osg::Vec3& v1,const osg::Vec3& v2,const osg::Vec3& v3,osg::StateSet* stateset);
+		osg::Node* createRoom(void);
 		void print_intermediate_data(void);			// print data out at each time step for analysis
 		static void* simulationThread(void *arg);
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class

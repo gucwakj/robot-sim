@@ -59,6 +59,200 @@ IRSE::~IRSE(void) {
 	dCloseODE();
 }
 
+osg::TextureCubeMap* IRSE::readCubeMap(void) {
+    osg::TextureCubeMap* cubemap = new osg::TextureCubeMap;
+    //#define CUBEMAP_FILENAME(face) "nvlobby_" #face ".png"
+    //#define CUBEMAP_FILENAME(face) "data/Cubemap_axis/" #face ".png"
+    //#define CUBEMAP_FILENAME(face) "data/Cubemap_snow/" #face ".jpg"
+    //#define SKY_FILENAME(face) "data/ground/sky/" #face ".jpg"
+    #define SKY_FILENAME(face) "data/ground/checkered/" #face ".jpg"
+
+    /*osg::Image* imagePosX = osgDB::readImageFile(CUBEMAP_FILENAME(posx));
+    osg::Image* imageNegX = osgDB::readImageFile(CUBEMAP_FILENAME(negx));
+    osg::Image* imagePosY = osgDB::readImageFile(CUBEMAP_FILENAME(posy));
+    osg::Image* imageNegY = osgDB::readImageFile(CUBEMAP_FILENAME(negy));
+    osg::Image* imagePosZ = osgDB::readImageFile(CUBEMAP_FILENAME(posz));
+    osg::Image* imageNegZ = osgDB::readImageFile(CUBEMAP_FILENAME(negz));*/
+    /*osg::Image* imagePosX = osgDB::readImageFile(SKY_FILENAME(frontsh));
+    osg::Image* imageNegX = osgDB::readImageFile(SKY_FILENAME(backsh));
+    osg::Image* imagePosY = osgDB::readImageFile(SKY_FILENAME(botsh));
+    osg::Image* imageNegY = osgDB::readImageFile(SKY_FILENAME(toptsh));
+    osg::Image* imagePosZ = osgDB::readImageFile(SKY_FILENAME(leftsh));
+    osg::Image* imageNegZ = osgDB::readImageFile(SKY_FILENAME(rightsh));*/
+    osg::Image* imagePosX = osgDB::readImageFile(SKY_FILENAME(checkered_front));
+    osg::Image* imageNegX = osgDB::readImageFile(SKY_FILENAME(checkered_back));
+    osg::Image* imagePosY = osgDB::readImageFile(SKY_FILENAME(checkered_top));
+    osg::Image* imageNegY = osgDB::readImageFile(SKY_FILENAME(checkered_top));
+    osg::Image* imagePosZ = osgDB::readImageFile(SKY_FILENAME(checkered_left));
+    osg::Image* imageNegZ = osgDB::readImageFile(SKY_FILENAME(checkered_right));
+
+    if (imagePosX && imageNegX && imagePosY && imageNegY && imagePosZ && imageNegZ)
+    {
+        cubemap->setImage(osg::TextureCubeMap::POSITIVE_X, imagePosX);
+        cubemap->setImage(osg::TextureCubeMap::NEGATIVE_X, imageNegX);
+        cubemap->setImage(osg::TextureCubeMap::POSITIVE_Y, imagePosY);
+        cubemap->setImage(osg::TextureCubeMap::NEGATIVE_Y, imageNegY);
+        cubemap->setImage(osg::TextureCubeMap::POSITIVE_Z, imagePosZ);
+        cubemap->setImage(osg::TextureCubeMap::NEGATIVE_Z, imageNegZ);
+
+        cubemap->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
+        cubemap->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
+        cubemap->setWrap(osg::Texture::WRAP_R, osg::Texture::CLAMP_TO_EDGE);
+
+        cubemap->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
+        cubemap->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+    }
+
+    return cubemap;
+}
+
+osg::Geometry* IRSE::createWall(const osg::Vec3& v1,const osg::Vec3& v2,const osg::Vec3& v3,osg::StateSet* stateset)
+{
+
+   // create a drawable for occluder.
+    osg::Geometry* geom = new osg::Geometry;
+    
+    geom->setStateSet(stateset);
+
+    unsigned int noXSteps = 100;
+    unsigned int noYSteps = 100;
+    
+    osg::Vec3Array* coords = new osg::Vec3Array;
+    coords->reserve(noXSteps*noYSteps);
+    
+    
+    osg::Vec3 dx = (v2-v1)/((float)noXSteps-1.0f);
+    osg::Vec3 dy = (v3-v1)/((float)noYSteps-1.0f);
+    
+    unsigned int row;
+    osg::Vec3 vRowStart = v1;
+    for(row=0;row<noYSteps;++row)
+    {
+        osg::Vec3 v = vRowStart;
+        for(unsigned int col=0;col<noXSteps;++col)        
+        {
+            coords->push_back(v);
+            v += dx;
+        }
+        vRowStart+=dy;
+    }
+    
+    geom->setVertexArray(coords);
+    
+    osg::Vec4Array* colors = new osg::Vec4Array(1);
+    (*colors)[0].set(1.0f,1.0f,1.0f,1.0f);
+    geom->setColorArray(colors);
+    geom->setColorBinding(osg::Geometry::BIND_OVERALL);
+    
+    
+    for(row=0;row<noYSteps-1;++row)
+    {
+        osg::DrawElementsUShort* quadstrip = new osg::DrawElementsUShort(osg::PrimitiveSet::QUAD_STRIP);
+        quadstrip->reserve(noXSteps*2);
+        for(unsigned int col=0;col<noXSteps;++col)        
+        {
+            quadstrip->push_back((row+1)*noXSteps+col);
+            quadstrip->push_back(row*noXSteps+col);
+        }   
+        geom->addPrimitiveSet(quadstrip);
+    }
+    
+    // create the normals.    
+    osgUtil::SmoothingVisitor::smooth(*geom);
+    
+    return geom;
+ 
+}
+
+
+osg::Node* IRSE::createRoom(void)
+{
+    // default scale for this model.
+    osg::BoundingSphere bs(osg::Vec3(0.0f,0.0f,0.0f),1.0f);
+
+    osg::Group* root = new osg::Group;
+
+    /*if (loadedModel)
+    {
+        const osg::BoundingSphere& loaded_bs = loadedModel->getBound();
+
+        osg::PositionAttitudeTransform* pat = new osg::PositionAttitudeTransform();
+        pat->setPivotPoint(loaded_bs.center());
+        
+        pat->setUpdateCallback(new ModelTransformCallback(loaded_bs));
+        pat->addChild(loadedModel);
+        
+        bs = pat->getBound();
+        
+        root->addChild(pat);
+
+    }*/
+
+    bs.radius()*=1.5f;
+
+    // create a bounding box, which we'll use to size the room.
+    osg::BoundingBox bb;
+    bb.expandBy(bs);
+
+
+    // create statesets.
+    osg::StateSet* rootStateSet = new osg::StateSet;
+    root->setStateSet(rootStateSet);
+
+    osg::StateSet* wall = new osg::StateSet;
+    wall->setMode(GL_CULL_FACE,osg::StateAttribute::ON);
+    
+    osg::StateSet* floor = new osg::StateSet;
+    floor->setMode(GL_CULL_FACE,osg::StateAttribute::ON);
+
+    osg::StateSet* roof = new osg::StateSet;
+    roof->setMode(GL_CULL_FACE,osg::StateAttribute::ON);
+
+    osg::Geode* geode = new osg::Geode;
+    
+    // create front side.
+    geode->addDrawable(createWall(bb.corner(0),
+                                  bb.corner(4),
+                                  bb.corner(1),
+                                  wall));
+
+    // right side
+    geode->addDrawable(createWall(bb.corner(1),
+                                  bb.corner(5),
+                                  bb.corner(3),
+                                  wall));
+
+    // left side
+    geode->addDrawable(createWall(bb.corner(2),
+                                  bb.corner(6),
+                                  bb.corner(0),
+                                  wall));
+    // back side
+    geode->addDrawable(createWall(bb.corner(3),
+                                  bb.corner(7),
+                                  bb.corner(2),
+                                  wall));
+
+    // floor
+    geode->addDrawable(createWall(bb.corner(0),
+                                  bb.corner(1),
+                                  bb.corner(2),
+                                  floor));
+
+    // roof
+    geode->addDrawable(createWall(bb.corner(6),
+                                  bb.corner(7),
+                                  bb.corner(4),
+                                  roof));
+
+    root->addChild(geode);
+    
+    //root->addChild(createLights(bb,rootStateSet));
+
+    return root;
+    
+}    
+
 int IRSE::graphics_init(void) {
     // Creating the viewer  
 	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
@@ -89,26 +283,33 @@ int IRSE::graphics_init(void) {
     viewer->getCamera()->setGraphicsContext(gc.get());
 	viewer->getCamera()->setClearColor(osg::Vec4(0.2, 0.2, 0.4, 0.0));
     viewer->getCamera()->setViewport(0, 0, traits->width, traits->height);
-	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(1, -1, 1), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0.5, 0.2, 0.2), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 	// set up the camera manipulators
 	viewer->setCameraManipulator(new osgGA::TerrainManipulator);
-	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1, -1, 1), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	//viewer->setCameraManipulator(new osgGA::SphericalManipulator);
+	//viewer->setCameraManipulator(new osgGA::FirstPersonManipulator);
+	//viewer->setCameraManipulator(new osgGA::TrackballManipulator);
+	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0.5, 0.2, 0.2), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
     // Creating the root node
 	_osgRoot = new osg::Group();
 	_osgRoot->setUpdateCallback(new rootNodeCallback(this, _robot, _osgRoot));
 
 	// load terrain node
+    //osg::StateSet* floor = new osg::StateSet;
+    //floor->setMode(GL_CULL_FACE,osg::StateAttribute::ON);
 	osg::ref_ptr<osg::MatrixTransform> terrainScaleMAT (new osg::MatrixTransform);
 	osg::Matrix terrainScaleMatrix;
-	terrainScaleMatrix.makeScale(0.005f,0.005f,0.0003f);
+	terrainScaleMatrix.makeScale(0.1f,0.1f,0.006f);
 	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("data/ground/terrain.3ds");
+	//osg::ref_ptr<osg::Geode> terrainnode;
+    //terrainnode->addDrawable(createWall(osg::Vec3d(-100, 100, 0), osg::Vec3d(100, 100, 0), osg::Vec3d(100, -100, 0), floor));
 	terrainScaleMAT->addChild(terrainnode.get());
 	terrainScaleMAT->setMatrix(terrainScaleMatrix);
 	_osgRoot->addChild(terrainScaleMAT.get());
 
 	// load heightfield
-    /*osg::Image* heightMap = osgDB::readImageFile(heightFile);
+    /*osg::Image* heightMap = osgDB::readImageFile("data/ground/flat");
     osg::HeightField* heightField = new osg::HeightField();
     heightField->allocate(heightMap->s(), heightMap->t());
     heightField->setOrigin(osg::Vec3(-heightMap->s() / 2, -heightMap->t() / 2, 0));
@@ -120,8 +321,9 @@ int IRSE::graphics_init(void) {
             heightField->setHeight(c, r, ((*heightMap->data(c, r)) / 255.0f) * 80.0f);
         }
     }
-    osg::Geode* geode = new osg::Geode();
-    geode->addDrawable(new osg::ShapeDrawable(heightField));
+    osg::Geode* geode2 = new osg::Geode();
+    geode2->addDrawable(new osg::ShapeDrawable(heightField));
+	_osgRoot->addChild(geode2);*/
     //osg::Texture2D* tex = new osg::Texture2D(osgDB::readImageFile(texFile));
     //tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     //tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
@@ -131,8 +333,8 @@ int IRSE::graphics_init(void) {
 
 
 
-    // Define the Ephemeris Model and its radius
-    /*osg::ref_ptr<osgEphemeris::EphemerisModel> ephemerisModel = new osgEphemeris::EphemerisModel;
+    /*// Define the Ephemeris Model and its radius
+    osg::ref_ptr<osgEphemeris::EphemerisModel> ephemerisModel = new osgEphemeris::EphemerisModel;
 	osg::BoundingSphere bs = terrainScaleMAT->getBound();
     ephemerisModel->setSkyDomeRadius(bs.radius()*2);
     ephemerisModel->setSkyDomeCenter(osg::Vec3d(0, 0, 0));
@@ -142,6 +344,43 @@ int IRSE::graphics_init(void) {
     ephemerisModel->setMoveWithEyePoint(false);
 	// add sky model to root
     _osgRoot->addChild(ephemerisModel.get());*/
+
+// skybox
+osg::StateSet* stateset = new osg::StateSet();
+osg::TexEnv* te = new osg::TexEnv;
+te->setMode(osg::TexEnv::REPLACE);
+stateset->setTextureAttributeAndModes(0, te, osg::StateAttribute::ON);
+osg::TexGen *tg = new osg::TexGen;
+tg->setMode(osg::TexGen::NORMAL_MAP);
+stateset->setTextureAttributeAndModes(0, tg, osg::StateAttribute::ON);
+osg::TexMat *tm = new osg::TexMat;
+stateset->setTextureAttribute(0, tm);
+osg::TextureCubeMap* skymap = readCubeMap();
+stateset->setTextureAttributeAndModes(0, skymap, osg::StateAttribute::ON);
+stateset->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
+stateset->setMode( GL_CULL_FACE, osg::StateAttribute::OFF );
+// clear the depth to the far plane.
+osg::Depth* depth = new osg::Depth;
+depth->setFunction(osg::Depth::ALWAYS);
+depth->setRange(1.0,1.0);   
+stateset->setAttributeAndModes(depth, osg::StateAttribute::ON );
+stateset->setRenderBinDetails(-1,"RenderBin");
+osg::Drawable* drawable = new osg::ShapeDrawable(new osg::Sphere(osg::Vec3(0.0f,0.0f,0.0f),1));
+osg::Geode* geode = new osg::Geode;
+geode->setCullingActive(false);
+geode->setStateSet( stateset );
+geode->addDrawable(drawable);
+osg::Transform* transform = new MoveEarthySkyWithEyePointTransform;
+transform->setCullingActive(false);
+transform->addChild(geode);
+osg::ClearNode* clearNode = new osg::ClearNode;
+//clearNode->setRequiresClear(false);
+clearNode->setCullCallback(new TexMatCallback(*tm));
+clearNode->addChild(transform);
+_osgRoot->addChild(clearNode);
+
+    //osg::Node* roomNode = createRoom();
+	//_osgRoot->addChild(roomNode);
 
 	// viewer event handlers
 	viewer->addEventHandler(new osgGA::StateSetManipulator(viewer->getCamera()->getOrCreateStateSet()));
