@@ -35,3 +35,5 @@ link_directories("../src/IRSE")
 # Add the executable
 add_executable(dataAcquisition dataAcquisition.cpp)
 target_link_libraries(dataAcquisition irse)
+add_executable(liftRecorded liftRecorded.cpp)
+target_link_libraries(liftRecorded irse)

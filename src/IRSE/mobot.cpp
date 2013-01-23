@@ -122,6 +122,7 @@ int robot4Sim::motionSkinny(dReal angle) {
 
 int robot4Sim::motionStand(void) {
 	this->resetToZero();
+	//this->moveToZero();
 	this->moveJointTo(MOBOT_JOINT2, -85);
 	this->moveJointTo(MOBOT_JOINT3, 70);
 	this->moveWait();

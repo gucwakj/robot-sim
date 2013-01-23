@@ -283,13 +283,13 @@ int IRSE::graphics_init(void) {
     viewer->getCamera()->setGraphicsContext(gc.get());
 	viewer->getCamera()->setClearColor(osg::Vec4(0.2, 0.2, 0.4, 0.0));
     viewer->getCamera()->setViewport(0, 0, traits->width, traits->height);
-	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0.5, 0.2, 0.2), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(1, 0, 0.8), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 	// set up the camera manipulators
 	viewer->setCameraManipulator(new osgGA::TerrainManipulator);
 	//viewer->setCameraManipulator(new osgGA::SphericalManipulator);
 	//viewer->setCameraManipulator(new osgGA::FirstPersonManipulator);
 	//viewer->setCameraManipulator(new osgGA::TrackballManipulator);
-	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0.5, 0.2, 0.2), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1, 0, 0.8), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
     // Creating the root node
 	_osgRoot = new osg::Group();
