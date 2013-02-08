@@ -1,5 +1,5 @@
-#ifndef MOBOT_H_
-#define MOBOT_H_
+#ifndef MOBOTSIM_H_
+#define MOBOTSIM_H_
 
 #include "config.h"
 #include "pid.h"
@@ -186,14 +186,14 @@ class robot4Sim : virtual private robotSim {
 		int _type;
 };
 
-class mobotSim : public robot4Sim {
+class CMobot : public robot4Sim {
 	public:
-		mobotSim(void);
+		CMobot(void);
 };
 
-class iMobotSim : public robot4Sim {
+class CiMobot : public robot4Sim {
 	public:
-		iMobotSim(void);
+		CiMobot(void);
 };
 
-#endif  /* MOBOT_H_ */
+#endif  /* MOBOTSIM_H_ */

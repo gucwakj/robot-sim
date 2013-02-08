@@ -3621,9 +3621,9 @@ void robot4Sim::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
 }
 
 /**********************************************************
-	iMobotSim Class
+	CiMobot Class
  **********************************************************/
-iMobotSim::iMobotSim(void) {
+CiMobot::CiMobot(void) {
 	_encoderResolution = DEG2RAD(0.5);
 	_maxJointVelocity[IMOBOT_JOINT1] = 6.70;
 	_maxJointVelocity[IMOBOT_JOINT2] = 2.61;
@@ -3654,9 +3654,9 @@ iMobotSim::iMobotSim(void) {
 }
 
 /**********************************************************
-	mobotSim Class
+	CMobot Class
  **********************************************************/
-mobotSim::mobotSim(void) {
+CMobot::CMobot(void) {
 	_encoderResolution = DEG2RAD(0.5);
 	_maxJointVelocity[MOBOT_JOINT1] = 6.70;
 	_maxJointVelocity[MOBOT_JOINT2] = 2.61;

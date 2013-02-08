@@ -15,7 +15,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 CRobotSim sim;
-mobotSim mobot1, mobot2;
+CMobot mobot1, mobot2;
 	
 
 /* connect to Mobots and move to the zero position at the same time. */

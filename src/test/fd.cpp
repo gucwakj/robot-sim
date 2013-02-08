@@ -4,7 +4,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 	CRobotSim sim;
-	mobotSim mobot;
+	CMobot mobot;
 
 	mobot.connect(sim);
 
