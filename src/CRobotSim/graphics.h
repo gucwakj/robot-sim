@@ -44,7 +44,7 @@
 #include <ode/ode.h>
 #include "robot.h"
 
-class robotSim;
+class CRobot;
 class CRobotSim;
 
 class ViewerFrameThread : public OpenThreads::Thread {
@@ -125,21 +125,21 @@ public:
 
 class rootNodeCallback : public osg::NodeCallback {
 	public:
-		rootNodeCallback(CRobotSim *sim, robotSim ***robot, osg::Group *root);
+		rootNodeCallback(CRobotSim *sim, CRobot ***robot, osg::Group *root);
 		virtual void operator()(osg::Node *node, osg::NodeVisitor *nv);
 	private:
 		CRobotSim *_sim;
-		robotSim ***_robot;
+		CRobot ***_robot;
 		osg::Group *_root;
 		int _number[NUM_TYPES];
 };
 
 class robot4NodeCallback : public osg::NodeCallback {
 	public:
-		robot4NodeCallback(robotSim *robot);
+		robot4NodeCallback(CRobot *robot);
 		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 	private:
-		robotSim *_robot;
+		CRobot *_robot;
 };
 
 #endif  /* GRAPHICS_H_ */

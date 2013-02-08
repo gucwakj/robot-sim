@@ -49,7 +49,7 @@ typedef enum mobot_joint_state_e {
 
 class CRobotSim;
 
-class robot4Sim : virtual private robotSim {
+class robot4Sim : virtual private CRobot {
 	friend class CRobotSim;
 	friend class robot4NodeCallback;
 
@@ -144,7 +144,7 @@ class robot4Sim : virtual private robotSim {
 		bool _success[NUM_DOF];		// trigger for goal
 		bool _recording[NUM_DOF];	// recording in progress
 
-		// private functions inherited from robotSim class
+		// private functions inherited from CRobot class
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		virtual void buildAttached00(robot4Sim *attach, int face1, int face2);

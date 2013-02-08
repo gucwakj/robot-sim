@@ -13,10 +13,8 @@ enum simulation_reply_message_e {
 	FD_ERROR_STALL
 };
 
-class robotSim;
+class CRobot;
 class robot4Sim;
-class mobotSim;
-class iMobotSim;
 
 class CRobotSim {
 	public:
@@ -59,7 +57,7 @@ class CRobotSim {
 		dSpaceID _space;					// space for robots in which to live
 		dJointGroupID _group;				// group to store joints
 		dGeomID* _ground;					// ground (static) objects
-		robotSim** _robot[NUM_TYPES];		// array of all robots of every type
+		CRobot** _robot[NUM_TYPES];		// array of all robots of every type
 		dReal _step;						// time of each step of simulation
 		dReal _clock;						// clock time of simulation
 		dReal _mu[2];						// coefficient of friction [body/ground, body/body]

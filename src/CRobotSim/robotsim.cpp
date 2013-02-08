@@ -545,7 +545,7 @@ void* CRobotSim::simulationThread(void *arg) {
 		//  - update angles 
 		for (i = 0; i < NUM_TYPES; i++) {
 			for (j = 0; j < sim->_robotNumber[i]; j++) {
-				pthread_create(&(sim->_robotThread[i][j]), NULL, (void* (*)(void *))&robotSim::simPreCollisionThreadEntry, (void *)(sim->_robot[i][j]));
+				pthread_create(&(sim->_robotThread[i][j]), NULL, (void* (*)(void *))&CRobot::simPreCollisionThreadEntry, (void *)(sim->_robot[i][j]));
 				pthread_join(sim->_robotThread[i][j], NULL);
 			}
 		}
@@ -565,7 +565,7 @@ void* CRobotSim::simulationThread(void *arg) {
 		//  - check if success 
 		for (i = 0; i < NUM_TYPES; i++) {
 			for (j = 0; j < sim->_robotNumber[i]; j++) {
-				pthread_create(&(sim->_robotThread[i][j]), NULL, (void* (*)(void *))&robotSim::simPostCollisionThreadEntry, (void *)(sim->_robot[i][j]));
+				pthread_create(&(sim->_robotThread[i][j]), NULL, (void* (*)(void *))&CRobot::simPostCollisionThreadEntry, (void *)(sim->_robot[i][j]));
 				pthread_join(sim->_robotThread[i][j], NULL);
 			}
 		}
@@ -654,7 +654,7 @@ void CRobotSim::addiMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
-	_robot[IMOBOT] =  (robotSim **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
+	_robot[IMOBOT] =  (CRobot **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(CRobot *));
 	_robot[IMOBOT][_robotNumber[IMOBOT]] = robot;
 	// create new thread array for imobots
 	delete _robotThread[IMOBOT];
@@ -669,7 +669,7 @@ void CRobotSim::addiMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
-	_robot[IMOBOT] =  (robotSim **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
+	_robot[IMOBOT] =  (CRobot **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(CRobot *));
 	_robot[IMOBOT][_robotNumber[IMOBOT]] = robot;
 	// create new thread array for imobots
 	delete _robotThread[IMOBOT];
@@ -684,7 +684,7 @@ void CRobotSim::addiMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
-	_robot[IMOBOT] =  (robotSim **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
+	_robot[IMOBOT] =  (CRobot **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(CRobot *));
 	_robot[IMOBOT][_robotNumber[IMOBOT]] = robot;
 	// create new thread array for imobots
 	delete _robotThread[IMOBOT];
@@ -702,7 +702,7 @@ void CRobotSim::addiMobotConnected(robot4Sim *robot, iMobotSim &base, int face1,
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
-	_robot[IMOBOT] =  (robotSim **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(robotSim *));
+	_robot[IMOBOT] =  (CRobot **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(CRobot *));
 	_robot[IMOBOT][_robotNumber[IMOBOT]] = robot;
 	// create new thread array for imobots
 	delete _robotThread[IMOBOT];
@@ -745,7 +745,7 @@ void CRobotSim::addMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi,
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
-	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
+	_robot[MOBOT] =  (CRobot **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(CRobot *));
 	_robot[MOBOT][_robotNumber[MOBOT]] = robot;
 	// create new thread array for imobots
 	delete _robotThread[MOBOT];
@@ -760,7 +760,7 @@ void CRobotSim::addMobot(robot4Sim *robot, dReal x, dReal y, dReal z, dReal psi,
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
-	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
+	_robot[MOBOT] =  (CRobot **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(CRobot *));
 	_robot[MOBOT][_robotNumber[MOBOT]] = robot;
 	// create new thread array for mobots
 	delete _robotThread[MOBOT];
@@ -775,7 +775,7 @@ void CRobotSim::addMobotConnected(robot4Sim *robot, robot4Sim *base, int face1, 
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
-	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
+	_robot[MOBOT] =  (CRobot **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(CRobot *));
 	_robot[MOBOT][_robotNumber[MOBOT]] = robot;
 	// create new thread array for imobots
 	delete _robotThread[MOBOT];
@@ -793,7 +793,7 @@ void CRobotSim::addMobotConnected(robot4Sim *robot, robot4Sim *base, int face1, 
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
-	_robot[MOBOT] =  (robotSim **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(robotSim *));
+	_robot[MOBOT] =  (CRobot **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(CRobot *));
 	_robot[MOBOT][_robotNumber[MOBOT]] = robot;
 	// create new thread array for imobots
 	delete _robotThread[MOBOT];

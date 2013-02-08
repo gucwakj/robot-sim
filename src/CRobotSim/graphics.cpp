@@ -1,7 +1,7 @@
 #include "graphics.h"
 #include "robotsim.h"
 
-rootNodeCallback::rootNodeCallback(CRobotSim *sim, robotSim ***robot, osg::Group *root) {
+rootNodeCallback::rootNodeCallback(CRobotSim *sim, CRobot ***robot, osg::Group *root) {
 	_sim = sim;
 	_robot = robot;
 	_root = root;
@@ -20,7 +20,7 @@ void rootNodeCallback::operator()(osg::Node *node, osg::NodeVisitor *nv) {
 	traverse(node, nv);
 }
 
-robot4NodeCallback::robot4NodeCallback(robotSim *robot) {
+robot4NodeCallback::robot4NodeCallback(CRobot *robot) {
 	_robot = robot;
 }
 

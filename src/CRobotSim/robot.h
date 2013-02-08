@@ -20,7 +20,7 @@ enum robot_types_e {
 // classes forward declared
 class robot4Sim;
 
-class robotSim {
+class CRobot {
 	public:
 		// entry functions for pre- and post-collision updates
 		static void* simPreCollisionThreadEntry(void *arg);
