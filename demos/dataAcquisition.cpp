@@ -2,7 +2,7 @@
  * Make a graph of the mobot's joint angle versus time */
 
 #include <iostream>
-#include "robotsim.h"
+#include "mobotsim.h"
 using namespace std;
 
 int main(int argc, char *argv[]) {

@@ -54,8 +54,8 @@ endif (OPENGL_FOUND)
 add_library( robotsim SHARED
 	robotsim.cpp
 	graphics.cpp
-	mobot.cpp
 	robot.cpp
+	mobotsim.cpp
 	pid.cpp
 )
 target_link_libraries(robotsim ode ${EXTRA_LIBS} rt)

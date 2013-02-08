@@ -1,4 +1,4 @@
-#include "mobot.h"
+#include "mobotsim.h"
 
 CRobot4::CRobot4(void) {
 	for (int i = 0; i < NUM_DOF; i++) {

@@ -1,7 +1,7 @@
-#ifndef MOBOTSIM_H_
-#define MOBOTSIM_H_
+#ifndef MOBOT_H_
+#define MOBOT_H_
 
-#include "config.h"
+//#include "config.h"
 #include "pid.h"
 #include "robot.h"
 #include "graphics.h"

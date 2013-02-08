@@ -4,7 +4,7 @@
 #include <iostream>
 #include <stdbool.h>
 #include "robot.h"
-#include "mobot.h"
+#include "mobotsim.h"
 #include "graphics.h"
 
 enum simulation_reply_message_e {
