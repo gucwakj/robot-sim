@@ -18,7 +18,7 @@ enum robot_types_e {
 };
 
 // classes forward declared
-class robot4Sim;
+class CRobot4;
 
 class CRobot {
 	public:
@@ -49,10 +49,10 @@ class CRobot {
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) = 0;
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
-		virtual void buildAttached00(robot4Sim *attach, int face1, int face2) = 0;
-		virtual void buildAttached10(robot4Sim *attach, int face1, int face2) = 0;
-		virtual void buildAttached01(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
-		virtual void buildAttached11(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
+		virtual void buildAttached00(CRobot4 *attach, int face1, int face2) = 0;
+		virtual void buildAttached10(CRobot4 *attach, int face1, int face2) = 0;
+		virtual void buildAttached01(CRobot4 *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
+		virtual void buildAttached11(CRobot4 *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
 		virtual void draw(osg::Group *root) = 0;
 		virtual dReal getAngle(int i) = 0;
 		virtual bool getSuccess(int i) = 0;

@@ -49,21 +49,21 @@ typedef enum mobot_joint_state_e {
 
 class CRobotSim;
 
-class robot4Sim : virtual private CRobot {
+class CRobot4 : virtual private CRobot {
 	friend class CRobotSim;
 	friend class robot4NodeCallback;
 
 	// public api to mimic CMobot clas
 	public:
-		robot4Sim(void);
-		~robot4Sim(void);
+		CRobot4(void);
+		~CRobot4(void);
 
 		int connect(CRobotSim &sim);
 		int connect(CRobotSim &sim, dReal x, dReal y, dReal z);
 		int connect(CRobotSim &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		int connect(CRobotSim &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		int connect(CRobotSim &sim, robot4Sim *base, int face1, int face2);
-		int connect(CRobotSim &sim, robot4Sim *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		int connect(CRobotSim &sim, CRobot4 *base, int face1, int face2);
+		int connect(CRobotSim &sim, CRobot4 *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		int getJointAngle(int id, dReal &angle);
 		int getJointSpeed(int id, double &speed);
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);
@@ -116,7 +116,7 @@ class robot4Sim : virtual private CRobot {
 			NUM_DOF
 		};
 		typedef struct recordAngleArg_s {
-			robot4Sim *robot;
+			CRobot4 *robot;
 			int id;
 			int num;
 			int msecs;
@@ -147,10 +147,10 @@ class robot4Sim : virtual private CRobot {
 		// private functions inherited from CRobot class
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		virtual void buildAttached00(robot4Sim *attach, int face1, int face2);
-		virtual void buildAttached10(robot4Sim *attach, int face1, int face2);
-		virtual void buildAttached01(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		virtual void buildAttached11(robot4Sim *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		virtual void buildAttached00(CRobot4 *attach, int face1, int face2);
+		virtual void buildAttached10(CRobot4 *attach, int face1, int face2);
+		virtual void buildAttached01(CRobot4 *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		virtual void buildAttached11(CRobot4 *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		virtual void draw(osg::Group *root);
 		virtual dReal getAngle(int i);
 		virtual bool getSuccess(int i);
@@ -168,7 +168,7 @@ class robot4Sim : virtual private CRobot {
 		void build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);	// build body of mobot
 		void build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
 		void build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap
-		void create_fixed_joint(robot4Sim *attach, int face1, int face2);				// create fixed joint between modules
+		void create_fixed_joint(CRobot4 *attach, int face1, int face2);				// create fixed joint between modules
 		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
 		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
 		static void* recordAngleThread(void *arg);
@@ -186,12 +186,12 @@ class robot4Sim : virtual private CRobot {
 		int _type;
 };
 
-class CMobot : public robot4Sim {
+class CMobot : public CRobot4 {
 	public:
 		CMobot(void);
 };
 
-class CiMobot : public robot4Sim {
+class CiMobot : public CRobot4 {
 	public:
 		CiMobot(void);
 };
