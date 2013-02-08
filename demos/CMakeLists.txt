@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
-project(IRSE_Demos)
+project(CRobotSim_Demos)
 
 # Set the version number
-set (IRSE_Demos_VERSION_MAJOR 0)
-set (IRSE_Demos_VERSION_MINOR 1)
+set (CRobotSim_Demos_VERSION_MAJOR 0)
+set (CRobotSim_Demos_VERSION_MINOR 1)
 
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)
@@ -28,12 +28,12 @@ else (ENABLE_DOUBLE)
   add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 
-# Add IRSE library subdirectory
-include_directories("../src/IRSE")
-link_directories("../src/IRSE")
+# Add CRobotSim library subdirectory
+include_directories("../src/CRobotSim")
+link_directories("../src/CRobotSim")
 
 # Add the executable
 add_executable(dataAcquisition dataAcquisition.cpp)
-target_link_libraries(dataAcquisition irse)
+target_link_libraries(dataAcquisition robotsim)
 add_executable(liftRecorded liftRecorded.cpp)
-target_link_libraries(liftRecorded irse)
+target_link_libraries(liftRecorded robotsim)

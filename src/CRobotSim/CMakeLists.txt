@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
-project(IRSE)
+project(CRobotSim)
 
 # Set the version number
-set(IRSE_VERSION_MAJOR 0)
-set(IRSE_VERSION_MINOR 1)
+set(CRobotSim_VERSION_MAJOR 0)
+set(CRobotSim_VERSION_MINOR 1)
 
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)
@@ -43,10 +43,6 @@ if (OPENSCENEGRAPH_FOUND)
 	set (EXTRA_LIBS ${EXTRA_LIBS} ${OPENSCENEGRAPH_LIBRARIES})
 endif (OPENSCENEGRAPH_FOUND)
 
-# Add osgEphemeris
-link_directories("/usr/local/lib/")
-set (EXTRA_LIBS ${EXTRA_LIBS} osgEphemeris)
-
 # Add openGL
 find_package(OpenGL REQUIRED)
 if (OPENGL_FOUND)
@@ -55,11 +51,11 @@ if (OPENGL_FOUND)
 endif (OPENGL_FOUND)
 
 # Add the library
-add_library( irse SHARED
-	irse.cpp
+add_library( robotsim SHARED
+	robotsim.cpp
 	graphics.cpp
 	mobot.cpp
 	robot.cpp
 	pid.cpp
 )
-target_link_libraries(irse ode ${EXTRA_LIBS} rt)
+target_link_libraries(robotsim ode ${EXTRA_LIBS} rt)

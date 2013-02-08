@@ -679,7 +679,7 @@ void robot4Sim::simPostCollisionThread(void) {
 	this->simThreadsGoalRUnlock();
 }
 
-int robot4Sim::connect(IRSE &sim) {
+int robot4Sim::connect(CRobotSim &sim) {
 	dSpaceID space;
 	sim.simAddRobot(_world, space, &_clock);
     _space = dHashSpaceCreate(space);
@@ -689,7 +689,7 @@ int robot4Sim::connect(IRSE &sim) {
 	return 0;
 }
 
-int robot4Sim::connect(IRSE &sim, dReal x, dReal y, dReal z) {
+int robot4Sim::connect(CRobotSim &sim, dReal x, dReal y, dReal z) {
 	dSpaceID space;
 	sim.simAddRobot(_world, space, &_clock);
     _space = dHashSpaceCreate(space);
@@ -699,7 +699,7 @@ int robot4Sim::connect(IRSE &sim, dReal x, dReal y, dReal z) {
 	return 0;
 }
 
-int robot4Sim::connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+int robot4Sim::connect(CRobotSim &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	dSpaceID space;
 	sim.simAddRobot(_world, space, &_clock);
     _space = dHashSpaceCreate(space);
@@ -709,7 +709,7 @@ int robot4Sim::connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal th
 	return 0;
 }
 
-int robot4Sim::connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+int robot4Sim::connect(CRobotSim &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	dSpaceID space;
 	sim.simAddRobot(_world, space, &_clock);
     _space = dHashSpaceCreate(space);
@@ -719,7 +719,7 @@ int robot4Sim::connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal th
 	return 0;
 }
 
-int robot4Sim::connect(IRSE &sim, robot4Sim *base, int face1, int face2) {
+int robot4Sim::connect(CRobotSim &sim, robot4Sim *base, int face1, int face2) {
 	dSpaceID space;
 	sim.simAddRobot(_world, space, &_clock);
     _space = dHashSpaceCreate(space);
@@ -729,7 +729,7 @@ int robot4Sim::connect(IRSE &sim, robot4Sim *base, int face1, int face2) {
 	return 0;
 }
 
-int robot4Sim::connect(IRSE &sim, robot4Sim *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+int robot4Sim::connect(CRobotSim &sim, robot4Sim *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	dSpaceID space;
 	sim.simAddRobot(_world, space, &_clock);
     _space = dHashSpaceCreate(space);

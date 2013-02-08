@@ -3,8 +3,8 @@
 
 #define CMOBOTIK_test_VERSION_MAJOR 
 #define CMOBOTIK_test_VERSION_MINOR 
-#define CMOBOTFD_test_VERSION_MAJOR 
-#define CMOBOTFD_test_VERSION_MINOR 
-/* #undef ENABLE_DRAWSTUFF */
+#define CROBOTSIM_test_VERSION_MAJOR 
+#define CROBOTSIM_test_VERSION_MINOR 
+/* #undef ENABLE_GRAPHICS */
 
 #endif

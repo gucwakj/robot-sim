@@ -1,5 +1,5 @@
-#ifndef IRSE_H_
-#define IRSE_H_
+#ifndef CRobotSim_H_
+#define CRobotSim_H_
 
 #include <iostream>
 #include <stdbool.h>
@@ -18,10 +18,10 @@ class robot4Sim;
 class mobotSim;
 class iMobotSim;
 
-class IRSE {
+class CRobotSim {
 	public:
-		IRSE(void);
-		~IRSE(void);
+		CRobotSim(void);
+		~CRobotSim(void);
 
 		int getNumberOfRobots(int type);
 
@@ -83,4 +83,4 @@ class IRSE {
 		unsigned int diff_nsecs(struct timespec t1, struct timespec t2);
 };
 
-#endif	/* IRSE_H_ */
+#endif	/* CRobotSim_H_ */

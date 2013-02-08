@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 2.8)
-project(IRSE_tests)
+project(CRobotSim_tests)
 
 # Set the version number
 set(CMobotIK_test_VERSION_MAJOR 0)
 set(CMobotIK_test_VERSION_MINOR 1)
-set(IRSE_test_VERSION_MAJOR 0)
-set(IRSE_test_VERSION_MINOR 1)
+set(CRobotSim_test_VERSION_MAJOR 0)
+set(CRobotSim_test_VERSION_MINOR 1)
 
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)
@@ -34,9 +34,9 @@ endif (ENABLE_DOUBLE)
 include_directories("../CMobotIK")
 link_directories("../CMobotIK")
 
-# Add IRSE library subdirectory
-include_directories("../IRSE")
-link_directories("../IRSE")
+# Add CRobotSim library subdirectory
+include_directories("../CRobotSim")
+link_directories("../CRobotSim")
 
 # Add the executable
 add_executable(ik ik.cpp)
@@ -44,4 +44,4 @@ target_link_libraries(ik mobotik)
 
 # Add the executable
 add_executable(fd fd.cpp)
-target_link_libraries(fd irse)
+target_link_libraries(fd robotsim)

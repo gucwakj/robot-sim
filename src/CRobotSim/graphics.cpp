@@ -1,7 +1,7 @@
 #include "graphics.h"
-#include "irse.h"
+#include "robotsim.h"
 
-rootNodeCallback::rootNodeCallback(IRSE *sim, robotSim ***robot, osg::Group *root) {
+rootNodeCallback::rootNodeCallback(CRobotSim *sim, robotSim ***robot, osg::Group *root) {
 	_sim = sim;
 	_robot = robot;
 	_root = root;

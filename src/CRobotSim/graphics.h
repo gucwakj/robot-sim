@@ -45,7 +45,7 @@
 #include "robot.h"
 
 class robotSim;
-class IRSE;
+class CRobotSim;
 
 class ViewerFrameThread : public OpenThreads::Thread {
     public:
@@ -125,10 +125,10 @@ public:
 
 class rootNodeCallback : public osg::NodeCallback {
 	public:
-		rootNodeCallback(IRSE *sim, robotSim ***robot, osg::Group *root);
+		rootNodeCallback(CRobotSim *sim, robotSim ***robot, osg::Group *root);
 		virtual void operator()(osg::Node *node, osg::NodeVisitor *nv);
 	private:
-		IRSE *_sim;
+		CRobotSim *_sim;
 		robotSim ***_robot;
 		osg::Group *_root;
 		int _number[NUM_TYPES];

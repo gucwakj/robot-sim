@@ -5,7 +5,7 @@
 #include "pid.h"
 #include "robot.h"
 #include "graphics.h"
-#include "irse.h"
+#include "robotsim.h"
 #ifdef ENABLE_DOUBLE
 #define EPSILON DBL_EPSILON
 #else
@@ -47,10 +47,10 @@ typedef enum mobot_joint_state_e {
 	MOBOT_HOLD		= 3
 } mobotJointState_t;
 
-class IRSE;
+class CRobotSim;
 
 class robot4Sim : virtual private robotSim {
-	friend class IRSE;
+	friend class CRobotSim;
 	friend class robot4NodeCallback;
 
 	// public api to mimic CMobot clas
@@ -58,12 +58,12 @@ class robot4Sim : virtual private robotSim {
 		robot4Sim(void);
 		~robot4Sim(void);
 
-		int connect(IRSE &sim);
-		int connect(IRSE &sim, dReal x, dReal y, dReal z);
-		int connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
-		int connect(IRSE &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		int connect(IRSE &sim, robot4Sim *base, int face1, int face2);
-		int connect(IRSE &sim, robot4Sim *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		int connect(CRobotSim &sim);
+		int connect(CRobotSim &sim, dReal x, dReal y, dReal z);
+		int connect(CRobotSim &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
+		int connect(CRobotSim &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		int connect(CRobotSim &sim, robot4Sim *base, int face1, int face2);
+		int connect(CRobotSim &sim, robot4Sim *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		int getJointAngle(int id, dReal &angle);
 		int getJointSpeed(int id, double &speed);
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);
