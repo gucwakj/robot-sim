@@ -40,7 +40,9 @@ CRobotSim::CRobotSim(void) {
     _step = 0.004;
 	_clock = 0;
 
+#ifdef ENABLE_GRAPHICS
 	graphics_init();
+#endif /* ENABLE_GRAPHICS */
 }
 
 CRobotSim::~CRobotSim(void) {
@@ -59,6 +61,7 @@ CRobotSim::~CRobotSim(void) {
 	dCloseODE();
 }
 
+#ifdef ENABLE_GRAPHICS
 osg::TextureCubeMap* CRobotSim::readCubeMap(void) {
     osg::TextureCubeMap* cubemap = new osg::TextureCubeMap;
     //#define CUBEMAP_FILENAME(face) "nvlobby_" #face ".png"
@@ -402,6 +405,7 @@ _osgRoot->addChild(clearNode);
 
 	return 0;
 }
+#endif /* ENABLE_GRAPHICS */
 
 /**********************************************************
 	Public Member Functions

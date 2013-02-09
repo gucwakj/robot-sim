@@ -739,6 +739,7 @@ int CRobot4::connect(CRobotSim &sim, CRobot4 *base, int face1, int face2, dReal 
 	return 0;
 }
 
+#ifdef ENABLE_GRAPHICS
 void CRobot4::draw(osg::Group *root) {
 	// initialize variables
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
@@ -918,6 +919,7 @@ void CRobot4::draw(osg::Group *root) {
 	// add to scenegraph
 	root->addChild(robot);
 }
+#endif /* ENABLE_GRAPHICS */
 
 dReal CRobot4::getAngle(int i) {
 	if (i == LE || i == RE)

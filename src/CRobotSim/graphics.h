@@ -1,6 +1,7 @@
 #ifndef GRAPHICS_H_
 #define GRAPHICS_H_
 
+#include "config.h"
 #include <OpenThreads/Thread>
 
 #include <osg/ClearNode>
@@ -142,4 +143,4 @@ class robot4NodeCallback : public osg::NodeCallback {
 		CRobot *_robot;
 };
 
-#endif  /* GRAPHICS_H_ */
+#endif /* GRAPHICS_H_ */

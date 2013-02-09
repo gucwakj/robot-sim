@@ -1,10 +1,13 @@
 #ifndef ROBOT_H_
 #define ROBOT_H_
 
+#include "config.h"
 #include <ode/ode.h>
 #include <unistd.h>
 #include <pthread.h>
+#ifdef ENABLE_GRAPHICS
 #include <osg/Group>
+#endif /* ENABLE_GRAPHICS */
 #define DEG2RAD(x) ((x) * M_PI / 180.0)
 #define RAD2DEG(x) ((x) * 180.0 / M_PI)
 
@@ -53,7 +56,9 @@ class CRobot {
 		virtual void buildAttached10(CRobot4 *attach, int face1, int face2) = 0;
 		virtual void buildAttached01(CRobot4 *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
 		virtual void buildAttached11(CRobot4 *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
+#ifdef ENABLE_GRAPHICS
 		virtual void draw(osg::Group *root) = 0;
+#endif /* ENABLE_GRAPHICS */
 		virtual dReal getAngle(int i) = 0;
 		virtual bool getSuccess(int i) = 0;
 		virtual dReal getPosition(int body, int i) = 0;

@@ -3,9 +3,12 @@
 
 #include <iostream>
 #include <stdbool.h>
+#include "config.h"
 #include "robot.h"
 #include "mobotsim.h"
+#ifdef ENABLE_GRAPHICS
 #include "graphics.h"
+#endif /* ENABLE_GRAPHICS */
 
 enum simulation_reply_message_e {
 	FD_SUCCESS,
@@ -68,17 +71,21 @@ class CRobotSim {
 		pthread_mutex_t _robot_mutex;		// mutex to lock robot data
 		pthread_t _simulation;				// simulation thread
 		pthread_t* _robotThread[NUM_TYPES];	// thread for each robot
+#ifdef ENABLE_GRAPHICS
 		ViewerFrameThread *_osgThread;		// osg thread
 		osg::Group *_osgRoot;				// osg root node
+#endif /* ENABLE_GRAPHICS */
 
+#ifdef ENABLE_GRAPHICS
 		int graphics_init(void);
 		osg::TextureCubeMap* readCubeMap(void);
 		osg::Geometry* createWall(const osg::Vec3& v1,const osg::Vec3& v2,const osg::Vec3& v3,osg::StateSet* stateset);
 		osg::Node* createRoom(void);
+#endif /* ENABLE_GRAPHICS */
 		void print_intermediate_data(void);			// print data out at each time step for analysis
 		static void* simulationThread(void *arg);
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 		unsigned int diff_nsecs(struct timespec t1, struct timespec t2);
 };
 
-#endif	/* CRobotSim_H_ */
+#endif	/* CROBOTSIM_H_ */

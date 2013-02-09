@@ -32,25 +32,29 @@ else (ENABLE_DOUBLE)
 	add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 
+# Option to enable graphics
+option (ENABLE_GRAPHICS "Enable graphics for simulation." ON)
+if (ENABLE_GRAPHICS)
+	# Add OSG
+	find_package(OpenSceneGraph 2.8.0 REQUIRED osgViewer osgSim osgUtil OpenThreads osgGA osgDB osgFX)
+	if (OPENSCENEGRAPH_FOUND)
+		include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS})
+		set (EXTRA_LIBS ${EXTRA_LIBS} ${OPENSCENEGRAPH_LIBRARIES})
+	endif (OPENSCENEGRAPH_FOUND)
+	# Add openGL
+	find_package(OpenGL REQUIRED)
+	if (OPENGL_FOUND)
+		include_directories(${OPENGL_INCLUDE_DIR})
+		set (EXTRA_LIBS ${EXTRA_LIBS} ${OPENGL_LIBRARIES})
+	endif (OPENGL_FOUND)
+endif (ENABLE_GRAPHICS)
+
 # Add pthreads
 find_package(Threads)
 set (EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
-# Add OSG
-find_package(OpenSceneGraph 2.8.0 REQUIRED osgViewer osgSim osgUtil OpenThreads osgGA osgDB osgFX)
-if (OPENSCENEGRAPH_FOUND)
-	include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS})
-	set (EXTRA_LIBS ${EXTRA_LIBS} ${OPENSCENEGRAPH_LIBRARIES})
-endif (OPENSCENEGRAPH_FOUND)
-
-# Add openGL
-find_package(OpenGL REQUIRED)
-if (OPENGL_FOUND)
-	include_directories(${OPENGL_INCLUDE_DIR})
-	set (EXTRA_LIBS ${EXTRA_LIBS} ${OPENGL_LIBRARIES})
-endif (OPENGL_FOUND)
-
 # Add the library
+if (ENABLE_GRAPHICS)
 add_library( robotsim SHARED
 	robotsim.cpp
 	graphics.cpp
@@ -58,4 +62,13 @@ add_library( robotsim SHARED
 	mobotsim.cpp
 	pid.cpp
 )
+else (ENABLE_GRAPHICS)
+add_library( robotsim SHARED
+	robotsim.cpp
+	robot.cpp
+	mobotsim.cpp
+	pid.cpp
+)
+endif (ENABLE_GRAPHICS)
+
 target_link_libraries(robotsim ode ${EXTRA_LIBS} rt)

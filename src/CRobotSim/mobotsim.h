@@ -1,16 +1,18 @@
 #ifndef MOBOT_H_
 #define MOBOT_H_
 
-//#include "config.h"
+#include "config.h"
 #include "pid.h"
 #include "robot.h"
+#ifdef ENABLE_GRAPHICS
 #include "graphics.h"
+#endif /* ENABLE_GRAPHICS */
 #include "robotsim.h"
 #ifdef ENABLE_DOUBLE
 #define EPSILON DBL_EPSILON
 #else
 #define EPSILON FLT_EPSILON
-#endif
+#endif /* ENABLE_DOUBLE */
 
 typedef enum imobot_faces_e {
 	IMOBOT_FACE1 = 1,
@@ -151,7 +153,9 @@ class CRobot4 : virtual private CRobot {
 		virtual void buildAttached10(CRobot4 *attach, int face1, int face2);
 		virtual void buildAttached01(CRobot4 *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		virtual void buildAttached11(CRobot4 *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+#ifdef ENABLE_GRAPHICS
 		virtual void draw(osg::Group *root);
+#endif /* ENABLE_GRAPHICS */
 		virtual dReal getAngle(int i);
 		virtual bool getSuccess(int i);
 		virtual dReal getPosition(int body, int i);
