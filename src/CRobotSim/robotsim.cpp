@@ -31,14 +31,11 @@ CRobotSim::CRobotSim(void) {
 	pthread_mutex_init(&_ground_mutex, NULL);
 
 	// variables to keep track of progress of simulation
-	for ( int i = 0; i < NUM_TYPES; i++ ) {
-		_robot[i] = NULL;
-		_robotNumber[i] = 0;
-		_robotThread[i] = NULL;
-	}
 	_groundNumber = 1;
     _step = 0.004;
 	_clock = 0;
+
+	robot_init();
 
 #ifdef ENABLE_GRAPHICS
 	graphics_init();
@@ -59,6 +56,203 @@ CRobotSim::~CRobotSim(void) {
 	dSpaceDestroy(_space);
 	dWorldDestroy(_world);
 	dCloseODE();
+}
+
+int CRobotSim::robot_init(void) {
+	FILE *fp;
+	char type[16], line[1024];
+	char *begptr, *endptr, string[32];
+	bot = NULL;
+	conn = NULL;
+	for ( int i = 0; i < NUM_TYPES; i++ ) {
+		_robot[i] = NULL;
+		_robotNumber[i] = 0;
+		_robotConnected[i] = 0;
+		_robotThread[i] = NULL;
+	}
+
+	// open config file
+    fp = fopen(".robotsimrc", "r");
+    if (fp == NULL) {
+        printf("Error: cannot read config file\n");
+        exit(-1);
+    }
+
+	// scan config file
+    fgets(line, 1024, fp);
+	while ( !feof(fp) ) {
+		// skip comments
+    	while (line[0] == '#') {
+    	    fgets(line, 1024, fp);
+    	}
+
+		// get type of line data (robot, connector)
+		strncpy(type, line, strstr(line, ":") - line);
+
+		if ( !strcmp(type, "mobot") ) {
+			Bot_t *nr = (Bot_t *)malloc(sizeof(struct Bot_s));
+
+			// get type
+			if ( !strcmp(type, "mobot") ) {
+				nr->type = 0;
+				_robotNumber[MOBOT]++;
+			}
+			else if ( !strcmp(type, "imobot") ) {
+				nr->type = 1;
+				_robotNumber[IMOBOT]++;
+			}
+			// get id
+			begptr = strstr(line, ":");
+			if ( begptr != NULL ) {
+				endptr = strstr(begptr, ";");
+				strncpy(string, begptr, endptr - begptr);
+				string[endptr - begptr] = '\0';
+				sscanf(string, "%*s%d", &nr->id);
+			}
+			// get position
+			begptr = strstr(line, "position");
+			if ( begptr != NULL ) {
+				endptr = strstr(begptr, ";");
+				strncpy(string, begptr, endptr - begptr);
+				string[endptr - begptr] = '\0';
+				sscanf(string, "%*s%lf%*s%lf%*s%lf", &nr->x, &nr->y, &nr->z);
+			}
+			// get rotation
+			begptr = strstr(line, "rotation");
+			if ( begptr != NULL ) {
+				endptr = strstr(begptr, ";");
+				strncpy(string, begptr, endptr - begptr);
+				string[endptr - begptr] = '\0';
+				sscanf(string, "%*s%lf%*s%lf%*s%lf", &nr->psi, &nr->theta, &nr->phi);
+			}
+			// get joint angles
+			begptr = strstr(line, "joint");
+			if ( begptr != NULL ) {
+				endptr = strstr(begptr, ";");
+				strncpy(string, begptr, endptr - begptr);
+				string[endptr - begptr] = '\0';
+				sscanf(string, "%*s%lf%*s%lf%*s%lf%*s%lf", &nr->angle1, &nr->angle2, &nr->angle3, &nr->angle4);
+			}
+			nr->next = NULL;
+
+			// put new bot at end of list
+			Bot_t *rtmp = bot;
+			if ( bot == NULL )
+				bot = nr;
+			else {
+				while (rtmp->next)
+					rtmp = rtmp->next;
+				rtmp->next = nr;
+			}
+		}
+		else {
+			Conn_t *nc = (Conn_t *)malloc(sizeof(struct Conn_s));
+
+			// get type
+			if ( !strcmp(type, "simple") ) {
+				nc->type = SIMPLE;
+				nc->num = 2;
+				nc->robot = (int *)malloc(sizeof(int)*nc->num);
+				nc->face = (int *)malloc(sizeof(int)*nc->num);
+				for (int i = 0; i < nc->num; i++) { nc->robot[i] = -1; nc->face[i] = -1; }
+			}
+			else if ( !strcmp(type, "caster") ) {
+				nc->type = CASTER;
+				nc->num = 1;
+				nc->robot = (int *)malloc(sizeof(int)*nc->num);
+				nc->face = (int *)malloc(sizeof(int)*nc->num);
+				for (int i = 0; i < nc->num; i++) { nc->robot[i] = -1; nc->face[i] = -1; }
+			}
+			else if ( !strcmp(type, "bigwheel") ) {
+				nc->type = BIGWHEEL;
+				nc->num = 1;
+				nc->robot = (int *)malloc(sizeof(int)*nc->num);
+				nc->face = (int *)malloc(sizeof(int)*nc->num);
+				for (int i = 0; i < nc->num; i++) { nc->robot[i] = -1; nc->face[i] = -1; }
+			}
+			else if ( !strcmp(type, "smallwheel") ) {
+				nc->type = SMALLWHEEL;
+				nc->num = 1;
+				nc->robot = (int *)malloc(sizeof(int)*nc->num);
+				nc->face = (int *)malloc(sizeof(int)*nc->num);
+				for (int i = 0; i < nc->num; i++) { nc->robot[i] = -1; nc->face[i] = -1; }
+			}
+			else if ( !strcmp(type, "l") ) {
+				nc->type = L;
+				nc->num = 3;
+				nc->robot = (int *)malloc(sizeof(int)*nc->num);
+				nc->face = (int *)malloc(sizeof(int)*nc->num);
+				for (int i = 0; i < nc->num; i++) { nc->robot[i] = -1; nc->face[i] = -1; }
+			}
+			else if ( !strcmp(type, "tank") ) {
+				nc->type = TANK;
+				nc->num = 2;
+				nc->robot = (int *)malloc(sizeof(int)*nc->num);
+				nc->face = (int *)malloc(sizeof(int)*nc->num);
+				for (int i = 0; i < nc->num; i++) { nc->robot[i] = -1; nc->face[i] = -1; }
+			}
+
+			// store connected robots	
+			begptr = strstr(line, ":");
+			for (int i = 0; i < nc->num; i++) {
+				if ( begptr != NULL ) {
+					endptr = strstr(begptr, ";");
+					strncpy(string, begptr, endptr - begptr);
+					string[endptr - begptr] = '\0';
+					sscanf(string, "%*c%d%*s%d", &nc->robot[i], &nc->face[i]);
+				}
+				begptr = endptr+1;
+			}
+			nc->next = NULL;
+
+			// put new conn at end of list
+			Conn_t *ctmp = conn;
+			if ( conn == NULL )
+				conn = nc;
+			else {
+				while (ctmp->next)
+					ctmp = ctmp->next;
+				ctmp->next = nc;
+			}
+		}
+
+		/*Bot_t *rtmp = bot;
+		while (rtmp) {
+			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
+			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
+			printf("psi = %lf, theta = %lf, phi = %lf\n", rtmp->psi, rtmp->theta, rtmp->phi);
+			printf("angle1 = %lf, angle2 = %lf, angle3 = %lf, angle4 = %lf\n", rtmp->angle1, rtmp->angle2, rtmp->angle3, rtmp->angle4);
+			printf("next = %p\n", rtmp->next);
+			printf("\n");
+			rtmp = rtmp->next;
+		}
+		printf("\n\n\n");
+		Conn_t *ctmp = conn;
+		while (ctmp) {
+			printf("type = %d\n", ctmp->type);
+			for (int i = 0; i < ctmp->num; i++) {
+				printf("robot %d = %d, face %d = %d\n", i, ctmp->robot[i], i, ctmp->face[i]);
+			}
+			printf("next = %p\n", ctmp->next);
+			printf("\n");
+			ctmp = ctmp->next;
+		}
+		printf("\n\n\n");*/
+
+		// get new line
+    	fgets(line, 1024, fp);
+	}
+
+	// close config file
+    fclose(fp);
+
+	// set up robot variables
+	for (int i = 0; i < NUM_TYPES; i++) {
+		_robotThread[i] = new pthread_t[_robotNumber[i]];
+		_robot[i] =  (CRobot **)realloc(_robot[i], (_robotNumber[i] + 1)*sizeof(CRobot *));
+	}
+
+	return 0;
 }
 
 #ifdef ENABLE_GRAPHICS
@@ -410,9 +604,9 @@ _osgRoot->addChild(clearNode);
 /**********************************************************
 	Public Member Functions
  **********************************************************/
-int CRobotSim::getNumberOfRobots(int type) {
+/*int CRobotSim::getNumberOfRobots(int type) {
 	return _robotNumber[type];
-}
+}*/
 
 void CRobotSim::setCOR(dReal cor_g, dReal cor_b) {
 	_cor[0] = cor_g;
@@ -519,11 +713,11 @@ void CRobotSim::setGroundSphere(dReal r, dReal px, dReal py, dReal pz) {
 	pthread_mutex_unlock(&_ground_mutex);
 }
 
-void CRobotSim::simAddRobot(dWorldID &world, dSpaceID &space, dReal **clock) {
+/*void CRobotSim::simAddRobot(dWorldID &world, dSpaceID &space, dReal **clock) {
 	world = _world;
     space = _space;
 	*clock = &_clock;
-}
+}*/
 
 /**********************************************************
 	Private Simulation Functions
@@ -548,7 +742,7 @@ void* CRobotSim::simulationThread(void *arg) {
 		//  - lock angle and goal
 		//  - update angles 
 		for (i = 0; i < NUM_TYPES; i++) {
-			for (j = 0; j < sim->_robotNumber[i]; j++) {
+			for (j = 0; j < sim->_robotConnected[i]; j++) {
 				pthread_create(&(sim->_robotThread[i][j]), NULL, (void* (*)(void *))&CRobot::simPreCollisionThreadEntry, (void *)(sim->_robot[i][j]));
 				pthread_join(sim->_robotThread[i][j], NULL);
 			}
@@ -568,7 +762,7 @@ void* CRobotSim::simulationThread(void *arg) {
 		//  - unlock angle and goal
 		//  - check if success 
 		for (i = 0; i < NUM_TYPES; i++) {
-			for (j = 0; j < sim->_robotNumber[i]; j++) {
+			for (j = 0; j < sim->_robotConnected[i]; j++) {
 				pthread_create(&(sim->_robotThread[i][j]), NULL, (void* (*)(void *))&CRobot::simPostCollisionThreadEntry, (void *)(sim->_robot[i][j]));
 				pthread_join(sim->_robotThread[i][j], NULL);
 			}
@@ -621,69 +815,56 @@ void CRobotSim::collision(void *data, dGeomID o1, dGeomID o2) {
 
 void CRobotSim::print_intermediate_data(void) {
 	// initialze loop counters
-	int i;
 	static int j = 0;
 
     cout.width(10);		// cout.precision(4);
     cout.setf(ios::fixed, ios::floatfield);
 	cout << j++*_step << " ";
-	for (i = 0; i < _robotNumber[MOBOT]; i++) {
-		cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT2)) << " ";
-		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT2) << " ";
-		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT3) << " ";
-		//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT4) << "\t";
-		//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
-		//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
-		//cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
-		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
-		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
-		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";
-		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT4) << "\t";
-	}
+		for (int i = 0; i < _robotConnected[MOBOT]; i++) {
+			cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT2)) << " ";
+			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT2) << " ";
+			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT3) << " ";
+			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT4) << "\t";
+			//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
+			//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
+			//cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
+			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
+			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
+			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";
+			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT4) << "\t";
+		}
 	cout << endl;
+}
+
+
+/**********************************************************
+	Add Robot Functions
+ **********************************************************/
+int CRobotSim::addRobot(CRobot &robot) {
+	Bot_t *tmp = bot;
+	while (tmp->type != robot.getType() && tmp->id != _robotConnected[robot.getType()])
+		tmp = tmp->next;
+
+	// lock robot data to insert a new one into simulation
+	pthread_mutex_lock(&_robot_mutex);
+		
+	_robot[robot.getType()][_robotConnected[robot.getType()]] = &robot;
+	_robot[robot.getType()][_robotConnected[robot.getType()]]->addToSim(_world, _space, &_clock);
+	if ( tmp->angle1 != 0 || tmp->angle2 != 0 || tmp->angle3 != 0 || tmp->angle4 != 0 )
+		_robot[robot.getType()][_robotConnected[robot.getType()]]->build(tmp->x, tmp->y, tmp->z, tmp->psi, tmp->theta, tmp->phi, tmp->angle1, tmp->angle2, tmp->angle3, tmp->angle4);
+	else
+		_robot[robot.getType()][_robotConnected[robot.getType()]]->build(tmp->x, tmp->y, tmp->z, tmp->psi, tmp->theta, tmp->phi);
+	_robotConnected[robot.getType()]++;
+
+	// unlock robot data
+	pthread_mutex_unlock(&_robot_mutex);
+
+	return 0;
 }
 
 /**********************************************************
 	Build iMobot Functions
  **********************************************************/
-void CRobotSim::addiMobot(CRobot4 *robot) {
-	this->addiMobot(robot, 0, 0, 0);
-}
-
-void CRobotSim::addiMobot(CRobot4 *robot, dReal x, dReal y, dReal z) {
-	this->addiMobot(robot, x, y, z, 0, 0, 0);
-}
-
-void CRobotSim::addiMobot(CRobot4 *robot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
-	// lock robot data to insert a new one into simulation
-	pthread_mutex_lock(&_robot_mutex);
-	// add new imobot
-	_robot[IMOBOT] =  (CRobot **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(CRobot *));
-	_robot[IMOBOT][_robotNumber[IMOBOT]] = robot;
-	// create new thread array for imobots
-	delete _robotThread[IMOBOT];
-	_robotThread[IMOBOT] = new pthread_t[_robotNumber[IMOBOT]];
-	// build new imobot geometry
-	_robot[IMOBOT][_robotNumber[IMOBOT]++]->build(x, y, z, psi, theta, phi);
-	// unlock robot data
-	pthread_mutex_unlock(&_robot_mutex);
-}
-
-void CRobotSim::addiMobot(CRobot4 *robot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	// lock robot data to insert a new one into simulation
-	pthread_mutex_lock(&_robot_mutex);
-	// add new imobot
-	_robot[IMOBOT] =  (CRobot **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(CRobot *));
-	_robot[IMOBOT][_robotNumber[IMOBOT]] = robot;
-	// create new thread array for imobots
-	delete _robotThread[IMOBOT];
-	_robotThread[IMOBOT] = new pthread_t[_robotNumber[IMOBOT]];
-	// build new imobot geometry
-	_robot[IMOBOT][_robotNumber[IMOBOT]++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
-	// unlock robot data
-	pthread_mutex_unlock(&_robot_mutex);
-}
-
 /*void CRobotSim::addiMobotConnected(CRobot4 *robot, iMobotSim &base, int face1, int face2) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
@@ -720,62 +901,10 @@ void CRobotSim::addiMobotConnected(CRobot4 *robot, iMobotSim &base, int face1, i
 	pthread_mutex_unlock(&_robot_mutex);
 }*/
 
-/*void CRobotSim::iMobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-    if ( end == ENDCAP_L )
-        this->addiMobot(botNum, x + IMOBOT_END_DEPTH + IMOBOT_BODY_END_DEPTH + IMOBOT_BODY_LENGTH + 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
-    else
-        this->addiMobot(botNum, x - IMOBOT_END_DEPTH - IMOBOT_BODY_END_DEPTH - IMOBOT_BODY_LENGTH - 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
-
-    // add fixed joint to attach 'END' to static environment
-    dJointID joint = dJointCreateFixed(_world, 0);
-    dJointAttach(joint, 0, this->bot[botNum]->getBodyID(end));
-    dJointSetFixed(joint);
-    dJointSetFixedParam(joint, dParamCFM, 0);
-    dJointSetFixedParam(joint, dParamERP, 0.9);
-}*/
-
 /**********************************************************
 	Build Mobot Functions
  **********************************************************/
-void CRobotSim::addMobot(CRobot4 *robot) {
-	this->addMobot(robot, 0, 0, 0);
-}
-
-void CRobotSim::addMobot(CRobot4 *robot, dReal x, dReal y, dReal z) {
-	this->addMobot(robot, x, y, z, 0, 0, 0);
-}
-
-void CRobotSim::addMobot(CRobot4 *robot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
-	// lock robot data to insert a new one into simulation
-	pthread_mutex_lock(&_robot_mutex);
-	// add new imobot
-	_robot[MOBOT] =  (CRobot **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(CRobot *));
-	_robot[MOBOT][_robotNumber[MOBOT]] = robot;
-	// create new thread array for imobots
-	delete _robotThread[MOBOT];
-	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
-	// build new mobot geometry
-	_robot[MOBOT][_robotNumber[MOBOT]++]->build(x, y, z, psi, theta, phi);
-	// unlock robot data
-	pthread_mutex_unlock(&_robot_mutex);
-}
-
-void CRobotSim::addMobot(CRobot4 *robot, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	// lock robot data to insert a new one into simulation
-	pthread_mutex_lock(&_robot_mutex);
-	// add new imobot
-	_robot[MOBOT] =  (CRobot **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(CRobot *));
-	_robot[MOBOT][_robotNumber[MOBOT]] = robot;
-	// create new thread array for mobots
-	delete _robotThread[MOBOT];
-	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
-	// build new mobot geometry
-	_robot[MOBOT][_robotNumber[MOBOT]++]->build(x, y, z, psi, theta, phi, r_le, r_lb, r_rb, r_re);
-	// unlock robot data
-	pthread_mutex_unlock(&_robot_mutex);
-}
-
-void CRobotSim::addMobotConnected(CRobot4 *robot, CRobot4 *base, int face1, int face2) {
+/*void CRobotSim::addMobotConnected(CRobot4 *robot, CRobot4 *base, int face1, int face2) {
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
 	// add new imobot
@@ -809,20 +938,6 @@ void CRobotSim::addMobotConnected(CRobot4 *robot, CRobot4 *base, int face1, int 
 		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached11(base, face1, face2, r_le, r_lb, r_rb, r_re);
 	// unlock robot data
 	pthread_mutex_unlock(&_robot_mutex);
-}
-
-/*void CRobotSim::MobotAnchor(int botNum, int end, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-    if ( end == ENDCAP_L )
-        this->addMobot(botNum, x + IMOBOT_END_DEPTH + IMOBOT_BODY_END_DEPTH + IMOBOT_BODY_LENGTH + 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
-    else
-        this->addMobot(botNum, x - IMOBOT_END_DEPTH - IMOBOT_BODY_END_DEPTH - IMOBOT_BODY_LENGTH - 0.5*IMOBOT_CENTER_LENGTH, y, z, psi, theta, psi, r_le, r_lb, r_rb, r_re);
-
-    // add fixed joint to attach 'END' to static environment
-    dJointID joint = dJointCreateFixed(_world, 0);
-    dJointAttach(joint, 0, this->bot[botNum]->getBodyID(end));
-    dJointSetFixed(joint);
-    dJointSetFixedParam(joint, dParamCFM, 0);
-    dJointSetFixedParam(joint, dParamERP, 0.9);
 }*/
 
 /**********************************************************

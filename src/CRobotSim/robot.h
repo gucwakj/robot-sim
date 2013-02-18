@@ -50,6 +50,7 @@ class CRobot {
 		int simThreadsGoalWUnlock(void);		
 
 		// pure virtual functions to be overridden by inherited classes of each robot
+		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock) = 0;
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) = 0;
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
 		virtual void buildAttached00(CRobot4 *attach, int face1, int face2) = 0;
@@ -65,6 +66,7 @@ class CRobot {
 		virtual dReal getRotation(int body, int i) = 0;
 		virtual dBodyID getBodyID(int body) = 0;
 		virtual dJointID getMotorID(int motor) = 0;
+		virtual int getType(void) = 0;
 		virtual bool isHome(void) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;

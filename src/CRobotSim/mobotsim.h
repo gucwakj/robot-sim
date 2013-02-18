@@ -48,10 +48,19 @@ typedef enum mobot_joint_state_e {
 	MOBOT_BACKWARD	= 2,
 	MOBOT_HOLD		= 3
 } mobotJointState_t;
+typedef enum mobot_connector_e {
+	SIMPLE,
+	CASTER,
+	BIGWHEEL,
+	SMALLWHEEL,
+	L,
+	TANK,
+	NUM_CONNECTORS
+} mobotConnector_t;
 
 class CRobotSim;
 
-class CRobot4 : virtual private CRobot {
+class CRobot4 : virtual public CRobot {
 	friend class CRobotSim;
 	friend class robot4NodeCallback;
 
@@ -60,12 +69,13 @@ class CRobot4 : virtual private CRobot {
 		CRobot4(void);
 		~CRobot4(void);
 
-		int connect(CRobotSim &sim);
+		/*int connect(CRobotSim &sim);
 		int connect(CRobotSim &sim, dReal x, dReal y, dReal z);
 		int connect(CRobotSim &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		int connect(CRobotSim &sim, dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		int connect(CRobotSim &sim, CRobot4 *base, int face1, int face2);
-		int connect(CRobotSim &sim, CRobot4 *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		int connect(CRobotSim &sim, CRobot4 *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);*/
+		int connect(void);
 		int getJointAngle(int id, dReal &angle);
 		int getJointSpeed(int id, double &speed);
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);
@@ -162,9 +172,11 @@ class CRobot4 : virtual private CRobot {
 		virtual dReal getRotation(int body, int i);
 		virtual dBodyID getBodyID(int id);
 		virtual dJointID getMotorID(int id);
+		virtual int getType(void);
 		virtual bool isHome(void);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
+		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock);
 
 		// private functions
         //void resetPID(int i = NUM_DOF);

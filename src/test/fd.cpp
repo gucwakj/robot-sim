@@ -1,16 +1,14 @@
 #include <iostream>
-#include "mobotsim.h"
+#include "robotsim.h"
 using namespace std;
 
 int main(int argc, char *argv[]) {
 	CRobotSim sim;
 	CMobot mobot;
+	sim.addRobot(mobot);
 
-	mobot.connect(sim);
-
+	mobot.connect();
 	mobot.move(0, 45, -45, 0);
 
-	sim.setExitState(1);
-	
 	return 0;
 }

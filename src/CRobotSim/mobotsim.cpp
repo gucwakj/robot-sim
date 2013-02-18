@@ -679,7 +679,16 @@ void CRobot4::simPostCollisionThread(void) {
 	this->simThreadsGoalRUnlock();
 }
 
-int CRobot4::connect(CRobotSim &sim) {
+int CRobot4::addToSim(dWorldID &world, dSpaceID &space, dReal *clock) {
+	_world = world;
+    _space = dHashSpaceCreate(space);
+	_clock = clock;
+
+	// success
+	return 0;
+}
+
+/*int CRobot4::connect(CRobotSim &sim) {
 	dSpaceID space;
 	sim.simAddRobot(_world, space, &_clock);
     _space = dHashSpaceCreate(space);
@@ -736,6 +745,10 @@ int CRobot4::connect(CRobotSim &sim, CRobot4 *base, int face1, int face2, dReal 
 	sim.addMobotConnected(this, base, face1, face2, r_le, r_lb, r_rb, r_re);
 
 	// success
+	return 0;
+}
+*/
+int CRobot4::connect(void) {
 	return 0;
 }
 
@@ -952,6 +965,10 @@ dBodyID CRobot4::getBodyID(int id) {
 
 dJointID CRobot4::getMotorID(int id) {
     return _motor[id];
+}
+
+int CRobot4::getType(void) {
+	return _type;
 }
 
 bool CRobot4::isHome(void) {
