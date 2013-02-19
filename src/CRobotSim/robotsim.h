@@ -45,6 +45,11 @@ class CRobotSim {
 		//void addMobotConnected(CRobot4 *robot, CRobot4 *base, int face1, int face2);
 		//void addMobotConnected(CRobot4 *robot, CRobot4 *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 	private:
+		// connector
+		typedef struct Conn_s {
+			int robot, face1, face2, type;
+			struct Conn_s *next;
+		} Conn_t;
 		// robot
 		typedef struct Bot_s {
 			int type;
@@ -52,15 +57,9 @@ class CRobotSim {
 			double x, y, z;
 			double psi, theta, phi;
 			double angle1, angle2, angle3, angle4;
+			struct Conn_s *conn;
 			struct Bot_s *next;
 		} Bot_t;
-		// connector
-		typedef struct Conn_s {
-			int type;
-			int num;
-			int *robot, *face;
-			struct Conn_s *next;
-		} Conn_t;
 		// private variables to store general information about simulation
 		dWorldID _world;					// world in which simulation occurs
 		dSpaceID _space;					// space for robots in which to live
@@ -68,7 +67,6 @@ class CRobotSim {
 		dGeomID* _ground;					// ground (static) objects
 		CRobot** _robot[NUM_TYPES];			// array of all robots of every type
 		Bot_t *bot;
-		Conn_t *conn;
 		dReal _step;						// time of each step of simulation
 		dReal _clock;						// clock time of simulation
 		dReal _mu[2];						// coefficient of friction [body/ground, body/body]
@@ -92,7 +90,7 @@ class CRobotSim {
 		osg::Geometry* createWall(const osg::Vec3& v1,const osg::Vec3& v2,const osg::Vec3& v3,osg::StateSet* stateset);
 		osg::Node* createRoom(void);
 #endif /* ENABLE_GRAPHICS */
-		int robot_init(void);
+		void robot_init(void);
 		void print_intermediate_data(void);			// print data out at each time step for analysis
 		static void* simulationThread(void *arg);
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class

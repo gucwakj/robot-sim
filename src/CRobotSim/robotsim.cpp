@@ -58,12 +58,12 @@ CRobotSim::~CRobotSim(void) {
 	dCloseODE();
 }
 
-int CRobotSim::robot_init(void) {
+void CRobotSim::robot_init(void) {
 	FILE *fp;
 	char type[16], line[1024];
 	char *begptr, *endptr, string[32];
+	int i, *rtmp, *ftmp, ctype, cnum;
 	bot = NULL;
-	conn = NULL;
 	for ( int i = 0; i < NUM_TYPES; i++ ) {
 		_robot[i] = NULL;
 		_robotNumber[i] = 0;
@@ -89,6 +89,7 @@ int CRobotSim::robot_init(void) {
 		// get type of line data (robot, connector)
 		strncpy(type, line, strstr(line, ":") - line);
 
+		// if robot
 		if ( !strcmp(type, "mobot") ) {
 			Bot_t *nr = (Bot_t *)malloc(sizeof(struct Bot_s));
 
@@ -101,6 +102,7 @@ int CRobotSim::robot_init(void) {
 				nr->type = 1;
 				_robotNumber[IMOBOT]++;
 			}
+
 			// get id
 			begptr = strstr(line, ":");
 			if ( begptr != NULL ) {
@@ -145,99 +147,89 @@ int CRobotSim::robot_init(void) {
 				rtmp->next = nr;
 			}
 		}
+		// else its a connector
 		else {
-			Conn_t *nc = (Conn_t *)malloc(sizeof(struct Conn_s));
-
 			// get type
 			if ( !strcmp(type, "simple") ) {
-				nc->type = SIMPLE;
-				nc->num = 2;
-				nc->robot = (int *)malloc(sizeof(int)*nc->num);
-				nc->face = (int *)malloc(sizeof(int)*nc->num);
-				for (int i = 0; i < nc->num; i++) { nc->robot[i] = -1; nc->face[i] = -1; }
+				ctype = SIMPLE;
+				cnum = 2;
 			}
 			else if ( !strcmp(type, "caster") ) {
-				nc->type = CASTER;
-				nc->num = 1;
-				nc->robot = (int *)malloc(sizeof(int)*nc->num);
-				nc->face = (int *)malloc(sizeof(int)*nc->num);
-				for (int i = 0; i < nc->num; i++) { nc->robot[i] = -1; nc->face[i] = -1; }
+				ctype = CASTER;
+				cnum = 1;
 			}
 			else if ( !strcmp(type, "bigwheel") ) {
-				nc->type = BIGWHEEL;
-				nc->num = 1;
-				nc->robot = (int *)malloc(sizeof(int)*nc->num);
-				nc->face = (int *)malloc(sizeof(int)*nc->num);
-				for (int i = 0; i < nc->num; i++) { nc->robot[i] = -1; nc->face[i] = -1; }
+				ctype = BIGWHEEL;
+				cnum = 1;
 			}
 			else if ( !strcmp(type, "smallwheel") ) {
-				nc->type = SMALLWHEEL;
-				nc->num = 1;
-				nc->robot = (int *)malloc(sizeof(int)*nc->num);
-				nc->face = (int *)malloc(sizeof(int)*nc->num);
-				for (int i = 0; i < nc->num; i++) { nc->robot[i] = -1; nc->face[i] = -1; }
+				ctype = SMALLWHEEL;
+				cnum = 1;
 			}
 			else if ( !strcmp(type, "l") ) {
-				nc->type = L;
-				nc->num = 3;
-				nc->robot = (int *)malloc(sizeof(int)*nc->num);
-				nc->face = (int *)malloc(sizeof(int)*nc->num);
-				for (int i = 0; i < nc->num; i++) { nc->robot[i] = -1; nc->face[i] = -1; }
+				ctype = L;
+				cnum = 3;
 			}
 			else if ( !strcmp(type, "tank") ) {
-				nc->type = TANK;
-				nc->num = 2;
-				nc->robot = (int *)malloc(sizeof(int)*nc->num);
-				nc->face = (int *)malloc(sizeof(int)*nc->num);
-				for (int i = 0; i < nc->num; i++) { nc->robot[i] = -1; nc->face[i] = -1; }
+				ctype = TANK;
+				cnum = 2;
 			}
+			rtmp = (int *)malloc(sizeof(int)*cnum);
+			ftmp = (int *)malloc(sizeof(int)*cnum);
 
-			// store connected robots	
+			// store connected robots to tmp variables
 			begptr = strstr(line, ":");
-			for (int i = 0; i < nc->num; i++) {
+			for (i = 0; i < cnum; i++) {
 				if ( begptr != NULL ) {
 					endptr = strstr(begptr, ";");
 					strncpy(string, begptr, endptr - begptr);
 					string[endptr - begptr] = '\0';
-					sscanf(string, "%*c%d%*s%d", &nc->robot[i], &nc->face[i]);
+					sscanf(string, "%*c%d%*s%d", &rtmp[i], &ftmp[i]);
 				}
 				begptr = endptr+1;
 			}
-			nc->next = NULL;
 
-			// put new conn at end of list
-			Conn_t *ctmp = conn;
-			if ( conn == NULL )
-				conn = nc;
-			else {
-				while (ctmp->next)
-					ctmp = ctmp->next;
-				ctmp->next = nc;
+			// store connectors to each robot
+			Bot_t *tmp;
+			Conn_t *ctmp;
+			for (int j = (cnum == 1) ? 0 : 1; j < i; j++) {
+				Conn_t *nc = (Conn_t *)malloc(sizeof(struct Conn_s));
+				nc->robot = rtmp[0]; 
+				nc->face1 = ftmp[0]; 
+				nc->face2 = ftmp[j]; 
+				nc->type = ctype; 
+				nc->next = NULL;
+				tmp = bot;
+				while (tmp->id != rtmp[j])
+					tmp = tmp->next;
+				ctmp = tmp->conn;
+				if ( tmp->conn == NULL )
+					tmp->conn = nc;
+				else {
+					while (ctmp->next)
+						ctmp = ctmp->next;
+					ctmp->next = nc;
+				}
 			}
 		}
 
-		/*Bot_t *rtmp = bot;
+		// debug printing
+		Bot_t *rtmp = bot;
 		while (rtmp) {
 			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
 			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
 			printf("psi = %lf, theta = %lf, phi = %lf\n", rtmp->psi, rtmp->theta, rtmp->phi);
 			printf("angle1 = %lf, angle2 = %lf, angle3 = %lf, angle4 = %lf\n", rtmp->angle1, rtmp->angle2, rtmp->angle3, rtmp->angle4);
+			Conn_t *ctmp = rtmp->conn;
+			while (ctmp) {
+				printf("on face %d: connect with robot %d on his face %d with type: %d\n", ctmp->face2, ctmp->robot, ctmp->face1, ctmp->type);
+				ctmp = ctmp->next;
+			}
 			printf("next = %p\n", rtmp->next);
 			printf("\n");
 			rtmp = rtmp->next;
 		}
 		printf("\n\n\n");
-		Conn_t *ctmp = conn;
-		while (ctmp) {
-			printf("type = %d\n", ctmp->type);
-			for (int i = 0; i < ctmp->num; i++) {
-				printf("robot %d = %d, face %d = %d\n", i, ctmp->robot[i], i, ctmp->face[i]);
-			}
-			printf("next = %p\n", ctmp->next);
-			printf("\n");
-			ctmp = ctmp->next;
-		}
-		printf("\n\n\n");*/
 
 		// get new line
     	fgets(line, 1024, fp);
@@ -251,8 +243,6 @@ int CRobotSim::robot_init(void) {
 		_robotThread[i] = new pthread_t[_robotNumber[i]];
 		_robot[i] =  (CRobot **)realloc(_robot[i], (_robotNumber[i] + 1)*sizeof(CRobot *));
 	}
-
-	return 0;
 }
 
 #ifdef ENABLE_GRAPHICS
