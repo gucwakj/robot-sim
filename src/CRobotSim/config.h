@@ -3,6 +3,6 @@
 
 #define CROBOTSIM_VERSION_MAJOR 
 #define CROBOTSIM_VERSION_MINOR 
-/* #undef ENABLE_GRAPHICS */
+#define ENABLE_GRAPHICS
 
 #endif

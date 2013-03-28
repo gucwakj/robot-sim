@@ -24,7 +24,7 @@ class CRobotSim {
 		CRobotSim(void);
 		~CRobotSim(void);
 
-		//int getNumberOfRobots(int type);
+		int getNumberOfRobots(int type);
 
 		// set simulation variables
 		void setCOR(dReal cor_g, dReal cor_b);

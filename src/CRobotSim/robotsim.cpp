@@ -594,9 +594,9 @@ _osgRoot->addChild(clearNode);
 /**********************************************************
 	Public Member Functions
  **********************************************************/
-/*int CRobotSim::getNumberOfRobots(int type) {
+int CRobotSim::getNumberOfRobots(int type) {
 	return _robotNumber[type];
-}*/
+}
 
 void CRobotSim::setCOR(dReal cor_g, dReal cor_b) {
 	_cor[0] = cor_g;
