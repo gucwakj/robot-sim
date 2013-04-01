@@ -192,7 +192,8 @@ void CRobotSim::robot_init(void) {
 			// store connectors to each robot
 			Bot_t *tmp;
 			Conn_t *ctmp;
-			for (int j = (cnum == 1) ? 0 : 1; j < i; j++) {
+			//for (int j = (cnum == 1) ? 0 : 1; j < i; j++) {
+			for (int j = 0; j < i; j++) {
 				Conn_t *nc = (Conn_t *)malloc(sizeof(struct Conn_s));
 				nc->robot = rtmp[0]; 
 				nc->face1 = ftmp[0]; 
@@ -595,7 +596,7 @@ _osgRoot->addChild(clearNode);
 	Public Member Functions
  **********************************************************/
 int CRobotSim::getNumberOfRobots(int type) {
-	return _robotNumber[type];
+	return _robotConnected[type];
 }
 
 void CRobotSim::setCOR(dReal cor_g, dReal cor_b) {
@@ -831,19 +832,72 @@ void CRobotSim::print_intermediate_data(void) {
 	Add Robot Functions
  **********************************************************/
 int CRobotSim::addRobot(CRobot &robot) {
+	int type = robot.getType();
+
 	Bot_t *tmp = bot;
-	while (tmp->type != robot.getType() && tmp->id != _robotConnected[robot.getType()])
+	while (tmp->type != type && tmp->id != _robotConnected[type])
 		tmp = tmp->next;
 
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
-		
-	_robot[robot.getType()][_robotConnected[robot.getType()]] = &robot;
-	_robot[robot.getType()][_robotConnected[robot.getType()]]->addToSim(_world, _space, &_clock);
-	if ( tmp->angle1 != 0 || tmp->angle2 != 0 || tmp->angle3 != 0 || tmp->angle4 != 0 )
-		_robot[robot.getType()][_robotConnected[robot.getType()]]->build(tmp->x, tmp->y, tmp->z, tmp->psi, tmp->theta, tmp->phi, tmp->angle1, tmp->angle2, tmp->angle3, tmp->angle4);
-	else
-		_robot[robot.getType()][_robotConnected[robot.getType()]]->build(tmp->x, tmp->y, tmp->z, tmp->psi, tmp->theta, tmp->phi);
+
+	// connect to robot class
+	_robot[type][_robotConnected[type]] = &robot;
+	// add simulation variables to robot class
+	_robot[type][_robotConnected[type]]->addToSim(_world, _space, &_clock);
+	// set unique id of this robot
+	_robot[type][_robotConnected[type]]->setID(tmp->id);
+
+	//printf("addRobot: %d\n", robot.getID());
+	Conn_t *ctmp = tmp->conn;
+	Conn_t *connected = NULL;
+	while (ctmp) {
+		if ( ctmp->robot == robot.getID() ) {
+			//printf("1robot: %d: on face %d connect with robot %d on his face %d with type: %d\n", robot.getID(), ctmp->face2, ctmp->robot, ctmp->face1, ctmp->type);
+			//_robot[type][_robotConnected[type]]->addConnector(ctmp->type, ctmp->face1);
+		}
+		else {
+			connected = ctmp;
+			//printf("2robot: %d: on face %d connect with robot %d on his face %d with type: %d\n", robot.getID(), connected->face2, connected->robot, connected->face1, connected->type);
+		}
+
+		ctmp = ctmp->next;
+	}
+
+	// if robot is connected to another one
+	if (connected) {
+		int i = 0;
+		// find robot with whom to connect
+		for (i = 0; i < _robotConnected[type]; i++) {
+			if (_robot[type][i]->getID() == connected->robot) { break; }
+		}
+		// if robot has moved joints
+		if ( tmp->angle1 != 0 || tmp->angle2 != 0 || tmp->angle3 != 0 || tmp->angle4 != 0 ) {
+			// build robot connected
+			if ( _robot[type][i]->isHome() )
+				_robot[type][_robotConnected[type]]->buildAttached01(_robot[type][i], connected->face1, connected->face2, tmp->angle1, tmp->angle2, tmp->angle3, tmp->angle4);
+			else
+				_robot[type][_robotConnected[type]]->buildAttached11(_robot[type][i], connected->face1, connected->face2, tmp->angle1, tmp->angle2, tmp->angle3, tmp->angle4);
+		}
+		else {
+			// build robot connected
+			if ( _robot[type][i]->isHome() )
+				_robot[type][_robotConnected[type]]->buildAttached00(_robot[type][i], ctmp->face1, ctmp->face2);
+			else
+				_robot[type][_robotConnected[type]]->buildAttached10(_robot[type][i], ctmp->face1, ctmp->face2);
+		}
+	}
+	// robot is disconnected
+	else {
+		if ( tmp->angle1 != 0 || tmp->angle2 != 0 || tmp->angle3 != 0 || tmp->angle4 != 0 )
+			_robot[type][_robotConnected[type]]->build(tmp->x, tmp->y, tmp->z, 
+				tmp->psi, tmp->theta, tmp->phi, tmp->angle1, tmp->angle2, tmp->angle3, tmp->angle4);
+		else
+			_robot[type][_robotConnected[type]]->build(tmp->x, tmp->y, tmp->z, 
+				tmp->psi, tmp->theta, tmp->phi);
+	}
+
+	// another robot has been 'connected' to simulation
 	_robotConnected[robot.getType()]++;
 
 	// unlock robot data

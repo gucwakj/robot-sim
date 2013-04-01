@@ -153,19 +153,21 @@ class CRobot4 : virtual public CRobot {
 		dReal _maxSpeed[NUM_DOF];	// maximum joint speeds
 		PID _pid[NUM_DOF];			// PID control for each joint
 		int  _state[NUM_DOF];		// states
+		int _id;
 		bool _success[NUM_DOF];		// trigger for goal
 		bool _recording[NUM_DOF];	// recording in progress
 
 		// private functions inherited from CRobot class
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		virtual void buildAttached00(CRobot4 *attach, int face1, int face2);
-		virtual void buildAttached10(CRobot4 *attach, int face1, int face2);
-		virtual void buildAttached01(CRobot4 *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		virtual void buildAttached11(CRobot4 *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		virtual void buildAttached00(CRobot *attach, int face1, int face2);
+		virtual void buildAttached10(CRobot *attach, int face1, int face2);
+		virtual void buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		virtual void buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 #ifdef ENABLE_GRAPHICS
 		virtual void draw(osg::Group *root);
 #endif /* ENABLE_GRAPHICS */
+		virtual int getID(void);
 		virtual dReal getAngle(int i);
 		virtual bool getSuccess(int i);
 		virtual dReal getPosition(int body, int i);
@@ -173,6 +175,7 @@ class CRobot4 : virtual public CRobot {
 		virtual dBodyID getBodyID(int id);
 		virtual dJointID getMotorID(int id);
 		virtual int getType(void);
+		virtual int setID(int id);
 		virtual bool isHome(void);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
@@ -184,7 +187,7 @@ class CRobot4 : virtual public CRobot {
 		void build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);	// build body of mobot
 		void build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
 		void build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap
-		void create_fixed_joint(CRobot4 *attach, int face1, int face2);				// create fixed joint between modules
+		void create_fixed_joint(CRobot *attach, int face1, int face2);				// create fixed joint between modules
 		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
 		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
 		static void* recordAngleThread(void *arg);

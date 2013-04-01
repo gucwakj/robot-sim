@@ -9,6 +9,7 @@ CRobot4::CRobot4(void) {
 		_velocity[i] = 0.7854;	// 45 deg/sec
 		_maxSpeed[i] = 120;		// deg/sec
 	}
+	_id = -1;
 
 	// init locks
 	this->simThreadsAngleInit();
@@ -934,6 +935,10 @@ void CRobot4::draw(osg::Group *root) {
 }
 #endif /* ENABLE_GRAPHICS */
 
+int CRobot4::getID(void) {
+	return _id;
+}
+
 dReal CRobot4::getAngle(int i) {
 	if (i == LE || i == RE)
 		_angle[i] = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
@@ -969,6 +974,11 @@ dJointID CRobot4::getMotorID(int id) {
 
 int CRobot4::getType(void) {
 	return _type;
+}
+
+int CRobot4::setID(int id) {
+	_id = id;
+	return 0;
 }
 
 bool CRobot4::isHome(void) {
@@ -1031,7 +1041,7 @@ dReal CRobot4::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     return new_ang;
 }
 
-void CRobot4::create_fixed_joint(CRobot4 *attach, int face1, int face2) {
+void CRobot4::create_fixed_joint(CRobot *attach, int face1, int face2) {
     int part1, part2;
 
     switch (face1) {
@@ -1412,7 +1422,7 @@ void CRobot4::build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(_body[i], 0.1, 0.1);
 }
 
-void CRobot4::buildAttached00(CRobot4 *attach, int face1, int face2) {
+void CRobot4::buildAttached00(CRobot *attach, int face1, int face2) {
     // initialize variables
     dReal psi, theta, phi, m[3] = {0};
     dMatrix3 R, R1, R_att;
@@ -1650,7 +1660,7 @@ void CRobot4::buildAttached00(CRobot4 *attach, int face1, int face2) {
     this->create_fixed_joint(attach, face1, face2);
 }
 
-void CRobot4::buildAttached10(CRobot4 *attach, int face1, int face2) {
+void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
     // initialize variables
     dReal psi, theta, phi, m[3];
     dMatrix3 R, R1, R2, R3, R4, R5, R_att;
@@ -2171,7 +2181,7 @@ void CRobot4::buildAttached10(CRobot4 *attach, int face1, int face2) {
     this->create_fixed_joint(attach, face1, face2);
 }
 
-void CRobot4::buildAttached01(CRobot4 *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     // initialize variables
     dReal psi, theta, phi, r_e, r_b, m[3];
     dMatrix3 R, R1, R2, R3, R4, R5, R_att;
@@ -2719,7 +2729,7 @@ void CRobot4::buildAttached01(CRobot4 *attach, int face1, int face2, dReal r_le,
     this->create_fixed_joint(attach, face1, face2);
 }
 
-void CRobot4::buildAttached11(CRobot4 *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
     // initialize variables
     dReal psi, theta, phi, r_e, r_b, m[3];
     dMatrix3 R, R1, R2, R3, R4, R5, R6, R7, R8, R9, R_att;
