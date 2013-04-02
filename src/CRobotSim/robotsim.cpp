@@ -852,15 +852,10 @@ int CRobotSim::addRobot(CRobot &robot) {
 	Conn_t *ctmp = tmp->conn;
 	Conn_t *connected = NULL;
 	while (ctmp) {
-		if ( ctmp->robot == robot.getID() ) {
-			//printf("1robot: %d: on face %d connect with robot %d on his face %d with type: %d\n", robot.getID(), ctmp->face2, ctmp->robot, ctmp->face1, ctmp->type);
-			//_robot[type][_robotConnected[type]]->addConnector(ctmp->type, ctmp->face1);
-		}
-		else {
+		if ( ctmp->robot == robot.getID() )
+			_robot[type][_robotConnected[type]]->addConnector(ctmp->type, ctmp->face1);
+		else
 			connected = ctmp;
-			//printf("2robot: %d: on face %d connect with robot %d on his face %d with type: %d\n", robot.getID(), connected->face2, connected->robot, connected->face1, connected->type);
-		}
-
 		ctmp = ctmp->next;
 	}
 

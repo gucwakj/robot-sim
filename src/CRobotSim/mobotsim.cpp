@@ -9,6 +9,7 @@ CRobot4::CRobot4(void) {
 		_velocity[i] = 0.7854;	// 45 deg/sec
 		_maxSpeed[i] = 120;		// deg/sec
 	}
+	_conn = NULL;
 	_id = -1;
 
 	// init locks
@@ -983,6 +984,36 @@ int CRobot4::setID(int id) {
 
 bool CRobot4::isHome(void) {
     return ( fabs(_angle[LE]) < EPSILON && fabs(_angle[LB]) < EPSILON && fabs(_angle[RB]) < EPSILON && fabs(_angle[RE]) < EPSILON );
+}
+
+int CRobot4::addConnector(int type, int face) {
+printf("got here\n");
+	conn_t nc = (conn_t)malloc(sizeof(struct conn_s));
+	//conn_t nc = new struct conn_s;
+	//nc->robot = rtmp[0]; 
+	nc->face = face; 
+	nc->type = type; 
+	nc->next = NULL;
+
+printf("got here\n");
+	conn_t ctmp = _conn;
+printf("ctmp %p conn %p\n", ctmp, _conn);
+	if ( _conn == NULL )
+		_conn = nc;
+	else {
+		while (ctmp->next)
+			ctmp = ctmp->next;
+		ctmp->next = nc;
+	}
+
+printf("got here\n");
+			conn_t ctmp2 = _conn;
+			while (ctmp2) {
+				printf("on face %d draw a %d connector\n", ctmp2->face, ctmp2->type);
+				ctmp2 = ctmp2->next;
+			}
+	// success
+	return 0;
 }
 
 dReal CRobot4::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {

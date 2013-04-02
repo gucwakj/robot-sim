@@ -138,6 +138,12 @@ class CRobot4 : virtual public CRobot {
 			double *angle3;
 			double *angle4;
 		} recordAngleArg_t;
+		typedef struct conn_s {
+			int face, type;
+			dBodyID body;
+			dGeomID *geom;
+			struct conn_s *next;
+		} *conn_t;
 
 		// private member variables
 		dWorldID _world;			// world for all robots
@@ -146,6 +152,7 @@ class CRobot4 : virtual public CRobot {
 		dGeomID* _geom[NUM_PARTS];	// geometries of each body part
 		dJointID _motor[NUM_DOF];	// motors
 		dJointID _joint[6];			// joints between body parts
+		conn_t _conn;
 		dReal* _clock;				// world clock
 		dReal _angle[NUM_DOF];		// angles
 		dReal _velocity[NUM_DOF];	// velocities
@@ -164,6 +171,7 @@ class CRobot4 : virtual public CRobot {
 		virtual void buildAttached10(CRobot *attach, int face1, int face2);
 		virtual void buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		virtual void buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		virtual int addConnector(int type, int face);
 #ifdef ENABLE_GRAPHICS
 		virtual void draw(osg::Group *root);
 #endif /* ENABLE_GRAPHICS */

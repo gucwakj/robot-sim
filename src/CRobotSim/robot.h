@@ -57,6 +57,7 @@ class CRobot {
 		virtual void buildAttached10(CRobot *attach, int face1, int face2) = 0;
 		virtual void buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
 		virtual void buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
+		virtual int addConnector(int type, int face) = 0;
 #ifdef ENABLE_GRAPHICS
 		virtual void draw(osg::Group *root) = 0;
 #endif /* ENABLE_GRAPHICS */
