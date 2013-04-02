@@ -882,23 +882,21 @@ int CRobotSim::addRobot(CRobot &robot) {
 		else {
 			// build robot connected
 			if ( _robot[type][i]->isHome() )
-				_robot[type][_robotConnected[type]]->buildAttached00(_robot[type][i], ctmp->face1, ctmp->face2);
+				_robot[type][_robotConnected[type]]->buildAttached00(_robot[type][i], connected->face1, connected->face2);
 			else
-				_robot[type][_robotConnected[type]]->buildAttached10(_robot[type][i], ctmp->face1, ctmp->face2);
+				_robot[type][_robotConnected[type]]->buildAttached10(_robot[type][i], connected->face1, connected->face2);
 		}
 	}
 	// robot is disconnected
 	else {
 		if ( tmp->angle1 != 0 || tmp->angle2 != 0 || tmp->angle3 != 0 || tmp->angle4 != 0 )
-			_robot[type][_robotConnected[type]]->build(tmp->x, tmp->y, tmp->z, 
-				tmp->psi, tmp->theta, tmp->phi, tmp->angle1, tmp->angle2, tmp->angle3, tmp->angle4);
+			_robot[type][_robotConnected[type]]->build(tmp->x, tmp->y, tmp->z, tmp->psi, tmp->theta, tmp->phi, tmp->angle1, tmp->angle2, tmp->angle3, tmp->angle4);
 		else
-			_robot[type][_robotConnected[type]]->build(tmp->x, tmp->y, tmp->z, 
-				tmp->psi, tmp->theta, tmp->phi);
+			_robot[type][_robotConnected[type]]->build(tmp->x, tmp->y, tmp->z, tmp->psi, tmp->theta, tmp->phi);
 	}
 
 	// another robot has been 'connected' to simulation
-	_robotConnected[robot.getType()]++;
+	_robotConnected[type]++;
 
 	// unlock robot data
 	pthread_mutex_unlock(&_robot_mutex);

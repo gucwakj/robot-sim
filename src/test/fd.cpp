@@ -12,5 +12,6 @@ int main(int argc, char *argv[]) {
 	mobot2.connect();
 	//mobot.move(0, 45, -45, 0);
 
+	sim.setExitState(1);
 	return 0;
 }

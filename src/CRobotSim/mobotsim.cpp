@@ -1042,46 +1042,46 @@ dReal CRobot4::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
 }
 
 void CRobot4::create_fixed_joint(CRobot *attach, int face1, int face2) {
-    int part1, part2;
+	int part1, part2;
 
-    switch (face1) {
-        case 1:
-            part1 = ENDCAP_L;
-            break;
-        case 2:
-        case 3:
-            part1 = BODY_L;
-            break;
-        case 4:
-        case 5:
-            part1 = BODY_R;
-            break;
-        case 6:
-            part1 = ENDCAP_R;
-            break;
-    }
-    switch (face2) {
-        case 1:
-            part2 = ENDCAP_L;
-            break;
-        case 2:
-        case 3:
-            part2 = BODY_L;
-            break;
-        case 4:
-        case 5:
-            part2 = BODY_R;
-            break;
-        case 6:
-            part2 = ENDCAP_R;
-            break;
-    }
+	switch (face1) {
+		case 1:
+			part1 = ENDCAP_L;
+			break;
+		case 2: case 5:
+			part1 = BODY_L;
+			break;
+		case 3: case 6:
+			break;
+		case 4: case 7:
+			part1 = BODY_R;
+			break;
+		case 8:
+			part1 = ENDCAP_R;
+			break;
+	}
+	switch (face2) {
+		case 1:
+			part2 = ENDCAP_L;
+			break;
+		case 2: case 5:
+			part2 = BODY_L;
+			break;
+		case 3: case 6:
+			break;
+		case 4: case 7:
+			part2 = BODY_R;
+			break;
+		case 8:
+			part2 = ENDCAP_R;
+			break;
+	}
 
-    dJointID joint = dJointCreateFixed(_world, 0);
-    dJointAttach(joint, attach->getBodyID(part1), this->getBodyID(part2));
-    dJointSetFixed(joint);
-    dJointSetFixedParam(joint, dParamCFM, 0);
-    dJointSetFixedParam(joint, dParamERP, 0.9);
+	dJointID joint = dJointCreateFixed(_world, 0);
+	dJointAttach(joint, attach->getBodyID(part1), this->getBodyID(part2));
+	dJointSetFixed(joint);
+	dJointSetFixedParam(joint, dParamCFM, 0);
+	dJointSetFixedParam(joint, dParamERP, 0.9);
 }
 
 void CRobot4::create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi) {
@@ -1442,12 +1442,6 @@ void CRobot4::buildAttached00(CRobot *attach, int face1, int face2) {
         m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width;
         m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
     }
-    else if ( face1 == 1 && face2 == 3 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width;
-        m[1] = -_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length;
-    }
     else if ( face1 == 1 && face2 == 4 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1458,9 +1452,15 @@ void CRobot4::buildAttached00(CRobot *attach, int face1, int face2) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width;
+        m[1] = -_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length;
+    }
+    else if ( face1 == 1 && face2 == 7 ) {
+        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+        dMultiply0(R, R1, R_att, 3, 3, 3);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width;
         m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
     }
-    else if ( face1 == 1 && face2 == 6 ) {
+    else if ( face1 == 1 && face2 == 8 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length - _body_length - _body_end_depth - 2*_end_depth - _body_end_depth - _body_length - 0.5*_center_length;
@@ -1478,12 +1478,6 @@ void CRobot4::buildAttached00(CRobot *attach, int face1, int face2) {
         m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
         m[1] = -_body_width;
     }
-    else if ( face1 == 2 && face2 == 3 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*_center_length + 0.5*_center_length;
-        m[1] = -_body_width;
-    }
     else if ( face1 == 2 && face2 == 4 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1493,50 +1487,20 @@ void CRobot4::buildAttached00(CRobot *attach, int face1, int face2) {
     else if ( face1 == 2 && face2 == 5 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
+        m[0] = -0.5*_center_length + 0.5*_center_length;
+        m[1] = -_body_width;
+    }
+    else if ( face1 == 2 && face2 == 7 ) {
+        dRSetIdentity(R1);
+        dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
         m[1] = -_body_width;
     }
-    else if ( face1 == 2 && face2 == 6 ) {
+    else if ( face1 == 2 && face2 == 8 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
         m[1] = -_end_depth - 0.5*_body_width - _body_end_depth - _body_length - 0.5*_center_length;
-    }
-    else if ( face1 == 3 && face2 == 1 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
-        m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
-    }
-    else if ( face1 == 3 && face2 == 2 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*_center_length + 0.5*_center_length;
-        m[1] = _body_width;
-    }
-    else if ( face1 == 3 && face2 == 3 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
-        m[1] = _body_width;
-    }
-    else if ( face1 == 3 && face2 == 4 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
-        m[1] = _body_width;
-    }
-    else if ( face1 == 3 && face2 == 5 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*_center_length + 0.5*_center_length;
-        m[1] = _body_width;
-    }
-    else if ( face1 == 3 && face2 == 6 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
-        m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
     }
     else if ( face1 == 4 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
@@ -1550,12 +1514,6 @@ void CRobot4::buildAttached00(CRobot *attach, int face1, int face2) {
         m[0] = 0.5*_center_length - 0.5*_center_length;
         m[1] = -_body_width;
     }
-    else if ( face1 == 4 && face2 == 3 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*_center_length + 2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
-        m[1] = -_body_width;
-    }
     else if ( face1 == 4 && face2 == 4 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1565,10 +1523,16 @@ void CRobot4::buildAttached00(CRobot *attach, int face1, int face2) {
     else if ( face1 == 4 && face2 == 5 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
+        m[0] = 0.5*_center_length + 2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
+        m[1] = -_body_width;
+    }
+    else if ( face1 == 4 && face2 == 7 ) {
+        dRSetIdentity(R1);
+        dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length - 0.5*_center_length;
         m[1] = -_body_width;
     }
-    else if ( face1 == 4 && face2 == 6 ) {
+    else if ( face1 == 4 && face2 == 8 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center;
@@ -1577,70 +1541,106 @@ void CRobot4::buildAttached00(CRobot *attach, int face1, int face2) {
     else if ( face1 == 5 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center;
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
         m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
     }
     else if ( face1 == 5 && face2 == 2 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*_center_length + 2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
-        m[1] = _body_width;
-    }
-    else if ( face1 == 5 && face2 == 3 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*_center_length - 0.5*_center_length;
+        m[0] = -0.5*_center_length + 0.5*_center_length;
         m[1] = _body_width;
     }
     else if ( face1 == 5 && face2 == 4 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*_center_length - 0.5*_center_length;
+        m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
         m[1] = _body_width;
     }
     else if ( face1 == 5 && face2 == 5 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
+        m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
+        m[1] = _body_width;
+    }
+    else if ( face1 == 5 && face2 == 7 ) {
+        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+        dMultiply0(R, R1, R_att, 3, 3, 3);
+        m[0] = -0.5*_center_length + 0.5*_center_length;
+        m[1] = _body_width;
+    }
+    else if ( face1 == 5 && face2 == 8 ) {
+        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+        dMultiply0(R, R1, R_att, 3, 3, 3);
+        m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
+        m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
+    }
+    else if ( face1 == 7 && face2 == 1 ) {
+        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+        dMultiply0(R, R1, R_att, 3, 3, 3);
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center;
+        m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
+    }
+    else if ( face1 == 7 && face2 == 2 ) {
+        dRSetIdentity(R1);
+        dMultiply0(R, R1, R_att, 3, 3, 3);
+        m[0] = 0.5*_center_length + 2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
+        m[1] = _body_width;
+    }
+    else if ( face1 == 7 && face2 == 4 ) {
+        dRSetIdentity(R1);
+        dMultiply0(R, R1, R_att, 3, 3, 3);
+        m[0] = 0.5*_center_length - 0.5*_center_length;
+        m[1] = _body_width;
+    }
+    else if ( face1 == 7 && face2 == 5 ) {
+        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+        dMultiply0(R, R1, R_att, 3, 3, 3);
+        m[0] = 0.5*_center_length - 0.5*_center_length;
+        m[1] = _body_width;
+    }
+    else if ( face1 == 7 && face2 == 7 ) {
+        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+        dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length    +   2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
         m[1] = _body_width;
     }
-    else if ( face1 == 5 && face2 == 6 ) {
+    else if ( face1 == 7 && face2 == 8 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center;
         m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
     }
-    else if ( face1 == 6 && face2 == 1 ) {
+    else if ( face1 == 8 && face2 == 1 ) {
         dRSetIdentity(R1);
         dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth + 2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length;
         m[1] = 0;
     }
-    else if ( face1 == 6 && face2 == 2 ) {
+    else if ( face1 == 8 && face2 == 2 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
         m[1] = -_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length;
     }
-    else if ( face1 == 6 && face2 == 3 ) {
+    else if ( face1 == 8 && face2 == 4 ) {
+        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+        dMultiply0(R, R1, R_att, 3, 3, 3);
+        m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
+        m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
+    }
+    else if ( face1 == 8 && face2 == 5 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length +  _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
         m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
     }
-    else if ( face1 == 6 && face2 == 4 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
-        m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
-    }
-    else if ( face1 == 6 && face2 == 5 ) {
+    else if ( face1 == 8 && face2 == 7 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
         m[1] = -_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length;
     }
-    else if ( face1 == 6 && face2 == 6 ) {
+    else if ( face1 == 8 && face2 == 8 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth + 2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length;
@@ -1702,7 +1702,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
         m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
     }
-    else if ( face1 == 1 && face2 == 3 ) {
+    else if ( face1 == 1 && face2 == 5 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
         dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -attach->getAngle(LB));
@@ -1735,7 +1735,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
         m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
     }
-    else if ( face1 == 1 && face2 == 5 ) {
+    else if ( face1 == 1 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1752,7 +1752,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
         m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
     }
-    else if ( face1 == 1 && face2 == 6 ) {
+    else if ( face1 == 1 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1795,7 +1795,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _body_width    + R1[4]*(-0.5*_center_length);
         m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 2 && face2 == 3 ) {
+    else if ( face1 == 2 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1819,7 +1819,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      - _body_width    + R1[4]*(0.5*_center_length);
         m[2] =                                      + R1[8]*(0.5*_center_length);
     }
-    else if ( face1 == 2 && face2 == 5 ) {
+    else if ( face1 == 2 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1830,7 +1830,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _body_width    + R1[4]*(-0.5*_center_length);
         m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 2 && face2 == 6 ) {
+    else if ( face1 == 2 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1843,7 +1843,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _end_depth - 0.5*_body_width + R1[5]*(-_body_end_depth - _body_length - 0.5*_center_length);
         m[2] =                      R1[8]*(-_body_length - _body_end_depth + _body_mount_center) +                              R1[9]*(-_body_end_depth - _body_length - 0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 1 ) {
+    else if ( face1 == 5 && face2 == 1 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1856,7 +1856,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length + 0.5*_center_length);
         m[2] =                      R1[8]*(-_body_length - _body_end_depth + _body_mount_center) +                              R1[9]*(_body_end_depth + _body_length + 0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 2 ) {
+    else if ( face1 == 5 && face2 == 2 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1867,7 +1867,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      _body_width  + R1[4]*(0.5*_center_length);
         m[2] =                                  + R1[8]*(0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 3 ) {
+    else if ( face1 == 5 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1880,7 +1880,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _body_width    + R1[4]*(-0.5*_center_length);
         m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 4 ) {
+    else if ( face1 == 5 && face2 == 4 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1891,7 +1891,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _body_width    + R1[4]*(-0.5*_center_length);
         m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 5 ) {
+    else if ( face1 == 5 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1904,7 +1904,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      _body_width  + R1[4]*(0.5*_center_length);
         m[2] =                                  + R1[8]*(0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 6 ) {
+    else if ( face1 == 5 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1943,7 +1943,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      -_body_width + R1[4]*(-0.5*_center_length);
         m[2] =                                  + R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 4 && face2 == 3 ) {
+    else if ( face1 == 4 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1967,7 +1967,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  - _body_width    + R1[4]*(0.5*_center_length);
         m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R1[8]*(0.5*_center_length);
     }
-    else if ( face1 == 4 && face2 == 5 ) {
+    else if ( face1 == 4 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -1978,7 +1978,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      - _body_width    + R1[4]*(-0.5*_center_length);
         m[2] =                                      + R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 4 && face2 == 6 ) {
+    else if ( face1 == 4 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -1991,7 +1991,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) -  _end_depth - 0.5*_body_width + R1[5]*(-_body_end_depth - _body_length - 0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R1[9]*(-_body_end_depth - _body_length - 0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 1 ) {
+    else if ( face1 == 7 && face2 == 1 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2004,7 +2004,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) +  _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length + 0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R1[9]*(_body_end_depth + _body_length + 0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 2 ) {
+    else if ( face1 == 7 && face2 == 2 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2015,7 +2015,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  + _body_width    + R1[4]*(0.5*_center_length);
         m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R1[8]*(0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 3 ) {
+    else if ( face1 == 7 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2028,7 +2028,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      _body_width  + R1[4]*(-0.5*_center_length);
         m[2] =                                  + R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 4 ) {
+    else if ( face1 == 7 && face2 == 4 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2039,7 +2039,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      _body_width  + R1[4]*(-0.5*_center_length);
         m[2] =                                  + R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 5 ) {
+    else if ( face1 == 7 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2052,7 +2052,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  + _body_width    + R1[4]*(0.5*_center_length);
         m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R1[8]*(0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 6 ) {
+    else if ( face1 == 7 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2065,7 +2065,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) +  _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length + 0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R1[9]*(_body_end_depth + _body_length + 0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 1 ) {
+    else if ( face1 == 8 && face2 == 1 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2082,7 +2082,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(_body_length + _body_end_depth) + R3[4]*(2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth) + R3[8]*(2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 2 ) {
+    else if ( face1 == 8 && face2 == 2 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2099,7 +2099,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 3 ) {
+    else if ( face1 == 8 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2116,7 +2116,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 4 ) {
+    else if ( face1 == 8 && face2 == 4 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2133,7 +2133,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center + 0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 5 ) {
+    else if ( face1 == 8 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2150,7 +2150,7 @@ void CRobot4::buildAttached10(CRobot *attach, int face1, int face2) {
         m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 6 ) {
+    else if ( face1 == 8 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2198,7 +2198,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         r_e = 0;
         r_b = DEG2RAD(r_lb);
     }
-    else if ( face2 == 3 ) {
+    else if ( face2 == 5 ) {
         r_e = 0;
         r_b = DEG2RAD(r_lb);
     }
@@ -2206,11 +2206,11 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         r_e = 0;
         r_b = DEG2RAD(r_rb);
     }
-    else if ( face2 == 5 ) {
+    else if ( face2 == 7 ) {
         r_e = 0;
         r_b = DEG2RAD(r_rb);
     }
-    else if ( face2 == 6 ) {
+    else if ( face2 == 8 ) {
         r_e = DEG2RAD(r_re);
         r_b = DEG2RAD(r_rb);
     }
@@ -2245,7 +2245,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = _body_end_depth + _body_length - _body_mount_center + R1[5]*(0.5*_center_length);
         m[2] = R1[9]*(0.5*_center_length);
     }
-    else if ( face1 == 1 && face2 == 3 ) {
+    else if ( face1 == 1 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2271,7 +2271,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = -_body_end_depth - _body_length + _body_mount_center + R1[5]*(-0.5*_center_length);
         m[2] = R1[9]*(-0.5*_center_length);
     }
-    else if ( face1 == 1 && face2 == 5 ) {
+    else if ( face1 == 1 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2284,7 +2284,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = _body_end_depth + _body_length - _body_mount_center + R1[5]*(0.5*_center_length);
         m[2] = R1[9]*(0.5*_center_length);
     }
-    else if ( face1 == 1 && face2 == 6 ) {
+    else if ( face1 == 1 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2331,7 +2331,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = -_body_width + R1[4]*(-0.5*_center_length);
         m[2] = R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 2 && face2 == 3 ) {
+    else if ( face1 == 2 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -r_b);
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2355,7 +2355,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      - _body_width    + R1[4]*(0.5*_center_length);
         m[2] =                                      + R1[8]*(0.5*_center_length);
     }
-    else if ( face1 == 2 && face2 == 5 ) {
+    else if ( face1 == 2 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], r_b);
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2366,7 +2366,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = -_body_width + R1[4]*(-0.5*_center_length);
         m[2] = R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 2 && face2 == 6 ) {
+    else if ( face1 == 2 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2383,7 +2383,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = -_end_depth - 0.5*_body_width + R1[5]*(-_body_end_depth - _body_length) + R5[5]*(-0.5*_center_length);
         m[2] = R1[9]*(-_body_end_depth - _body_length) + R5[9]*(-0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 1 ) {
+    else if ( face1 == 5 && face2 == 1 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2400,7 +2400,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length) + R2[5]*(0.5*_center_length);
         m[2] = R1[9]*(_body_end_depth + _body_length) + R3[9]*(0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 2 ) {
+    else if ( face1 == 5 && face2 == 2 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -r_b);
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2411,7 +2411,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      _body_width  + R1[4]*(0.5*_center_length);
         m[2] =                                  + R1[8]*(0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 3 ) {
+    else if ( face1 == 5 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2424,7 +2424,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = _body_width + R1[4]*(-0.5*_center_length);
         m[2] = R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 4 ) {
+    else if ( face1 == 5 && face2 == 4 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], r_b);
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2435,7 +2435,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = _body_width + R1[4]*(-0.5*_center_length);
         m[2] = R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 5 ) {
+    else if ( face1 == 5 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2448,7 +2448,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      _body_width  + R1[4]*(0.5*_center_length);
         m[2] =                                  + R1[8]*(0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 6 ) {
+    else if ( face1 == 5 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2495,7 +2495,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      -_body_width + R1[4]*(-0.5*_center_length);
         m[2] =                                  + R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 4 && face2 == 3 ) {
+    else if ( face1 == 4 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -r_b);
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2519,7 +2519,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = -_body_width + R1[4]*(0.5*_center_length);
         m[2] = R1[8]*(0.5*_center_length);
     }
-    else if ( face1 == 4 && face2 == 5 ) {
+    else if ( face1 == 4 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], r_b);
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2530,7 +2530,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      - _body_width    + R1[4]*(-0.5*_center_length);
         m[2] =                                      + R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 4 && face2 == 6 ) {
+    else if ( face1 == 4 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2547,7 +2547,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = -_end_depth - 0.5*_body_width + R1[5]*(-_body_end_depth - _body_length) + R3[5]*(-0.5*_center_length);
         m[2] = R1[9]*(-_body_end_depth - _body_length) + R3[9]*(-0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 1 ) {
+    else if ( face1 == 7 && face2 == 1 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2564,7 +2564,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length) + R3[5]*(0.5*_center_length);
         m[2] = R1[9]*(_body_end_depth + _body_length) + R3[9]*(0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 2 ) {
+    else if ( face1 == 7 && face2 == 2 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -r_b);
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2575,7 +2575,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = _body_width + R1[4]*(0.5*_center_length);
         m[2] = R1[8]*(0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 3 ) {
+    else if ( face1 == 7 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2588,7 +2588,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      _body_width  + R1[4]*(-0.5*_center_length);
         m[2] =                                  + R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 4 ) {
+    else if ( face1 == 7 && face2 == 4 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], r_b);
         dMultiply0(R, R1, R_att, 3, 3, 3);
@@ -2599,7 +2599,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      _body_width  + R1[4]*(-0.5*_center_length);
         m[2] =                                  + R1[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 5 ) {
+    else if ( face1 == 7 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2612,7 +2612,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = _body_width + R1[4]*(0.5*_center_length);
         m[2] = R1[8]*(0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 6 ) {
+    else if ( face1 == 7 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2629,7 +2629,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = _end_depth + 0.5*_body_width + R1[5]*(_body_end_depth + _body_length) + R3[5]*(0.5*_center_length);
         m[2] = R1[9]*(_body_end_depth + _body_length) + R3[9]*(0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 1 ) {
+    else if ( face1 == 8 && face2 == 1 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2646,7 +2646,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = R1[4]*(_body_end_depth + _body_length) + R3[4]*(0.5*_center_length);
         m[2] = R1[8]*(_body_end_depth + _body_length) + R3[8]*(0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 2 ) {
+    else if ( face1 == 8 && face2 == 2 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2659,7 +2659,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = -_body_end_depth - _body_length + _body_mount_center + R1[5]*(-0.5*_center_length);
         m[2] = R1[9]*(-0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 3 ) {
+    else if ( face1 == 8 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2672,7 +2672,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = _body_end_depth + _body_length - _body_mount_center + R1[5]*(0.5*_center_length);
         m[2] = R1[9]*(0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 4 ) {
+    else if ( face1 == 8 && face2 == 4 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2685,7 +2685,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = _body_end_depth + _body_length - _body_mount_center + R1[5]*(0.5*_center_length);
         m[2] = R1[9]*(0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 5 ) {
+    else if ( face1 == 8 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2698,7 +2698,7 @@ void CRobot4::buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] = -_body_end_depth - _body_length + _body_mount_center + R1[5]*(-0.5*_center_length);
         m[2] = R1[9]*(-0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 6 ) {
+    else if ( face1 == 8 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2746,7 +2746,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         r_e = 0;
         r_b = DEG2RAD(r_lb);
     }
-    else if ( face2 == 3 ) {
+    else if ( face2 == 5 ) {
         r_e = 0;
         r_b = DEG2RAD(r_lb);
     }
@@ -2754,11 +2754,11 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         r_e = 0;
         r_b = DEG2RAD(r_rb);
     }
-    else if ( face2 == 5 ) {
+    else if ( face2 == 7 ) {
         r_e = 0;
         r_b = DEG2RAD(r_rb);
     }
-    else if ( face2 == 6 ) {
+    else if ( face2 == 8 ) {
         r_e = DEG2RAD(r_re);
         r_b = DEG2RAD(r_rb);
     }
@@ -2809,7 +2809,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center) + R5[5]*(0.5*_center_length);
         m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center) + R5[9]*(0.5*_center_length);
     }
-    else if ( face1 == 1 && face2 == 3 ) {
+    else if ( face1 == 1 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2851,7 +2851,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center) + R5[5]*(-0.5*_center_length);
         m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center) + R5[9]*(-0.5*_center_length);
     }
-    else if ( face1 == 1 && face2 == 5 ) {
+    else if ( face1 == 1 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2872,7 +2872,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center) + R5[5]*(0.5*_center_length);
         m[2] =                      R1[8]*(-_body_length - _body_end_depth - _end_depth - 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center) + R5[9]*(0.5*_center_length);
     }
-    else if ( face1 == 1 && face2 == 6 ) {
+    else if ( face1 == 1 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2935,7 +2935,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _body_width    + R3[4]*(-0.5*_center_length);
         m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R3[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 2 && face2 == 3 ) {
+    else if ( face1 == 2 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2967,7 +2967,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      - _body_width    + R3[4]*(0.5*_center_length);
         m[2] =                                      + R3[8]*(0.5*_center_length);
     }
-    else if ( face1 == 2 && face2 == 5 ) {
+    else if ( face1 == 2 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -2982,7 +2982,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _body_width    + R3[4]*(-0.5*_center_length);
         m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R3[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 2 && face2 == 6 ) {
+    else if ( face1 == 2 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3003,7 +3003,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(-_body_length - _body_end_depth + _body_mount_center) - _end_depth - 0.5*_body_width + R3[5]*(-_body_end_depth - _body_length) + R5[5]*(-0.5*_center_length);
         m[2] =                      R1[8]*(-_body_length - _body_end_depth + _body_mount_center) +                              R3[9]*(-_body_end_depth - _body_length) + R5[9]*(-0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 1 ) {
+    else if ( face1 == 5 && face2 == 1 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3024,7 +3024,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _end_depth + 0.5*_body_width + R3[5]*(_body_end_depth + _body_length) + R5[5]*(0.5*_center_length);
         m[2] =                      R1[8]*(-_body_length - _body_end_depth + _body_mount_center) +                              R3[9]*(_body_end_depth + _body_length) + R5[9]*(0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 2 ) {
+    else if ( face1 == 5 && face2 == 2 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3039,7 +3039,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      _body_width  + R3[4]*(0.5*_center_length);
         m[2] =                                  + R3[8]*(0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 3 ) {
+    else if ( face1 == 5 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3056,7 +3056,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _body_width    + R3[4]*(-0.5*_center_length);
         m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R3[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 4 ) {
+    else if ( face1 == 5 && face2 == 4 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], attach->getAngle(LB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3071,7 +3071,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                          2*R1[4]*(-_body_length - _body_end_depth + _body_mount_center) + _body_width    + R3[4]*(-0.5*_center_length);
         m[2] =                          2*R1[8]*(-_body_length - _body_end_depth + _body_mount_center)                 + R3[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 5 ) {
+    else if ( face1 == 5 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3088,7 +3088,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      _body_width  + R3[4]*(0.5*_center_length);
         m[2] =                                  + R3[8]*(0.5*_center_length);
     }
-    else if ( face1 == 3 && face2 == 6 ) {
+    else if ( face1 == 5 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3147,7 +3147,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      -_body_width + R3[4]*(-0.5*_center_length);
         m[2] =                                  + R3[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 4 && face2 == 3 ) {
+    else if ( face1 == 4 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3179,7 +3179,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  - _body_width    + R3[4]*(0.5*_center_length);
         m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R3[8]*(0.5*_center_length);
     }
-    else if ( face1 == 4 && face2 == 5 ) {
+    else if ( face1 == 4 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3194,7 +3194,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      - _body_width    + R3[4]*(-0.5*_center_length);
         m[2] =                                      + R3[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 4 && face2 == 6 ) {
+    else if ( face1 == 4 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3215,7 +3215,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) -  _end_depth - 0.5*_body_width + R3[5]*(-_body_end_depth - _body_length) + R5[5]*(-0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R3[9]*(-_body_end_depth - _body_length) + R5[9]*(-0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 1 ) {
+    else if ( face1 == 7 && face2 == 1 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3236,7 +3236,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) +  _end_depth + 0.5*_body_width + R3[5]*(_body_end_depth + _body_length) + R5[5]*(0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R3[9]*(_body_end_depth + _body_length) + R5[9]*(0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 2 ) {
+    else if ( face1 == 7 && face2 == 2 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3251,7 +3251,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  + _body_width    + R3[4]*(0.5*_center_length);
         m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R3[8]*(0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 3 ) {
+    else if ( face1 == 7 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3268,7 +3268,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      _body_width  + R3[4]*(-0.5*_center_length);
         m[2] =                                  + R3[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 4 ) {
+    else if ( face1 == 7 && face2 == 4 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[1], R_att[5], R_att[9], -attach->getAngle(RB));
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3283,7 +3283,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      _body_width  + R3[4]*(-0.5*_center_length);
         m[2] =                                  + R3[8]*(-0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 5 ) {
+    else if ( face1 == 7 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3300,7 +3300,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                          2*R1[4]*(_body_length + _body_end_depth - _body_mount_center)  + _body_width    + R3[4]*(0.5*_center_length);
         m[2] =                          2*R1[8]*(_body_length + _body_end_depth - _body_mount_center)                  + R3[8]*(0.5*_center_length);
     }
-    else if ( face1 == 5 && face2 == 6 ) {
+    else if ( face1 == 7 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3321,7 +3321,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(_body_length + _body_end_depth - _body_mount_center) +  _end_depth + 0.5*_body_width + R3[5]*(_body_end_depth + _body_length) + R5[5]*(0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth - _body_mount_center) +                               R3[9]*(_body_end_depth + _body_length) + R5[9]*(0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 1 ) {
+    else if ( face1 == 8 && face2 == 1 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], 0);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3346,7 +3346,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(_body_length + _body_end_depth) + R3[4]*(2*_end_depth) + R5[4]*(_body_end_depth + _body_length) + R7[4]*(0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth) + R3[8]*(2*_end_depth) + R5[8]*(_body_end_depth + _body_length) + R7[8]*(0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 2 ) {
+    else if ( face1 == 8 && face2 == 2 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3367,7 +3367,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center) + R5[5]*(-0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center) + R5[9]*(-0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 3 ) {
+    else if ( face1 == 8 && face2 == 5 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3388,7 +3388,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center) + R5[5]*(0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center) + R5[9]*(0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 4 ) {
+    else if ( face1 == 8 && face2 == 4 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3409,7 +3409,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(_body_end_depth + _body_length - _body_mount_center) + R5[5]*(0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(_body_end_depth + _body_length - _body_mount_center) + R5[9]*(0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 5 ) {
+    else if ( face1 == 8 && face2 == 7 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
@@ -3430,7 +3430,7 @@ void CRobot4::buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, 
         m[1] =                      R1[4]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[5]*(-_body_end_depth - _body_length + _body_mount_center) + R5[5]*(-0.5*_center_length);
         m[2] =                      R1[8]*(_body_length + _body_end_depth + _end_depth + 0.5*_body_width) + R3[9]*(-_body_end_depth - _body_length + _body_mount_center) + R5[9]*(-0.5*_center_length);
     }
-    else if ( face1 == 6 && face2 == 6 ) {
+    else if ( face1 == 8 && face2 == 8 ) {
         // generate rotation matrix
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
         dMultiply0(R2, R1, R_att, 3, 3, 3);
