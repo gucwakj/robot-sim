@@ -20,6 +20,22 @@ enum robot_types_e {
 	NUM_TYPES
 };
 
+// connector
+typedef struct Conn_s {
+	int robot, face1, face2, type;
+	struct Conn_s *next;
+} Conn_t;
+// robot
+typedef struct bot_s {
+	int type;
+	int id;
+	double x, y, z;
+	double psi, theta, phi;
+	double angle1, angle2, angle3, angle4;
+	struct Conn_s *conn;
+	struct bot_s *next;
+} *bot_t;
+
 // classes forward declared
 class CRobot4;
 
@@ -51,18 +67,19 @@ class CRobot {
 
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock) = 0;
-		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) = 0;
-		virtual void build(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
-		virtual void buildAttached00(CRobot *attach, int face1, int face2) = 0;
-		virtual void buildAttached10(CRobot *attach, int face1, int face2) = 0;
-		virtual void buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
-		virtual void buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
-		virtual int addConnector(int type, int face) = 0;
+		virtual int build(bot_t robot) = 0;
+		virtual int build(bot_t robot, CRobot *base, Conn_t *conn) = 0;
+		//virtual void buildAttached00(CRobot *attach, int face1, int face2) = 0;
+		//virtual void buildAttached10(CRobot *attach, int face1, int face2) = 0;
+		//virtual void buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
+		//virtual void buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
+		//virtual int addConnector(int type, int face) = 0;
 #ifdef ENABLE_GRAPHICS
 		virtual void draw(osg::Group *root) = 0;
 #endif /* ENABLE_GRAPHICS */
 		virtual int getID(void) = 0;
 		virtual dReal getAngle(int i) = 0;
+		//virtual dBodyID getConnectorBodyID(int face) = 0;
 		virtual bool getSuccess(int i) = 0;
 		virtual dReal getPosition(int body, int i) = 0;
 		virtual dReal getRotation(int body, int i) = 0;

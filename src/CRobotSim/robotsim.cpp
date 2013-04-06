@@ -60,7 +60,7 @@ CRobotSim::~CRobotSim(void) {
 
 void CRobotSim::robot_init(void) {
 	FILE *fp;
-	char type[16], line[1024];
+	char type[16] = {'\0'}, line[1024];
 	char *begptr, *endptr, string[32];
 	int i, *rtmp, *ftmp, ctype, cnum;
 	bot = NULL;
@@ -82,17 +82,16 @@ void CRobotSim::robot_init(void) {
     fgets(line, 1024, fp);
 	while ( !feof(fp) ) {
 		// skip comments
-    	while (line[0] == '#') {
+		if (line[0] == '#') {
     	    fgets(line, 1024, fp);
-    	}
+			continue;
+		}
 
 		// get type of line data (robot, connector)
 		strncpy(type, line, strstr(line, ":") - line);
-
 		// if robot
 		if ( !strcmp(type, "mobot") ) {
-			Bot_t *nr = (Bot_t *)malloc(sizeof(struct Bot_s));
-
+			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
 			// get type
 			if ( !strcmp(type, "mobot") ) {
 				nr->type = 0;
@@ -138,7 +137,7 @@ void CRobotSim::robot_init(void) {
 			nr->next = NULL;
 
 			// put new bot at end of list
-			Bot_t *rtmp = bot;
+			bot_t rtmp = bot;
 			if ( bot == NULL )
 				bot = nr;
 			else {
@@ -182,6 +181,8 @@ void CRobotSim::robot_init(void) {
 			for (i = 0; i < cnum; i++) {
 				if ( begptr != NULL ) {
 					endptr = strstr(begptr, ";");
+					if (!endptr)
+						break;
 					strncpy(string, begptr, endptr - begptr);
 					string[endptr - begptr] = '\0';
 					sscanf(string, "%*c%d%*s%d", &rtmp[i], &ftmp[i]);
@@ -190,7 +191,7 @@ void CRobotSim::robot_init(void) {
 			}
 
 			// store connectors to each robot
-			Bot_t *tmp;
+			bot_t tmp;
 			Conn_t *ctmp;
 			//for (int j = (cnum == 1) ? 0 : 1; j < i; j++) {
 			for (int j = 0; j < i; j++) {
@@ -215,7 +216,7 @@ void CRobotSim::robot_init(void) {
 		}
 
 		// debug printing
-		Bot_t *rtmp = bot;
+		bot_t rtmp = bot;
 		while (rtmp) {
 			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
 			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
@@ -832,11 +833,13 @@ void CRobotSim::print_intermediate_data(void) {
 	Add Robot Functions
  **********************************************************/
 int CRobotSim::addRobot(CRobot &robot) {
+	// get type of robot being added
 	int type = robot.getType();
 
-	Bot_t *tmp = bot;
-	while (tmp->type != type && tmp->id != _robotConnected[type])
-		tmp = tmp->next;
+	// find next robot in list
+	bot_t btmp = bot;
+	while (btmp && btmp->type != type && btmp->id != _robotConnected[type])
+		btmp = btmp->next;
 
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
@@ -846,49 +849,34 @@ int CRobotSim::addRobot(CRobot &robot) {
 	// add simulation variables to robot class
 	_robot[type][_robotConnected[type]]->addToSim(_world, _space, &_clock);
 	// set unique id of this robot
-	_robot[type][_robotConnected[type]]->setID(tmp->id);
+	_robot[type][_robotConnected[type]]->setID(btmp->id);
 
-	//printf("addRobot: %d\n", robot.getID());
-	Conn_t *ctmp = tmp->conn;
-	Conn_t *connected = NULL;
+	// find if robot is connected to another one
+	Conn_t *ctmp = btmp->conn;
 	while (ctmp) {
-		if ( ctmp->robot == robot.getID() )
-			_robot[type][_robotConnected[type]]->addConnector(ctmp->type, ctmp->face1);
-		else
-			connected = ctmp;
+		if ( ctmp->robot != robot.getID() ) {
+			break;
+		}
 		ctmp = ctmp->next;
 	}
 
 	// if robot is connected to another one
-	if (connected) {
-		int i = 0;
-		// find robot with whom to connect
-		for (i = 0; i < _robotConnected[type]; i++) {
-			if (_robot[type][i]->getID() == connected->robot) { break; }
-		}
-		// if robot has moved joints
-		if ( tmp->angle1 != 0 || tmp->angle2 != 0 || tmp->angle3 != 0 || tmp->angle4 != 0 ) {
-			// build robot connected
-			if ( _robot[type][i]->isHome() )
-				_robot[type][_robotConnected[type]]->buildAttached01(_robot[type][i], connected->face1, connected->face2, tmp->angle1, tmp->angle2, tmp->angle3, tmp->angle4);
-			else
-				_robot[type][_robotConnected[type]]->buildAttached11(_robot[type][i], connected->face1, connected->face2, tmp->angle1, tmp->angle2, tmp->angle3, tmp->angle4);
-		}
-		else {
-			// build robot connected
-			if ( _robot[type][i]->isHome() )
-				_robot[type][_robotConnected[type]]->buildAttached00(_robot[type][i], connected->face1, connected->face2);
-			else
-				_robot[type][_robotConnected[type]]->buildAttached10(_robot[type][i], connected->face1, connected->face2);
+	if (ctmp) {
+		for (int i = 0; i < _robotConnected[type]; i++) {
+			if (_robot[type][i]->getID() == ctmp->robot) {
+				_robot[type][_robotConnected[type]]->build(btmp, _robot[type][i], ctmp);
+				break;
+			}
 		}
 	}
-	// robot is disconnected
 	else {
-		if ( tmp->angle1 != 0 || tmp->angle2 != 0 || tmp->angle3 != 0 || tmp->angle4 != 0 )
-			_robot[type][_robotConnected[type]]->build(tmp->x, tmp->y, tmp->z, tmp->psi, tmp->theta, tmp->phi, tmp->angle1, tmp->angle2, tmp->angle3, tmp->angle4);
-		else
-			_robot[type][_robotConnected[type]]->build(tmp->x, tmp->y, tmp->z, tmp->psi, tmp->theta, tmp->phi);
+		_robot[type][_robotConnected[type]]->build(btmp);
 	}
+
+	cout << _robot[type][_robotConnected[type]]->getPosition(2, 0) << " ";
+	cout << _robot[type][_robotConnected[type]]->getPosition(2, 1) << " ";
+	cout << _robot[type][_robotConnected[type]]->getPosition(2, 2) << " ";
+	cout << endl;
 
 	// another robot has been 'connected' to simulation
 	_robotConnected[type]++;
@@ -896,6 +884,7 @@ int CRobotSim::addRobot(CRobot &robot) {
 	// unlock robot data
 	pthread_mutex_unlock(&_robot_mutex);
 
+//exit(1);
 	return 0;
 }
 

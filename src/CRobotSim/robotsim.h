@@ -45,28 +45,13 @@ class CRobotSim {
 		//void addMobotConnected(CRobot4 *robot, CRobot4 *base, int face1, int face2);
 		//void addMobotConnected(CRobot4 *robot, CRobot4 *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 	private:
-		// connector
-		typedef struct Conn_s {
-			int robot, face1, face2, type;
-			struct Conn_s *next;
-		} Conn_t;
-		// robot
-		typedef struct Bot_s {
-			int type;
-			int id;
-			double x, y, z;
-			double psi, theta, phi;
-			double angle1, angle2, angle3, angle4;
-			struct Conn_s *conn;
-			struct Bot_s *next;
-		} Bot_t;
 		// private variables to store general information about simulation
 		dWorldID _world;					// world in which simulation occurs
 		dSpaceID _space;					// space for robots in which to live
 		dJointGroupID _group;				// group to store joints
 		dGeomID* _ground;					// ground (static) objects
 		CRobot** _robot[NUM_TYPES];			// array of all robots of every type
-		Bot_t *bot;
+		bot_t bot;
 		dReal _step;						// time of each step of simulation
 		dReal _clock;						// clock time of simulation
 		dReal _mu[2];						// coefficient of friction [body/ground, body/body]
