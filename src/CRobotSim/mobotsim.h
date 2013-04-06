@@ -146,74 +146,72 @@ class CRobot4 : virtual public CRobot {
 		dGeomID* _geom[NUM_PARTS];	// geometries of each body part
 		dJointID _motor[NUM_DOF];	// motors
 		dJointID _joint[6];			// joints between body parts
-		conn_t _conn;
 		dReal* _clock;				// world clock
 		dReal _angle[NUM_DOF];		// angles
 		dReal _velocity[NUM_DOF];	// velocities
 		dReal _goal[NUM_DOF];		// goals
 		dReal _maxSpeed[NUM_DOF];	// maximum joint speeds
+		conn_t _conn;				// connectors
 		PID _pid[NUM_DOF];			// PID control for each joint
-		int  _state[NUM_DOF];		// states
-		int _id;
+		int _id;					// robot id
+		int _state[NUM_DOF];		// joint states
 		bool _success[NUM_DOF];		// trigger for goal
 		bool _recording[NUM_DOF];	// recording in progress
 
 		// private functions inherited from CRobot class
-		virtual int add_connector(int type, int face);
+		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock);
 		virtual int build(bot_t robot);
 		virtual int build(bot_t robot, CRobot *base, Conn_t *conn);
-#ifdef ENABLE_GRAPHICS
-		virtual void draw(osg::Group *root);
-#endif /* ENABLE_GRAPHICS */
-		virtual int getID(void);
-		virtual dReal getAngle(int i);
-		virtual dBodyID getConnectorBodyID(int face);
 		virtual bool getSuccess(int i);
+		virtual int getID(void);
+		virtual int getType(void);
+		virtual dBodyID getBodyID(int id);
+		virtual dBodyID getConnectorBodyID(int face);
+		virtual dJointID getMotorID(int id);
+		virtual dReal getAngle(int i);
 		virtual dReal getPosition(int body, int i);
 		virtual dReal getRotation(int body, int i);
-		virtual dBodyID getBodyID(int id);
-		virtual dJointID getMotorID(int id);
-		virtual int getType(void);
 		virtual int setID(int id);
 		virtual bool isHome(void);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
-		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock);
+#ifdef ENABLE_GRAPHICS
+		virtual void draw(osg::Group *root);
+#endif // ENABLE_GRAPHICS
 
 		// private functions
-        //void resetPID(int i = NUM_DOF);
-		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
-		void build_individual0(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
-		void build_individual1(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		void build_attached00(CRobot *base, dBodyID body, Conn_t *conn);
-		void build_attached10(CRobot *base, dBodyID body, Conn_t *conn);
-		void build_attached01(bot_t robot, CRobot *base, dBodyID body, Conn_t *conn);
-		void build_attached11(bot_t robot, CRobot *base, dBodyID body, Conn_t *conn);
-		void build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);	// build body of mobot
-		void build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
-		void build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap
-		int build_simple(conn_t conn, int face);
-		void create_fixed_joint(CRobot *attach, int face1, int face2);				// create fixed joint between modules
+		int add_connector(int type, int face);
+		int build_individual0(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
+		int build_individual1(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		int build_attached00(CRobot *base, dBodyID body, Conn_t *conn);					// build attached robot
+		int build_attached10(CRobot *base, dBodyID body, Conn_t *conn);					// build attached robot
+		int build_attached01(bot_t robot, CRobot *base, dBodyID body, Conn_t *conn);	// build rotated and attached robot
+		int build_attached11(bot_t robot, CRobot *base, dBodyID body, Conn_t *conn);	// build rotated and attached robot
+		int build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);		// build body of mobot
+		int build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
+		int build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap
+		int build_simple(conn_t conn, int face);										// build simple connector
+		void create_fixed_joint(CRobot *attach, int face1, int face2);					// create fixed joint between modules
 		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
-		//int create_connector_offset(dMatrix3 R, dReal &p, int type, dBodyID body);
+		//int create_connector_offset(dMatrix3 R, dReal &p, int type, dBodyID body);	// create body offset by connector presence
+		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
 		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
+        //void resetPID(int i = NUM_DOF);
 		static void* recordAngleThread(void *arg);
 		static void* recordAnglesThread(void *arg);
-		unsigned int diff_msecs(struct timespec t1, struct timespec t2);
-		unsigned int current_msecs(struct timespec t);
 #ifdef ENABLE_GRAPHICS
 		void draw_simple(conn_t conn, osg::Group *robot);
-#endif /* ENABLE_GRAPHICS */
+#endif // ENABLE_GRAPHICS
 	protected:
 		double	_encoderResolution,
 				_center_length, _center_width, _center_height, _center_radius, _center_offset,
 				_body_length, _body_width, _body_height, _body_radius,
 				_body_inner_width_left, _body_inner_width_right, _body_end_depth, _body_mount_center,
 				_end_width, _end_height, _end_depth, _end_radius;
-		double	_connector_height, _connector_radius;
+		double	_connector_depth, _connector_height, _connector_radius;
+		int _type;					// robot type
 		dReal _maxJointVelocity[NUM_DOF];
 		dReal _maxJointForce[NUM_DOF];
-		int _type;
 };
 
 class CMobot : public CRobot4 {

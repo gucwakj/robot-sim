@@ -36,6 +36,16 @@ void robot4NodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 			pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
 			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		}
+		int k = 0;
+		for (int j = 1; j <= 8; j++) {
+			if (_robot->getConnectorBodyID(j)) {
+				pos = dBodyGetPosition(_robot->getConnectorBodyID(j));
+				quat = dBodyGetQuaternion(_robot->getConnectorBodyID(j));
+				pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(5 + k++));
+				pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
+				pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+			}
+		}
 	}
 	traverse(node, nv);
 }

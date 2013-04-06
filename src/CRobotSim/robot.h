@@ -69,27 +69,22 @@ class CRobot {
 		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock) = 0;
 		virtual int build(bot_t robot) = 0;
 		virtual int build(bot_t robot, CRobot *base, Conn_t *conn) = 0;
-		//virtual void buildAttached00(CRobot *attach, int face1, int face2) = 0;
-		//virtual void buildAttached10(CRobot *attach, int face1, int face2) = 0;
-		//virtual void buildAttached01(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
-		//virtual void buildAttached11(CRobot *attach, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) = 0;
-		//virtual int addConnector(int type, int face) = 0;
-#ifdef ENABLE_GRAPHICS
-		virtual void draw(osg::Group *root) = 0;
-#endif /* ENABLE_GRAPHICS */
-		virtual int getID(void) = 0;
-		virtual dReal getAngle(int i) = 0;
-		//virtual dBodyID getConnectorBodyID(int face) = 0;
 		virtual bool getSuccess(int i) = 0;
+		virtual int getID(void) = 0;
+		virtual int getType(void) = 0;
+		virtual dBodyID getBodyID(int body) = 0;
+		virtual dBodyID getConnectorBodyID(int face) = 0;
+		virtual dJointID getMotorID(int motor) = 0;
+		virtual dReal getAngle(int i) = 0;
 		virtual dReal getPosition(int body, int i) = 0;
 		virtual dReal getRotation(int body, int i) = 0;
-		virtual dBodyID getBodyID(int body) = 0;
-		virtual dJointID getMotorID(int motor) = 0;
-		virtual int getType(void) = 0;
-		virtual int setID(int id) = 0;
 		virtual bool isHome(void) = 0;
+		virtual int setID(int id) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;
+#ifdef ENABLE_GRAPHICS
+		virtual void draw(osg::Group *root) = 0;
+#endif // ENABLE_GRAPHICS
 	private:
 		// single access read/write lock
 		typedef struct rw_var {

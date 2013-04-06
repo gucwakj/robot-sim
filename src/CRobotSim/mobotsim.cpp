@@ -887,7 +887,6 @@ void CRobot4::draw(osg::Group *root) {
 
 void CRobot4::draw_simple(conn_t conn, osg::Group *robot) {
 	// initialize variables
-	osg::ref_ptr<osg::Group> osg_conn = new osg::Group();
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
 	const dReal *pos;
@@ -936,21 +935,18 @@ void CRobot4::draw_simple(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/mobot/texture.png"));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/mobot/conn_texture.png"));
     tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-    robot->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+    pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 
-	// add body to pat and pat to connector
+	// add body to pat
 	pat->addChild(body.get());
-	osg_conn->addChild(pat.get());
-
 	// add to scenegraph
-	robot->addChild(osg_conn);
+	robot->addChild(pat);
 }
-
 #endif /* ENABLE_GRAPHICS */
 
 int CRobot4::getID(void) {
@@ -1015,7 +1011,6 @@ bool CRobot4::isHome(void) {
 }
 
 int CRobot4::add_connector(int type, int face) {
-printf("into adding connector\n");
 	// create new connector
 	conn_t nc = (conn_t)malloc(sizeof(struct conn_s));
 	nc->face = face; 
@@ -1040,11 +1035,11 @@ printf("into adding connector\n");
 	}
 
 	// debug printing
-	conn_t ctmp2 = _conn;
+	/*conn_t ctmp2 = _conn;
 	while (ctmp2) {
-		//printf("on face %d draw a %d connector %p\n", ctmp2->face, ctmp2->type, ctmp2->body);
+		printf("on face %d draw a %d connector %p\n", ctmp2->face, ctmp2->type, ctmp2->body);
 		ctmp2 = ctmp2->next;
-	}
+	}*/
 
 	// success
 	return 0;
@@ -1058,25 +1053,40 @@ int CRobot4::build_simple(conn_t conn, int face) {
     // define parameters
     dMass m;
     dMatrix3 R1;
-	double	depth = _end_depth,
+	double	depth = _connector_depth,
 			width = _end_width,
 			height = _connector_height,
 			radius = _connector_radius;
 	double x = 0, y = 0, z = 0, offset[3];
 	dMatrix3 R;
+	int id = -1;
 
 	if (face == 8) {
 		const dReal *pos = dBodyGetPosition(_body[ENDCAP_R]);
-		printf("dBodyGetPosition: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
+		//printf("dBodyGetPosition: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
 		const dReal *Ra = dBodyGetRotation(_body[ENDCAP_R]);
-		printf("dBodyGetRotation: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", Ra[0], Ra[1], Ra[2], Ra[3], Ra[4], Ra[5], Ra[6], Ra[7], Ra[8], Ra[9], Ra[10], Ra[11]);
-		offset[0] = _end_depth/2 + _end_depth/2+1;	// end_depth + connector_depth
+		R[0] = Ra[0];
+		R[1] = Ra[1];
+		R[2] = Ra[2];
+		R[3] = Ra[3];
+		R[4] = Ra[4];
+		R[5] = Ra[5];
+		R[6] = Ra[6];
+		R[7] = Ra[7];
+		R[8] = Ra[8];
+		R[9] = Ra[9];
+		R[10] = Ra[10];
+		R[11] = Ra[11];
+		//printf("dBodyGetRotation: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", Ra[0], Ra[1], Ra[2], Ra[3], Ra[4], Ra[5], Ra[6], Ra[7], Ra[8], Ra[9], Ra[10], Ra[11]);
+		printf("dBodyGetRotation: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]);
+		offset[0] = _end_depth/2 + depth/2;	// end_depth + connector_depth
 		offset[1] = 0;
 		offset[2] = 0;
 		x = pos[0] + Ra[0]*offset[0] + Ra[4]*offset[1] + Ra[8]*offset[2];
 		y = pos[1] + Ra[1]*offset[0] + Ra[5]*offset[1] + Ra[9]*offset[2];
 		z = pos[2] + Ra[2]*offset[0] + Ra[6]*offset[1] + Ra[10]*offset[2];
-		printf("x %lf y %lf z %lf\n", x, y, z);
+		//printf("x %lf y %lf z %lf\n", x, y, z);
+		id = ENDCAP_R;
 	}
 
     // set mass of body
@@ -1091,8 +1101,6 @@ int CRobot4::build_simple(conn_t conn, int face) {
     // set body parameters
     dBodySetPosition(conn->body, x, y, z);
     dBodySetRotation(conn->body, R);
-	const dReal *pos = dBodyGetPosition(_body[ENDCAP_R]);
-	printf("dBodyGetPosition: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
 
     // rotation matrix for curves
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
@@ -1115,25 +1123,25 @@ int CRobot4::build_simple(conn_t conn, int face) {
     // set geometry 4 - fillet upper left
     conn->geom[3] = dCreateCylinder(_space, radius, depth);
     dGeomSetBody(conn->geom[3], conn->body);
-    dGeomSetOffsetPosition(conn->geom[3], -m.c[0], -width/2 + radius - m.c[1], width/2 - radius - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[3], -m.c[0], -width/2 + radius - m.c[1], height/2 - radius - m.c[2]);
     dGeomSetOffsetRotation(conn->geom[3], R1);
 
     // set geometry 5 - fillet upper right
     conn->geom[4] = dCreateCylinder(_space, radius, depth);
     dGeomSetBody(conn->geom[4], conn->body);
-    dGeomSetOffsetPosition(conn->geom[4], -m.c[0], width/2 - radius - m.c[1], width/2 - radius - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[4], -m.c[0], width/2 - radius - m.c[1], height/2 - radius - m.c[2]);
     dGeomSetOffsetRotation(conn->geom[4], R1);
 
     // set geometry 6 - fillet lower right
     conn->geom[5] = dCreateCylinder(_space, radius, depth);
     dGeomSetBody(conn->geom[5], conn->body);
-    dGeomSetOffsetPosition(conn->geom[5], -m.c[0], width/2 - radius - m.c[1], -width/2 + radius - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[5], -m.c[0], width/2 - radius - m.c[1], -height/2 + radius - m.c[2]);
     dGeomSetOffsetRotation(conn->geom[5], R1);
 
     // set geometry 7 - fillet lower left
     conn->geom[6] = dCreateCylinder(_space, radius, depth);
     dGeomSetBody(conn->geom[6], conn->body);
-    dGeomSetOffsetPosition(conn->geom[6], -m.c[0], -width/2 + radius - m.c[1], -width/2 + radius - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[6], -m.c[0], -width/2 + radius - m.c[1], -height/2 + radius - m.c[2]);
     dGeomSetOffsetRotation(conn->geom[6], R1);
 
     // set mass center to (0,0,0) of _bodyID
@@ -1141,11 +1149,11 @@ int CRobot4::build_simple(conn_t conn, int face) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	/*dJointID conn->joint = dJointCreateFixed(_world, 0);
-	dJointAttach(conn->joint, _body->getBodyID(face), conn->body);
-	dJointSetFixed(conn->joint);
-	dJointSetFixedParam(conn->joint, dParamCFM, 0);
-	dJointSetFixedParam(conn->joint, dParamERP, 0.9);*/
+	dJointID joint = dJointCreateFixed(_world, 0);
+	dJointAttach(joint, this->getBodyID(id), conn->body);
+	dJointSetFixed(joint);
+	dJointSetFixedParam(joint, dParamCFM, 0);
+	dJointSetFixedParam(joint, dParamERP, 0.9);
 
 	// success
 	return 0;
@@ -1272,7 +1280,16 @@ void CRobot4::create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal p
 /*int CRobot4::create_connector_offset(dMatrix3 R, dReal &p, int type, dBodyID body) {
 	switch (type) {
 		case SIMPLE:
-			
+			if (face == 8) {
+				const dReal *pos = dBodyGetPosition(body);
+				printf("dBodyGetPosition: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
+				R = dBodyGetRotation(body);
+				printf("dBodyGetRotation: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]);
+				double offset[3] = {_connector_depth, 0, 0};
+				p[0] = pos[0] + R[0]*offset[0] + R[4]*offset[1] + R[8]*offset[2];
+				p[1] = pos[1] + R[1]*offset[0] + R[5]*offset[1] + R[9]*offset[2];
+				p[2] = pos[2] + R[2]*offset[0] + R[6]*offset[1] + R[10]*offset[2];
+			}
 			break;
 	}
 	
@@ -1296,17 +1313,6 @@ void CRobot4::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &
         psi = atan2(R[9]/cos(theta), R[10]/cos(theta));
         phi = atan2(R[4]/cos(theta), R[0]/cos(theta));
     }
-}
-
-unsigned int CRobot4::diff_msecs(struct timespec t1, struct timespec t2) {
-    unsigned int t;
-    t = (t2.tv_sec - t1.tv_sec) * 1000;
-    t += (t2.tv_nsec - t1.tv_nsec) / 1000000;
-    return t;
-}
-
-unsigned int CRobot4::current_msecs(struct timespec t) {
-	return t.tv_sec*1000 + t.tv_nsec / 1000000;
 }
 
 /*void CRobot4::resetPID(int i) {
@@ -1365,7 +1371,7 @@ int CRobot4::build(bot_t robot, CRobot *base, Conn_t *conn) {
 	return 0;
 }
 
-void CRobot4::build_individual0(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
+int CRobot4::build_individual0(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
     _geom[ENDCAP_L] = new dGeomID[7];
@@ -1493,7 +1499,7 @@ void CRobot4::build_individual0(dReal x, dReal y, dReal z, dReal psi, dReal thet
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(_body[i], 0.1, 0.1);
 }
 
-void CRobot4::build_individual1(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+int CRobot4::build_individual1(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
     _geom[ENDCAP_L] = new dGeomID[7];
@@ -1646,19 +1652,25 @@ void CRobot4::build_individual1(dReal x, dReal y, dReal z, dReal psi, dReal thet
 
     // set damping on all bodies to 0.1
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(_body[i], 0.1, 0.1);
+
+	// success
+	return 0;
 }
 
-void CRobot4::build_attached00(CRobot *base, dBodyID body, Conn_t *conn) {
+int CRobot4::build_attached00(CRobot *base, dBodyID body, Conn_t *conn) {
 	// collect data from structs
 	int face1 = conn->face1;
 	int face2 = conn->face2;
 
     // initialize new variables
     dReal psi, theta, phi, m[3] = {0};
-    dMatrix3 R, R1, R_att;
+    dMatrix3 R, R1, R_att, R_conn;
 
     // generate rotation matrix for base robot
     this->create_rotation_matrix(R_att, base->getRotation(CENTER, 0), base->getRotation(CENTER, 1), base->getRotation(CENTER, 2));
+	/*this->create_connector_offset(R_conn, m, conn, body);
+	printf("m: %lf %lf %lf\n", m[0], m[1], m[2]);
+exit(1);*/
 
     if ( face1 == 1 && face2 == 1 ) {
         dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
@@ -1888,9 +1900,12 @@ void CRobot4::build_attached00(CRobot *base, dBodyID body, Conn_t *conn) {
 
     // add fixed joint to attach two modules
     this->create_fixed_joint(base, face1, face2);
+
+	// success
+	return 0;
 }
 
-void CRobot4::build_attached10(CRobot *base, dBodyID body, Conn_t *conn) {
+int CRobot4::build_attached10(CRobot *base, dBodyID body, Conn_t *conn) {
 	// collect data from structs
 	int face1 = conn->face1;
 	int face2 = conn->face2;
@@ -2413,9 +2428,12 @@ void CRobot4::build_attached10(CRobot *base, dBodyID body, Conn_t *conn) {
 
     // add fixed joint to attach two modules
     this->create_fixed_joint(base, face1, face2);
+
+	// success
+	return 0;
 }
 
-void CRobot4::build_attached01(bot_t robot, CRobot *base, dBodyID body, Conn_t *conn) {
+int CRobot4::build_attached01(bot_t robot, CRobot *base, dBodyID body, Conn_t *conn) {
 	// collect data from structs
 	int face1 = conn->face1;
 	int face2 = conn->face2;
@@ -2969,9 +2987,12 @@ void CRobot4::build_attached01(bot_t robot, CRobot *base, dBodyID body, Conn_t *
 
     // add fixed joint to attach two modules
     this->create_fixed_joint(base, face1, face2);
+
+	// success
+	return 0;
 }
 
-void CRobot4::build_attached11(bot_t robot, CRobot *base, dBodyID body, Conn_t *conn) {
+int CRobot4::build_attached11(bot_t robot, CRobot *base, dBodyID body, Conn_t *conn) {
 	// collect data from structs
 	int face1 = conn->face1;
 	int face2 = conn->face2;
@@ -3718,9 +3739,12 @@ void CRobot4::build_attached11(bot_t robot, CRobot *base, dBodyID body, Conn_t *
 
     // add fixed joint to attach two modules
     this->create_fixed_joint(base, face1, face2);
+
+	// success
+	return 0;
 }
 
-void CRobot4::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta) {
+int CRobot4::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta) {
 	int i = 1;
 	if ( id == BODY_R )
 		i = -1;
@@ -3788,9 +3812,12 @@ void CRobot4::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal th
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
     dBodySetMass(_body[id], &m);
+
+	// success
+	return 0;
 }
 
-void CRobot4::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
+int CRobot4::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
     // define parameters
     dMass m;
     dMatrix3 R1;
@@ -3833,9 +3860,12 @@ void CRobot4::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
     // set mass center to (0,0,0) of body
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
     dBodySetMass(_body[CENTER], &m);
+
+	// success
+	return 0;
 }
 
-void CRobot4::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
+int CRobot4::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
     // define parameters
     dMass m;
     dMatrix3 R1;
@@ -3898,6 +3928,9 @@ void CRobot4::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
     dBodySetMass(_body[id], &m);
+
+	// success
+	return 0;
 }
 
 /**********************************************************
@@ -3930,8 +3963,9 @@ CiMobot::CiMobot(void) {
 	_end_height = 0.07239;
 	_end_depth = 0.00476;
 	_end_radius = 0.01778;
-	_connector_height = 0.0429;
-	_connector_radius = 0.0064;
+	_connector_depth = 0;
+	_connector_height = 0;
+	_connector_radius = 0;
 	_type = IMOBOT;
 }
 
@@ -3965,6 +3999,7 @@ CMobot::CMobot(void) {
 	_end_height = 0.0762;
 	_end_depth = 0.0080;
 	_end_radius = 0.0254;
+	_connector_depth = 0.0048;
 	_connector_height = 0.0429;
 	_connector_radius = 0.0064;
 	_type = MOBOT;

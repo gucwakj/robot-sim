@@ -193,7 +193,6 @@ void CRobotSim::robot_init(void) {
 			// store connectors to each robot
 			bot_t tmp;
 			Conn_t *ctmp;
-			//for (int j = (cnum == 1) ? 0 : 1; j < i; j++) {
 			for (int j = 0; j < i; j++) {
 				Conn_t *nc = (Conn_t *)malloc(sizeof(struct Conn_s));
 				nc->robot = rtmp[0]; 
@@ -216,7 +215,7 @@ void CRobotSim::robot_init(void) {
 		}
 
 		// debug printing
-		bot_t rtmp = bot;
+		/*bot_t rtmp = bot;
 		while (rtmp) {
 			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
 			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
@@ -231,7 +230,7 @@ void CRobotSim::robot_init(void) {
 			printf("\n");
 			rtmp = rtmp->next;
 		}
-		printf("\n\n\n");
+		printf("\n\n\n");*/
 
 		// get new line
     	fgets(line, 1024, fp);
@@ -478,7 +477,7 @@ int CRobotSim::graphics_init(void) {
 	//viewer->setCameraManipulator(new osgGA::SphericalManipulator);
 	//viewer->setCameraManipulator(new osgGA::FirstPersonManipulator);
 	//viewer->setCameraManipulator(new osgGA::TrackballManipulator);
-	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1, 0, 0.8), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0.7, 0, 0.2), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
     // Creating the root node
 	_osgRoot = new osg::Group();
@@ -873,98 +872,15 @@ int CRobotSim::addRobot(CRobot &robot) {
 		_robot[type][_robotConnected[type]]->build(btmp);
 	}
 
-	cout << _robot[type][_robotConnected[type]]->getPosition(2, 0) << " ";
-	cout << _robot[type][_robotConnected[type]]->getPosition(2, 1) << " ";
-	cout << _robot[type][_robotConnected[type]]->getPosition(2, 2) << " ";
-	cout << endl;
-
 	// another robot has been 'connected' to simulation
 	_robotConnected[type]++;
 
 	// unlock robot data
 	pthread_mutex_unlock(&_robot_mutex);
 
-//exit(1);
+	// success
 	return 0;
 }
-
-/**********************************************************
-	Build iMobot Functions
- **********************************************************/
-/*void CRobotSim::addiMobotConnected(CRobot4 *robot, iMobotSim &base, int face1, int face2) {
-	// lock robot data to insert a new one into simulation
-	pthread_mutex_lock(&_robot_mutex);
-	// add new imobot
-	_robot[IMOBOT] =  (CRobot **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(CRobot *));
-	_robot[IMOBOT][_robotNumber[IMOBOT]] = robot;
-	// create new thread array for imobots
-	delete _robotThread[IMOBOT];
-	_robotThread[IMOBOT] = new pthread_t[_robotNumber[IMOBOT]];
-	// build new imobot geometry
-	if ( base.isHome() )
-		_robot[IMOBOT][_robotNumber[IMOBOT]++]->buildAttached00(&base, face1, face2);
-	else
-		_robot[IMOBOT][_robotNumber[IMOBOT]++]->buildAttached10(&base, face1, face2);
-	// unlock robot data
-	pthread_mutex_unlock(&_robot_mutex);
-}
-
-void CRobotSim::addiMobotConnected(CRobot4 *robot, iMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	// lock robot data to insert a new one into simulation
-	pthread_mutex_lock(&_robot_mutex);
-	// add new imobot
-	_robot[IMOBOT] =  (CRobot **)realloc(_robot[IMOBOT], (_robotNumber[IMOBOT] + 1)*sizeof(CRobot *));
-	_robot[IMOBOT][_robotNumber[IMOBOT]] = robot;
-	// create new thread array for imobots
-	delete _robotThread[IMOBOT];
-	_robotThread[IMOBOT] = new pthread_t[_robotNumber[IMOBOT]];
-	// build new imobot geometry
-	if ( base.isHome() )
-		_robot[IMOBOT][_robotNumber[IMOBOT]++]->buildAttached01(&base, face1, face2, r_le, r_lb, r_rb, r_re);
-	else
-		_robot[IMOBOT][_robotNumber[IMOBOT]++]->buildAttached11(&base, face1, face2, r_le, r_lb, r_rb, r_re);
-	// unlock robot data
-	pthread_mutex_unlock(&_robot_mutex);
-}*/
-
-/**********************************************************
-	Build Mobot Functions
- **********************************************************/
-/*void CRobotSim::addMobotConnected(CRobot4 *robot, CRobot4 *base, int face1, int face2) {
-	// lock robot data to insert a new one into simulation
-	pthread_mutex_lock(&_robot_mutex);
-	// add new imobot
-	_robot[MOBOT] =  (CRobot **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(CRobot *));
-	_robot[MOBOT][_robotNumber[MOBOT]] = robot;
-	// create new thread array for imobots
-	delete _robotThread[MOBOT];
-	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
-	// build new mobot geometry
-	if ( base->isHome() )
-		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached00(base, face1, face2);
-	else
-		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached10(base, face1, face2);
-	// unlock robot data
-	pthread_mutex_unlock(&_robot_mutex);
-}
-
-void CRobotSim::addMobotConnected(CRobot4 *robot, CRobot4 *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
-	// lock robot data to insert a new one into simulation
-	pthread_mutex_lock(&_robot_mutex);
-	// add new imobot
-	_robot[MOBOT] =  (CRobot **)realloc(_robot[MOBOT], (_robotNumber[MOBOT] + 1)*sizeof(CRobot *));
-	_robot[MOBOT][_robotNumber[MOBOT]] = robot;
-	// create new thread array for imobots
-	delete _robotThread[MOBOT];
-	_robotThread[MOBOT] = new pthread_t[_robotNumber[MOBOT]];
-	// build new mobot geometry
-	if ( base->isHome() )
-		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached01(base, face1, face2, r_le, r_lb, r_rb, r_re);
-	else
-		_robot[MOBOT][_robotNumber[MOBOT]++]->buildAttached11(base, face1, face2, r_le, r_lb, r_rb, r_re);
-	// unlock robot data
-	pthread_mutex_unlock(&_robot_mutex);
-}*/
 
 /**********************************************************
 	Utility Functions

@@ -36,14 +36,6 @@ class CRobotSim {
 		void setMu(dReal mu_g, dReal mu_b);
 
 		int addRobot(CRobot &robot);
-
-		// build models of the iMobot
-		//void addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2);
-		//void addiMobotConnected(iMobotSim &imobot, iMobotSim &base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-
-		// build models of the Mobot
-		//void addMobotConnected(CRobot4 *robot, CRobot4 *base, int face1, int face2);
-		//void addMobotConnected(CRobot4 *robot, CRobot4 *base, int face1, int face2, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 	private:
 		// private variables to store general information about simulation
 		dWorldID _world;					// world in which simulation occurs
