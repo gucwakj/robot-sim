@@ -3,15 +3,19 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CMobot mobot1/*, mobot2*/;
+	CMobot mobot1, mobot2;
 
 	CRobotSim sim;
 	sim.addRobot(mobot1);
-	//sim.addRobot(mobot2);
+	sim.addRobot(mobot2);
 
 	mobot1.connect();
-	//mobot2.connect();
-	//mobot.move(0, 45, -45, 0);
+	mobot2.connect();
+
+	//mobot1.moveToNB(0, -90,  0, 0);
+	//mobot2.moveToNB(0, 0, 90, 0);
+	//mobot1.moveWait();
+	//mobot2.moveWait();
 
 	sim.setExitState(1);
 	return 0;

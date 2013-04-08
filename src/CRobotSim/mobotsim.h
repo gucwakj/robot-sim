@@ -183,17 +183,17 @@ class CRobot4 : virtual public CRobot {
 		int add_connector(int type, int face);
 		int build_individual0(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi);
 		int build_individual1(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		int build_attached00(CRobot *base, dBodyID body, Conn_t *conn);					// build attached robot
-		int build_attached10(CRobot *base, dBodyID body, Conn_t *conn);					// build attached robot
-		int build_attached01(bot_t robot, CRobot *base, dBodyID body, Conn_t *conn);	// build rotated and attached robot
-		int build_attached11(bot_t robot, CRobot *base, dBodyID body, Conn_t *conn);	// build rotated and attached robot
+		int build_attached00(CRobot *base, Conn_t *conn);								// build attached robot
+		int build_attached10(CRobot *base, Conn_t *conn);								// build attached robot
+		int build_attached01(bot_t robot, CRobot *base, Conn_t *conn);					// build rotated and attached robot
+		int build_attached11(bot_t robot, CRobot *base, Conn_t *conn);					// build rotated and attached robot
 		int build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);		// build body of mobot
 		int build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
 		int build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap
 		int build_simple(conn_t conn, int face);										// build simple connector
 		void create_fixed_joint(CRobot *attach, int face1, int face2);					// create fixed joint between modules
 		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
-		//int create_connector_offset(dMatrix3 R, dReal &p, int type, dBodyID body);	// create body offset by connector presence
+		int get_connector_offset(int type, int face, dMatrix3 R, dReal *p);				// create body offset by connector presence
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
 		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
         //void resetPID(int i = NUM_DOF);
