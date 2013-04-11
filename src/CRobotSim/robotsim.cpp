@@ -477,7 +477,7 @@ int CRobotSim::graphics_init(void) {
 	//viewer->setCameraManipulator(new osgGA::SphericalManipulator);
 	//viewer->setCameraManipulator(new osgGA::FirstPersonManipulator);
 	//viewer->setCameraManipulator(new osgGA::TrackballManipulator);
-	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0.7, 0, 0.2), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0, -0.7, 0.2), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
     // Creating the root node
 	_osgRoot = new osg::Group();

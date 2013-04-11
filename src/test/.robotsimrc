@@ -2,6 +2,6 @@
 mobot: 0;
 #mobot: 1; position: 3, 2, 1; rotation: 6, 5, 4; joint: 10, 9, 8, 7;
 mobot: 1;
-#simple: 0, 8;
-simple: 0, 8; 1, 1;
+#simple: 0, 6;
+simple: 0, 5; 1, 4;
 #caster: 0, 5;

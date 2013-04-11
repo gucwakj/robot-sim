@@ -74,6 +74,7 @@ class CRobot {
 		virtual int getType(void) = 0;
 		virtual dBodyID getBodyID(int body) = 0;
 		virtual dBodyID getConnectorBodyID(int face) = 0;
+		virtual int getConnectionParams(int face, dMatrix3 R, dReal *p) = 0;
 		virtual dJointID getMotorID(int motor) = 0;
 		virtual dReal getAngle(int i) = 0;
 		virtual dReal getPosition(int body, int i) = 0;

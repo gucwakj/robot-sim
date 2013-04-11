@@ -893,7 +893,7 @@ void CRobot4::draw_simple(conn_t conn, osg::Group *robot) {
 	dQuaternion quat;
 	osg::Box *box;
 	osg::Cylinder *cyl;
-	double	depth = _end_depth,
+	double	depth = _connector_depth,
 			width = _end_width,
 			height = _connector_height,
 			radius = _connector_radius;
@@ -1045,6 +1045,68 @@ int CRobot4::add_connector(int type, int face) {
 	return 0;
 }
 
+int CRobot4::getConnectionParams(int face, dMatrix3 R, dReal *p) {
+	const dReal *pos, *Ra;
+	double offset[3] = {0};
+	int i = 1;
+
+	switch (face) {
+		case 1:
+			pos = dBodyGetPosition(_body[ENDCAP_L]);
+			Ra = dBodyGetRotation(_body[ENDCAP_L]);
+    		dRFromAxisAndAngle(R, i*Ra[2], i*Ra[6], i*Ra[10], M_PI);
+			offset[0] = -_end_depth/2;
+			p[0] = pos[0] + Ra[0]*offset[0];
+			p[1] = pos[1] + Ra[4]*offset[0];
+			p[2] = pos[2] + Ra[8]*offset[0];
+			break;
+		case 2: case 5:
+			pos = dGeomGetPosition(_geom[BODY_L][0]);
+			Ra = dBodyGetRotation(_body[BODY_L]);
+			i = ((face == 5) ? 1 : -1);
+    		dRFromAxisAndAngle(R, Ra[2], Ra[6], Ra[10], i*M_PI/2);
+			offset[0] = -_body_end_depth/2 + _body_mount_center;
+			offset[1] = i*_body_width/2;
+			p[0] = pos[0] + Ra[0]*offset[0] + Ra[1]*offset[1];
+			p[1] = pos[1] + Ra[4]*offset[0] + Ra[5]*offset[1];
+			p[2] = pos[2] + Ra[8]*offset[0] + Ra[9]*offset[1];
+			break;
+		case 3: case 6:
+			pos = dBodyGetPosition(_body[CENTER]);
+			Ra = dBodyGetRotation(_body[CENTER]);
+			i = (face == 6) ? 1 : -1;
+    		dRFromAxisAndAngle(R, i*Ra[2], i*Ra[6], i*Ra[10], M_PI/2);
+			offset[1] = i*(_body_width/2) - _center_offset;
+			p[0] = pos[0] + Ra[1]*offset[1];
+			p[1] = pos[1] + Ra[5]*offset[1];
+			p[2] = pos[2] + Ra[9]*offset[1];
+			break;
+		case 4: case 7:
+			pos = dGeomGetPosition(_geom[BODY_R][0]);
+			Ra = dBodyGetRotation(_body[BODY_R]);
+			i = (face == 7) ? 1 : -1;
+    		dRFromAxisAndAngle(R, i*Ra[2], i*Ra[6], i*Ra[10], M_PI/2);
+			offset[0] = _body_end_depth/2 - _body_mount_center;
+			offset[1] = i*_body_width/2;
+			p[0] = pos[0] + Ra[0]*offset[0] + Ra[1]*offset[1];
+			p[1] = pos[1] + Ra[4]*offset[0] + Ra[5]*offset[1];
+			p[2] = pos[2] + Ra[8]*offset[0] + Ra[9]*offset[1];
+			break;
+		case 8:
+			pos = dBodyGetPosition(_body[ENDCAP_R]);
+			Ra = dBodyGetRotation(_body[ENDCAP_R]);
+    		dRFromAxisAndAngle(R, i*Ra[2], i*Ra[6], i*Ra[10], 0);
+			offset[0] = _end_depth/2;
+			p[0] = pos[0] + Ra[0]*offset[0];
+			p[1] = pos[1] + Ra[4]*offset[0];
+			p[2] = pos[2] + Ra[8]*offset[0];
+			break;
+	}
+
+	// success
+	return 0;
+}
+
 int CRobot4::build_simple(conn_t conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
@@ -1052,54 +1114,30 @@ int CRobot4::build_simple(conn_t conn, int face) {
 
     // define parameters
     dMass m;
-    dMatrix3 R1;
+    dMatrix3 R, R1;
 	double	depth = _connector_depth,
 			width = _end_width,
 			height = _connector_height,
-			radius = _connector_radius;
-	double x = 0, y = 0, z = 0, offset[3];
-	dMatrix3 R;
-	int id = -1;
+			radius = _connector_radius,
+			p[3] = {0},
+			offset[3] = {depth/2, 0, 0};
 
-	if (face == 8) {
-		const dReal *pos = dBodyGetPosition(_body[ENDCAP_R]);
-		//printf("dBodyGetPosition: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
-		const dReal *Ra = dBodyGetRotation(_body[ENDCAP_R]);
-		R[0] = Ra[0];
-		R[1] = Ra[1];
-		R[2] = Ra[2];
-		R[3] = Ra[3];
-		R[4] = Ra[4];
-		R[5] = Ra[5];
-		R[6] = Ra[6];
-		R[7] = Ra[7];
-		R[8] = Ra[8];
-		R[9] = Ra[9];
-		R[10] = Ra[10];
-		R[11] = Ra[11];
-		//printf("dBodyGetRotation: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", Ra[0], Ra[1], Ra[2], Ra[3], Ra[4], Ra[5], Ra[6], Ra[7], Ra[8], Ra[9], Ra[10], Ra[11]);
-		//printf("dBodyGetRotation: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]);
-		offset[0] = _end_depth/2 + depth/2;	// end_depth + connector_depth
-		offset[1] = 0;
-		offset[2] = 0;
-		x = pos[0] + Ra[0]*offset[0] + Ra[4]*offset[1] + Ra[8]*offset[2];
-		y = pos[1] + Ra[1]*offset[0] + Ra[5]*offset[1] + Ra[9]*offset[2];
-		z = pos[2] + Ra[2]*offset[0] + Ra[6]*offset[1] + Ra[10]*offset[2];
-		//printf("x %lf y %lf z %lf\n", x, y, z);
-		id = ENDCAP_R;
-	}
+	this->getConnectionParams(face, R, p);
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
 
     // set mass of body
     dMassSetBox(&m, 2700, depth, width, height);
     //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
-    x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-    y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-    z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+    p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+    p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+    p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
     // set body parameters
-    dBodySetPosition(conn->body, x, y, z);
+    dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
 
     // rotation matrix for curves
@@ -1149,8 +1187,37 @@ int CRobot4::build_simple(conn_t conn, int face) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
+	this->fix_connector_to_body(face, conn->body);
+
+	// success
+	return 0;
+}
+
+int CRobot4::fix_connector_to_body(int face, dBodyID cBody) {
+	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
-	dJointAttach(joint, this->getBodyID(id), conn->body);
+
+	// attach to correct body
+	switch (face) {
+		case 1:
+			dJointAttach(joint, this->getBodyID(ENDCAP_L), cBody);
+			break;
+		case 2: case 5:
+			dJointAttach(joint, this->getBodyID(BODY_L), cBody);
+			break;
+		case 3: case 6:
+			dJointAttach(joint, this->getBodyID(BODY_L), cBody);
+			dJointAttach(joint, this->getBodyID(BODY_R), cBody);
+			break;
+		case 4: case 7:
+			dJointAttach(joint, this->getBodyID(BODY_R), cBody);
+			break;
+		case 8:
+			dJointAttach(joint, this->getBodyID(ENDCAP_R), cBody);
+			break;
+	}
+
+	// set joint params
 	dJointSetFixed(joint);
 	dJointSetFixedParam(joint, dParamCFM, 0);
 	dJointSetFixedParam(joint, dParamERP, 0.9);
@@ -1215,6 +1282,39 @@ dReal CRobot4::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     return new_ang;
 }
 
+int CRobot4::fix_body_to_connector(dBodyID cBody, int face) {
+	// fixed joint
+	dJointID joint = dJointCreateFixed(_world, 0);
+
+	// attach to correct body
+	switch (face) {
+		case 1:
+			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_L));
+			break;
+		case 2: case 5:
+			dJointAttach(joint, cBody, this->getBodyID(BODY_L));
+			break;
+		case 3: case 6:
+			dJointAttach(joint, cBody, this->getBodyID(BODY_L));
+			dJointAttach(joint, cBody, this->getBodyID(BODY_R));
+			break;
+		case 4: case 7:
+			dJointAttach(joint, cBody, this->getBodyID(BODY_R));
+			break;
+		case 8:
+			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_R));
+			break;
+	}
+
+	// set joint params
+	dJointSetFixed(joint);
+	dJointSetFixedParam(joint, dParamCFM, 0);
+	dJointSetFixedParam(joint, dParamERP, 0.9);
+
+	// success
+	return 0;
+}
+
 void CRobot4::create_fixed_joint(CRobot *attach, int face1, int face2) {
 	int part1, part2;
 
@@ -1277,7 +1377,7 @@ void CRobot4::create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal p
     R[11] = 0;
 }
 
-int CRobot4::get_connector_offset(int type, int face, dMatrix3 R, dReal *p) {
+/*int CRobot4::get_connector_offset(int type, int face, dMatrix3 R, dReal *p) {
 	switch (type) {
 		case SIMPLE:
 			p[0] = _connector_depth;
@@ -1287,6 +1387,24 @@ int CRobot4::get_connector_offset(int type, int face, dMatrix3 R, dReal *p) {
 			break;
 	}
 	
+	// success
+	return 0;
+}*/
+
+int CRobot4::get_connector_params(Conn_t *conn, int face, dMatrix3 R, dReal *p) {
+	double offset[3] = {0};
+	dMatrix3 R1, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
+	switch (conn->type) {
+		case SIMPLE:
+			offset[0] = _connector_depth;
+			dRSetIdentity(R1);
+			break;
+	}
+	p[0] += R[0]*offset[0] + R[1]*offset[1] + R1[2]*offset[2];
+	p[1] += R[4]*offset[0] + R[5]*offset[1] + R1[6]*offset[2];
+	p[2] += R[8]*offset[0] + R[9]*offset[1] + R1[10]*offset[2];
+	dMultiply0(R, R1, Rtmp, 3, 3, 3);
+
 	// success
 	return 0;
 }
@@ -1317,11 +1435,15 @@ void CRobot4::extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &
 }*/
 
 int CRobot4::build(bot_t robot) {
+	// create rotation matrix
+    dMatrix3 R;
+    this->create_rotation_matrix(R, DEG2RAD(robot->psi), DEG2RAD(robot->theta), DEG2RAD(robot->phi));
+
 	// build robot
 	if ( robot->angle1 != 0 || robot->angle2 != 0 || robot->angle3 != 0 || robot->angle4 != 0 )
 		this->build_individual1(robot->x, robot->y, robot->z, robot->psi, robot->theta, robot->phi, robot->angle1, robot->angle2, robot->angle3, robot->angle4);
 	else
-		this->build_individual0(robot->x, robot->y, robot->z, robot->psi, robot->theta, robot->phi);
+		this->build_individual0(robot->x, robot->y, robot->z, R);
 
 	// add connectors
 	Conn_t *ctmp = robot->conn;
@@ -1345,16 +1467,17 @@ int CRobot4::build(bot_t robot, CRobot *base, Conn_t *conn) {
 	if ( robot->angle1 != 0 || robot->angle2 != 0 || robot->angle3 != 0 || robot->angle4 != 0 ) {
 		// build robot connected
 		if ( base->isHome() )
-			;//this->build_attached01(robot, base, base->getConnectorBodyID(conn->face1), conn);
+			;//this->build_attached01(robot, base, conn);
 		else
-			;//this->build_attached11(robot, base, base->getConnectorBodyID(conn->face1), conn);
+			;//this->build_attached11(robot, base, conn);
 	}
 	else {
+			printf("building 2\n");
 		// build robot connected
-		if ( base->isHome() )
+		//if ( base->isHome() )
 			this->build_attached00(base, conn);
-		else
-			;//this->build_attached10(base, base->getConnectorBodyID(conn->face1), conn);
+		//else
+			//;//this->build_attached10(base, conn);
 	}
 
 	// add connectors
@@ -1373,8 +1496,7 @@ int CRobot4::build(bot_t robot, CRobot *base, Conn_t *conn) {
 	return 0;
 }
 
-int CRobot4::build_individual0(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi) {
-	printf("xyz: %lf %lf %lf\n", x, y, z);
+int CRobot4::build_individual0(dReal x, dReal y, dReal z, dMatrix3 R) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
     _geom[ENDCAP_L] = new dGeomID[7];
@@ -1388,19 +1510,11 @@ int CRobot4::build_individual0(dReal x, dReal y, dReal z, dReal psi, dReal theta
 
     // adjust input height by body height
     z += _end_height/2;
-    // convert input angles to radians
-    psi = DEG2RAD(psi);         // roll: x
-    theta = DEG2RAD(theta);     // pitch: -y
-    phi = DEG2RAD(phi);         // yaw: z
     // store initial body angles into array
     _angle[LE] = 0;
     _angle[LB] = 0;
     _angle[RB] = 0;
     _angle[RE] = 0;
-
-    // create rotation matrix for robot
-    dMatrix3 R;
-    this->create_rotation_matrix(R, psi, theta, phi);
 
     // offset values for each body part[0-2] and joint[3-5] from center
     dReal le[6] = {-_body_radius - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_body_radius - _body_length - _body_end_depth, 0, 0};
@@ -1662,250 +1776,299 @@ int CRobot4::build_individual1(dReal x, dReal y, dReal z, dReal psi, dReal theta
 
 int CRobot4::build_attached00(CRobot *base, Conn_t *conn) {
 	// collect data from structs
-	int face1 = conn->face1;
-	int face2 = conn->face2;
+	//int face1 = conn->face1;
+	//int face2 = conn->face2;
 
     // initialize new variables
-    dReal psi, theta, phi, m[3] = {0}, p[3];
-    dMatrix3 R, R1, R_att, R_conn;
+    dReal m[3] = {0, 0, 0};
+    dMatrix3 R;
 
     // generate rotation matrix for base robot
-    this->create_rotation_matrix(R_att, base->getRotation(CENTER, 0), base->getRotation(CENTER, 1), base->getRotation(CENTER, 2));
-	this->get_connector_offset(conn->type, face2, R_conn, p);
-	//printf("rotation:\n%lf %lf %lf\n%lf %lf %lf\n%lf %lf %lf\n", R_conn[0], R_conn[1], R_conn[2], R_conn[4], R_conn[5], R_conn[6], R_conn[8], R_conn[9], R_conn[10]);
-	printf("p pos: %lf %lf %lf\n", p[0], p[1], p[2]);
+	//this->create_rotation_matrix(R_att, base->getRotation(CENTER, 0), base->getRotation(CENTER, 1), base->getRotation(CENTER, 2));
+	base->getConnectionParams(conn->face1, R, m);
+			printf("R:\n%lf %lf %lf\n%lf %lf %lf\n%lf %lf %lf\n", R[0], R[1], R[2], R[4], R[5], R[6], R[8], R[9], R[10]);
+	this->get_connector_params(conn, conn->face2, R, m);
+			printf("R:\n%lf %lf %lf\n%lf %lf %lf\n%lf %lf %lf\n", R[0], R[1], R[2], R[4], R[5], R[6], R[8], R[9], R[10]);
 
-    if ( face1 == 1 && face2 == 1 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*_center_length - _body_length - _body_end_depth - 2*_end_depth - _body_end_depth - _body_length - 0.5*_center_length;
-        m[1] = 0;
+    /*if ( face1 == 1 && face2 == 1 ) {
+        //dRFromAxisAndAngle(R, R1[2], R1[6], R1[10], M_PI);
+        //dMultiply0(R2, R1, R, 3, 3, 3);
+        //m[0] = -0.5*_center_length - _body_length - _body_end_depth - 2*_end_depth - _body_end_depth - _body_length - 0.5*_center_length;
+		//m[0] += -_end_depth - _body_end_depth - _body_length - _body_radius;
+		double offset[3] = {_end_depth + _body_end_depth + _body_length + _body_radius, 0, 0};
+		m[0] += R[0]*offset[0];
+		m[1] += R[4]*offset[0];
+		m[2] += R[8]*offset[0];	
+        //m[1] = 0;
     }
     else if ( face1 == 1 && face2 == 2 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width;
         m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
     }
     else if ( face1 == 1 && face2 == 4 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width;
         m[1] = -_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length;
     }
     else if ( face1 == 1 && face2 == 5 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width;
         m[1] = -_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length;
     }
     else if ( face1 == 1 && face2 == 7 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length - _body_length - _body_end_depth - _end_depth - 0.5*_body_width;
         m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
     }
     else if ( face1 == 1 && face2 == 8 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = -0.5*_center_length - _body_length - _body_end_depth - 2*_end_depth - _body_end_depth - _body_length - 0.5*_center_length;
-        m[1] = 0;
+		m[0] += -_end_depth - _body_end_depth - _body_length - _body_radius;
     }
     else if ( face1 == 2 && face2 == 1 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
         m[1] = -_end_depth - 0.5*_body_width - _body_end_depth - _body_length - 0.5*_center_length;
     }
     else if ( face1 == 2 && face2 == 2 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
         m[1] = -_body_width;
     }
     else if ( face1 == 2 && face2 == 4 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length + 0.5*_center_length;
         m[1] = -_body_width;
     }
     else if ( face1 == 2 && face2 == 5 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRSetIdentity(R1);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length + 0.5*_center_length;
         m[1] = -_body_width;
     }
     else if ( face1 == 2 && face2 == 7 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRSetIdentity(R1);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
         m[1] = -_body_width;
     }
     else if ( face1 == 2 && face2 == 8 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
         m[1] = -_end_depth - 0.5*_body_width - _body_end_depth - _body_length - 0.5*_center_length;
     }
     else if ( face1 == 4 && face2 == 1 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center;
         m[1] = -_end_depth - 0.5*_body_width - _body_end_depth - _body_length - 0.5*_center_length;
     }
     else if ( face1 == 4 && face2 == 2 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length - 0.5*_center_length;
         m[1] = -_body_width;
     }
     else if ( face1 == 4 && face2 == 4 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length +  2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
         m[1] = -_body_width;
     }
     else if ( face1 == 4 && face2 == 5 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRSetIdentity(R1);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + 2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
         m[1] = -_body_width;
     }
     else if ( face1 == 4 && face2 == 7 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRSetIdentity(R1);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length - 0.5*_center_length;
         m[1] = -_body_width;
     }
     else if ( face1 == 4 && face2 == 8 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center;
         m[1] = -_end_depth - 0.5*_body_width - _body_end_depth - _body_length - 0.5*_center_length;
     }
     else if ( face1 == 5 && face2 == 1 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
         m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
     }
     else if ( face1 == 5 && face2 == 2 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRSetIdentity(R1);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length + 0.5*_center_length;
         m[1] = _body_width;
     }
     else if ( face1 == 5 && face2 == 4 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRSetIdentity(R1);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
         m[1] = _body_width;
     }
     else if ( face1 == 5 && face2 == 5 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length + 2*(-_body_length - _body_end_depth + _body_mount_center) - 0.5*_center_length;
         m[1] = _body_width;
     }
     else if ( face1 == 5 && face2 == 7 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length + 0.5*_center_length;
         m[1] = _body_width;
     }
     else if ( face1 == 5 && face2 == 8 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = -0.5*_center_length - _body_length - _body_end_depth + _body_mount_center;
         m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
     }
     else if ( face1 == 7 && face2 == 1 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center;
         m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
     }
     else if ( face1 == 7 && face2 == 2 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRSetIdentity(R1);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + 2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
         m[1] = _body_width;
     }
     else if ( face1 == 7 && face2 == 4 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRSetIdentity(R1);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length - 0.5*_center_length;
         m[1] = _body_width;
     }
     else if ( face1 == 7 && face2 == 5 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length - 0.5*_center_length;
         m[1] = _body_width;
     }
     else if ( face1 == 7 && face2 == 7 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length    +   2*(_body_length + _body_end_depth - _body_mount_center) + 0.5*_center_length;
         m[1] = _body_width;
     }
     else if ( face1 == 7 && face2 == 8 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth - _body_mount_center;
         m[1] = _end_depth + 0.5*_body_width + _body_end_depth + _body_length + 0.5*_center_length;
     }
     else if ( face1 == 8 && face2 == 1 ) {
-        dRSetIdentity(R1);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + p[0] + _end_depth + _body_end_depth + _body_length + 0.5*_center_length;
-        m[1] = p[1];
-		printf("m pos: %lf %lf %lf\n", m[0], m[1], m[2]);
+        //dRFromAxisAndAngle(R, R1[2], R1[6], R1[10], 0);
+		//m[0] += _end_depth + _body_end_depth + _body_length + _body_radius;
+		double offset[3] = {_end_depth + _body_end_depth + _body_length + _body_radius, 0, 0};
+		m[0] += R[0]*offset[0];
+		m[1] += R[4]*offset[0];
+		m[2] += R[8]*offset[0];	
     }
     else if ( face1 == 8 && face2 == 2 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
         m[1] = -_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length;
     }
     else if ( face1 == 8 && face2 == 4 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], -M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
         m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
     }
     else if ( face1 == 8 && face2 == 5 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length +  _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
         m[1] = _body_end_depth + _body_length - _body_mount_center + 0.5*_center_length;
     }
     else if ( face1 == 8 && face2 == 7 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
+        //dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI/2);
+        //dMultiply0(R, R1, R_att, 3, 3, 3);
         m[0] = 0.5*_center_length + _body_length + _body_end_depth + _end_depth + 0.5*_body_width;
         m[1] = -_body_end_depth - _body_length + _body_mount_center - 0.5*_center_length;
     }
     else if ( face1 == 8 && face2 == 8 ) {
-        dRFromAxisAndAngle(R1, R_att[2], R_att[6], R_att[10], M_PI);
-        dMultiply0(R, R1, R_att, 3, 3, 3);
-        m[0] = 0.5*_center_length + _body_length + _body_end_depth + 2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length;
-        m[1] = 0;
-    }
+        //m[0] = 0.5*_center_length + _body_length + _body_end_depth + 2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length;
+		m[0] += _end_depth + _body_end_depth + _body_length + _body_radius;
+        //m[1] = 0;
+    }*/
 
-    // extract euler angles from rotation matrix
-    this->extract_euler_angles(R, psi, theta, phi);
+	double offset[3] = {0};
+	int i = 1;
+	dMatrix3 R1, R2;
+	switch (conn->face2) {
+		case 1:
+			offset[0] = _end_depth + _body_end_depth + _body_length + _body_radius;
+			m[0] += R[0]*offset[0];
+			m[1] += R[4]*offset[0];
+			m[2] += R[8]*offset[0];
+			break;
+		case 2: case 7:
+			i = (conn->face2 == 2) ? -1 : 1;
+			offset[0] = _body_width/2;
+			offset[1] = -_body_end_depth - _body_length - _body_radius + _body_mount_center;
+			m[0] += R[0]*offset[0] + R[1]*offset[1];
+			m[1] += R[4]*offset[0] + R[5]*offset[1];
+			m[2] += R[8]*offset[0] + R[9]*offset[1];
+    		dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI/2);
+        	dMultiply0(R2, R1, R, 3, 3, 3);
+			break;
+		case 3: case 6:
+			i = (conn->face2 == 3) ? -1 : 1;
+			offset[0] = _body_width/2;
+			m[0] += R[0]*offset[0];
+			m[1] += R[4]*offset[0];
+			m[2] += R[8]*offset[0];
+    		dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI/2);
+        	dMultiply0(R2, R1, R, 3, 3, 3);
+			break;
+		case 4: case 5:
+			i = (conn->face2 == 4) ? -1 : 1;
+			offset[0] = _body_width/2;
+			offset[1] = _body_end_depth + _body_length + _body_radius - _body_mount_center;
+			m[0] += R[0]*offset[0] + R[1]*offset[1];
+			m[1] += R[4]*offset[0] + R[5]*offset[1];
+			m[2] += R[8]*offset[0] + R[9]*offset[1];
+    		dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI/2);
+        	dMultiply0(R2, R1, R, 3, 3, 3);
+			break;
+		case 8:
+			offset[0] = _end_depth + _body_end_depth + _body_length + _body_radius;
+			m[0] += R[0]*offset[0];
+			m[1] += R[4]*offset[0];
+			m[2] += R[8]*offset[0];
+    		dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI);
+        	dMultiply0(R2, R1, R, 3, 3, 3);
+			break;
+	}	
+
+	// offset from ground
+	m[0] -= R2[2] *(_end_height/2);
+	m[1] -= R2[6] *(_end_height/2);
+	m[2] -= R2[10]*(_end_height/2);
 
     // build new module
-	printf("rot:\n%lf %lf %lf\n%lf %lf %lf\n%lf %lf %lf\n", R_att[0], R_att[1], R_att[2], R_att[4], R_att[5], R_att[6], R_att[8], R_att[9], R_att[10]);
-	printf("pos2: %lf, %lf, %lf\n", base->getPosition(CENTER, 0), base->getPosition(CENTER, 1), base->getPosition(CENTER, 2));
-	this->build_individual0(base->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
-							base->getPosition(CENTER, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2] - _center_offset,
-							base->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2] - _end_height/2,
-							RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi));
+	this->build_individual0(m[0], m[1], m[2], R2);
 
     // add fixed joint to attach two modules
-    this->create_fixed_joint(base, face1, face2);
+	this->fix_body_to_connector(getConnectorBodyID(conn->face2), conn->face2);
 
 	// success
 	return 0;
@@ -2424,13 +2587,17 @@ int CRobot4::build_attached10(CRobot *base, Conn_t *conn) {
     }
 
     // extract euler angles from rotation matrix
-    this->extract_euler_angles(R, psi, theta, phi);
+    //this->extract_euler_angles(R, psi, theta, phi);
 
     // build new module
+	/*this->build_individual0(base->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
+							base->getPosition(BODY_L, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
+							base->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2] - _end_height/2,
+							RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi));*/
 	this->build_individual0(base->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
 							base->getPosition(BODY_L, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
 							base->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2] - _end_height/2,
-							RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi));
+							R);
 
     // add fixed joint to attach two modules
     this->create_fixed_joint(base, face1, face2);
@@ -3792,23 +3959,19 @@ int CRobot4::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal the
     _geom[id][0] = dCreateBox(_space, _body_end_depth, _body_width, _body_height);
     dGeomSetBody(_geom[id][0], _body[id]);
     dGeomSetOffsetPosition(_geom[id][0], -m.c[0], -m.c[1], -m.c[2]);
-
     // set geometry 2 - side square
     _geom[id][1] = dCreateBox( _space, _body_length, _body_inner_width_left, _body_height);
     dGeomSetBody( _geom[id][1], _body[id]);
     dGeomSetOffsetPosition( _geom[id][1], i*_body_length/2 + i*_body_end_depth/2 - m.c[0], -_body_width/2 + _body_inner_width_left/2 - m.c[1], -m.c[2] );
-
     // set geometry 3 - side square
     _geom[id][2] = dCreateBox( _space, _body_length, _body_inner_width_right, _body_height);
     dGeomSetBody( _geom[id][2], _body[id]);
     dGeomSetOffsetPosition( _geom[id][2], i*_body_length/2 + i*_body_end_depth/2 - m.c[0], _body_width/2 - _body_inner_width_right/2 - m.c[1], -m.c[2] );
-
     // set geometry 4 - side curve
     _geom[id][3] = dCreateCylinder( _space, _body_radius, _body_inner_width_left);
     dGeomSetBody( _geom[id][3], _body[id]);
     dGeomSetOffsetPosition( _geom[id][3], i*_body_length + i*_body_end_depth/2 - m.c[0], -_body_width/2 + _body_inner_width_left/2 - m.c[1], -m.c[2] );
     dGeomSetOffsetRotation( _geom[id][3], R2);
-
     // set geometry 5 - side curve
     _geom[id][4] = dCreateCylinder( _space, _body_radius, _body_inner_width_right);
     dGeomSetBody( _geom[id][4], _body[id]);
@@ -4009,4 +4172,5 @@ CMobot::CMobot(void) {
 	_connector_height = 0.0429;
 	_connector_radius = 0.0064;
 	_type = MOBOT;
+
 }
