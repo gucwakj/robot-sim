@@ -1084,60 +1084,66 @@ int CRobot4::add_connector(int type, int face) {
 }
 
 int CRobot4::getConnectionParams(int face, dMatrix3 R, dReal *p) {
-	const dReal *pos, *Ra;
+	const dReal *pos, *R1;
+	dMatrix3 R2;
 	double offset[3] = {0};
 	int i = 1;
 
 	switch (face) {
 		case 1:
 			pos = dBodyGetPosition(_body[ENDCAP_L]);
-			Ra = dBodyGetRotation(_body[ENDCAP_L]);
-    		dRFromAxisAndAngle(R, i*Ra[2], i*Ra[6], i*Ra[10], M_PI);
+			R1 = dBodyGetRotation(_body[ENDCAP_L]);
 			offset[0] = -_end_depth/2;
-			p[0] = pos[0] + Ra[0]*offset[0];
-			p[1] = pos[1] + Ra[4]*offset[0];
-			p[2] = pos[2] + Ra[8]*offset[0];
+			p[0] = pos[0] + R1[0]*offset[0];
+			p[1] = pos[1] + R1[4]*offset[0];
+			p[2] = pos[2] + R1[8]*offset[0];
+    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI);
+			dMultiply0(R, R2, R1, 3, 3, 3);
 			break;
 		case 2: case 5:
 			pos = dGeomGetPosition(_geom[BODY_L][0]);
-			Ra = dBodyGetRotation(_body[BODY_L]);
+			R1 = dBodyGetRotation(_body[BODY_L]);
 			i = ((face == 5) ? 1 : -1);
-    		dRFromAxisAndAngle(R, Ra[2], Ra[6], Ra[10], i*M_PI/2);
 			offset[0] = -_body_end_depth/2 + _body_mount_center;
 			offset[1] = i*_body_width/2;
-			p[0] = pos[0] + Ra[0]*offset[0] + Ra[1]*offset[1];
-			p[1] = pos[1] + Ra[4]*offset[0] + Ra[5]*offset[1];
-			p[2] = pos[2] + Ra[8]*offset[0] + Ra[9]*offset[1];
+			p[0] = pos[0] + R1[0]*offset[0] + R1[1]*offset[1];
+			p[1] = pos[1] + R1[4]*offset[0] + R1[5]*offset[1];
+			p[2] = pos[2] + R1[8]*offset[0] + R1[9]*offset[1];
+    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
+			dMultiply0(R, R2, R1, 3, 3, 3);
 			break;
 		case 3: case 6:
 			pos = dBodyGetPosition(_body[CENTER]);
-			Ra = dBodyGetRotation(_body[CENTER]);
+			R1 = dBodyGetRotation(_body[CENTER]);
 			i = (face == 6) ? 1 : -1;
-    		dRFromAxisAndAngle(R, i*Ra[2], i*Ra[6], i*Ra[10], M_PI/2);
 			offset[1] = i*(_body_width/2) - _center_offset;
-			p[0] = pos[0] + Ra[1]*offset[1];
-			p[1] = pos[1] + Ra[5]*offset[1];
-			p[2] = pos[2] + Ra[9]*offset[1];
+			p[0] = pos[0] + R1[1]*offset[1];
+			p[1] = pos[1] + R1[5]*offset[1];
+			p[2] = pos[2] + R1[9]*offset[1];
+    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
+			dMultiply0(R, R2, R1, 3, 3, 3);
 			break;
 		case 4: case 7:
 			pos = dGeomGetPosition(_geom[BODY_R][0]);
-			Ra = dBodyGetRotation(_body[BODY_R]);
+			R1 = dBodyGetRotation(_body[BODY_R]);
 			i = (face == 7) ? 1 : -1;
-    		dRFromAxisAndAngle(R, i*Ra[2], i*Ra[6], i*Ra[10], M_PI/2);
 			offset[0] = _body_end_depth/2 - _body_mount_center;
 			offset[1] = i*_body_width/2;
-			p[0] = pos[0] + Ra[0]*offset[0] + Ra[1]*offset[1];
-			p[1] = pos[1] + Ra[4]*offset[0] + Ra[5]*offset[1];
-			p[2] = pos[2] + Ra[8]*offset[0] + Ra[9]*offset[1];
+			p[0] = pos[0] + R1[0]*offset[0] + R1[1]*offset[1];
+			p[1] = pos[1] + R1[4]*offset[0] + R1[5]*offset[1];
+			p[2] = pos[2] + R1[8]*offset[0] + R1[9]*offset[1];
+    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
+			dMultiply0(R, R2, R1, 3, 3, 3);
 			break;
 		case 8:
 			pos = dBodyGetPosition(_body[ENDCAP_R]);
-			Ra = dBodyGetRotation(_body[ENDCAP_R]);
-    		dRFromAxisAndAngle(R, i*Ra[2], i*Ra[6], i*Ra[10], 0);
+			R1 = dBodyGetRotation(_body[ENDCAP_R]);
 			offset[0] = _end_depth/2;
-			p[0] = pos[0] + Ra[0]*offset[0];
-			p[1] = pos[1] + Ra[4]*offset[0];
-			p[2] = pos[2] + Ra[8]*offset[0];
+			p[0] = pos[0] + R1[0]*offset[0];
+			p[1] = pos[1] + R1[4]*offset[0];
+			p[2] = pos[2] + R1[8]*offset[0];
+    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], 0);
+			dMultiply0(R, R2, R1, 3, 3, 3);
 			break;
 	}
 
@@ -1160,6 +1166,7 @@ int CRobot4::build_simple(conn_t conn, int face) {
 			p[3] = {0},
 			offset[3] = {depth/2, 0, 0};
 
+	// position center of connector
 	this->getConnectionParams(face, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
@@ -1245,6 +1252,7 @@ int CRobot4::build_tank(conn_t conn, int face) {
 			p[3] = {0},
 			offset[3] = {depth/2, 0, 0};
 
+	// position center of connector
 	this->getConnectionParams(face, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
@@ -1369,6 +1377,8 @@ dReal CRobot4::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
 }
 
 int CRobot4::fix_body_to_connector(dBodyID cBody, int face) {
+	if (!cBody) { fprintf(stderr,"connector body does not exist\n"); }
+
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
 
@@ -1520,8 +1530,6 @@ int CRobot4::get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p) {
 
 int CRobot4::build(bot_t robot) {
 	// create rotation matrix
-    //dMatrix3 R;
-    //this->create_rotation_matrix(R, DEG2RAD(robot->psi), DEG2RAD(robot->theta), DEG2RAD(robot->phi));
 	dReal   sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
 			stheta = sin(DEG2RAD(robot->theta)),	ctheta = cos(DEG2RAD(robot->theta)),
 			spsi = sin(DEG2RAD(robot->psi)),		cpsi = cos(DEG2RAD(robot->psi));
@@ -1530,10 +1538,7 @@ int CRobot4::build(bot_t robot) {
 				  stheta, ctheta*spsi, ctheta*cpsi, 0};
 
 	// build robot
-	if ( robot->angle1 != 0 || robot->angle2 != 0 || robot->angle3 != 0 || robot->angle4 != 0 )
-		this->build_individual1(robot->x, robot->y, robot->z+0.3, R, robot->angle1, robot->angle2, robot->angle3, robot->angle4);
-	else
-		this->build_individual0(robot->x, robot->y, robot->z, R);
+	this->build_individual(robot->x, robot->y, robot->z, R, robot->angle1, robot->angle2, robot->angle3, robot->angle4);
 
 	// add connectors
 	Conn_t *ctmp = robot->conn;
@@ -1555,18 +1560,15 @@ int CRobot4::build(bot_t robot) {
 int CRobot4::build(bot_t robot, CRobot *base, Conn_t *conn) {
 	// if robot has moved joints
 	if ( robot->angle1 != 0 || robot->angle2 != 0 || robot->angle3 != 0 || robot->angle4 != 0 ) {
-		// build robot connected
+		// build robot connected and rotated
 		if ( base->isHome() )
 			;//this->build_attached01(robot, base, conn);
 		else
 			;//this->build_attached11(robot, base, conn);
 	}
 	else {
-		// build robot connected
-		//if ( base->isHome() )
-			this->build_attached00(base, conn);
-		//else
-			//;//this->build_attached10(base, conn);
+		// build robot connected and unrotated
+		this->build_attached0(base, conn);
 	}
 
 	// add connectors
@@ -1585,7 +1587,7 @@ int CRobot4::build(bot_t robot, CRobot *base, Conn_t *conn) {
 	return 0;
 }
 
-int CRobot4::build_individual0(dReal x, dReal y, dReal z, dMatrix3 R) {
+/*int CRobot4::build_individual0(dReal x, dReal y, dReal z, dMatrix3 R) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
     _geom[ENDCAP_L] = new dGeomID[7];
@@ -1706,9 +1708,9 @@ int CRobot4::build_individual0(dReal x, dReal y, dReal z, dMatrix3 R) {
 
     // set damping on all bodies to 0.1
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(_body[i], 0.1, 0.1);
-}
+}*/
 
-int CRobot4::build_individual1(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+int CRobot4::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
     _geom[ENDCAP_L] = new dGeomID[7];
@@ -1721,36 +1723,28 @@ int CRobot4::build_individual1(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le
 	for ( int i = 0; i < NUM_DOF; i++ ) { _pid[i].init(100, 1, 10, 0.1, 0.004); }
 
     // adjust input height by body height
-    z += _body_height/2;
+	if (!z) {
+    	x += R[2]*_end_height/2;
+    	y += R[6]*_end_height/2;
+    	z += R[10]*_end_height/2;
+	}
+
     // convert input angles to radians
-    //psi = DEG2RAD(psi);         // roll: x
-    //theta = DEG2RAD(theta);     // pitch: -y
-    //phi = DEG2RAD(phi);         // yaw: z
-    /*_angle[LE] = DEG2RAD(r_le);       // left end
+    _angle[LE] = DEG2RAD(r_le);       // left end
     _angle[LB] = DEG2RAD(r_lb);       // left body
     _angle[RB] = DEG2RAD(r_rb);       // right body
-    _angle[RE] = DEG2RAD(r_re);       // right end*/
-    r_le = DEG2RAD(r_le);       // left end
-    r_lb = DEG2RAD(r_lb);       // left body
-    r_rb = DEG2RAD(r_rb);       // right body
-    r_re = DEG2RAD(r_re);       // right end
-
-    // store initial body angles into array
-    _angle[LE] = r_le;
-    _angle[LB] = r_lb;
-    _angle[RB] = r_rb;
-    _angle[RE] = r_re;
+    _angle[RE] = DEG2RAD(r_re);       // right end
 
     // offset values for each body part[0-2] and joint[3-5] from center
-    dReal le[6] = {-_body_radius - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_center_length/2 - _body_length - _body_end_depth, 0, 0};
+    dReal le[6] = {-_body_radius - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_body_radius/2 - _body_length - _body_end_depth, 0, 0};
     dReal lb[6] = {-_body_radius - _body_length - _body_end_depth/2, 0, 0, -_center_length/2, _center_width/2, 0};
 	dReal ce[3] = {0, _center_offset, 0};
     dReal rb[6] = {_body_radius + _body_length + _body_end_depth/2, 0, 0, _center_length/2, _center_width/2, 0};
-    dReal re[6] = {_body_radius + _body_length + _body_end_depth + _end_depth/2, 0, 0, _center_length/2 + _body_length + _body_end_depth, 0, 0};
+    dReal re[6] = {_body_radius + _body_length + _body_end_depth + _end_depth/2, 0, 0, _body_radius/2 + _body_length + _body_end_depth, 0, 0};
 
     this->build_endcap(ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R);
     this->build_body(BODY_L, R[0]*lb[0] + x, R[4]*lb[0] + y, R[8]*lb[0] + z, R, 0);
-    this->build_center(R[1]*ce[1] + x, R[5]*ce[1] + y, R[5]*ce[1] + z, R);
+    this->build_center(R[1]*ce[1] + x, R[5]*ce[1] + y, R[9]*ce[1] + z, R);
     this->build_body(BODY_R, R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0);
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 
@@ -1798,34 +1792,29 @@ int CRobot4::build_individual1(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le
 
     // create rotation matrices for each body part
     dMatrix3 R_e, R_b, R_le, R_lb, R_rb, R_re;
-    dRFromAxisAndAngle(R_b, 0, 1, 0, 0);
-    dMultiply0(R_lb, R, R_b, 3, 3, 3);
-    dRFromAxisAndAngle(R_e, -1, 0, 0, 0);
-    dMultiply0(R_le, R_lb, R_e, 3, 3, 3);
-    dRFromAxisAndAngle(R_b, 0, -1, 0, 0);
-    dMultiply0(R_rb, R, R_b, 3, 3, 3);
-    dRFromAxisAndAngle(R_e, 1, 0, 0, 0);
-    dMultiply0(R_re, R_rb, R_e, 3, 3, 3);
-    /*dRFromAxisAndAngle(R_b, 0, 1, 0, _angle[LB]);
+    dRFromAxisAndAngle(R_b, 0, 1, 0, _angle[LB]);
     dMultiply0(R_lb, R, R_b, 3, 3, 3);
     dRFromAxisAndAngle(R_e, -1, 0, 0, _angle[LE]);
     dMultiply0(R_le, R_lb, R_e, 3, 3, 3);
     dRFromAxisAndAngle(R_b, 0, -1, 0, _angle[RB]);
     dMultiply0(R_rb, R, R_b, 3, 3, 3);
     dRFromAxisAndAngle(R_e, 1, 0, 0, _angle[RE]);
-    dMultiply0(R_re, R_rb, R_e, 3, 3, 3);*/
+    dMultiply0(R_re, R_rb, R_e, 3, 3, 3);
 
-    // offset values from center of robot
-    dReal le_r[3] = {-_center_length/2 - (_body_length + _body_end_depth + _end_depth/2)*cos(r_lb), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(r_lb)};
-    dReal lb_r[3] = {-_center_length/2 - (_body_length + _body_end_depth/2)*cos(r_lb), 0, (_body_length + _body_end_depth/2)*sin(r_lb)};
-    dReal rb_r[3] = {_center_length/2 + (_body_length + _body_end_depth/2)*cos(r_rb), 0, (_body_length + _body_end_depth/2)*sin(r_rb)};
-    dReal re_r[3] = {_center_length/2 + (_body_length + _body_end_depth + _end_depth/2)*cos(r_rb), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(r_rb)};
+	// if bodies are rotated, then redraw
+	if (_angle[LE] != 0 || _angle[LB] != 0 ||_angle[RB] != 0 || _angle[RE] != 0 ) {
+    	// offset values from center of robot
+    	dReal le_r[3] = {-_body_radius/2 - (_body_length + _body_end_depth + _end_depth/2)*cos(_angle[LB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_angle[LB])};
+    	dReal lb_r[3] = {-_body_radius/2 - (_body_length + _body_end_depth/2)*cos(_angle[LB]), 0, (_body_length + _body_end_depth/2)*sin(_angle[LB])};
+    	dReal rb_r[3] = {_body_radius/2 + (_body_length + _body_end_depth/2)*cos(_angle[RB]), 0, (_body_length + _body_end_depth/2)*sin(_angle[RB])};
+    	dReal re_r[3] = {_body_radius/2 + (_body_length + _body_end_depth + _end_depth/2)*cos(_angle[RB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_angle[RB])};
 
-    // re-build pieces of module
-    this->build_endcap(ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le);
-    this->build_body(BODY_L, R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb);
-    this->build_body(BODY_R, R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb);
-    this->build_endcap(ENDCAP_R, R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re);
+    	// re-build pieces of module
+    	this->build_endcap(ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le);
+    	this->build_body(BODY_L, R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb);
+    	this->build_body(BODY_R, R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb);
+    	this->build_endcap(ENDCAP_R, R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re);
+	}
 
     // motor for left endcap to body
     _motor[0] = dJointCreateAMotor(_world, 0);
@@ -1874,13 +1863,11 @@ int CRobot4::build_individual1(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le
 	return 0;
 }
 
-int CRobot4::build_attached00(CRobot *base, Conn_t *conn) {
+int CRobot4::build_attached0(CRobot *base, Conn_t *conn) {
     // initialize new variables
 	int i = 1;
     dReal m[3] = {0, 0, 0}, offset[3] = {0};
     dMatrix3 R, R1, R2;
-	//double offset[3] = {0};
-	//dMatrix3 R1, R2;
 
     // generate parameters for base robot
 	base->getConnectionParams(conn->face1, R, m);
@@ -2151,27 +2138,22 @@ int CRobot4::build_attached00(CRobot *base, Conn_t *conn) {
 			m[0] += R[0]*offset[0];
 			m[1] += R[4]*offset[0];
 			m[2] += R[8]*offset[0];
-    		dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI);
+    		dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI);
         	dMultiply0(R2, R1, R, 3, 3, 3);
 			break;
 	}	
 
-	// offset from ground
-	m[0] -= R2[2] *(_end_height/2);
-	m[1] -= R2[6] *(_end_height/2);
-	m[2] -= R2[10]*(_end_height/2);
-
     // build new module
-	this->build_individual0(m[0], m[1], m[2], R2);
+	this->build_individual(m[0], m[1], m[2], R2, 0, 0, 0, 0);
 
     // add fixed joint to attach two modules
-	this->fix_body_to_connector(getConnectorBodyID(conn->face2), conn->face2);
+	this->fix_body_to_connector(base->getConnectorBodyID(conn->face1), conn->face2);
 
 	// success
 	return 0;
 }
 
-int CRobot4::build_attached10(CRobot *base, Conn_t *conn) {
+/*int CRobot4::build_attached10(CRobot *base, Conn_t *conn) {
 	// collect data from structs
 	int face1 = conn->face1;
 	int face2 = conn->face2;
@@ -2683,25 +2665,18 @@ int CRobot4::build_attached10(CRobot *base, Conn_t *conn) {
         m[2] =                      R1[8]*(_body_length + _body_end_depth) + R3[8]*(2*_end_depth + _body_end_depth + _body_length + 0.5*_center_length);
     }
 
-    // extract euler angles from rotation matrix
-    //this->extract_euler_angles(R, psi, theta, phi);
-
     // build new module
-	/*this->build_individual0(base->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
+	this->build_individual(base->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
 							base->getPosition(BODY_L, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
 							base->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2] - _end_height/2,
-							RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi));*/
-	this->build_individual0(base->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
-							base->getPosition(BODY_L, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
-							base->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2] - _end_height/2,
-							R);
+							R, 0, 0, 0, 0);
 
     // add fixed joint to attach two modules
     //this->create_fixed_joint(base, face1, face2);
 
 	// success
 	return 0;
-}
+}*/
 
 int CRobot4::build_attached01(bot_t robot, CRobot *base, Conn_t *conn) {
 	// collect data from structs
@@ -3246,15 +3221,8 @@ int CRobot4::build_attached01(bot_t robot, CRobot *base, Conn_t *conn) {
         m[2] = R1[8]*(_body_end_depth + _body_length) + R3[8]*(0.5*_center_length);
     }
 
-    // extract euler angles from rotation matrix
-    //this->extract_euler_angles(R, psi, theta, phi);
-
     // build new module
-    /*this->build_individual1(base->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
-							base->getPosition(BODY_L, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
-							base->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2] - _end_height/2,
-							RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi), r_le, r_lb, r_rb, r_re);*/
-    this->build_individual1(base->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
+    this->build_individual(base->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
 							base->getPosition(BODY_L, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
 							base->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2] - _end_height/2,
 							R, r_le, r_lb, r_rb, r_re);
@@ -4002,15 +3970,8 @@ int CRobot4::build_attached11(bot_t robot, CRobot *base, Conn_t *conn) {
         m[2] =                      R1[8]*(_body_length + _body_end_depth) + R3[8]*(2*_end_depth) + R5[8]*(_body_end_depth + _body_length) + R7[8]*(0.5*_center_length);
     }
 
-    // extract euler angles from rotation matrix
-    //this->extract_euler_angles(R, psi, theta, phi);
-
     // build new module
-	/*this->build_individual1(base->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
-							base->getPosition(BODY_L, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
-							base->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2] - _end_height/2,
-							RAD2DEG(psi), RAD2DEG(theta), RAD2DEG(phi), r_le, r_lb, r_rb, r_re);*/
-	this->build_individual1(base->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
+	this->build_individual(base->getPosition(CENTER, 0) + R_att[0]*m[0] + R_att[1]*m[1] + R_att[2]*m[2],
 							base->getPosition(BODY_L, 1) + R_att[4]*m[0] + R_att[5]*m[1] + R_att[6]*m[2],
 							base->getPosition(CENTER, 2) + R_att[8]*m[0] + R_att[9]*m[1] + R_att[10]*m[2] - _end_height/2,
 							R, r_le, r_lb, r_rb, r_re);

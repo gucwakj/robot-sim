@@ -182,10 +182,11 @@ class CRobot4 : virtual public CRobot {
 
 		// private functions
 		int add_connector(int type, int face);
-		int build_individual0(dReal x, dReal y, dReal z, dMatrix3 R);
-		int build_individual1(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		int build_attached00(CRobot *base, Conn_t *conn);								// build attached robot
-		int build_attached10(CRobot *base, Conn_t *conn);								// build attached robot
+		//int build_individual0(dReal x, dReal y, dReal z, dMatrix3 R);
+		int build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		//int build_attached00(CRobot *base, Conn_t *conn);								// build attached robot
+		//int build_attached10(CRobot *base, Conn_t *conn);								// build attached robot
+		int build_attached0(CRobot *base, Conn_t *conn);								// build attached robot
 		int build_attached01(bot_t robot, CRobot *base, Conn_t *conn);					// build rotated and attached robot
 		int build_attached11(bot_t robot, CRobot *base, Conn_t *conn);					// build rotated and attached robot
 		int build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);		// build body of mobot
