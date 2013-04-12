@@ -171,7 +171,7 @@ class CRobot4 : virtual public CRobot {
 		virtual dJointID getMotorID(int id);
 		virtual dReal getAngle(int i);
 		virtual dReal getPosition(int body, int i);
-		virtual dReal getRotation(int body, int i);
+		//virtual dReal getRotation(int body, int i);
 		virtual int setID(int id);
 		virtual bool isHome(void);
 		virtual void simPreCollisionThread(void);
@@ -183,7 +183,7 @@ class CRobot4 : virtual public CRobot {
 		// private functions
 		int add_connector(int type, int face);
 		int build_individual0(dReal x, dReal y, dReal z, dMatrix3 R);
-		int build_individual1(dReal x, dReal y, dReal z, dReal psi, dReal theta, dReal phi, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		int build_individual1(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
 		int build_attached00(CRobot *base, Conn_t *conn);								// build attached robot
 		int build_attached10(CRobot *base, Conn_t *conn);								// build attached robot
 		int build_attached01(bot_t robot, CRobot *base, Conn_t *conn);					// build rotated and attached robot
@@ -192,20 +192,20 @@ class CRobot4 : virtual public CRobot {
 		int build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
 		int build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap
 		int build_simple(conn_t conn, int face);										// build simple connector
-		void create_fixed_joint(CRobot *attach, int face1, int face2);					// create fixed joint between modules
-		void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
-		//int get_connector_offset(int type, int face, dMatrix3 R, dReal *p);				// create body offset by connector presence
-		int get_connector_params(Conn_t *conn, int face, dMatrix3 R, dReal *p);			// get parameters of connector
+		int build_tank(conn_t conn, int face);											// build tank connector
+		//void create_fixed_joint(CRobot *attach, int face1, int face2);					// create fixed joint between modules
+		//void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
+		int get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p);					// get parameters of connector
 		int fix_connector_to_body(int face, dBodyID cBody);								// create fixed joint between connector and body
 		int fix_body_to_connector(dBodyID cBody, int face);								// create fixed joint between body and connector
-		//int get_connection(int face, dMatrix3 R, dReal *p);								// get center of connection location for face
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
-		void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
+		//void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
         //void resetPID(int i = NUM_DOF);
 		static void* recordAngleThread(void *arg);
 		static void* recordAnglesThread(void *arg);
 #ifdef ENABLE_GRAPHICS
 		void draw_simple(conn_t conn, osg::Group *robot);
+		void draw_tank(conn_t conn, osg::Group *robot);
 #endif // ENABLE_GRAPHICS
 	protected:
 		double	_encoderResolution,
@@ -213,7 +213,7 @@ class CRobot4 : virtual public CRobot {
 				_body_length, _body_width, _body_height, _body_radius,
 				_body_inner_width_left, _body_inner_width_right, _body_end_depth, _body_mount_center,
 				_end_width, _end_height, _end_depth, _end_radius;
-		double	_connector_depth, _connector_height, _connector_radius;
+		double	_connector_depth, _connector_height, _connector_radius, _tank_height, _tank_depth;
 		int _type;					// robot type
 		dReal _maxJointVelocity[NUM_DOF];
 		dReal _maxJointForce[NUM_DOF];

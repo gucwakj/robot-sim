@@ -62,7 +62,7 @@ void CRobotSim::robot_init(void) {
 	FILE *fp;
 	char type[16] = {'\0'}, line[1024];
 	char *begptr, *endptr, string[32];
-	int i, *rtmp, *ftmp, ctype, cnum;
+	int i, *rtmp, *ftmp, *ntmp, ctype, cnum;
 	bot = NULL;
 	for ( int i = 0; i < NUM_TYPES; i++ ) {
 		_robot[i] = NULL;
@@ -89,6 +89,7 @@ void CRobotSim::robot_init(void) {
 
 		// get type of line data (robot, connector)
 		strncpy(type, line, strstr(line, ":") - line);
+		type[strstr(line, ":") - line] = '\0';
 		// if robot
 		if ( !strcmp(type, "mobot") ) {
 			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
@@ -171,10 +172,11 @@ void CRobotSim::robot_init(void) {
 			}
 			else if ( !strcmp(type, "tank") ) {
 				ctype = TANK;
-				cnum = 2;
+				cnum = 3;
 			}
 			rtmp = (int *)malloc(sizeof(int)*cnum);
 			ftmp = (int *)malloc(sizeof(int)*cnum);
+			ntmp = (int *)malloc(sizeof(int)*cnum);
 
 			// store connected robots to tmp variables
 			begptr = strstr(line, ":");
@@ -185,7 +187,7 @@ void CRobotSim::robot_init(void) {
 						break;
 					strncpy(string, begptr, endptr - begptr);
 					string[endptr - begptr] = '\0';
-					sscanf(string, "%*c%d%*s%d", &rtmp[i], &ftmp[i]);
+					sscanf(string, "%*c%d%*s%d%*s%d", &rtmp[i], &ftmp[i], &ntmp[i]);
 				}
 				begptr = endptr+1;
 			}
@@ -195,10 +197,11 @@ void CRobotSim::robot_init(void) {
 			Conn_t *ctmp;
 			for (int j = 0; j < i; j++) {
 				Conn_t *nc = (Conn_t *)malloc(sizeof(struct Conn_s));
-				nc->robot = rtmp[0]; 
-				nc->face1 = ftmp[0]; 
-				nc->face2 = ftmp[j]; 
-				nc->type = ctype; 
+				nc->robot = rtmp[0];
+				nc->face1 = ftmp[0];
+				nc->face2 = ftmp[j];
+				nc->c_face = ntmp[j];
+				nc->type = ctype;
 				nc->next = NULL;
 				tmp = bot;
 				while (tmp->id != rtmp[j])
@@ -212,6 +215,9 @@ void CRobotSim::robot_init(void) {
 					ctmp->next = nc;
 				}
 			}
+			free(rtmp);
+			free(ftmp);
+			free(ntmp);
 		}
 
 		// debug printing
