@@ -39,7 +39,7 @@ CRobotSim::CRobotSim(void) {
 
 #ifdef ENABLE_GRAPHICS
 	graphics_init();
-#endif /* ENABLE_GRAPHICS */
+#endif // ENABLE_GRAPHICS
 }
 
 CRobotSim::~CRobotSim(void) {
@@ -150,25 +150,29 @@ void CRobotSim::robot_init(void) {
 		// else its a connector
 		else {
 			// get type
-			if ( !strcmp(type, "simple") ) {
-				ctype = SIMPLE;
-				cnum = 2;
+			if ( !strcmp(type, "bigwheel") ) {
+				ctype = BIGWHEEL;
+				cnum = 1;
 			}
 			else if ( !strcmp(type, "caster") ) {
 				ctype = CASTER;
 				cnum = 1;
 			}
-			else if ( !strcmp(type, "bigwheel") ) {
-				ctype = BIGWHEEL;
-				cnum = 1;
+			else if ( !strcmp(type, "l") ) {
+				ctype = L;
+				cnum = 3;
+			}
+			else if ( !strcmp(type, "simple") ) {
+				ctype = SIMPLE;
+				cnum = 2;
 			}
 			else if ( !strcmp(type, "smallwheel") ) {
 				ctype = SMALLWHEEL;
 				cnum = 1;
 			}
-			else if ( !strcmp(type, "l") ) {
-				ctype = L;
-				cnum = 3;
+			else if ( !strcmp(type, "square") ) {
+				ctype = SQUARE;
+				cnum = 4;
 			}
 			else if ( !strcmp(type, "tank") ) {
 				ctype = TANK;
@@ -596,7 +600,7 @@ _osgRoot->addChild(clearNode);
 
 	return 0;
 }
-#endif /* ENABLE_GRAPHICS */
+#endif // ENABLE_GRAPHICS
 
 /**********************************************************
 	Public Member Functions
@@ -710,12 +714,6 @@ void CRobotSim::setGroundSphere(dReal r, dReal px, dReal py, dReal pz) {
 	pthread_mutex_unlock(&_ground_mutex);
 }
 
-/*void CRobotSim::simAddRobot(dWorldID &world, dSpaceID &space, dReal **clock) {
-	world = _world;
-    space = _space;
-	*clock = &_clock;
-}*/
-
 /**********************************************************
 	Private Simulation Functions
  **********************************************************/
@@ -818,7 +816,7 @@ void CRobotSim::print_intermediate_data(void) {
     cout.setf(ios::fixed, ios::floatfield);
 	cout << j++*_step << " ";
 		for (int i = 0; i < _robotConnected[MOBOT]; i++) {
-			cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT2)) << " ";
+			cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT4)) << " ";
 			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT2) << " ";
 			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT3) << " ";
 			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT4) << "\t";

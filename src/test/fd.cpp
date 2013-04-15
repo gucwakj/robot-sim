@@ -13,8 +13,8 @@ int main(int argc, char *argv[]) {
 	//mobot1.connect();
 	//mobot2.connect();
 
-	mobot1.moveTo(0, 45,  0, 0);
-	//mobot2.moveToNB(0, 0, 90, 0);
+	//mobot1.moveTo(0, 0, 0, 0);
+	//mobot2.moveTo(0, 0, 0, -15);
 	//mobot1.moveWait();
 	//mobot2.moveWait();
 

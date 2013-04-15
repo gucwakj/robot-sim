@@ -49,11 +49,12 @@ typedef enum mobot_joint_state_e {
 	MOBOT_HOLD		= 3
 } mobotJointState_t;
 typedef enum mobot_connector_e {
-	SIMPLE,
-	CASTER,
 	BIGWHEEL,
-	SMALLWHEEL,
+	CASTER,
 	L,
+	SIMPLE,
+	SMALLWHEEL,
+	SQUARE,
 	TANK,
 	NUM_CONNECTORS
 } mobotConnector_t;
@@ -80,10 +81,10 @@ class CRobot4 : virtual public CRobot {
 		int motionRollForward(dReal angle);
 		int motionSkinny(dReal angle);
 		int motionStand(void);
-		int motionTurnLeft(dReal angle);
-		int motionTurnRight(dReal angle);
 		int motionTumbleRight(int num);
 		int motionTumbleLeft(int num);
+		int motionTurnLeft(dReal angle);
+		int motionTurnRight(dReal angle);
 		int motionUnstand(void);
 		int move(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 		int moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
@@ -162,18 +163,18 @@ class CRobot4 : virtual public CRobot {
 		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock);
 		virtual int build(bot_t robot);
 		virtual int build(bot_t robot, CRobot *base, Conn_t *conn);
-		virtual bool getSuccess(int i);
-		virtual int getID(void);
-		virtual int getType(void);
-		virtual dBodyID getBodyID(int id);
-		virtual dBodyID getConnectorBodyID(int face);
-		virtual int getConnectionParams(int face, dMatrix3 R, dReal *p);
-		virtual dJointID getMotorID(int id);
 		virtual dReal getAngle(int i);
+		virtual dBodyID getBodyID(int id);
+		virtual int getConnectionParams(int face, dMatrix3 R, dReal *p);
+		virtual dBodyID getConnectorBodyID(int face);
+		virtual int getID(void);
+		virtual dJointID getMotorID(int id);
 		virtual dReal getPosition(int body, int i);
-		//virtual dReal getRotation(int body, int i);
-		virtual int setID(int id);
+		virtual dReal getRotation(int body, int i);
+		virtual bool getSuccess(int i);
+		virtual int getType(void);
 		virtual bool isHome(void);
+		virtual int setID(int id);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
 #ifdef ENABLE_GRAPHICS
@@ -182,30 +183,24 @@ class CRobot4 : virtual public CRobot {
 
 		// private functions
 		int add_connector(int type, int face);
-		//int build_individual0(dReal x, dReal y, dReal z, dMatrix3 R);
 		int build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
-		//int build_attached00(CRobot *base, Conn_t *conn);								// build attached robot
-		//int build_attached10(CRobot *base, Conn_t *conn);								// build attached robot
-		int build_attached0(CRobot *base, Conn_t *conn);								// build attached robot
-		int build_attached01(bot_t robot, CRobot *base, Conn_t *conn);					// build rotated and attached robot
-		int build_attached11(bot_t robot, CRobot *base, Conn_t *conn);					// build rotated and attached robot
+		int build_attached(bot_t robot, CRobot *base, Conn_t *conn);					// build rotated and attached robot
 		int build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);		// build body of mobot
 		int build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
 		int build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap
 		int build_simple(conn_t conn, int face);										// build simple connector
+		int build_square(conn_t conn, int face);										// build square connector
 		int build_tank(conn_t conn, int face);											// build tank connector
-		//void create_fixed_joint(CRobot *attach, int face1, int face2);					// create fixed joint between modules
-		//void create_rotation_matrix(dMatrix3 R, dReal psi, dReal theta, dReal phi);		// get rotation matrix from euler angles
-		int get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p);					// get parameters of connector
-		int fix_connector_to_body(int face, dBodyID cBody);								// create fixed joint between connector and body
 		int fix_body_to_connector(dBodyID cBody, int face);								// create fixed joint between body and connector
+		int fix_connector_to_body(int face, dBodyID cBody);								// create fixed joint between connector and body
+		int get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p);					// get parameters of connector
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
-		//void extract_euler_angles(dMatrix3 R, dReal &psi, dReal &theta, dReal &phi);	// get euler angles from rotation matrix
         //void resetPID(int i = NUM_DOF);
-		static void* recordAngleThread(void *arg);
-		static void* recordAnglesThread(void *arg);
+		static void* record_angle_thread(void *arg);
+		static void* record_angles_thread(void *arg);
 #ifdef ENABLE_GRAPHICS
 		void draw_simple(conn_t conn, osg::Group *robot);
+		void draw_square(conn_t conn, osg::Group *robot);
 		void draw_tank(conn_t conn, osg::Group *robot);
 #endif // ENABLE_GRAPHICS
 	protected:

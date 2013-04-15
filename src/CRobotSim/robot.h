@@ -78,7 +78,7 @@ class CRobot {
 		virtual dJointID getMotorID(int motor) = 0;
 		virtual dReal getAngle(int i) = 0;
 		virtual dReal getPosition(int body, int i) = 0;
-		//virtual dReal getRotation(int body, int i) = 0;
+		virtual dReal getRotation(int body, int i) = 0;
 		virtual bool isHome(void) = 0;
 		virtual int setID(int id) = 0;
 		virtual void simPreCollisionThread(void) = 0;
