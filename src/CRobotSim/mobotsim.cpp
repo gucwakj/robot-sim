@@ -2039,27 +2039,27 @@ int CRobot4::get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p) {
 			dRSetIdentity(R1);
 			break;*/
 		case SQUARE:
-			if (conn->c_face == 2) {
+			if (conn->side == 2) {
 				offset[0] = _end_width/2;
 				offset[1] = _end_width/2;
 				dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI/2);
 			}
-			else if (conn->c_face == 3) {
+			else if (conn->side == 3) {
 				offset[0] = _end_width;
 				dRSetIdentity(R1);
 			}
-			else if (conn->c_face == 4) {
+			else if (conn->side == 4) {
 				offset[0] = _end_width/2;
 				offset[1] = -_end_width/2;
 				dRFromAxisAndAngle(R1, R[2], R[6], R[10], -M_PI/2);
 			}
 			break;
 		case TANK:
-			if (conn->c_face == 2) {
+			if (conn->side == 2) {
 				offset[0] = _tank_depth;
 				dRSetIdentity(R1);
 			}
-			else if (conn->c_face == 3) {
+			else if (conn->side == 3) {
 				offset[0] = _tank_depth/2;
 				offset[2] = _tank_height - _connector_height/2;
 				dRFromAxisAndAngle(R1, R[1], R[5], R[9], -M_PI/2);

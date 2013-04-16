@@ -85,6 +85,9 @@ void CRobotSim::robot_init(void) {
 		else if ( !strcmp(node->Value(), "mobot") ) {
 			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
 			nr->type = 0;
+			nr->x = 0; nr->y = 0; nr->z = 0;
+			nr->psi = 0; nr->theta = 0; nr->phi = 0;
+			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0; nr->angle4 = 0;
 			_robotNumber[MOBOT]++;
 			node->QueryIntAttribute("id", &(nr->id));
 			if (ele = node->FirstChildElement("position")) {
@@ -167,7 +170,7 @@ void CRobotSim::robot_init(void) {
 				nc->robot = rtmp[0];
 				nc->face1 = ftmp[0];
 				nc->face2 = ftmp[j];
-				nc->c_face = ntmp[j];
+				nc->side = ntmp[j];
 				nc->type = ctype;
 				nc->next = NULL;
 				tmp = bot;
@@ -189,7 +192,7 @@ void CRobotSim::robot_init(void) {
 		}
 
 		// debug printing
-		bot_t rtmp = bot;
+		/*bot_t rtmp = bot;
 		while (rtmp) {
 			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
 			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
@@ -204,206 +207,12 @@ void CRobotSim::robot_init(void) {
 			printf("\n");
 			rtmp = rtmp->next;
 		}
-		printf("\n\n\n");
+		printf("\n\n\n");*/
 
 		// go to next node
 		node = node->NextSiblingElement();
 	}
 
-/*// text file reading
-	FILE *fp;
-	char type[16] = {'\0'}, line[1024];
-	char *begptr, *endptr, string[32];
-	int i, *rtmp, *ftmp, *ntmp, ctype, cnum;
-	bot = NULL;
-	for ( int i = 0; i < NUM_TYPES; i++ ) {
-		_robot[i] = NULL;
-		_robotNumber[i] = 0;
-		_robotConnected[i] = 0;
-		_robotThread[i] = NULL;
-	}
-
-	// open config file
-    fp = fopen(".robotsimrc", "r");
-    if (fp == NULL) {
-        printf("Error: cannot read config file\n");
-        exit(-1);
-    }
-
-	// scan config file
-    fgets(line, 1024, fp);
-	while ( !feof(fp) ) {
-		// skip comments
-		if (line[0] == '#') {
-    	    fgets(line, 1024, fp);
-			continue;
-		}
-
-		// get type of line data (robot, connector)
-		strncpy(type, line, strstr(line, ":") - line);
-		type[strstr(line, ":") - line] = '\0';
-		// if robot
-		if ( !strcmp(type, "mobot") ) {
-			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
-			// get type
-			if ( !strcmp(type, "mobot") ) {
-				nr->type = 0;
-				_robotNumber[MOBOT]++;
-			}
-			else if ( !strcmp(type, "imobot") ) {
-				nr->type = 1;
-				_robotNumber[IMOBOT]++;
-			}
-
-			// get id
-			begptr = strstr(line, ":");
-			if ( begptr != NULL ) {
-				endptr = strstr(begptr, ";");
-				strncpy(string, begptr, endptr - begptr);
-				string[endptr - begptr] = '\0';
-				sscanf(string, "%*s%d", &nr->id);
-			}
-			// get position
-			begptr = strstr(line, "position");
-			if ( begptr != NULL ) {
-				endptr = strstr(begptr, ";");
-				strncpy(string, begptr, endptr - begptr);
-				string[endptr - begptr] = '\0';
-				sscanf(string, "%*s%lf%*s%lf%*s%lf", &nr->x, &nr->y, &nr->z);
-			}
-			// get rotation
-			begptr = strstr(line, "rotation");
-			if ( begptr != NULL ) {
-				endptr = strstr(begptr, ";");
-				strncpy(string, begptr, endptr - begptr);
-				string[endptr - begptr] = '\0';
-				sscanf(string, "%*s%lf%*s%lf%*s%lf", &nr->psi, &nr->theta, &nr->phi);
-			}
-			// get joint angles
-			begptr = strstr(line, "joint");
-			if ( begptr != NULL ) {
-				endptr = strstr(begptr, ";");
-				strncpy(string, begptr, endptr - begptr);
-				string[endptr - begptr] = '\0';
-				sscanf(string, "%*s%lf%*s%lf%*s%lf%*s%lf", &nr->angle1, &nr->angle2, &nr->angle3, &nr->angle4);
-			}
-			nr->next = NULL;
-
-			// put new bot at end of list
-			bot_t rtmp = bot;
-			if ( bot == NULL )
-				bot = nr;
-			else {
-				while (rtmp->next)
-					rtmp = rtmp->next;
-				rtmp->next = nr;
-			}
-		}
-		// else its a connector
-		else {
-			// get type
-			if ( !strcmp(type, "bigwheel") ) {
-				ctype = BIGWHEEL;
-				cnum = 1;
-			}
-			else if ( !strcmp(type, "caster") ) {
-				ctype = CASTER;
-				cnum = 1;
-			}
-			else if ( !strcmp(type, "l") ) {
-				ctype = L;
-				cnum = 3;
-			}
-			else if ( !strcmp(type, "simple") ) {
-				ctype = SIMPLE;
-				cnum = 2;
-			}
-			else if ( !strcmp(type, "smallwheel") ) {
-				ctype = SMALLWHEEL;
-				cnum = 1;
-			}
-			else if ( !strcmp(type, "square") ) {
-				ctype = SQUARE;
-				cnum = 4;
-			}
-			else if ( !strcmp(type, "tank") ) {
-				ctype = TANK;
-				cnum = 3;
-			}
-			rtmp = (int *)malloc(sizeof(int)*cnum);
-			ftmp = (int *)malloc(sizeof(int)*cnum);
-			ntmp = (int *)malloc(sizeof(int)*cnum);
-
-			// store connected robots to tmp variables
-			begptr = strstr(line, ":");
-			for (i = 0; i < cnum; i++) {
-				if ( begptr != NULL ) {
-					endptr = strstr(begptr, ";");
-					if (!endptr)
-						break;
-					strncpy(string, begptr, endptr - begptr);
-					string[endptr - begptr] = '\0';
-					sscanf(string, "%*c%d%*s%d%*s%d", &rtmp[i], &ftmp[i], &ntmp[i]);
-				}
-				begptr = endptr+1;
-			}
-
-			// store connectors to each robot
-			bot_t tmp;
-			Conn_t *ctmp;
-			for (int j = 0; j < i; j++) {
-				Conn_t *nc = (Conn_t *)malloc(sizeof(struct Conn_s));
-				nc->robot = rtmp[0];
-				nc->face1 = ftmp[0];
-				nc->face2 = ftmp[j];
-				nc->c_face = ntmp[j];
-				nc->type = ctype;
-				nc->next = NULL;
-				tmp = bot;
-				while (tmp->id != rtmp[j])
-					tmp = tmp->next;
-				ctmp = tmp->conn;
-				if ( tmp->conn == NULL )
-					tmp->conn = nc;
-				else {
-					while (ctmp->next)
-						ctmp = ctmp->next;
-					ctmp->next = nc;
-				}
-			}
-			free(rtmp);
-			free(ftmp);
-			free(ntmp);
-		}
-
-		// debug printing
-		*bot_t rtmp = bot;
-		while (rtmp) {
-			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
-			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
-			printf("psi = %lf, theta = %lf, phi = %lf\n", rtmp->psi, rtmp->theta, rtmp->phi);
-			printf("angle1 = %lf, angle2 = %lf, angle3 = %lf, angle4 = %lf\n", rtmp->angle1, rtmp->angle2, rtmp->angle3, rtmp->angle4);
-			Conn_t *ctmp = rtmp->conn;
-			while (ctmp) {
-				printf("on face %d: connect with robot %d on his face %d with type: %d\n", ctmp->face2, ctmp->robot, ctmp->face1, ctmp->type);
-				ctmp = ctmp->next;
-			}
-			printf("next = %p\n", rtmp->next);
-			printf("\n");
-			rtmp = rtmp->next;
-		}
-		printf("\n\n\n");
-
-		// get new line
-    	fgets(line, 1024, fp);
-	}
-
-	// close config file
-    fclose(fp);
-// end text config reading*/
-
-
-exit(1);
 	// set up robot variables
 	for (int i = 0; i < NUM_TYPES; i++) {
 		_robotThread[i] = new pthread_t[_robotNumber[i]];

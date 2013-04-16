@@ -22,7 +22,7 @@ enum robot_types_e {
 
 // connector
 typedef struct Conn_s {
-	int robot, type, c_face, face1, face2;
+	int robot, type, side, face1, face2;
 	struct Conn_s *next;
 } Conn_t;
 // robot
