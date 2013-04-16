@@ -6,6 +6,7 @@
 #include "config.h"
 #include "robot.h"
 #include "mobotsim.h"
+#include "tinyxml2.h"
 #ifdef ENABLE_GRAPHICS
 #include "graphics.h"
 #endif /* ENABLE_GRAPHICS */

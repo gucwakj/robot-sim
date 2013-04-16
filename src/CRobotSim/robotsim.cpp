@@ -1,6 +1,7 @@
-#include <stdbool.h>
 #include "robotsim.h"
+
 using namespace std;
+using namespace tinyxml2;
 
 CRobotSim::CRobotSim(void) {
     // create ODE simulation space
@@ -59,6 +60,155 @@ CRobotSim::~CRobotSim(void) {
 }
 
 void CRobotSim::robot_init(void) {
+	// initialize variables
+	int i, *rtmp, *ftmp, *ntmp, ctype, cnum;
+	bot = NULL;
+	for ( int i = 0; i < NUM_TYPES; i++ ) {
+		_robot[i] = NULL;
+		_robotNumber[i] = 0;
+		_robotConnected[i] = 0;
+		_robotThread[i] = NULL;
+	}
+	XMLElement *ele = NULL;
+	XMLNode *side = NULL;
+
+	// load xml config file
+	XMLDocument doc;
+	doc.LoadFile("robotsim.xml");
+
+	// get root node of xml file
+	XMLNode *node = doc.FirstChildElement("sim")->FirstChildElement();
+
+	// loop over all nodes
+	while (node) {
+		if ( !strcmp(node->Value(), "mobot") ) {
+			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
+			nr->type = 0;
+			_robotNumber[MOBOT]++;
+			node->ToElement()->QueryIntAttribute("id", &(nr->id));
+			if (ele = node->FirstChildElement("position")) {
+				ele->QueryDoubleAttribute("x", &(nr->x));
+				ele->QueryDoubleAttribute("y", &(nr->y));
+				ele->QueryDoubleAttribute("z", &(nr->z));
+			}
+			if (ele = node->FirstChildElement("rotation")) {
+				ele->QueryDoubleAttribute("psi", &(nr->psi));
+				ele->QueryDoubleAttribute("theta", &(nr->theta));
+				ele->QueryDoubleAttribute("phi", &(nr->phi));
+			}
+			if (ele = node->FirstChildElement("joint")) {
+				ele->QueryDoubleAttribute("a1", &(nr->angle1));
+				ele->QueryDoubleAttribute("a2", &(nr->angle2));
+				ele->QueryDoubleAttribute("a3", &(nr->angle3));
+				ele->QueryDoubleAttribute("a4", &(nr->angle4));
+			}
+			nr->next = NULL;
+
+			// put new bot at end of list
+			bot_t rtmp = bot;
+			if ( bot == NULL )
+				bot = nr;
+			else {
+				while (rtmp->next)
+					rtmp = rtmp->next;
+				rtmp->next = nr;
+			}
+		}
+		else {
+			if ( !strcmp(node->Value(), "bigwheel") ) {
+				ctype = BIGWHEEL;
+				cnum = 1;
+			}
+			else if ( !strcmp(node->Value(), "caster") ) {
+				ctype = CASTER;
+				cnum = 1;
+			}
+			else if ( !strcmp(node->Value(), "l") ) {
+				ctype = L;
+				cnum = 3;
+			}
+			else if ( !strcmp(node->Value(), "simple") ) {
+				ctype = SIMPLE;
+				cnum = 2;
+			}
+			else if ( !strcmp(node->Value(), "smallwheel") ) {
+				ctype = SMALLWHEEL;
+				cnum = 1;
+			}
+			else if ( !strcmp(node->Value(), "square") ) {
+				ctype = SQUARE;
+				cnum = 4;
+			}
+			else if ( !strcmp(node->Value(), "tank") ) {
+				ctype = TANK;
+				cnum = 3;
+			}
+
+			rtmp = new int[cnum];
+			ftmp = new int[cnum];
+			ntmp = new int[cnum];
+
+			// store connector to temp variables
+			side = node->FirstChild();
+			int i = 0;
+			while (side) {
+				side->ToElement()->QueryIntAttribute("id", &ntmp[i]);
+				side->ToElement()->QueryIntAttribute("robot", &rtmp[i]);
+				side->ToElement()->QueryIntAttribute("face", &ftmp[i++]);
+				side = side->NextSibling();
+			}
+
+			// store connectors to each robot
+			bot_t tmp;
+			Conn_t *ctmp;
+			for (int j = 0; j < i; j++) {
+				Conn_t *nc = (Conn_t *)malloc(sizeof(struct Conn_s));
+				nc->robot = rtmp[0];
+				nc->face1 = ftmp[0];
+				nc->face2 = ftmp[j];
+				nc->c_face = ntmp[j];
+				nc->type = ctype;
+				nc->next = NULL;
+				tmp = bot;
+				while (tmp->id != rtmp[j])
+					tmp = tmp->next;
+				ctmp = tmp->conn;
+				if ( tmp->conn == NULL )
+					tmp->conn = nc;
+				else {
+					while (ctmp->next)
+						ctmp = ctmp->next;
+					ctmp->next = nc;
+				}
+			}
+			delete rtmp;
+			delete ftmp;
+			delete ntmp;
+		}
+
+		// debug printing
+		bot_t rtmp = bot;
+		while (rtmp) {
+			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
+			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
+			printf("psi = %lf, theta = %lf, phi = %lf\n", rtmp->psi, rtmp->theta, rtmp->phi);
+			printf("angle1 = %lf, angle2 = %lf, angle3 = %lf, angle4 = %lf\n", rtmp->angle1, rtmp->angle2, rtmp->angle3, rtmp->angle4);
+			Conn_t *ctmp = rtmp->conn;
+			while (ctmp) {
+				printf("on face %d: connect with robot %d on his face %d with type: %d\n", ctmp->face2, ctmp->robot, ctmp->face1, ctmp->type);
+				ctmp = ctmp->next;
+			}
+			printf("next = %p\n", rtmp->next);
+			printf("\n");
+			rtmp = rtmp->next;
+		}
+		printf("\n\n\n");
+
+		// go to next node
+		node = node->NextSibling();
+	}
+
+/*// text file reading
 	FILE *fp;
 	char type[16] = {'\0'}, line[1024];
 	char *begptr, *endptr, string[32];
@@ -240,7 +390,7 @@ void CRobotSim::robot_init(void) {
 			printf("\n");
 			rtmp = rtmp->next;
 		}
-		printf("\n\n\n");*/
+		printf("\n\n\n");
 
 		// get new line
     	fgets(line, 1024, fp);
@@ -248,7 +398,10 @@ void CRobotSim::robot_init(void) {
 
 	// close config file
     fclose(fp);
+// end text config reading*/
 
+
+exit(1);
 	// set up robot variables
 	for (int i = 0; i < NUM_TYPES; i++) {
 		_robotThread[i] = new pthread_t[_robotNumber[i]];
