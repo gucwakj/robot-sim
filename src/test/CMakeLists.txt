@@ -22,6 +22,9 @@ include_directories("${PROJECT_BINARY_DIR}")
 # Add ODE library
 include_directories("../opende/sys/include")
 
+# Add tinyxml2 library
+include_directories("../tinyxml2")
+
 # Option to enable double precision
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
 if (ENABLE_DOUBLE)

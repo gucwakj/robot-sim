@@ -25,8 +25,8 @@ include_directories("../opende/sys/include")
 link_directories("../opende/sys/lib")
 
 # Add tinyxml2 library
-include_directories("../tinyxml2/")
-link_directories("../tinyxml2/")
+include_directories("../tinyxml2")
+link_directories("../tinyxml2")
 
 # Option to enable double precision
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
@@ -75,4 +75,4 @@ add_library( robotsim SHARED
 )
 endif (ENABLE_GRAPHICS)
 
-target_link_libraries(robotsim ode ${EXTRA_LIBS} rt)
+target_link_libraries(robotsim ode ${EXTRA_LIBS} rt tinyxml2)

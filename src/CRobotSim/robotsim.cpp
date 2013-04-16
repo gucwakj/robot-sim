@@ -70,22 +70,23 @@ void CRobotSim::robot_init(void) {
 		_robotThread[i] = NULL;
 	}
 	XMLElement *ele = NULL;
-	XMLNode *side = NULL;
+	XMLElement *side = NULL;
 
 	// load xml config file
 	XMLDocument doc;
 	doc.LoadFile("robotsim.xml");
 
 	// get root node of xml file
-	XMLNode *node = doc.FirstChildElement("sim")->FirstChildElement();
+	XMLElement *node = doc.FirstChildElement("sim")->FirstChildElement();
 
 	// loop over all nodes
 	while (node) {
-		if ( !strcmp(node->Value(), "mobot") ) {
+		if (node->ToComment()) {}
+		else if ( !strcmp(node->Value(), "mobot") ) {
 			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
 			nr->type = 0;
 			_robotNumber[MOBOT]++;
-			node->ToElement()->QueryIntAttribute("id", &(nr->id));
+			node->QueryIntAttribute("id", &(nr->id));
 			if (ele = node->FirstChildElement("position")) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
 				ele->QueryDoubleAttribute("y", &(nr->y));
@@ -102,6 +103,7 @@ void CRobotSim::robot_init(void) {
 				ele->QueryDoubleAttribute("a3", &(nr->angle3));
 				ele->QueryDoubleAttribute("a4", &(nr->angle4));
 			}
+			nr->conn = NULL;
 			nr->next = NULL;
 
 			// put new bot at end of list
@@ -143,19 +145,18 @@ void CRobotSim::robot_init(void) {
 				ctype = TANK;
 				cnum = 3;
 			}
-
 			rtmp = new int[cnum];
 			ftmp = new int[cnum];
 			ntmp = new int[cnum];
 
 			// store connector to temp variables
-			side = node->FirstChild();
+			side = node->FirstChildElement();
 			int i = 0;
 			while (side) {
-				side->ToElement()->QueryIntAttribute("id", &ntmp[i]);
-				side->ToElement()->QueryIntAttribute("robot", &rtmp[i]);
-				side->ToElement()->QueryIntAttribute("face", &ftmp[i++]);
-				side = side->NextSibling();
+				side->QueryIntAttribute("id", &ntmp[i]);
+				side->QueryIntAttribute("robot", &rtmp[i]);
+				side->QueryIntAttribute("face", &ftmp[i++]);
+				side = side->NextSiblingElement();
 			}
 
 			// store connectors to each robot
@@ -170,8 +171,9 @@ void CRobotSim::robot_init(void) {
 				nc->type = ctype;
 				nc->next = NULL;
 				tmp = bot;
-				while (tmp->id != rtmp[j])
+				while (tmp && tmp->id != rtmp[j])
 					tmp = tmp->next;
+				if (tmp == NULL) { printf("ERROR: robot %d could not be found.\n", rtmp[j]); exit(1); }
 				ctmp = tmp->conn;
 				if ( tmp->conn == NULL )
 					tmp->conn = nc;
@@ -205,7 +207,7 @@ void CRobotSim::robot_init(void) {
 		printf("\n\n\n");
 
 		// go to next node
-		node = node->NextSibling();
+		node = node->NextSiblingElement();
 	}
 
 /*// text file reading
@@ -375,7 +377,7 @@ void CRobotSim::robot_init(void) {
 		}
 
 		// debug printing
-		/*bot_t rtmp = bot;
+		*bot_t rtmp = bot;
 		while (rtmp) {
 			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
 			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
