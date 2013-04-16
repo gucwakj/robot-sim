@@ -189,6 +189,8 @@ class CRobot4 : virtual public CRobot {
 		int build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
 		int build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap
 		int build_simple(conn_t conn, int face);										// build simple connector
+		int build_bigwheel(conn_t conn, int face);										// build big wheel
+		int build_smallwheel(conn_t conn, int face);									// build small wheel
 		int build_square(conn_t conn, int face);										// build square connector
 		int build_tank(conn_t conn, int face);											// build tank connector
 		int fix_body_to_connector(dBodyID cBody, int face);								// create fixed joint between body and connector
@@ -200,6 +202,8 @@ class CRobot4 : virtual public CRobot {
 		static void* record_angles_thread(void *arg);
 #ifdef ENABLE_GRAPHICS
 		void draw_simple(conn_t conn, osg::Group *robot);
+		void draw_bigwheel(conn_t conn, osg::Group *robot);
+		void draw_smallwheel(conn_t conn, osg::Group *robot);
 		void draw_square(conn_t conn, osg::Group *robot);
 		void draw_tank(conn_t conn, osg::Group *robot);
 #endif // ENABLE_GRAPHICS
@@ -209,7 +213,7 @@ class CRobot4 : virtual public CRobot {
 				_body_length, _body_width, _body_height, _body_radius,
 				_body_inner_width_left, _body_inner_width_right, _body_end_depth, _body_mount_center,
 				_end_width, _end_height, _end_depth, _end_radius;
-		double	_connector_depth, _connector_height, _connector_radius, _tank_height, _tank_depth;
+		double	_connector_depth, _connector_height, _connector_radius, _bigwheel_radius, _smallwheel_radius, _tank_height, _tank_depth;
 		int _type;					// robot type
 		dReal _maxJointVelocity[NUM_DOF];
 		dReal _maxJointForce[NUM_DOF];
