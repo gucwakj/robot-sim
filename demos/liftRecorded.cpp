@@ -23,8 +23,8 @@ sim.addRobot(mobot2);
 /* connect to Mobots and move to the zero position at the same time. */
 mobot1.connect();
 mobot2.connect();
-//mobot1.resetToZeroNB();
-//mobot2.resetToZeroNB();
+mobot1.resetToZeroNB();
+mobot2.resetToZeroNB();
 mobot1.moveWait();
 mobot2.moveWait();
 
@@ -38,22 +38,22 @@ mobot1.recordAngle(MOBOT_JOINT2, time1, angles1, numDataPoints, timeInterval);
 mobot2.recordAngle(MOBOT_JOINT3, time2, angles2, numDataPoints, timeInterval);
 
 /* first lift */
-//mobot1.moveToNB(0, -90,  0, 0);
-//mobot2.moveToNB(0, 0, 90, 0);
-//mobot1.moveWait();
-//mobot2.moveWait();
+mobot1.moveToNB(0, -90,  0, 0);
+mobot2.moveToNB(0, 0, 90, 0);
+mobot1.moveWait();
+mobot2.moveWait();
 //delay(1);
 
 /* second lift */
-//mobot1.moveToNB(0, 0, 90,  0);
-//mobot2.moveToNB(0,  -90, 0, 0);
-//mobot1.moveWait();
-//mobot2.moveWait();
+mobot1.moveToNB(0, 0, 90,  0);
+mobot2.moveToNB(0,  -90, 0, 0);
+mobot1.moveWait();
+mobot2.moveWait();
 //delay(1);
 
 /* move to zero position */
-//mobot1.resetToZeroNB(); 
-//mobot2.resetToZeroNB();
+mobot1.resetToZeroNB(); 
+mobot2.resetToZeroNB();
 mobot1.moveWait();
 mobot2.moveWait();
 

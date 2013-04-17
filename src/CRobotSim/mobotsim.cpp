@@ -575,6 +575,22 @@ int CRobot4::resetToZero(void) {
 	return 0;
 }
 
+int CRobot4::resetToZeroNB(void) {
+	// reset absolute counter to 0 -> 2M_PI
+	this->simThreadsAngleLock();
+	int rev = (int)(_angle[LE]/2/M_PI);
+	if (rev) _angle[LE] -= 2*rev*M_PI;
+	rev = (int)(_angle[RE]/2/M_PI);
+	if (rev) _angle[RE] -= 2*rev*M_PI;
+	this->simThreadsAngleUnlock();
+
+	// move to zero position
+	this->moveToZeroNB();
+
+	// success
+	return 0;
+}
+
 int CRobot4::setJointSpeed(int id, double speed) {
 	_velocity[id] = DEG2RAD((speed > _maxSpeed[id]) ? _maxSpeed[id] : speed);
 

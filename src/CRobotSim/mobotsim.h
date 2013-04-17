@@ -104,6 +104,7 @@ class CRobot4 : virtual public CRobot {
 		int recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, dReal *angle4, int num, dReal seconds, dReal threshold = 0.0);
 		int recordWait(void);
 		int resetToZero(void);
+		int resetToZeroNB(void);
 		int setJointSpeed(int id, double speed);
 		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
     private:
