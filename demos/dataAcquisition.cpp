@@ -6,10 +6,12 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CRobotSim sim;
 	CMobot mobot;
 	
-	mobot.connect(sim);
+	CRobotSim sim;
+	sim.addRobot(mobot);
+
+	mobot.connect();
 
 	double speed = 45; /* Degrees/second */
 	double angle = 720; /* Degrees */

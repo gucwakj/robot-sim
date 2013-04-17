@@ -14,13 +14,15 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-CRobotSim sim;
 CMobot mobot1, mobot2;
-	
+
+CRobotSim sim;
+sim.addRobot(mobot1);
+sim.addRobot(mobot2);
 
 /* connect to Mobots and move to the zero position at the same time. */
-mobot1.connect(sim);
-mobot2.connect(sim, &mobot1, 6, 1);
+mobot1.connect();
+mobot2.connect();
 //mobot1.resetToZeroNB();
 //mobot2.resetToZeroNB();
 mobot1.moveWait();
@@ -36,10 +38,10 @@ mobot1.recordAngle(MOBOT_JOINT2, time1, angles1, numDataPoints, timeInterval);
 mobot2.recordAngle(MOBOT_JOINT3, time2, angles2, numDataPoints, timeInterval);
 
 /* first lift */
-mobot1.moveToNB(0, -90,  0, 0);
-mobot2.moveToNB(0, 0, 90, 0);
-mobot1.moveWait();
-mobot2.moveWait();
+//mobot1.moveToNB(0, -90,  0, 0);
+//mobot2.moveToNB(0, 0, 90, 0);
+//mobot1.moveWait();
+//mobot2.moveWait();
 //delay(1);
 
 /* second lift */
@@ -52,8 +54,8 @@ mobot2.moveWait();
 /* move to zero position */
 //mobot1.resetToZeroNB(); 
 //mobot2.resetToZeroNB();
-//mobot1.moveWait();
-//mobot2.moveWait();
+mobot1.moveWait();
+mobot2.moveWait();
 
 mobot1.recordWait();
 mobot2.recordWait();

@@ -5,14 +5,7 @@
 		<rotation psi='0' theta='0' phi='0' />
 		<joint a1='5' a2='8' a3='3' a4='43' />-->
 	</mobot>
-	<mobot id="1">
-	</mobot>
-	<!--<tank>
-		<side id="1" robot="0" face="8" />
-		<side id="2" robot="2" face="3" />
-		<side id="3" robot="1" face="7" />
-	</tank>-->
-	<simple>
+	<!--<simple>
 		<side id="1" robot="0" face="8" />
 		<side id="2" robot="1" face="1" />
 	</simple>
@@ -21,5 +14,5 @@
 	</smallwheel>
 	<smallwheel>
 		<side id="1" robot="1" face="8" />
-	</smallwheel>
+	</smallwheel>-->
 </sim>
