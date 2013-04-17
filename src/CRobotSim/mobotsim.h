@@ -167,6 +167,7 @@ class CRobot4 : virtual public CRobot {
 		virtual dBodyID getBodyID(int id);
 		virtual int getConnectionParams(int face, dMatrix3 R, dReal *p);
 		virtual dBodyID getConnectorBodyID(int face);
+		virtual dBodyID getConnectorBodyIDs(int num);
 		virtual int getID(void);
 		virtual dJointID getMotorID(int id);
 		virtual dReal getPosition(int body, int i);

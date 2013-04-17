@@ -616,7 +616,7 @@ int CRobot4::build(bot_t robot) {
 	// check for wheels
 	Conn_t *ctmp = robot->conn;
 	while (ctmp) {
-		if (ctmp->type != BIGWHEEL || ctmp->type != SMALLWHEEL) {
+		if (ctmp->type == BIGWHEEL || ctmp->type == SMALLWHEEL) {
 			robot->z += ((ctmp->type == SMALLWHEEL) ? _smallwheel_radius : _bigwheel_radius) - _end_height/2;
 			break;
 		}
@@ -750,6 +750,17 @@ dBodyID CRobot4::getConnectorBodyID(int face) {
 			return ctmp->body;
 		}
 		ctmp = ctmp->next;
+	}
+	return NULL;
+}
+
+dBodyID CRobot4::getConnectorBodyIDs(int num) {
+	conn_t ctmp = _conn;
+	int i = 0;
+	while (ctmp && i++ < num)
+		ctmp = ctmp->next;
+	if (ctmp) {
+		return ctmp->body;
 	}
 	return NULL;
 }
