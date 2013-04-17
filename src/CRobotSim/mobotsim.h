@@ -188,8 +188,9 @@ class CRobot4 : virtual public CRobot {
 		int build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);		// build body of mobot
 		int build_center(dReal x, dReal y, dReal z, dMatrix3 R);						// build center
 		int build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);				// build endcap
-		int build_simple(conn_t conn, int face);										// build simple connector
 		int build_bigwheel(conn_t conn, int face);										// build big wheel
+		int build_caster(conn_t conn, int face);										// build caster
+		int build_simple(conn_t conn, int face);										// build simple connector
 		int build_smallwheel(conn_t conn, int face);									// build small wheel
 		int build_square(conn_t conn, int face);										// build square connector
 		int build_tank(conn_t conn, int face);											// build tank connector
@@ -201,8 +202,9 @@ class CRobot4 : virtual public CRobot {
 		static void* record_angle_thread(void *arg);
 		static void* record_angles_thread(void *arg);
 #ifdef ENABLE_GRAPHICS
-		void draw_simple(conn_t conn, osg::Group *robot);
 		void draw_bigwheel(conn_t conn, osg::Group *robot);
+		void draw_caster(conn_t conn, osg::Group *robot);
+		void draw_simple(conn_t conn, osg::Group *robot);
 		void draw_smallwheel(conn_t conn, osg::Group *robot);
 		void draw_square(conn_t conn, osg::Group *robot);
 		void draw_tank(conn_t conn, osg::Group *robot);

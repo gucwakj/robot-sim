@@ -816,13 +816,13 @@ void CRobotSim::print_intermediate_data(void) {
     cout.setf(ios::fixed, ios::floatfield);
 	cout << j++*_step << " ";
 		for (int i = 0; i < _robotConnected[MOBOT]; i++) {
-			cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT4)) << " ";
+			//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT4)) << " ";
 			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT2) << " ";
 			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT3) << " ";
 			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT4) << "\t";
 			//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
 			//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
-			//cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
+			cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
 			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
 			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
 			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";
