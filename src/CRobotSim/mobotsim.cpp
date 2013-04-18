@@ -1263,6 +1263,7 @@ int CRobot4::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le,
     dJointSetAMotorAngle(_motor[0], 0, 0);
     dJointSetAMotorParam(_motor[0], dParamCFM, 0);
     dJointSetAMotorParam(_motor[0], dParamFMax, _maxJointForce[LE]);
+	dJointDisable(_motor[0]);
 
     // motor for center to left body
     _motor[1] = dJointCreateAMotor(_world, 0);
@@ -1273,6 +1274,7 @@ int CRobot4::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le,
     dJointSetAMotorAngle(_motor[1], 0, 0);
     dJointSetAMotorParam(_motor[1], dParamCFM, 0);
     dJointSetAMotorParam(_motor[1], dParamFMax, _maxJointForce[LB]);
+	dJointDisable(_motor[1]);
 
     // motor for center to right body
     _motor[2] = dJointCreateAMotor(_world, 0);
@@ -1283,6 +1285,7 @@ int CRobot4::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le,
     dJointSetAMotorAngle(_motor[2], 0, 0);
     dJointSetAMotorParam(_motor[2], dParamCFM, 0);
     dJointSetAMotorParam(_motor[2], dParamFMax, _maxJointForce[RB]);
+	dJointDisable(_motor[2]);
 
     // motor for right body to endcap
     _motor[3] = dJointCreateAMotor(_world, 0);
@@ -1293,6 +1296,7 @@ int CRobot4::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le,
     dJointSetAMotorAngle(_motor[3], 0, 0);
     dJointSetAMotorParam(_motor[3], dParamCFM, 0);
     dJointSetAMotorParam(_motor[3], dParamFMax, _maxJointForce[RE]);
+	dJointDisable(_motor[3]);
 
     // set damping on all bodies to 0.1
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(_body[i], 0.1, 0.1);

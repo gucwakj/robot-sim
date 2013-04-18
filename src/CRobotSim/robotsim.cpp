@@ -715,7 +715,7 @@ void* CRobotSim::simulationThread(void *arg) {
 		dJointGroupEmpty(sim->_group);						// clear out all contact joints
 		pthread_mutex_unlock(&(sim->_ground_mutex));		// unlock ground objects
 
-		sim->print_intermediate_data();
+		//sim->print_intermediate_data();
 
 		// perform post-collision updates
 		//  - unlock angle and goal
@@ -786,7 +786,7 @@ void CRobotSim::print_intermediate_data(void) {
 			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT4) << "\t";
 			//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
 			//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
-			cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
+			//cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
 			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
 			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
 			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";
