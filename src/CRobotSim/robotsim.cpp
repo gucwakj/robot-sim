@@ -44,6 +44,7 @@ CRobotSim::CRobotSim(void) {
 }
 
 CRobotSim::~CRobotSim(void) {
+/*
 	//delete [] _ground;
 	for ( int i = 0; i < NUM_TYPES; i++) {
 		//delete [] _robot[i];
@@ -52,6 +53,7 @@ CRobotSim::~CRobotSim(void) {
 	//delete [] _robot;
 	//delete [] _robotThread;
 
+*/
 	// destroy all ODE objects
 	dJointGroupDestroy(_group);
 	dSpaceDestroy(_space);
@@ -227,7 +229,11 @@ osg::TextureCubeMap* CRobotSim::readCubeMap(void) {
     //#define CUBEMAP_FILENAME(face) "data/Cubemap_axis/" #face ".png"
     //#define CUBEMAP_FILENAME(face) "data/Cubemap_snow/" #face ".jpg"
     //#define SKY_FILENAME(face) "data/ground/sky/" #face ".jpg"
+#ifndef _CH_
     #define SKY_FILENAME(face) "data/ground/checkered/" #face ".jpg"
+#else
+    #define SKY_FILENAME(face) "/usr/local/ch/package/chrobotsim/data/ground/checkered/" #face ".jpg"
+#endif
 
     /*osg::Image* imagePosX = osgDB::readImageFile(CUBEMAP_FILENAME(posx));
     osg::Image* imageNegX = osgDB::readImageFile(CUBEMAP_FILENAME(negx));
@@ -463,7 +469,11 @@ int CRobotSim::graphics_init(void) {
 	osg::ref_ptr<osg::MatrixTransform> terrainScaleMAT (new osg::MatrixTransform);
 	osg::Matrix terrainScaleMatrix;
 	terrainScaleMatrix.makeScale(0.1f,0.1f,0.006f);
+#ifndef _CH_
 	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("data/ground/terrain.3ds");
+#else
+	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("/usr/local/ch/package/chrobotsim/data/ground/terrain.3ds");
+#endif
 	//osg::ref_ptr<osg::Geode> terrainnode;
     //terrainnode->addDrawable(createWall(osg::Vec3d(-100, 100, 0), osg::Vec3d(100, 100, 0), osg::Vec3d(100, -100, 0), floor));
 	terrainScaleMAT->addChild(terrainnode.get());
@@ -799,7 +809,11 @@ void CRobotSim::print_intermediate_data(void) {
 /**********************************************************
 	Add Robot Functions
  **********************************************************/
+#ifndef _CH_
 int CRobotSim::addRobot(CRobot &robot) {
+#else
+int CRobotSim::addRobot(CMobot &robot) {
+#endif
 	// get type of robot being added
 	int type = robot.getType();
 

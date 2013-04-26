@@ -1,18 +1,21 @@
 #ifndef MOBOT_H_
 #define MOBOT_H_
 
+#ifndef _CH_
 #include "config.h"
 #include "pid.h"
-#include "robot.h"
 #ifdef ENABLE_GRAPHICS
 #include "graphics.h"
-#endif /* ENABLE_GRAPHICS */
+#endif // ENABLE_GRAPHICS
 #include "robotsim.h"
+#include "robot.h"
+#endif // not _CH_
+
 #ifdef ENABLE_DOUBLE
 #define EPSILON DBL_EPSILON
 #else
 #define EPSILON FLT_EPSILON
-#endif /* ENABLE_DOUBLE */
+#endif // ENABLE_DOUBLE
 
 typedef enum imobot_faces_e {
 	IMOBOT_FACE1 = 1,
@@ -59,16 +62,18 @@ typedef enum mobot_connector_e {
 	NUM_CONNECTORS
 } mobotConnector_t;
 
+#ifndef _CH_
 class CRobotSim;
+#endif // not _CH_
 
+#ifndef _CH_
 class CRobot4 : virtual public CRobot {
 	friend class CRobotSim;
 	friend class robot4NodeCallback;
-
 	// public api to mimic CMobot class
 	public:
-		CRobot4(void);
-		~CRobot4(void);
+		CRobot4();
+		~CRobot4();
 
 		int connect(void);
 		int getJointAngle(int id, dReal &angle);
@@ -96,7 +101,7 @@ class CRobot4 : virtual public CRobot {
 		int moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 		int moveToDirect(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 		int moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		int moveToDirectNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		//int moveToDirectNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
@@ -154,7 +159,7 @@ class CRobot4 : virtual public CRobot {
 		dReal _goal[NUM_DOF];		// goals
 		dReal _maxSpeed[NUM_DOF];	// maximum joint speeds
 		conn_t _conn;				// connectors
-		PID _pid[NUM_DOF];			// PID control for each joint
+		//PID _pid[NUM_DOF];			// PID control for each joint
 		int _id;					// robot id
 		int _state[NUM_DOF];		// joint states
 		bool _success[NUM_DOF];		// trigger for goal
@@ -222,15 +227,64 @@ class CRobot4 : virtual public CRobot {
 		dReal _maxJointVelocity[NUM_DOF];
 		dReal _maxJointForce[NUM_DOF];
 };
+#endif // not _CH_
 
+#ifdef _CH_
+class CMobot {
+#else
 class CMobot : public CRobot4 {
+#endif
 	public:
-		CMobot(void);
+		CMobot();
+#ifdef _CH_
+		~CMobot();
+		int connect(void);
+		int getJointAngle(int id, dReal &angle);
+		int getJointSpeed(int id, double &speed);
+		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);
+		int motionArch(dReal angle);
+		int motionInchwormLeft(int num);
+		int motionInchwormRight(int num);
+		int motionRollBackward(dReal angle);
+		int motionRollForward(dReal angle);
+		int motionSkinny(dReal angle);
+		int motionStand(void);
+		int motionTumbleRight(int num);
+		int motionTumbleLeft(int num);
+		int motionTurnLeft(dReal angle);
+		int motionTurnRight(dReal angle);
+		int motionUnstand(void);
+		int move(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		int moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		int moveJoint(int id, dReal angle);
+		int moveJointNB(int id, dReal angle);
+		int moveJointTo(int id, dReal angle);
+		int moveJointToNB(int id, dReal angle);
+		int moveJointWait(int id);
+		int moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		int moveToDirect(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		int moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		//int moveToDirectNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
+		int moveToZero(void);
+		int moveToZeroNB(void);
+		int moveWait(void);
+		int recordAngle(int id, dReal time[:], dReal angle[:], int num, dReal seconds);
+		int recordAngles(dReal time[:], dReal angle1[:], dReal angle2[:], dReal angle3[:], dReal angle4[:], int num, dReal seconds);
+		int recordWait(void);
+		int resetToZero(void);
+		int resetToZeroNB(void);
+		int setJointSpeed(int id, double speed);
+		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
+#endif
 };
 
+#ifdef _CH_
+class CiMobot {
+#else
 class CiMobot : public CRobot4 {
+#endif
 	public:
-		CiMobot(void);
+		CiMobot();
 };
 
 #endif  /* MOBOTSIM_H_ */

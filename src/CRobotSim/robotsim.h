@@ -3,13 +3,22 @@
 
 #include <iostream>
 #include <stdbool.h>
+
+#ifdef _CH_
+#pragma package <chrobotsim>
+#define dDOUBLE
+#define dReal double
+#define ENABLE_GRAPHICS
+#else
 #include "config.h"
-#include "robot.h"
-#include "mobotsim.h"
-#include "tinyxml2.h"
+#include <tinyxml2.h>
 #ifdef ENABLE_GRAPHICS
 #include "graphics.h"
-#endif /* ENABLE_GRAPHICS */
+#endif // ENABLE_GRAPHICS
+#endif // _CH_
+
+#include "mobotsim.h"
+#include "robot.h"
 
 enum simulation_reply_message_e {
 	FD_SUCCESS,
@@ -17,13 +26,15 @@ enum simulation_reply_message_e {
 	FD_ERROR_STALL
 };
 
+#ifndef _CH_
 class CRobot;
-class CRobot4;
+class CMobot;
+#endif // not _CH_
 
 class CRobotSim {
 	public:
-		CRobotSim(void);
-		~CRobotSim(void);
+		CRobotSim();
+		~CRobotSim();
 
 		int getNumberOfRobots(int type);
 
@@ -36,7 +47,12 @@ class CRobotSim {
 		void setGroundSphere(dReal r, dReal px, dReal py, dReal pz);
 		void setMu(dReal mu_g, dReal mu_b);
 
+#ifndef _CH_
 		int addRobot(CRobot &robot);
+#else
+		int addRobot(CMobot &robot);
+#endif // not _CH_
+#ifndef _CH_
 	private:
 		// private variables to store general information about simulation
 		dWorldID _world;					// world in which simulation occurs
@@ -57,22 +73,35 @@ class CRobotSim {
 		pthread_mutex_t _robot_mutex;		// mutex to lock robot data
 		pthread_t _simulation;				// simulation thread
 		pthread_t* _robotThread[NUM_TYPES];	// thread for each robot
-#ifdef ENABLE_GRAPHICS
-		ViewerFrameThread *_osgThread;		// osg thread
-		osg::Group *_osgRoot;				// osg root node
-#endif /* ENABLE_GRAPHICS */
 
-#ifdef ENABLE_GRAPHICS
-		int graphics_init(void);
-		osg::TextureCubeMap* readCubeMap(void);
-		osg::Geometry* createWall(const osg::Vec3& v1,const osg::Vec3& v2,const osg::Vec3& v3,osg::StateSet* stateset);
-		osg::Node* createRoom(void);
-#endif /* ENABLE_GRAPHICS */
-		void robot_init(void);
+		// private functions
 		void print_intermediate_data(void);			// print data out at each time step for analysis
 		static void* simulationThread(void *arg);
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 		unsigned int diff_nsecs(struct timespec t1, struct timespec t2);
+		void robot_init(void);
+
+#ifdef ENABLE_GRAPHICS
+		// variables
+		ViewerFrameThread *_osgThread;		// osg thread
+		osg::Group *_osgRoot;				// osg root node
+		// functions
+		int graphics_init(void);
+		osg::TextureCubeMap* readCubeMap(void);
+		osg::Geometry* createWall(const osg::Vec3& v1,const osg::Vec3& v2,const osg::Vec3& v3,osg::StateSet* stateset);
+		osg::Node* createRoom(void);
+#endif // ENABLE_GRAPHICS
+#else
+	public:
+		static void *g_chrobotsim_dlhandle;
+		static int g_chrobotsim_dlcount;
+#endif // not _CH_
 };
+
+#ifdef _CH_
+void* CRobotSim::g_chrobotsim_dlhandle = NULL;
+int CRobotSim::g_chrobotsim_dlcount = 0;
+#pragma importf "chrobotsim.chf"
+#endif
 
 #endif	/* CROBOTSIM_H_ */

@@ -1,13 +1,17 @@
 #ifndef ROBOT_H_
 #define ROBOT_H_
 
+#include <unistd.h>
+
+#ifndef _CH_
 #include "config.h"
 #include <ode/ode.h>
-#include <unistd.h>
 #include <pthread.h>
 #ifdef ENABLE_GRAPHICS
 #include <osg/Group>
-#endif /* ENABLE_GRAPHICS */
+#endif // ENABLE_GRAPHICS
+#endif // no _CH_
+
 #define DEG2RAD(x) ((x) * M_PI / 180.0)
 #define RAD2DEG(x) ((x) * 180.0 / M_PI)
 
@@ -36,8 +40,10 @@ typedef struct bot_s {
 	struct bot_s *next;
 } *bot_t;
 
+#ifndef _CH_
 // classes forward declared
 class CRobot4;
+#endif
 
 class CRobot {
 	public:
@@ -65,6 +71,7 @@ class CRobot {
 		int simThreadsGoalWLock(void);
 		int simThreadsGoalWUnlock(void);		
 
+#ifndef _CH_
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock) = 0;
 		virtual int build(bot_t robot) = 0;
@@ -109,6 +116,7 @@ class CRobot {
 		pthread_cond_t _success_cond;
 		pthread_mutex_t _recording_mutex;
 		pthread_cond_t _recording_cond;
+#endif
 };
 
 #endif /* ROBOT_H_ */
