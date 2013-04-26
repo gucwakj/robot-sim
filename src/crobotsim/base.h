@@ -1,5 +1,5 @@
-#ifndef ROBOT_H_
-#define ROBOT_H_
+#ifndef BASE_H_
+#define BASE_H_
 
 #include <unistd.h>
 
@@ -119,4 +119,4 @@ class CRobot {
 #endif
 };
 
-#endif /* ROBOT_H_ */
+#endif // BASE_H_

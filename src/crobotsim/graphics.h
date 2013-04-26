@@ -42,8 +42,10 @@
 #include <osg/TexEnvCombine>
 #include <osg/TextureCubeMap>
 #include <osg/VertexProgram>
+
 #include <ode/ode.h>
-#include "robot.h"
+
+#include "base.h"
 
 class CRobot;
 class CRobotSim;

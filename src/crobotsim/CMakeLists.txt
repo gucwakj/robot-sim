@@ -60,7 +60,7 @@ set (EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 # Add the library
 if (ENABLE_GRAPHICS)
 add_library( robotsim SHARED
-	robot.cpp
+	base.cpp
 	robotsim.cpp
 	graphics.cpp
 	mobotsim.cpp
@@ -68,7 +68,7 @@ add_library( robotsim SHARED
 )
 else (ENABLE_GRAPHICS)
 add_library( robotsim SHARED
-	robot.cpp
+	base.cpp
 	robotsim.cpp
 	mobotsim.cpp
 	pid.cpp

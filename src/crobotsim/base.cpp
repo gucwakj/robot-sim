@@ -1,4 +1,4 @@
-#include "robot.h"
+#include "base.h"
 
 void* CRobot::simPreCollisionThreadEntry(void *arg) {
 	CRobot *p = (CRobot *)arg;

@@ -8,7 +8,7 @@
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
 #include "robotsim.h"
-#include "robot.h"
+#include "base.h"
 #endif // not _CH_
 
 #ifdef ENABLE_DOUBLE
