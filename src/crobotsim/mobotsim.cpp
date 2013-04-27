@@ -1,6 +1,6 @@
 #include "mobotsim.h"
 
-CRobot4::CRobot4(void) {
+CMobot::CMobot(void) {
 	for (int i = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
 		_goal[i] = 0;
@@ -11,6 +11,36 @@ CRobot4::CRobot4(void) {
 	}
 	_conn = NULL;
 	_id = -1;
+	_type = MOBOT;
+	_encoderResolution = DEG2RAD(0.5);
+	_maxJointForce[MOBOT_JOINT1] = 0.260;
+	_maxJointForce[MOBOT_JOINT2] = 1.059;
+	_maxJointForce[MOBOT_JOINT3] = 1.059;
+	_maxJointForce[MOBOT_JOINT4] = 0.260;
+	_center_length = 0.0516;
+	_center_width = 0.0327;
+	_center_height = 0.0508;
+	_center_radius = 0.0254;
+	_center_offset = 0.0149;
+	_body_length = 0.0258;
+	_body_width = 0.0762;
+	_body_height = 0.0508;
+	_body_radius = 0.0254;
+	_body_inner_width_left = 0.0366;
+	_body_inner_width_right = 0.0069;
+	_body_end_depth = 0.0352;
+	_body_mount_center = 0.0374;
+	_end_width = 0.0762;
+	_end_height = 0.0762;
+	_end_depth = 0.0080;
+	_end_radius = 0.0254;
+	_connector_depth = 0.0048;
+	_connector_height = 0.0413;
+	_connector_radius = 0.0064;
+	_bigwheel_radius = 0.0571;
+	_smallwheel_radius = 0.0445;
+	_tank_depth = 0.0413;
+	_tank_height = 0.0460;
 
 	// init locks
 	this->simThreadsAngleInit();
@@ -19,29 +49,29 @@ CRobot4::CRobot4(void) {
 	this->simThreadsSuccessInit();
 }
 
-CRobot4::~CRobot4(void) {
+CMobot::~CMobot(void) {
 	//dSpaceDestroy(_space); //sigsegv
 }
 
-int CRobot4::connect(void) {
+int CMobot::connect(void) {
 	return 0;
 }
 
-int CRobot4::getJointAngle(int id, dReal &angle) {
+int CMobot::getJointAngle(int id, dReal &angle) {
 	angle = RAD2DEG(this->getAngle(id));
 
 	// success
 	return 0;
 }
 
-int CRobot4::getJointSpeed(int id, dReal &speed) {
+int CMobot::getJointSpeed(int id, dReal &speed) {
 	speed = RAD2DEG(_velocity[id]);
 
 	// success
 	return 0;
 }
 
-int CRobot4::getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4) {
+int CMobot::getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4) {
 	speed1 = RAD2DEG(_velocity[0]);
 	speed2 = RAD2DEG(_velocity[1]);
 	speed3 = RAD2DEG(_velocity[2]);
@@ -51,7 +81,7 @@ int CRobot4::getJointSpeeds(double &speed1, double &speed2, double &speed3, doub
 	return 0;
 }
 
-int CRobot4::motionArch(dReal angle) {
+int CMobot::motionArch(dReal angle) {
 	this->moveJointToNB(MOBOT_JOINT2, -angle/2.0);
 	this->moveJointToNB(MOBOT_JOINT3, angle/2.0);
 	this->moveJointWait(MOBOT_JOINT2);
@@ -61,7 +91,7 @@ int CRobot4::motionArch(dReal angle) {
 	return 0;
 }
 
-int CRobot4::motionInchwormLeft(int num) {
+int CMobot::motionInchwormLeft(int num) {
 	this->moveJointToNB(MOBOT_JOINT2, 0);
 	this->moveJointToNB(MOBOT_JOINT3, 0);
 	this->moveWait();
@@ -77,7 +107,7 @@ int CRobot4::motionInchwormLeft(int num) {
 	return 0;
 }
 
-int CRobot4::motionInchwormRight(int num) {
+int CMobot::motionInchwormRight(int num) {
 	this->moveJointToNB(MOBOT_JOINT2, 0);
 	this->moveJointToNB(MOBOT_JOINT3, 0);
 	this->moveWait();
@@ -93,7 +123,7 @@ int CRobot4::motionInchwormRight(int num) {
 	return 0;
 }
 
-int CRobot4::motionRollBackward(dReal angle) {
+int CMobot::motionRollBackward(dReal angle) {
 	dReal motorPosition[2];
 	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
 	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
@@ -105,7 +135,7 @@ int CRobot4::motionRollBackward(dReal angle) {
 	return 0;
 }
 
-int CRobot4::motionRollForward(dReal angle) {
+int CMobot::motionRollForward(dReal angle) {
 	dReal motorPosition[2];
 	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
 	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
@@ -117,7 +147,7 @@ int CRobot4::motionRollForward(dReal angle) {
 	return 0;
 }
 
-int CRobot4::motionSkinny(dReal angle) {
+int CMobot::motionSkinny(dReal angle) {
 	this->moveJointToNB(MOBOT_JOINT2, angle);
 	this->moveJointToNB(MOBOT_JOINT3, angle);
 	this->moveWait();
@@ -126,7 +156,7 @@ int CRobot4::motionSkinny(dReal angle) {
 	return 0;
 }
 
-int CRobot4::motionStand(void) {
+int CMobot::motionStand(void) {
 	this->resetToZero();
 	//this->moveToZero();
 	this->moveJointTo(MOBOT_JOINT2, -85);
@@ -144,7 +174,7 @@ int CRobot4::motionStand(void) {
 	return 0;
 }
 
-int CRobot4::motionTumbleLeft(int num) {
+int CMobot::motionTumbleLeft(int num) {
 	this->resetToZero();
 #ifndef _WIN32
 	usleep(1000000);
@@ -176,7 +206,7 @@ int CRobot4::motionTumbleLeft(int num) {
 	return 0;
 }
 
-int CRobot4::motionTumbleRight(int num) {
+int CMobot::motionTumbleRight(int num) {
 	this->resetToZero();
 #ifndef _WIN32
 	usleep(1000000);
@@ -208,7 +238,7 @@ int CRobot4::motionTumbleRight(int num) {
 	return 0;
 }
 
-int CRobot4::motionTurnLeft(dReal angle) {
+int CMobot::motionTurnLeft(dReal angle) {
 	dReal motorPosition[2];
 	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
 	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
@@ -220,7 +250,7 @@ int CRobot4::motionTurnLeft(dReal angle) {
 	return 0;
 }
 
-int CRobot4::motionTurnRight(dReal angle) {
+int CMobot::motionTurnRight(dReal angle) {
 	dReal motorPosition[2];
 	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
 	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
@@ -232,7 +262,7 @@ int CRobot4::motionTurnRight(dReal angle) {
 	return 0;
 }
 
-int CRobot4::motionUnstand(void) {
+int CMobot::motionUnstand(void) {
 	this->moveToDirect(0, 0, 0, 0);
 	this->moveJointToNB(MOBOT_JOINT3, 45);
 	this->moveJointToNB(MOBOT_JOINT2, -85);
@@ -243,7 +273,7 @@ int CRobot4::motionUnstand(void) {
 	return 0;
 }
 
-int CRobot4::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int CMobot::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	this->moveNB(angle1, angle2, angle3, angle4);
 	this->moveWait();
 
@@ -251,7 +281,7 @@ int CRobot4::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	return 0;
 }
 
-int CRobot4::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int CMobot::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	// store angles into array
 	dReal delta[4] = {angle1, angle2, angle3, angle4};
 
@@ -300,7 +330,7 @@ int CRobot4::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	return 0;
 }
 
-int CRobot4::moveJoint(int id, dReal angle) {
+int CMobot::moveJoint(int id, dReal angle) {
 	this->moveJointNB(id, angle);
 	this->moveJointWait(id);
 
@@ -308,7 +338,7 @@ int CRobot4::moveJoint(int id, dReal angle) {
 	return 0;
 }
 
-int CRobot4::moveJointNB(int id, dReal angle) {
+int CMobot::moveJointNB(int id, dReal angle) {
 	// lock goal
 	this->simThreadsGoalWLock();
 
@@ -347,7 +377,7 @@ int CRobot4::moveJointNB(int id, dReal angle) {
 	return 0;
 }
 
-int CRobot4::moveJointTo(int id, dReal angle) {
+int CMobot::moveJointTo(int id, dReal angle) {
 	this->moveJointToNB(id, angle);
 	this->moveJointWait(id);
 
@@ -355,7 +385,7 @@ int CRobot4::moveJointTo(int id, dReal angle) {
 	return 0;
 }
 
-int CRobot4::moveJointToNB(int id, dReal angle) {
+int CMobot::moveJointToNB(int id, dReal angle) {
 	// store delta angle
 	dReal delta = angle - _angle[id];
 
@@ -397,7 +427,7 @@ int CRobot4::moveJointToNB(int id, dReal angle) {
 	return 0;
 }
 
-int CRobot4::moveJointWait(int id) {
+int CMobot::moveJointWait(int id) {
 	// wait for motion to complete
 	this->simThreadsSuccessLock();
 	while ( !_success[id] ) { this->simThreadsSuccessWait(); }
@@ -408,7 +438,7 @@ int CRobot4::moveJointWait(int id) {
 	return 0;
 }
 
-int CRobot4::moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int CMobot::moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	this->moveToNB(angle1, angle2, angle3, angle4);
 	this->moveWait();
 
@@ -416,10 +446,10 @@ int CRobot4::moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	return 0;
 }
 
-int CRobot4::moveToDirect(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int CMobot::moveToDirect(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 }
 
-int CRobot4::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int CMobot::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	// store angles into array
 	dReal delta[4] = {angle1 - _angle[0], angle2 - _angle[1], angle3 - _angle[2], angle4 - _angle[3]};
 
@@ -473,21 +503,21 @@ int CRobot4::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	return 0;
 }*/
 
-int CRobot4::moveToZero(void) {
+int CMobot::moveToZero(void) {
 	this->moveTo(0, 0, 0, 0);
 
 	// success
 	return 0;
 }
 
-int CRobot4::moveToZeroNB(void) {
+int CMobot::moveToZeroNB(void) {
 	this->moveToNB(0, 0, 0, 0);
 
 	// success
 	return 0;
 }
 
-int CRobot4::moveWait(void) {
+int CMobot::moveWait(void) {
 	// wait for motion to complete
 	this->simThreadsSuccessLock();
 	while ( !(_success[0]) && !(_success[1]) && !(_success[2]) && !(_success[3]) ) {
@@ -503,7 +533,7 @@ int CRobot4::moveWait(void) {
 	return 0;
 }
 
-int CRobot4::recordAngle(int id, dReal *time, dReal *angle, int num, dReal seconds, dReal threshold) {
+int CMobot::recordAngle(int id, dReal *time, dReal *angle, int num, dReal seconds, dReal threshold) {
 	pthread_t recording;
 	recordAngleArg_t *rArg = new recordAngleArg_t;
 	if (_recording[id]) { return -1; }
@@ -514,13 +544,13 @@ int CRobot4::recordAngle(int id, dReal *time, dReal *angle, int num, dReal secon
 	rArg->num = num;
 	rArg->msecs = 1000*seconds;
 	_recording[id] = true;
-	pthread_create(&recording, NULL, (void* (*)(void *))&CRobot4::record_angle_thread, (void *)rArg);
+	pthread_create(&recording, NULL, (void* (*)(void *))&CMobot::record_angle_thread, (void *)rArg);
 
 	// success
 	return 0;
 }
 
-int CRobot4::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, dReal *angle4, int num, dReal seconds, dReal threshold) {
+int CMobot::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, dReal *angle4, int num, dReal seconds, dReal threshold) {
 	pthread_t recording;
 	recordAngleArg_t *rArg = new recordAngleArg_t;
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -537,13 +567,13 @@ int CRobot4::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angl
 	for (int i = 0; i < NUM_DOF; i++) {
 		_recording[i] = true;
 	}
-	pthread_create(&recording, NULL, (void* (*)(void *))&CRobot4::record_angles_thread, (void *)rArg);
+	pthread_create(&recording, NULL, (void* (*)(void *))&CMobot::record_angles_thread, (void *)rArg);
 
 	// success
 	return 0;
 }
 
-int CRobot4::recordWait(void) {
+int CMobot::recordWait(void) {
 	// wait for motion to complete
 	this->simThreadsRecordingLock();
 	while ( _recording[0] || _recording[1] || _recording[2] || _recording[3] ) {
@@ -559,7 +589,7 @@ int CRobot4::recordWait(void) {
 	return 0;
 }
 
-int CRobot4::resetToZero(void) {
+int CMobot::resetToZero(void) {
 	// reset absolute counter to 0 -> 2M_PI
 	this->simThreadsAngleLock();
 	int rev = (int)(_angle[LE]/2/M_PI);
@@ -575,7 +605,7 @@ int CRobot4::resetToZero(void) {
 	return 0;
 }
 
-int CRobot4::resetToZeroNB(void) {
+int CMobot::resetToZeroNB(void) {
 	// reset absolute counter to 0 -> 2M_PI
 	this->simThreadsAngleLock();
 	int rev = (int)(_angle[LE]/2/M_PI);
@@ -591,14 +621,14 @@ int CRobot4::resetToZeroNB(void) {
 	return 0;
 }
 
-int CRobot4::setJointSpeed(int id, double speed) {
+int CMobot::setJointSpeed(int id, double speed) {
 	_velocity[id] = DEG2RAD((speed > _maxSpeed[id]) ? _maxSpeed[id] : speed);
 
 	// success
 	return 0;
 }
 
-int CRobot4::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
+int CMobot::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
 	_velocity[0] = DEG2RAD((speed1 > _maxSpeed[0]) ? _maxSpeed[0] : speed1);
 	_velocity[1] = DEG2RAD((speed2 > _maxSpeed[1]) ? _maxSpeed[1] : speed2);
 	_velocity[2] = DEG2RAD((speed3 > _maxSpeed[2]) ? _maxSpeed[2] : speed3);
@@ -611,7 +641,7 @@ int CRobot4::setJointSpeeds(double speed1, double speed2, double speed3, double 
 /**********************************************************
 	inherited functions
  **********************************************************/
-int CRobot4::addToSim(dWorldID &world, dSpaceID &space, dReal *clock) {
+int CMobot::addToSim(dWorldID &world, dSpaceID &space, dReal *clock) {
 	_world = world;
     _space = dHashSpaceCreate(space);
 	_clock = clock;
@@ -620,7 +650,7 @@ int CRobot4::addToSim(dWorldID &world, dSpaceID &space, dReal *clock) {
 	return 0;
 }
 
-int CRobot4::build(bot_t robot) {
+int CMobot::build(bot_t robot) {
 	// create rotation matrix
 	dReal   sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
 			stheta = sin(DEG2RAD(robot->theta)),	ctheta = cos(DEG2RAD(robot->theta)),
@@ -659,7 +689,7 @@ int CRobot4::build(bot_t robot) {
 	return 0;
 }
 
-int CRobot4::build(bot_t robot, CRobot *base, Conn_t *conn) {
+int CMobot::build(bot_t robot, CRobot *base, Conn_t *conn) {
 	// build robot
 	this->build_attached(robot, base, conn);
 
@@ -679,7 +709,7 @@ int CRobot4::build(bot_t robot, CRobot *base, Conn_t *conn) {
 	return 0;
 }
 
-dReal CRobot4::getAngle(int i) {
+dReal CMobot::getAngle(int i) {
 	if (i == LE || i == RE)
 		_angle[i] = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
 	else
@@ -687,11 +717,11 @@ dReal CRobot4::getAngle(int i) {
     return _angle[i];
 }
 
-dBodyID CRobot4::getBodyID(int id) {
+dBodyID CMobot::getBodyID(int id) {
     return _body[id];
 }
 
-int CRobot4::getConnectionParams(int face, dMatrix3 R, dReal *p) {
+int CMobot::getConnectionParams(int face, dMatrix3 R, dReal *p) {
 	const dReal *pos, *R1;
 	dMatrix3 R2;
 	double offset[3] = {0};
@@ -759,7 +789,7 @@ int CRobot4::getConnectionParams(int face, dMatrix3 R, dReal *p) {
 	return 0;
 }
 
-dBodyID CRobot4::getConnectorBodyID(int face) {
+dBodyID CMobot::getConnectorBodyID(int face) {
 	conn_t ctmp = _conn;
 	while (ctmp) {
 		if (ctmp->face == face) {
@@ -770,7 +800,7 @@ dBodyID CRobot4::getConnectorBodyID(int face) {
 	return NULL;
 }
 
-dBodyID CRobot4::getConnectorBodyIDs(int num) {
+dBodyID CMobot::getConnectorBodyIDs(int num) {
 	conn_t ctmp = _conn;
 	int i = 0;
 	while (ctmp && i++ < num)
@@ -781,20 +811,20 @@ dBodyID CRobot4::getConnectorBodyIDs(int num) {
 	return NULL;
 }
 
-int CRobot4::getID(void) {
+int CMobot::getID(void) {
 	return _id;
 }
 
-dJointID CRobot4::getMotorID(int id) {
+dJointID CMobot::getMotorID(int id) {
     return _motor[id];
 }
 
-dReal CRobot4::getPosition(int body, int i) {
+dReal CMobot::getPosition(int body, int i) {
 	const dReal *pos = dBodyGetPosition(_body[body]);
 	return pos[i];
 }
 
-dReal CRobot4::getRotation(int body, int i) {
+dReal CMobot::getRotation(int body, int i) {
 	const dReal *R = dBodyGetRotation(_body[body]);
 	dReal angles[3] = {0};
     if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
@@ -815,24 +845,24 @@ dReal CRobot4::getRotation(int body, int i) {
 	return angles[i];
 }
 
-bool CRobot4::getSuccess(int i) {
+bool CMobot::getSuccess(int i) {
 	return _success[i];
 }
 
-int CRobot4::getType(void) {
+int CMobot::getType(void) {
 	return _type;
 }
 
-bool CRobot4::isHome(void) {
+bool CMobot::isHome(void) {
     return ( fabs(_angle[LE]) < EPSILON && fabs(_angle[LB]) < EPSILON && fabs(_angle[RB]) < EPSILON && fabs(_angle[RE]) < EPSILON );
 }
 
-int CRobot4::setID(int id) {
+int CMobot::setID(int id) {
 	_id = id;
 	return 0;
 }
 
-void CRobot4::simPreCollisionThread(void) {
+void CMobot::simPreCollisionThread(void) {
 	// lock angle and goal
 	this->simThreadsGoalRLock();
 	this->simThreadsAngleLock();
@@ -857,7 +887,7 @@ void CRobot4::simPreCollisionThread(void) {
 	this->simThreadsGoalRUnlock();
 }
 
-void CRobot4::simPostCollisionThread(void) {
+void CMobot::simPostCollisionThread(void) {
 	// lock angle and goal
 	this->simThreadsGoalRLock();
 	this->simThreadsAngleLock();
@@ -876,7 +906,7 @@ void CRobot4::simPostCollisionThread(void) {
 }
 
 #ifdef ENABLE_GRAPHICS
-void CRobot4::draw(osg::Group *root) {
+void CMobot::draw(osg::Group *root) {
 	// initialize variables
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[5];
@@ -1089,7 +1119,7 @@ void CRobot4::draw(osg::Group *root) {
 /**********************************************************
 	private functions
  **********************************************************/
-int CRobot4::add_connector(int type, int face) {
+int CMobot::add_connector(int type, int face) {
 	// create new connector
 	conn_t nc = (conn_t)malloc(sizeof(struct conn_s));
 	nc->face = face; 
@@ -1139,7 +1169,7 @@ int CRobot4::add_connector(int type, int face) {
 	return 0;
 }
 
-int CRobot4::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+int CMobot::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
     _geom[ENDCAP_L] = new dGeomID[7];
@@ -1309,7 +1339,7 @@ int CRobot4::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le,
 	return 0;
 }
 
-int CRobot4::build_attached(bot_t robot, CRobot *base, Conn_t *conn) {
+int CMobot::build_attached(bot_t robot, CRobot *base, Conn_t *conn) {
 	// initialize new variables
 	int i = 1;
 	dReal m[3] = {0}, offset[3] = {0};
@@ -1407,7 +1437,7 @@ int CRobot4::build_attached(bot_t robot, CRobot *base, Conn_t *conn) {
 	return 0;
 }
 
-int CRobot4::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta) {
+int CMobot::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta) {
 	int i = 1;
 	if ( id == BODY_R )
 		i = -1;
@@ -1476,7 +1506,7 @@ int CRobot4::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal the
 	return 0;
 }
 
-int CRobot4::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
+int CMobot::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
     // define parameters
     dMass m;
     dMatrix3 R1;
@@ -1524,7 +1554,7 @@ int CRobot4::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
 	return 0;
 }
 
-int CRobot4::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
+int CMobot::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
     // define parameters
     dMass m;
     dMatrix3 R1;
@@ -1592,7 +1622,7 @@ int CRobot4::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
 	return 0;
 }
 
-int CRobot4::build_bigwheel(conn_t conn, int face) {
+int CMobot::build_bigwheel(conn_t conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[1];
@@ -1641,7 +1671,7 @@ int CRobot4::build_bigwheel(conn_t conn, int face) {
 	return 0;
 }
 
-int CRobot4::build_caster(conn_t conn, int face) {
+int CMobot::build_caster(conn_t conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[10];
@@ -1743,7 +1773,7 @@ int CRobot4::build_caster(conn_t conn, int face) {
 	return 0;
 }
 
-int CRobot4::build_simple(conn_t conn, int face) {
+int CMobot::build_simple(conn_t conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[7];
@@ -1830,7 +1860,7 @@ int CRobot4::build_simple(conn_t conn, int face) {
 	return 0;
 }
 
-int CRobot4::build_smallwheel(conn_t conn, int face) {
+int CMobot::build_smallwheel(conn_t conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[1];
@@ -1879,7 +1909,7 @@ int CRobot4::build_smallwheel(conn_t conn, int face) {
 	return 0;
 }
 
-int CRobot4::build_square(conn_t conn, int face) {
+int CMobot::build_square(conn_t conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[4];
@@ -1939,7 +1969,7 @@ int CRobot4::build_square(conn_t conn, int face) {
 	return 0;
 }
 
-int CRobot4::build_tank(conn_t conn, int face) {
+int CMobot::build_tank(conn_t conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[1];
@@ -1988,7 +2018,7 @@ int CRobot4::build_tank(conn_t conn, int face) {
 	return 0;
 }
 
-int CRobot4::fix_body_to_connector(dBodyID cBody, int face) {
+int CMobot::fix_body_to_connector(dBodyID cBody, int face) {
 	if (!cBody) { fprintf(stderr,"connector body does not exist\n"); }
 
 	// fixed joint
@@ -2023,7 +2053,7 @@ int CRobot4::fix_body_to_connector(dBodyID cBody, int face) {
 	return 0;
 }
 
-int CRobot4::fix_connector_to_body(int face, dBodyID cBody) {
+int CMobot::fix_connector_to_body(int face, dBodyID cBody) {
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
 
@@ -2056,7 +2086,7 @@ int CRobot4::fix_connector_to_body(int face, dBodyID cBody) {
 	return 0;
 }
 
-int CRobot4::get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p) {
+int CMobot::get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p) {
 	double offset[3] = {0};
 	dMatrix3 R1, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
 
@@ -2110,7 +2140,7 @@ int CRobot4::get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p) {
 	return 0;
 }
 
-dReal CRobot4::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
+dReal CMobot::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     dReal new_ang = 0;
     int stp = (int)( fabs(past_ang) / M_PI );
     dReal past_ang_mod = fabs(past_ang) - stp*M_PI;
@@ -2166,14 +2196,14 @@ dReal CRobot4::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
     return new_ang;
 }
 
-/*void CRobot4::resetPID(int i) {
+/*void CMobot::resetPID(int i) {
     if ( i == NUM_DOF )
         for ( int j = 0; j < NUM_DOF; j++ ) this->pid[j].restart();
     else
         this->pid[i].restart();
 }*/
 
-void* CRobot4::record_angle_thread(void *arg) {
+void* CMobot::record_angle_thread(void *arg) {
     recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
     double start_time;
 	int time = (int)(*(rArg->robot->_clock)*1000);
@@ -2195,7 +2225,7 @@ void* CRobot4::record_angle_thread(void *arg) {
 	return NULL;
 }
 
-void* CRobot4::record_angles_thread(void *arg) {
+void* CMobot::record_angles_thread(void *arg) {
     recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
     double start_time;
 	int time = (int)(*(rArg->robot->_clock)*1000);
@@ -2223,7 +2253,7 @@ void* CRobot4::record_angles_thread(void *arg) {
 }
 
 #ifdef ENABLE_GRAPHICS
-void CRobot4::draw_bigwheel(conn_t conn, osg::Group *robot) {
+void CMobot::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
@@ -2256,7 +2286,7 @@ void CRobot4::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 
-void CRobot4::draw_caster(conn_t conn, osg::Group *robot) {
+void CMobot::draw_caster(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
@@ -2338,7 +2368,7 @@ void CRobot4::draw_caster(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 
-void CRobot4::draw_simple(conn_t conn, osg::Group *robot) {
+void CMobot::draw_simple(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
@@ -2405,7 +2435,7 @@ void CRobot4::draw_simple(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 
-void CRobot4::draw_smallwheel(conn_t conn, osg::Group *robot) {
+void CMobot::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
@@ -2438,7 +2468,7 @@ void CRobot4::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 
-void CRobot4::draw_square(conn_t conn, osg::Group *robot) {
+void CMobot::draw_square(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
@@ -2486,7 +2516,7 @@ void CRobot4::draw_square(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 
-void CRobot4::draw_tank(conn_t conn, osg::Group *robot) {
+void CMobot::draw_tank(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
@@ -2522,87 +2552,3 @@ void CRobot4::draw_tank(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 #endif // ENABLE_GRAPHICS
-
-/**********************************************************
-	CiMobot Class
- **********************************************************/
-CiMobot::CiMobot(void) {
-	_encoderResolution = DEG2RAD(0.5);
-	_maxJointVelocity[IMOBOT_JOINT1] = 6.70;
-	_maxJointVelocity[IMOBOT_JOINT2] = 2.61;
-	_maxJointVelocity[IMOBOT_JOINT3] = 2.61;
-	_maxJointVelocity[IMOBOT_JOINT4] = 6.70;
-	_maxJointForce[IMOBOT_JOINT1] = 0.260;
-	_maxJointForce[IMOBOT_JOINT2] = 1.059;
-	_maxJointForce[IMOBOT_JOINT3] = 1.059;
-	_maxJointForce[IMOBOT_JOINT4] = 0.260;
-	_center_length = 0.07303;
-	_center_width = 0.02540;
-	_center_height = 0.06909;
-	_center_radius = 0.03554;
-	_center_offset = 0;
-	_body_length = 0.03785;
-	_body_width = 0.07239;
-	_body_height = 0.07239;
-	_body_radius = 0.03620;
-	_body_inner_width_left = 0.02287;
-	_body_inner_width_right = 0.02287;
-	_body_end_depth = 0.01994;
-	_body_mount_center = 0.03792;
-	_end_width = 0.07239;
-	_end_height = 0.07239;
-	_end_depth = 0.00476;
-	_end_radius = 0.01778;
-	_connector_depth = 0;
-	_connector_height = 0;
-	_connector_radius = 0;
-	_bigwheel_radius = 0;
-	_smallwheel_radius = 0;
-	_tank_depth = 0;
-	_tank_height = 0;
-	_type = IMOBOT;
-}
-
-/**********************************************************
-	CMobot Class
- **********************************************************/
-CMobot::CMobot(void) {
-	_encoderResolution = DEG2RAD(0.5);
-	_maxJointVelocity[MOBOT_JOINT1] = 6.70;
-	_maxJointVelocity[MOBOT_JOINT2] = 2.61;
-	_maxJointVelocity[MOBOT_JOINT3] = 2.61;
-	_maxJointVelocity[MOBOT_JOINT4] = 6.70;
-	_maxJointForce[MOBOT_JOINT1] = 0.260;
-	_maxJointForce[MOBOT_JOINT2] = 1.059;
-	_maxJointForce[MOBOT_JOINT3] = 1.059;
-	_maxJointForce[MOBOT_JOINT4] = 0.260;
-	_center_length = 0.0516;
-	_center_width = 0.0327;
-	_center_height = 0.0508;
-	_center_radius = 0.0254;
-	_center_offset = 0.0149;
-	_body_length = 0.0258;
-	_body_width = 0.0762;
-	_body_height = 0.0508;
-	_body_radius = 0.0254;
-	_body_inner_width_left = 0.0366;
-	_body_inner_width_right = 0.0069;
-	_body_end_depth = 0.0352;
-	_body_mount_center = 0.0374;
-	_end_width = 0.0762;
-	_end_height = 0.0762;
-	_end_depth = 0.0080;
-	_end_radius = 0.0254;
-	_connector_depth = 0.0048;
-	_connector_height = 0.0413;
-	_connector_radius = 0.0064;
-	_bigwheel_radius = 0.0571;
-	_smallwheel_radius = 0.0445;
-	_tank_depth = 0.0413;
-	_tank_height = 0.0460;
-	_type = MOBOT;
-
-}
-
-/*CMobot::~CMobot(void) {
-}*/

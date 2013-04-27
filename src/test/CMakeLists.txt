@@ -38,8 +38,8 @@ include_directories("../CMobotIK")
 link_directories("../CMobotIK")
 
 # Add CRobotSim library subdirectory
-include_directories("../CRobotSim")
-link_directories("../CRobotSim")
+include_directories("../crobotsim")
+link_directories("../crobotsim")
 
 # Add the executable
 add_executable(ik ik.cpp)

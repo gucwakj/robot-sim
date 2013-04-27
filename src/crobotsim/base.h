@@ -42,7 +42,7 @@ typedef struct bot_s {
 
 #ifndef _CH_
 // classes forward declared
-class CRobot4;
+//class CMobot;
 #endif
 
 class CRobot {

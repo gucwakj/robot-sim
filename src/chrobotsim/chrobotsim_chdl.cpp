@@ -1,5 +1,5 @@
-#include "../CRobotSim/robotsim.h"
-#include "../CRobotSim/mobotsim.h"
+#include "../crobotsim/robotsim.h"
+#include "../crobotsim/mobotsim.h"
 #include <ch.h>
 
 EXPORTCH void CRobotSim_CRobotSim_chdl(void *varg) {

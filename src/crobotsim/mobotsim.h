@@ -17,14 +17,6 @@
 #define EPSILON FLT_EPSILON
 #endif // ENABLE_DOUBLE
 
-typedef enum imobot_faces_e {
-	IMOBOT_FACE1 = 1,
-	IMOBOT_FACE2,
-	IMOBOT_FACE3,
-	IMOBOT_FACE4,
-	IMOBOT_FACE5,
-	IMOBOT_FACE6
-} iMobotFaceID_t;
 typedef enum mobot_faces_e {
 	MOBOT_FACE1 = 1,
 	MOBOT_FACE2,
@@ -33,12 +25,6 @@ typedef enum mobot_faces_e {
 	MOBOT_FACE5,
 	MOBOT_FACE6
 } mobotFaceID_t;
-typedef enum imobot_joints_e {
-	IMOBOT_JOINT1,
-	IMOBOT_JOINT2,
-	IMOBOT_JOINT3,
-	IMOBOT_JOINT4
-} iMobotJointID_t;
 typedef enum mobot_joints_e {
 	MOBOT_JOINT1,
 	MOBOT_JOINT2,
@@ -62,18 +48,18 @@ typedef enum mobot_connector_e {
 	NUM_CONNECTORS
 } mobotConnector_t;
 
-#ifndef _CH_
+#ifdef _CH_
+class CMobot {
+#else
 class CRobotSim;
-#endif // not _CH_
-
-#ifndef _CH_
-class CRobot4 : virtual public CRobot {
+class CMobot : virtual public CRobot {
 	friend class CRobotSim;
 	friend class robot4NodeCallback;
+#endif // _CH_
 	// public api to mimic CMobot class
 	public:
-		CRobot4();
-		~CRobot4();
+		CMobot();
+		~CMobot();
 
 		int connect(void);
 		int getJointAngle(int id, dReal &angle);
@@ -105,13 +91,19 @@ class CRobot4 : virtual public CRobot {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
+#ifndef _CH_
 		int recordAngle(int id, dReal *time, dReal *angle, int num, dReal seconds, dReal threshold = 0.0);
 		int recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, dReal *angle4, int num, dReal seconds, dReal threshold = 0.0);
+#else
+		int recordAngle(int id, dReal time[:], dReal angle[:], int num, dReal seconds);
+		int recordAngles(dReal time[:], dReal angle1[:], dReal angle2[:], dReal angle3[:], dReal angle4[:], int num, dReal seconds);
+#endif // not _CH_
 		int recordWait(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
 		int setJointSpeed(int id, double speed);
 		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
+#ifndef _CH_
     private:
 		enum robot_pieces_e {       // each body part which is built
 			ENDCAP_L,
@@ -129,7 +121,7 @@ class CRobot4 : virtual public CRobot {
 			NUM_DOF
 		};
 		typedef struct recordAngleArg_s {
-			CRobot4 *robot;
+			CMobot *robot;
 			int id;
 			int num;
 			int msecs;
@@ -157,13 +149,21 @@ class CRobot4 : virtual public CRobot {
 		dReal _angle[NUM_DOF];		// angles
 		dReal _velocity[NUM_DOF];	// velocities
 		dReal _goal[NUM_DOF];		// goals
+		dReal _maxJointForce[NUM_DOF];
 		dReal _maxSpeed[NUM_DOF];	// maximum joint speeds
 		conn_t _conn;				// connectors
 		//PID _pid[NUM_DOF];			// PID control for each joint
 		int _id;					// robot id
 		int _state[NUM_DOF];		// joint states
-		bool _success[NUM_DOF];		// trigger for goal
+		int _type;					// type of robot
 		bool _recording[NUM_DOF];	// recording in progress
+		bool _success[NUM_DOF];		// trigger for goal
+		double	_encoderResolution,
+				_center_length, _center_width, _center_height, _center_radius, _center_offset,
+				_body_length, _body_width, _body_height, _body_radius,
+				_body_inner_width_left, _body_inner_width_right, _body_end_depth, _body_mount_center,
+				_end_width, _end_height, _end_depth, _end_radius;
+		double	_connector_depth, _connector_height, _connector_radius, _bigwheel_radius, _smallwheel_radius, _tank_height, _tank_depth;
 
 		// private functions inherited from CRobot class
 		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock);
@@ -216,75 +216,7 @@ class CRobot4 : virtual public CRobot {
 		void draw_square(conn_t conn, osg::Group *robot);
 		void draw_tank(conn_t conn, osg::Group *robot);
 #endif // ENABLE_GRAPHICS
-	protected:
-		double	_encoderResolution,
-				_center_length, _center_width, _center_height, _center_radius, _center_offset,
-				_body_length, _body_width, _body_height, _body_radius,
-				_body_inner_width_left, _body_inner_width_right, _body_end_depth, _body_mount_center,
-				_end_width, _end_height, _end_depth, _end_radius;
-		double	_connector_depth, _connector_height, _connector_radius, _bigwheel_radius, _smallwheel_radius, _tank_height, _tank_depth;
-		int _type;					// robot type
-		dReal _maxJointVelocity[NUM_DOF];
-		dReal _maxJointForce[NUM_DOF];
-};
 #endif // not _CH_
-
-#ifdef _CH_
-class CMobot {
-#else
-class CMobot : public CRobot4 {
-#endif
-	public:
-		CMobot();
-#ifdef _CH_
-		~CMobot();
-		int connect(void);
-		int getJointAngle(int id, dReal &angle);
-		int getJointSpeed(int id, double &speed);
-		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);
-		int motionArch(dReal angle);
-		int motionInchwormLeft(int num);
-		int motionInchwormRight(int num);
-		int motionRollBackward(dReal angle);
-		int motionRollForward(dReal angle);
-		int motionSkinny(dReal angle);
-		int motionStand(void);
-		int motionTumbleRight(int num);
-		int motionTumbleLeft(int num);
-		int motionTurnLeft(dReal angle);
-		int motionTurnRight(dReal angle);
-		int motionUnstand(void);
-		int move(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		int moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		int moveJoint(int id, dReal angle);
-		int moveJointNB(int id, dReal angle);
-		int moveJointTo(int id, dReal angle);
-		int moveJointToNB(int id, dReal angle);
-		int moveJointWait(int id);
-		int moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		int moveToDirect(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		int moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		//int moveToDirectNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		int moveToZero(void);
-		int moveToZeroNB(void);
-		int moveWait(void);
-		int recordAngle(int id, dReal time[:], dReal angle[:], int num, dReal seconds);
-		int recordAngles(dReal time[:], dReal angle1[:], dReal angle2[:], dReal angle3[:], dReal angle4[:], int num, dReal seconds);
-		int recordWait(void);
-		int resetToZero(void);
-		int resetToZeroNB(void);
-		int setJointSpeed(int id, double speed);
-		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
-#endif
 };
 
-#ifdef _CH_
-class CiMobot {
-#else
-class CiMobot : public CRobot4 {
-#endif
-	public:
-		CiMobot();
-};
-
-#endif  /* MOBOTSIM_H_ */
+#endif  // MOBOTSIM_H_
