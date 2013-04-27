@@ -31,12 +31,22 @@ else (ENABLE_DOUBLE)
   add_definitions(-DdSINGLE)
 endif (ENABLE_DOUBLE)
 
-# Add CRobotSim library subdirectory
-include_directories("../src/CRobotSim")
-link_directories("../src/CRobotSim")
+# Add crobotsim library subdirectory
+include_directories("../src/crobotsim")
+link_directories("../src/crobotsim")
 
-# Add the executable
+# Add cmobotik library subdirectory
+include_directories("../src/CMobotIK")
+link_directories("../src/CMobotIK")
+
+# crobotsim demos
+add_executable(fdtest fdtest.cpp)
+target_link_libraries(fdtest robotsim)
 add_executable(dataAcquisition dataAcquisition.cpp)
 target_link_libraries(dataAcquisition robotsim)
 add_executable(liftRecorded liftRecorded.cpp)
 target_link_libraries(liftRecorded robotsim)
+
+# cmobotik demos
+add_executable(iktest iktest.cpp)
+target_link_libraries(iktest mobotik)

@@ -15,10 +15,10 @@
 #ifdef ENABLE_GRAPHICS
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
+#include "base.h"
 #endif // _CH_
 
 #include "mobotsim.h"
-#include "base.h"
 
 enum simulation_reply_message_e {
 	FD_SUCCESS,

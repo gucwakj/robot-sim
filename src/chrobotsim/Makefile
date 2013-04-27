@@ -6,7 +6,7 @@ VERSION=0.0.1
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 
 SRC=../crobotsim
-HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/base.h $(SRC)/graphics.h
+HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/graphics.h
 CPPFLAGS = -DdDOUBLE
 INCLUDES=-I../opende/sys/include/ -I../tinyxml2/
 LIBS=-L../opende/sys/lib/ -L../tinyxml2/
@@ -28,8 +28,8 @@ mobotsim.o: $(SRC)/mobotsim.cpp $(HEADERS)
 graphics.o: $(SRC)/graphics.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
 
-librobotsim.dl: robotsim.o base.o mobotsim.o graphics.o chrobotsim_chdl.o
-	ch dllink librobotsim.dl cplusplus robotsim.o base.o mobotsim.o graphics.o chrobotsim_chdl.o $(LIBS) -lpthread -lrt -losg -losgViewer -losgSim -losgUtil -lOpenThreads -losgGA -losgDB -losgFX ../opende/sys/lib/libode.a ../tinyxml2/libtinyxml2.a
+librobotsim.dl: robotsim.o mobotsim.o base.o graphics.o chrobotsim_chdl.o
+	ch dllink librobotsim.dl cplusplus robotsim.o mobotsim.o base.o graphics.o chrobotsim_chdl.o $(LIBS) -lpthread -lrt -losg -losgViewer -losgSim -losgUtil -lOpenThreads -losgGA -losgDB -losgFX ../opende/sys/lib/libode.a ../tinyxml2/libtinyxml2.a
 
 install:
 	ch pkginstall.ch $(PACKAGE)
