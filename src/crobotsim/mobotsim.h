@@ -51,10 +51,7 @@ typedef enum mobot_connector_e {
 #ifdef _CH_
 class CMobot {
 #else
-class CRobotSim;
 class CMobot : virtual public CRobot {
-	friend class CRobotSim;
-	friend class robot4NodeCallback;
 #endif // _CH_
 	// public api to mimic CMobot class
 	public:
