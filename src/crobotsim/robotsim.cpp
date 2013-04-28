@@ -4,24 +4,69 @@ using namespace std;
 using namespace tinyxml2;
 
 CRobotSim::CRobotSim(void) {
-    // create ODE simulation space
-    dInitODE2(0);										// initialized ode library
-    _world = dWorldCreate();							// create world for simulation
-    _space = dHashSpaceCreate(0);						// create space for robots
-    _group = dJointGroupCreate(0);						// create group for joints
+	// initialize ode
+	init_ode();
+	// initialize simulation
+	init_sim();
+	// initialize xml config file
+	init_xml();
+#ifdef ENABLE_GRAPHICS
+	// initialize graphics
+	init_viz();
+#endif
+}
+
+CRobotSim::~CRobotSim(void) {
+	// remove simulation
+	pthread_cancel(_simulation);
+
+	// remove graphics
+	delete _osgThread;
+
+	// remove ground
+	delete [] _ground;
+
+	// remove robots
+	for ( int i = NUM_TYPES - 1; i >= 0; i--) {
+		delete [] _robot[i];
+		for (int j = _robotNumber[i] - 1; j >= 0; j--) {
+			pthread_cancel(_robotThread[i][j]);
+		}
+		delete [] _robotThread[i];
+	}
+	delete [] _robot;
+
+	// remove ode
+	dJointGroupDestroy(_group);
+	dSpaceDestroy(_space);
+	dWorldDestroy(_world);
+	dCloseODE();
+}
+
+int CRobotSim::init_ode(void) {
+	// create ODE simulation space
+	dInitODE2(0);										// initialized ode library
+	_world = dWorldCreate();							// create world for simulation
+	_space = dHashSpaceCreate(0);						// create space for robots
+	_group = dJointGroupCreate(0);						// create group for joints
 	_ground = new dGeomID[1];							// create array for ground objects
 	_ground[0] = dCreatePlane(_space, 0, 0, 1, 0);		// create ground plane
 
-    // simulation parameters
-    dWorldSetAutoDisableFlag(_world, 1);				// auto-disable bodies that are not moving
-    dWorldSetAutoDisableAngularThreshold(_world, 0.01);	// threshold velocity for defining movement
-    dWorldSetAutoDisableLinearThreshold(_world, 0.01);	// linear velocity threshold
-    dWorldSetAutoDisableSteps(_world, 4);				// number of steps below thresholds before stationary
-    dWorldSetCFM(_world, 0.0000000001);					// constraint force mixing - how much a joint can be violated by excess force
-    dWorldSetContactSurfaceLayer(_world, 0.001);		// depth each body can sink into another body before resting
-    dWorldSetERP(_world, 0.95);							// error reduction parameter (0-1) - how much error is corrected on each step
-    dWorldSetGravity(_world, 0, 0, -9.81);				// gravity
+	// simulation parameters
+	dWorldSetAutoDisableFlag(_world, 1);				// auto-disable bodies that are not moving
+	dWorldSetAutoDisableAngularThreshold(_world, 0.01);	// threshold velocity for defining movement
+	dWorldSetAutoDisableLinearThreshold(_world, 0.01);	// linear velocity threshold
+	dWorldSetAutoDisableSteps(_world, 4);				// number of steps below thresholds before stationary
+	dWorldSetCFM(_world, 0.0000000001);					// constraint force mixing - how much a joint can be violated by excess force
+	dWorldSetContactSurfaceLayer(_world, 0.001);		// depth each body can sink into another body before resting
+	dWorldSetERP(_world, 0.95);							// error reduction parameter (0-1) - how much error is corrected on each step
+	dWorldSetGravity(_world, 0, 0, -9.81);				// gravity
 
+	// success
+	return 0;
+}
+
+int CRobotSim::init_sim(void) {
 	// default collision parameters
 	_mu[0] = 0.4;	_mu[1] = 0.3;
 	_cor[0] = 0.3;	_cor[1] = 0.3;
@@ -36,32 +81,11 @@ CRobotSim::CRobotSim(void) {
     _step = 0.004;
 	_clock = 0;
 
-	robot_init();
-
-#ifdef ENABLE_GRAPHICS
-	graphics_init();
-#endif // ENABLE_GRAPHICS
+	// success
+	return 0;
 }
 
-CRobotSim::~CRobotSim(void) {
-/*
-	//delete [] _ground;
-	for ( int i = 0; i < NUM_TYPES; i++) {
-		//delete [] _robot[i];
-		//delete [] _robotThread[i];
-	}
-	//delete [] _robot;
-	//delete [] _robotThread;
-
-*/
-	// destroy all ODE objects
-	dJointGroupDestroy(_group);
-	dSpaceDestroy(_space);
-	dWorldDestroy(_world);
-	dCloseODE();
-}
-
-void CRobotSim::robot_init(void) {
+int CRobotSim::init_xml(void) {
 	// initialize variables
 	int i, *rtmp, *ftmp, *ntmp, ctype, cnum;
 	bot = NULL;
@@ -220,6 +244,9 @@ void CRobotSim::robot_init(void) {
 		_robotThread[i] = new pthread_t[_robotNumber[i]];
 		_robot[i] =  (CRobot **)realloc(_robot[i], (_robotNumber[i] + 1)*sizeof(CRobot *));
 	}
+
+	// success
+	return 0;
 }
 
 #ifdef ENABLE_GRAPHICS
@@ -421,7 +448,7 @@ osg::Node* CRobotSim::createRoom(void)
     
 }    
 
-int CRobotSim::graphics_init(void) {
+int CRobotSim::init_viz(void) {
     // Creating the viewer  
 	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
 

@@ -1,56 +1,14 @@
 #include "mobotsim.h"
 
 CMobot::CMobot(void) {
-	for (int i = 0; i < NUM_DOF; i++) {
-		_angle[i] = 0;
-		_goal[i] = 0;
-		_recording[i] = false;
-		_success[i] = true;
-		_velocity[i] = 0.7854;	// 45 deg/sec
-		_maxSpeed[i] = 120;		// deg/sec
-	}
-	_conn = NULL;
-	_id = -1;
-	_type = MOBOT;
-	_encoderResolution = DEG2RAD(0.5);
-	_maxJointForce[MOBOT_JOINT1] = 0.260;
-	_maxJointForce[MOBOT_JOINT2] = 1.059;
-	_maxJointForce[MOBOT_JOINT3] = 1.059;
-	_maxJointForce[MOBOT_JOINT4] = 0.260;
-	_center_length = 0.0516;
-	_center_width = 0.0327;
-	_center_height = 0.0508;
-	_center_radius = 0.0254;
-	_center_offset = 0.0149;
-	_body_length = 0.0258;
-	_body_width = 0.0762;
-	_body_height = 0.0508;
-	_body_radius = 0.0254;
-	_body_inner_width_left = 0.0366;
-	_body_inner_width_right = 0.0069;
-	_body_end_depth = 0.0352;
-	_body_mount_center = 0.0374;
-	_end_width = 0.0762;
-	_end_height = 0.0762;
-	_end_depth = 0.0080;
-	_end_radius = 0.0254;
-	_connector_depth = 0.0048;
-	_connector_height = 0.0413;
-	_connector_radius = 0.0064;
-	_bigwheel_radius = 0.0571;
-	_smallwheel_radius = 0.0445;
-	_tank_depth = 0.0413;
-	_tank_height = 0.0460;
-
-	// init locks
-	this->simThreadsAngleInit();
-	this->simThreadsGoalInit();
-	this->simThreadsRecordingInit();
-	this->simThreadsSuccessInit();
+	// initialize parameters
+	init_params();
+	// initialize dimensions
+	init_dims();
 }
 
 CMobot::~CMobot(void) {
-	//dSpaceDestroy(_space); //sigsegv
+	dSpaceDestroy(_space);
 }
 
 int CMobot::connect(void) {
@@ -2135,6 +2093,64 @@ int CMobot::get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p) {
 	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
 	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
 	dMultiply0(R, R1, Rtmp, 3, 3, 3);
+
+	// success
+	return 0;
+}
+
+int CMobot::init_params(void) {
+	for (int i = 0; i < NUM_DOF; i++) {
+		_angle[i] = 0;
+		_goal[i] = 0;
+		_recording[i] = false;
+		_success[i] = true;
+		_velocity[i] = 0.7854;	// 45 deg/sec
+		_maxSpeed[i] = 120;		// deg/sec
+	}
+	_conn = NULL;
+	_id = -1;
+	_type = MOBOT;
+	_encoderResolution = DEG2RAD(0.5);
+	_maxJointForce[MOBOT_JOINT1] = 0.260;
+	_maxJointForce[MOBOT_JOINT2] = 1.059;
+	_maxJointForce[MOBOT_JOINT3] = 1.059;
+	_maxJointForce[MOBOT_JOINT4] = 0.260;
+
+	// init locks
+	this->simThreadsAngleInit();
+	this->simThreadsGoalInit();
+	this->simThreadsRecordingInit();
+	this->simThreadsSuccessInit();
+
+	// success
+	return 0;
+}
+
+int CMobot::init_dims(void) {
+	_center_length = 0.0516;
+	_center_width = 0.0327;
+	_center_height = 0.0508;
+	_center_radius = 0.0254;
+	_center_offset = 0.0149;
+	_body_length = 0.0258;
+	_body_width = 0.0762;
+	_body_height = 0.0508;
+	_body_radius = 0.0254;
+	_body_inner_width_left = 0.0366;
+	_body_inner_width_right = 0.0069;
+	_body_end_depth = 0.0352;
+	_body_mount_center = 0.0374;
+	_end_width = 0.0762;
+	_end_height = 0.0762;
+	_end_depth = 0.0080;
+	_end_radius = 0.0254;
+	_connector_depth = 0.0048;
+	_connector_height = 0.0413;
+	_connector_radius = 0.0064;
+	_bigwheel_radius = 0.0571;
+	_smallwheel_radius = 0.0445;
+	_tank_depth = 0.0413;
+	_tank_height = 0.0460;
 
 	// success
 	return 0;

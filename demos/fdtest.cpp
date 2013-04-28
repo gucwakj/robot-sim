@@ -19,6 +19,6 @@ int main(int argc, char *argv[]) {
 	//mobot1.moveWait();
 	//mobot2.moveWait();
 
-	sim.setExitState(1);
+	//sim.setExitState(1);
 	return 0;
 }

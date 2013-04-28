@@ -204,6 +204,8 @@ class CMobot : virtual public CRobot {
 		int fix_body_to_connector(dBodyID cBody, int face);								// create fixed joint between body and connector
 		int fix_connector_to_body(int face, dBodyID cBody);								// create fixed joint between connector and body
 		int get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p);					// get parameters of connector
+		int init_params(void);
+		int init_dims(void);
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
         //void resetPID(int i = NUM_DOF);
 		static void* record_angle_thread(void *arg);

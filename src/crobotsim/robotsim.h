@@ -79,14 +79,16 @@ class CRobotSim {
 		static void* simulationThread(void *arg);
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 		unsigned int diff_nsecs(struct timespec t1, struct timespec t2);
-		void robot_init(void);
+		int init_ode(void);
+		int init_sim(void);
+		int init_xml(void);
 
 #ifdef ENABLE_GRAPHICS
 		// variables
 		ViewerFrameThread *_osgThread;		// osg thread
 		osg::Group *_osgRoot;				// osg root node
 		// functions
-		int graphics_init(void);
+		int init_viz(void);
 		osg::TextureCubeMap* readCubeMap(void);
 		osg::Geometry* createWall(const osg::Vec3& v1,const osg::Vec3& v2,const osg::Vec3& v3,osg::StateSet* stateset);
 		osg::Node* createRoom(void);
