@@ -23,17 +23,17 @@ int CMobot::getJointAngle(int id, dReal &angle) {
 }
 
 int CMobot::getJointSpeed(int id, dReal &speed) {
-	speed = RAD2DEG(_velocity[id]);
+	speed = RAD2DEG(_speed[id]);
 
 	// success
 	return 0;
 }
 
 int CMobot::getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4) {
-	speed1 = RAD2DEG(_velocity[0]);
-	speed2 = RAD2DEG(_velocity[1]);
-	speed3 = RAD2DEG(_velocity[2]);
-	speed4 = RAD2DEG(_velocity[3]);
+	speed1 = RAD2DEG(_speed[0]);
+	speed2 = RAD2DEG(_speed[1]);
+	speed3 = RAD2DEG(_speed[2]);
+	speed4 = RAD2DEG(_speed[3]);
 
 	// success
 	return 0;
@@ -259,11 +259,11 @@ int CMobot::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
 			_state[j] = MOBOT_FORWARD;
-			dJointSetAMotorParam(_motor[j], dParamVel, _velocity[j]);
+			dJointSetAMotorParam(_motor[j], dParamVel, _speed[j]);
 		}
 		else if ( delta[j] < 0 ) {
 			_state[j] = MOBOT_BACKWARD;
-			dJointSetAMotorParam(_motor[j], dParamVel, -_velocity[j]);
+			dJointSetAMotorParam(_motor[j], dParamVel, -_speed[j]);
 		}
 		else if ( fabs(delta[j]-0) < EPSILON ) {
 			_state[j] = MOBOT_HOLD;
@@ -310,11 +310,11 @@ int CMobot::moveJointNB(int id, dReal angle) {
 	// set motor state and velocity
 	if ( angle > 0 ) {
 		_state[id] = MOBOT_FORWARD;
-		dJointSetAMotorParam(_motor[id], dParamVel, _velocity[id]);
+		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
 	}
 	else if ( angle < 0 ) {
 		_state[id] = MOBOT_BACKWARD;
-		dJointSetAMotorParam(_motor[id], dParamVel, -_velocity[id]);
+		dJointSetAMotorParam(_motor[id], dParamVel, -_speed[id]);
 	}
 	else if ( fabs(angle-0) < EPSILON ) {
 		_state[id] = MOBOT_HOLD;
@@ -360,11 +360,11 @@ int CMobot::moveJointToNB(int id, dReal angle) {
 	// set motor state and velocity
 	if ( delta > 0 ) {
 		_state[id] = MOBOT_FORWARD;
-		dJointSetAMotorParam(_motor[id], dParamVel, _velocity[id]);
+		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
 	}
 	else if ( delta < 0 ) {
 		_state[id] = MOBOT_BACKWARD;
-		dJointSetAMotorParam(_motor[id], dParamVel, -_velocity[id]);
+		dJointSetAMotorParam(_motor[id], dParamVel, -_speed[id]);
 	}
 	else if ( fabs(delta-0) < EPSILON ) {
 		_state[id] = MOBOT_HOLD;
@@ -427,11 +427,11 @@ int CMobot::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
 			_state[j] = MOBOT_FORWARD;
-			dJointSetAMotorParam(_motor[j], dParamVel, _velocity[j]);
+			dJointSetAMotorParam(_motor[j], dParamVel, _speed[j]);
 		}
 		else if ( delta[j] < 0 ) {
 			_state[j] = MOBOT_BACKWARD;
-			dJointSetAMotorParam(_motor[j], dParamVel, -_velocity[j]);
+			dJointSetAMotorParam(_motor[j], dParamVel, -_speed[j]);
 		}
 		else if ( fabs(delta[j]-0) < EPSILON ) {
 			_state[j] = MOBOT_HOLD;
@@ -580,17 +580,17 @@ int CMobot::resetToZeroNB(void) {
 }
 
 int CMobot::setJointSpeed(int id, double speed) {
-	_velocity[id] = DEG2RAD((speed > _maxSpeed[id]) ? _maxSpeed[id] : speed);
+	_speed[id] = DEG2RAD((speed > _maxSpeed[id]) ? _maxSpeed[id] : speed);
 
 	// success
 	return 0;
 }
 
 int CMobot::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
-	_velocity[0] = DEG2RAD((speed1 > _maxSpeed[0]) ? _maxSpeed[0] : speed1);
-	_velocity[1] = DEG2RAD((speed2 > _maxSpeed[1]) ? _maxSpeed[1] : speed2);
-	_velocity[2] = DEG2RAD((speed3 > _maxSpeed[2]) ? _maxSpeed[2] : speed3);
-	_velocity[3] = DEG2RAD((speed4 > _maxSpeed[3]) ? _maxSpeed[3] : speed4);
+	_speed[0] = DEG2RAD((speed1 > _maxSpeed[0]) ? _maxSpeed[0] : speed1);
+	_speed[1] = DEG2RAD((speed2 > _maxSpeed[1]) ? _maxSpeed[1] : speed2);
+	_speed[2] = DEG2RAD((speed3 > _maxSpeed[2]) ? _maxSpeed[2] : speed3);
+	_speed[3] = DEG2RAD((speed4 > _maxSpeed[3]) ? _maxSpeed[3] : speed4);
 
 	// success
 	return 0;
@@ -833,9 +833,9 @@ void CMobot::simPreCollisionThread(void) {
 		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
 		// drive motor to get current angle to match future angle
 		if (_angle[i] < _goal[i] - _encoderResolution)
-			dJointSetAMotorParam(_motor[i], dParamVel, _velocity[i]);
+			dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]);
 		else if (_angle[i] > _goal[i] + _encoderResolution)
-			dJointSetAMotorParam(_motor[i], dParamVel, -_velocity[i]);
+			dJointSetAMotorParam(_motor[i], dParamVel, -_speed[i]);
 		else
 			dJointSetAMotorParam(_motor[i], dParamVel, 0);
 	}
@@ -2104,7 +2104,7 @@ int CMobot::init_params(void) {
 		_goal[i] = 0;
 		_recording[i] = false;
 		_success[i] = true;
-		_velocity[i] = 0.7854;	// 45 deg/sec
+		_speed[i] = 0.7854;	// 45 deg/sec
 		_maxSpeed[i] = 120;		// deg/sec
 	}
 	_conn = NULL;

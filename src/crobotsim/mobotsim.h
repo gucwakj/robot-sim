@@ -144,7 +144,7 @@ class CMobot : virtual public CRobot {
 		dJointID _joint[6];			// joints between body parts
 		dReal* _clock;				// world clock
 		dReal _angle[NUM_DOF];		// angles
-		dReal _velocity[NUM_DOF];	// velocities
+		dReal _speed[NUM_DOF];		// speed
 		dReal _goal[NUM_DOF];		// goals
 		dReal _maxJointForce[NUM_DOF];
 		dReal _maxSpeed[NUM_DOF];	// maximum joint speeds
