@@ -18,8 +18,6 @@
 #include <osgDB/ReadFile>
 #include <osgDB/Registry>
 
-#include <osgEphemeris/EphemerisModel.h>
-
 #include <osgGA/StateSetManipulator>
 #include <osgGA/DriveManipulator>
 #include <osgGA/FirstPersonManipulator>

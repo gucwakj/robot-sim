@@ -1,6 +1,6 @@
 prefix=/usr/local
 exec_prefix=${prefix}
-libdir=/usr/local/lib/i386-linux-gnu
+libdir=/usr/local/lib/x86_64-linux-gnu
 includedir=/usr/local/include
 
 Name: TinyXML2
