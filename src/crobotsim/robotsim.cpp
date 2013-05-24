@@ -549,14 +549,14 @@ void* CRobotSim::simulationThread(void *arg) {
 			}
 		}
 
+		// unlock array of robots to allow another to be 
+		pthread_mutex_unlock(&(sim->_robot_mutex));
+
 		// check end time of execution
 		clock_gettime(CLOCK_REALTIME, &end_time);
 		// sleep until next step
 		dt = sim->diff_nsecs(start_time, end_time);
 		if ( dt < sim->_step*1000000000 ) { usleep(sim->_step*1000000 - dt/1000); }
-
-		// unlock array of robots to allow another to be 
-		pthread_mutex_unlock(&(sim->_robot_mutex));
 	}
 }
 

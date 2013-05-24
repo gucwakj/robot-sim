@@ -6,13 +6,4 @@
 		<side id="1" robot="0" face="8" />
 		<side id="1" robot="1" face="1" />
 	</simple>-->
-	<smallwheel>
-		<side id="1" robot="0" face="1" />
-	</smallwheel>
-	<smallwheel>
-		<side id="1" robot="0" face="8" />
-	</smallwheel>
-	<caster>
-		<side id="1" robot="0" face="3" />
-	</caster>
 </sim>

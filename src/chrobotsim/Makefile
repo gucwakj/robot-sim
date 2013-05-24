@@ -7,7 +7,7 @@ PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 
 SRC=../crobotsim
 HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/graphics.h
-CPPFLAGS = -DdDOUBLE
+CPPFLAGS = -DdDOUBLE -fPIC
 INCLUDES=-I../opende/sys/include/ -I../tinyxml2/
 LIBS=-L../opende/sys/lib/ -L../tinyxml2/
 
@@ -29,10 +29,12 @@ graphics.o: $(SRC)/graphics.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
 
 librobotsim.dl: robotsim.o mobotsim.o base.o graphics.o chrobotsim_chdl.o
-	ch dllink librobotsim.dl cplusplus robotsim.o mobotsim.o base.o graphics.o chrobotsim_chdl.o $(LIBS) -lpthread -lrt -losg -losgViewer -losgSim -losgUtil -lOpenThreads -losgGA -losgDB -losgFX ../opende/sys/lib/libode.a ../tinyxml2/libtinyxml2.a
+	ch dllink librobotsim.dl cplusplus robotsim.o mobotsim.o base.o graphics.o chrobotsim_chdl.o $(LIBS) -lpthread -lrt -losg -losgViewer -losgSim -losgUtil -lOpenThreads -losgGA -losgDB -losgFX -lode -ltinyxml2
 
 install:
 	ch pkginstall.ch $(PACKAGE)
+	sudo cp ../../opende/sys/lib/libode.so.1 /usr/local/ch/extern/lib/
+	sudo cp ../../tinyxml2/libtinyxml2.so.1 /usr/local/ch/extern/lib/
 
 uninstall:
 	ch pkginstall.ch -u $(PACKAGE)
@@ -43,7 +45,7 @@ createpkg: librobotsim.dl
 	rm -rf $(PACKAGE)-$(VERSION).zip
 	mkdir -p $(PKGDIR)
 	mkdir $(PKGDIR)/data
-	cp -R ../test/data/* $(PKGDIR)/data
+	cp -R ../../demos/data/* $(PKGDIR)/data
 	mkdir $(PKGDIR)/demos
 	cp -R ../../demos/chdemos/*.ch $(PKGDIR)/demos
 	mkdir $(PKGDIR)/dl
