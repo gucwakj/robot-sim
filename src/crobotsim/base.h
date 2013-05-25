@@ -17,10 +17,8 @@
 
 // types of robots available for simulation
 enum robot_types_e {
-	IMOBOT,
 	MOBOT,
-	//KIDBOT,
-	//NXT,
+	LINKBOT,
 	NUM_TYPES
 };
 

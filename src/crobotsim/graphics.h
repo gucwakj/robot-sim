@@ -143,4 +143,11 @@ class robot4NodeCallback : public osg::NodeCallback {
 		CRobot *_robot;
 };
 
+class linkbotNodeCallback : public osg::NodeCallback {
+	public:
+		linkbotNodeCallback(CRobot *robot);
+		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+	private:
+		CRobot *_robot;
+};
 #endif /* GRAPHICS_H_ */

@@ -145,6 +145,42 @@ int CRobotSim::init_xml(void) {
 				rtmp->next = nr;
 			}
 		}
+		else if ( !strcmp(node->Value(), "linkbot") ) {
+			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
+			nr->type = LINKBOT;
+			nr->x = 0; nr->y = 0; nr->z = 0;
+			nr->psi = 0; nr->theta = 0; nr->phi = 0;
+			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
+			_robotNumber[nr->type]++;
+			node->QueryIntAttribute("id", &(nr->id));
+			if (ele = node->FirstChildElement("position")) {
+				ele->QueryDoubleAttribute("x", &(nr->x));
+				ele->QueryDoubleAttribute("y", &(nr->y));
+				ele->QueryDoubleAttribute("z", &(nr->z));
+			}
+			if (ele = node->FirstChildElement("rotation")) {
+				ele->QueryDoubleAttribute("psi", &(nr->psi));
+				ele->QueryDoubleAttribute("theta", &(nr->theta));
+				ele->QueryDoubleAttribute("phi", &(nr->phi));
+			}
+			if (ele = node->FirstChildElement("joint")) {
+				ele->QueryDoubleAttribute("f1", &(nr->angle1));
+				ele->QueryDoubleAttribute("f2", &(nr->angle2));
+				ele->QueryDoubleAttribute("f3", &(nr->angle3));
+			}
+			nr->conn = NULL;
+			nr->next = NULL;
+
+			// put new bot at end of list
+			bot_t rtmp = bot;
+			if ( bot == NULL )
+				bot = nr;
+			else {
+				while (rtmp->next)
+					rtmp = rtmp->next;
+				rtmp->next = nr;
+			}
+		}
 		else {
 			if ( !strcmp(node->Value(), "bigwheel") ) {
 				ctype = BIGWHEEL;
@@ -223,10 +259,12 @@ int CRobotSim::init_xml(void) {
 			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
 			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
 			printf("psi = %lf, theta = %lf, phi = %lf\n", rtmp->psi, rtmp->theta, rtmp->phi);
-			printf("angle1 = %lf, angle2 = %lf, angle3 = %lf, angle4 = %lf\n", rtmp->angle1, rtmp->angle2, rtmp->angle3, rtmp->angle4);
+			printf("angle1 = %lf, angle2 = %lf, angle3 = %lf, angle4 = %lf\n", \
+				rtmp->angle1, rtmp->angle2, rtmp->angle3, rtmp->angle4);
 			Conn_t *ctmp = rtmp->conn;
 			while (ctmp) {
-				printf("on face %d: connect with robot %d on his face %d with type: %d\n", ctmp->face2, ctmp->robot, ctmp->face1, ctmp->type);
+				printf("on face %d: connect with robot %d on his face %d with type: %d\n", \
+					ctmp->face2, ctmp->robot, ctmp->face1, ctmp->type);
 				ctmp = ctmp->next;
 			}
 			printf("next = %p\n", rtmp->next);
@@ -508,6 +546,7 @@ void* CRobotSim::simulationThread(void *arg) {
 	int i, j;
 
 	while (1) {
+//printf("test\n");
 		// lock array of robots for sim step
 		pthread_mutex_lock(&(sim->_robot_mutex));
 
@@ -623,15 +662,14 @@ int CRobotSim::addRobot(CMobot &robot) {
 #endif
 	// get type of robot being added
 	int type = robot.getType();
-
 	// find next robot in list
 	bot_t btmp = bot;
-	while (btmp && btmp->type != type && btmp->id != _robotConnected[type])
+	while (btmp && btmp->type != type && btmp->id != _robotConnected[type]) {
 		btmp = btmp->next;
+	}
 
 	// lock robot data to insert a new one into simulation
 	pthread_mutex_lock(&_robot_mutex);
-
 	// connect to robot class
 	_robot[type][_robotConnected[type]] = &robot;
 	// add simulation variables to robot class

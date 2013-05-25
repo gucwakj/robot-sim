@@ -19,6 +19,7 @@
 #endif // _CH_
 
 #include "mobotsim.h"
+#include "linkbotsim.h"
 
 enum simulation_reply_message_e {
 	FD_SUCCESS,

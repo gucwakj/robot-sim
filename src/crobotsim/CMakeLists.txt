@@ -64,6 +64,7 @@ add_library( robotsim SHARED
 	robotsim.cpp
 	graphics.cpp
 	mobotsim.cpp
+	linkbotsim.cpp
 	pid.cpp
 )
 else (ENABLE_GRAPHICS)
@@ -71,6 +72,7 @@ add_library( robotsim SHARED
 	base.cpp
 	robotsim.cpp
 	mobotsim.cpp
+	linkbotsim.cpp
 	pid.cpp
 )
 endif (ENABLE_GRAPHICS)
