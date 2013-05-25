@@ -251,7 +251,10 @@ int CRobotSim::init_xml(void) {
 
 #ifdef ENABLE_GRAPHICS
 int CRobotSim::init_viz(void) {
-    // Creating the viewer  
+	// set notification level to no output
+	osg::setNotifyLevel(osg::ALWAYS);
+
+    // creating the viewer
 	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
 
 	// window traits
@@ -296,11 +299,7 @@ int CRobotSim::init_viz(void) {
 	osg::ref_ptr<osg::MatrixTransform> terrainScaleMAT (new osg::MatrixTransform);
 	osg::Matrix terrainScaleMatrix;
 	terrainScaleMatrix.makeScale(0.1f,0.1f,0.006f);
-#ifndef _CH_
-	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("data/ground/terrain.3ds");
-#else
 	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("/usr/local/ch/package/chrobotsim/data/ground/terrain.3ds");
-#endif
 	terrainScaleMAT->addChild(terrainnode.get());
 	terrainScaleMAT->setMatrix(terrainScaleMatrix);
 	_osgRoot->addChild(terrainScaleMAT.get());
@@ -317,11 +316,7 @@ int CRobotSim::init_viz(void) {
 	stateset->setTextureAttribute(0, tm);
 	//osg::TextureCubeMap* skymap = readCubeMap();
     osg::TextureCubeMap* skymap = new osg::TextureCubeMap;
-#ifndef _CH_
-    #define SKY_FILENAME(face) "data/ground/checkered/" #face ".jpg"
-#else
     #define SKY_FILENAME(face) "/usr/local/ch/package/chrobotsim/data/ground/checkered/" #face ".jpg"
-#endif
 	osg::Image* imagePosX = osgDB::readImageFile(SKY_FILENAME(checkered_front));
 	osg::Image* imageNegX = osgDB::readImageFile(SKY_FILENAME(checkered_back));
 	osg::Image* imagePosY = osgDB::readImageFile(SKY_FILENAME(checkered_top));

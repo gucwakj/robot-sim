@@ -45,7 +45,7 @@ createpkg: librobotsim.dl
 	rm -rf $(PACKAGE)-$(VERSION).zip
 	mkdir -p $(PKGDIR)
 	mkdir $(PKGDIR)/data
-	cp -R ../../demos/data/* $(PKGDIR)/data
+	cp -R ../resources/* $(PKGDIR)/data
 	mkdir $(PKGDIR)/demos
 	cp -R ../../demos/chdemos/*.ch $(PKGDIR)/demos
 	mkdir $(PKGDIR)/dl

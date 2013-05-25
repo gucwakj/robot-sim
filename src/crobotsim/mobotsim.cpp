@@ -1023,11 +1023,7 @@ void CMobot::draw(osg::Group *root) {
 	body[ENDCAP_R]->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture to robot
-#ifndef _CH_
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/mobot/body.png"));
-#else
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/body.png"));
-#endif
     tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -2285,11 +2281,7 @@ void CMobot::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture
-#ifndef _CH_
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/mobot/conn.png"));
-#else
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/conn.png"));
-#endif
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -2367,11 +2359,7 @@ void CMobot::draw_caster(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(sph));
     
 	// apply texture
-#ifndef _CH_
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/mobot/conn.png"));
-#else
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/conn.png"));
-#endif
     tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -2434,11 +2422,7 @@ void CMobot::draw_simple(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture
-#ifndef _CH_
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/mobot/conn.png"));
-#else
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/conn.png"));
-#endif
     tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -2467,11 +2451,7 @@ void CMobot::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture
-#ifndef _CH_
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/mobot/conn.png"));
-#else
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/conn.png"));
-#endif
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -2515,11 +2495,7 @@ void CMobot::draw_square(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-#ifndef _CH_
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/mobot/conn.png"));
-#else
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/conn.png"));
-#endif
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -2551,11 +2527,7 @@ void CMobot::draw_tank(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-#ifndef _CH_
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/mobot/conn.png"));
-#else
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/conn.png"));
-#endif
     tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
