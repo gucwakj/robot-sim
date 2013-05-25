@@ -18,10 +18,10 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Add ODE library
-include_directories("../src/opende/sys/include")
+include_directories("../../src/opende/sys/include")
 
 # Add tinyxml2 library
-include_directories("../src/tinyxml2")
+include_directories("../../src/tinyxml2")
 
 # Compilation options
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
@@ -32,21 +32,17 @@ else (ENABLE_DOUBLE)
 endif (ENABLE_DOUBLE)
 
 # Add crobotsim library subdirectory
-include_directories("../src/crobotsim")
-link_directories("../src/crobotsim")
+include_directories("../../src/crobotsim")
+link_directories("../../src/crobotsim")
 
 # Add cmobotik library subdirectory
-include_directories("../src/CMobotIK")
-link_directories("../src/CMobotIK")
+include_directories("../../src/CMobotIK")
+link_directories("../../src/CMobotIK")
 
 # crobotsim demos
-add_executable(fdtest fdtest.cpp)
-target_link_libraries(fdtest robotsim)
+add_executable(test test.cpp)
+target_link_libraries(test robotsim)
 add_executable(dataAcquisition dataAcquisition.cpp)
 target_link_libraries(dataAcquisition robotsim)
 add_executable(liftRecorded liftRecorded.cpp)
 target_link_libraries(liftRecorded robotsim)
-
-# cmobotik demos
-add_executable(iktest iktest.cpp)
-target_link_libraries(iktest mobotik)
