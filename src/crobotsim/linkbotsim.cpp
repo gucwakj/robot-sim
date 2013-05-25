@@ -696,16 +696,13 @@ int CLinkbot::getConnectionParams(int face, dMatrix3 R, dReal *p) {
 			break;
 		case 3:
 			pos = dBodyGetPosition(_body[FACE3]);
-printf("pos: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
 			R1 = dBodyGetRotation(_body[FACE3]);
 			offset[1] = -_face_depth/2;
 			p[0] = pos[0] + R1[1]*offset[1];
 			p[1] = pos[1] + R1[5]*offset[1];
 			p[2] = pos[2] + R1[9]*offset[1];
-printf("p: %lf %lf %lf\n", p[0], p[1], p[2]);
     		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], -M_PI/2);
 			dMultiply0(R, R2, R1, 3, 3, 3);
-printf("R %lf %lf %lf\n%lf %lf %lf\n", R[0], R[1], R[2],R[4], R[5], R[6]);
 			break;
 	}
 
@@ -1008,15 +1005,6 @@ int CLinkbot::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f1
 	dReal f2[6] = {-_body_length - _face_depth/2, 0, -_body_length, 0, 0};
 	dReal f3[6] = {0, -_body_width/2 - _face_depth/2, 0, 0, -_body_width/2, 0};
 
-	// rotation matrices
-    dMatrix3 R_f, R_f1, R_f2, R_f3;
-    /*dRFromAxisAndAngle(R_f, R[2], R[6], R[10], M_PI/2);
-	dMultiply0(R_f1, R, R_f, 3, 3, 3);
-    dRFromAxisAndAngle(R_f, R[2], R[6], R[10], M_PI);
-	dMultiply0(R_f2, R, R_f, 3, 3, 3);
-    dRFromAxisAndAngle(R_f, R[2], R[6], R[10], -M_PI/2);
-	dMultiply0(R_f3, R, R_f, 3, 3, 3);*/
-
 	// build robot bodies
 	this->build_body(R[0]*b[0] + x, R[4]*b[0] + y, R[8]*b[0] + z, R, 0);
 	this->build_face(FACE1, R[1]*f1[1] + x, R[5]*f1[1] + y, R[9]*f1[1] + z, R, 0);
@@ -1051,6 +1039,7 @@ int CLinkbot::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f1
     dJointSetHingeParam(_joint[2], dParamCFM, 0);
 
     // create rotation matrices for each body part
+    dMatrix3 R_f, R_f1, R_f2, R_f3;
     dRFromAxisAndAngle(R_f, 0, 1, 0, _angle[F1]);
     dMultiply0(R_f1, R, R_f, 3, 3, 3);
     dRFromAxisAndAngle(R_f, -1, 0, 0, _angle[F2]);
@@ -1059,11 +1048,11 @@ int CLinkbot::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f1
     dMultiply0(R_f3, R, R_f, 3, 3, 3);
 
 	// if bodies are rotated, then redraw
-	if (_angle[F1] != 0 || _angle[F2] != 0 ||_angle[F3] != 0 ) {
+	if ( _angle[F1] != 0 || _angle[F2] != 0 ||_angle[F3] != 0 ) {
     	// re-build pieces of module
-		this->build_face(FACE1, R[0]*f1[0] + x, R[4]*f1[0] + y, R[8]*f1[0] + z, R_f1, 0);
+		this->build_face(FACE1, R[1]*f1[1] + x, R[5]*f1[1] + y, R[9]*f1[1] + z, R_f1, 0);
 		this->build_face(FACE2, R[0]*f2[0] + x, R[4]*f2[0] + y, R[8]*f2[0] + z, R_f2, 0);
-		this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R_f3, 0);
+		this->build_face(FACE3, R[1]*f3[1] + x, R[5]*f3[1] + y, R[9]*f3[1] + z, R_f3, 0);
 	}
 
     // motor for body to face 1
@@ -1090,10 +1079,10 @@ int CLinkbot::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f1
 
     // motor for body to face 3
     _motor[F3] = dJointCreateAMotor(_world, 0);
-    dJointAttach(_motor[F3], _body[BODY], _body[FACE1]);
+    dJointAttach(_motor[F3], _body[BODY], _body[FACE3]);
     dJointSetAMotorMode(_motor[F3], dAMotorUser);
     dJointSetAMotorNumAxes(_motor[F3], 1);
-    dJointSetAMotorAxis(_motor[F3], 0, 1, -R[1], -R[5], -R[9]);
+    dJointSetAMotorAxis(_motor[F3], 0, 1, R[1], R[5], R[9]);
     dJointSetAMotorAngle(_motor[F3], 0, 0);
     dJointSetAMotorParam(_motor[F3], dParamCFM, 0);
     dJointSetAMotorParam(_motor[F3], dParamFMax, _maxJointForce[F3]);
@@ -1379,19 +1368,19 @@ int CLinkbot::build_caster(conn_t conn, int face) {
     dGeomSetOffsetRotation(conn->geom[6], R1);
 
     // set geometry 8 - horizontal support
-	conn->geom[7] = dCreateBox(_space, 0.0667, 0.0222, 0.0032);
+	conn->geom[7] = dCreateBox(_space, 0.04, 0.021, 0.0032);
 	dGeomSetBody(conn->geom[7], conn->body);
-	dGeomSetOffsetPosition(conn->geom[7], depth/2 + 0.0667/2 - m.c[0], -m.c[1], -height/2 + 0.0016 - m.c[2]);
+	dGeomSetOffsetPosition(conn->geom[7], depth/2 + 0.04/2 - m.c[0], -m.c[1], -height/2 + 0.0016 - m.c[2]);
 
     // set geometry 9 - ball support
-    conn->geom[8] = dCreateCylinder(_space, 0.0111, 0.0191);
+    conn->geom[8] = dCreateCylinder(_space, 0.0105, 0.014);
     dGeomSetBody(conn->geom[8], conn->body);
-    dGeomSetOffsetPosition(conn->geom[8], depth/2 + 0.0667 - m.c[0], -m.c[1], -height/2 - 0.0064 - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[8], depth/2 + 0.04 - m.c[0], -m.c[1], -height/2 - 0.0064 - m.c[2]);
 
     // set geometry 10 - sphere
-    conn->geom[9] = dCreateSphere(_space, 0.0095);
+    conn->geom[9] = dCreateSphere(_space, 0.0105);
     dGeomSetBody(conn->geom[9], conn->body);
-    dGeomSetOffsetPosition(conn->geom[9], depth/2 + 0.0667 - m.c[0], -m.c[1], -height/2 - 0.0159 - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[9], depth/2 + 0.04 - m.c[0], -m.c[1], -height/2 - 0.0159 - m.c[2]);
 
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -1419,10 +1408,6 @@ int CLinkbot::build_simple(conn_t conn, int face) {
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
-printf("r*o %lf\n", R[4]*offset[0]);
-printf("p2: %lf %lf %lf\n", p[0], p[1], p[2]);
-printf("R %lf %lf %lf\n%lf %lf %lf\n", R[0], R[1], R[2], R[4], R[5], R[6]);
-//exit(1);
 
     // set mass of body
     dMassSetBox(&m, 270, _connector_depth, 2*_face_radius, _connector_height);
@@ -1437,7 +1422,7 @@ printf("R %lf %lf %lf\n%lf %lf %lf\n", R[0], R[1], R[2], R[4], R[5], R[6]);
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
 
-    // set geometry 1 - center box
+    // set geometry 1 - box
     conn->geom[0] = dCreateBox(_space, _connector_depth, 2*_face_radius, _connector_height);
     dGeomSetBody(conn->geom[0], conn->body);
     dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
