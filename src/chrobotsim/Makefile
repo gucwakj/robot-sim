@@ -6,7 +6,7 @@ VERSION=0.0.1
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 
 SRC=../crobotsim
-HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/graphics.h
+HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics.h
 CPPFLAGS = -DdDOUBLE -fPIC
 INCLUDES=-I../opende/sys/include/ -I../tinyxml2/
 LIBS=-L../opende/sys/lib/ -L../tinyxml2/
@@ -25,11 +25,14 @@ base.o: $(SRC)/base.cpp $(HEADERS)
 mobotsim.o: $(SRC)/mobotsim.cpp $(HEADERS) 
 	ch dlcomp librobotsim.dl cplusplus $(SRC)/mobotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
+linkbotsim.o: $(SRC)/linkbotsim.cpp $(HEADERS) 
+	ch dlcomp librobotsim.dl cplusplus $(SRC)/linkbotsim.cpp $(CPPFLAGS) $(INCLUDES)
+
 graphics.o: $(SRC)/graphics.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
 
-librobotsim.dl: robotsim.o mobotsim.o base.o graphics.o chrobotsim_chdl.o
-	ch dllink librobotsim.dl cplusplus robotsim.o mobotsim.o base.o graphics.o chrobotsim_chdl.o $(LIBS) -lpthread -lrt -losg -losgViewer -losgSim -losgUtil -lOpenThreads -losgGA -losgDB -losgFX -lode -ltinyxml2
+librobotsim.dl: robotsim.o mobotsim.o linkbotsim.o base.o graphics.o chrobotsim_chdl.o
+	ch dllink librobotsim.dl cplusplus robotsim.o mobotsim.o linkbotsim.o base.o graphics.o chrobotsim_chdl.o $(LIBS) -lpthread -lrt -losg -losgViewer -losgSim -losgUtil -lOpenThreads -losgGA -losgDB -losgFX -lode -ltinyxml2
 
 install:
 	ch pkginstall.ch $(PACKAGE)
@@ -47,7 +50,7 @@ createpkg: librobotsim.dl
 	mkdir $(PKGDIR)/data
 	cp -R ../resources/* $(PKGDIR)/data
 	mkdir $(PKGDIR)/demos
-	cp -R ../../demos/chdemos/*.ch $(PKGDIR)/demos
+	cp -R ../../demos/chdemos/* $(PKGDIR)/demos
 	mkdir $(PKGDIR)/dl
 	cp librobotsim.dl $(PKGDIR)/dl
 	#mkdir $(PKGDIR)/docs

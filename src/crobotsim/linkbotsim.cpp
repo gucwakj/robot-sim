@@ -875,15 +875,10 @@ void CLinkbot::draw(osg::Group *root) {
 	body[3]->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture to robot
-#ifndef _CH_
-	tex[0] = new osg::Texture2D(osgDB::readImageFile("data/linkbot/body.png"));
-	tex[1] = new osg::Texture2D(osgDB::readImageFile("data/linkbot/face.png"));
-#else
 	tex[0] = new osg::Texture2D(
 		osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/body.png"));
 	tex[1] = new osg::Texture2D(
 		osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/face.png"));
-#endif
 	for (int i = 0; i < 2; i++) {
 		tex[i]->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 		tex[i]->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
@@ -1745,11 +1740,7 @@ void CLinkbot::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture
-#ifndef _CH_
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/linkbot/conn.png"));
-#else
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/conn.png"));
-#endif
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -1827,11 +1818,7 @@ void CLinkbot::draw_caster(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(sph));
     
 	// apply texture
-#ifndef _CH_
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/linkbot/conn.png"));
-#else
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/conn.png"));
-#endif
     tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -1860,11 +1847,7 @@ void CLinkbot::draw_simple(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-#ifndef _CH_
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/linkbot/conn.png"));
-#else
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/conn.png"));
-#endif
     tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -1893,11 +1876,7 @@ void CLinkbot::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture
-#ifndef _CH_
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/linkbot/conn.png"));
-#else
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/conn.png"));
-#endif
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -1941,11 +1920,7 @@ void CLinkbot::draw_square(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-#ifndef _CH_
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("data/linkbot/conn.png"));
-#else
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/conn.png"));
-#endif
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
