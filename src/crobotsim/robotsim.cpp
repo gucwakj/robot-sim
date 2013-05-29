@@ -18,7 +18,7 @@ CRobotSim::CRobotSim(void) {
 
 CRobotSim::~CRobotSim(void) {
 	// remove simulation
-	pthread_cancel(_simulation);
+	THREAD_CANCEL(_simulation);
 
 	// remove graphics
 	delete _osgThread;
@@ -30,7 +30,7 @@ CRobotSim::~CRobotSim(void) {
 	for ( int i = NUM_TYPES - 1; i >= 0; i--) {
 		delete [] _robot[i];
 		for (int j = _robotNumber[i] - 1; j >= 0; j--) {
-			pthread_cancel(_robotThread[i][j]);
+			THREAD_CANCEL(_robotThread[i][j]);
 		}
 		delete [] _robotThread[i];
 	}
@@ -72,7 +72,7 @@ int CRobotSim::init_sim(void) {
 	_cor[0] = 0.3;	_cor[1] = 0.3;
 
 	// thread variables
-	pthread_create(&_simulation, NULL, (void* (*)(void *))&CRobotSim::simulationThread, (void *)this);
+	THREAD_CREATE(&_simulation, (void* (*)(void *))&CRobotSim::simulationThread, (void *)this);
 	pthread_mutex_init(&_robot_mutex, NULL);
 	pthread_mutex_init(&_ground_mutex, NULL);
 
@@ -315,7 +315,7 @@ int CRobotSim::init_xml(void) {
 
 	// set up robot variables
 	for (int i = 0; i < NUM_TYPES; i++) {
-		_robotThread[i] = new pthread_t[_robotNumber[i]];
+		_robotThread[i] = new THREAD_T[_robotNumber[i]];
 		_robot[i] =  (CRobot **)realloc(_robot[i], (_robotNumber[i] + 1)*sizeof(CRobot *));
 	}
 
@@ -582,7 +582,6 @@ void* CRobotSim::simulationThread(void *arg) {
 	int i, j;
 
 	while (1) {
-//printf("test\n");
 		// lock array of robots for sim step
 		pthread_mutex_lock(&(sim->_robot_mutex));
 
@@ -594,8 +593,8 @@ void* CRobotSim::simulationThread(void *arg) {
 		//  - update angles 
 		for (i = 0; i < NUM_TYPES; i++) {
 			for (j = 0; j < sim->_robotConnected[i]; j++) {
-				pthread_create(&(sim->_robotThread[i][j]), NULL, (void* (*)(void *))&CRobot::simPreCollisionThreadEntry, (void *)(sim->_robot[i][j]));
-				pthread_join(sim->_robotThread[i][j], NULL);
+				THREAD_CREATE(&(sim->_robotThread[i][j]), (void* (*)(void *))&CRobot::simPreCollisionThreadEntry, (void *)(sim->_robot[i][j]));
+				THREAD_JOIN(sim->_robotThread[i][j]);
 			}
 		}
 
@@ -614,8 +613,8 @@ void* CRobotSim::simulationThread(void *arg) {
 		//  - check if success 
 		for (i = 0; i < NUM_TYPES; i++) {
 			for (j = 0; j < sim->_robotConnected[i]; j++) {
-				pthread_create(&(sim->_robotThread[i][j]), NULL, (void* (*)(void *))&CRobot::simPostCollisionThreadEntry, (void *)(sim->_robot[i][j]));
-				pthread_join(sim->_robotThread[i][j], NULL);
+				THREAD_CREATE(&(sim->_robotThread[i][j]), (void* (*)(void *))&CRobot::simPostCollisionThreadEntry, (void *)(sim->_robot[i][j]));
+				THREAD_JOIN(sim->_robotThread[i][j]);
 			}
 		}
 

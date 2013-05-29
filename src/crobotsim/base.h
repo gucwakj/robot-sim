@@ -6,7 +6,6 @@
 #ifndef _CH_
 #include "config.h"
 #include <ode/ode.h>
-#include <pthread.h>
 #ifdef ENABLE_GRAPHICS
 #include <osg/Group>
 #endif // ENABLE_GRAPHICS
@@ -16,6 +15,14 @@
 #define RAD2DEG(x) ((x) * 180.0 / M_PI)
 
 #ifdef _WIN32
+//   THREADS
+#ifndef THREAD_T
+#define THREAD_T HANDLE
+#endif
+#define THREAD_CANCEL(thread_handle) TerminateThread( thread_handle, 0)
+#define THREAD_CREATE(thread_handle, function, arg) \
+	*(thread_handle) = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)function, arg, 0, NULL)
+#define THREAD_JOIN(thread_handle) WaitForSingleObject(thread_handle, INFINITE)
 //   MUTEX
 #define MUTEX_T HANDLE
 #define MUTEX_INIT(mutex) *mutex = CreateMutex(NULL, FALSE, NULL)
@@ -30,6 +37,15 @@
 #define SIGNAL(cond, mutex, action) action; SetEvent(*cond)
 #define COND_SIGNAL(cond) SetEvent(*cond)
 #else
+//   THREADS
+#include <pthread.h>
+#define THREAD_T pthread_t
+#define THREAD_CANCEL(thread_handle) pthread_cancel(thread_handle)
+#define THREAD_CREATE(thread_handle, function, arg) \
+	while (pthread_create(thread_handle, NULL, function, (void*) arg) < 0) { \
+		fprintf(stderr, "pthread_create failed. Trying again...\n"); \
+	}
+#define THREAD_JOIN(thread_handle) pthread_join(thread_handle, NULL)
 //   MUTEX
 #define MUTEX_T pthread_mutex_t
 #define MUTEX_INIT(mutex) pthread_mutex_init(mutex, NULL)
@@ -80,16 +96,6 @@ class CRobot {
 		static void* simPostCollisionThreadEntry(void *arg);
 
 		// threading functions to control variables
-		/*void simThreadsRecordingInit(void);
-		void simThreadsRecordingLock(void);
-		void simThreadsRecordingUnlock(void);
-		void simThreadsRecordingSignal(void);
-		void simThreadsRecordingWait(void);*/
-		/*void simThreadsSuccessInit(void);
-		void simThreadsSuccessLock(void);
-		void simThreadsSuccessUnlock(void);
-		void simThreadsSuccessSignal(void);
-		void simThreadsSuccessWait(void);*/
 		int simThreadsGoalInit(void);
 		int simThreadsGoalRLock(void);
 		int simThreadsGoalRUnlock(void);
@@ -122,13 +128,9 @@ class CRobot {
 
 		// threading locks for each robot
 		MUTEX_T _angle_mutex;
-		//pthread_mutex_t _recording_mutex;
 		MUTEX_T _recording_mutex;
-		//pthread_cond_t _recording_cond;
 		COND_T _recording_cond;
-		//pthread_mutex_t _success_mutex;
 		MUTEX_T _success_mutex;
-		//pthread_cond_t _success_cond;
 		COND_T _success_cond;
 	private:
 		// single access read/write lock

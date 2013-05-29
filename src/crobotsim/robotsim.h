@@ -73,8 +73,8 @@ class CRobotSim {
 		int _connected[NUM_TYPES];			// number connected of each robot type
 		pthread_mutex_t _ground_mutex;		// mutex for ground collisions
 		pthread_mutex_t _robot_mutex;		// mutex to lock robot data
-		pthread_t _simulation;				// simulation thread
-		pthread_t* _robotThread[NUM_TYPES];	// thread for each robot
+		THREAD_T _simulation;				// simulation thread
+		THREAD_T* _robotThread[NUM_TYPES];	// thread for each robot
 
 		// private functions
 		void print_intermediate_data(void);			// print data out at each time step for analysis

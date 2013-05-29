@@ -486,7 +486,7 @@ int CLinkbot::moveWait(void) {
 }
 
 int CLinkbot::recordAngle(int id, dReal *time, dReal *angle, int num, dReal seconds, dReal threshold) {
-	pthread_t recording;
+	THREAD_T recording;
 	recordAngleArg_t *rArg = new recordAngleArg_t;
 	if (_recording[id]) { return -1; }
 	rArg->robot = this;
@@ -496,14 +496,14 @@ int CLinkbot::recordAngle(int id, dReal *time, dReal *angle, int num, dReal seco
 	rArg->num = num;
 	rArg->msecs = 1000*seconds;
 	_recording[id] = true;
-	pthread_create(&recording, NULL, (void* (*)(void *))&CLinkbot::record_angle_thread, (void *)rArg);
+	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbot::record_angle_thread, (void *)rArg);
 
 	// success
 	return 0;
 }
 
 int CLinkbot::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, int num, dReal seconds, dReal threshold) {
-	pthread_t recording;
+	THREAD_T recording;
 	recordAngleArg_t *rArg = new recordAngleArg_t;
 	for (int i = 0; i < NUM_DOF; i++) {
 		if (_recording[i]) { return -1; }
@@ -518,7 +518,7 @@ int CLinkbot::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *ang
 	for (int i = 0; i < NUM_DOF; i++) {
 		_recording[i] = true;
 	}
-	pthread_create(&recording, NULL, (void* (*)(void *))&CLinkbot::record_angles_thread, (void *)rArg);
+	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbot::record_angles_thread, (void *)rArg);
 
 	// success
 	return 0;
