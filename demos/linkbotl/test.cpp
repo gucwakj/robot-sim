@@ -3,14 +3,14 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CLinkbot linkbot1;
+	CLinkbotL linkbot;
 
 	CRobotSim sim;
-	sim.addRobot(linkbot1);
+	sim.addRobot(linkbot);
 
-	linkbot1.connect();
-
-	linkbot1.resetToZero();
+	linkbot.connect();
+	//linkbot.resetToZero();
+	linkbot.move(45, 45, 45);
 
 	sim.setExitState(1);
 	return 0;

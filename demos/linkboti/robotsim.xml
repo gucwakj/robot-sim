@@ -1,0 +1,13 @@
+<? xml version="1.0" ?>
+<sim>
+	<linkboti id="0"></linkboti>
+	<simple>
+		<side id="1" robot="0" face="1" />
+	</simple>
+	<simple>
+		<side id="1" robot="0" face="2" />
+	</simple>
+	<simple>
+		<side id="1" robot="0" face="3" />
+	</simple>
+</sim>

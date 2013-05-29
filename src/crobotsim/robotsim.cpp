@@ -145,9 +145,45 @@ int CRobotSim::init_xml(void) {
 				rtmp->next = nr;
 			}
 		}
-		else if ( !strcmp(node->Value(), "linkbot") ) {
+		else if ( !strcmp(node->Value(), "linkboti") ) {
 			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
-			nr->type = LINKBOT;
+			nr->type = LINKBOTI;
+			nr->x = 0; nr->y = 0; nr->z = 0;
+			nr->psi = 0; nr->theta = 0; nr->phi = 0;
+			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
+			_robotNumber[nr->type]++;
+			node->QueryIntAttribute("id", &(nr->id));
+			if (ele = node->FirstChildElement("position")) {
+				ele->QueryDoubleAttribute("x", &(nr->x));
+				ele->QueryDoubleAttribute("y", &(nr->y));
+				ele->QueryDoubleAttribute("z", &(nr->z));
+			}
+			if (ele = node->FirstChildElement("rotation")) {
+				ele->QueryDoubleAttribute("psi", &(nr->psi));
+				ele->QueryDoubleAttribute("theta", &(nr->theta));
+				ele->QueryDoubleAttribute("phi", &(nr->phi));
+			}
+			if (ele = node->FirstChildElement("joint")) {
+				ele->QueryDoubleAttribute("f1", &(nr->angle1));
+				ele->QueryDoubleAttribute("f2", &(nr->angle2));
+				ele->QueryDoubleAttribute("f3", &(nr->angle3));
+			}
+			nr->conn = NULL;
+			nr->next = NULL;
+
+			// put new bot at end of list
+			bot_t rtmp = bot;
+			if ( bot == NULL )
+				bot = nr;
+			else {
+				while (rtmp->next)
+					rtmp = rtmp->next;
+				rtmp->next = nr;
+			}
+		}
+		else if ( !strcmp(node->Value(), "linkbotl") ) {
+			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
+			nr->type = LINKBOTL;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
@@ -323,11 +359,11 @@ int CRobotSim::init_viz(void) {
     viewer->getCamera()->setViewport(0, 0, traits->width, traits->height);
 	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(1, 0, 0.8), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 	// set up the camera manipulators
-	viewer->setCameraManipulator(new osgGA::TerrainManipulator);
+	//viewer->setCameraManipulator(new osgGA::TerrainManipulator);
 	//viewer->setCameraManipulator(new osgGA::SphericalManipulator);
-	//viewer->setCameraManipulator(new osgGA::FirstPersonManipulator);
+	viewer->setCameraManipulator(new osgGA::FirstPersonManipulator);
 	//viewer->setCameraManipulator(new osgGA::TrackballManipulator);
-	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0, -0.7, 0.2), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0.7, 0.7, 0.4), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
     // Creating the root node
 	_osgRoot = new osg::Group();
@@ -571,7 +607,7 @@ void* CRobotSim::simulationThread(void *arg) {
 		dJointGroupEmpty(sim->_group);						// clear out all contact joints
 		pthread_mutex_unlock(&(sim->_ground_mutex));		// unlock ground objects
 
-		//sim->print_intermediate_data();
+		sim->print_intermediate_data();
 
 		// perform post-collision updates
 		//  - unlock angle and goal
@@ -635,19 +671,34 @@ void CRobotSim::print_intermediate_data(void) {
     cout.width(10);		// cout.precision(4);
     cout.setf(ios::fixed, ios::floatfield);
 	cout << j++*_step << " ";
-		for (int i = 0; i < _robotConnected[MOBOT]; i++) {
-			//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT4)) << " ";
-			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT2) << " ";
-			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT3) << " ";
-			//cout << _robot[MOBOT][i]->getAngle(MOBOT_JOINT4) << "\t";
-			//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
-			//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
-			//cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
-			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
-			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
-			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";
-			//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT4) << "\t";
-		}
+	cout << "LinkbotI:" << "\t";
+	for (int i = 0; i < _robotConnected[LINKBOTI]; i++) {
+		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT4)) << " ";
+		cout << _robot[LINKBOTI][i]->getAngle(LINKBOT_JOINT1) << " ";
+		cout << _robot[LINKBOTI][i]->getAngle(LINKBOT_JOINT2) << " ";
+		cout << _robot[LINKBOTI][i]->getAngle(LINKBOT_JOINT3) << "\t";
+		//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
+		//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
+		//cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
+		cout << _robot[LINKBOTI][i]->getSuccess(LINKBOT_JOINT1) << " ";
+		cout << _robot[LINKBOTI][i]->getSuccess(LINKBOT_JOINT2) << " ";
+		cout << _robot[LINKBOTI][i]->getSuccess(LINKBOT_JOINT3) << "\t";
+	}
+	//cout << endl;
+	cout << "LinkbotL:" << "\t";
+	for (int i = 0; i < _robotConnected[LINKBOTL]; i++) {
+		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT4)) << " ";
+		cout << _robot[LINKBOTL][i]->getAngle(LINKBOT_JOINT1) << " ";
+		cout << _robot[LINKBOTL][i]->getAngle(LINKBOT_JOINT2) << " ";
+		cout << _robot[LINKBOTL][i]->getAngle(LINKBOT_JOINT3) << "\t";
+		//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
+		//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
+		//cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
+		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
+		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
+		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";
+		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT4) << "\t";
+	}
 	cout << endl;
 }
 
@@ -655,10 +706,10 @@ void CRobotSim::print_intermediate_data(void) {
 /**********************************************************
 	Add Robot Functions
  **********************************************************/
-#ifndef _CH_
-int CRobotSim::addRobot(CRobot &robot) {
+#ifdef _CH_
+int CRobotSim::addRobot(...) {
 #else
-int CRobotSim::addRobot(CMobot &robot) {
+int CRobotSim::addRobot(CRobot &robot) {
 #endif
 	// get type of robot being added
 	int type = robot.getType();

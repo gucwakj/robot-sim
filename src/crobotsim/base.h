@@ -19,6 +19,8 @@
 enum robot_types_e {
 	MOBOT,
 	LINKBOT,
+	LINKBOTI,
+	LINKBOTL,
 	NUM_TYPES
 };
 

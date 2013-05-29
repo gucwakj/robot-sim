@@ -1,6 +1,6 @@
 #include "robotsim.h"
 
-CLinkbot linkbot1;
+CLinkbotI linkbot1;
 
 CRobotSim sim;
 sim.addRobot(linkbot1);

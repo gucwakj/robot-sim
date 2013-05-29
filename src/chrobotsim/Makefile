@@ -6,7 +6,7 @@ VERSION=0.0.1
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 
 SRC=../crobotsim
-HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics.h
+HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics.h $(SRC)/base.h
 CPPFLAGS = -DdDOUBLE -fPIC
 INCLUDES=-I../opende/sys/include/ -I../tinyxml2/
 LIBS=-L../opende/sys/lib/ -L../tinyxml2/

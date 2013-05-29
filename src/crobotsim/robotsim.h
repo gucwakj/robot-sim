@@ -15,9 +15,10 @@
 #ifdef ENABLE_GRAPHICS
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
-#include "base.h"
+//#include "base.h"
 #endif // _CH_
 
+#include "base.h"
 #include "mobotsim.h"
 #include "linkbotsim.h"
 
@@ -29,7 +30,7 @@ enum simulation_reply_message_e {
 
 #ifndef _CH_
 class CRobot;
-class CMobot;
+//class CMobot;
 #endif // not _CH_
 
 class CRobotSim {
@@ -51,7 +52,7 @@ class CRobotSim {
 #ifndef _CH_
 		int addRobot(CRobot &robot);
 #else
-		int addRobot(CMobot &robot);
+		int addRobot(...);
 #endif // not _CH_
 #ifndef _CH_
 	private:

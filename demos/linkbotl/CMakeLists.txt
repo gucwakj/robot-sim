@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
-project(CRobotSim_Linkbot_Demos)
+project(CRobotSim_LinkbotL_Demos)
 
 # Set the version number
-set (CRobotSim_Linkbot_Demos_VERSION_MAJOR 0)
-set (CRobotSim_Linkbot_Demos_VERSION_MINOR 1)
+set (CRobotSim_LinkbotL_Demos_VERSION_MAJOR 0)
+set (CRobotSim_LinkbotL_Demos_VERSION_MINOR 1)
 
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)

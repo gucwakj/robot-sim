@@ -1,8 +1,8 @@
 #include "linkbotsim.h"
 
-CLinkbot::CLinkbot(void) {
+CLinkbot::CLinkbot(int disabled, int type) {
 	// initialize parameters
-	init_params();
+	init_params(disabled, type);
 	// initialize dimensions
 	init_dims();
 }
@@ -29,11 +29,10 @@ int CLinkbot::getJointSpeed(int id, dReal &speed) {
 	return 0;
 }
 
-int CLinkbot::getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4) {
+int CLinkbot::getJointSpeeds(double &speed1, double &speed2, double &speed3) {
 	speed1 = RAD2DEG(_speed[0]);
 	speed2 = RAD2DEG(_speed[1]);
 	speed3 = RAD2DEG(_speed[2]);
-	speed4 = RAD2DEG(_speed[3]);
 
 	// success
 	return 0;
@@ -241,19 +240,17 @@ int CLinkbot::move(dReal angle1, dReal angle2, dReal angle3) {
 
 int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
 	// store angles into array
-	dReal delta[4] = {angle1, angle2, angle3};
+	dReal delta[NUM_DOF] = {angle1, angle2, angle3};
 
-	// lock goal
+	// lock mutexes
 	this->simThreadsGoalWLock();
-
-	// set new goal angles
-	_goal[0] += DEG2RAD(angle1);
-	_goal[1] += DEG2RAD(angle2);
-	_goal[2] += DEG2RAD(angle3);
-
-	// enable motor
 	this->simThreadsAngleLock();
-	for ( int j = 0; j < NUM_DOF; j++ ) {
+	this->simThreadsSuccessLock();
+
+	// loop over joints
+	for (int i = 0; i < ((_disabled == -1) ? 3 : 2); i++) {
+		int j = _enabled[i];
+		_goal[j] += DEG2RAD(delta[j]);
 		dJointEnable(_motor[j]);
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
@@ -268,18 +265,15 @@ int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
 			_state[j] = MOBOT_HOLD;
 			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
+		_success[j] = false;
 	}
+
+	// enable body
     dBodyEnable(_body[BODY]);
-	this->simThreadsAngleUnlock();
 
-	// set success to false
-	this->simThreadsSuccessLock();
-	_success[0] = false;
-	_success[1] = false;
-	_success[2] = false;
+	// unlock mutexes
 	this->simThreadsSuccessUnlock();
-
-	// unlock goal
+	this->simThreadsAngleUnlock();
 	this->simThreadsGoalWUnlock();
 
 	// success
@@ -295,6 +289,9 @@ int CLinkbot::moveJoint(int id, dReal angle) {
 }
 
 int CLinkbot::moveJointNB(int id, dReal angle) {
+	// check if disabled joint
+	if (_disabled == id-1) return 0;
+
 	// lock goal
 	this->simThreadsGoalWLock();
 
@@ -342,6 +339,9 @@ int CLinkbot::moveJointTo(int id, dReal angle) {
 }
 
 int CLinkbot::moveJointToNB(int id, dReal angle) {
+	// check if disabled joint
+	if (_disabled == id-1) return 0;
+
 	// store delta angle
 	dReal delta = angle - _angle[id];
 
@@ -403,59 +403,57 @@ int CLinkbot::moveTo(dReal angle1, dReal angle2, dReal angle3) {
 }
 
 int CLinkbot::moveToDirect(dReal angle1, dReal angle2, dReal angle3) {
+	// success
+	return 0;
 }
 
 int CLinkbot::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
 	// store angles into array
-	dReal delta[4] = {angle1 - _angle[0], angle2 - _angle[1], angle3 - _angle[2]};
+	dReal delta[3] = {angle1 - _angle[0], angle2 - _angle[1], angle3 - _angle[2]};
 
-	// lock goal
+	// lock mutexes
 	this->simThreadsGoalWLock();
-
-	// set new goal angles
-	_goal[0] = DEG2RAD(angle1);
-	_goal[1] = DEG2RAD(angle2);
-	_goal[2] = DEG2RAD(angle3);
-
-	// enable motor
 	this->simThreadsAngleLock();
-	for ( int j = 0; j < NUM_DOF; j++ ) {
+	this->simThreadsSuccessLock();
+
+	// loop over joints
+	for (int i = 0; i < ((_disabled == -1) ? 3 : 2); i++) {
+		int j = _enabled[i];
+		_goal[j] += DEG2RAD(delta[j]);
 		dJointEnable(_motor[j]);
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
-			_state[j] = MOBOT_FORWARD;
+			_state[j] = LINKBOT_FORWARD;
 			dJointSetAMotorParam(_motor[j], dParamVel, _speed[j]);
 		}
 		else if ( delta[j] < 0 ) {
-			_state[j] = MOBOT_BACKWARD;
+			_state[j] = LINKBOT_BACKWARD;
 			dJointSetAMotorParam(_motor[j], dParamVel, -_speed[j]);
 		}
 		else if ( fabs(delta[j]-0) < EPSILON ) {
-			_state[j] = MOBOT_HOLD;
+			_state[j] = LINKBOT_HOLD;
 			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
+		_success[j] = false;
 	}
+
+	// enable body
     dBodyEnable(_body[BODY]);
-	this->simThreadsAngleUnlock();
 
-	// set success to false
-	this->simThreadsSuccessLock();
-	_success[0] = false;
-	_success[1] = false;
-	_success[2] = false;
+	// unlock mutexes
 	this->simThreadsSuccessUnlock();
-
-	// unlock goal
+	this->simThreadsAngleUnlock();
 	this->simThreadsGoalWUnlock();
+
 
 	// success
 	return 0;
 }
 
-/*int moveToDirectNB(dReal angle1, dReal angle2, dReal angle3) {
+int moveToDirectNB(dReal angle1, dReal angle2, dReal angle3) {
 	// success
 	return 0;
-}*/
+}
 
 int CLinkbot::moveToZero(void) {
 	this->moveTo(0, 0, 0);
@@ -480,6 +478,7 @@ int CLinkbot::moveWait(void) {
 	_success[0] = true;
 	_success[1] = true;
 	_success[2] = true;
+
 	this->simThreadsSuccessUnlock();
 
 	// success
@@ -630,10 +629,6 @@ int CLinkbot::build(bot_t robot) {
 		}
 		ctmp = ctmp->next;
 	}
-
-	// debug printing
-	//const dReal *pos = dBodyGetPosition(_body[BODY]);
-	//printf("robot pos: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
 
 	// success
 	return 0;
@@ -812,16 +807,18 @@ void CLinkbot::simPostCollisionThread(void) {
 	// lock angle and goal
 	this->simThreadsGoalRLock();
 	this->simThreadsAngleLock();
+	this->simThreadsSuccessLock();
 
 	// check if joint speed is zero -> joint has completed step
 	for (int i = 0; i < NUM_DOF; i++) {
 		_success[i] = (bool)(!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
 	}
-	if ( _success[0] && _success[1] && _success[2] && _success[3] ) {
+	if (_success[0] && _success[1] && _success[2]) {
 		this->simThreadsSuccessSignal();
 	}
 
 	// unlock angle and goal
+	this->simThreadsSuccessUnlock();
 	this->simThreadsAngleUnlock();
 	this->simThreadsGoalRUnlock();
 }
@@ -889,6 +886,9 @@ void CLinkbot::draw(osg::Group *root) {
     body[1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
     body[2]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
     body[3]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
+	if (_disabled > 0) {
+    	body[_disabled+1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
+	}
 
 	// position each body within robot
 	for (int i = 0; i < NUM_PARTS; i++) {
@@ -990,9 +990,9 @@ int CLinkbot::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f1
 	}
 
     // convert input angles to radians
-    _angle[FACE1] = DEG2RAD(r_f1);	// face 1
-    _angle[FACE2] = DEG2RAD(r_f2);	// face 2
-    _angle[FACE3] = DEG2RAD(r_f3);	// face 3
+    _angle[F1] = DEG2RAD(r_f1);	// face 1
+    _angle[F2] = DEG2RAD(r_f2);	// face 2
+    _angle[F3] = DEG2RAD(r_f3);	// face 3
 
 	// offset values for each body part[0-2] and joint[3-5] from center
 	dReal b[3] = {-_body_length/2, 0, 0};
@@ -1569,18 +1569,22 @@ int CLinkbot::get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p) {
 	return 0;
 }
 
-int CLinkbot::init_params(void) {
-	for (int i = 0; i < NUM_DOF; i++) {
+int CLinkbot::init_params(int disabled, int type) {
+	_disabled = disabled;
+	_enabled = new int[(_disabled == -1) ? 3 : 2];
+	for (int i = 0, j = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
 		_goal[i] = 0;
 		_recording[i] = false;
 		_success[i] = true;
 		_speed[i] = 0.7854;		// 45 deg/sec
 		_maxSpeed[i] = 120;		// deg/sec
+		if (i != _disabled)
+			_enabled[j++] = i;
 	}
 	_conn = NULL;
 	_id = -1;
-	_type = LINKBOT;
+	_type = type;
 	_encoderResolution = DEG2RAD(0.5);
 	_maxJointForce[LINKBOT_JOINT1] = 1.059;
 	_maxJointForce[LINKBOT_JOINT2] = 1.059;
@@ -1933,3 +1937,19 @@ void CLinkbot::draw_square(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 #endif // ENABLE_GRAPHICS
+
+#ifdef _CH_
+CLinkbotI::CLinkbotI(void) {
+	CLinkbot(1, LINKBOTI);
+}
+
+CLinkbotI::~CLinkbotI(void) {
+}
+
+CLinkbotL::CLinkbotL(void) {
+	CLinkbot(2, LINKBOTL);
+}
+
+CLinkbotL::~CLinkbotL(void) {
+}
+#endif

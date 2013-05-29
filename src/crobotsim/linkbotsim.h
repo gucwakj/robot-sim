@@ -43,20 +43,17 @@ typedef enum linkbot_connector_e {
 	L_NUM_CONNECTORS
 } linkbotConnector_t;
 
-#ifdef _CH_
-class CLinkbot {
-#else
+#ifndef _CH_
 class CLinkbot : virtual public CRobot {
-#endif // _CH_
 	// public api to mimic CLinkbot class
 	public:
-		CLinkbot();
+		CLinkbot(int disabled = -1, int type = LINKBOT);
 		~CLinkbot();
 
 		int connect(void);
 		int getJointAngle(int id, dReal &angle);
 		int getJointSpeed(int id, double &speed);
-		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);
+		int getJointSpeeds(double &speed1, double &speed2, double &speed3);
 		int motionArch(dReal angle);
 		int motionInchwormLeft(int num);
 		int motionInchwormRight(int num);
@@ -95,7 +92,6 @@ class CLinkbot : virtual public CRobot {
 		int resetToZeroNB(void);
 		int setJointSpeed(int id, double speed);
 		int setJointSpeeds(double speed1, double speed2, double speed3);
-#ifndef _CH_
     private:
 		enum robot_pieces_e {       // each body part which is built
 			BODY,
@@ -144,7 +140,7 @@ class CLinkbot : virtual public CRobot {
 		//PID _pid[NUM_DOF];			// PID control for each joint
 		int _id;					// robot id
 		int _state[NUM_DOF];		// joint states
-		int _type;					// type of robot
+		int* _enabled;				// list of enabled motors
 		bool _recording[NUM_DOF];	// recording in progress
 		bool _success[NUM_DOF];		// trigger for goal
 		double	_encoderResolution,
@@ -191,7 +187,7 @@ class CLinkbot : virtual public CRobot {
 		int fix_body_to_connector(dBodyID cBody, int face);				// create fixed joint between body and connector
 		int fix_connector_to_body(int face, dBodyID cBody);				// create fixed joint between connector and body
 		int get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p);	// get parameters of connector
-		int init_params(void);											// initialize robot parameters
+		int init_params(int disabled, int type);						// initialize robot parameters
 		int init_dims(void);											// initialize robot dimensions
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);	// modify angle from ODE for endcaps to count continuously
         //void resetPID(int i = NUM_DOF);
@@ -205,7 +201,108 @@ class CLinkbot : virtual public CRobot {
 		void draw_square(conn_t conn, osg::Group *robot);
 		void draw_tank(conn_t conn, osg::Group *robot);
 #endif // ENABLE_GRAPHICS
-#endif // not _CH_
+	protected:
+		int _disabled;				// which joint is disabled
+		int _type;					// type of robot
 };
+#endif // not _CH_
 
-#endif  // LINKBOTSIM_H_
+#ifdef _CH_
+class CLinkbotI {
+	public:
+		CLinkbotI();
+		~CLinkbotI();
+		int connect(void);
+		int getJointAngle(int id, dReal &angle);
+		int getJointSpeed(int id, double &speed);
+		int getJointSpeeds(double &speed1, double &speed2, double &speed3);
+		int motionArch(dReal angle);
+		int motionInchwormLeft(int num);
+		int motionInchwormRight(int num);
+		int motionRollBackward(dReal angle);
+		int motionRollForward(dReal angle);
+		int motionSkinny(dReal angle);
+		int motionStand(void);
+		int motionTumbleRight(int num);
+		int motionTumbleLeft(int num);
+		int motionTurnLeft(dReal angle);
+		int motionTurnRight(dReal angle);
+		int motionUnstand(void);
+		int move(dReal angle1, dReal angle2, dReal angle3);
+		int moveNB(dReal angle1, dReal angle2, dReal angle3);
+		int moveJoint(int id, dReal angle);
+		int moveJointNB(int id, dReal angle);
+		int moveJointTo(int id, dReal angle);
+		int moveJointToNB(int id, dReal angle);
+		int moveJointWait(int id);
+		int moveTo(dReal angle1, dReal angle2, dReal angle3);
+		int moveToDirect(dReal angle1, dReal angle2, dReal angle3);
+		int moveToNB(dReal angle1, dReal angle2, dReal angle3);
+		int moveToZero(void);
+		int moveToZeroNB(void);
+		int moveWait(void);
+		int recordAngle(int id, dReal time[:], dReal angle[:], int num, dReal seconds);
+		int recordAngles(dReal time[:], dReal angle1[:], dReal angle2[:], dReal angle3[:], int num, dReal seconds);
+		int recordWait(void);
+		int resetToZero(void);
+		int resetToZeroNB(void);
+		int setJointSpeed(int id, double speed);
+		int setJointSpeeds(double speed1, double speed2, double speed3);
+};
+#else
+class CLinkbotI : public CLinkbot {
+	public:
+		CLinkbotI(void) : CLinkbot(1, LINKBOTI) {}
+};
+#endif // _CH_
+
+#ifdef _CH_
+class CLinkbotL {
+	public:
+		CLinkbotL();
+		~CLinkbotL();
+		int connect(void);
+		int getJointAngle(int id, dReal &angle);
+		int getJointSpeed(int id, double &speed);
+		int getJointSpeeds(double &speed1, double &speed2, double &speed3);
+		int motionArch(dReal angle);
+		int motionInchwormLeft(int num);
+		int motionInchwormRight(int num);
+		int motionRollBackward(dReal angle);
+		int motionRollForward(dReal angle);
+		int motionSkinny(dReal angle);
+		int motionStand(void);
+		int motionTumbleRight(int num);
+		int motionTumbleLeft(int num);
+		int motionTurnLeft(dReal angle);
+		int motionTurnRight(dReal angle);
+		int motionUnstand(void);
+		int move(dReal angle1, dReal angle2, dReal angle3);
+		int moveNB(dReal angle1, dReal angle2, dReal angle3);
+		int moveJoint(int id, dReal angle);
+		int moveJointNB(int id, dReal angle);
+		int moveJointTo(int id, dReal angle);
+		int moveJointToNB(int id, dReal angle);
+		int moveJointWait(int id);
+		int moveTo(dReal angle1, dReal angle2, dReal angle3);
+		int moveToDirect(dReal angle1, dReal angle2, dReal angle3);
+		int moveToNB(dReal angle1, dReal angle2, dReal angle3);
+		int moveToZero(void);
+		int moveToZeroNB(void);
+		int moveWait(void);
+		int recordAngle(int id, dReal time[:], dReal angle[:], int num, dReal seconds);
+		int recordAngles(dReal time[:], dReal angle1[:], dReal angle2[:], dReal angle3[:], int num, dReal seconds);
+		int recordWait(void);
+		int resetToZero(void);
+		int resetToZeroNB(void);
+		int setJointSpeed(int id, double speed);
+		int setJointSpeeds(double speed1, double speed2, double speed3);
+};
+#else
+class CLinkbotL : public CLinkbot {
+	public:
+		CLinkbotL(void) : CLinkbot(2, LINKBOTL) {}
+};
+#endif // _CH_
+
+#endif // LINKBOTSIM_H_
