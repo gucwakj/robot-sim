@@ -120,6 +120,9 @@ typedef struct bot_s {
 
 class CRobot {
 	public:
+		CRobot();
+		~CRobot();
+
 		// entry functions for pre- and post-collision updates
 		static void* simPreCollisionThreadEntry(void *arg);
 		static void* simPostCollisionThreadEntry(void *arg);

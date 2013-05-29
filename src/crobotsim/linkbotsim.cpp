@@ -8,6 +8,7 @@ CLinkbot::CLinkbot(int disabled, int type) {
 }
 
 CLinkbot::~CLinkbot(void) {
+	// destroy robot space
 	dSpaceDestroy(_space);
 }
 

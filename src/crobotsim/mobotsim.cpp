@@ -8,6 +8,7 @@ CMobot::CMobot(void) {
 }
 
 CMobot::~CMobot(void) {
+	// destroy robot space
 	dSpaceDestroy(_space);
 }
 
