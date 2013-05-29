@@ -15,6 +15,25 @@
 #define DEG2RAD(x) ((x) * M_PI / 180.0)
 #define RAD2DEG(x) ((x) * 180.0 / M_PI)
 
+#ifdef _WIN32
+//   MUTEX
+#define MUTEX_T HANDLE
+#define MUTEX_INIT(mutex) *mutex = CreateMutex(NULL, FALSE, NULL)
+#define MUTEX_DESTROY(mutex)
+#define MUTEX_LOCK(mutex) WaitForSingleObject(*mutex, INFINITE)
+#define MUTEX_UNLOCK(mutex) ReleaseMutex(*mutex)
+#else
+//   MUTEX
+#define MUTEX_T pthread_mutex_t
+#define MUTEX_INIT(mutex) pthread_mutex_init(mutex, NULL)
+#define MUTEX_DESTROY(mutex) pthread_mutex_destroy(mutex)
+#define MUTEX_LOCK(mutex) \
+	if (pthread_mutex_lock(mutex)) { \
+		fprintf(stderr, "pthread lock error: %s:%d\n", __FILE__, __LINE__); \
+	}
+#define MUTEX_UNLOCK(mutex) pthread_mutex_unlock(mutex)
+#endif
+
 // types of robots available for simulation
 enum robot_types_e {
 	MOBOT,
@@ -40,11 +59,6 @@ typedef struct bot_s {
 	struct bot_s *next;
 } *bot_t;
 
-#ifndef _CH_
-// classes forward declared
-//class CMobot;
-#endif
-
 class CRobot {
 	public:
 		// entry functions for pre- and post-collision updates
@@ -52,9 +66,6 @@ class CRobot {
 		static void* simPostCollisionThreadEntry(void *arg);
 
 		// threading functions to control variables
-		void simThreadsAngleInit(void);
-		void simThreadsAngleLock(void);
-		void simThreadsAngleUnlock(void);
 		void simThreadsRecordingInit(void);
 		void simThreadsRecordingLock(void);
 		void simThreadsRecordingUnlock(void);
@@ -94,6 +105,9 @@ class CRobot {
 #ifdef ENABLE_GRAPHICS
 		virtual void draw(osg::Group *root) = 0;
 #endif // ENABLE_GRAPHICS
+
+		// threading locks for each robot
+		MUTEX_T _angle_mutex;
 	private:
 		// single access read/write lock
 		typedef struct rw_var {
@@ -110,12 +124,16 @@ class CRobot {
 		int simThreadsRWWUnlock(pthread_rw_t *rwp);
 
 		// threading locks for each robot
-		pthread_mutex_t _angle_mutex;
 		pthread_rw_t _goal_rwlock;
+		//RWLOCK_T _goal_rwlock;
 		pthread_mutex_t _success_mutex;
+		//MUTEX_T _success_mutex;
 		pthread_cond_t _success_cond;
+		//COND_T _success_cond;
 		pthread_mutex_t _recording_mutex;
+		//MUTEX_T _recording_mutex;
 		pthread_cond_t _recording_cond;
+		//COND_T _recording_cond;
 #endif
 };
 

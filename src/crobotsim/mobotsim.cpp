@@ -253,7 +253,7 @@ int CMobot::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	_goal[3] += DEG2RAD(angle4);
 
 	// enable motor
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	for ( int j = 0; j < NUM_DOF; j++ ) {
 		dJointEnable(_motor[j]);
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
@@ -271,7 +271,7 @@ int CMobot::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 		}
 	}
     dBodyEnable(_body[CENTER]);
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
 	this->simThreadsSuccessLock();
@@ -304,7 +304,7 @@ int CMobot::moveJointNB(int id, dReal angle) {
 	_goal[id] += DEG2RAD(angle);
 
 	// enable motor
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	dJointEnable(_motor[id]);
 
 	// set motor state and velocity
@@ -321,7 +321,7 @@ int CMobot::moveJointNB(int id, dReal angle) {
 		dJointSetAMotorParam(_motor[id], dParamVel, 0);
 	}
 	dBodyEnable(_body[CENTER]);
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
 	this->simThreadsSuccessLock();
@@ -354,7 +354,7 @@ int CMobot::moveJointToNB(int id, dReal angle) {
 	_goal[id] = DEG2RAD(angle);
 
 	// enable motor
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	dJointEnable(_motor[id]);
 
 	// set motor state and velocity
@@ -371,7 +371,7 @@ int CMobot::moveJointToNB(int id, dReal angle) {
 		dJointSetAMotorParam(_motor[id], dParamVel, 0);
 	}
 	dBodyEnable(_body[CENTER]);
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
 	this->simThreadsSuccessLock();
@@ -421,7 +421,7 @@ int CMobot::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	_goal[3] = DEG2RAD(angle4);
 
 	// enable motor
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	for ( int j = 0; j < NUM_DOF; j++ ) {
 		dJointEnable(_motor[j]);
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
@@ -439,7 +439,7 @@ int CMobot::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 		}
 	}
     dBodyEnable(_body[CENTER]);
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
 	this->simThreadsSuccessLock();
@@ -549,12 +549,12 @@ int CMobot::recordWait(void) {
 
 int CMobot::resetToZero(void) {
 	// reset absolute counter to 0 -> 2M_PI
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	int rev = (int)(_angle[LE]/2/M_PI);
 	if (rev) _angle[LE] -= 2*rev*M_PI;
 	rev = (int)(_angle[RE]/2/M_PI);
 	if (rev) _angle[RE] -= 2*rev*M_PI;
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 
 	// move to zero position
 	this->moveToZero();
@@ -565,12 +565,12 @@ int CMobot::resetToZero(void) {
 
 int CMobot::resetToZeroNB(void) {
 	// reset absolute counter to 0 -> 2M_PI
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	int rev = (int)(_angle[LE]/2/M_PI);
 	if (rev) _angle[LE] -= 2*rev*M_PI;
 	rev = (int)(_angle[RE]/2/M_PI);
 	if (rev) _angle[RE] -= 2*rev*M_PI;
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 
 	// move to zero position
 	this->moveToZeroNB();
@@ -823,7 +823,7 @@ int CMobot::setID(int id) {
 void CMobot::simPreCollisionThread(void) {
 	// lock angle and goal
 	this->simThreadsGoalRLock();
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 
 	// update angle values for each degree of freedom
 	for ( int i = 0; i < NUM_DOF; i++ ) {
@@ -841,14 +841,14 @@ void CMobot::simPreCollisionThread(void) {
 	}
 
 	// unlock angle and goal
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 	this->simThreadsGoalRUnlock();
 }
 
 void CMobot::simPostCollisionThread(void) {
 	// lock angle and goal
 	this->simThreadsGoalRLock();
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 
 	// check if joint speed is zero -> joint has completed step
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -859,7 +859,7 @@ void CMobot::simPostCollisionThread(void) {
 	}
 
 	// unlock angle and goal
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 	this->simThreadsGoalRUnlock();
 }
 
@@ -2113,7 +2113,7 @@ int CMobot::init_params(void) {
 	_maxJointForce[MOBOT_JOINT4] = 0.260;
 
 	// init locks
-	this->simThreadsAngleInit();
+	MUTEX_INIT(&_angle_mutex);
 	this->simThreadsGoalInit();
 	this->simThreadsRecordingInit();
 	this->simThreadsSuccessInit();

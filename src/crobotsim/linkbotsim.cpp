@@ -244,7 +244,7 @@ int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
 
 	// lock mutexes
 	this->simThreadsGoalWLock();
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	this->simThreadsSuccessLock();
 
 	// loop over joints
@@ -273,7 +273,7 @@ int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
 
 	// unlock mutexes
 	this->simThreadsSuccessUnlock();
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 	this->simThreadsGoalWUnlock();
 
 	// success
@@ -299,7 +299,7 @@ int CLinkbot::moveJointNB(int id, dReal angle) {
 	_goal[id] += DEG2RAD(angle);
 
 	// enable motor
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	dJointEnable(_motor[id]);
 
 	// set motor state and velocity
@@ -316,7 +316,7 @@ int CLinkbot::moveJointNB(int id, dReal angle) {
 		dJointSetAMotorParam(_motor[id], dParamVel, 0);
 	}
 	dBodyEnable(_body[BODY]);
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
 	this->simThreadsSuccessLock();
@@ -352,7 +352,7 @@ int CLinkbot::moveJointToNB(int id, dReal angle) {
 	_goal[id] = DEG2RAD(angle);
 
 	// enable motor
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	dJointEnable(_motor[id]);
 
 	// set motor state and velocity
@@ -369,7 +369,7 @@ int CLinkbot::moveJointToNB(int id, dReal angle) {
 		dJointSetAMotorParam(_motor[id], dParamVel, 0);
 	}
 	dBodyEnable(_body[BODY]);
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
 	this->simThreadsSuccessLock();
@@ -413,7 +413,7 @@ int CLinkbot::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
 
 	// lock mutexes
 	this->simThreadsGoalWLock();
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	this->simThreadsSuccessLock();
 
 	// loop over joints
@@ -442,7 +442,7 @@ int CLinkbot::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
 
 	// unlock mutexes
 	this->simThreadsSuccessUnlock();
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 	this->simThreadsGoalWUnlock();
 
 
@@ -541,12 +541,12 @@ int CLinkbot::recordWait(void) {
 
 int CLinkbot::resetToZero(void) {
 	// reset absolute counter to 0 -> 2M_PI
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	for (int i = 0; i < 3; i++) {
 		int rev = (int)(_angle[i]/2/M_PI);
 		if (rev) _angle[i] -= 2*rev*M_PI;
 	}
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 
 	// move to zero position
 	this->moveToZero();
@@ -557,12 +557,12 @@ int CLinkbot::resetToZero(void) {
 
 int CLinkbot::resetToZeroNB(void) {
 	// reset absolute counter to 0 -> 2M_PI
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	for (int i = 0; i < 3; i++) {
 		int rev = (int)(_angle[i]/2/M_PI);
 		if (rev) _angle[i] -= 2*rev*M_PI;
 	}
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 
 	// move to zero position
 	this->moveToZeroNB();
@@ -781,7 +781,7 @@ int CLinkbot::setID(int id) {
 void CLinkbot::simPreCollisionThread(void) {
 	// lock angle and goal
 	this->simThreadsGoalRLock();
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 
 	// update angle values for each degree of freedom
 	for ( int i = 0; i < NUM_DOF; i++ ) {
@@ -799,14 +799,14 @@ void CLinkbot::simPreCollisionThread(void) {
 	}
 
 	// unlock angle and goal
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 	this->simThreadsGoalRUnlock();
 }
 
 void CLinkbot::simPostCollisionThread(void) {
 	// lock angle and goal
 	this->simThreadsGoalRLock();
-	this->simThreadsAngleLock();
+	MUTEX_LOCK(&_angle_mutex);
 	this->simThreadsSuccessLock();
 
 	// check if joint speed is zero -> joint has completed step
@@ -819,7 +819,7 @@ void CLinkbot::simPostCollisionThread(void) {
 
 	// unlock angle and goal
 	this->simThreadsSuccessUnlock();
-	this->simThreadsAngleUnlock();
+	MUTEX_UNLOCK(&_angle_mutex);
 	this->simThreadsGoalRUnlock();
 }
 
@@ -1591,7 +1591,7 @@ int CLinkbot::init_params(int disabled, int type) {
 	_maxJointForce[LINKBOT_JOINT3] = 1.059;
 
 	// init locks
-	this->simThreadsAngleInit();
+	MUTEX_INIT(&_angle_mutex);
 	this->simThreadsGoalInit();
 	this->simThreadsRecordingInit();
 	this->simThreadsSuccessInit();

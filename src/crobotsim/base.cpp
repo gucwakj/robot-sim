@@ -10,18 +10,6 @@ void* CRobot::simPostCollisionThreadEntry(void *arg) {
 	p->simPostCollisionThread();
 }
 
-void CRobot::simThreadsAngleInit(void) {
-	pthread_mutex_init(&_angle_mutex, NULL);
-}
-
-void CRobot::simThreadsAngleLock(void) {
-	pthread_mutex_lock(&_angle_mutex);
-}
-
-void CRobot::simThreadsAngleUnlock(void) {
-	pthread_mutex_unlock(&_angle_mutex);
-}
-
 void CRobot::simThreadsRecordingInit(void) {
 	pthread_mutex_init(&_recording_mutex, NULL);
 	pthread_cond_init(&_recording_cond, NULL);
