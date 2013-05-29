@@ -36,6 +36,14 @@
 #define COND_WAIT(cond , mutex) ResetEvent(*cond); ReleaseMutex(*mutex); WaitForSingleObject(*cond, INFINITE)
 #define SIGNAL(cond, mutex, action) action; SetEvent(*cond)
 #define COND_SIGNAL(cond) SetEvent(*cond)
+//   RWLOCK
+#define RWLOCK_T mc_rwlock_t
+#define RWLOCK_INIT(rwlock) mc_rwlock_init(rwlock)
+#define RWLOCK_DESTROY(rwlock) mc_rwlock_destroy(rwlock)
+#define RWLOCK_RDLOCK(rwlock) mc_rwlock_rdlock(rwlock)
+#define RWLOCK_RDUNLOCK(rwlock) mc_rwlock_rdunlock(rwlock)
+#define RWLOCK_WRLOCK(rwlock) mc_rwlock_wrlock(rwlock)
+#define RWLOCK_WRUNLOCK(rwlock) mc_rwlock_wrunlock(rwlock)
 #else
 //   THREADS
 #include <pthread.h>
@@ -62,6 +70,27 @@
 #define COND_WAIT(cond, mutex) pthread_cond_wait(cond, mutex)
 #define SIGNAL(cond, mutex, action) pthread_mutex_lock(mutex); action; pthread_cond_signal(cond); pthread_mutex_unlock(mutex)
 #define COND_SIGNAL(cond) pthread_cond_signal(cond)
+//   RWLOCK
+#define RWLOCK_T pthread_rwlock_t
+#define RWLOCK_INIT(rwlock) pthread_rwlock_init(rwlock, NULL)
+#define RWLOCK_DESTROY(rwlock) pthread_rwlock_destroy(rwlock)
+#define RWLOCK_RLOCK(rwlock) \
+	if (pthread_rwlock_rdlock(rwlock)) { \
+		fprintf(stderr, "rwlock error: %s:%d\n", __FILE__, __LINE__); \
+	}
+#define RWLOCK_RUNLOCK(rwlock) \
+	if (pthread_rwlock_unlock(rwlock)) { \
+		fprintf(stderr, "rwunlock error: %s:%d\n", __FILE__, __LINE__); \
+	}
+#define RWLOCK_WLOCK(rwlock) \
+	if (pthread_rwlock_wrlock(rwlock)) { \
+		fprintf(stderr, "rwlock error: %s:%d\n", __FILE__, __LINE__); \
+	}
+#define RWLOCK_WUNLOCK(rwlock) \
+	if (pthread_rwlock_unlock(rwlock)) { \
+		fprintf(stderr, "rwunlock error: %s:%d\n", __FILE__, __LINE__); \
+	}
+
 #endif
 
 // types of robots available for simulation
@@ -95,13 +124,6 @@ class CRobot {
 		static void* simPreCollisionThreadEntry(void *arg);
 		static void* simPostCollisionThreadEntry(void *arg);
 
-		// threading functions to control variables
-		int simThreadsGoalInit(void);
-		int simThreadsGoalRLock(void);
-		int simThreadsGoalRUnlock(void);
-		int simThreadsGoalWLock(void);
-		int simThreadsGoalWUnlock(void);		
-
 #ifndef _CH_
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock) = 0;
@@ -128,28 +150,11 @@ class CRobot {
 
 		// threading locks for each robot
 		MUTEX_T _angle_mutex;
+		RWLOCK_T _goal_rwlock;
 		MUTEX_T _recording_mutex;
 		COND_T _recording_cond;
 		MUTEX_T _success_mutex;
 		COND_T _success_cond;
-	private:
-		// single access read/write lock
-		typedef struct rw_var {
-			bool lock;
-			pthread_mutex_t mutex;
-			pthread_cond_t cond;
-		} pthread_rw_t;
-
-		// pthread single access r/w lock functions
-		int simThreadsRWInit(pthread_rw_t *rwp);
-		int simThreadsRWRLock(pthread_rw_t *rwp);
-		int simThreadsRWRUnlock(pthread_rw_t *rwp);
-		int simThreadsRWWLock(pthread_rw_t *rwp);
-		int simThreadsRWWUnlock(pthread_rw_t *rwp);
-
-		// threading locks for each robot
-		pthread_rw_t _goal_rwlock;
-		//RWLOCK_T _goal_rwlock;
 #endif
 };
 

@@ -244,7 +244,7 @@ int CMobot::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	dReal delta[4] = {angle1, angle2, angle3, angle4};
 
 	// lock goal
-	this->simThreadsGoalWLock();
+	RWLOCK_WLOCK(&_goal_rwlock);
 
 	// set new goal angles
 	_goal[0] += DEG2RAD(angle1);
@@ -282,7 +282,7 @@ int CMobot::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
-	this->simThreadsGoalWUnlock();
+	RWLOCK_WUNLOCK(&_goal_rwlock);
 
 	// success
 	return 0;
@@ -298,7 +298,7 @@ int CMobot::moveJoint(int id, dReal angle) {
 
 int CMobot::moveJointNB(int id, dReal angle) {
 	// lock goal
-	this->simThreadsGoalWLock();
+	RWLOCK_WLOCK(&_goal_rwlock);
 
 	// set new goal angles
 	_goal[id] += DEG2RAD(angle);
@@ -329,7 +329,7 @@ int CMobot::moveJointNB(int id, dReal angle) {
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
-	this->simThreadsGoalWUnlock();
+	RWLOCK_WUNLOCK(&_goal_rwlock);
 
 	// success
 	return 0;
@@ -348,7 +348,7 @@ int CMobot::moveJointToNB(int id, dReal angle) {
 	dReal delta = angle - _angle[id];
 
 	// lock goal
-	this->simThreadsGoalWLock();
+	RWLOCK_WLOCK(&_goal_rwlock);
 
 	// set new goal angles
 	_goal[id] = DEG2RAD(angle);
@@ -379,7 +379,7 @@ int CMobot::moveJointToNB(int id, dReal angle) {
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
-	this->simThreadsGoalWUnlock();
+	RWLOCK_WUNLOCK(&_goal_rwlock);
 
 	// success
 	return 0;
@@ -412,7 +412,7 @@ int CMobot::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	dReal delta[4] = {angle1 - _angle[0], angle2 - _angle[1], angle3 - _angle[2], angle4 - _angle[3]};
 
 	// lock goal
-	this->simThreadsGoalWLock();
+	RWLOCK_WLOCK(&_goal_rwlock);
 
 	// set new goal angles
 	_goal[0] = DEG2RAD(angle1);
@@ -450,7 +450,7 @@ int CMobot::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
-	this->simThreadsGoalWUnlock();
+	RWLOCK_WUNLOCK(&_goal_rwlock);
 
 	// success
 	return 0;
@@ -822,7 +822,7 @@ int CMobot::setID(int id) {
 
 void CMobot::simPreCollisionThread(void) {
 	// lock angle and goal
-	this->simThreadsGoalRLock();
+	RWLOCK_RLOCK(&_goal_rwlock);
 	MUTEX_LOCK(&_angle_mutex);
 
 	// update angle values for each degree of freedom
@@ -842,12 +842,12 @@ void CMobot::simPreCollisionThread(void) {
 
 	// unlock angle and goal
 	MUTEX_UNLOCK(&_angle_mutex);
-	this->simThreadsGoalRUnlock();
+	RWLOCK_RUNLOCK(&_goal_rwlock);
 }
 
 void CMobot::simPostCollisionThread(void) {
 	// lock angle and goal
-	this->simThreadsGoalRLock();
+	RWLOCK_RLOCK(&_goal_rwlock);
 	MUTEX_LOCK(&_angle_mutex);
 
 	// check if joint speed is zero -> joint has completed step
@@ -860,7 +860,7 @@ void CMobot::simPostCollisionThread(void) {
 
 	// unlock angle and goal
 	MUTEX_UNLOCK(&_angle_mutex);
-	this->simThreadsGoalRUnlock();
+	RWLOCK_RUNLOCK(&_goal_rwlock);
 }
 
 #ifdef ENABLE_GRAPHICS
@@ -2114,7 +2114,7 @@ int CMobot::init_params(void) {
 
 	// init locks
 	MUTEX_INIT(&_angle_mutex);
-	this->simThreadsGoalInit();
+	RWLOCK_INIT(&_goal_rwlock);
 	MUTEX_INIT(&_recording_mutex);
 	COND_INIT(&_recording_cond);
 	MUTEX_INIT(&_success_mutex);

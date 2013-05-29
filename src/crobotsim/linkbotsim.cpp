@@ -243,7 +243,7 @@ int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
 	dReal delta[NUM_DOF] = {angle1, angle2, angle3};
 
 	// lock mutexes
-	this->simThreadsGoalWLock();
+	RWLOCK_WLOCK(&_goal_rwlock);
 	MUTEX_LOCK(&_angle_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
@@ -274,7 +274,7 @@ int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
 	// unlock mutexes
 	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
-	this->simThreadsGoalWUnlock();
+	RWLOCK_WUNLOCK(&_goal_rwlock);
 
 	// success
 	return 0;
@@ -293,7 +293,7 @@ int CLinkbot::moveJointNB(int id, dReal angle) {
 	if (_disabled == id-1) return 0;
 
 	// lock goal
-	this->simThreadsGoalWLock();
+	RWLOCK_WLOCK(&_goal_rwlock);
 
 	// set new goal angles
 	_goal[id] += DEG2RAD(angle);
@@ -324,7 +324,7 @@ int CLinkbot::moveJointNB(int id, dReal angle) {
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
-	this->simThreadsGoalWUnlock();
+	RWLOCK_WUNLOCK(&_goal_rwlock);
 
 	// success
 	return 0;
@@ -346,7 +346,7 @@ int CLinkbot::moveJointToNB(int id, dReal angle) {
 	dReal delta = angle - _angle[id];
 
 	// lock goal
-	this->simThreadsGoalWLock();
+	RWLOCK_WLOCK(&_goal_rwlock);
 
 	// set new goal angles
 	_goal[id] = DEG2RAD(angle);
@@ -377,7 +377,7 @@ int CLinkbot::moveJointToNB(int id, dReal angle) {
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
-	this->simThreadsGoalWUnlock();
+	RWLOCK_WUNLOCK(&_goal_rwlock);
 
 	// success
 	return 0;
@@ -412,7 +412,7 @@ int CLinkbot::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
 	dReal delta[3] = {angle1 - _angle[0], angle2 - _angle[1], angle3 - _angle[2]};
 
 	// lock mutexes
-	this->simThreadsGoalWLock();
+	RWLOCK_WLOCK(&_goal_rwlock);
 	MUTEX_LOCK(&_angle_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
@@ -443,7 +443,7 @@ int CLinkbot::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
 	// unlock mutexes
 	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
-	this->simThreadsGoalWUnlock();
+	RWLOCK_WUNLOCK(&_goal_rwlock);
 
 
 	// success
@@ -780,7 +780,7 @@ int CLinkbot::setID(int id) {
 
 void CLinkbot::simPreCollisionThread(void) {
 	// lock angle and goal
-	this->simThreadsGoalRLock();
+	RWLOCK_RLOCK(&_goal_rwlock);
 	MUTEX_LOCK(&_angle_mutex);
 
 	// update angle values for each degree of freedom
@@ -800,12 +800,12 @@ void CLinkbot::simPreCollisionThread(void) {
 
 	// unlock angle and goal
 	MUTEX_UNLOCK(&_angle_mutex);
-	this->simThreadsGoalRUnlock();
+	RWLOCK_RUNLOCK(&_goal_rwlock);
 }
 
 void CLinkbot::simPostCollisionThread(void) {
 	// lock angle and goal
-	this->simThreadsGoalRLock();
+	RWLOCK_RLOCK(&_goal_rwlock);
 	MUTEX_LOCK(&_angle_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
@@ -820,7 +820,7 @@ void CLinkbot::simPostCollisionThread(void) {
 	// unlock angle and goal
 	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
-	this->simThreadsGoalRUnlock();
+	RWLOCK_RUNLOCK(&_goal_rwlock);
 }
 
 #ifdef ENABLE_GRAPHICS
@@ -1592,7 +1592,7 @@ int CLinkbot::init_params(int disabled, int type) {
 
 	// init locks
 	MUTEX_INIT(&_angle_mutex);
-	this->simThreadsGoalInit();
+	RWLOCK_INIT(&_goal_rwlock);
 	MUTEX_INIT(&_recording_mutex);
 	COND_INIT(&_recording_cond);
 	MUTEX_INIT(&_success_mutex);
