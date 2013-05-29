@@ -73,8 +73,8 @@ int CRobotSim::init_sim(void) {
 
 	// thread variables
 	THREAD_CREATE(&_simulation, (void* (*)(void *))&CRobotSim::simulationThread, (void *)this);
-	pthread_mutex_init(&_robot_mutex, NULL);
-	pthread_mutex_init(&_ground_mutex, NULL);
+	MUTEX_INIT(&_robot_mutex);
+	MUTEX_INIT(&_ground_mutex);
 
 	// variables to keep track of progress of simulation
 	_groundNumber = 1;
@@ -484,7 +484,7 @@ int CRobotSim::setExitState(int state) {
 
 void CRobotSim::setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
 	// lock ground objects
-	pthread_mutex_lock(&_ground_mutex);
+	MUTEX_LOCK(&_ground_mutex);
 
 	// resize ground array
 	_ground = (dGeomID *)realloc(_ground, (_groundNumber + 1)*sizeof(dGeomID));
@@ -503,12 +503,12 @@ void CRobotSim::setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, d
 	dGeomSetRotation(_ground[_groundNumber++], R);
 
 	// unlock ground objects
-	pthread_mutex_unlock(&_ground_mutex);
+	MUTEX_UNLOCK(&_ground_mutex);
 }
 
 void CRobotSim::setGroundCapsule(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
 	// lock ground objects
-	pthread_mutex_lock(&_ground_mutex);
+	MUTEX_LOCK(&_ground_mutex);
 
 	// resize ground array
 	_ground = (dGeomID *)realloc(_ground, (_groundNumber + 1)*sizeof(dGeomID));
@@ -527,12 +527,12 @@ void CRobotSim::setGroundCapsule(dReal r, dReal l, dReal px, dReal py, dReal pz,
     dGeomSetRotation(_ground[_groundNumber++], R);
 
 	// unlock ground objects
-	pthread_mutex_unlock(&_ground_mutex);
+	MUTEX_UNLOCK(&_ground_mutex);
 }
 
 void CRobotSim::setGroundCylinder(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
 	// lock ground objects
-	pthread_mutex_lock(&_ground_mutex);
+	MUTEX_LOCK(&_ground_mutex);
 
 	// resize ground array
 	_ground = (dGeomID *)realloc(_ground, (_groundNumber + 1)*sizeof(dGeomID));
@@ -551,12 +551,12 @@ void CRobotSim::setGroundCylinder(dReal r, dReal l, dReal px, dReal py, dReal pz
     dGeomSetRotation(_ground[_groundNumber++], R);
 
 	// unlock ground objects
-	pthread_mutex_unlock(&_ground_mutex);
+	MUTEX_UNLOCK(&_ground_mutex);
 }
 
 void CRobotSim::setGroundSphere(dReal r, dReal px, dReal py, dReal pz) {
 	// lock ground objects
-	pthread_mutex_lock(&_ground_mutex);
+	MUTEX_LOCK(&_ground_mutex);
 
 	// resize ground array
 	_ground = (dGeomID *)realloc(_ground, (_groundNumber + 1)*sizeof(dGeomID));
@@ -566,7 +566,7 @@ void CRobotSim::setGroundSphere(dReal r, dReal px, dReal py, dReal pz) {
     dGeomSetPosition(_ground[_groundNumber++], px, py, pz);
 
 	// unlock ground objects
-	pthread_mutex_unlock(&_ground_mutex);
+	MUTEX_UNLOCK(&_ground_mutex);
 }
 
 /**********************************************************
@@ -583,7 +583,7 @@ void* CRobotSim::simulationThread(void *arg) {
 
 	while (1) {
 		// lock array of robots for sim step
-		pthread_mutex_lock(&(sim->_robot_mutex));
+		MUTEX_LOCK(&(sim->_robot_mutex));
 
 		// get start time of execution
 		clock_gettime(CLOCK_REALTIME, &start_time);
@@ -599,12 +599,12 @@ void* CRobotSim::simulationThread(void *arg) {
 		}
 
 		// step world
-		pthread_mutex_lock(&(sim->_ground_mutex));			// lock ground objects
+		MUTEX_LOCK(&(sim->_ground_mutex));
 		dSpaceCollide(sim->_space, sim, &sim->collision);	// collide all geometries together
 		dWorldStep(sim->_world, sim->_step);				// step world time by one
 		sim->_clock += sim->_step;							// increment world clock
 		dJointGroupEmpty(sim->_group);						// clear out all contact joints
-		pthread_mutex_unlock(&(sim->_ground_mutex));		// unlock ground objects
+		MUTEX_UNLOCK(&(sim->_ground_mutex));
 
 		sim->print_intermediate_data();
 
@@ -619,7 +619,7 @@ void* CRobotSim::simulationThread(void *arg) {
 		}
 
 		// unlock array of robots to allow another to be 
-		pthread_mutex_unlock(&(sim->_robot_mutex));
+		MUTEX_UNLOCK(&(sim->_robot_mutex));
 
 		// check end time of execution
 		clock_gettime(CLOCK_REALTIME, &end_time);
@@ -719,7 +719,7 @@ int CRobotSim::addRobot(CRobot &robot) {
 	}
 
 	// lock robot data to insert a new one into simulation
-	pthread_mutex_lock(&_robot_mutex);
+	MUTEX_LOCK(&_robot_mutex);
 	// connect to robot class
 	_robot[type][_robotConnected[type]] = &robot;
 	// add simulation variables to robot class
@@ -753,7 +753,7 @@ int CRobotSim::addRobot(CRobot &robot) {
 	_robotConnected[type]++;
 
 	// unlock robot data
-	pthread_mutex_unlock(&_robot_mutex);
+	MUTEX_UNLOCK(&_robot_mutex);
 
 	// success
 	return 0;
