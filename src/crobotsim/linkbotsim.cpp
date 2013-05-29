@@ -245,7 +245,7 @@ int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
 	// lock mutexes
 	this->simThreadsGoalWLock();
 	MUTEX_LOCK(&_angle_mutex);
-	this->simThreadsSuccessLock();
+	MUTEX_LOCK(&_success_mutex);
 
 	// loop over joints
 	for (int i = 0; i < ((_disabled == -1) ? 3 : 2); i++) {
@@ -272,7 +272,7 @@ int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
     dBodyEnable(_body[BODY]);
 
 	// unlock mutexes
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
 	this->simThreadsGoalWUnlock();
 
@@ -319,9 +319,9 @@ int CLinkbot::moveJointNB(int id, dReal angle) {
 	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
-	this->simThreadsSuccessLock();
+	MUTEX_LOCK(&_success_mutex);
 	_success[id] = false;
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
 	this->simThreadsGoalWUnlock();
@@ -372,9 +372,9 @@ int CLinkbot::moveJointToNB(int id, dReal angle) {
 	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
-	this->simThreadsSuccessLock();
+	MUTEX_LOCK(&_success_mutex);
 	_success[id] = false;
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
 	this->simThreadsGoalWUnlock();
@@ -385,10 +385,10 @@ int CLinkbot::moveJointToNB(int id, dReal angle) {
 
 int CLinkbot::moveJointWait(int id) {
 	// wait for motion to complete
-	this->simThreadsSuccessLock();
-	while ( !_success[id] ) { this->simThreadsSuccessWait(); }
+	MUTEX_LOCK(&_success_mutex);
+	while ( !_success[id] ) { COND_WAIT(&_success_cond, &_success_mutex); }
 	_success[id] = true;
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 
 	// success
 	return 0;
@@ -414,7 +414,7 @@ int CLinkbot::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
 	// lock mutexes
 	this->simThreadsGoalWLock();
 	MUTEX_LOCK(&_angle_mutex);
-	this->simThreadsSuccessLock();
+	MUTEX_LOCK(&_success_mutex);
 
 	// loop over joints
 	for (int i = 0; i < ((_disabled == -1) ? 3 : 2); i++) {
@@ -441,7 +441,7 @@ int CLinkbot::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
     dBodyEnable(_body[BODY]);
 
 	// unlock mutexes
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
 	this->simThreadsGoalWUnlock();
 
@@ -471,15 +471,15 @@ int CLinkbot::moveToZeroNB(void) {
 
 int CLinkbot::moveWait(void) {
 	// wait for motion to complete
-	this->simThreadsSuccessLock();
+	MUTEX_LOCK(&_success_mutex);
 	while ( !(_success[0]) && !(_success[1]) && !(_success[2]) ) {
-		this->simThreadsSuccessWait();
+		COND_WAIT(&_success_cond, &_success_mutex);
 	}
 	_success[0] = true;
 	_success[1] = true;
 	_success[2] = true;
 
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 
 	// success
 	return 0;
@@ -526,14 +526,14 @@ int CLinkbot::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *ang
 
 int CLinkbot::recordWait(void) {
 	// wait for motion to complete
-	this->simThreadsRecordingLock();
+	MUTEX_LOCK(&_recording_mutex);
 	while ( _recording[0] || _recording[1] || _recording[2] ) {
-		this->simThreadsRecordingWait();
+		COND_WAIT(&_recording_cond, &_recording_mutex);
 	}
 	_recording[0] = false;
 	_recording[1] = false;
 	_recording[2] = false;
-	this->simThreadsRecordingUnlock();
+	MUTEX_UNLOCK(&_recording_mutex);
 
 	// success
 	return 0;
@@ -807,18 +807,18 @@ void CLinkbot::simPostCollisionThread(void) {
 	// lock angle and goal
 	this->simThreadsGoalRLock();
 	MUTEX_LOCK(&_angle_mutex);
-	this->simThreadsSuccessLock();
+	MUTEX_LOCK(&_success_mutex);
 
 	// check if joint speed is zero -> joint has completed step
 	for (int i = 0; i < NUM_DOF; i++) {
 		_success[i] = (bool)(!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
 	}
 	if (_success[0] && _success[1] && _success[2]) {
-		this->simThreadsSuccessSignal();
+		COND_SIGNAL(&_success_cond);
 	}
 
 	// unlock angle and goal
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
 	this->simThreadsGoalRUnlock();
 }
@@ -1593,8 +1593,10 @@ int CLinkbot::init_params(int disabled, int type) {
 	// init locks
 	MUTEX_INIT(&_angle_mutex);
 	this->simThreadsGoalInit();
-	this->simThreadsRecordingInit();
-	this->simThreadsSuccessInit();
+	MUTEX_INIT(&_recording_mutex);
+	COND_INIT(&_recording_cond);
+	MUTEX_INIT(&_success_mutex);
+	COND_INIT(&_success_cond);
 
 	// success
 	return 0;
@@ -1694,10 +1696,7 @@ void* CLinkbot::record_angle_thread(void *arg) {
 		// pause until next step
 		while ( (int)(*(rArg->robot->_clock)*1000) < time ) {}
     }
-	rArg->robot->simThreadsRecordingLock();
-	rArg->robot->_recording[rArg->id] = false;
-	rArg->robot->simThreadsRecordingSignal();
-	rArg->robot->simThreadsRecordingUnlock();
+	SIGNAL(&rArg->robot->_recording_cond, &rArg->robot->_recording_mutex, rArg->robot->_recording[rArg->id] = false);
 	return NULL;
 }
 
@@ -1718,12 +1717,12 @@ void* CLinkbot::record_angles_thread(void *arg) {
 		// pause until next step
 		while ( (int)(*(rArg->robot->_clock)*1000) < time ) {}
     }
-	rArg->robot->simThreadsRecordingLock();
+	MUTEX_LOCK(&rArg->robot->_recording_mutex);
     for (int i = 0; i < NUM_DOF; i++) {
         rArg->robot->_recording[i] = false;
     }
-	rArg->robot->simThreadsRecordingSignal();
-	rArg->robot->simThreadsRecordingUnlock();
+	COND_SIGNAL(&rArg->robot->_recording_cond);
+	MUTEX_UNLOCK(&rArg->robot->_recording_mutex);
 	return NULL;
 }
 

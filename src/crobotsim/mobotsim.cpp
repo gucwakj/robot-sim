@@ -274,12 +274,12 @@ int CMobot::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
-	this->simThreadsSuccessLock();
+	MUTEX_LOCK(&_success_mutex);
 	_success[0] = false;
 	_success[1] = false;
 	_success[2] = false;
 	_success[3] = false;
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
 	this->simThreadsGoalWUnlock();
@@ -324,9 +324,9 @@ int CMobot::moveJointNB(int id, dReal angle) {
 	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
-	this->simThreadsSuccessLock();
+	MUTEX_LOCK(&_success_mutex);
 	_success[id] = false;
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
 	this->simThreadsGoalWUnlock();
@@ -374,9 +374,9 @@ int CMobot::moveJointToNB(int id, dReal angle) {
 	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
-	this->simThreadsSuccessLock();
+	MUTEX_LOCK(&_success_mutex);
 	_success[id] = false;
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
 	this->simThreadsGoalWUnlock();
@@ -387,10 +387,10 @@ int CMobot::moveJointToNB(int id, dReal angle) {
 
 int CMobot::moveJointWait(int id) {
 	// wait for motion to complete
-	this->simThreadsSuccessLock();
-	while ( !_success[id] ) { this->simThreadsSuccessWait(); }
+	MUTEX_LOCK(&_success_mutex);
+	while ( !_success[id] ) { COND_WAIT(&_success_cond, &_success_mutex); }
 	_success[id] = true;
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 
 	// success
 	return 0;
@@ -442,12 +442,12 @@ int CMobot::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
-	this->simThreadsSuccessLock();
+	MUTEX_LOCK(&_success_mutex);
 	_success[0] = false;
 	_success[1] = false;
 	_success[2] = false;
 	_success[3] = false;
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
 	this->simThreadsGoalWUnlock();
@@ -477,15 +477,15 @@ int CMobot::moveToZeroNB(void) {
 
 int CMobot::moveWait(void) {
 	// wait for motion to complete
-	this->simThreadsSuccessLock();
+	MUTEX_LOCK(&_success_mutex);
 	while ( !(_success[0]) && !(_success[1]) && !(_success[2]) && !(_success[3]) ) {
-		this->simThreadsSuccessWait();
+		COND_WAIT(&_success_cond, &_success_mutex);
 	}
 	_success[0] = true;
 	_success[1] = true;
 	_success[2] = true;
 	_success[3] = true;
-	this->simThreadsSuccessUnlock();
+	MUTEX_UNLOCK(&_success_mutex);
 
 	// success
 	return 0;
@@ -533,15 +533,15 @@ int CMobot::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle
 
 int CMobot::recordWait(void) {
 	// wait for motion to complete
-	this->simThreadsRecordingLock();
+	MUTEX_LOCK(&_recording_mutex);
 	while ( _recording[0] || _recording[1] || _recording[2] || _recording[3] ) {
-		this->simThreadsRecordingWait();
+		COND_WAIT(&_recording_cond, &_recording_mutex);
 	}
 	_recording[0] = false;
 	_recording[1] = false;
 	_recording[2] = false;
 	_recording[3] = false;
-	this->simThreadsRecordingUnlock();
+	MUTEX_UNLOCK(&_recording_mutex);
 
 	// success
 	return 0;
@@ -855,7 +855,7 @@ void CMobot::simPostCollisionThread(void) {
 		_success[i] = (bool)(!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
 	}
 	if ( _success[0] && _success[1] && _success[2] && _success[3] ) {
-		this->simThreadsSuccessSignal();
+		COND_SIGNAL(&_success_cond);
 	}
 
 	// unlock angle and goal
@@ -2115,8 +2115,10 @@ int CMobot::init_params(void) {
 	// init locks
 	MUTEX_INIT(&_angle_mutex);
 	this->simThreadsGoalInit();
-	this->simThreadsRecordingInit();
-	this->simThreadsSuccessInit();
+	MUTEX_INIT(&_recording_mutex);
+	COND_INIT(&_recording_cond);
+	MUTEX_INIT(&_success_mutex);
+	COND_INIT(&_success_cond);
 
 	// success
 	return 0;
@@ -2230,10 +2232,7 @@ void* CMobot::record_angle_thread(void *arg) {
 		// pause until next step
 		while ( (int)(*(rArg->robot->_clock)*1000) < time ) {}
     }
-	rArg->robot->simThreadsRecordingLock();
-	rArg->robot->_recording[rArg->id] = false;
-	rArg->robot->simThreadsRecordingSignal();
-	rArg->robot->simThreadsRecordingUnlock();
+	SIGNAL(&rArg->robot->_recording_cond, &rArg->robot->_recording_mutex, rArg->robot->_recording[rArg->id] = false);
 	return NULL;
 }
 
@@ -2255,12 +2254,12 @@ void* CMobot::record_angles_thread(void *arg) {
 		// pause until next step
 		while ( (int)(*(rArg->robot->_clock)*1000) < time ) {}
     }
-	rArg->robot->simThreadsRecordingLock();
+	MUTEX_LOCK(&rArg->robot->_recording_mutex);
     for (int i = 0; i < NUM_DOF; i++) {
         rArg->robot->_recording[i] = false;
     }
-	rArg->robot->simThreadsRecordingSignal();
-	rArg->robot->simThreadsRecordingUnlock();
+	COND_SIGNAL(&rArg->robot->_recording_cond);
+	MUTEX_UNLOCK(&rArg->robot->_recording_mutex);
 	return NULL;
 }
 

@@ -22,6 +22,13 @@
 #define MUTEX_DESTROY(mutex)
 #define MUTEX_LOCK(mutex) WaitForSingleObject(*mutex, INFINITE)
 #define MUTEX_UNLOCK(mutex) ReleaseMutex(*mutex)
+//   COND
+#define COND_T HANDLE
+#define COND_INIT(cond) *cond = CreateEvent(NULL, TRUE, TRUE, NULL); ResetEvent(*cond)
+#define COND_DESTROY(cond)
+#define COND_WAIT(cond , mutex) ResetEvent(*cond); ReleaseMutex(*mutex); WaitForSingleObject(*cond, INFINITE)
+#define SIGNAL(cond, mutex, action) action; SetEvent(*cond)
+#define COND_SIGNAL(cond) SetEvent(*cond)
 #else
 //   MUTEX
 #define MUTEX_T pthread_mutex_t
@@ -32,6 +39,13 @@
 		fprintf(stderr, "pthread lock error: %s:%d\n", __FILE__, __LINE__); \
 	}
 #define MUTEX_UNLOCK(mutex) pthread_mutex_unlock(mutex)
+//   COND
+#define COND_T pthread_cond_t
+#define COND_INIT(cond) pthread_cond_init(cond, NULL)
+#define COND_DESTROY(cond) pthread_cond_destroy(cond)
+#define COND_WAIT(cond, mutex) pthread_cond_wait(cond, mutex)
+#define SIGNAL(cond, mutex, action) pthread_mutex_lock(mutex); action; pthread_cond_signal(cond); pthread_mutex_unlock(mutex)
+#define COND_SIGNAL(cond) pthread_cond_signal(cond)
 #endif
 
 // types of robots available for simulation
@@ -66,16 +80,16 @@ class CRobot {
 		static void* simPostCollisionThreadEntry(void *arg);
 
 		// threading functions to control variables
-		void simThreadsRecordingInit(void);
+		/*void simThreadsRecordingInit(void);
 		void simThreadsRecordingLock(void);
 		void simThreadsRecordingUnlock(void);
 		void simThreadsRecordingSignal(void);
-		void simThreadsRecordingWait(void);
-		void simThreadsSuccessInit(void);
+		void simThreadsRecordingWait(void);*/
+		/*void simThreadsSuccessInit(void);
 		void simThreadsSuccessLock(void);
 		void simThreadsSuccessUnlock(void);
 		void simThreadsSuccessSignal(void);
-		void simThreadsSuccessWait(void);
+		void simThreadsSuccessWait(void);*/
 		int simThreadsGoalInit(void);
 		int simThreadsGoalRLock(void);
 		int simThreadsGoalRUnlock(void);
@@ -108,6 +122,14 @@ class CRobot {
 
 		// threading locks for each robot
 		MUTEX_T _angle_mutex;
+		//pthread_mutex_t _recording_mutex;
+		MUTEX_T _recording_mutex;
+		//pthread_cond_t _recording_cond;
+		COND_T _recording_cond;
+		//pthread_mutex_t _success_mutex;
+		MUTEX_T _success_mutex;
+		//pthread_cond_t _success_cond;
+		COND_T _success_cond;
 	private:
 		// single access read/write lock
 		typedef struct rw_var {
@@ -126,14 +148,6 @@ class CRobot {
 		// threading locks for each robot
 		pthread_rw_t _goal_rwlock;
 		//RWLOCK_T _goal_rwlock;
-		pthread_mutex_t _success_mutex;
-		//MUTEX_T _success_mutex;
-		pthread_cond_t _success_cond;
-		//COND_T _success_cond;
-		pthread_mutex_t _recording_mutex;
-		//MUTEX_T _recording_mutex;
-		pthread_cond_t _recording_cond;
-		//COND_T _recording_cond;
 #endif
 };
 

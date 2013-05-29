@@ -10,7 +10,7 @@ void* CRobot::simPostCollisionThreadEntry(void *arg) {
 	p->simPostCollisionThread();
 }
 
-void CRobot::simThreadsRecordingInit(void) {
+/*void CRobot::simThreadsRecordingInit(void) {
 	pthread_mutex_init(&_recording_mutex, NULL);
 	pthread_cond_init(&_recording_cond, NULL);
 }
@@ -29,9 +29,9 @@ void CRobot::simThreadsRecordingSignal(void) {
 
 void CRobot::simThreadsRecordingWait(void) {
 	pthread_cond_wait(&_recording_cond, &_recording_mutex);
-}
+}*/
 
-void CRobot::simThreadsSuccessInit(void) {
+/*void CRobot::simThreadsSuccessInit(void) {
 	pthread_mutex_init(&_success_mutex, NULL);
 	pthread_cond_init(&_success_cond, NULL);
 }
@@ -50,7 +50,7 @@ void CRobot::simThreadsSuccessSignal(void) {
 
 void CRobot::simThreadsSuccessWait(void) {
 	pthread_cond_wait(&_success_cond, &_success_mutex);
-}
+}*/
 
 int CRobot::simThreadsRWInit(pthread_rw_t *rwp) {
 	rwp->lock = 0;
