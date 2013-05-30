@@ -641,8 +641,8 @@ int CMobot::build(bot_t robot) {
 	}
 
 	// debug printing
-	//const dReal *pos = dBodyGetPosition(_body[CENTER]);
-	//printf("robot pos: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
+	const dReal *pos = dBodyGetPosition(_body[CENTER]);
+	printf("robot pos: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
 
 	// success
 	return 0;

@@ -1,6 +1,9 @@
 <? xml version="1.0" ?>
 <sim>
 	<mobot id="0"></mobot>
+	<mobot id="1">
+		<position x="1" />
+	</mobot>
 	<!--<mobot id="1"></mobot>
 	<simple>
 		<side id="1" robot="0" face="8" />

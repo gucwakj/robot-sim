@@ -712,11 +712,15 @@ int CRobotSim::addRobot(CRobot &robot) {
 #endif
 	// get type of robot being added
 	int type = robot.getType();
+
 	// find next robot in list
 	bot_t btmp = bot;
-	while (btmp && btmp->type != type && btmp->id != _robotConnected[type]) {
-		btmp = btmp->next;
+	while (btmp) {
+		if (btmp->id != _robotConnected[type]) { btmp = btmp->next; continue; }
+		if (btmp->type != type) { btmp = btmp->next; continue; }
+		break;
 	}
+	if (btmp == NULL) { fprintf(stderr, "could not find robot\n"); exit(1); }
 
 	// lock robot data to insert a new one into simulation
 	MUTEX_LOCK(&_robot_mutex);
