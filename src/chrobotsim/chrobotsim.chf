@@ -42,7 +42,6 @@ int CRobotSim::addRobot(...) {
 	int retval;
 
     va_start(ap, VA_NOARG);
-	printf("type: %p\n", va_elementtype(ap));
 	retval = vaddRobot(this, ap);
 	va_end(ap);
     return retval;

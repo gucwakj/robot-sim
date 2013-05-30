@@ -46,7 +46,9 @@
 #define RWLOCK_WRUNLOCK(rwlock) mc_rwlock_wrunlock(rwlock)
 #else
 //   THREADS
+#ifndef _CH_
 #include <pthread.h>
+#endif
 #define THREAD_T pthread_t
 #define THREAD_CANCEL(thread_handle) pthread_cancel(thread_handle)
 #define THREAD_CREATE(thread_handle, function, arg) \

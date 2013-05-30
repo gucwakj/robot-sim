@@ -8,8 +8,8 @@ PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 SRC=../crobotsim
 HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics.h $(SRC)/base.h
 CPPFLAGS = -DdDOUBLE -fPIC
-INCLUDES=-I../opende/sys/include/ -I../tinyxml2/
-LIBS=-L../opende/sys/lib/ -L../tinyxml2/
+INCLUDES=-I../opende/sys/include/ -I../tinyxml2/ -I../openscenegraph/sys/include/
+LIBS=-L../opende/sys/lib/ -L../tinyxml2/ -L../openscenegraph/sys/lib64/
 
 target: librobotsim.dl
 
@@ -32,12 +32,19 @@ graphics.o: $(SRC)/graphics.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
 
 librobotsim.dl: robotsim.o mobotsim.o linkbotsim.o base.o graphics.o chrobotsim_chdl.o
-	ch dllink librobotsim.dl cplusplus robotsim.o mobotsim.o linkbotsim.o base.o graphics.o chrobotsim_chdl.o $(LIBS) -lpthread -lrt -losg -losgViewer -losgSim -losgUtil -lOpenThreads -losgGA -losgDB -losgFX -lode -ltinyxml2
+	ch dllink librobotsim.dl cplusplus robotsim.o mobotsim.o linkbotsim.o base.o graphics.o chrobotsim_chdl.o $(LIBS) -lpthread -lrt -losg -losgViewer -losgUtil -lOpenThreads -losgGA -losgDB -losgFX -lode -ltinyxml2
 
 install:
 	ch pkginstall.ch $(PACKAGE)
 	sudo cp ../../opende/sys/lib/libode.so.1 /usr/local/ch/extern/lib/
 	sudo cp ../../tinyxml2/libtinyxml2.so.1 /usr/local/ch/extern/lib/
+	sudo cp ../../openscenegraph/sys/lib64/libosg.so.80 /usr/local/ch/extern/lib/
+	sudo cp ../../openscenegraph/sys/lib64/libosgViewer.so.80 /usr/local/ch/extern/lib/
+	sudo cp ../../openscenegraph/sys/lib64/libosgUtil.so.80 /usr/local/ch/extern/lib/
+	sudo cp ../../openscenegraph/sys/lib64/libosgDB.so.80 /usr/local/ch/extern/lib/
+	sudo cp ../../openscenegraph/sys/lib64/libosgGA.so.80 /usr/local/ch/extern/lib/
+	sudo cp ../../openscenegraph/sys/lib64/libosgText.so.80 /usr/local/ch/extern/lib/
+	sudo cp ../../openscenegraph/sys/lib64/libOpenThreads.so.12 /usr/local/ch/extern/lib/
 
 uninstall:
 	ch pkginstall.ch -u $(PACKAGE)

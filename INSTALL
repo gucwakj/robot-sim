@@ -2,13 +2,12 @@ IEL Robot Simulator
 
 Install Guide
 -----------------------------------------------------------
-The robot simulator has three libraries:
+The robot simulator has four libraries:
 	1) crobosim library
 	2) opende library
 	3) tinyxml2 library
-2 and 3 must be compiled before 1.  OpenSceneGraph is used
-for graphics.  It must be installed into the system before
-compiling.
+	4) openscenegraph library
+2, 3, and 4 must be compiled before 1.
 
 See below for instructions on how to build each one.
 
@@ -26,7 +25,17 @@ opende
 -----------------------------
 	cd src/opende/
 	sh autogen.sh
-	./configure --prefix=$PWD"/sys/" --enable-double-precision --enable-shared --enable-static --disable-demos --with-trimesh=none --with-drawstuff=none
+	./configure --prefix=$PWD"/sys/" --enable-double-precision --enable-shared --disable-demos --with-trimesh=none --with-drawstuff=none
+	make
+	make install
+	cd ../../
+
+openscenegraph
+-----------------------------
+	cd src/openscenegraph/
+	mkdir build/
+	cd build/
+	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD"/../sys" ..
 	make
 	make install
 	cd ../../
@@ -42,10 +51,10 @@ demos
 -----------------------------
 Each demo can be compiled separately by invoking
 make <name>
-	cd demos/
+	cd demos/{mobot/linkboti/linkbotl}/
 	cmake .
 	make <name>
-	cd ../
+	cd ../../
 
 chrobotsim
 -----------------------------
