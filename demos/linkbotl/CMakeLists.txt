@@ -23,6 +23,9 @@ include_directories("../../src/opende/sys/include")
 # Add tinyxml2 library
 include_directories("../../src/tinyxml2")
 
+# Add OSG library
+include_directories("../../src/openscenegraph/sys/include")
+
 # Compilation options
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
 if (ENABLE_DOUBLE)

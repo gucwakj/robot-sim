@@ -23,10 +23,12 @@ include_directories("${PROJECT_BINARY_DIR}")
 # Add ODE library
 include_directories("../opende/sys/include")
 link_directories("../opende/sys/lib")
+set(EXTRA_LIBS ${EXTRA_LIBS} ode)
 
 # Add tinyxml2 library
 include_directories("../tinyxml2")
 link_directories("../tinyxml2")
+set(EXTRA_LIBS ${EXTRA_LIBS} tinyxml2)
 
 # Option to enable double precision
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
@@ -40,11 +42,9 @@ endif (ENABLE_DOUBLE)
 option (ENABLE_GRAPHICS "Enable graphics for simulation." ON)
 if (ENABLE_GRAPHICS)
 	# Add OSG
-	find_package(OpenSceneGraph 2.8.0 REQUIRED osgViewer osgSim osgUtil OpenThreads osgGA osgDB osgFX)
-	if (OPENSCENEGRAPH_FOUND)
-		include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS})
-		set (EXTRA_LIBS ${EXTRA_LIBS} ${OPENSCENEGRAPH_LIBRARIES})
-	endif (OPENSCENEGRAPH_FOUND)
+	include_directories("../openscenegraph/sys/include")
+	link_directories("../openscenegraph/sys/lib64")
+	set(EXTRA_LIBS ${EXTRA_LIBS} osg osgViewer osgUtil OpenThreads osgGA osgDB osgText)
 	# Add openGL
 	find_package(OpenGL REQUIRED)
 	if (OPENGL_FOUND)
@@ -55,7 +55,7 @@ endif (ENABLE_GRAPHICS)
 
 # Add pthreads
 find_package(Threads)
-set (EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+set (EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT} rt)
 
 # Add the library
 if (ENABLE_GRAPHICS)
@@ -77,4 +77,5 @@ add_library( robotsim SHARED
 )
 endif (ENABLE_GRAPHICS)
 
-target_link_libraries(robotsim ode ${EXTRA_LIBS} rt tinyxml2)
+#target_link_libraries(robotsim ode ${EXTRA_LIBS} rt tinyxml2)
+target_link_libraries(robotsim ${EXTRA_LIBS})
