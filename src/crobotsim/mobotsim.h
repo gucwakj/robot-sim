@@ -49,9 +49,9 @@ typedef enum mobot_connector_e {
 } mobotConnector_t;
 
 #ifdef _CH_
-class CMobot {
+class DLLIMPORT CMobot {
 #else
-class CMobot : virtual public CRobot {
+class DLLIMPORT CMobot : virtual public CRobot {
 #endif // _CH_
 	// public api to mimic CMobot class
 	public:

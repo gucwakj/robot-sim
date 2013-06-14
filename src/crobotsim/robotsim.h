@@ -2,25 +2,22 @@
 #define CRobotSim_H_
 
 #include <iostream>
-#include <stdbool.h>
+#include "base.h"
+#include "mobotsim.h"
+#include "linkbotsim.h"
 
 #ifdef _CH_
-#pragma package <chrobotsim>
-#define dDOUBLE
-#define dReal double
-#define ENABLE_GRAPHICS
+//#pragma package <chrobotsim>
+//#define dDOUBLE
+//#define dReal double
+//#define ENABLE_GRAPHICS
 #else
 #include "config.h"
 #include <tinyxml2.h>
 #ifdef ENABLE_GRAPHICS
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
-//#include "base.h"
 #endif // _CH_
-
-#include "base.h"
-#include "mobotsim.h"
-#include "linkbotsim.h"
 
 enum simulation_reply_message_e {
 	FD_SUCCESS,
@@ -30,10 +27,9 @@ enum simulation_reply_message_e {
 
 #ifndef _CH_
 class CRobot;
-//class CMobot;
 #endif // not _CH_
 
-class CRobotSim {
+class DLLIMPORT CRobotSim {
 	public:
 		CRobotSim();
 		~CRobotSim();
@@ -52,7 +48,10 @@ class CRobotSim {
 #ifndef _CH_
 		int addRobot(CRobot &robot);
 #else
-		int addRobot(...);
+		//int addRobot(...);
+		int addMobot(CMobot &robot);
+		int addLinkbotI(CLinkbotI &robot);
+		int addLinkbotL(CLinkbotL &robot);
 #endif // not _CH_
 #ifndef _CH_
 	private:
@@ -71,8 +70,11 @@ class CRobotSim {
 		int _robotNumber[NUM_TYPES];		// number of each robot type
 		int _robotConnected[NUM_TYPES];		// number of each robot type
 		int _connected[NUM_TYPES];			// number connected of each robot type
+		int _running;						// is the program running
 		MUTEX_T _ground_mutex;				// mutex for ground collisions
 		MUTEX_T _robot_mutex;				// mutex for ground collisions
+		MUTEX_T _running_mutex;				// mutex for actively running program
+		COND_T _running_cond;				// condition for actively running program
 		THREAD_T _simulation;				// simulation thread
 		THREAD_T* _robotThread[NUM_TYPES];	// thread for each robot
 
@@ -80,20 +82,25 @@ class CRobotSim {
 		void print_intermediate_data(void);			// print data out at each time step for analysis
 		static void* simulationThread(void *arg);
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
+#ifndef _WIN32
 		unsigned int diff_nsecs(struct timespec t1, struct timespec t2);
+#endif
 		int init_ode(void);
 		int init_sim(void);
 		int init_xml(void);
 
 #ifdef ENABLE_GRAPHICS
 		// variables
-		ViewerFrameThread *_osgThread;		// osg thread
+		//ViewerFrameThread *_osgThread;		// osg thread
+		osgViewer::Viewer *viewer;
+		THREAD_T _osgThread;
 		osg::Group *_osgRoot;				// osg root node
 		// functions
 		int init_viz(void);
-		osg::TextureCubeMap* readCubeMap(void);
-		osg::Geometry* createWall(const osg::Vec3& v1,const osg::Vec3& v2,const osg::Vec3& v3,osg::StateSet* stateset);
-		osg::Node* createRoom(void);
+		static void* graphicsThread(void *arg);
+		//osg::TextureCubeMap* readCubeMap(void);
+		//osg::Geometry* createWall(const osg::Vec3& v1,const osg::Vec3& v2,const osg::Vec3& v3,osg::StateSet* stateset);
+		//osg::Node* createRoom(void);
 #endif // ENABLE_GRAPHICS
 #else
 	public:

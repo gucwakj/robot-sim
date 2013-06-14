@@ -36,7 +36,7 @@ CRobotSim::~CRobotSim() {
       printf("Error: %s(): dlclose(): %s\n", __class_func__, dlerror());
   }
 }
-
+/*
 int CRobotSim::addRobot(...) {
     va_list ap;
 	int retval;
@@ -57,6 +57,46 @@ int vaddRobot(CRobotSim *sim, va_list ap) {
         return -1;
     }
     dlrunfun(fptr, &retval, NULL, sim, ap);
+    return retval;
+}*/
+
+
+int CRobotSim::addMobot(CMobot &robot) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CRobotSim_addMobot_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, robot);
+    return retval;
+}
+
+int CRobotSim::addLinkbotI(CLinkbotI &robot) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CRobotSim_addLinkbotI_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, robot);
+    return retval;
+}
+
+int CRobotSim::addLinkbotL(CLinkbotL &robot) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CRobotSim_addLinkbotL_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, robot);
     return retval;
 }
 

@@ -65,3 +65,65 @@ chrobotsim
 	sudo make install
 	cd ../../../
 
+
+Windows
+-----------------------------------------------------------
+
+tinyxml2
+-----------------------------
+	cd src/tinyxml2/
+	mkdir build/
+	use cmake-gui to configure with visual studio 9 and generate
+	open build/tinyxml2.sln in visual studio
+	build Release solution
+	cd ../../
+
+opende
+-----------------------------
+	cd src/opende/build/
+	premake4.exe --only-double --only-shared [--platform=x64] --no-trimesh vs2008
+	open build/ode.sln in visual studio
+	build Release solution
+	cd ../../../
+
+openscenegraph
+-----------------------------
+	cd src/openscenegraph/
+	mkdir build/
+	use cmake-gui to configure with visual studio 9 and generate
+	open build/OpenSceneGraph.sln in visual studio
+	build Release solution, unecessary plugins can be disabled
+		curently used plugins:
+			3ds
+			tga
+			png
+	cd ../../
+
+crobotsim
+-----------------------------
+	cd src/crobotsim/
+	mkdir build/
+	use cmake-gui to configure with visual studio 9 and generate
+	open build/CRobotSim.sln in visual studio
+	build Release solution
+	cd ../../
+
+demos
+-----------------------------
+Each demo can be compiled separately by invoking
+make <name>
+	cd demos/{mobot/linkboti/linkbotl}/
+	mkdir build/
+	use cmake-gui to configure with visual studio 9 and generate
+	open build/CRobotSim_{Mobot/Linkboti/Linkbot}_Demos.sln in visual studio
+	build Release solution
+	cd ../../
+
+chrobotsim
+-----------------------------
+	cd src/chrobotsim/
+	make -f Makefile.win
+	make -f Makefile.win createpkg
+	cd chrobotsim*/
+	sudo make install
+	cd ../../../

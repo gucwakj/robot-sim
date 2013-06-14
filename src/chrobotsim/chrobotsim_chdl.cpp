@@ -1,6 +1,7 @@
 #include "../crobotsim/robotsim.h"
 #include "../crobotsim/mobotsim.h"
 #include "../crobotsim/linkbotsim.h"
+#include <windows.h>
 #include <ch.h>
 
 EXPORTCH void CRobotSim_CRobotSim_chdl(void *varg) {
@@ -26,7 +27,7 @@ EXPORTCH void CRobotSim_dCRobotSim_chdl(void *varg) {
   return;
 }
 
-EXPORTCH int CRobotSim_addRobot_chdl(void *varg) {
+/*EXPORTCH int CRobotSim_addRobot_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
 	void *ap_c;
@@ -45,6 +46,51 @@ EXPORTCH int CRobotSim_addRobot_chdl(void *varg) {
 	printf("name: %s\n", name); exit(1);
     //retval = sim->addRobot(*robot);
 	Ch_VaVarArgsDelete(interp, memhandle);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}*/
+
+EXPORTCH int CRobotSim_addMobot_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CRobotSim *sim;
+	class CMobot *mobot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    sim = Ch_VaArg(interp, ap, class CRobotSim *);
+	mobot = Ch_VaArg(interp, ap, class CMobot *);
+	retval = sim->addRobot(*mobot);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CRobotSim_addLinkbotI_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CRobotSim *sim;
+	class CLinkbotI *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    sim = Ch_VaArg(interp, ap, class CRobotSim *);
+	robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+	retval = sim->addRobot(*robot);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CRobotSim_addLinkbotL_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CRobotSim *sim;
+	class CLinkbotL *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    sim = Ch_VaArg(interp, ap, class CRobotSim *);
+	robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+	retval = sim->addRobot(*robot);
     Ch_VaEnd(interp, ap);
     return retval;
 }

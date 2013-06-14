@@ -2,18 +2,27 @@
 #define GRAPHICS_H_
 
 #include "config.h"
+#include "base.h"
 #include <OpenThreads/Thread>
 
 #include <osg/ClearNode>
+#include <osg/CullFace>
 #include <osg/Depth>
 #include <osg/Geometry>
+#include <osg/Material>
 #include <osg/MatrixTransform>
 #include <osg/Notify>
 #include <osg/PositionAttitudeTransform>
 #include <osg/ShapeDrawable>
 #include <osg/StateSet>
+#include <osg/TexEnv>
+#include <osg/TexEnvCombine>
+#include <osg/TexGen>
+#include <osg/TexMat>
 #include <osg/Texture2D>
 #include <osg/Transform>
+#include <osg/TextureCubeMap>
+#include <osg/VertexProgram>
 
 #include <osgDB/ReadFile>
 #include <osgDB/Registry>
@@ -32,18 +41,7 @@
 #include <osgViewer/Viewer>
 #include <osgViewer/ViewerEventHandlers>
 
-#include <osg/TexMat>
-#include <osg/Material>
-#include <osg/CullFace>
-#include <osg/TexGen>
-#include <osg/TexEnv>
-#include <osg/TexEnvCombine>
-#include <osg/TextureCubeMap>
-#include <osg/VertexProgram>
-
 #include <ode/ode.h>
-
-#include "base.h"
 
 class CRobot;
 class CRobotSim;

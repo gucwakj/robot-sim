@@ -244,7 +244,7 @@ int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
 	dReal delta[NUM_DOF] = {angle1, angle2, angle3};
 
 	// lock mutexes
-	RWLOCK_WLOCK(&_goal_rwlock);
+	MUTEX_LOCK(&_goal_mutex);
 	MUTEX_LOCK(&_angle_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
@@ -275,7 +275,7 @@ int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
 	// unlock mutexes
 	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
-	RWLOCK_WUNLOCK(&_goal_rwlock);
+	MUTEX_UNLOCK(&_goal_mutex);
 
 	// success
 	return 0;
@@ -294,7 +294,7 @@ int CLinkbot::moveJointNB(int id, dReal angle) {
 	if (_disabled == id-1) return 0;
 
 	// lock goal
-	RWLOCK_WLOCK(&_goal_rwlock);
+	MUTEX_LOCK(&_goal_mutex);
 
 	// set new goal angles
 	_goal[id] += DEG2RAD(angle);
@@ -325,7 +325,7 @@ int CLinkbot::moveJointNB(int id, dReal angle) {
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
-	RWLOCK_WUNLOCK(&_goal_rwlock);
+	MUTEX_UNLOCK(&_goal_mutex);
 
 	// success
 	return 0;
@@ -347,7 +347,7 @@ int CLinkbot::moveJointToNB(int id, dReal angle) {
 	dReal delta = angle - _angle[id];
 
 	// lock goal
-	RWLOCK_WLOCK(&_goal_rwlock);
+	MUTEX_LOCK(&_goal_mutex);
 
 	// set new goal angles
 	_goal[id] = DEG2RAD(angle);
@@ -378,7 +378,7 @@ int CLinkbot::moveJointToNB(int id, dReal angle) {
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
-	RWLOCK_WUNLOCK(&_goal_rwlock);
+	MUTEX_UNLOCK(&_goal_mutex);
 
 	// success
 	return 0;
@@ -413,7 +413,7 @@ int CLinkbot::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
 	dReal delta[3] = {angle1 - _angle[0], angle2 - _angle[1], angle3 - _angle[2]};
 
 	// lock mutexes
-	RWLOCK_WLOCK(&_goal_rwlock);
+	MUTEX_LOCK(&_goal_mutex);
 	MUTEX_LOCK(&_angle_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
@@ -444,7 +444,7 @@ int CLinkbot::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
 	// unlock mutexes
 	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
-	RWLOCK_WUNLOCK(&_goal_rwlock);
+	MUTEX_UNLOCK(&_goal_mutex);
 
 
 	// success
@@ -781,7 +781,7 @@ int CLinkbot::setID(int id) {
 
 void CLinkbot::simPreCollisionThread(void) {
 	// lock angle and goal
-	RWLOCK_RLOCK(&_goal_rwlock);
+	MUTEX_LOCK(&_goal_mutex);
 	MUTEX_LOCK(&_angle_mutex);
 
 	// update angle values for each degree of freedom
@@ -801,12 +801,12 @@ void CLinkbot::simPreCollisionThread(void) {
 
 	// unlock angle and goal
 	MUTEX_UNLOCK(&_angle_mutex);
-	RWLOCK_RUNLOCK(&_goal_rwlock);
+	MUTEX_UNLOCK(&_goal_mutex);
 }
 
 void CLinkbot::simPostCollisionThread(void) {
 	// lock angle and goal
-	RWLOCK_RLOCK(&_goal_rwlock);
+	MUTEX_LOCK(&_goal_mutex);
 	MUTEX_LOCK(&_angle_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
@@ -821,7 +821,7 @@ void CLinkbot::simPostCollisionThread(void) {
 	// unlock angle and goal
 	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
-	RWLOCK_RUNLOCK(&_goal_rwlock);
+	MUTEX_UNLOCK(&_goal_mutex);
 }
 
 #ifdef ENABLE_GRAPHICS
@@ -1095,7 +1095,7 @@ int CLinkbot::build_attached(bot_t robot, CRobot *base, Conn_t *conn) {
 	// initialize new variables
 	int i = 1;
 	dReal m[3] = {0}, offset[3] = {0};
-	dMatrix3 R, R1, R2, R3, R4, R5, R6;
+	dMatrix3 R, R1, R2, R3, R4;
 
 	// generate parameters for base robot
 	base->getConnectionParams(conn->face1, R, m);
@@ -1114,7 +1114,7 @@ int CLinkbot::build_attached(bot_t robot, CRobot *base, Conn_t *conn) {
 			dRFromAxisAndAngle(R1, R[2], R[6], R[10], 0);
 			dMultiply0(R2, R1, R, 3, 3, 3);
 			dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], DEG2RAD(r_f2));
-			dMultiply0(R6, R3, R2, 3, 3, 3);
+			dMultiply0(R4, R3, R2, 3, 3, 3);
 			// center offset
 			dRFromAxisAndAngle(R1, 0, 1, 0, -DEG2RAD(r_f2));
 			offset[0] = _body_length + R1[0]*_body_radius;
@@ -1127,7 +1127,7 @@ int CLinkbot::build_attached(bot_t robot, CRobot *base, Conn_t *conn) {
 			dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI/2);
 			dMultiply0(R2, R1, R, 3, 3, 3);
 			dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -DEG2RAD(r_f2));
-			dMultiply0(R6, R3, R2, 3, 3, 3);
+			dMultiply0(R4, R3, R2, 3, 3, 3);
 			// center offset
 			dRFromAxisAndAngle(R1, 0, 1, 0, -DEG2RAD(r_f2));
 			offset[0] = _body_width/2;
@@ -1142,7 +1142,7 @@ int CLinkbot::build_attached(bot_t robot, CRobot *base, Conn_t *conn) {
 	m[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
 
     // build new module
-	this->build_individual(m[0], m[1], m[2], R6, r_f1, r_f2, r_f3);
+	this->build_individual(m[0], m[1], m[2], R4, r_f1, r_f2, r_f3);
 
     // add fixed joint to attach two modules
 	this->fix_body_to_connector(base->getConnectorBodyID(conn->face1), conn->face2);
@@ -1593,7 +1593,7 @@ int CLinkbot::init_params(int disabled, int type) {
 
 	// init locks
 	MUTEX_INIT(&_angle_mutex);
-	RWLOCK_INIT(&_goal_rwlock);
+	MUTEX_INIT(&_goal_mutex);
 	MUTEX_INIT(&_recording_mutex);
 	COND_INIT(&_recording_cond);
 	MUTEX_INIT(&_success_mutex);
@@ -1842,7 +1842,6 @@ void CLinkbot::draw_simple(conn_t conn, osg::Group *robot) {
 	const dReal *pos;
 	dQuaternion quat;
 	osg::Box *box;
-	osg::Cylinder *cyl;
 
 	pos = dGeomGetOffsetPosition(conn->geom[0]);
 	dGeomGetOffsetQuaternion(conn->geom[0], quat);

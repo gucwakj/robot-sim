@@ -1,15 +1,37 @@
-#ifndef BASE_H_
-#define BASE_H_
-
-#include <unistd.h>
+#ifndef BASE2_H_
+#define BASE2_H_
 
 #ifndef _CH_
+#ifdef _WIN32
+#include <windows.h>
+#endif // _WIN32
 #include "config.h"
 #include <ode/ode.h>
+#include <cctype>
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cstdarg>
 #ifdef ENABLE_GRAPHICS
 #include <osg/Group>
 #endif // ENABLE_GRAPHICS
+#else
+#pragma package <chrobotsim>
+#define dDOUBLE
+#define dReal double
+#define ENABLE_GRAPHICS
 #endif // no _CH_
+
+#ifdef _WIN32
+#ifdef _CH_
+#define DLLIMPORT
+#else
+#define DLLIMPORT __declspec(dllexport)
+#endif // _CH_
+#else
+#define DLLIMPORT
+#endif // _WIN32
 
 #define DEG2RAD(x) ((x) * M_PI / 180.0)
 #define RAD2DEG(x) ((x) * 180.0 / M_PI)
@@ -36,18 +58,11 @@
 #define COND_WAIT(cond , mutex) ResetEvent(*cond); ReleaseMutex(*mutex); WaitForSingleObject(*cond, INFINITE)
 #define SIGNAL(cond, mutex, action) action; SetEvent(*cond)
 #define COND_SIGNAL(cond) SetEvent(*cond)
-//   RWLOCK
-#define RWLOCK_T mc_rwlock_t
-#define RWLOCK_INIT(rwlock) mc_rwlock_init(rwlock)
-#define RWLOCK_DESTROY(rwlock) mc_rwlock_destroy(rwlock)
-#define RWLOCK_RDLOCK(rwlock) mc_rwlock_rdlock(rwlock)
-#define RWLOCK_RDUNLOCK(rwlock) mc_rwlock_rdunlock(rwlock)
-#define RWLOCK_WRLOCK(rwlock) mc_rwlock_wrlock(rwlock)
-#define RWLOCK_WRUNLOCK(rwlock) mc_rwlock_wrunlock(rwlock)
 #else
 //   THREADS
 #ifndef _CH_
 #include <pthread.h>
+#include <unistd.h>
 #endif
 #define THREAD_T pthread_t
 #define THREAD_CANCEL(thread_handle) pthread_cancel(thread_handle)
@@ -92,7 +107,6 @@
 	if (pthread_rwlock_unlock(rwlock)) { \
 		fprintf(stderr, "rwunlock error: %s:%d\n", __FILE__, __LINE__); \
 	}
-
 #endif
 
 // types of robots available for simulation
@@ -120,7 +134,7 @@ typedef struct bot_s {
 	struct bot_s *next;
 } *bot_t;
 
-class CRobot {
+class DLLIMPORT CRobot {
 	public:
 		CRobot();
 		~CRobot();
@@ -155,7 +169,8 @@ class CRobot {
 
 		// threading locks for each robot
 		MUTEX_T _angle_mutex;
-		RWLOCK_T _goal_rwlock;
+		MUTEX_T _goal_mutex;
+		//RWLOCK_T _goal_rwlock;
 		MUTEX_T _recording_mutex;
 		COND_T _recording_cond;
 		MUTEX_T _success_mutex;
@@ -163,4 +178,4 @@ class CRobot {
 #endif
 };
 
-#endif // BASE_H_
+#endif // BASE2_H_

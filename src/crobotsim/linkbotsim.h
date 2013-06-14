@@ -44,7 +44,7 @@ typedef enum linkbot_connector_e {
 } linkbotConnector_t;
 
 #ifndef _CH_
-class CLinkbot : virtual public CRobot {
+class DLLIMPORT CLinkbot : virtual public CRobot {
 	// public api to mimic CLinkbot class
 	public:
 		CLinkbot(int disabled = -1, int type = LINKBOT);
@@ -208,7 +208,7 @@ class CLinkbot : virtual public CRobot {
 #endif // not _CH_
 
 #ifdef _CH_
-class CLinkbotI {
+class DLLIMPORT CLinkbotI {
 	public:
 		CLinkbotI();
 		~CLinkbotI();
@@ -250,14 +250,14 @@ class CLinkbotI {
 		int setJointSpeeds(double speed1, double speed2, double speed3);
 };
 #else
-class CLinkbotI : public CLinkbot {
+class DLLIMPORT CLinkbotI : public CLinkbot {
 	public:
 		CLinkbotI(void) : CLinkbot(1, LINKBOTI) {}
 };
 #endif // _CH_
 
 #ifdef _CH_
-class CLinkbotL {
+class DLLIMPORT CLinkbotL {
 	public:
 		CLinkbotL();
 		~CLinkbotL();
@@ -299,7 +299,7 @@ class CLinkbotL {
 		int setJointSpeeds(double speed1, double speed2, double speed3);
 };
 #else
-class CLinkbotL : public CLinkbot {
+class DLLIMPORT CLinkbotL : public CLinkbot {
 	public:
 		CLinkbotL(void) : CLinkbot(2, LINKBOTL) {}
 };

@@ -18,13 +18,14 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Add ODE library
-include_directories("../../src/opende/sys/include")
+include_directories("../../src/opende/include")
 
 # Add tinyxml2 library
 include_directories("../../src/tinyxml2")
 
 # Add OSG library
-include_directories("../../src/openscenegraph/sys/include")
+include_directories("../../src/openscenegraph/build/include")
+include_directories("../../src/openscenegraph/include")
 
 # Compilation options
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
@@ -36,8 +37,10 @@ endif (ENABLE_DOUBLE)
 
 # Add crobotsim library subdirectory
 include_directories("../../src/crobotsim")
-link_directories("../../src/crobotsim")
+link_directories("../../src/crobotsim/build/Debug")
+link_directories("../../src/crobotsim/build/Release")
+set(EXTRA_LIBS ${EXTRA_LIBS} optimized robotsim debug robotsimd)
 
 # linkbot demos
-add_executable(test test.cpp)
-target_link_libraries(test robotsim)
+add_executable(ltest test.cpp)
+target_link_libraries(ltest ${EXTRA_LIBS})
