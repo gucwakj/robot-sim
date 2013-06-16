@@ -655,11 +655,11 @@ void* CRobotSim::graphicsThread(void *arg) {
 
 	if (imagePosX && imageNegX && imagePosY && imageNegY && imagePosZ && imageNegZ) {
 		skymap->setImage(osg::TextureCubeMap::POSITIVE_X, imagePosX);
-		//skymap->setImage(osg::TextureCubeMap::NEGATIVE_X, imageNegX);
-		//skymap->setImage(osg::TextureCubeMap::POSITIVE_Y, imagePosY);
-		//skymap->setImage(osg::TextureCubeMap::NEGATIVE_Y, imageNegY);
-		//skymap->setImage(osg::TextureCubeMap::POSITIVE_Z, imagePosZ);
-		//skymap->setImage(osg::TextureCubeMap::NEGATIVE_Z, imageNegZ);
+		skymap->setImage(osg::TextureCubeMap::NEGATIVE_X, imageNegX);
+		skymap->setImage(osg::TextureCubeMap::POSITIVE_Y, imagePosY);
+		skymap->setImage(osg::TextureCubeMap::NEGATIVE_Y, imageNegY);
+		skymap->setImage(osg::TextureCubeMap::POSITIVE_Z, imagePosZ);
+		skymap->setImage(osg::TextureCubeMap::NEGATIVE_Z, imageNegZ);
 		skymap->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
 		skymap->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
 		skymap->setWrap(osg::Texture::WRAP_R, osg::Texture::CLAMP_TO_EDGE);
@@ -895,13 +895,13 @@ void* CRobotSim::simulationThread(void *arg) {
 
 		// sleep until next step
 #ifdef _WIN32
-		//end_time = GetTickCount();
 		dt = GetTickCount() - start_time;
-		//printf("dt: %d\n", dt);
-		if (dt) sim->_step = dt/1000.0;
-		//printf("step: %lf\n", sim->_step);
-		//printf("sleep: %d\nstep: %lf\n", dt, (int)(sim->_step*1000));
-		//if ( dt < (int)(sim->_step*1000) ) { printf("sleeping\n"); Sleep(sim->_step*1000 - dt); }
+		if (dt < (unsigned int)(sim->_step*1000)) 
+			Sleep(sim->_step*1000 - dt);
+		else
+			sim->_step = dt/1000.0;
+
+		if ((int)sim->_step < 4) { sim->_step = 0.004; }
 #else
 		clock_gettime(CLOCK_REALTIME, &end_time);
 		dt = sim->diff_nsecs(start_time, end_time);

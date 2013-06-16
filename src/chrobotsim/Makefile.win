@@ -4,11 +4,12 @@
 PACKAGE=chrobotsim
 VERSION=0.0.1
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
+ARCH=x86
 
 SRC=..\crobotsim
 HEADERS= $(SRC)\robotsim.h $(SRC)\mobotsim.h $(SRC)\linkbotsim.h $(SRC)\graphics.h $(SRC)\base.h
 CPPFLAGS = -DdDOUBLE
-INCLUDES = -I..\opende\include\ -I..\tinyxml2\ -I..\openscenegraph\sys\include\
+INCLUDES = -I..\opende\include\ -I..\tinyxml2\ -I..\openscenegraph\include\
 
 target: librobotsim.dl
 
@@ -31,11 +32,11 @@ graphics.obj: $(SRC)\graphics.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus $(SRC)\graphics.cpp $(CPPFLAGS) $(INCLUDES)
 
 librobotsim.dl: robotsim.obj mobotsim.obj linkbotsim.obj base.obj graphics.obj chrobotsim_chdl.obj
-	ch dllink librobotsim.dl cplusplus robotsim.obj mobotsim.obj linkbotsim.obj base.obj graphics.obj chrobotsim_chdl.obj /LIBPATH:..\opende\lib\Release\ /LIBPATH:..\tinyxml2\build\Release\ /LIBPATH:..\openscenegraph\sys\lib\ osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgFX.lib ode.lib tinyxml2.lib
+	ch dllink librobotsim.dl cplusplus robotsim.obj mobotsim.obj linkbotsim.obj base.obj graphics.obj chrobotsim_chdl.obj /LIBPATH:..\opende\lib\Release\ /LIBPATH:..\tinyxml2\build\Release\ /LIBPATH:..\openscenegraph\build\lib\ osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgFX.lib ode.lib tinyxml2.lib
 
 install:
-	ch pkginstall2.ch -y $(PACKAGE)
-	cp -Rf C:/Ch/extern/lib/Microsoft.VC90.CRT C:/Ch/package/chrobotsim/bin/
+	ch pkginstall.ch $(PACKAGE)
+	#cp -Rf C:/Ch/extern/lib/Microsoft.VC90.CRT C:/Ch/package/chrobotsim/bin/
 
 uninstall:
 	ch pkginstall.ch -u $(PACKAGE)
@@ -48,21 +49,21 @@ createpkg: librobotsim.dl
 	mkdir $(PKGDIR)\bin
 	cp ..\opende\lib\Release\ode.dll $(PKGDIR)\bin
 	cp ..\tinyxml2\build\Release\tinyxml2.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\sys\bin\osg80-osg.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\sys\bin\osg80-osgViewer.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\sys\bin\osg80-osgUtil.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\sys\bin\osg80-osgDB.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\sys\bin\osg80-osgGA.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\sys\bin\osg80-osgFX.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\sys\bin\osg80-osgText.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\sys\bin\ot12-OpenThreads.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\3rd_party\bin\glut32.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\3rd_party\bin\libpng13.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\3rd_party\bin\zlib1.dll $(PKGDIR)\bin
+	cp ..\openscenegraph\build\bin\osg80-osg.dll $(PKGDIR)\bin
+	cp ..\openscenegraph\build\bin\osg80-osgViewer.dll $(PKGDIR)\bin
+	cp ..\openscenegraph\build\bin\osg80-osgUtil.dll $(PKGDIR)\bin
+	cp ..\openscenegraph\build\bin\osg80-osgDB.dll $(PKGDIR)\bin
+	cp ..\openscenegraph\build\bin\osg80-osgGA.dll $(PKGDIR)\bin
+	cp ..\openscenegraph\build\bin\osg80-osgFX.dll $(PKGDIR)\bin
+	cp ..\openscenegraph\build\bin\osg80-osgText.dll $(PKGDIR)\bin
+	cp ..\openscenegraph\build\bin\ot12-OpenThreads.dll $(PKGDIR)\bin
+	cp ..\openscenegraph\third_party\${ARCH}\bin\glut32.dll $(PKGDIR)\bin
+	cp ..\openscenegraph\third_party\${ARCH}\bin\libpng13.dll $(PKGDIR)\bin
+	cp ..\openscenegraph\third_party\${ARCH}\bin\zlib1.dll $(PKGDIR)\bin
 	mkdir $(PKGDIR)\bin\osgPlugins-3.0.1
-	cp ..\openscenegraph\sys\bin\osgPlugins-3.0.1\osgdb_png.dll $(PKGDIR)\bin\osgPlugins-3.0.1
-	cp ..\openscenegraph\sys\bin\osgPlugins-3.0.1\osgdb_3ds.dll $(PKGDIR)\bin\osgPlugins-3.0.1
-	cp ..\openscenegraph\sys\bin\osgPlugins-3.0.1\osgdb_tga.dll $(PKGDIR)\bin\osgPlugins-3.0.1
+	cp ..\openscenegraph\build\bin\osgPlugins-3.0.1\osgdb_png.dll $(PKGDIR)\bin\osgPlugins-3.0.1
+	cp ..\openscenegraph\build\bin\osgPlugins-3.0.1\osgdb_3ds.dll $(PKGDIR)\bin\osgPlugins-3.0.1
+	cp ..\openscenegraph\build\bin\osgPlugins-3.0.1\osgdb_tga.dll $(PKGDIR)\bin\osgPlugins-3.0.1
 	mkdir $(PKGDIR)\data
 	cp -R ..\resources\ground $(PKGDIR)\data
 	cp -R ..\resources\mobot $(PKGDIR)\data

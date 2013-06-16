@@ -91,6 +91,8 @@ openscenegraph
 	cd src/openscenegraph/
 	mkdir build/
 	use cmake-gui to configure with visual studio 9 and generate
+		config option: ACTUAL_3RDPARTY_DIR set to openscenegraph/
+			third_party/VC9/{x86/x64}
 	open build/OpenSceneGraph.sln in visual studio
 	build Release solution, unecessary plugins can be disabled
 		curently used plugins:
