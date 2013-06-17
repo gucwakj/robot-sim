@@ -40,25 +40,25 @@ int CLinkbot::getJointSpeeds(double &speed1, double &speed2, double &speed3) {
 }
 
 int CLinkbot::motionArch(dReal angle) {
-	this->moveJointToNB(MOBOT_JOINT2, -angle/2.0);
-	this->moveJointToNB(MOBOT_JOINT3, angle/2.0);
-	this->moveJointWait(MOBOT_JOINT2);
-	this->moveJointWait(MOBOT_JOINT3);
+	this->moveJointToNB(ROBOT_JOINT2, -angle/2.0);
+	this->moveJointToNB(ROBOT_JOINT3, angle/2.0);
+	this->moveJointWait(ROBOT_JOINT2);
+	this->moveJointWait(ROBOT_JOINT3);
 
 	// success
 	return 0;
 }
 
 int CLinkbot::motionInchwormLeft(int num) {
-	this->moveJointToNB(MOBOT_JOINT2, 0);
-	this->moveJointToNB(MOBOT_JOINT3, 0);
+	this->moveJointToNB(ROBOT_JOINT2, 0);
+	this->moveJointToNB(ROBOT_JOINT3, 0);
 	this->moveWait();
 
 	for (int i = 0; i < num; i++) {
-		this->moveJointTo(MOBOT_JOINT2, -50);
-		this->moveJointTo(MOBOT_JOINT3, 50);
-		this->moveJointTo(MOBOT_JOINT2, 0);
-		this->moveJointTo(MOBOT_JOINT3, 0);
+		this->moveJointTo(ROBOT_JOINT2, -50);
+		this->moveJointTo(ROBOT_JOINT3, 50);
+		this->moveJointTo(ROBOT_JOINT2, 0);
+		this->moveJointTo(ROBOT_JOINT3, 0);
 	}
 
 	// success
@@ -66,15 +66,15 @@ int CLinkbot::motionInchwormLeft(int num) {
 }
 
 int CLinkbot::motionInchwormRight(int num) {
-	this->moveJointToNB(MOBOT_JOINT2, 0);
-	this->moveJointToNB(MOBOT_JOINT3, 0);
+	this->moveJointToNB(ROBOT_JOINT2, 0);
+	this->moveJointToNB(ROBOT_JOINT3, 0);
 	this->moveWait();
 
 	for (int i = 0; i < num; i++) {
-		this->moveJointTo(MOBOT_JOINT3, 50);
-		this->moveJointTo(MOBOT_JOINT2, -50);
-		this->moveJointTo(MOBOT_JOINT3, 0);
-		this->moveJointTo(MOBOT_JOINT2, 0);
+		this->moveJointTo(ROBOT_JOINT3, 50);
+		this->moveJointTo(ROBOT_JOINT2, -50);
+		this->moveJointTo(ROBOT_JOINT3, 0);
+		this->moveJointTo(ROBOT_JOINT2, 0);
 	}
 
 	// success
@@ -83,10 +83,10 @@ int CLinkbot::motionInchwormRight(int num) {
 
 int CLinkbot::motionRollBackward(dReal angle) {
 	dReal motorPosition[2];
-	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(MOBOT_JOINT1, motorPosition[0] - angle);
-	this->moveJointToNB(MOBOT_JOINT4, motorPosition[1] - angle);
+	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
+	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
+	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] - angle);
+	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] - angle);
 	this->moveWait();
 
 	// success
@@ -95,10 +95,10 @@ int CLinkbot::motionRollBackward(dReal angle) {
 
 int CLinkbot::motionRollForward(dReal angle) {
 	dReal motorPosition[2];
-	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(MOBOT_JOINT1, motorPosition[0] + angle);
-	this->moveJointToNB(MOBOT_JOINT4, motorPosition[1] + angle);
+	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
+	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
+	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] + angle);
+	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] + angle);
 	this->moveWait();
 
 	// success
@@ -106,8 +106,8 @@ int CLinkbot::motionRollForward(dReal angle) {
 }
 
 int CLinkbot::motionSkinny(dReal angle) {
-	this->moveJointToNB(MOBOT_JOINT2, angle);
-	this->moveJointToNB(MOBOT_JOINT3, angle);
+	this->moveJointToNB(ROBOT_JOINT2, angle);
+	this->moveJointToNB(ROBOT_JOINT3, angle);
 	this->moveWait();
 
 	// success
@@ -117,16 +117,16 @@ int CLinkbot::motionSkinny(dReal angle) {
 int CLinkbot::motionStand(void) {
 	this->resetToZero();
 	//this->moveToZero();
-	this->moveJointTo(MOBOT_JOINT2, -85);
-	this->moveJointTo(MOBOT_JOINT3, 70);
+	this->moveJointTo(ROBOT_JOINT2, -85);
+	this->moveJointTo(ROBOT_JOINT3, 70);
 	this->moveWait();
-	this->moveJointTo(MOBOT_JOINT1, 45);
+	this->moveJointTo(ROBOT_JOINT1, 45);
 #ifndef _WIN32
 	usleep(1000000);
 #else
 	Sleep(1000);
 #endif
-	this->moveJointTo(MOBOT_JOINT2, 20);
+	this->moveJointTo(ROBOT_JOINT2, 20);
 
 	// success
 	return 0;
@@ -141,23 +141,23 @@ int CLinkbot::motionTumbleLeft(int num) {
 #endif
 
 	for (int i = 0; i < num; i++) {
-		this->moveJointTo(MOBOT_JOINT2, -85);
-		this->moveJointTo(MOBOT_JOINT3, 80);
-		this->moveJointTo(MOBOT_JOINT2, 0);
-		this->moveJointTo(MOBOT_JOINT3, 0);
-		this->moveJointTo(MOBOT_JOINT2, 80);
-		this->moveJointTo(MOBOT_JOINT2, 45);
-		this->moveJointTo(MOBOT_JOINT3, -85);
-		this->moveJointTo(MOBOT_JOINT2, 80);
-		this->moveJointTo(MOBOT_JOINT3, 0);
-		this->moveJointTo(MOBOT_JOINT2, 0);
-		this->moveJointTo(MOBOT_JOINT3, 80);
+		this->moveJointTo(ROBOT_JOINT2, -85);
+		this->moveJointTo(ROBOT_JOINT3, 80);
+		this->moveJointTo(ROBOT_JOINT2, 0);
+		this->moveJointTo(ROBOT_JOINT3, 0);
+		this->moveJointTo(ROBOT_JOINT2, 80);
+		this->moveJointTo(ROBOT_JOINT2, 45);
+		this->moveJointTo(ROBOT_JOINT3, -85);
+		this->moveJointTo(ROBOT_JOINT2, 80);
+		this->moveJointTo(ROBOT_JOINT3, 0);
+		this->moveJointTo(ROBOT_JOINT2, 0);
+		this->moveJointTo(ROBOT_JOINT3, 80);
 		if (i != (num-1)) {
-			this->moveJointTo(MOBOT_JOINT3, 45);
+			this->moveJointTo(ROBOT_JOINT3, 45);
 		}
 	}
-	this->moveJointToNB(MOBOT_JOINT2, 0);
-	this->moveJointToNB(MOBOT_JOINT3, 0);
+	this->moveJointToNB(ROBOT_JOINT2, 0);
+	this->moveJointToNB(ROBOT_JOINT3, 0);
 	this->moveWait();
 
 	// success
@@ -173,23 +173,23 @@ int CLinkbot::motionTumbleRight(int num) {
 #endif
 
 	for (int i = 0; i < num; i++) {
-		this->moveJointTo(MOBOT_JOINT3, 85);
-		this->moveJointTo(MOBOT_JOINT2, -80);
-		this->moveJointTo(MOBOT_JOINT3, 0);
-		this->moveJointTo(MOBOT_JOINT2, 0);
-		this->moveJointTo(MOBOT_JOINT3, -80);
-		this->moveJointTo(MOBOT_JOINT3, -45);
-		this->moveJointTo(MOBOT_JOINT2, 85);
-		this->moveJointTo(MOBOT_JOINT3, -80);
-		this->moveJointTo(MOBOT_JOINT2, 0);
-		this->moveJointTo(MOBOT_JOINT3, 0);
-		this->moveJointTo(MOBOT_JOINT2, -80);
+		this->moveJointTo(ROBOT_JOINT3, 85);
+		this->moveJointTo(ROBOT_JOINT2, -80);
+		this->moveJointTo(ROBOT_JOINT3, 0);
+		this->moveJointTo(ROBOT_JOINT2, 0);
+		this->moveJointTo(ROBOT_JOINT3, -80);
+		this->moveJointTo(ROBOT_JOINT3, -45);
+		this->moveJointTo(ROBOT_JOINT2, 85);
+		this->moveJointTo(ROBOT_JOINT3, -80);
+		this->moveJointTo(ROBOT_JOINT2, 0);
+		this->moveJointTo(ROBOT_JOINT3, 0);
+		this->moveJointTo(ROBOT_JOINT2, -80);
 		if (i != (num-1)) {
-			this->moveJointTo(MOBOT_JOINT2, -45);
+			this->moveJointTo(ROBOT_JOINT2, -45);
 		}
 	}
-	this->moveJointToNB(MOBOT_JOINT3, 0);
-	this->moveJointToNB(MOBOT_JOINT2, 0);
+	this->moveJointToNB(ROBOT_JOINT3, 0);
+	this->moveJointToNB(ROBOT_JOINT2, 0);
 	this->moveWait();
 
 	// success
@@ -198,10 +198,10 @@ int CLinkbot::motionTumbleRight(int num) {
 
 int CLinkbot::motionTurnLeft(dReal angle) {
 	dReal motorPosition[2];
-	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(MOBOT_JOINT1, motorPosition[0] - angle);
-	this->moveJointToNB(MOBOT_JOINT4, motorPosition[1] + angle);
+	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
+	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
+	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] - angle);
+	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] + angle);
 	this->moveWait();
 
 	// success
@@ -210,10 +210,10 @@ int CLinkbot::motionTurnLeft(dReal angle) {
 
 int CLinkbot::motionTurnRight(dReal angle) {
 	dReal motorPosition[2];
-	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(MOBOT_JOINT1, motorPosition[0] + angle);
-	this->moveJointToNB(MOBOT_JOINT4, motorPosition[1] - angle);
+	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
+	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
+	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] + angle);
+	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] - angle);
 	this->moveWait();
 
 	// success
@@ -222,8 +222,8 @@ int CLinkbot::motionTurnRight(dReal angle) {
 
 int CLinkbot::motionUnstand(void) {
 	this->moveToDirect(0, 0, 0);
-	this->moveJointToNB(MOBOT_JOINT3, 45);
-	this->moveJointToNB(MOBOT_JOINT2, -85);
+	this->moveJointToNB(ROBOT_JOINT3, 45);
+	this->moveJointToNB(ROBOT_JOINT2, -85);
 	this->moveWait();
 	this->moveToDirect(0, 0, 0);
 
@@ -255,15 +255,15 @@ int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
 		dJointEnable(_motor[j]);
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
-			_state[j] = MOBOT_FORWARD;
+			_state[j] = ROBOT_FORWARD;
 			dJointSetAMotorParam(_motor[j], dParamVel, _speed[j]);
 		}
 		else if ( delta[j] < 0 ) {
-			_state[j] = MOBOT_BACKWARD;
+			_state[j] = ROBOT_BACKWARD;
 			dJointSetAMotorParam(_motor[j], dParamVel, -_speed[j]);
 		}
 		else if ( fabs(delta[j]-0) < EPSILON ) {
-			_state[j] = MOBOT_HOLD;
+			_state[j] = ROBOT_HOLD;
 			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
 		_success[j] = false;
@@ -305,15 +305,15 @@ int CLinkbot::moveJointNB(int id, dReal angle) {
 
 	// set motor state and velocity
 	if ( angle > 0 ) {
-		_state[id] = MOBOT_FORWARD;
+		_state[id] = ROBOT_FORWARD;
 		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
 	}
 	else if ( angle < 0 ) {
-		_state[id] = MOBOT_BACKWARD;
+		_state[id] = ROBOT_BACKWARD;
 		dJointSetAMotorParam(_motor[id], dParamVel, -_speed[id]);
 	}
 	else if ( fabs(angle-0) < EPSILON ) {
-		_state[id] = MOBOT_HOLD;
+		_state[id] = ROBOT_HOLD;
 		dJointSetAMotorParam(_motor[id], dParamVel, 0);
 	}
 	dBodyEnable(_body[BODY]);
@@ -358,15 +358,15 @@ int CLinkbot::moveJointToNB(int id, dReal angle) {
 
 	// set motor state and velocity
 	if ( delta > 0 ) {
-		_state[id] = MOBOT_FORWARD;
+		_state[id] = ROBOT_FORWARD;
 		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
 	}
 	else if ( delta < 0 ) {
-		_state[id] = MOBOT_BACKWARD;
+		_state[id] = ROBOT_BACKWARD;
 		dJointSetAMotorParam(_motor[id], dParamVel, -_speed[id]);
 	}
 	else if ( fabs(delta-0) < EPSILON ) {
-		_state[id] = MOBOT_HOLD;
+		_state[id] = ROBOT_HOLD;
 		dJointSetAMotorParam(_motor[id], dParamVel, 0);
 	}
 	dBodyEnable(_body[BODY]);

@@ -110,13 +110,27 @@
 #endif
 
 // types of robots available for simulation
-enum robot_types_e {
+typedef enum robot_type_e {
 	MOBOT,
 	LINKBOT,
 	LINKBOTI,
 	LINKBOTL,
 	NUM_TYPES
-};
+} robotType_t;
+typedef enum robot_joint_id_e {
+	ROBOT_JOINT1,
+	ROBOT_JOINT2,
+	ROBOT_JOINT3,
+	ROBOT_JOINT4
+} robotJointId_t;
+typedef enum robot_joint_state_e {
+	ROBOT_NEUTRAL = 0,
+	ROBOT_FORWARD,
+	ROBOT_BACKWARD,
+	ROBOT_HOLD,
+	ROBOT_POSITIVE,
+	ROBOT_NEGATIVE
+} robotJointState_t;
 
 // connector
 typedef struct Conn_s {
@@ -133,6 +147,8 @@ typedef struct bot_s {
 	struct Conn_s *conn;
 	struct bot_s *next;
 } *bot_t;
+
+typedef double* robotRecordData_t;
 
 class DLLIMPORT CRobot {
 	public:

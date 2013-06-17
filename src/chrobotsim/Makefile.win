@@ -13,8 +13,27 @@ INCLUDES = -I..\opende\include\ -I..\tinyxml2\ -I..\openscenegraph\include\
 
 target: librobotsim.dl
 
+OBJS =	robotsim.obj \
+		base.obj \
+		mobotsim.obj \
+		linkbotsim.obj \
+		graphics.obj \
+		chrobotsim_chdl.obj \
+		chmobotsim_chdl.obj \
+		chlinkbotisim_chdl.obj \
+		chlinkbotlsim_chdl.obj
+
 chrobotsim_chdl.obj: chrobotsim_chdl.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus chrobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	
+chmobotsim_chdl.obj: chmobotsim_chdl.cpp $(HEADERS)
+	ch dlcomp librobotsim.dl cplusplus chmobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	
+chlinkbotisim_chdl.obj: chlinkbotisim_chdl.cpp $(HEADERS)
+	ch dlcomp librobotsim.dl cplusplus chlinkbotisim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	
+chlinkbotlsim_chdl.obj: chlinkbotlsim_chdl.cpp $(HEADERS)
+	ch dlcomp librobotsim.dl cplusplus chlinkbotlsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
 robotsim.obj: $(SRC)\robotsim.cpp $(HEADERS) 
 	ch dlcomp librobotsim.dl cplusplus $(SRC)\robotsim.cpp $(CPPFLAGS) $(INCLUDES)
@@ -31,12 +50,12 @@ linkbotsim.obj: $(SRC)\linkbotsim.cpp $(HEADERS)
 graphics.obj: $(SRC)\graphics.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus $(SRC)\graphics.cpp $(CPPFLAGS) $(INCLUDES)
 
-librobotsim.dl: robotsim.obj mobotsim.obj linkbotsim.obj base.obj graphics.obj chrobotsim_chdl.obj
-	ch dllink librobotsim.dl cplusplus robotsim.obj mobotsim.obj linkbotsim.obj base.obj graphics.obj chrobotsim_chdl.obj /LIBPATH:..\opende\lib\Release\ /LIBPATH:..\tinyxml2\build\Release\ /LIBPATH:..\openscenegraph\build\lib\ osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgFX.lib ode.lib tinyxml2.lib
+librobotsim.dl: $(OBJS)
+	ch dllink librobotsim.dl cplusplus $(OBJS) /LIBPATH:..\opende\lib\Release\ /LIBPATH:..\tinyxml2\build\Release\ /LIBPATH:..\openscenegraph\build\lib\ osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgFX.lib ode.lib tinyxml2.lib
 
 install:
 	ch pkginstall.ch $(PACKAGE)
-	#cp -Rf C:/Ch/extern/lib/Microsoft.VC90.CRT C:/Ch/package/chrobotsim/bin/
+	cp -Rf C:/Ch/dl/Mi* C:/Ch/package/chrobotsim/dl/
 
 uninstall:
 	ch pkginstall.ch -u $(PACKAGE)
@@ -74,7 +93,6 @@ createpkg: librobotsim.dl
 	cp -R ..\..\demos\chdemos\linkbotl $(PKGDIR)\demos
 	mkdir $(PKGDIR)\dl
 	cp librobotsim.dl $(PKGDIR)\dl
-	cp librobotsim.dl.manifest $(PKGDIR)\dl
 	mkdir $(PKGDIR)\include
 	cp $(HEADERS) $(PKGDIR)\include
 	mkdir $(PKGDIR)\lib

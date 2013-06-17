@@ -17,26 +17,14 @@
 #define EPSILON FLT_EPSILON
 #endif // ENABLE_DOUBLE
 
-typedef enum mobot_faces_e {
+typedef enum mobot_face_id_e {
 	MOBOT_FACE1 = 1,
 	MOBOT_FACE2,
 	MOBOT_FACE3,
 	MOBOT_FACE4,
 	MOBOT_FACE5,
 	MOBOT_FACE6
-} mobotFaceID_t;
-typedef enum mobot_joints_e {
-	MOBOT_JOINT1,
-	MOBOT_JOINT2,
-	MOBOT_JOINT3,
-	MOBOT_JOINT4
-} mobotJointID_t;
-typedef enum mobot_joint_state_e {
-	MOBOT_NEUTRAL	= 0,
-	MOBOT_FORWARD	= 1,
-	MOBOT_BACKWARD	= 2,
-	MOBOT_HOLD		= 3
-} mobotJointState_t;
+} mobotFaceId_t;
 typedef enum mobot_connector_e {
 	BIGWHEEL,
 	CASTER,
@@ -59,47 +47,142 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		~CMobot();
 
 		int connect(void);
-		int getJointAngle(int id, dReal &angle);
-		int getJointSpeed(int id, double &speed);
+		int disconnect(void);
+		int driveJointToDirect(robotJointId_t id, double angle);
+		int driveJointTo(robotJointId_t id, double angle);
+		int driveJointToDirectNB(robotJointId_t id, double angle);
+		int driveJointToNB(robotJointId_t id, double angle);
+		int driveToDirect(double angle1, double angle2, double angle3, double angle4);
+		int driveTo(double angle1, double angle2, double angle3, double angle4);
+		int driveToDirectNB(double angle1, double angle2, double angle3, double angle4);
+		int driveToNB(double angle1, double angle2, double angle3, double angle4);
+		int getJointAngle(robotJointId_t id, double &angle);
+#ifdef _CH_
+		int getJointAngleAverage(robotJointId_t id, double &angle, ... );
+#else
+		int getJointAngleAverage(robotJointId_t id, double &angle, int numReadings=10);
+#endif
+		int getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4);
+#ifdef _CH_
+		int getJointAnglesAverage(double &angle1, double &angle2, double &angle3, double &angle4, ...);
+#else
+		int getJointAnglesAverage(double &angle1, double &angle2, double &angle3, double &angle4, int numReadings=10);
+#endif
+		int getJointMaxSpeed(robotJointId_t id, double &maxSpeed);
+		int getJointSafetyAngle(double &angle);
+		int getJointSafetyAngleTimeout(double &seconds);
+		int getJointSpeed(robotJointId_t id, double &speed);
+		int getJointSpeedRatio(robotJointId_t id, double &ratio);
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);
-		int motionArch(dReal angle);
+		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, double &ratio4);
+		int getJointState(robotJointId_t id, robotJointState_t &state);
+		int isConnected();
+		int isMoving();
+		int motionArch(double angle);
+		int motionDistance(double distance, double radius);
 		int motionInchwormLeft(int num);
 		int motionInchwormRight(int num);
-		int motionRollBackward(dReal angle);
-		int motionRollForward(dReal angle);
-		int motionSkinny(dReal angle);
+		int motionRollBackward(double angle);
+		int motionRollForward(double angle);
+		int motionSkinny(double angle);
 		int motionStand(void);
 		int motionTumbleRight(int num);
 		int motionTumbleLeft(int num);
-		int motionTurnLeft(dReal angle);
-		int motionTurnRight(dReal angle);
+		int motionTurnLeft(double angle);
+		int motionTurnRight(double angle);
 		int motionUnstand(void);
-		int move(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		int moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		int moveJoint(int id, dReal angle);
-		int moveJointNB(int id, dReal angle);
-		int moveJointTo(int id, dReal angle);
-		int moveJointToNB(int id, dReal angle);
-		int moveJointWait(int id);
-		int moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		int moveToDirect(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		int moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		//int moveToDirectNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4);
-		int moveToZero(void);
-		int moveToZeroNB(void);
-		int moveWait(void);
-#ifndef _CH_
-		int recordAngle(int id, dReal *time, dReal *angle, int num, dReal seconds, dReal threshold = 0.0);
-		int recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, dReal *angle4, int num, dReal seconds, dReal threshold = 0.0);
+		int motionArchNB(double angle);
+		int motionDistanceNB(double distance, double radius);
+		int motionInchwormLeftNB(int num);
+		int motionInchwormRightNB(int num);
+		int motionRollBackwardNB(double angle);
+		int motionRollForwardNB(double angle);
+		int motionSkinnyNB(double angle);
+		int motionStandNB(void);
+		int motionTumbleRightNB(int num);
+		int motionTumbleLeftNB(int num);
+		int motionTurnLeftNB(double angle);
+		int motionTurnRightNB(double angle);
+		int motionUnstandNB(void);
+		int motionWait(void);
+		int move(double angle1, double angle2, double angle3, double angle4);
+		int moveNB(double angle1, double angle2, double angle3, double angle4);
+		int moveBackward(double angle);
+		int moveBackwardNB(double angle);
+		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4);
+		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds);
+		int moveDistance(double distance, double radius);
+		int moveDistanceNB(double distance, double radius);
+		int moveForward(double angle);
+		int moveForwardNB(double angle);
+		int moveJoint(robotJointId_t id, double angle);
+		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
+		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
+		int moveJointNB(robotJointId_t id, double angle);
+		int moveJointTo(robotJointId_t id, double angle);
+		int moveJointToDirect(robotJointId_t id, double angle);
+		int moveJointToDirectNB(robotJointId_t id, double angle);
+		int moveJointToNB(robotJointId_t id, double angle);
+		int moveJointWait(robotJointId_t id);
+		int moveTo(double angle1, double angle2, double angle3, double angle4);
+		int moveToDirect(double angle1, double angle2, double angle3, double angle4);
+		int moveToDirectNB(double angle1, double angle2, double angle3, double angle4);
+		int moveToNB(double angle1, double angle2, double angle3, double angle4);
+		int moveToZero();
+		int moveToZeroNB();
+		int moveWait();
+#ifdef _CH_
+		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
+		int recordAngles(double time[:], double angle1[:], double angle2[:], double angle3[:], double angle4[:], int num, double seconds, ...);
 #else
-		int recordAngle(int id, dReal time[:], dReal angle[:], int num, dReal seconds);
-		int recordAngles(dReal time[:], dReal angle1[:], dReal angle2[:], dReal angle3[:], dReal angle4[:], int num, dReal seconds);
-#endif // not _CH_
-		int recordWait(void);
-		int resetToZero(void);
-		int resetToZeroNB(void);
-		int setJointSpeed(int id, double speed);
+		int recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData = 1);
+		int recordAngles(double time[], double angle1[], double angle2[], double angle3[], double angle4[], int num, double seconds, int shiftData = 1);
+#endif
+#ifdef _CH_
+		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
+		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, ...);
+#else
+		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData = 1);
+		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData = 1);
+#endif
+		int recordAngleEnd(robotJointId_t id, int &num);
+		int recordDistanceEnd(robotJointId_t id, int &num);
+#ifdef _CH_
+		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, ...);
+		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, robotRecordData_t &distance4, double radius, double seconds, ...);
+#else
+		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, int shiftData = 1);
+		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, robotRecordData_t &distance4, double radius, double seconds, int shiftData = 1);
+#endif
+		int recordAnglesEnd(int &num);
+		int recordDistancesEnd(int &num);
+		int recordWait();
+		int reset();
+		int resetToZero();
+		int resetToZeroNB();
+		int setExitState(robotJointState_t exitState);
+		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
+		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
+		int setJointSafetyAngle(double angle);
+		int setJointSafetyAngleTimeout(double seconds);
+		int setJointSpeed(robotJointId_t id, double speed);
 		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
+		int setJointSpeedRatio(robotJointId_t id, double ratio);
+		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
+		int setMotorPower(robotJointId_t id, int power);
+		int setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4);
+		int setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds);
+		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds);
+		int setTwoWheelRobotSpeed(double speed, double radius);
+		int stop(void);
+		int stopOneJoint(robotJointId_t id);
+		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
+		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
+		int stopAllJoints(void);
+		int turnLeft(double angle);
+		int turnLeftNB(double angle);
+		int turnRight(double angle);
+		int turnRightNB(double angle);
 #ifndef _CH_
     private:
 		enum robot_pieces_e {       // each body part which is built
@@ -119,7 +202,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		};
 		typedef struct recordAngleArg_s {
 			CMobot *robot;
-			int id;
+			robotJointId_t id;
 			int num;
 			int msecs;
 			double *time;
@@ -153,6 +236,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int _id;					// robot id
 		int _state[NUM_DOF];		// joint states
 		int _type;					// type of robot
+		int _connected;				// connected to controller
 		bool _recording[NUM_DOF];	// recording in progress
 		bool _success[NUM_DOF];		// trigger for goal
 		double	_encoderResolution,

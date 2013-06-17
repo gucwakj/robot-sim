@@ -690,8 +690,8 @@ void* CRobotSim::graphicsThread(void *arg) {
 	sim->_osgRoot->addChild(clearNode);
 
 	// optimize the scene graph, remove redundant nodes and state etc.
-	//osgUtil::Optimizer optimizer;
-	//optimizer.optimize(sim->_osgRoot);
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(sim->_osgRoot);
 
 	// set viewable
 	sim->viewer->setSceneData(sim->_osgRoot);

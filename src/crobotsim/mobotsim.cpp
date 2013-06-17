@@ -18,19 +18,144 @@ CMobot::~CMobot(void) {
 }
 
 int CMobot::connect(void) {
+	_connected = 1;
+
+	// success
 	return 0;
 }
 
-int CMobot::getJointAngle(int id, dReal &angle) {
+int CMobot::disconnect(void) {
+	_connected = 0;
+
+	// success
+	return 0;
+}
+
+int CMobot::driveJointToDirect(robotJointId_t id, double angle) {
+	this->driveJointToDirectNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CMobot::driveJointTo(robotJointId_t id, double angle) {
+	this->driveJointToNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CMobot::driveJointToDirectNB(robotJointId_t id, double angle) {
+	// success
+	return 0;
+}
+
+int CMobot::driveJointToNB(robotJointId_t id, double angle) {
+	// success
+	return 0;
+}
+
+int CMobot::driveToDirect(double angle1, double angle2, double angle3, double angle4) {
+	this->driveToDirectNB(angle1, angle2, angle3, angle4);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::driveTo(double angle1, double angle2, double angle3, double angle4) {
+	this->driveToNB(angle1, angle2, angle3, angle4);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::driveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
+	// success
+	return 0;
+}
+
+int CMobot::driveToNB(double angle1, double angle2, double angle3, double angle4) {
+	// success
+	return 0;
+}
+
+int CMobot::getJointAngle(robotJointId_t id, double &angle) {
 	angle = RAD2DEG(this->getAngle(id));
 
 	// success
 	return 0;
 }
 
-int CMobot::getJointSpeed(int id, dReal &speed) {
+int CMobot::getJointAngleAverage(robotJointId_t id, double &angle, int numReadings) {
+	//initialize variables
+	double d;
+	angle = 0;
+	
+	// get joint angle numReadings times
+	for (int i = 0; i < numReadings; i++) {
+		if(this->getJointAngle(id, d)) {
+			return -1;
+		}
+		angle += d;
+	}
+
+	// store average angle
+	angle = angle/numReadings;
+
+	// success
+	return 0;
+}
+
+int CMobot::getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4) {
+	this->getJointAngle(ROBOT_JOINT1, angle1);
+	this->getJointAngle(ROBOT_JOINT2, angle2);
+	this->getJointAngle(ROBOT_JOINT3, angle3);
+	this->getJointAngle(ROBOT_JOINT4, angle4);
+
+	// success
+	return 0;
+}
+
+int CMobot::getJointAnglesAverage(double &angle1, double &angle2, double &angle3, double &angle4, int numReadings) {
+	this->getJointAngleAverage(ROBOT_JOINT1, angle1, numReadings);
+	this->getJointAngleAverage(ROBOT_JOINT2, angle2, numReadings);
+	this->getJointAngleAverage(ROBOT_JOINT3, angle3, numReadings);
+	this->getJointAngleAverage(ROBOT_JOINT4, angle4, numReadings);
+
+	// success
+	return 0;
+}
+
+int CMobot::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
+	maxSpeed = _maxSpeed[id];
+
+	// success
+	return 0;
+}
+
+int CMobot::getJointSafetyAngle(double &angle) {
+	// success
+	return 0;
+}
+
+int CMobot::getJointSafetyAngleTimeout(double &seconds) {
+	// success
+	return 0;
+}
+
+int CMobot::getJointSpeed(robotJointId_t id, double &speed) {
 	speed = RAD2DEG(_speed[id]);
 
+	// success
+	return 0;
+}
+
+int CMobot::getJointSpeedRatio(robotJointId_t id, double &ratio) {
+	ratio = _speed[id]/_maxSpeed[id];
 	// success
 	return 0;
 }
@@ -45,26 +170,71 @@ int CMobot::getJointSpeeds(double &speed1, double &speed2, double &speed3, doubl
 	return 0;
 }
 
-int CMobot::motionArch(dReal angle) {
-	this->moveJointToNB(MOBOT_JOINT2, -angle/2.0);
-	this->moveJointToNB(MOBOT_JOINT3, angle/2.0);
-	this->moveJointWait(MOBOT_JOINT2);
-	this->moveJointWait(MOBOT_JOINT3);
+int CMobot::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, double &ratio4) {
+	ratio1 = _speed[0]/_maxSpeed[0];
+	ratio2 = _speed[1]/_maxSpeed[1];
+	ratio3 = _speed[2]/_maxSpeed[2];
+	ratio4 = _speed[3]/_maxSpeed[3];
+
+	// success
+	return 0;
+}
+
+int CMobot::getJointState(robotJointId_t id, robotJointState_t &state) {
+	state = (robotJointState_t)(_state[id]);
+
+	// success
+	return 0;
+}
+
+int CMobot::isConnected(void) {
+	// success
+	return _connected;
+}
+
+int CMobot::isMoving(void) {
+	int moving = 0;
+	robotJointState_t state;
+
+	for (int i = 1; i <= 4; i++) {
+		this->getJointState((robotJointId_t)i, state);
+		if( (state == ROBOT_FORWARD) || (state == ROBOT_BACKWARD) ) {
+			moving = 1;
+			break;
+		}
+	}
+
+	return moving;
+}
+
+int CMobot::motionArch(double angle) {
+	this->moveJointToNB(ROBOT_JOINT2, -angle/2.0);
+	this->moveJointToNB(ROBOT_JOINT3, angle/2.0);
+	this->moveJointWait(ROBOT_JOINT2);
+	this->moveJointWait(ROBOT_JOINT3);
+
+	// success
+	return 0;
+}
+
+
+int CMobot::motionDistance(double distance, double radius) {
+	this->motionRollForward(distance/radius);
 
 	// success
 	return 0;
 }
 
 int CMobot::motionInchwormLeft(int num) {
-	this->moveJointToNB(MOBOT_JOINT2, 0);
-	this->moveJointToNB(MOBOT_JOINT3, 0);
+	this->moveJointToNB(ROBOT_JOINT2, 0);
+	this->moveJointToNB(ROBOT_JOINT3, 0);
 	this->moveWait();
 
 	for (int i = 0; i < num; i++) {
-		this->moveJointTo(MOBOT_JOINT2, -50);
-		this->moveJointTo(MOBOT_JOINT3, 50);
-		this->moveJointTo(MOBOT_JOINT2, 0);
-		this->moveJointTo(MOBOT_JOINT3, 0);
+		this->moveJointTo(ROBOT_JOINT2, -50);
+		this->moveJointTo(ROBOT_JOINT3, 50);
+		this->moveJointTo(ROBOT_JOINT2, 0);
+		this->moveJointTo(ROBOT_JOINT3, 0);
 	}
 
 	// success
@@ -72,27 +242,27 @@ int CMobot::motionInchwormLeft(int num) {
 }
 
 int CMobot::motionInchwormRight(int num) {
-	this->moveJointToNB(MOBOT_JOINT2, 0);
-	this->moveJointToNB(MOBOT_JOINT3, 0);
+	this->moveJointToNB(ROBOT_JOINT2, 0);
+	this->moveJointToNB(ROBOT_JOINT3, 0);
 	this->moveWait();
 
 	for (int i = 0; i < num; i++) {
-		this->moveJointTo(MOBOT_JOINT3, 50);
-		this->moveJointTo(MOBOT_JOINT2, -50);
-		this->moveJointTo(MOBOT_JOINT3, 0);
-		this->moveJointTo(MOBOT_JOINT2, 0);
+		this->moveJointTo(ROBOT_JOINT3, 50);
+		this->moveJointTo(ROBOT_JOINT2, -50);
+		this->moveJointTo(ROBOT_JOINT3, 0);
+		this->moveJointTo(ROBOT_JOINT2, 0);
 	}
 
 	// success
 	return 0;
 }
 
-int CMobot::motionRollBackward(dReal angle) {
+int CMobot::motionRollBackward(double angle) {
 	dReal motorPosition[2];
-	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(MOBOT_JOINT1, motorPosition[0] - angle);
-	this->moveJointToNB(MOBOT_JOINT4, motorPosition[1] - angle);
+	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
+	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
+	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] - angle);
+	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] - angle);
 	this->moveWait();
 
 	// success
@@ -101,19 +271,19 @@ int CMobot::motionRollBackward(dReal angle) {
 
 int CMobot::motionRollForward(dReal angle) {
 	dReal motorPosition[2];
-	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(MOBOT_JOINT1, motorPosition[0] + angle);
-	this->moveJointToNB(MOBOT_JOINT4, motorPosition[1] + angle);
+	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
+	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
+	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] + angle);
+	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] + angle);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int CMobot::motionSkinny(dReal angle) {
-	this->moveJointToNB(MOBOT_JOINT2, angle);
-	this->moveJointToNB(MOBOT_JOINT3, angle);
+int CMobot::motionSkinny(double angle) {
+	this->moveJointToNB(ROBOT_JOINT2, angle);
+	this->moveJointToNB(ROBOT_JOINT3, angle);
 	this->moveWait();
 
 	// success
@@ -123,16 +293,16 @@ int CMobot::motionSkinny(dReal angle) {
 int CMobot::motionStand(void) {
 	this->resetToZero();
 	//this->moveToZero();
-	this->moveJointTo(MOBOT_JOINT2, -85);
-	this->moveJointTo(MOBOT_JOINT3, 70);
+	this->moveJointTo(ROBOT_JOINT2, -85);
+	this->moveJointTo(ROBOT_JOINT3, 70);
 	this->moveWait();
-	this->moveJointTo(MOBOT_JOINT1, 45);
+	this->moveJointTo(ROBOT_JOINT1, 45);
 #ifndef _WIN32
 	usleep(1000000);
 #else
 	Sleep(1000);
 #endif
-	this->moveJointTo(MOBOT_JOINT2, 20);
+	this->moveJointTo(ROBOT_JOINT2, 20);
 
 	// success
 	return 0;
@@ -147,23 +317,23 @@ int CMobot::motionTumbleLeft(int num) {
 #endif
 
 	for (int i = 0; i < num; i++) {
-		this->moveJointTo(MOBOT_JOINT2, -85);
-		this->moveJointTo(MOBOT_JOINT3, 80);
-		this->moveJointTo(MOBOT_JOINT2, 0);
-		this->moveJointTo(MOBOT_JOINT3, 0);
-		this->moveJointTo(MOBOT_JOINT2, 80);
-		this->moveJointTo(MOBOT_JOINT2, 45);
-		this->moveJointTo(MOBOT_JOINT3, -85);
-		this->moveJointTo(MOBOT_JOINT2, 80);
-		this->moveJointTo(MOBOT_JOINT3, 0);
-		this->moveJointTo(MOBOT_JOINT2, 0);
-		this->moveJointTo(MOBOT_JOINT3, 80);
+		this->moveJointTo(ROBOT_JOINT2, -85);
+		this->moveJointTo(ROBOT_JOINT3, 80);
+		this->moveJointTo(ROBOT_JOINT2, 0);
+		this->moveJointTo(ROBOT_JOINT3, 0);
+		this->moveJointTo(ROBOT_JOINT2, 80);
+		this->moveJointTo(ROBOT_JOINT2, 45);
+		this->moveJointTo(ROBOT_JOINT3, -85);
+		this->moveJointTo(ROBOT_JOINT2, 80);
+		this->moveJointTo(ROBOT_JOINT3, 0);
+		this->moveJointTo(ROBOT_JOINT2, 0);
+		this->moveJointTo(ROBOT_JOINT3, 80);
 		if (i != (num-1)) {
-			this->moveJointTo(MOBOT_JOINT3, 45);
+			this->moveJointTo(ROBOT_JOINT3, 45);
 		}
 	}
-	this->moveJointToNB(MOBOT_JOINT2, 0);
-	this->moveJointToNB(MOBOT_JOINT3, 0);
+	this->moveJointToNB(ROBOT_JOINT2, 0);
+	this->moveJointToNB(ROBOT_JOINT3, 0);
 	this->moveWait();
 
 	// success
@@ -179,47 +349,47 @@ int CMobot::motionTumbleRight(int num) {
 #endif
 
 	for (int i = 0; i < num; i++) {
-		this->moveJointTo(MOBOT_JOINT3, 85);
-		this->moveJointTo(MOBOT_JOINT2, -80);
-		this->moveJointTo(MOBOT_JOINT3, 0);
-		this->moveJointTo(MOBOT_JOINT2, 0);
-		this->moveJointTo(MOBOT_JOINT3, -80);
-		this->moveJointTo(MOBOT_JOINT3, -45);
-		this->moveJointTo(MOBOT_JOINT2, 85);
-		this->moveJointTo(MOBOT_JOINT3, -80);
-		this->moveJointTo(MOBOT_JOINT2, 0);
-		this->moveJointTo(MOBOT_JOINT3, 0);
-		this->moveJointTo(MOBOT_JOINT2, -80);
+		this->moveJointTo(ROBOT_JOINT3, 85);
+		this->moveJointTo(ROBOT_JOINT2, -80);
+		this->moveJointTo(ROBOT_JOINT3, 0);
+		this->moveJointTo(ROBOT_JOINT2, 0);
+		this->moveJointTo(ROBOT_JOINT3, -80);
+		this->moveJointTo(ROBOT_JOINT3, -45);
+		this->moveJointTo(ROBOT_JOINT2, 85);
+		this->moveJointTo(ROBOT_JOINT3, -80);
+		this->moveJointTo(ROBOT_JOINT2, 0);
+		this->moveJointTo(ROBOT_JOINT3, 0);
+		this->moveJointTo(ROBOT_JOINT2, -80);
 		if (i != (num-1)) {
-			this->moveJointTo(MOBOT_JOINT2, -45);
+			this->moveJointTo(ROBOT_JOINT2, -45);
 		}
 	}
-	this->moveJointToNB(MOBOT_JOINT3, 0);
-	this->moveJointToNB(MOBOT_JOINT2, 0);
+	this->moveJointToNB(ROBOT_JOINT3, 0);
+	this->moveJointToNB(ROBOT_JOINT2, 0);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int CMobot::motionTurnLeft(dReal angle) {
+int CMobot::motionTurnLeft(double angle) {
 	dReal motorPosition[2];
-	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(MOBOT_JOINT1, motorPosition[0] - angle);
-	this->moveJointToNB(MOBOT_JOINT4, motorPosition[1] + angle);
+	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
+	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
+	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] - angle);
+	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] + angle);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int CMobot::motionTurnRight(dReal angle) {
-	dReal motorPosition[2];
-	this->getJointAngle(MOBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(MOBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(MOBOT_JOINT1, motorPosition[0] + angle);
-	this->moveJointToNB(MOBOT_JOINT4, motorPosition[1] - angle);
+int CMobot::motionTurnRight(double angle) {
+	double motorPosition[2];
+	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
+	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
+	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] + angle);
+	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] - angle);
 	this->moveWait();
 
 	// success
@@ -228,8 +398,8 @@ int CMobot::motionTurnRight(dReal angle) {
 
 int CMobot::motionUnstand(void) {
 	this->moveToDirect(0, 0, 0, 0);
-	this->moveJointToNB(MOBOT_JOINT3, 45);
-	this->moveJointToNB(MOBOT_JOINT2, -85);
+	this->moveJointToNB(ROBOT_JOINT3, 45);
+	this->moveJointToNB(ROBOT_JOINT2, -85);
 	this->moveWait();
 	this->moveToDirect(0, 0, 0, 0);
 
@@ -237,7 +407,90 @@ int CMobot::motionUnstand(void) {
 	return 0;
 }
 
-int CMobot::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int CMobot::motionArchNB(double angle) {
+	// success
+	return 0;
+}
+
+int CMobot::motionDistanceNB(double distance, double radius) {
+
+	// success
+	return 0;
+}
+
+int CMobot::motionInchwormLeftNB(int num) {
+
+	// success
+	return 0;
+}
+
+int CMobot::motionInchwormRightNB(int num) {
+
+	// success
+	return 0;
+}
+
+int CMobot::motionRollBackwardNB(double angle) {
+
+	// success
+	return 0;
+}
+
+int CMobot::motionRollForwardNB(double angle) {
+
+	// success
+	return 0;
+}
+
+int CMobot::motionSkinnyNB(double angle) {
+
+	// success
+	return 0;
+}
+
+int CMobot::motionStandNB(void) {
+
+	// success
+	return 0;
+}
+
+int CMobot::motionTumbleRightNB(int num) {
+
+	// success
+	return 0;
+}
+
+int CMobot::motionTumbleLeftNB(int num) {
+
+	// success
+	return 0;
+}
+
+int CMobot::motionTurnLeftNB(double angle) {
+
+	// success
+	return 0;
+}
+
+int CMobot::motionTurnRightNB(double angle) {
+
+	// success
+	return 0;
+}
+
+int CMobot::motionUnstandNB(void) {
+
+	// success
+	return 0;
+}
+
+int CMobot::motionWait(void) {
+
+	// success
+	return 0;
+}
+
+int CMobot::move(double angle1, double angle2, double angle3, double angle4) {
 	this->moveNB(angle1, angle2, angle3, angle4);
 	this->moveWait();
 
@@ -245,9 +498,9 @@ int CMobot::move(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	return 0;
 }
 
-int CMobot::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 	// store angles into array
-	dReal delta[4] = {angle1, angle2, angle3, angle4};
+	double delta[4] = {angle1, angle2, angle3, angle4};
 
 	// lock goal
 	MUTEX_LOCK(&_goal_mutex);
@@ -264,15 +517,15 @@ int CMobot::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 		dJointEnable(_motor[j]);
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
-			_state[j] = MOBOT_FORWARD;
+			_state[j] = ROBOT_FORWARD;
 			dJointSetAMotorParam(_motor[j], dParamVel, _speed[j]);
 		}
 		else if ( delta[j] < 0 ) {
-			_state[j] = MOBOT_BACKWARD;
+			_state[j] = ROBOT_BACKWARD;
 			dJointSetAMotorParam(_motor[j], dParamVel, -_speed[j]);
 		}
 		else if ( fabs(delta[j]-0) < EPSILON ) {
-			_state[j] = MOBOT_HOLD;
+			_state[j] = ROBOT_HOLD;
 			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
 	}
@@ -294,7 +547,47 @@ int CMobot::moveNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	return 0;
 }
 
-int CMobot::moveJoint(int id, dReal angle) {
+int CMobot::moveBackward(double angle) {
+	this->moveBackwardNB(angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::moveBackwardNB(double angle) {
+	return this->moveNB(-angle, 0, 0, -angle);
+}
+
+int CMobot::moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4) {
+	return this->setMovementStateNB(dir1, dir2, dir3, dir4);
+}
+
+int CMobot::moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds) {
+	return this->setMovementStateTime(dir1, dir2, dir3, dir4, seconds);
+}
+
+int CMobot::moveDistance(double distance, double radius) {
+	return this->moveForward(distance / radius);
+}
+
+int CMobot::moveDistanceNB(double distance, double radius) {
+	return this->moveForwardNB(distance / radius);
+}
+
+int CMobot::moveForward(double angle) {
+	this->moveForwardNB(angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::moveForwardNB(double angle) {
+	return this->moveNB(angle, 0, 0, angle);
+}
+
+int CMobot::moveJoint(robotJointId_t id, double angle) {
 	this->moveJointNB(id, angle);
 	this->moveJointWait(id);
 
@@ -302,7 +595,15 @@ int CMobot::moveJoint(int id, dReal angle) {
 	return 0;
 }
 
-int CMobot::moveJointNB(int id, dReal angle) {
+int CMobot::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
+	return this->setJointMovementStateNB(id, dir);
+}
+
+int CMobot::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
+	return this->setJointMovementStateTime(id, dir, seconds);
+}
+
+int CMobot::moveJointNB(robotJointId_t id, double angle) {
 	// lock goal
 	MUTEX_LOCK(&_goal_mutex);
 
@@ -315,15 +616,15 @@ int CMobot::moveJointNB(int id, dReal angle) {
 
 	// set motor state and velocity
 	if ( angle > 0 ) {
-		_state[id] = MOBOT_FORWARD;
+		_state[id] = ROBOT_FORWARD;
 		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
 	}
 	else if ( angle < 0 ) {
-		_state[id] = MOBOT_BACKWARD;
+		_state[id] = ROBOT_BACKWARD;
 		dJointSetAMotorParam(_motor[id], dParamVel, -_speed[id]);
 	}
 	else if ( fabs(angle-0) < EPSILON ) {
-		_state[id] = MOBOT_HOLD;
+		_state[id] = ROBOT_HOLD;
 		dJointSetAMotorParam(_motor[id], dParamVel, 0);
 	}
 	dBodyEnable(_body[CENTER]);
@@ -341,7 +642,7 @@ int CMobot::moveJointNB(int id, dReal angle) {
 	return 0;
 }
 
-int CMobot::moveJointTo(int id, dReal angle) {
+int CMobot::moveJointTo(robotJointId_t id, double angle) {
 	this->moveJointToNB(id, angle);
 	this->moveJointWait(id);
 
@@ -349,9 +650,23 @@ int CMobot::moveJointTo(int id, dReal angle) {
 	return 0;
 }
 
-int CMobot::moveJointToNB(int id, dReal angle) {
+int CMobot::moveJointToDirect(robotJointId_t id, double angle) {
+	this->moveJointToDirectNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CMobot::moveJointToDirectNB(robotJointId_t id, double angle) {
+
+	// success
+	return 0;
+}
+
+int CMobot::moveJointToNB(robotJointId_t id, double angle) {
 	// store delta angle
-	dReal delta = angle - _angle[id];
+	double delta = angle - _angle[id];
 
 	// lock goal
 	MUTEX_LOCK(&_goal_mutex);
@@ -365,15 +680,15 @@ int CMobot::moveJointToNB(int id, dReal angle) {
 
 	// set motor state and velocity
 	if ( delta > 0 ) {
-		_state[id] = MOBOT_FORWARD;
+		_state[id] = ROBOT_FORWARD;
 		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
 	}
 	else if ( delta < 0 ) {
-		_state[id] = MOBOT_BACKWARD;
+		_state[id] = ROBOT_BACKWARD;
 		dJointSetAMotorParam(_motor[id], dParamVel, -_speed[id]);
 	}
 	else if ( fabs(delta-0) < EPSILON ) {
-		_state[id] = MOBOT_HOLD;
+		_state[id] = ROBOT_HOLD;
 		dJointSetAMotorParam(_motor[id], dParamVel, 0);
 	}
 	dBodyEnable(_body[CENTER]);
@@ -391,7 +706,7 @@ int CMobot::moveJointToNB(int id, dReal angle) {
 	return 0;
 }
 
-int CMobot::moveJointWait(int id) {
+int CMobot::moveJointWait(robotJointId_t id) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_success_mutex);
 	while ( !_success[id] ) { COND_WAIT(&_success_cond, &_success_mutex); }
@@ -402,7 +717,7 @@ int CMobot::moveJointWait(int id) {
 	return 0;
 }
 
-int CMobot::moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int CMobot::moveTo(double angle1, double angle2, double angle3, double angle4) {
 	this->moveToNB(angle1, angle2, angle3, angle4);
 	this->moveWait();
 
@@ -410,14 +725,22 @@ int CMobot::moveTo(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	return 0;
 }
 
-int CMobot::moveToDirect(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int CMobot::moveToDirect(double angle1, double angle2, double angle3, double angle4) {
+	this->moveToDirectNB(angle1, angle2, angle3, angle4);
+	this->moveWait();
+
 	// success
 	return 0;
 }
 
-int CMobot::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
+int CMobot::moveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
+	// success
+	return 0;
+}
+
+int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4) {
 	// store angles into array
-	dReal delta[4] = {angle1 - _angle[0], angle2 - _angle[1], angle3 - _angle[2], angle4 - _angle[3]};
+	double delta[4] = {angle1 - _angle[0], angle2 - _angle[1], angle3 - _angle[2], angle4 - _angle[3]};
 
 	// lock goal
 	MUTEX_LOCK(&_goal_mutex);
@@ -434,15 +757,15 @@ int CMobot::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 		dJointEnable(_motor[j]);
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
-			_state[j] = MOBOT_FORWARD;
+			_state[j] = ROBOT_FORWARD;
 			dJointSetAMotorParam(_motor[j], dParamVel, _speed[j]);
 		}
 		else if ( delta[j] < 0 ) {
-			_state[j] = MOBOT_BACKWARD;
+			_state[j] = ROBOT_BACKWARD;
 			dJointSetAMotorParam(_motor[j], dParamVel, -_speed[j]);
 		}
 		else if ( fabs(delta[j]-0) < EPSILON ) {
-			_state[j] = MOBOT_HOLD;
+			_state[j] = ROBOT_HOLD;
 			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
 	}
@@ -464,23 +787,12 @@ int CMobot::moveToNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
 	return 0;
 }
 
-/*int moveToDirectNB(dReal angle1, dReal angle2, dReal angle3, dReal angle4) {
-	// success
-	return 0;
-}*/
-
 int CMobot::moveToZero(void) {
-	this->moveTo(0, 0, 0, 0);
-
-	// success
-	return 0;
+	return this->moveTo(0, 0, 0, 0);
 }
 
 int CMobot::moveToZeroNB(void) {
-	this->moveToNB(0, 0, 0, 0);
-
-	// success
-	return 0;
+	return this->moveToNB(0, 0, 0, 0);
 }
 
 int CMobot::moveWait(void) {
@@ -499,7 +811,8 @@ int CMobot::moveWait(void) {
 	return 0;
 }
 
-int CMobot::recordAngle(int id, dReal *time, dReal *angle, int num, dReal seconds, dReal threshold) {
+//int CMobot::recordAngle(int id, dReal *time, dReal *angle, int num, dReal seconds, dReal threshold) {
+int CMobot::recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData) {
 	THREAD_T recording;
 	recordAngleArg_t *rArg = new recordAngleArg_t;
 	if (_recording[id]) { return -1; }
@@ -517,7 +830,8 @@ int CMobot::recordAngle(int id, dReal *time, dReal *angle, int num, dReal second
 	return 0;
 }
 
-int CMobot::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, dReal *angle4, int num, dReal seconds, dReal threshold) {
+//int CMobot::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, dReal *angle4, int num, dReal seconds, dReal threshold) {
+int CMobot::recordAngles(double time[], double angle1[], double angle2[], double angle3[], double angle4[], int num, double seconds, int shiftData) {
 	THREAD_T recording;
 	recordAngleArg_t *rArg = new recordAngleArg_t;
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -541,6 +855,46 @@ int CMobot::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle
 	return 0;
 }
 
+int CMobot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData) {
+	// success
+	return 0;
+}
+
+int CMobot::recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData) {
+	// success
+	return 0;
+}
+
+int CMobot::recordAngleEnd(robotJointId_t id, int &num) {
+	// success
+	return 0;
+}
+
+int CMobot::recordDistanceEnd(robotJointId_t id, int &num) {
+	// success
+	return 0;
+}
+
+int CMobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, int shiftData) {
+	// success
+	return 0;
+}
+
+int CMobot::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, robotRecordData_t &distance4, double radius, double seconds, int shiftData) {
+	// success
+	return 0;
+}
+
+int CMobot::recordAnglesEnd(int &num) {
+	// success
+	return 0;
+}
+
+int CMobot::recordDistancesEnd(int &num) {
+	// success
+	return 0;
+}
+
 int CMobot::recordWait(void) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_recording_mutex);
@@ -553,6 +907,11 @@ int CMobot::recordWait(void) {
 	_recording[3] = false;
 	MUTEX_UNLOCK(&_recording_mutex);
 
+	// success
+	return 0;
+}
+
+int CMobot::reset(void) {
 	// success
 	return 0;
 }
@@ -589,7 +948,41 @@ int CMobot::resetToZeroNB(void) {
 	return 0;
 }
 
-int CMobot::setJointSpeed(int id, double speed) {
+int CMobot::setExitState(robotJointState_t exitState) {
+	// success
+	return 0;
+}
+
+int CMobot::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
+	//this->setJointDirection(id, dir);
+
+	// success
+	return 0;
+}
+
+int CMobot::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds) {
+	this->moveJointContinuousNB(id, dir);
+#ifdef _WIN32
+	Sleep(seconds * 1000);
+#else
+	usleep(seconds * 1000000);
+#endif
+
+	// success
+	return 0;
+}
+
+int CMobot::setJointSafetyAngle(double angle) {
+	// success
+	return 0;
+}
+
+int CMobot::setJointSafetyAngleTimeout(double seconds) {
+	// success
+	return 0;
+}
+
+int CMobot::setJointSpeed(robotJointId_t id, double speed) {
 	_speed[id] = DEG2RAD((speed > _maxSpeed[id]) ? _maxSpeed[id] : speed);
 
 	// success
@@ -601,6 +994,131 @@ int CMobot::setJointSpeeds(double speed1, double speed2, double speed3, double s
 	_speed[1] = DEG2RAD((speed2 > _maxSpeed[1]) ? _maxSpeed[1] : speed2);
 	_speed[2] = DEG2RAD((speed3 > _maxSpeed[2]) ? _maxSpeed[2] : speed3);
 	_speed[3] = DEG2RAD((speed4 > _maxSpeed[3]) ? _maxSpeed[3] : speed4);
+
+	// success
+	return 0;
+}
+
+int CMobot::setJointSpeedRatio(robotJointId_t id, double ratio) {
+	if ( ratio < 0 || ratio > 1 ) {
+		return -1;
+	}
+	return this->setJointSpeed(id, ratio * _maxSpeed[(int)id-1]);
+}
+
+int CMobot::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4) {
+	this->setJointSpeedRatio(ROBOT_JOINT1, ratio1);
+	this->setJointSpeedRatio(ROBOT_JOINT2, ratio2);
+	this->setJointSpeedRatio(ROBOT_JOINT3, ratio3);
+	this->setJointSpeedRatio(ROBOT_JOINT4, ratio4);
+
+	// success
+	return 0;
+}
+
+int CMobot::setMotorPower(robotJointId_t id, int power) {
+	// success
+	return 0;
+}
+
+int CMobot::setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4) {
+	this->setJointMovementStateNB(ROBOT_JOINT1, dir1);
+	this->setJointMovementStateNB(ROBOT_JOINT2, dir2);
+	this->setJointMovementStateNB(ROBOT_JOINT3, dir3);
+	this->setJointMovementStateNB(ROBOT_JOINT4, dir4);
+
+	// success
+	return 0;
+}
+
+int CMobot::setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds) {
+	this->setJointMovementStateTime(ROBOT_JOINT1, dir1, seconds);
+	this->setJointMovementStateTime(ROBOT_JOINT2, dir2, seconds);
+	this->setJointMovementStateTime(ROBOT_JOINT3, dir3, seconds);
+	this->setJointMovementStateTime(ROBOT_JOINT4, dir4, seconds);
+	// success
+	return 0;
+}
+
+int CMobot::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds) {
+	// success
+	return 0;
+}
+
+int CMobot::setTwoWheelRobotSpeed(double speed, double radius) {
+	this->setJointSpeed(ROBOT_JOINT1, speed/radius);
+	this->setJointSpeed(ROBOT_JOINT4, speed/radius);
+
+	// success
+	return 0;
+}
+
+int CMobot::stop(void) {
+	this->stopAllJoints();
+
+	// success
+	return 0;
+}
+
+int CMobot::stopOneJoint(robotJointId_t id) {
+	this->setJointSpeed(id, 0);
+
+	// success
+	return 0;
+}
+
+int CMobot::stopTwoJoints(robotJointId_t id1, robotJointId_t id2) {
+	this->setJointSpeed(id1, 0);
+	this->setJointSpeed(id2, 0);
+
+	// success
+	return 0;
+}
+
+int CMobot::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3) {
+	this->setJointSpeed(id1, 0);
+	this->setJointSpeed(id2, 0);
+	this->setJointSpeed(id3, 0);
+
+	// success
+	return 0;
+}
+
+int CMobot::stopAllJoints(void) {
+	this->setJointSpeed(ROBOT_JOINT1, 0);
+	this->setJointSpeed(ROBOT_JOINT2, 0);
+	this->setJointSpeed(ROBOT_JOINT3, 0);
+	this->setJointSpeed(ROBOT_JOINT4, 0);
+
+	// success
+	return 0;
+}
+
+int CMobot::turnLeft(double angle) {
+	this->turnLeftNB(angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::turnLeftNB(double angle) {
+	this->moveNB(-angle, 0, 0, angle);
+
+	// success
+	return 0;
+}
+
+int CMobot::turnRight(double angle) {
+	this->turnRightNB(angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::turnRightNB(double angle) {
+	this->moveNB(angle, 0, 0, -angle);
 
 	// success
 	return 0;
@@ -2117,10 +2635,10 @@ int CMobot::init_params(void) {
 	_id = -1;
 	_type = MOBOT;
 	_encoderResolution = DEG2RAD(0.5);
-	_maxJointForce[MOBOT_JOINT1] = 0.260;
-	_maxJointForce[MOBOT_JOINT2] = 1.059;
-	_maxJointForce[MOBOT_JOINT3] = 1.059;
-	_maxJointForce[MOBOT_JOINT4] = 0.260;
+	_maxJointForce[ROBOT_JOINT1] = 0.260;
+	_maxJointForce[ROBOT_JOINT2] = 1.059;
+	_maxJointForce[ROBOT_JOINT3] = 1.059;
+	_maxJointForce[ROBOT_JOINT4] = 0.260;
 
 	// init locks
 	MUTEX_INIT(&_angle_mutex);
@@ -2254,10 +2772,10 @@ void* CMobot::record_angles_thread(void *arg) {
 		rArg->time[i] = *(rArg->robot->_clock)*1000;
         if (i == 0) { start_time = rArg->time[i]; }
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
-		rArg->robot->getJointAngle(0, rArg->angle1[i]);
-		rArg->robot->getJointAngle(1, rArg->angle2[i]);
-		rArg->robot->getJointAngle(2, rArg->angle3[i]);
-		rArg->robot->getJointAngle(3, rArg->angle4[i]);
+		rArg->robot->getJointAngle(ROBOT_JOINT1, rArg->angle1[i]);
+		rArg->robot->getJointAngle(ROBOT_JOINT2, rArg->angle2[i]);
+		rArg->robot->getJointAngle(ROBOT_JOINT3, rArg->angle3[i]);
+		rArg->robot->getJointAngle(ROBOT_JOINT4, rArg->angle4[i]);
 
 		// increment time step
 		time += rArg->msecs;
