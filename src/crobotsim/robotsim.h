@@ -20,31 +20,29 @@ class DLLIMPORT CRobotSim {
 #ifndef _CH_
 		int addRobot(CRobot *robot);
 		int getNumberOfRobots(int type);
-		void setCOR(dReal cor_g, dReal cor_b);
 		int setExitState(void);
-		//void setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
-		//void setGroundCapsule(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
-		//void setGroundCylinder(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
-		//void setGroundSphere(dReal r, dReal px, dReal py, dReal pz);
-		void setMu(dReal mu_g, dReal mu_b);
 	private:
+		// ground struct
+		typedef struct ground_s {
+			dGeomID object;
+			struct ground_s *next;
+		} ground_t;
+
 		// private variables to store general information about simulation
 		dWorldID _world;					// world in which simulation occurs
 		dSpaceID _space;					// space for robots in which to live
 		dJointGroupID _group;				// group to store joints
-		dGeomID* _ground;					// ground (static) objects
+		ground_t *_ground;					// ground (static) objects
 		CRobot** _robot[NUM_TYPES];			// array of all robots of every type
 		bot_t bot;
 		dReal _step;						// time of each step of simulation
 		dReal _clock;						// clock time of simulation
-		dReal _mu[2];						// coefficient of friction [body/ground, body/body]
-		dReal _cor[2];						// coefficient of restitution [body/ground, body/body]
-		int _groundNumber;					// number of ground objects
+		double _mu[2];						// coefficient of friction [body/ground, body/body]
+		double _cor[2];						// coefficient of restitution [body/ground, body/body]
 		int _robotNumber[NUM_TYPES];		// number of each robot type
 		int _robotConnected[NUM_TYPES];		// number of each robot type
 		int _connected[NUM_TYPES];			// number connected of each robot type
 		int _running;						// is the program running
-		//MUTEX_T _ground_mutex;				// mutex for ground collisions
 		MUTEX_T _robot_mutex;				// mutex for ground collisions
 		MUTEX_T _running_mutex;				// mutex for actively running program
 		COND_T _running_cond;				// condition for actively running program

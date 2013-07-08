@@ -54,8 +54,10 @@ int CRobotSim::init_ode(void) {
 	_world = dWorldCreate();							// create world for simulation
 	_space = dHashSpaceCreate(0);						// create space for robots
 	_group = dJointGroupCreate(0);						// create group for joints
-	_ground = new dGeomID[1];							// create array for ground objects
-	_ground[0] = dCreatePlane(_space, 0, 0, 1, 0);		// create ground plane
+	ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
+	ng->object = dCreatePlane(_space, 0, 0, 1, 0);
+	ng->next = NULL;
+	_ground = ng;
 
 	// simulation parameters
 	dWorldSetAutoDisableFlag(_world, 1);				// auto-disable bodies that are not moving
@@ -84,7 +86,6 @@ int CRobotSim::init_sim(void) {
 
 	// variables to keep track of progress of simulation
 	_running = 1;
-	_groundNumber = 1;
     _step = 0.004;
 	_clock = 0;
 
@@ -119,6 +120,12 @@ int CRobotSim::init_xml(void) {
 	// loop over all nodes
 	while (node) {
 		if (node->ToComment()) {}
+		else if ( !strcmp(node->Value(), "params") ) {
+			node->QueryDoubleAttribute("mu_g", &(_mu[0]));
+			node->QueryDoubleAttribute("mu_b", &(_mu[1]));
+			node->QueryDoubleAttribute("cor_g", &(_cor[0]));
+			node->QueryDoubleAttribute("cor_b", &(_cor[1]));
+		}
 		else if ( !strcmp(node->Value(), "mobot") ) {
 			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
 			nr->type = 0;
@@ -227,6 +234,106 @@ int CRobotSim::init_xml(void) {
 					rtmp = rtmp->next;
 				rtmp->next = nr;
 			}
+		}
+		else if ( !strcmp(node->Value(), "g_box") ) {
+			ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
+			double lx, ly, lz, px, py, pz, psi, theta, phi;
+			if (ele = node->FirstChildElement("size")) {
+				ele->QueryDoubleAttribute("x", &lx);
+				ele->QueryDoubleAttribute("y", &ly);
+				ele->QueryDoubleAttribute("z", &lz);
+			}
+			if (ele = node->FirstChildElement("position")) {
+				ele->QueryDoubleAttribute("x", &px);
+				ele->QueryDoubleAttribute("y", &py);
+				ele->QueryDoubleAttribute("z", &pz);
+			}
+			if (ele = node->FirstChildElement("rotation")) {
+				ele->QueryDoubleAttribute("psi", &psi);
+				ele->QueryDoubleAttribute("theta", &theta);
+				ele->QueryDoubleAttribute("phi", &phi);
+			}
+			ng->next = NULL;
+
+			// set rotation of object
+			dMatrix3 R, R_x, R_y, R_z, R_xy;
+			dRFromAxisAndAngle(R_x, 1, 0, 0, psi);
+			dRFromAxisAndAngle(R_y, 0, 1, 0, theta);
+			dRFromAxisAndAngle(R_z, 0, 0, 1, phi);
+			dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+			dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+			// position object
+			ng->object = dCreateBox(_space, lx, ly, lz);
+			dGeomSetPosition(ng->object, px, py, pz);
+			dGeomSetRotation(ng->object, R);
+
+			// add object to linked list
+			ground_t *gtmp = _ground;
+			while (gtmp->next)
+				gtmp = gtmp->next;
+			gtmp->next = ng;
+		}
+		else if ( !strcmp(node->Value(), "g_cylinder") ) {
+			ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
+			double r, l, px, py, pz, psi, theta, phi;
+			if (ele = node->FirstChildElement("size")) {
+				ele->QueryDoubleAttribute("radius", &r);
+				ele->QueryDoubleAttribute("length", &l);
+			}
+			if (ele = node->FirstChildElement("position")) {
+				ele->QueryDoubleAttribute("x", &px);
+				ele->QueryDoubleAttribute("y", &py);
+				ele->QueryDoubleAttribute("z", &pz);
+			}
+			if (ele = node->FirstChildElement("rotation")) {
+				ele->QueryDoubleAttribute("psi", &psi);
+				ele->QueryDoubleAttribute("theta", &theta);
+				ele->QueryDoubleAttribute("phi", &phi);
+			}
+			ng->next = NULL;
+
+			// set rotation of object
+			dMatrix3 R, R_x, R_y, R_z, R_xy;
+			dRFromAxisAndAngle(R_x, 1, 0, 0, psi);
+			dRFromAxisAndAngle(R_y, 0, 1, 0, theta);
+			dRFromAxisAndAngle(R_z, 0, 0, 1, phi);
+			dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+			dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+			// position object
+			ng->object = dCreateCylinder(_space, r, l);
+			dGeomSetPosition(ng->object, px, py, pz);
+			dGeomSetRotation(ng->object, R);
+
+			// add object to linked list
+			ground_t *gtmp = _ground;
+			while (gtmp->next)
+				gtmp = gtmp->next;
+			gtmp->next = ng;
+		}
+		else if ( !strcmp(node->Value(), "g_sphere") ) {
+			ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
+			double r, px, py, pz;
+			if (ele = node->FirstChildElement("size")) {
+				ele->QueryDoubleAttribute("radius", &r);
+			}
+			if (ele = node->FirstChildElement("position")) {
+				ele->QueryDoubleAttribute("x", &px);
+				ele->QueryDoubleAttribute("y", &py);
+				ele->QueryDoubleAttribute("z", &pz);
+			}
+			ng->next = NULL;
+
+			// position object
+			ng->object = dCreateSphere(_space, r);
+			dGeomSetPosition(ng->object, px, py, pz);
+
+			// add object to linked list
+			ground_t *gtmp = _ground;
+			while (gtmp->next)
+				gtmp = gtmp->next;
+			gtmp->next = ng;
 		}
 		else {
 			if ( !strcmp(node->Value(), "bigwheel") ) {
@@ -551,16 +658,6 @@ int CRobotSim::getNumberOfRobots(int type) {
 	return _robotConnected[type];
 }
 
-void CRobotSim::setCOR(dReal cor_g, dReal cor_b) {
-	_cor[0] = cor_g;
-	_cor[1] = cor_b;
-}
-
-void CRobotSim::setMu(dReal mu_g, dReal mu_b) {
-	_mu[0] = mu_g;
-	_mu[1] = mu_b;
-}
-
 int CRobotSim::setExitState(void) {
 	MUTEX_LOCK(&_running_mutex);
 	while (_running) {
@@ -571,94 +668,6 @@ int CRobotSim::setExitState(void) {
 	// success
 	return 0;
 }
-
-/*void CRobotSim::setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
-	// lock ground objects
-	MUTEX_LOCK(&_ground_mutex);
-
-	// resize ground array
-	_ground = (dGeomID *)realloc(_ground, (_groundNumber + 1)*sizeof(dGeomID));
-
-    // create rotation matrix
-    dMatrix3 R, R_x, R_y, R_z, R_xy;
-    dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
-    dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
-    dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
-    dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
-    dMultiply0(R, R_xy, R_z, 3, 3, 3);
-
-    // position box
-	_ground[_groundNumber] = dCreateBox(_space, lx, ly, lz);
-	dGeomSetPosition(_ground[_groundNumber], px, py, pz);
-	dGeomSetRotation(_ground[_groundNumber++], R);
-
-	// unlock ground objects
-	MUTEX_UNLOCK(&_ground_mutex);
-}
-
-void CRobotSim::setGroundCapsule(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
-	// lock ground objects
-	MUTEX_LOCK(&_ground_mutex);
-
-	// resize ground array
-	_ground = (dGeomID *)realloc(_ground, (_groundNumber + 1)*sizeof(dGeomID));
-
-    // create rotation matrix
-    dMatrix3 R, R_x, R_y, R_z, R_xy;
-    dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
-    dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
-    dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
-    dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
-    dMultiply0(R, R_xy, R_z, 3, 3, 3);
-
-    // position capsule
-    _ground[_groundNumber] = dCreateCapsule(_space, r, l);
-    dGeomSetPosition(_ground[_groundNumber], px, py, pz);
-    dGeomSetRotation(_ground[_groundNumber++], R);
-
-	// unlock ground objects
-	MUTEX_UNLOCK(&_ground_mutex);
-}
-
-void CRobotSim::setGroundCylinder(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
-	// lock ground objects
-	MUTEX_LOCK(&_ground_mutex);
-
-	// resize ground array
-	_ground = (dGeomID *)realloc(_ground, (_groundNumber + 1)*sizeof(dGeomID));
-
-    // create rotation matrix
-    dMatrix3 R, R_x, R_y, R_z, R_xy;
-    dRFromAxisAndAngle(R_x, 1, 0, 0, 0);
-    dRFromAxisAndAngle(R_y, 0, 1, 0, 0);
-    dRFromAxisAndAngle(R_z, 0, 0, 1, 0);
-    dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
-    dMultiply0(R, R_xy, R_z, 3, 3, 3);
-
-    // position cylinder
-    _ground[_groundNumber] = dCreateCylinder(_space, r, l);
-    dGeomSetPosition(_ground[_groundNumber], px, py, pz);
-    dGeomSetRotation(_ground[_groundNumber++], R);
-
-	// unlock ground objects
-	MUTEX_UNLOCK(&_ground_mutex);
-}
-
-void CRobotSim::setGroundSphere(dReal r, dReal px, dReal py, dReal pz) {
-	// lock ground objects
-	MUTEX_LOCK(&_ground_mutex);
-
-	// resize ground array
-	_ground = (dGeomID *)realloc(_ground, (_groundNumber + 1)*sizeof(dGeomID));
-
-	// position sphere
-    _ground[_groundNumber] = dCreateSphere(_space, r);
-    dGeomSetPosition(_ground[_groundNumber++], px, py, pz);
-
-	// unlock ground objects
-	MUTEX_UNLOCK(&_ground_mutex);
-}
-*/
 
 /**********************************************************
 	Private Simulation Functions
