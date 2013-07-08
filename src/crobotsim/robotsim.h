@@ -1,32 +1,15 @@
-#ifndef CRobotSim_H_
-#define CRobotSim_H_
+#ifndef CROBOTSIM_H_
+#define CROBOTSIM_H_
 
-#include <iostream>
 #include "base.h"
-#include "mobotsim.h"
-#include "linkbotsim.h"
-
-#ifdef _CH_
-//#pragma package <chrobotsim>
-//#define dDOUBLE
-//#define dReal double
-//#define ENABLE_GRAPHICS
-#else
-#include "config.h"
-#include <tinyxml2.h>
-#ifdef ENABLE_GRAPHICS
-#include "graphics.h"
-#endif // ENABLE_GRAPHICS
-#endif // _CH_
-
-enum simulation_reply_message_e {
-	FD_SUCCESS,
-	FD_ERROR_TIME,
-	FD_ERROR_STALL
-};
 
 #ifndef _CH_
-class CRobot;
+#include "config.h"
+#include <iostream>
+#include <tinyxml2.h>
+//#ifdef ENABLE_GRAPHICS
+#include "graphics.h"
+//#endif // ENABLE_GRAPHICS
 #endif // not _CH_
 
 class DLLIMPORT CRobotSim {
@@ -34,26 +17,16 @@ class DLLIMPORT CRobotSim {
 		CRobotSim();
 		~CRobotSim();
 
+#ifndef _CH_
+		int addRobot(CRobot *robot);
 		int getNumberOfRobots(int type);
-
-		// set simulation variables
 		void setCOR(dReal cor_g, dReal cor_b);
-		int setExitState(int state);
-		void setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
-		void setGroundCapsule(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
-		void setGroundCylinder(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
-		void setGroundSphere(dReal r, dReal px, dReal py, dReal pz);
+		int setExitState(void);
+		//void setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
+		//void setGroundCapsule(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
+		//void setGroundCylinder(dReal r, dReal l, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z);
+		//void setGroundSphere(dReal r, dReal px, dReal py, dReal pz);
 		void setMu(dReal mu_g, dReal mu_b);
-
-#ifndef _CH_
-		int addRobot(CRobot &robot);
-#else
-		//int addRobot(...);
-		int addMobot(CMobot &robot);
-		int addLinkbotI(CLinkbotI &robot);
-		int addLinkbotL(CLinkbotL &robot);
-#endif // not _CH_
-#ifndef _CH_
 	private:
 		// private variables to store general information about simulation
 		dWorldID _world;					// world in which simulation occurs
@@ -71,7 +44,7 @@ class DLLIMPORT CRobotSim {
 		int _robotConnected[NUM_TYPES];		// number of each robot type
 		int _connected[NUM_TYPES];			// number connected of each robot type
 		int _running;						// is the program running
-		MUTEX_T _ground_mutex;				// mutex for ground collisions
+		//MUTEX_T _ground_mutex;				// mutex for ground collisions
 		MUTEX_T _robot_mutex;				// mutex for ground collisions
 		MUTEX_T _running_mutex;				// mutex for actively running program
 		COND_T _running_cond;				// condition for actively running program
@@ -89,19 +62,19 @@ class DLLIMPORT CRobotSim {
 		int init_sim(void);
 		int init_xml(void);
 
-#ifdef ENABLE_GRAPHICS
+//#ifdef ENABLE_GRAPHICS
 		// variables
-		//ViewerFrameThread *_osgThread;		// osg thread
-		osgViewer::Viewer *viewer;
-		THREAD_T _osgThread;
-		osg::Group *_osgRoot;				// osg root node
+		osgViewer::Viewer *viewer;	// viewer class holds all objects
+		THREAD_T _osgThread;		// thread to hold graphics
+		osg::Group *_osgRoot;		// osg root node
+		bool _graphics;				// graphics ready
+		MUTEX_T _graphics_mutex;	// mutex for actively running program
+		COND_T _graphics_cond;		// condition for actively running program
 		// functions
 		int init_viz(void);
 		static void* graphicsThread(void *arg);
-		//osg::TextureCubeMap* readCubeMap(void);
-		//osg::Geometry* createWall(const osg::Vec3& v1,const osg::Vec3& v2,const osg::Vec3& v3,osg::StateSet* stateset);
-		//osg::Node* createRoom(void);
-#endif // ENABLE_GRAPHICS
+		static void* graphicsWait(void *arg);
+//#endif // ENABLE_GRAPHICS
 #else
 	public:
 		static void *g_chrobotsim_dlhandle;
@@ -109,10 +82,8 @@ class DLLIMPORT CRobotSim {
 #endif // not _CH_
 };
 
-#ifdef _CH_
-void* CRobotSim::g_chrobotsim_dlhandle = NULL;
-int CRobotSim::g_chrobotsim_dlcount = 0;
-#pragma importf "chrobotsim.chf"
+#ifndef _CH_
+DLLIMPORT void delay(double seconds);
 #endif
 
-#endif	/* CROBOTSIM_H_ */
+#endif	// CROBOTSIM_H_

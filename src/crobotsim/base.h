@@ -1,9 +1,16 @@
-#ifndef BASE2_H_
-#define BASE2_H_
+#ifndef BASE_H_
+#define BASE_H_
 
 #ifndef _CH_
 #ifdef _WIN32
 #include <windows.h>
+#define DLLIMPORT __declspec(dllexport)
+#define TEXTURE_PATH(end) "C:/Ch/package/chrobotsim/data/" #end
+#else
+#include <pthread.h>
+#include <unistd.h>
+#define DLLIMPORT
+#define TEXTURE_PATH "/usr/local/ch/package/chrobotsim/data/"
 #endif // _WIN32
 #include "config.h"
 #include <ode/ode.h>
@@ -13,34 +20,29 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdarg>
-#ifdef ENABLE_GRAPHICS
+//#ifdef ENABLE_GRAPHICS
 #include <osg/Group>
-#endif // ENABLE_GRAPHICS
+//#endif // ENABLE_GRAPHICS
 #else
+#define DLLIMPORT
 #pragma package <chrobotsim>
 #define dDOUBLE
 #define dReal double
-#define ENABLE_GRAPHICS
+//#define ENABLE_GRAPHICS
+extern void delay(double seconds);
 #endif // no _CH_
 
-#ifdef _WIN32
-#ifdef _CH_
-#define DLLIMPORT
-#else
-#define DLLIMPORT __declspec(dllexport)
-#endif // _CH_
-#else
-#define DLLIMPORT
-#endif // _WIN32
-
+#define EPSILON DBL_EPSILON
+#define RECORD_ANGLE_ALLOC_SIZE 16
 #define DEG2RAD(x) ((x) * M_PI / 180.0)
 #define RAD2DEG(x) ((x) * 180.0 / M_PI)
+//#define NaN 0
 
 #ifdef _WIN32
 //   THREADS
-#ifndef THREAD_T
+//#ifndef THREAD_T
 #define THREAD_T HANDLE
-#endif
+//#endif
 #define THREAD_CANCEL(thread_handle) TerminateThread( thread_handle, 0)
 #define THREAD_CREATE(thread_handle, function, arg) \
 	*(thread_handle) = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)function, arg, 0, NULL)
@@ -60,10 +62,10 @@
 #define COND_SIGNAL(cond) SetEvent(*cond)
 #else
 //   THREADS
-#ifndef _CH_
-#include <pthread.h>
-#include <unistd.h>
-#endif
+//#ifndef _CH_
+//#include <pthread.h>
+//#include <unistd.h>
+//#endif
 #define THREAD_T pthread_t
 #define THREAD_CANCEL(thread_handle) pthread_cancel(thread_handle)
 #define THREAD_CREATE(thread_handle, function, arg) \
@@ -109,7 +111,6 @@
 	}
 #endif
 
-// types of robots available for simulation
 typedef enum robot_type_e {
 	MOBOT,
 	LINKBOT,
@@ -129,8 +130,19 @@ typedef enum robot_joint_state_e {
 	ROBOT_BACKWARD,
 	ROBOT_HOLD,
 	ROBOT_POSITIVE,
-	ROBOT_NEGATIVE
+	ROBOT_NEGATIVE,
+	NaN = 0
 } robotJointState_t;
+typedef enum robot_connector_e {
+	BIGWHEEL,
+	CASTER,
+	L,
+	SIMPLE,
+	SMALLWHEEL,
+	SQUARE,
+	TANK,
+	NUM_CONNECTORS
+} robotConnector_t;
 
 // connector
 typedef struct Conn_s {
@@ -150,6 +162,7 @@ typedef struct bot_s {
 
 typedef double* robotRecordData_t;
 
+#ifndef _CH_
 class DLLIMPORT CRobot {
 	public:
 		CRobot();
@@ -159,7 +172,8 @@ class DLLIMPORT CRobot {
 		static void* simPreCollisionThreadEntry(void *arg);
 		static void* simPostCollisionThreadEntry(void *arg);
 
-#ifndef _CH_
+		int setMotion(bool motion);
+
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock) = 0;
 		virtual int build(bot_t robot) = 0;
@@ -179,19 +193,24 @@ class DLLIMPORT CRobot {
 		virtual int setID(int id) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;
-#ifdef ENABLE_GRAPHICS
+//#ifdef ENABLE_GRAPHICS
 		virtual void draw(osg::Group *root) = 0;
-#endif // ENABLE_GRAPHICS
+//#endif // ENABLE_GRAPHICS
+
+		bool _motion;				// motion in progress
 
 		// threading locks for each robot
 		MUTEX_T _angle_mutex;
 		MUTEX_T _goal_mutex;
-		//RWLOCK_T _goal_rwlock;
+		MUTEX_T _motion_mutex;
+		COND_T _motion_cond;
 		MUTEX_T _recording_mutex;
 		COND_T _recording_cond;
+		MUTEX_T _recording_active_mutex;
+		COND_T _recording_active_cond;
 		MUTEX_T _success_mutex;
 		COND_T _success_cond;
-#endif
 };
+#endif // not _CH_
 
-#endif // BASE2_H_
+#endif // BASE_H_

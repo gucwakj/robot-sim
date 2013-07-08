@@ -6,10 +6,12 @@ VERSION=0.0.1
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 ARCH=x86
 
-SRC=..\crobotsim
-HEADERS= $(SRC)\robotsim.h $(SRC)\mobotsim.h $(SRC)\linkbotsim.h $(SRC)\graphics.h $(SRC)\base.h
-CPPFLAGS = -DdDOUBLE
-INCLUDES = -I..\opende\include\ -I..\tinyxml2\ -I..\openscenegraph\include\
+SRC=../crobotsim
+HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics.h $(SRC)/base.h
+CPPFLAGS = -DdDOUBLE /EHsc
+INCLUDES = /I ../opende/include /I ../tinyxml2 /I ../openscenegraph/include
+LIBPATHS = /LIBPATH:../opende/lib/Release/ /LIBPATH:../tinyxml2/build/Release/ /LIBPATH:../openscenegraph/build/lib/
+LIBS = osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgFX.lib ode.lib tinyxml2.lib
 
 target: librobotsim.dl
 
@@ -35,27 +37,26 @@ chlinkbotisim_chdl.obj: chlinkbotisim_chdl.cpp $(HEADERS)
 chlinkbotlsim_chdl.obj: chlinkbotlsim_chdl.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus chlinkbotlsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-robotsim.obj: $(SRC)\robotsim.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)\robotsim.cpp $(CPPFLAGS) $(INCLUDES)
+robotsim.obj: $(SRC)/robotsim.cpp $(HEADERS) 
+	ch dlcomp librobotsim.dl cplusplus $(SRC)/robotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
-base.obj: $(SRC)\base.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus $(SRC)\base.cpp $(CPPFLAGS) $(INCLUDES)
+base.obj: $(SRC)/base.cpp $(HEADERS)
+	ch dlcomp librobotsim.dl cplusplus $(SRC)/base.cpp $(CPPFLAGS) $(INCLUDES)
 
-mobotsim.obj: $(SRC)\mobotsim.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)\mobotsim.cpp $(CPPFLAGS) $(INCLUDES)
+mobotsim.obj: $(SRC)/mobotsim.cpp $(HEADERS) 
+	ch dlcomp librobotsim.dl cplusplus $(SRC)/mobotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
-linkbotsim.obj: $(SRC)\linkbotsim.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)\linkbotsim.cpp $(CPPFLAGS) $(INCLUDES)
+linkbotsim.obj: $(SRC)/linkbotsim.cpp $(HEADERS) 
+	ch dlcomp librobotsim.dl cplusplus $(SRC)/linkbotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
-graphics.obj: $(SRC)\graphics.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus $(SRC)\graphics.cpp $(CPPFLAGS) $(INCLUDES)
+graphics.obj: $(SRC)/graphics.cpp $(HEADERS)
+	ch dlcomp librobotsim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
 
 librobotsim.dl: $(OBJS)
-	ch dllink librobotsim.dl cplusplus $(OBJS) /LIBPATH:..\opende\lib\Release\ /LIBPATH:..\tinyxml2\build\Release\ /LIBPATH:..\openscenegraph\build\lib\ osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgFX.lib ode.lib tinyxml2.lib
+	ch dllink librobotsim.dl cplusplus $(OBJS) $(LIBPATHS) $(LIBS)
 
 install:
 	ch pkginstall.ch $(PACKAGE)
-	cp -Rf C:/Ch/dl/Mi* C:/Ch/package/chrobotsim/dl/
 
 uninstall:
 	ch pkginstall.ch -u $(PACKAGE)
@@ -65,39 +66,44 @@ createpkg: librobotsim.dl
 	rm -rf $(PACKAGE)-$(VERSION)
 	rm -rf $(PACKAGE)-$(VERSION).zip
 	mkdir -p $(PKGDIR)
-	mkdir $(PKGDIR)\bin
-	cp ..\opende\lib\Release\ode.dll $(PKGDIR)\bin
-	cp ..\tinyxml2\build\Release\tinyxml2.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\build\bin\osg80-osg.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\build\bin\osg80-osgViewer.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\build\bin\osg80-osgUtil.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\build\bin\osg80-osgDB.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\build\bin\osg80-osgGA.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\build\bin\osg80-osgFX.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\build\bin\osg80-osgText.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\build\bin\ot12-OpenThreads.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\third_party\${ARCH}\bin\glut32.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\third_party\${ARCH}\bin\libpng13.dll $(PKGDIR)\bin
-	cp ..\openscenegraph\third_party\${ARCH}\bin\zlib1.dll $(PKGDIR)\bin
-	mkdir $(PKGDIR)\bin\osgPlugins-3.0.1
-	cp ..\openscenegraph\build\bin\osgPlugins-3.0.1\osgdb_png.dll $(PKGDIR)\bin\osgPlugins-3.0.1
-	cp ..\openscenegraph\build\bin\osgPlugins-3.0.1\osgdb_3ds.dll $(PKGDIR)\bin\osgPlugins-3.0.1
-	cp ..\openscenegraph\build\bin\osgPlugins-3.0.1\osgdb_tga.dll $(PKGDIR)\bin\osgPlugins-3.0.1
-	mkdir $(PKGDIR)\data
-	cp -R ..\resources\ground $(PKGDIR)\data
-	cp -R ..\resources\mobot $(PKGDIR)\data
-	cp -R ..\resources\linkbot $(PKGDIR)\data
-	mkdir $(PKGDIR)\demos
-	cp -R ..\..\demos\chdemos\mobot $(PKGDIR)\demos
-	cp -R ..\..\demos\chdemos\linkboti $(PKGDIR)\demos
-	cp -R ..\..\demos\chdemos\linkbotl $(PKGDIR)\demos
-	mkdir $(PKGDIR)\dl
-	cp librobotsim.dl $(PKGDIR)\dl
-	mkdir $(PKGDIR)\include
-	cp $(HEADERS) $(PKGDIR)\include
-	mkdir $(PKGDIR)\lib
-	cp chrobotsim.chf $(PKGDIR)\lib
-	cp Makefile.win $(PACKAGE)-$(VERSION)\Makefile
+	mkdir $(PKGDIR)/bin
+	cp ../opende/lib/Release/ode.dll $(PKGDIR)/bin
+	cp ../tinyxml2/build/Release/tinyxml2.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osg.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgViewer.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgUtil.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgDB.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgGA.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgFX.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgText.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/ot12-OpenThreads.dll $(PKGDIR)/bin
+	cp ../openscenegraph/third_party/${ARCH}/bin/glut32.dll $(PKGDIR)/bin
+	cp ../openscenegraph/third_party/${ARCH}/bin/libpng13.dll $(PKGDIR)/bin
+	cp ../openscenegraph/third_party/${ARCH}/bin/zlib1.dll $(PKGDIR)/bin
+	mkdir $(PKGDIR)/bin/osgPlugins-3.0.1
+	cp ../openscenegraph/build/bin/osgPlugins-3.0.1/osgdb_png.dll $(PKGDIR)/bin/osgPlugins-3.0.1
+	cp ../openscenegraph/build/bin/osgPlugins-3.0.1/osgdb_3ds.dll $(PKGDIR)/bin/osgPlugins-3.0.1
+	cp ../openscenegraph/build/bin/osgPlugins-3.0.1/osgdb_tga.dll $(PKGDIR)/bin/osgPlugins-3.0.1
+	mkdir $(PKGDIR)/data
+	cp -R ../resources/ground $(PKGDIR)/data
+	cp -R ../resources/mobot $(PKGDIR)/data
+	cp -R ../resources/linkbot $(PKGDIR)/data
+	mkdir $(PKGDIR)/demos
+	cp -R ../../demos/chdemos/mobot $(PKGDIR)/demos
+	cp -R ../../demos/chdemos/linkboti $(PKGDIR)/demos
+	cp -R ../../demos/chdemos/linkbotl $(PKGDIR)/demos
+	mkdir $(PKGDIR)/dl
+	cp librobotsim.dl $(PKGDIR)/dl
+	cp -R C:/Ch/dl/Mi* $(PKGDIR)/dl
+	mkdir $(PKGDIR)/include
+	cp $(HEADERS) $(PKGDIR)/include
+	mkdir $(PKGDIR)/lib
+	cp chrobotsim.chf $(PKGDIR)/lib
+	cp chmobotsim.chf $(PKGDIR)/lib
+	cp chlinkbotisim.chf $(PKGDIR)/lib
+	cp chlinkbotlsim.chf $(PKGDIR)/lib
+	cp delay.chf $(PKGDIR)/lib
+	cp Makefile.win $(PACKAGE)-$(VERSION)/Makefile
 	zip -rq $(PACKAGE)-$(VERSION).zip $(PACKAGE)-$(VERSION)
 	echo Done Building $(PACKAGE)-$(VERSION)
 

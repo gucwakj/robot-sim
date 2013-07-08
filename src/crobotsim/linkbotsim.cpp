@@ -3,6 +3,7 @@
 CLinkbot::CLinkbot(int disabled, int type) {
 	// initialize parameters
 	init_params(disabled, type);
+
 	// initialize dimensions
 	init_dims();
 }
@@ -12,20 +13,145 @@ CLinkbot::~CLinkbot(void) {
 	dSpaceDestroy(_space);
 }
 
+
 int CLinkbot::connect(void) {
+	_simObject.addRobot(this);
+	_connected = 1;
+
+	// success
 	return 0;
 }
 
-int CLinkbot::getJointAngle(int id, dReal &angle) {
+int CLinkbot::disconnect(void) {
+	_connected = 0;
+
+	// success
+	return 0;
+}
+
+int CLinkbot::driveJointTo(robotJointId_t id, double angle) {
+	this->driveJointToNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::driveJointToDirect(robotJointId_t id, double angle) {
+	this->driveJointToDirectNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::driveJointToDirectNB(robotJointId_t id, double angle) {
+	// success
+	return 0;
+}
+
+int CLinkbot::driveJointToNB(robotJointId_t id, double angle) {
+	// success
+	return 0;
+}
+
+int CLinkbot::driveTo(double angle1, double angle2, double angle3) {
+	this->driveToNB(angle1, angle2, angle3);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbot::driveToDirect(double angle1, double angle2, double angle3) {
+	this->driveToDirectNB(angle1, angle2, angle3);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbot::driveToDirectNB(double angle1, double angle2, double angle3) {
+	// success
+	return 0;
+}
+
+int CLinkbot::driveToNB(double angle1, double angle2, double angle3) {
+	// success
+	return 0;
+}
+
+int CLinkbot::getJointAngle(robotJointId_t id, double &angle) {
 	angle = RAD2DEG(this->getAngle(id));
 
 	// success
 	return 0;
 }
 
-int CLinkbot::getJointSpeed(int id, dReal &speed) {
+int CLinkbot::getJointAngleAverage(robotJointId_t id, double &angle, int numReadings) {
+	//initialize variables
+	double d;
+	angle = 0;
+	
+	// get joint angle numReadings times
+	for (int i = 0; i < numReadings; i++) {
+		if(this->getJointAngle(id, d)) {
+			return -1;
+		}
+		angle += d;
+	}
+
+	// store average angle
+	angle = angle/numReadings;
+
+	// success
+	return 0;
+}
+
+int CLinkbot::getJointAngles(double &angle1, double &angle2, double &angle3) {
+	this->getJointAngle(ROBOT_JOINT1, angle1);
+	this->getJointAngle(ROBOT_JOINT2, angle2);
+	this->getJointAngle(ROBOT_JOINT3, angle3);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::getJointAnglesAverage(double &angle1, double &angle2, double &angle3, int numReadings) {
+	this->getJointAngleAverage(ROBOT_JOINT1, angle1, numReadings);
+	this->getJointAngleAverage(ROBOT_JOINT2, angle2, numReadings);
+	this->getJointAngleAverage(ROBOT_JOINT3, angle3, numReadings);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
+	maxSpeed = _maxSpeed[id];
+
+	// success
+	return 0;
+}
+
+int CLinkbot::getJointSafetyAngle(double &angle) {
+	// success
+	return 0;
+}
+
+int CLinkbot::getJointSafetyAngleTimeout(double &seconds) {
+	// success
+	return 0;
+}
+
+int CLinkbot::getJointSpeed(robotJointId_t id, double &speed) {
 	speed = RAD2DEG(_speed[id]);
 
+	// success
+	return 0;
+}
+
+int CLinkbot::getJointSpeedRatio(robotJointId_t id, double &ratio) {
+	ratio = _speed[id]/_maxSpeed[id];
 	// success
 	return 0;
 }
@@ -39,194 +165,96 @@ int CLinkbot::getJointSpeeds(double &speed1, double &speed2, double &speed3) {
 	return 0;
 }
 
-int CLinkbot::motionArch(dReal angle) {
-	this->moveJointToNB(ROBOT_JOINT2, -angle/2.0);
-	this->moveJointToNB(ROBOT_JOINT3, angle/2.0);
-	this->moveJointWait(ROBOT_JOINT2);
-	this->moveJointWait(ROBOT_JOINT3);
+int CLinkbot::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3) {
+	ratio1 = _speed[0]/_maxSpeed[0];
+	ratio2 = _speed[1]/_maxSpeed[1];
+	ratio3 = _speed[2]/_maxSpeed[2];
 
 	// success
 	return 0;
 }
 
-int CLinkbot::motionInchwormLeft(int num) {
-	this->moveJointToNB(ROBOT_JOINT2, 0);
-	this->moveJointToNB(ROBOT_JOINT3, 0);
-	this->moveWait();
+int CLinkbot::getJointState(robotJointId_t id, robotJointState_t &state) {
+	state = (robotJointState_t)(_state[id]);
 
-	for (int i = 0; i < num; i++) {
-		this->moveJointTo(ROBOT_JOINT2, -50);
-		this->moveJointTo(ROBOT_JOINT3, 50);
-		this->moveJointTo(ROBOT_JOINT2, 0);
-		this->moveJointTo(ROBOT_JOINT3, 0);
+	// success
+	return 0;
+}
+
+int CLinkbot::isConnected(void) {
+	return _connected;
+}
+
+int CLinkbot::isMoving(void) {
+	int moving = 0;
+	robotJointState_t state;
+
+	for (int i = 1; i <= NUM_DOF; i++) {
+		this->getJointState((robotJointId_t)i, state);
+		if( (state == ROBOT_FORWARD) || (state == ROBOT_BACKWARD) ) {
+			moving = 1;
+			break;
+		}
 	}
 
-	// success
-	return 0;
+	return moving;
 }
 
-int CLinkbot::motionInchwormRight(int num) {
-	this->moveJointToNB(ROBOT_JOINT2, 0);
-	this->moveJointToNB(ROBOT_JOINT3, 0);
-	this->moveWait();
-
-	for (int i = 0; i < num; i++) {
-		this->moveJointTo(ROBOT_JOINT3, 50);
-		this->moveJointTo(ROBOT_JOINT2, -50);
-		this->moveJointTo(ROBOT_JOINT3, 0);
-		this->moveJointTo(ROBOT_JOINT2, 0);
-	}
+int CLinkbot::motionDistance(double distance, double radius) {
+	this->motionRollForward(distance/radius);
 
 	// success
 	return 0;
 }
 
-int CLinkbot::motionRollBackward(dReal angle) {
-	dReal motorPosition[2];
-	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] - angle);
-	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] - angle);
-	this->moveWait();
+int CLinkbot::motionDistanceNB(double distance, double radius) {
+	this->motionRollForwardNB(distance/radius);
 
+	// success
+	return 0;
+}
+
+int CLinkbot::motionRollBackward(double angle) {
+	// success
+	return 0;
+}
+
+int CLinkbot::motionRollBackwardNB(double angle) {
 	// success
 	return 0;
 }
 
 int CLinkbot::motionRollForward(dReal angle) {
-	dReal motorPosition[2];
-	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] + angle);
-	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] + angle);
-	this->moveWait();
-
 	// success
 	return 0;
 }
 
-int CLinkbot::motionSkinny(dReal angle) {
-	this->moveJointToNB(ROBOT_JOINT2, angle);
-	this->moveJointToNB(ROBOT_JOINT3, angle);
-	this->moveWait();
-
+int CLinkbot::motionRollForwardNB(double angle) {
 	// success
 	return 0;
 }
 
-int CLinkbot::motionStand(void) {
-	this->resetToZero();
-	//this->moveToZero();
-	this->moveJointTo(ROBOT_JOINT2, -85);
-	this->moveJointTo(ROBOT_JOINT3, 70);
-	this->moveWait();
-	this->moveJointTo(ROBOT_JOINT1, 45);
-#ifndef _WIN32
-	usleep(1000000);
-#else
-	Sleep(1000);
-#endif
-	this->moveJointTo(ROBOT_JOINT2, 20);
-
+int CLinkbot::motionTurnLeft(double angle) {
 	// success
 	return 0;
 }
 
-int CLinkbot::motionTumbleLeft(int num) {
-	this->resetToZero();
-#ifndef _WIN32
-	usleep(1000000);
-#else
-	Sleep(1000);
-#endif
-
-	for (int i = 0; i < num; i++) {
-		this->moveJointTo(ROBOT_JOINT2, -85);
-		this->moveJointTo(ROBOT_JOINT3, 80);
-		this->moveJointTo(ROBOT_JOINT2, 0);
-		this->moveJointTo(ROBOT_JOINT3, 0);
-		this->moveJointTo(ROBOT_JOINT2, 80);
-		this->moveJointTo(ROBOT_JOINT2, 45);
-		this->moveJointTo(ROBOT_JOINT3, -85);
-		this->moveJointTo(ROBOT_JOINT2, 80);
-		this->moveJointTo(ROBOT_JOINT3, 0);
-		this->moveJointTo(ROBOT_JOINT2, 0);
-		this->moveJointTo(ROBOT_JOINT3, 80);
-		if (i != (num-1)) {
-			this->moveJointTo(ROBOT_JOINT3, 45);
-		}
-	}
-	this->moveJointToNB(ROBOT_JOINT2, 0);
-	this->moveJointToNB(ROBOT_JOINT3, 0);
-	this->moveWait();
-
+int CLinkbot::motionTurnLeftNB(double angle) {
 	// success
 	return 0;
 }
 
-int CLinkbot::motionTumbleRight(int num) {
-	this->resetToZero();
-#ifndef _WIN32
-	usleep(1000000);
-#else
-	Sleep(1000);
-#endif
-
-	for (int i = 0; i < num; i++) {
-		this->moveJointTo(ROBOT_JOINT3, 85);
-		this->moveJointTo(ROBOT_JOINT2, -80);
-		this->moveJointTo(ROBOT_JOINT3, 0);
-		this->moveJointTo(ROBOT_JOINT2, 0);
-		this->moveJointTo(ROBOT_JOINT3, -80);
-		this->moveJointTo(ROBOT_JOINT3, -45);
-		this->moveJointTo(ROBOT_JOINT2, 85);
-		this->moveJointTo(ROBOT_JOINT3, -80);
-		this->moveJointTo(ROBOT_JOINT2, 0);
-		this->moveJointTo(ROBOT_JOINT3, 0);
-		this->moveJointTo(ROBOT_JOINT2, -80);
-		if (i != (num-1)) {
-			this->moveJointTo(ROBOT_JOINT2, -45);
-		}
-	}
-	this->moveJointToNB(ROBOT_JOINT3, 0);
-	this->moveJointToNB(ROBOT_JOINT2, 0);
-	this->moveWait();
-
+int CLinkbot::motionTurnRight(double angle) {
 	// success
 	return 0;
 }
 
-int CLinkbot::motionTurnLeft(dReal angle) {
-	dReal motorPosition[2];
-	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] - angle);
-	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] + angle);
-	this->moveWait();
-
+int CLinkbot::motionTurnRightNB(double angle) {
 	// success
 	return 0;
 }
 
-int CLinkbot::motionTurnRight(dReal angle) {
-	dReal motorPosition[2];
-	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] + angle);
-	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] - angle);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CLinkbot::motionUnstand(void) {
-	this->moveToDirect(0, 0, 0);
-	this->moveJointToNB(ROBOT_JOINT3, 45);
-	this->moveJointToNB(ROBOT_JOINT2, -85);
-	this->moveWait();
-	this->moveToDirect(0, 0, 0);
-
+int CLinkbot::motionWait(void) {
 	// success
 	return 0;
 }
@@ -252,6 +280,7 @@ int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
 	for (int i = 0; i < ((_disabled == -1) ? 3 : 2); i++) {
 		int j = _enabled[i];
 		_goal[j] += DEG2RAD(delta[j]);
+		_seek[j] = true;
 		dJointEnable(_motor[j]);
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
@@ -281,7 +310,47 @@ int CLinkbot::moveNB(dReal angle1, dReal angle2, dReal angle3) {
 	return 0;
 }
 
-int CLinkbot::moveJoint(int id, dReal angle) {
+int CLinkbot::moveBackward(double angle) {
+	this->moveBackwardNB(angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbot::moveBackwardNB(double angle) {
+	return this->moveNB(-angle, 0, -angle);
+}
+
+int CLinkbot::moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3) {
+	return this->setMovementStateNB(dir1, dir2, dir3);
+}
+
+int CLinkbot::moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
+	return this->setMovementStateTime(dir1, dir2, dir3, seconds);
+}
+
+int CLinkbot::moveDistance(double distance, double radius) {
+	return this->moveForward(distance / radius);
+}
+
+int CLinkbot::moveDistanceNB(double distance, double radius) {
+	return this->moveForwardNB(distance / radius);
+}
+
+int CLinkbot::moveForward(double angle) {
+	this->moveForwardNB(angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbot::moveForwardNB(double angle) {
+	return this->moveNB(angle, 0, angle);
+}
+
+int CLinkbot::moveJoint(robotJointId_t id, dReal angle) {
 	this->moveJointNB(id, angle);
 	this->moveJointWait(id);
 
@@ -289,7 +358,15 @@ int CLinkbot::moveJoint(int id, dReal angle) {
 	return 0;
 }
 
-int CLinkbot::moveJointNB(int id, dReal angle) {
+int CLinkbot::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
+	return this->setJointMovementStateNB(id, dir);
+}
+
+int CLinkbot::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
+	return this->setJointMovementStateTime(id, dir, seconds);
+}
+
+int CLinkbot::moveJointNB(robotJointId_t id, dReal angle) {
 	// check if disabled joint
 	if (_disabled == id-1) return 0;
 
@@ -331,7 +408,7 @@ int CLinkbot::moveJointNB(int id, dReal angle) {
 	return 0;
 }
 
-int CLinkbot::moveJointTo(int id, dReal angle) {
+int CLinkbot::moveJointTo(robotJointId_t id, double angle) {
 	this->moveJointToNB(id, angle);
 	this->moveJointWait(id);
 
@@ -339,7 +416,21 @@ int CLinkbot::moveJointTo(int id, dReal angle) {
 	return 0;
 }
 
-int CLinkbot::moveJointToNB(int id, dReal angle) {
+int CLinkbot::moveJointToDirect(robotJointId_t id, double angle) {
+	this->moveJointToDirectNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::moveJointToDirectNB(robotJointId_t id, double angle) {
+
+	// success
+	return 0;
+}
+
+int CLinkbot::moveJointToNB(robotJointId_t id, double angle) {
 	// check if disabled joint
 	if (_disabled == id-1) return 0;
 
@@ -384,7 +475,7 @@ int CLinkbot::moveJointToNB(int id, dReal angle) {
 	return 0;
 }
 
-int CLinkbot::moveJointWait(int id) {
+int CLinkbot::moveJointWait(robotJointId_t id) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_success_mutex);
 	while ( !_success[id] ) { COND_WAIT(&_success_cond, &_success_mutex); }
@@ -403,14 +494,22 @@ int CLinkbot::moveTo(dReal angle1, dReal angle2, dReal angle3) {
 	return 0;
 }
 
-int CLinkbot::moveToDirect(dReal angle1, dReal angle2, dReal angle3) {
+int CLinkbot::moveToDirect(double angle1, double angle2, double angle3) {
+	this->moveToDirectNB(angle1, angle2, angle3);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbot::moveToDirectNB(double angle1, double angle2, double angle3) {
 	// success
 	return 0;
 }
 
 int CLinkbot::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
 	// store angles into array
-	dReal delta[3] = {angle1 - _angle[0], angle2 - _angle[1], angle3 - _angle[2]};
+	dReal delta[3] = {DEG2RAD(angle1) - _angle[0], DEG2RAD(angle2) - _angle[1], DEG2RAD(angle3) - _angle[2]};
 
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
@@ -420,19 +519,20 @@ int CLinkbot::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
 	// loop over joints
 	for (int i = 0; i < ((_disabled == -1) ? 3 : 2); i++) {
 		int j = _enabled[i];
-		_goal[j] += DEG2RAD(delta[j]);
+		_goal[j] += delta[j];
+		_seek[j] = true;
 		dJointEnable(_motor[j]);
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
-			_state[j] = LINKBOT_FORWARD;
+			_state[j] = ROBOT_FORWARD;
 			dJointSetAMotorParam(_motor[j], dParamVel, _speed[j]);
 		}
 		else if ( delta[j] < 0 ) {
-			_state[j] = LINKBOT_BACKWARD;
+			_state[j] = ROBOT_BACKWARD;
 			dJointSetAMotorParam(_motor[j], dParamVel, -_speed[j]);
 		}
 		else if ( fabs(delta[j]-0) < EPSILON ) {
-			_state[j] = LINKBOT_HOLD;
+			_state[j] = ROBOT_HOLD;
 			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
 		_success[j] = false;
@@ -447,11 +547,6 @@ int CLinkbot::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
 	MUTEX_UNLOCK(&_goal_mutex);
 
 
-	// success
-	return 0;
-}
-
-int moveToDirectNB(dReal angle1, dReal angle2, dReal angle3) {
 	// success
 	return 0;
 }
@@ -486,7 +581,7 @@ int CLinkbot::moveWait(void) {
 	return 0;
 }
 
-int CLinkbot::recordAngle(int id, dReal *time, dReal *angle, int num, dReal seconds, dReal threshold) {
+int CLinkbot::recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData) {
 	THREAD_T recording;
 	recordAngleArg_t *rArg = new recordAngleArg_t;
 	if (_recording[id]) { return -1; }
@@ -497,13 +592,127 @@ int CLinkbot::recordAngle(int id, dReal *time, dReal *angle, int num, dReal seco
 	rArg->num = num;
 	rArg->msecs = 1000*seconds;
 	_recording[id] = true;
-	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbot::record_angle_thread, (void *)rArg);
+	//THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbot::record_angle_thread, (void *)rArg);
 
 	// success
 	return 0;
 }
 
-int CLinkbot::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, int num, dReal seconds, dReal threshold) {
+void* CLinkbot::recordAngleBeginThread(void *arg) {
+	// cast arg struct
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// create initial time points
+	double start_time;
+	int time = (int)((*(rArg->robot->_clock))*1000);
+
+	// actively taking a new data point
+	MUTEX_LOCK(&rArg->robot->_recording_active_mutex);
+	rArg->robot->_recording_active[rArg->id] = true;
+	COND_SIGNAL(&rArg->robot->_recording_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_recording_active_mutex);
+
+	// loop until recording is no longer needed
+	for (int i = 0; rArg->robot->_recording[rArg->id]; i++) {
+		// store locally num of data points taken
+		rArg->robot->_recording_num[rArg->id] = i;
+
+		// resize array if filled current one
+		if(i >= rArg->num) {
+			rArg->num += RECORD_ANGLE_ALLOC_SIZE;
+			// create larger array for time
+			double *newBuf = (double *)malloc(sizeof(double) * rArg->num);
+			memcpy(newBuf, *rArg->ptime, sizeof(double)*i);
+			free(*(rArg->ptime));
+			*(rArg->ptime) = newBuf;
+			// create larger array for angle
+			newBuf = (double *)malloc(sizeof(double) * rArg->num);
+			memcpy(newBuf, *(rArg->pangle1), sizeof(double)*i);
+			free(*(rArg->pangle1));
+			*(rArg->pangle1) = newBuf;
+		}
+
+		// store joint angles
+		rArg->robot->getJointAngle(rArg->id, (*(rArg->pangle1))[i]);
+
+		// store time of data point
+		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
+		if (i == 0) { start_time = (*rArg->ptime)[i]; }
+		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
+
+		// increment time step
+		time += rArg->msecs;
+
+		// pause until next step
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
+	}
+
+	// signal completion of recording
+	MUTEX_LOCK(&rArg->robot->_recording_active_mutex);
+	rArg->robot->_recording_active[rArg->id] = false;
+	COND_SIGNAL(&rArg->robot->_recording_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_recording_active_mutex);
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData) {
+	// check if recording already
+	if (_recording[id]) { return -1; }
+
+	// set up recording thread
+	THREAD_T recording;
+
+	// set up recording args struct
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->id = id;
+	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
+	rArg->msecs = seconds * 1000;
+	time = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	angle = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	rArg->ptime = &time;
+	rArg->pangle1 = &angle;
+
+	// store pointer to recorded angles locally
+	_recording_angles[id] = &angle;
+
+	// lock recording for joint id
+	_recording[id] = true;
+
+	// create thread
+	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbot::recordAngleBeginThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::recordAngleEnd(robotJointId_t id, int &num) {
+	// turn off recording
+	MUTEX_LOCK(&_recording_mutex);
+	_recording[id] = false;
+	MUTEX_UNLOCK(&_recording_mutex);
+
+	// wait for last recording point to finish
+	MUTEX_LOCK(&_recording_active_mutex);
+	while (_recording_active[id]) {
+		COND_WAIT(&_recording_active_cond, &_recording_active_mutex);
+	}
+	MUTEX_UNLOCK(&_recording_active_mutex);
+
+	// report number of data points recorded
+	num = _recording_num[id];
+
+	// success
+	return 0;
+}
+
+int CLinkbot::recordAngles(double time[], double angle1[], double angle2[], double angle3[], int num, double seconds, int shiftData) {
 	THREAD_T recording;
 	recordAngleArg_t *rArg = new recordAngleArg_t;
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -519,8 +728,38 @@ int CLinkbot::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *ang
 	for (int i = 0; i < NUM_DOF; i++) {
 		_recording[i] = true;
 	}
-	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbot::record_angles_thread, (void *)rArg);
+	//THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbot::record_angles_thread, (void *)rArg);
 
+	// success
+	return 0;
+}
+
+int CLinkbot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, double seconds, int shiftData) {
+	// success
+	return 0;
+}
+
+int CLinkbot::recordAnglesEnd(int &num) {
+	// success
+	return 0;
+}
+
+int CLinkbot::recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData) {
+	// success
+	return 0;
+}
+
+int CLinkbot::recordDistanceEnd(robotJointId_t id, int &num) {
+	// success
+	return 0;
+}
+
+int CLinkbot::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, double radius, double seconds, int shiftData) {
+	// success
+	return 0;
+}
+
+int CLinkbot::recordDistancesEnd(int &num) {
 	// success
 	return 0;
 }
@@ -540,17 +779,14 @@ int CLinkbot::recordWait(void) {
 	return 0;
 }
 
-int CLinkbot::resetToZero(void) {
-	// reset absolute counter to 0 -> 2M_PI
-	MUTEX_LOCK(&_angle_mutex);
-	for (int i = 0; i < 3; i++) {
-		int rev = (int)(_angle[i]/2/M_PI);
-		if (rev) _angle[i] -= 2*rev*M_PI;
-	}
-	MUTEX_UNLOCK(&_angle_mutex);
+int CLinkbot::reset(void) {
+	// success
+	return 0;
+}
 
-	// move to zero position
-	this->moveToZero();
+int CLinkbot::resetToZero(void) {
+	this->resetToZeroNB();
+	this->moveWait();
 
 	// success
 	return 0;
@@ -572,17 +808,200 @@ int CLinkbot::resetToZeroNB(void) {
 	return 0;
 }
 
-int CLinkbot::setJointSpeed(int id, double speed) {
+int CLinkbot::setExitState(robotJointState_t exitState) {
+	_simObject.setExitState();
+
+	// success
+	return 0;
+}
+
+int CLinkbot::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
+	// lock mutexes
+	MUTEX_LOCK(&_success_mutex);
+
+	// enable motor
+	dJointEnable(_motor[id]);
+	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
+	_seek[id] = false;
+	switch (dir) {
+		case ROBOT_FORWARD:
+			_state[id] = ROBOT_FORWARD;
+			dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
+			break;
+		case ROBOT_BACKWARD:
+			_state[id] = ROBOT_BACKWARD;
+			dJointSetAMotorParam(_motor[id], dParamVel, -_speed[id]);
+			break;
+		case ROBOT_HOLD:
+			_state[id] = ROBOT_HOLD;
+			dJointSetAMotorParam(_motor[id], dParamVel, 0);
+			break;
+		case ROBOT_NEUTRAL:
+			_state[id] = ROBOT_NEUTRAL;
+			dJointDisable(_motor[id]);
+			break;
+	}
+	_success[id] = false;
+    dBodyEnable(_body[BODY]);
+
+	// unlock mutexes
+	MUTEX_UNLOCK(&_success_mutex);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds) {
+	this->moveJointContinuousNB(id, dir);
+#ifdef _WIN32
+	Sleep(seconds * 1000);
+#else
+	usleep(seconds * 1000000);
+#endif
+
+	// success
+	return 0;
+}
+
+int CLinkbot::setJointSafetyAngle(double angle) {
+	// success
+	return 0;
+}
+
+int CLinkbot::setJointSafetyAngleTimeout(double seconds) {
+	// success
+	return 0;
+}
+
+int CLinkbot::setJointSpeed(robotJointId_t id, double speed) {
 	_speed[id] = DEG2RAD((speed > _maxSpeed[id]) ? _maxSpeed[id] : speed);
 
 	// success
 	return 0;
 }
 
+int CLinkbot::setJointSpeedRatio(robotJointId_t id, double ratio) {
+	if ( ratio < 0 || ratio > 1 ) {
+		return -1;
+	}
+	return this->setJointSpeed(id, ratio * _maxSpeed[(int)id-1]);
+}
+
 int CLinkbot::setJointSpeeds(double speed1, double speed2, double speed3) {
 	_speed[0] = DEG2RAD((speed1 > _maxSpeed[0]) ? _maxSpeed[0] : speed1);
 	_speed[1] = DEG2RAD((speed2 > _maxSpeed[1]) ? _maxSpeed[1] : speed2);
 	_speed[2] = DEG2RAD((speed3 > _maxSpeed[2]) ? _maxSpeed[2] : speed3);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::setJointSpeedRatios(double ratio1, double ratio2, double ratio3) {
+	this->setJointSpeedRatio(ROBOT_JOINT1, ratio1);
+	this->setJointSpeedRatio(ROBOT_JOINT2, ratio2);
+	this->setJointSpeedRatio(ROBOT_JOINT3, ratio3);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::setMotorPower(robotJointId_t id, int power) {
+	// success
+	return 0;
+}
+
+int CLinkbot::setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3) {
+	this->setJointMovementStateNB(ROBOT_JOINT1, dir1);
+	this->setJointMovementStateNB(ROBOT_JOINT2, dir2);
+	this->setJointMovementStateNB(ROBOT_JOINT3, dir3);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
+	this->setJointMovementStateTime(ROBOT_JOINT1, dir1, seconds);
+	this->setJointMovementStateTime(ROBOT_JOINT2, dir2, seconds);
+	this->setJointMovementStateTime(ROBOT_JOINT3, dir3, seconds);
+	// success
+	return 0;
+}
+
+int CLinkbot::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
+	// success
+	return 0;
+}
+
+int CLinkbot::setTwoWheelRobotSpeed(double speed, double radius) {
+	// success
+	return 0;
+}
+
+int CLinkbot::stop(void) {
+	this->stopAllJoints();
+
+	// success
+	return 0;
+}
+
+int CLinkbot::stopOneJoint(robotJointId_t id) {
+	this->setJointSpeed(id, 0);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::stopTwoJoints(robotJointId_t id1, robotJointId_t id2) {
+	this->setJointSpeed(id1, 0);
+	this->setJointSpeed(id2, 0);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3) {
+	this->setJointSpeed(id1, 0);
+	this->setJointSpeed(id2, 0);
+	this->setJointSpeed(id3, 0);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::stopAllJoints(void) {
+	this->setJointSpeed(ROBOT_JOINT1, 0);
+	this->setJointSpeed(ROBOT_JOINT2, 0);
+	this->setJointSpeed(ROBOT_JOINT3, 0);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::turnLeft(double angle) {
+	this->turnLeftNB(angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbot::turnLeftNB(double angle) {
+	this->moveNB(-angle, 0, angle);
+
+	// success
+	return 0;
+}
+
+int CLinkbot::turnRight(double angle) {
+	this->turnRightNB(angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbot::turnRightNB(double angle) {
+	this->moveNB(angle, 0, -angle);
 
 	// success
 	return 0;
@@ -630,6 +1049,13 @@ int CLinkbot::build(bot_t robot) {
 		}
 		ctmp = ctmp->next;
 	}
+
+	// debug printing
+	/*const dReal *rot;
+	for (int i = 0; i < 5; i++) {
+		rot = dBodyGetRotation(_body[i]);
+		printf("rotation %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", rot[0], rot[1], rot[2], rot[4], rot[5], rot[6], rot[8], rot[9], rot[10]);
+	}*/
 
 	// success
 	return 0;
@@ -786,17 +1212,39 @@ void CLinkbot::simPreCollisionThread(void) {
 
 	// update angle values for each degree of freedom
 	for ( int i = 0; i < NUM_DOF; i++ ) {
-		// update current angle
+		// store current angle
 		_angle[i] = getAngle(i);
 		// set motor angle to current angle
 		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
 		// drive motor to get current angle to match future angle
-		if (_angle[i] < _goal[i] - _encoderResolution)
-			dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]);
-		else if (_angle[i] > _goal[i] + _encoderResolution)
-			dJointSetAMotorParam(_motor[i], dParamVel, -_speed[i]);
-		else
-			dJointSetAMotorParam(_motor[i], dParamVel, 0);
+		if (_seek[i]) {
+			if (_angle[i] < _goal[i] - _encoderResolution) {
+				_state[i] = ROBOT_FORWARD;
+				dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]);
+			}
+			else if (_angle[i] > _goal[i] + _encoderResolution) {
+				_state[i] = ROBOT_BACKWARD;
+				dJointSetAMotorParam(_motor[i], dParamVel, -_speed[i]);
+			}
+			else {
+				_state[i] = ROBOT_HOLD;
+				dJointSetAMotorParam(_motor[i], dParamVel, 0);
+			}
+		}
+		else {
+			switch (_state[i]) {
+				case ROBOT_FORWARD:
+				case ROBOT_BACKWARD:
+					dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]);
+					break;
+				case ROBOT_HOLD:
+					dJointSetAMotorParam(_motor[i], dParamVel, 0);
+					break;
+				case ROBOT_NEUTRAL:
+					dJointDisable(_motor[i]);
+					break;
+			}
+		}
 	}
 
 	// unlock angle and goal
@@ -873,10 +1321,8 @@ void CLinkbot::draw(osg::Group *root) {
 	body[3]->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture to robot
-	tex[0] = new osg::Texture2D(
-		osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/body.png"));
-	tex[1] = new osg::Texture2D(
-		osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/face.png"));
+	tex[0] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/body.png)));
+	tex[1] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/face.png)));
 	for (int i = 0; i < 2; i++) {
 		tex[i]->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 		tex[i]->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
@@ -901,16 +1347,16 @@ void CLinkbot::draw(osg::Group *root) {
 	conn_t ctmp = _conn;
 	while (ctmp) {
 		switch (ctmp->type) {
-			case L_BIGWHEEL:
+			case BIGWHEEL:
 				this->draw_bigwheel(ctmp, robot);
 				break;
-			case L_CASTER:
+			case CASTER:
 				this->draw_caster(ctmp, robot);
 				break;
-			case L_SIMPLE:
+			case SIMPLE:
 				this->draw_simple(ctmp, robot);
 				break;
-			case L_SMALLWHEEL:
+			case SMALLWHEEL:
 				this->draw_smallwheel(ctmp, robot);
 				break;
 		}
@@ -947,16 +1393,16 @@ int CLinkbot::add_connector(int type, int face) {
 
 	// build connector
 	switch (type) {
-		case L_BIGWHEEL:
+		case BIGWHEEL:
 			this->build_bigwheel(nc, face);
 			break;
-		case L_CASTER:
+		case CASTER:
 			this->build_caster(nc, face);
 			break;
-		case L_SIMPLE:
+		case SIMPLE:
 			this->build_simple(nc, face);
 			break;
-		case L_SMALLWHEEL:
+		case SMALLWHEEL:
 			this->build_smallwheel(nc, face);
 			break;
 	}
@@ -1552,14 +1998,14 @@ int CLinkbot::get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p) {
 			offset[0] = _connector_depth;
 			dRSetIdentity(R1);
 			break;
-		/*case BIGWHEEL:
+		case BIGWHEEL:
 			offset[0] = 2*_connector_depth/3;
 			dRSetIdentity(R1);
 			break;
 		case SMALLWHEEL:
 			offset[0] = 2*_connector_depth/3;
 			dRSetIdentity(R1);
-			break;*/
+			break;
 	}
 	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
 	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
@@ -1587,9 +2033,9 @@ int CLinkbot::init_params(int disabled, int type) {
 	_id = -1;
 	_type = type;
 	_encoderResolution = DEG2RAD(0.5);
-	_maxJointForce[LINKBOT_JOINT1] = 1.059;
-	_maxJointForce[LINKBOT_JOINT2] = 1.059;
-	_maxJointForce[LINKBOT_JOINT3] = 1.059;
+	_maxJointForce[ROBOT_JOINT1] = 1.059;
+	_maxJointForce[ROBOT_JOINT2] = 1.059;
+	_maxJointForce[ROBOT_JOINT3] = 1.059;
 
 	// init locks
 	MUTEX_INIT(&_angle_mutex);
@@ -1682,51 +2128,6 @@ dReal CLinkbot::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
         this->pid[i].restart();
 }*/
 
-void* CLinkbot::record_angle_thread(void *arg) {
-    recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-    double start_time;
-	int time = (int)(*(rArg->robot->_clock)*1000);
-    for (int i = 0; i < rArg->num; i++) {
-		rArg->time[i] = *(rArg->robot->_clock)*1000;
-        if (i == 0) { start_time = rArg->time[i]; }
-        rArg->time[i] = (rArg->time[i] - start_time) / 1000;
-		rArg->robot->getJointAngle(rArg->id, rArg->angle1[i]);
-
-		// increment time step
-		time += rArg->msecs;
-		// pause until next step
-		while ( (int)(*(rArg->robot->_clock)*1000) < time ) {}
-    }
-	SIGNAL(&rArg->robot->_recording_cond, &rArg->robot->_recording_mutex, rArg->robot->_recording[rArg->id] = false);
-	return NULL;
-}
-
-void* CLinkbot::record_angles_thread(void *arg) {
-    recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-    double start_time;
-	int time = (int)(*(rArg->robot->_clock)*1000);
-    for (int i = 0; i < rArg->num; i++) {
-		rArg->time[i] = *(rArg->robot->_clock)*1000;
-        if (i == 0) { start_time = rArg->time[i]; }
-        rArg->time[i] = (rArg->time[i] - start_time) / 1000;
-		rArg->robot->getJointAngle(0, rArg->angle1[i]);
-		rArg->robot->getJointAngle(1, rArg->angle2[i]);
-		rArg->robot->getJointAngle(2, rArg->angle3[i]);
-
-		// increment time step
-		time += rArg->msecs;
-		// pause until next step
-		while ( (int)(*(rArg->robot->_clock)*1000) < time ) {}
-    }
-	MUTEX_LOCK(&rArg->robot->_recording_mutex);
-    for (int i = 0; i < NUM_DOF; i++) {
-        rArg->robot->_recording[i] = false;
-    }
-	COND_SIGNAL(&rArg->robot->_recording_cond);
-	MUTEX_UNLOCK(&rArg->robot->_recording_mutex);
-	return NULL;
-}
-
 #ifdef ENABLE_GRAPHICS
 void CLinkbot::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	// initialize variables
@@ -1744,7 +2145,7 @@ void CLinkbot::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/conn.png"));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -1822,8 +2223,8 @@ void CLinkbot::draw_caster(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(sph));
     
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/conn.png"));
-    tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
@@ -1850,8 +2251,8 @@ void CLinkbot::draw_simple(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/conn.png"));
-    tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
@@ -1879,7 +2280,7 @@ void CLinkbot::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/conn.png"));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -1923,7 +2324,7 @@ void CLinkbot::draw_square(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/linkbot/conn.png"));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -1940,15 +2341,35 @@ void CLinkbot::draw_square(conn_t conn, osg::Group *robot) {
 #ifdef _CH_
 CLinkbotI::CLinkbotI(void) {
 	CLinkbot(1, LINKBOTI);
+
+	// success
+	return 0;
 }
 
 CLinkbotI::~CLinkbotI(void) {
 }
 
+int CLinkbotI::connect(void) {
+	_simObject.addRobot2(this);
+
+	// success
+	return 0;
+}
+
 CLinkbotL::CLinkbotL(void) {
 	CLinkbot(2, LINKBOTL);
+
+	// success
+	return 0;
 }
 
 CLinkbotL::~CLinkbotL(void) {
+}
+
+int CLinkbotL::connect(void) {
+	_simObject.addRobot2(this);
+
+	// success
+	return 0;
 }
 #endif

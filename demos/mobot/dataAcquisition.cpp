@@ -1,17 +1,14 @@
 /* Filename: dataAcquisition.cpp
- * Make a graph of the mobot's joint angle versus time */
+ * Make a graph of the robot's joint angle versus time */
 
 #include <iostream>
-#include "robotsim.h"
+#include "mobotsim.h"
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CMobot mobot;
-	
-	CRobotSim sim;
-	sim.addRobot(mobot);
+	CMobot robot;
 
-	mobot.connect();
+	robot.connect();
 
 	double speed = 45; /* Degrees/second */
 	double angle = 720; /* Degrees */
@@ -29,31 +26,21 @@ int main(int argc, char *argv[]) {
 	double time[numDataPoints];
 	double angles1[numDataPoints];
 
-	/* Start the motion. First, move mobot to zero position */
-	mobot.resetToZero();
+	/* Start the motion. First, move robot to zero position */
+	robot.resetToZero();
 
 	/* Set the joint 1 speed to 45 degrees/second */
-	mobot.setJointSpeed(MOBOT_JOINT1, speed);
-	mobot.setJointSpeed(MOBOT_JOINT4, speed);
+	robot.setJointSpeed(ROBOT_JOINT1, speed);
+	robot.setJointSpeed(ROBOT_JOINT4, speed);
 
 	/* Start capturing data */
-	mobot.recordAngle(MOBOT_JOINT1, time, angles1, numDataPoints, timeInterval);
+	robot.recordAngle(ROBOT_JOINT1, time, angles1, numDataPoints, timeInterval);
 
 	/* Move the joint 720 degrees */
-	mobot.move(angle, 0, 0, angle);
+	robot.move(angle, 0, 0, angle);
 
 	/* Wait for recording to finish */
-	mobot.recordWait();
-
-	printf("data: num points = %d\ttime = %lf\n", numDataPoints, movementTime);
-	for (int i = 0; i<numDataPoints; i++) {
-	    printf("%lf, ",time[i]);
-	}
-	printf("\n");
-	for (int i = 0; i<numDataPoints; i++) {
-	    printf("%lf, ",angles1[i]);
-	}
-	printf("\n");
+	robot.recordWait();
 
 	return 0;
 }

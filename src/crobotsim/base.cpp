@@ -25,3 +25,7 @@ void* CRobot::simPostCollisionThreadEntry(void *arg) {
 	return arg;
 }
 
+int CRobot::setMotion(bool motion) {
+	_motion = motion;
+	return 0;
+}

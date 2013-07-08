@@ -1,6 +1,10 @@
 #include "robotsim.h"
-
 using namespace std;
+
+#ifndef ROBOSIM_OBJECT
+#define ROBOSIM_OBJECT
+CRobotSim _simObject;
+#endif
 
 CRobotSim::CRobotSim(void) {
 	// initialize ode
@@ -74,9 +78,9 @@ int CRobotSim::init_sim(void) {
 
 	// thread variables
 	THREAD_CREATE(&_simulation, (void* (*)(void *))&CRobotSim::simulationThread, (void *)this);
-	MUTEX_INIT(&_ground_mutex);
 	MUTEX_INIT(&_robot_mutex);
 	MUTEX_INIT(&_running_mutex);
+	COND_INIT(&_running_cond);
 
 	// variables to keep track of progress of simulation
 	_running = 1;
@@ -331,224 +335,48 @@ int CRobotSim::init_xml(void) {
 }
 
 #ifdef ENABLE_GRAPHICS
+void *CRobotSim::graphicsWait(void *arg) {
+	CRobotSim *sim = (CRobotSim *)arg;
+// wait for graphics to be set up
+	printf("graphics wait thread\n");
+	MUTEX_LOCK(&sim->_graphics_mutex);
+	printf("graphics wait thread\n");
+	while (!sim->_graphics) {
+		COND_WAIT(&sim->_graphics_cond, &sim->_graphics_mutex);
+	}
+	printf("set up graphics\n");
+	MUTEX_UNLOCK(&sim->_graphics_mutex);
+	
+	// return
+	return arg;
+}
+
 int CRobotSim::init_viz(void) {
 	// set notification level to no output
-	//osg::setNotifyLevel(osg::ALWAYS);
-	osg::setNotifyLevel(osg::DEBUG_INFO);
+	osg::setNotifyLevel(osg::ALWAYS);
 
-
-
-
-    // construct the viewer.
+    // construct the viewer
 	viewer = new osgViewer::Viewer();
-	//osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
 
-	/*osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
-	traits->x = 40;
-	traits->y = 40;
-	traits->width = 600;
-	traits->height = 480;
-	traits->windowDecoration = true;
-	traits->doubleBuffer = true;
-	traits->sharedContext = 0;
+	// init graphics mutex
+	//_graphics = false;
+	//MUTEX_INIT(&_graphics_mutex);
+	//COND_INIT(&_graphics_cond);
+	//THREAD_T thread;
 
-	osg::ref_ptr<osg::GraphicsContext> gc = osg::GraphicsContext::createGraphicsContext(traits.get());
-
-	osg::ref_ptr<osg::Camera> camera = new osg::Camera;
-	camera->setGraphicsContext(gc.get());
-	camera->setViewport(new osg::Viewport(0,0, traits->width, traits->height));
-	GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
-	camera->setDrawBuffer(buffer);
-	camera->setReadBuffer(buffer);
-
-	// add this slave camera to the viewer, with a shift left of the projection matrix
-	viewer->addSlave(camera.get());
-	//viewer->addSlave(camera.get(), osg::Matrixd::translate(1.0,0.0,0.0), osg::Matrixd());
-  */
-
-
-
-
-
-    // creating the viewer
-	/*osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
-
-	// display settings
-	//osg::DisplaySettings *ds = osg::DisplaySettings::instance().get();
-
-	// window interface
-	osg::GraphicsContext::WindowingSystemInterface *wsi = osg::GraphicsContext::getWindowingSystemInterface();
-	if (!wsi) {
-		osg::notify(osg::NOTICE) << "View::setUpViewAcrossAllScreens() : Error, no WindowSystemInterface available, cannot create windows." << endl;
-		return 1;
-	}
-	unsigned int width, height;
-	wsi->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), width, height);
-
-	// window traits
-	//osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits(ds);
-	osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits();
-
-	traits->displayNum = 0;
-    traits->screenNum = 0;
-    traits->x = width/4;
-	traits->y = height/4;
-    traits->width = width;
-    traits->height = height;
-    traits->windowDecoration = true;
-    traits->doubleBuffer = true;
-    traits->sharedContext = 0;
-
-    osg::ref_ptr<osg::GraphicsContext> gc = osg::GraphicsContext::createGraphicsContext(traits.get());
-//	gc->setWindowingSystemInterface(wsi);
-
-    //viewer->getCamera()->setGraphicsContext(gc.get());
-
-    osgViewer::GraphicsWindow *gw = dynamic_cast<osgViewer::GraphicsWindow*>(gc.get());
-    if (gw) {
-        OSG_INFO<<"View::setUpViewOnSingleScreen - GraphicsWindow has been created successfully."<<std::endl;
-        gw->getEventQueue()->getCurrentEventState()->setWindowRectangle(traits->x, traits->y, traits->width, traits->height);
-    }
-    else {
-        OSG_NOTICE<<"  GraphicsWindow has not been created successfully."<<std::endl;
-    }
-
-    /*double fovy, aspectRatio, zNear, zFar;
-    viewer->getCamera()->getProjectionMatrixAsPerspective(fovy, aspectRatio, zNear, zFar);
-    double newAspectRatio = double(traits->width) / double(traits->height);
-    double aspectRatioChange = newAspectRatio / aspectRatio;
-    if (aspectRatioChange != 1.0) {
-        viewer->getCamera()->getProjectionMatrix() *= osg::Matrix::scale(1.0/aspectRatioChange,1.0,1.0);
-    }
-    viewer->getCamera()->setViewport(new osg::Viewport(0, 0, traits->width, traits->height));
-    GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
-    viewer->getCamera()->setDrawBuffer(buffer);
-    viewer->getCamera()->setReadBuffer(buffer);
-
-
-    //viewer->getCamera()->setGraphicsContext(gw);
-*/
-
-/*	osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
-	traits->x = 0;
-	traits->y = 0;
-	traits->width = width/2;
-	traits->height = height/2;
-	traits->samples = 1;
-	//traits->windowDecoration = true;
-	//traits->doubleBuffer = true;
-	//traits->doubleBuffer = false;
-	//traits->sharedContext = 0;
-	osg::ref_ptr<osg::GraphicsContext> gc = osg::GraphicsContext::createGraphicsContext(traits.get());
-	gc->setWindowingSystemInterface(wsi);
-	if (gc.valid()) {
-		//printf("1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n");
-		gc->setClearColor(osg::Vec4f(0.f,0.f,0.f,0.f));
-		gc->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-	else {
-		osg::notify(osg::NOTICE) << "  GraphicsWindow has not been created successfully." << endl;
-		return 1;
-	}*/
-	//viewer->getCamera()->setGraphicsContext(gc.get());
-	//viewer->getCamera()->setClearColor(osg::Vec4(0.2, 0.2, 0.4, 0.0));
-	//viewer->getCamera()->setViewport(new osg::Viewport(0, 0, traits->width, traits->height));
-	//viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(1, 0, 0.8), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
-	// set up the camera manipulators
-	//viewer->setCameraManipulator(new osgGA::TerrainManipulator);
-	//viewer->setCameraManipulator(new osgGA::SphericalManipulator);
-	//viewer->setCameraManipulator(new osgGA::FirstPersonManipulator);
-	//viewer->setCameraManipulator(new osgGA::TrackballManipulator);
-	//viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0.7, 0.7, 0.4), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
-
-    // Creating the root node
-	/*_osgRoot = new osg::Group();
-	_osgRoot->setUpdateCallback(new rootNodeCallback(this, _robot, _osgRoot));
-*/
-	// load terrain node
-	/*osg::ref_ptr<osg::MatrixTransform> terrainScaleMAT (new osg::MatrixTransform);
-	osg::Matrix terrainScaleMatrix;
-	terrainScaleMatrix.makeScale(0.1f,0.1f,0.006f);
-	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("C:/Ch/package/chrobotsim/data/ground/terrain.3ds");
-	terrainScaleMAT->addChild(terrainnode.get());
-	terrainScaleMAT->setMatrix(terrainScaleMatrix);
-	_osgRoot->addChild(terrainScaleMAT.get());*/
-
-	// skybox
-/*	osg::StateSet* stateset = new osg::StateSet();
-	osg::TexEnv* te = new osg::TexEnv;
-	te->setMode(osg::TexEnv::REPLACE);
-	stateset->setTextureAttributeAndModes(0, te, osg::StateAttribute::ON);
-	osg::TexGen *tg = new osg::TexGen;
-	tg->setMode(osg::TexGen::NORMAL_MAP);
-	stateset->setTextureAttributeAndModes(0, tg, osg::StateAttribute::ON);
-	osg::TexMat *tm = new osg::TexMat;
-	stateset->setTextureAttribute(0, tm);
-	//osg::TextureCubeMap* skymap = readCubeMap();
-    osg::TextureCubeMap* skymap = new osg::TextureCubeMap;
-	#define SKY_FILENAME(face) "C:/Ch/package/chrobotsim/data/ground/checkered/" #face ".jpg"
-	osg::Image* imagePosX = osgDB::readImageFile(SKY_FILENAME(checkered_front));
-	osg::Image* imageNegX = osgDB::readImageFile(SKY_FILENAME(checkered_back));
-	osg::Image* imagePosY = osgDB::readImageFile(SKY_FILENAME(checkered_top));
-	osg::Image* imageNegY = osgDB::readImageFile(SKY_FILENAME(checkered_top));
-	osg::Image* imagePosZ = osgDB::readImageFile(SKY_FILENAME(checkered_left));
-	osg::Image* imageNegZ = osgDB::readImageFile(SKY_FILENAME(checkered_right));
-
-	if (imagePosX && imageNegX && imagePosY && imageNegY && imagePosZ && imageNegZ) {
-		skymap->setImage(osg::TextureCubeMap::POSITIVE_X, imagePosX);
-		skymap->setImage(osg::TextureCubeMap::NEGATIVE_X, imageNegX);
-		skymap->setImage(osg::TextureCubeMap::POSITIVE_Y, imagePosY);
-		skymap->setImage(osg::TextureCubeMap::NEGATIVE_Y, imageNegY);
-		skymap->setImage(osg::TextureCubeMap::POSITIVE_Z, imagePosZ);
-		skymap->setImage(osg::TextureCubeMap::NEGATIVE_Z, imageNegZ);
-		skymap->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
-		skymap->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
-		skymap->setWrap(osg::Texture::WRAP_R, osg::Texture::CLAMP_TO_EDGE);
-		skymap->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
-		skymap->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
-	}
-	stateset->setTextureAttributeAndModes(0, skymap, osg::StateAttribute::ON);
-	stateset->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
-	stateset->setMode( GL_CULL_FACE, osg::StateAttribute::OFF );
-	// clear the depth to the far plane.
-	osg::Depth* depth = new osg::Depth;
-	depth->setFunction(osg::Depth::ALWAYS);
-	depth->setRange(1.0,1.0);   
-	stateset->setAttributeAndModes(depth, osg::StateAttribute::ON );
-	stateset->setRenderBinDetails(-1,"RenderBin");
-	osg::Drawable* drawable = new osg::ShapeDrawable(new osg::Sphere(osg::Vec3(0.0f,0.0f,0.0f),1));
-	osg::Geode* geode = new osg::Geode;
-	geode->setCullingActive(false);
-	geode->setStateSet( stateset );
-	geode->addDrawable(drawable);
-	osg::Transform* transform = new MoveEarthySkyWithEyePointTransform;
-	transform->setCullingActive(false);
-	transform->addChild(geode);
-	osg::ClearNode* clearNode = new osg::ClearNode;
-	//clearNode->setRequiresClear(false);
-	clearNode->setCullCallback(new TexMatCallback(*tm));
-	clearNode->addChild(transform);
-	_osgRoot->addChild(clearNode);
-*/
-	// optimize the scene graph, remove redundant nodes and state etc.
-	//osgUtil::Optimizer optimizer;
-	//optimizer.optimize(_osgRoot);
-
-	// Set viewable
-	//viewer->setSceneData(_osgRoot);
-	//_osgThread = new ViewerFrameThread(viewer.get(), true);
-	//_osgThread->startThread();
-
-	// set viewable
-	//viewer->setSceneData(_osgRoot);
+	// create graphics thread
+//THREAD_CREATE(&thread, (void* (*)(void *))&CRobotSim::graphicsWait, (void *)this);
 	THREAD_CREATE(&_osgThread, (void* (*)(void *))&CRobotSim::graphicsThread, (void *)this);
+//THREAD_JOIN(thread);
+
 
 	// success
 	return 0;
 }
+
 void* CRobotSim::graphicsThread(void *arg) {
 	// initialize variables
-	double fovy, ar, zNear, zFar, nar/*, dar*/;
+	//double fovy, ar, zNear, zFar, nar/*, dar*/;
 	unsigned int width, height;
 
 	// cast viewer
@@ -567,9 +395,10 @@ void* CRobotSim::graphicsThread(void *arg) {
 	traits->x = width/4;
 	traits->y = height/4;
 	traits->width = width/2;
-	traits->height = height/2;
+	traits->height = 3*width/8;
 	traits->windowDecoration = true;
 	traits->doubleBuffer = true;
+	traits->vsync = false;
 	traits->sharedContext = 0;
 
 	// graphics context
@@ -584,19 +413,18 @@ void* CRobotSim::graphicsThread(void *arg) {
 	}
 
 	// graphics window
-	osgViewer::GraphicsWindow *gw = dynamic_cast<osgViewer::GraphicsWindow*>(gc.get());
+	/*osgViewer::GraphicsWindow *gw = dynamic_cast<osgViewer::GraphicsWindow*>(gc.get());
 	if (gw)
 		gw->getEventQueue()->getCurrentEventState()->setWindowRectangle(traits->x, traits->y, traits->width, traits->height);
 	else
-		OSG_NOTICE<<"  GraphicsWindow has not been created successfully."<<std::endl;
+		OSG_NOTICE<<"  GraphicsWindow has not been created successfully."<<std::endl;*/
 
 	// camera properties
 	osg::ref_ptr<osg::Camera> camera = new osg::Camera;
 	camera->setGraphicsContext(gc.get());
-	camera->getProjectionMatrixAsPerspective(fovy, ar, zNear, zFar);
+	/*camera->getProjectionMatrixAsPerspective(fovy, ar, zNear, zFar);
 	nar = double(traits->width) / double(traits->height);
-	//dar = nar/ar;
-	if (nar/ar != 1.0) camera->getProjectionMatrix() *= osg::Matrix::scale(ar/nar, 1.0, 1.0);
+	if (nar/ar != 1.0) camera->getProjectionMatrix() *= osg::Matrix::scale(ar/nar, 1.0, 1.0);*/
 	camera->setViewport(new osg::Viewport(0,0, traits->width, traits->height));
 	GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
 	camera->setDrawBuffer(buffer);
@@ -605,21 +433,17 @@ void* CRobotSim::graphicsThread(void *arg) {
 
 	// viewer camera properties
 	sim->viewer->addSlave(camera.get());
-	//viewer->setCameraManipulator(new osgGA::TerrainManipulator);
-	sim->viewer->setCameraManipulator(new osgGA::SphericalManipulator);
-	//viewer->setCameraManipulator(new osgGA::FirstPersonManipulator);
-	//viewer->setCameraManipulator(new osgGA::TrackballManipulator);
-	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0.7, 0.7, 0.4), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	//sim->viewer->setCameraManipulator(new osgGA::TerrainManipulator);
+	//sim->viewer->setCameraManipulator(new osgGA::SphericalManipulator);
+	//sim->viewer->setCameraManipulator(new osgGA::FirstPersonManipulator);
+	sim->viewer->setCameraManipulator(new osgGA::TrackballManipulator);
+	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0, 2, 1), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
 	// viewer event handlers
 	sim->viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
-    sim->viewer->addEventHandler(new osgViewer::ThreadingHandler);
-    sim->viewer->addEventHandler(new osgViewer::WindowSizeHandler);
-    sim->viewer->addEventHandler(new osgViewer::StatsHandler);
-	//viewer->addEventHandler(new osgWidget::KeyboardHandler);
-	//viewer->addEventHandler(new osgWidget::MouseHandler);
-
-
+	//sim->viewer->addEventHandler(new osgViewer::ThreadingHandler);
+	sim->viewer->addEventHandler(new osgViewer::WindowSizeHandler);
+    //sim->viewer->addEventHandler(new osgViewer::StatsHandler);
 
     // Creating the root node
 	sim->_osgRoot = new osg::Group();
@@ -629,10 +453,10 @@ void* CRobotSim::graphicsThread(void *arg) {
 	osg::ref_ptr<osg::MatrixTransform> terrainScaleMAT (new osg::MatrixTransform);
 	osg::Matrix terrainScaleMatrix;
 	terrainScaleMatrix.makeScale(0.1f,0.1f,0.006f);
-	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile("C:/Ch/package/chrobotsim/data/ground/terrain.3ds");
+	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile(TEXTURE_PATH(ground/terrain.3ds));
 	terrainScaleMAT->addChild(terrainnode.get());
 	terrainScaleMAT->setMatrix(terrainScaleMatrix);
-	sim->_osgRoot->addChild(terrainScaleMAT.get());
+	//sim->_osgRoot->addChild(terrainScaleMAT.get());
 
 	// skybox
 	osg::StateSet* stateset = new osg::StateSet();
@@ -645,13 +469,12 @@ void* CRobotSim::graphicsThread(void *arg) {
 	osg::TexMat *tm = new osg::TexMat;
 	stateset->setTextureAttribute(0, tm);
     osg::TextureCubeMap* skymap = new osg::TextureCubeMap;
-	#define SKY_FILENAME(face) "C:/Ch/package/chrobotsim/data/ground/checkered/" #face ".png"
-	osg::Image* imagePosX = osgDB::readImageFile(SKY_FILENAME(checkered_front));
-	osg::Image* imageNegX = osgDB::readImageFile(SKY_FILENAME(checkered_back));
-	osg::Image* imagePosY = osgDB::readImageFile(SKY_FILENAME(checkered_top));
-	osg::Image* imageNegY = osgDB::readImageFile(SKY_FILENAME(checkered_top));
-	osg::Image* imagePosZ = osgDB::readImageFile(SKY_FILENAME(checkered_left));
-	osg::Image* imageNegZ = osgDB::readImageFile(SKY_FILENAME(checkered_right));
+	osg::Image* imagePosX = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_front.png));
+	osg::Image* imageNegX = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_back.png));
+	osg::Image* imagePosY = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_top.png));
+	osg::Image* imageNegY = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_top.png));
+	osg::Image* imagePosZ = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_left.png));
+	osg::Image* imageNegZ = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_right.png));
 
 	if (imagePosX && imageNegX && imagePosY && imageNegY && imagePosZ && imageNegZ) {
 		skymap->setImage(osg::TextureCubeMap::POSITIVE_X, imagePosX);
@@ -684,21 +507,36 @@ void* CRobotSim::graphicsThread(void *arg) {
 	transform->setCullingActive(false);
 	transform->addChild(geode);
 	osg::ClearNode* clearNode = new osg::ClearNode;
-	//clearNode->setRequiresClear(false);
+	clearNode->setRequiresClear(false);
 	clearNode->setCullCallback(new TexMatCallback(*tm));
 	clearNode->addChild(transform);
-	sim->_osgRoot->addChild(clearNode);
+	//sim->_osgRoot->addChild(clearNode);
 
 	// optimize the scene graph, remove redundant nodes and state etc.
 	osgUtil::Optimizer optimizer;
 	optimizer.optimize(sim->_osgRoot);
 
+	// set threading model
+	//sim->viewer->setThreadingModel(osgViewer::Viewer::CullDrawThreadPerContext);
+	sim->viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+
 	// set viewable
 	sim->viewer->setSceneData(sim->_osgRoot);
+
+	// trigger graphics is set up
+	/*printf("thread greaphics1: %d\n", sim->_graphics);
+	MUTEX_LOCK(&(sim->_graphics_mutex));
+	sim->_graphics = true;
+	printf("thread greaphics2: %d\n", sim->_graphics);
+	COND_SIGNAL(&(sim->_graphics_cond));
+	MUTEX_UNLOCK(&(sim->_graphics_mutex));
+	printf("\tsignaling\n");*/
+	//SIGNAL(&(sim->_graphics_cond), &(sim->_graphics_mutex), sim->_graphics = true);
 
 	// run viewer
 	sim->viewer->run();
 
+	// trigger end of code when graphics window is closed
 	SIGNAL(&(sim->_running_cond), &(sim->_running_mutex), sim->_running = 0);
 
 	// return
@@ -723,15 +561,7 @@ void CRobotSim::setMu(dReal mu_g, dReal mu_b) {
 	_mu[1] = mu_b;
 }
 
-int CRobotSim::setExitState(int state) {
-	/*while (state == 1) {	// sleep for 1 second
-#ifdef _WIN32
-		Sleep(1000);		// 1,000 milliseconds
-#else
-		usleep(1000000);	// 1,000,000 microseconds
-#endif
-	}*/
-
+int CRobotSim::setExitState(void) {
 	MUTEX_LOCK(&_running_mutex);
 	while (_running) {
 		COND_WAIT(&_running_cond, &_running_mutex);
@@ -742,7 +572,7 @@ int CRobotSim::setExitState(int state) {
 	return 0;
 }
 
-void CRobotSim::setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
+/*void CRobotSim::setGroundBox(dReal lx, dReal ly, dReal lz, dReal px, dReal py, dReal pz, dReal r_x, dReal r_y, dReal r_z) {
 	// lock ground objects
 	MUTEX_LOCK(&_ground_mutex);
 
@@ -828,6 +658,7 @@ void CRobotSim::setGroundSphere(dReal r, dReal px, dReal py, dReal pz) {
 	// unlock ground objects
 	MUTEX_UNLOCK(&_ground_mutex);
 }
+*/
 
 /**********************************************************
 	Private Simulation Functions
@@ -837,23 +668,15 @@ void* CRobotSim::simulationThread(void *arg) {
 	CRobotSim *sim = (CRobotSim *)arg;
 
 	// initialize local variables
-	/*
-#ifdef _WIN32
-	DWORD start_time, end_time;
-#else
-	struct timespec start_time, end_time;
-#endif
-	*/
-	unsigned int dt;
+	unsigned int sum = 0, dt[4] = {0};
 	int i, j;
+#ifdef _WIN32
+		DWORD start = GetTickCount();
+#endif
 
 	while (1) {
-		// lock array of robots for sim step
-		MUTEX_LOCK(&(sim->_robot_mutex));
-
 		// get start time of execution
 #ifdef _WIN32
-		//DWORD start_time, end_time;
 		DWORD start_time = GetTickCount();
 #else
 		struct timespec start_time, end_time;
@@ -862,7 +685,8 @@ void* CRobotSim::simulationThread(void *arg) {
 
 		// perform pre-collision updates
 		//  - lock angle and goal
-		//  - update angles 
+		//  - update angles
+		MUTEX_LOCK(&(sim->_robot_mutex));
 		for (i = 0; i < NUM_TYPES; i++) {
 			for (j = 0; j < sim->_robotConnected[i]; j++) {
 				THREAD_CREATE(&(sim->_robotThread[i][j]), (void* (*)(void *))&CRobot::simPreCollisionThreadEntry, (void *)(sim->_robot[i][j]));
@@ -870,38 +694,37 @@ void* CRobotSim::simulationThread(void *arg) {
 			}
 		}
 
-		// step world
-		MUTEX_LOCK(&(sim->_ground_mutex));
 		dSpaceCollide(sim->_space, sim, &sim->collision);	// collide all geometries together
 		dWorldStep(sim->_world, sim->_step);				// step world time by one
 		sim->_clock += sim->_step;							// increment world clock
 		dJointGroupEmpty(sim->_group);						// clear out all contact joints
-		MUTEX_UNLOCK(&(sim->_ground_mutex));
 
 		//sim->print_intermediate_data();
 
 		// perform post-collision updates
 		//  - unlock angle and goal
-		//  - check if success 
+		//  - check if success
 		for (i = 0; i < NUM_TYPES; i++) {
 			for (j = 0; j < sim->_robotConnected[i]; j++) {
 				THREAD_CREATE(&(sim->_robotThread[i][j]), (void* (*)(void *))&CRobot::simPostCollisionThreadEntry, (void *)(sim->_robot[i][j]));
 				THREAD_JOIN(sim->_robotThread[i][j]);
 			}
 		}
-
-		// unlock array of robots to allow another to be 
 		MUTEX_UNLOCK(&(sim->_robot_mutex));
 
 		// sleep until next step
 #ifdef _WIN32
-		dt = GetTickCount() - start_time;
-		if (dt < (unsigned int)(sim->_step*1000)) 
-			Sleep(sim->_step*1000 - dt);
-		else
-			sim->_step = dt/1000.0;
-
-		if ((int)sim->_step < 4) { sim->_step = 0.004; }
+		dt[0] = GetTickCount() - start_time;
+		for (i = 0; i < 4; i++) { sum += dt[i]; }
+		for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
+		sum /= 4;
+		if (GetTickCount() - start > (unsigned int)(sim->_clock*1000))
+			sim->_step = (GetTickCount() - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
+		else {
+			sim->_step = sum/1000.0;
+			Sleep((unsigned int)(sim->_clock*1000) - (GetTickCount() - start));
+		}
+		sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
 #else
 		clock_gettime(CLOCK_REALTIME, &end_time);
 		dt = sim->diff_nsecs(start_time, end_time);
@@ -948,29 +771,26 @@ void CRobotSim::print_intermediate_data(void) {
 	// initialze loop counters
 	static int j = 0;
 
-    cout.width(10);		// cout.precision(4);
+    cout.width(10);
     cout.setf(ios::fixed, ios::floatfield);
-	cout << j++*_step << " ";
-	cout << "LinkbotI:" << "\t";
-	for (int i = 0; i < _robotConnected[LINKBOTI]; i++) {
-		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT4)) << " ";
-		cout << _robot[LINKBOTI][i]->getAngle(LINKBOT_JOINT1) << " ";
-		cout << _robot[LINKBOTI][i]->getAngle(LINKBOT_JOINT2) << " ";
-		cout << _robot[LINKBOTI][i]->getAngle(LINKBOT_JOINT3) << "\t";
-		//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
-		//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
-		//cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
-		cout << _robot[LINKBOTI][i]->getSuccess(LINKBOT_JOINT1) << " ";
-		cout << _robot[LINKBOTI][i]->getSuccess(LINKBOT_JOINT2) << " ";
-		cout << _robot[LINKBOTI][i]->getSuccess(LINKBOT_JOINT3) << "\t";
+	//if (!((int)(_clock*1000) % 100)) { cout << _clock << "\t\t"; }
+	cout << _clock << "\n";
+	/*for (int i = 0; i < _robotConnected[MOBOT]; i++) {
+		cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT1)) << " ";
+		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT2)) << " ";
+		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT3)) << " ";
+		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT4)) << "\t\t";
+		//cout << _robot[MOBOT][i]->getPosition(2,0) << " ";
+		//cout << _robot[MOBOT][i]->getPosition(2,1) << " ";
+		//cout << _robot[MOBOT][i]->getPosition(2,2) << "\t\t";
 	}
-	//cout << endl;
-	cout << "LinkbotL:" << "\t";
+	cout << endl;*/
+	/*cout << "LinkbotL:" << "\t";
 	for (int i = 0; i < _robotConnected[LINKBOTL]; i++) {
 		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT4)) << " ";
-		cout << _robot[LINKBOTL][i]->getAngle(LINKBOT_JOINT1) << " ";
-		cout << _robot[LINKBOTL][i]->getAngle(LINKBOT_JOINT2) << " ";
-		cout << _robot[LINKBOTL][i]->getAngle(LINKBOT_JOINT3) << "\t";
+		//cout << _robot[LINKBOTL][i]->getAngle(ROBOT_JOINT1) << " ";
+		//cout << _robot[LINKBOTL][i]->getAngle(ROBOT_JOINT2) << " ";
+		//cout << _robot[LINKBOTL][i]->getAngle(ROBOT_JOINT3) << "\t";
 		//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
 		//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
 		//cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
@@ -979,20 +799,16 @@ void CRobotSim::print_intermediate_data(void) {
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT4) << "\t";
 	}
-	cout << endl;
+	cout << endl;*/
 }
 
 
 /**********************************************************
 	Add Robot Functions
  **********************************************************/
-#ifdef _CH_
-int CRobotSim::addRobot(...) {
-#else
-int CRobotSim::addRobot(CRobot &robot) {
-#endif
+int CRobotSim::addRobot(CRobot *robot) {
 	// get type of robot being added
-	int type = robot.getType();
+	int type = robot->getType();
 
 	// find next robot in list
 	bot_t btmp = bot;
@@ -1006,7 +822,7 @@ int CRobotSim::addRobot(CRobot &robot) {
 	// lock robot data to insert a new one into simulation
 	MUTEX_LOCK(&_robot_mutex);
 	// connect to robot class
-	_robot[type][_robotConnected[type]] = &robot;
+	_robot[type][_robotConnected[type]] = robot;
 	// add simulation variables to robot class
 	_robot[type][_robotConnected[type]]->addToSim(_world, _space, &_clock);
 	// set unique id of this robot
@@ -1015,7 +831,7 @@ int CRobotSim::addRobot(CRobot &robot) {
 	// find if robot is connected to another one
 	Conn_t *ctmp = btmp->conn;
 	while (ctmp) {
-		if ( ctmp->robot != robot.getID() ) {
+		if ( ctmp->robot != robot->getID() ) {
 			break;
 		}
 		ctmp = ctmp->next;
@@ -1034,6 +850,9 @@ int CRobotSim::addRobot(CRobot &robot) {
 		_robot[type][_robotConnected[type]]->build(btmp);
 	}
 
+	// draw robot
+	//_robot[type][_robotConnected[type]]->draw(_osgRoot);
+
 	// another robot has been 'connected' to simulation
 	_robotConnected[type]++;
 
@@ -1051,5 +870,15 @@ int CRobotSim::addRobot(CRobot &robot) {
 // get difference in two time stamps in nanoseconds
 unsigned int CRobotSim::diff_nsecs(struct timespec t1, struct timespec t2) {
 	return (t2.tv_sec - t1.tv_sec) * 1000000000 + (t2.tv_nsec - t1.tv_nsec);
+}
+#endif
+
+#ifndef _CH_
+void delay(double seconds) {
+#ifdef _WIN32
+	Sleep((int)(seconds*1000));
+#else
+	usleep((int)(seconds*1000000));
+#endif
 }
 #endif

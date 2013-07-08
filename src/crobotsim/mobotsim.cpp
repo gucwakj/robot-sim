@@ -18,6 +18,7 @@ CMobot::~CMobot(void) {
 }
 
 int CMobot::connect(void) {
+	_simObject.addRobot(this);
 	_connected = 1;
 
 	// success
@@ -31,16 +32,16 @@ int CMobot::disconnect(void) {
 	return 0;
 }
 
-int CMobot::driveJointToDirect(robotJointId_t id, double angle) {
-	this->driveJointToDirectNB(id, angle);
+int CMobot::driveJointTo(robotJointId_t id, double angle) {
+	this->driveJointToNB(id, angle);
 	this->moveJointWait(id);
 
 	// success
 	return 0;
 }
 
-int CMobot::driveJointTo(robotJointId_t id, double angle) {
-	this->driveJointToNB(id, angle);
+int CMobot::driveJointToDirect(robotJointId_t id, double angle) {
+	this->driveJointToDirectNB(id, angle);
 	this->moveJointWait(id);
 
 	// success
@@ -57,16 +58,16 @@ int CMobot::driveJointToNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CMobot::driveToDirect(double angle1, double angle2, double angle3, double angle4) {
-	this->driveToDirectNB(angle1, angle2, angle3, angle4);
+int CMobot::driveTo(double angle1, double angle2, double angle3, double angle4) {
+	this->driveToNB(angle1, angle2, angle3, angle4);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int CMobot::driveTo(double angle1, double angle2, double angle3, double angle4) {
-	this->driveToNB(angle1, angle2, angle3, angle4);
+int CMobot::driveToDirect(double angle1, double angle2, double angle3, double angle4) {
+	this->driveToDirectNB(angle1, angle2, angle3, angle4);
 	this->moveWait();
 
 	// success
@@ -188,7 +189,6 @@ int CMobot::getJointState(robotJointId_t id, robotJointState_t &state) {
 }
 
 int CMobot::isConnected(void) {
-	// success
 	return _connected;
 }
 
@@ -196,7 +196,7 @@ int CMobot::isMoving(void) {
 	int moving = 0;
 	robotJointState_t state;
 
-	for (int i = 1; i <= 4; i++) {
+	for (int i = 1; i <= NUM_DOF; i++) {
 		this->getJointState((robotJointId_t)i, state);
 		if( (state == ROBOT_FORWARD) || (state == ROBOT_BACKWARD) ) {
 			moving = 1;
@@ -217,9 +217,51 @@ int CMobot::motionArch(double angle) {
 	return 0;
 }
 
+void* motionArchThread(void *arg) {
+	// cast arg
+	motionArg_t *mArg = (motionArg_t *)arg;
+
+	// perform motion
+	mArg->robot->motionArch(mArg->d);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// success
+	return NULL;
+}
+
+int CMobot::motionArchNB(double angle) {
+	// create thread
+	THREAD_T motion;
+
+	// store args
+	motionArg_t *mArg = new motionArg_t;
+	mArg->robot = this;
+	mArg->d = angle;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&motion, motionArchThread, (void *)mArg);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return 0;
+}
 
 int CMobot::motionDistance(double distance, double radius) {
 	this->motionRollForward(distance/radius);
+
+	// success
+	return 0;
+}
+
+int CMobot::motionDistanceNB(double distance, double radius) {
+	this->motionRollForwardNB(distance/radius);
 
 	// success
 	return 0;
@@ -241,6 +283,42 @@ int CMobot::motionInchwormLeft(int num) {
 	return 0;
 }
 
+void* CMobot::motionInchwormLeftThread(void *arg) {
+	// cast arg
+	motionArg_t *mArg = (motionArg_t *)arg;
+
+	// perform motion
+	mArg->robot->motionInchwormLeft(mArg->i);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// success
+	return NULL;
+}
+
+int CMobot::motionInchwormLeftNB(int num) {
+	// create thread
+	THREAD_T motion;
+
+	// store args
+	motionArg_t *mArg = new motionArg_t;
+	mArg->robot = this;
+	mArg->i = num;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&motion, motionInchwormLeftThread, (void *)mArg);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return 0;
+}
+
 int CMobot::motionInchwormRight(int num) {
 	this->moveJointToNB(ROBOT_JOINT2, 0);
 	this->moveJointToNB(ROBOT_JOINT3, 0);
@@ -252,6 +330,42 @@ int CMobot::motionInchwormRight(int num) {
 		this->moveJointTo(ROBOT_JOINT3, 0);
 		this->moveJointTo(ROBOT_JOINT2, 0);
 	}
+
+	// success
+	return 0;
+}
+
+void* motionInchwormRightThread(void *arg) {
+	// cast arg
+	motionArg_t *mArg = (motionArg_t *)arg;
+
+	// perform motion
+	mArg->robot->motionInchwormRight(mArg->i);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// success
+	return NULL;
+}
+
+int CMobot::motionInchwormRightNB(int num) {
+	// create thread
+	THREAD_T motion;
+
+	// store args
+	motionArg_t *mArg = new motionArg_t;
+	mArg->robot = this;
+	mArg->i = num;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&motion, motionInchwormRightThread, (void *)mArg);
+
+	// cleanup
+	delete mArg;
 
 	// success
 	return 0;
@@ -269,6 +383,42 @@ int CMobot::motionRollBackward(double angle) {
 	return 0;
 }
 
+void* motionRollBackwardThread(void *arg) {
+	// cast arg
+	motionArg_t *mArg = (motionArg_t *)arg;
+
+	// perform motion
+	mArg->robot->motionRollBackward(mArg->d);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// success
+	return NULL;
+}
+
+int CMobot::motionRollBackwardNB(double angle) {
+	// create thread
+	THREAD_T motion;
+
+	// store args
+	motionArg_t *mArg = new motionArg_t;
+	mArg->robot = this;
+	mArg->d = angle;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&motion, motionRollBackwardThread, (void *)mArg);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return 0;
+}
+
 int CMobot::motionRollForward(dReal angle) {
 	dReal motorPosition[2];
 	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
@@ -276,6 +426,42 @@ int CMobot::motionRollForward(dReal angle) {
 	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] + angle);
 	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] + angle);
 	this->moveWait();
+
+	// success
+	return 0;
+}
+
+void* motionRollForwardThread(void *arg) {
+	// cast arg
+	motionArg_t *mArg = (motionArg_t *)arg;
+
+	// perform motion
+	mArg->robot->motionRollForward(mArg->d);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// success
+	return NULL;
+}
+
+int CMobot::motionRollForwardNB(double angle) {
+	// create thread
+	THREAD_T motion;
+
+	// store args
+	motionArg_t *mArg = new motionArg_t;
+	mArg->robot = this;
+	mArg->d = angle;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&motion, motionRollForwardThread, (void *)mArg);
+
+	// cleanup
+	delete mArg;
 
 	// success
 	return 0;
@@ -290,9 +476,44 @@ int CMobot::motionSkinny(double angle) {
 	return 0;
 }
 
+void* motionSkinnyThread(void *arg) {
+	// cast arg
+	motionArg_t *mArg = (motionArg_t *)arg;
+
+	// perform motion
+	mArg->robot->motionSkinny(mArg->d);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// success
+	return NULL;
+}
+
+int CMobot::motionSkinnyNB(double angle) {
+	// create thread
+	THREAD_T motion;
+
+	// store args
+	motionArg_t *mArg = new motionArg_t;
+	mArg->robot = this;
+	mArg->d = angle;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&motion, motionSkinnyThread, (void *)mArg);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return 0;
+}
+
 int CMobot::motionStand(void) {
 	this->resetToZero();
-	//this->moveToZero();
 	this->moveJointTo(ROBOT_JOINT2, -85);
 	this->moveJointTo(ROBOT_JOINT3, 70);
 	this->moveWait();
@@ -303,6 +524,41 @@ int CMobot::motionStand(void) {
 	Sleep(1000);
 #endif
 	this->moveJointTo(ROBOT_JOINT2, 20);
+
+	// success
+	return 0;
+}
+
+void* motionStandThread(void *arg) {
+	// cast arg
+	motionArg_t *mArg = (motionArg_t *)arg;
+
+	// perform motion
+	mArg->robot->motionStand();
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// success
+	return NULL;
+}
+
+int CMobot::motionStandNB(void) {
+	// create thread
+	THREAD_T motion;
+
+	// store args
+	motionArg_t *mArg = new motionArg_t;
+	mArg->robot = this;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&motion, motionStandThread, (void *)mArg);
+
+	// cleanup
+	delete mArg;
 
 	// success
 	return 0;
@@ -340,6 +596,42 @@ int CMobot::motionTumbleLeft(int num) {
 	return 0;
 }
 
+void* motionTumbleLeftThread(void *arg) {
+	// cast arg
+	motionArg_t *mArg = (motionArg_t *)arg;
+
+	// perform motion
+	mArg->robot->motionTumbleLeft(mArg->i);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// success
+	return NULL;
+}
+
+int CMobot::motionTumbleLeftNB(int num) {
+	// create thread
+	THREAD_T motion;
+
+	// store args
+	motionArg_t *mArg = new motionArg_t;
+	mArg->robot = this;
+	mArg->i = num;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&motion, motionTumbleLeftThread, (void *)mArg);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return 0;
+}
+
 int CMobot::motionTumbleRight(int num) {
 	this->resetToZero();
 #ifndef _WIN32
@@ -372,6 +664,42 @@ int CMobot::motionTumbleRight(int num) {
 	return 0;
 }
 
+void* motionTumbleRightThread(void *arg) {
+	// cast arg
+	motionArg_t *mArg = (motionArg_t *)arg;
+
+	// perform motion
+	mArg->robot->motionTumbleRight(mArg->i);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// success
+	return NULL;
+}
+
+int CMobot::motionTumbleRightNB(int num) {
+	// create thread
+	THREAD_T motion;
+
+	// store args
+	motionArg_t *mArg = new motionArg_t;
+	mArg->robot = this;
+	mArg->i = num;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&motion, motionTumbleRightThread, (void *)mArg);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return 0;
+}
+
 int CMobot::motionTurnLeft(double angle) {
 	dReal motorPosition[2];
 	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
@@ -379,6 +707,42 @@ int CMobot::motionTurnLeft(double angle) {
 	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] - angle);
 	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] + angle);
 	this->moveWait();
+
+	// success
+	return 0;
+}
+
+void* motionTurnLeftThread(void *arg) {
+	// cast arg
+	motionArg_t *mArg = (motionArg_t *)arg;
+
+	// perform motion
+	mArg->robot->motionTurnLeft(mArg->d);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// success
+	return NULL;
+}
+
+int CMobot::motionTurnLeftNB(double angle) {
+	// create thread
+	THREAD_T motion;
+
+	// store args
+	motionArg_t *mArg = new motionArg_t;
+	mArg->robot = this;
+	mArg->d = angle;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&motion, motionTurnLeftThread, (void *)mArg);
+
+	// cleanup
+	delete mArg;
 
 	// success
 	return 0;
@@ -396,6 +760,42 @@ int CMobot::motionTurnRight(double angle) {
 	return 0;
 }
 
+void* motionTurnRightThread(void *arg) {
+	// cast arg
+	motionArg_t *mArg = (motionArg_t *)arg;
+
+	// perform motion
+	mArg->robot->motionTurnRight(mArg->d);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// success
+	return NULL;
+}
+
+int CMobot::motionTurnRightNB(double angle) {
+	// create thread
+	THREAD_T motion;
+
+	// store args
+	motionArg_t *mArg = new motionArg_t;
+	mArg->robot = this;
+	mArg->d = angle;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&motion, motionTurnRightThread, (void *)mArg);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return 0;
+}
+
 int CMobot::motionUnstand(void) {
 	this->moveToDirect(0, 0, 0, 0);
 	this->moveJointToNB(ROBOT_JOINT3, 45);
@@ -407,84 +807,49 @@ int CMobot::motionUnstand(void) {
 	return 0;
 }
 
-int CMobot::motionArchNB(double angle) {
-	// success
-	return 0;
-}
+void* motionUnstandThread(void *arg) {
+	// cast arg
+	motionArg_t *mArg = (motionArg_t *)arg;
 
-int CMobot::motionDistanceNB(double distance, double radius) {
+	// perform motion
+	mArg->robot->motionUnstand();
 
-	// success
-	return 0;
-}
-
-int CMobot::motionInchwormLeftNB(int num) {
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
 
 	// success
-	return 0;
-}
-
-int CMobot::motionInchwormRightNB(int num) {
-
-	// success
-	return 0;
-}
-
-int CMobot::motionRollBackwardNB(double angle) {
-
-	// success
-	return 0;
-}
-
-int CMobot::motionRollForwardNB(double angle) {
-
-	// success
-	return 0;
-}
-
-int CMobot::motionSkinnyNB(double angle) {
-
-	// success
-	return 0;
-}
-
-int CMobot::motionStandNB(void) {
-
-	// success
-	return 0;
-}
-
-int CMobot::motionTumbleRightNB(int num) {
-
-	// success
-	return 0;
-}
-
-int CMobot::motionTumbleLeftNB(int num) {
-
-	// success
-	return 0;
-}
-
-int CMobot::motionTurnLeftNB(double angle) {
-
-	// success
-	return 0;
-}
-
-int CMobot::motionTurnRightNB(double angle) {
-
-	// success
-	return 0;
+	return NULL;
 }
 
 int CMobot::motionUnstandNB(void) {
+	// create thread
+	THREAD_T motion;
+
+	// store args
+	motionArg_t *mArg = new motionArg_t;
+	mArg->robot = this;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&motion, motionUnstandThread, (void *)mArg);
+
+	// cleanup
+	delete mArg;
 
 	// success
 	return 0;
 }
 
 int CMobot::motionWait(void) {
+	// wait for motion to complete
+	MUTEX_LOCK(&_motion_mutex);
+	while (_motion) {
+		COND_WAIT(&_motion_cond, &_motion_mutex);
+	}
+	_motion = false;
+	MUTEX_UNLOCK(&_motion_mutex);
 
 	// success
 	return 0;
@@ -502,19 +867,16 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 	// store angles into array
 	double delta[4] = {angle1, angle2, angle3, angle4};
 
-	// lock goal
+	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
-
-	// set new goal angles
-	_goal[0] += DEG2RAD(angle1);
-	_goal[1] += DEG2RAD(angle2);
-	_goal[2] += DEG2RAD(angle3);
-	_goal[3] += DEG2RAD(angle4);
+	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_success_mutex);
 
 	// enable motor
-	MUTEX_LOCK(&_angle_mutex);
 	for ( int j = 0; j < NUM_DOF; j++ ) {
 		dJointEnable(_motor[j]);
+		_goal[j] += DEG2RAD(delta[j]);
+		_seek[j] = true;
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
 			_state[j] = ROBOT_FORWARD;
@@ -528,19 +890,13 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 			_state[j] = ROBOT_HOLD;
 			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
+		_success[j] = false;
 	}
     dBodyEnable(_body[CENTER]);
-	MUTEX_UNLOCK(&_angle_mutex);
 
-	// set success to false
-	MUTEX_LOCK(&_success_mutex);
-	_success[0] = false;
-	_success[1] = false;
-	_success[2] = false;
-	_success[3] = false;
+	// unlock mutexes
 	MUTEX_UNLOCK(&_success_mutex);
-
-	// unlock goal
+	MUTEX_UNLOCK(&_angle_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 
 	// success
@@ -659,6 +1015,7 @@ int CMobot::moveJointToDirect(robotJointId_t id, double angle) {
 }
 
 int CMobot::moveJointToDirectNB(robotJointId_t id, double angle) {
+	this->moveJointToNB(id, angle);
 
 	// success
 	return 0;
@@ -713,6 +1070,8 @@ int CMobot::moveJointWait(robotJointId_t id) {
 	_success[id] = true;
 	MUTEX_UNLOCK(&_success_mutex);
 
+	dJointDisable(_motor[id]);
+
 	// success
 	return 0;
 }
@@ -734,27 +1093,27 @@ int CMobot::moveToDirect(double angle1, double angle2, double angle3, double ang
 }
 
 int CMobot::moveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
+	this->moveToNB(angle1, angle2, angle3, angle4);
+
 	// success
 	return 0;
 }
 
 int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4) {
 	// store angles into array
-	double delta[4] = {angle1 - _angle[0], angle2 - _angle[1], angle3 - _angle[2], angle4 - _angle[3]};
+	double delta[4] = {	DEG2RAD(angle1) - _angle[0], DEG2RAD(angle2) - _angle[1],
+						DEG2RAD(angle3) - _angle[2], DEG2RAD(angle4) - _angle[3]};
 
-	// lock goal
+	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
-
-	// set new goal angles
-	_goal[0] = DEG2RAD(angle1);
-	_goal[1] = DEG2RAD(angle2);
-	_goal[2] = DEG2RAD(angle3);
-	_goal[3] = DEG2RAD(angle4);
+	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_success_mutex);
 
 	// enable motor
-	MUTEX_LOCK(&_angle_mutex);
-	for ( int j = 0; j < NUM_DOF; j++ ) {
+	for (int j = 0; j < NUM_DOF; j++) {
 		dJointEnable(_motor[j]);
+		_goal[j] += delta[j];
+		_seek[j] = true;
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		if ( delta[j] > 0 ) {
 			_state[j] = ROBOT_FORWARD;
@@ -768,19 +1127,13 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
 			_state[j] = ROBOT_HOLD;
 			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
+		_success[j] = false;
 	}
     dBodyEnable(_body[CENTER]);
-	MUTEX_UNLOCK(&_angle_mutex);
 
-	// set success to false
-	MUTEX_LOCK(&_success_mutex);
-	_success[0] = false;
-	_success[1] = false;
-	_success[2] = false;
-	_success[3] = false;
+	// unlock mutexes
 	MUTEX_UNLOCK(&_success_mutex);
-
-	// unlock goal
+	MUTEX_UNLOCK(&_angle_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 
 	// success
@@ -801,42 +1154,248 @@ int CMobot::moveWait(void) {
 	while ( !(_success[0]) && !(_success[1]) && !(_success[2]) && !(_success[3]) ) {
 		COND_WAIT(&_success_cond, &_success_mutex);
 	}
-	_success[0] = true;
-	_success[1] = true;
-	_success[2] = true;
-	_success[3] = true;
+	for (int i = 0; i < NUM_DOF; i++) {
+		_success[i] = true;
+		_seek[i] = false;
+	}
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// success
 	return 0;
 }
 
-//int CMobot::recordAngle(int id, dReal *time, dReal *angle, int num, dReal seconds, dReal threshold) {
-int CMobot::recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData) {
-	THREAD_T recording;
-	recordAngleArg_t *rArg = new recordAngleArg_t;
+void* CMobot::recordAngleThread(void *arg) {
+	// cast arg struct
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// create initial time points
+	double start_time;
+	int time = (int)(*(rArg->robot->_clock)*1000);
+
+	// get 'num' data points
+	for (int i = 0; i < rArg->num; i++) {
+		// store time of data point
+		rArg->time[i] = *(rArg->robot->_clock)*1000;
+		if (i == 0) { start_time = rArg->time[i]; }
+		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
+
+		// store joint angle
+		rArg->robot->getJointAngle(rArg->id, rArg->angle1[i]);
+
+		// increment time step
+		time += rArg->msecs;
+
+		// pause until next step
+		//while ( (int)(*(rArg->robot->_clock)*1000) < time ) {Sleep(10);}
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
+	}
+
+	// signal completion of recording
+	SIGNAL(&rArg->robot->_recording_cond, &rArg->robot->_recording_mutex, rArg->robot->_recording[rArg->id] = false);
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+int CMobot::recordAngle(robotJointId_t id, double *time, double *angle, int num, double seconds, int shiftData) {
+	// check if recording already
 	if (_recording[id]) { return -1; }
+
+	// set up recording thread
+	THREAD_T recording;
+
+	// set up recording args struct
+	recordAngleArg_t *rArg = new recordAngleArg_t;
 	rArg->robot = this;
 	rArg->time = time;
 	rArg->angle1 = angle;
 	rArg->id = id;
 	rArg->num = num;
 	rArg->msecs = 1000*seconds;
+
+	// lock recording for joint id
 	_recording[id] = true;
-	THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::record_angle_thread, (void *)rArg);
-	delete rArg;
+
+	// create thread
+	THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordAngleThread, (void *)rArg);
 
 	// success
 	return 0;
 }
 
-//int CMobot::recordAngles(dReal *time, dReal *angle1, dReal *angle2, dReal *angle3, dReal *angle4, int num, dReal seconds, dReal threshold) {
-int CMobot::recordAngles(double time[], double angle1[], double angle2[], double angle3[], double angle4[], int num, double seconds, int shiftData) {
+void* CMobot::recordAngleBeginThread(void *arg) {
+	// cast arg struct
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// create initial time points
+	double start_time;
+	int time = (int)((*(rArg->robot->_clock))*1000);
+
+	// actively taking a new data point
+	MUTEX_LOCK(&rArg->robot->_recording_active_mutex);
+	rArg->robot->_recording_active[rArg->id] = true;
+	COND_SIGNAL(&rArg->robot->_recording_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_recording_active_mutex);
+
+	// loop until recording is no longer needed
+	for (int i = 0; rArg->robot->_recording[rArg->id]; i++) {
+		// store locally num of data points taken
+		rArg->robot->_recording_num[rArg->id] = i;
+
+		// resize array if filled current one
+		if(i >= rArg->num) {
+			rArg->num += RECORD_ANGLE_ALLOC_SIZE;
+			// create larger array for time
+			double *newBuf = (double *)malloc(sizeof(double) * rArg->num);
+			memcpy(newBuf, *rArg->ptime, sizeof(double)*i);
+			free(*(rArg->ptime));
+			*(rArg->ptime) = newBuf;
+			// create larger array for angle
+			newBuf = (double *)malloc(sizeof(double) * rArg->num);
+			memcpy(newBuf, *(rArg->pangle1), sizeof(double)*i);
+			free(*(rArg->pangle1));
+			*(rArg->pangle1) = newBuf;
+		}
+
+		// store joint angles
+		rArg->robot->getJointAngle(rArg->id, (*(rArg->pangle1))[i]);
+
+		// store time of data point
+		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
+		if (i == 0) { start_time = (*rArg->ptime)[i]; }
+		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
+
+		// increment time step
+		time += rArg->msecs;
+
+		// pause until next step
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
+	}
+
+	// signal completion of recording
+	MUTEX_LOCK(&rArg->robot->_recording_active_mutex);
+	rArg->robot->_recording_active[rArg->id] = false;
+	COND_SIGNAL(&rArg->robot->_recording_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_recording_active_mutex);
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+int CMobot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData) {
+	// check if recording already
+	if (_recording[id]) { return -1; }
+
+	// set up recording thread
 	THREAD_T recording;
+
+	// set up recording args struct
 	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->id = id;
+	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
+	rArg->msecs = seconds * 1000;
+	time = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	angle = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	rArg->ptime = &time;
+	rArg->pangle1 = &angle;
+
+	// store pointer to recorded angles locally
+	_recording_angles[id] = &angle;
+
+	// lock recording for joint id
+	_recording[id] = true;
+
+	// create thread
+	THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordAngleBeginThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+int CMobot::recordAngleEnd(robotJointId_t id, int &num) {
+	// turn off recording
+	MUTEX_LOCK(&_recording_mutex);
+	_recording[id] = false;
+	MUTEX_UNLOCK(&_recording_mutex);
+
+	// wait for last recording point to finish
+	MUTEX_LOCK(&_recording_active_mutex);
+	while (_recording_active[id]) {
+		COND_WAIT(&_recording_active_cond, &_recording_active_mutex);
+	}
+	MUTEX_UNLOCK(&_recording_active_mutex);
+
+	// report number of data points recorded
+	num = _recording_num[id];
+
+	// success
+	return 0;
+}
+
+void* CMobot::recordAnglesThread(void *arg) {
+	// cast arg struct
+    recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// create initial time points
+    double start_time;
+	int time = (int)(*(rArg->robot->_clock)*1000);
+
+	// get 'num' data points
+    for (int i = 0; i < rArg->num; i++) {
+		// store time of data point
+		rArg->time[i] = *(rArg->robot->_clock)*1000;
+        if (i == 0) { start_time = rArg->time[i]; }
+        rArg->time[i] = (rArg->time[i] - start_time) / 1000;
+
+		// store joint angles
+		rArg->robot->getJointAngle(ROBOT_JOINT1, rArg->angle1[i]);
+		rArg->robot->getJointAngle(ROBOT_JOINT2, rArg->angle2[i]);
+		rArg->robot->getJointAngle(ROBOT_JOINT3, rArg->angle3[i]);
+		rArg->robot->getJointAngle(ROBOT_JOINT4, rArg->angle4[i]);
+
+		// increment time step
+		time += rArg->msecs;
+
+		// pause until next step
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
+    }
+
+	// signal completion of recording
+	MUTEX_LOCK(&rArg->robot->_recording_mutex);
+    for (int i = 0; i < NUM_DOF; i++) {
+        rArg->robot->_recording[i] = false;
+    }
+	COND_SIGNAL(&rArg->robot->_recording_cond);
+	MUTEX_UNLOCK(&rArg->robot->_recording_mutex);
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+int CMobot::recordAngles(double *time, double *angle1, double *angle2, double *angle3, double *angle4, int num, double seconds, int shiftData) {
+	// check if recording already
 	for (int i = 0; i < NUM_DOF; i++) {
 		if (_recording[i]) { return -1; }
 	}
+
+	// set up recording thread
+	THREAD_T recording;
+
+	// set up recording args struct
+	recordAngleArg_t *rArg = new recordAngleArg_t;
 	rArg->robot = this;
 	rArg->time = time;
 	rArg->angle1 = angle1;
@@ -845,52 +1404,220 @@ int CMobot::recordAngles(double time[], double angle1[], double angle2[], double
 	rArg->angle4 = angle4;
 	rArg->num = num;
 	rArg->msecs = 1000*seconds;
+
+	// lock recording for joints
 	for (int i = 0; i < NUM_DOF; i++) {
 		_recording[i] = true;
 	}
-	THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::record_angles_thread, (void *)rArg);
+
+	// create thread
+	THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordAnglesThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+
+void* CMobot::recordAnglesBeginThread(void *arg) {
+	// cast arg struct
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// create initial time points
+	double start_time;
+	int time = (int)((*(rArg->robot->_clock))*1000);
+
+	// actively taking a new data point
+	MUTEX_LOCK(&rArg->robot->_recording_active_mutex);
+	rArg->robot->_recording_active[ROBOT_JOINT1] = true;
+	rArg->robot->_recording_active[ROBOT_JOINT2] = true;
+	rArg->robot->_recording_active[ROBOT_JOINT3] = true;
+	rArg->robot->_recording_active[ROBOT_JOINT4] = true;
+	COND_SIGNAL(&rArg->robot->_recording_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_recording_active_mutex);
+
+	// loop until recording is no longer needed
+	for (int i = 0; rArg->robot->_recording[rArg->id]; i++) {
+		// store locally num of data points taken
+		rArg->robot->_recording_num[ROBOT_JOINT1] = i;
+
+		// resize array if filled current one
+		if(i >= rArg->num) {
+			rArg->num += RECORD_ANGLE_ALLOC_SIZE;
+			// create larger array for time
+			double *newBuf = (double *)malloc(sizeof(double) * rArg->num);
+			memcpy(newBuf, *rArg->ptime, sizeof(double)*i);
+			//free(*(rArg->ptime));
+			delete *(rArg->ptime);
+			*(rArg->ptime) = newBuf;
+			// create larger array for angle1
+			newBuf = (double *)malloc(sizeof(double) * rArg->num);
+			memcpy(newBuf, *(rArg->pangle2), sizeof(double)*i);
+			free(*(rArg->pangle2));
+			*(rArg->pangle2) = newBuf;
+			// create larger array for angle2
+			newBuf = (double *)malloc(sizeof(double) * rArg->num);
+			memcpy(newBuf, *(rArg->pangle3), sizeof(double)*i);
+			free(*(rArg->pangle3));
+			*(rArg->pangle3) = newBuf;
+			// create larger array for angle3
+			newBuf = (double *)malloc(sizeof(double) * rArg->num);
+			memcpy(newBuf, *(rArg->pangle3), sizeof(double)*i);
+			free(*(rArg->pangle3));
+			*(rArg->pangle3) = newBuf;
+			// create larger array for angle4
+			newBuf = (double *)malloc(sizeof(double) * rArg->num);
+			memcpy(newBuf, *(rArg->pangle4), sizeof(double)*i);
+			free(*(rArg->pangle4));
+			*(rArg->pangle4) = newBuf;
+		}
+
+		// store joint angles
+		rArg->robot->getJointAngle(ROBOT_JOINT1, (*(rArg->pangle1))[i]);
+		rArg->robot->getJointAngle(ROBOT_JOINT2, (*(rArg->pangle2))[i]);
+		rArg->robot->getJointAngle(ROBOT_JOINT3, (*(rArg->pangle3))[i]);
+		rArg->robot->getJointAngle(ROBOT_JOINT4, (*(rArg->pangle4))[i]);
+
+		// store time of data point
+		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
+		if (i == 0) { start_time = (*rArg->ptime)[i]; }
+		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
+
+		// increment time step
+		time += rArg->msecs;
+
+		// pause until next step
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
+	}
+
+	// signal completion of recording
+	MUTEX_LOCK(&rArg->robot->_recording_active_mutex);
+	rArg->robot->_recording_active[ROBOT_JOINT1] = false;
+	rArg->robot->_recording_active[ROBOT_JOINT2] = false;
+	rArg->robot->_recording_active[ROBOT_JOINT3] = false;
+	rArg->robot->_recording_active[ROBOT_JOINT4] = false;
+	COND_SIGNAL(&rArg->robot->_recording_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_recording_active_mutex);
+
+	// cleanup
 	delete rArg;
 
 	// success
-	return 0;
-}
-
-int CMobot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData) {
-	// success
-	return 0;
-}
-
-int CMobot::recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData) {
-	// success
-	return 0;
-}
-
-int CMobot::recordAngleEnd(robotJointId_t id, int &num) {
-	// success
-	return 0;
-}
-
-int CMobot::recordDistanceEnd(robotJointId_t id, int &num) {
-	// success
-	return 0;
+	return NULL;
 }
 
 int CMobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, int shiftData) {
-	// success
-	return 0;
-}
+	// check if recording already
+	for (int i = 0; i < NUM_DOF; i++) {
+		if (_recording[i]) { return -1; }
+	}
 
-int CMobot::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, robotRecordData_t &distance4, double radius, double seconds, int shiftData) {
+	// set up recording thread
+	THREAD_T recording;
+
+	// set up recording args struct
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
+	rArg->msecs = seconds * 1000;
+	time = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	angle1 = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	angle2 = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	angle3 = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	angle4 = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	rArg->ptime = &time;
+	rArg->pangle1 = &angle1;
+	rArg->pangle2 = &angle2;
+	rArg->pangle3 = &angle3;
+	rArg->pangle4 = &angle4;
+
+	// store pointer to recorded angles locally
+	_recording_angles[ROBOT_JOINT1] = &angle1;
+	_recording_angles[ROBOT_JOINT2] = &angle2;
+	_recording_angles[ROBOT_JOINT3] = &angle3;
+	_recording_angles[ROBOT_JOINT4] = &angle4;
+
+	// lock recording for joint id
+	for (int i = 0; i < NUM_DOF; i++) {
+		_recording[i] = true;
+	}
+
+	// create thread
+	THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordAnglesBeginThread, (void *)rArg);
+
 	// success
 	return 0;
 }
 
 int CMobot::recordAnglesEnd(int &num) {
+	// turn off recording
+	MUTEX_LOCK(&_recording_mutex);
+	_recording[ROBOT_JOINT1] = 0;
+	_recording[ROBOT_JOINT2] = 0;
+	_recording[ROBOT_JOINT3] = 0;
+	_recording[ROBOT_JOINT4] = 0;
+	MUTEX_UNLOCK(&_recording_mutex);
+
+	// wait for last recording point to finish
+	MUTEX_LOCK(&_recording_active_mutex);
+	while (_recording_active[ROBOT_JOINT1] &&_recording_active[ROBOT_JOINT2] &&_recording_active[ROBOT_JOINT3] && _recording_active[ROBOT_JOINT4]) {
+		COND_WAIT(&_recording_active_cond, &_recording_active_mutex);
+	}
+	MUTEX_UNLOCK(&_recording_active_mutex);
+
+	// report number of data points recorded
+	num = _recording_num[ROBOT_JOINT1];
+
+	// success
+	return 0;
+}
+
+int CMobot::recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData) {
+	// set radius of robot
+	_radius = radius;
+
+	// record angle of desired joint
+	this->recordAngleBegin(id, time, distance, seconds, shiftData);
+
+	// success
+	return 0;
+}
+
+int CMobot::recordDistanceEnd(robotJointId_t id, int &num) {
+	// end recording of angles
+	this->recordAngleEnd(id, num);
+
+	// convert all angles to distances based upon radius
+	for (int i = 0; i < num; i++) {
+		(*_recording_angles[id])[i] = DEG2RAD((*_recording_angles[id])[i]) * _radius;
+	}
+
+	// success
+	return 0;
+}
+
+int CMobot::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, robotRecordData_t &distance4, double radius, double seconds, int shiftData) {
+	// set radius of robot
+	_radius = radius;
+
+	// record angles
+	this->recordAnglesBegin(time, distance1, distance2, distance3, distance4, seconds, shiftData);
+
 	// success
 	return 0;
 }
 
 int CMobot::recordDistancesEnd(int &num) {
+	// end recording of angles
+	this->recordAnglesEnd(num);
+
+	// convert all angles to distances based upon radius
+	for (int i = 0; i < num; i++) {
+		for (int j = 0; j < 4; j++) {
+			(*_recording_angles[j])[i] = DEG2RAD((*_recording_angles[j])[i]) * _radius;
+		}
+	}
+
 	// success
 	return 0;
 }
@@ -949,12 +1676,43 @@ int CMobot::resetToZeroNB(void) {
 }
 
 int CMobot::setExitState(robotJointState_t exitState) {
+	_simObject.setExitState();
+
 	// success
 	return 0;
 }
 
 int CMobot::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
-	//this->setJointDirection(id, dir);
+	// lock mutexes
+	MUTEX_LOCK(&_success_mutex);
+
+	// enable motor
+	dJointEnable(_motor[id]);
+	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
+	_seek[id] = false;
+	switch (dir) {
+		case ROBOT_FORWARD:
+			_state[id] = ROBOT_FORWARD;
+			dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
+			break;
+		case ROBOT_BACKWARD:
+			_state[id] = ROBOT_BACKWARD;
+			dJointSetAMotorParam(_motor[id], dParamVel, -_speed[id]);
+			break;
+		case ROBOT_HOLD:
+			_state[id] = ROBOT_HOLD;
+			dJointSetAMotorParam(_motor[id], dParamVel, 0);
+			break;
+		case ROBOT_NEUTRAL:
+			_state[id] = ROBOT_NEUTRAL;
+			dJointDisable(_motor[id]);
+			break;
+	}
+	_success[id] = false;
+    dBodyEnable(_body[CENTER]);
+
+	// unlock mutexes
+	MUTEX_UNLOCK(&_success_mutex);
 
 	// success
 	return 0;
@@ -989,6 +1747,13 @@ int CMobot::setJointSpeed(robotJointId_t id, double speed) {
 	return 0;
 }
 
+int CMobot::setJointSpeedRatio(robotJointId_t id, double ratio) {
+	if ( ratio < 0 || ratio > 1 ) {
+		return -1;
+	}
+	return this->setJointSpeed(id, ratio * _maxSpeed[(int)id-1]);
+}
+
 int CMobot::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
 	_speed[0] = DEG2RAD((speed1 > _maxSpeed[0]) ? _maxSpeed[0] : speed1);
 	_speed[1] = DEG2RAD((speed2 > _maxSpeed[1]) ? _maxSpeed[1] : speed2);
@@ -997,13 +1762,6 @@ int CMobot::setJointSpeeds(double speed1, double speed2, double speed3, double s
 
 	// success
 	return 0;
-}
-
-int CMobot::setJointSpeedRatio(robotJointId_t id, double ratio) {
-	if ( ratio < 0 || ratio > 1 ) {
-		return -1;
-	}
-	return this->setJointSpeed(id, ratio * _maxSpeed[(int)id-1]);
 }
 
 int CMobot::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4) {
@@ -1046,8 +1804,8 @@ int CMobot::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir
 }
 
 int CMobot::setTwoWheelRobotSpeed(double speed, double radius) {
-	this->setJointSpeed(ROBOT_JOINT1, speed/radius);
-	this->setJointSpeed(ROBOT_JOINT4, speed/radius);
+	this->setJointSpeed(ROBOT_JOINT1, RAD2DEG(speed/radius));
+	this->setJointSpeed(ROBOT_JOINT4, RAD2DEG(speed/radius));
 
 	// success
 	return 0;
@@ -1170,6 +1928,11 @@ int CMobot::build(bot_t robot) {
 	// debug printing
 	//const dReal *pos = dBodyGetPosition(_body[CENTER]);
 	//printf("robot pos: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
+	/*const dReal *rot;
+	for (int i = 0; i < 5; i++) {
+		rot = dBodyGetRotation(_body[i]);
+		printf("rotation %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", rot[0], rot[1], rot[2], rot[4], rot[5], rot[6], rot[8], rot[9], rot[10]);
+	}*/
 
 	// success
 	return 0;
@@ -1196,11 +1959,12 @@ int CMobot::build(bot_t robot, CRobot *base, Conn_t *conn) {
 }
 
 dReal CMobot::getAngle(int i) {
+	dReal angle = 0;
 	if (i == LE || i == RE)
-		_angle[i] = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
+		angle = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
 	else
-		_angle[i] = dJointGetHingeAngle(_joint[i]);
-    return _angle[i];
+		angle = dJointGetHingeAngle(_joint[i]);
+	return angle;
 }
 
 dBodyID CMobot::getBodyID(int id) {
@@ -1297,6 +2061,10 @@ dBodyID CMobot::getConnectorBodyIDs(int num) {
 	return NULL;
 }
 
+/*int CMobot::getEnc(int id) {
+	
+}*/
+
 int CMobot::getID(void) {
 	return _id;
 }
@@ -1354,18 +2122,40 @@ void CMobot::simPreCollisionThread(void) {
 	MUTEX_LOCK(&_angle_mutex);
 
 	// update angle values for each degree of freedom
-	for ( int i = 0; i < NUM_DOF; i++ ) {
-		// update current angle
+	for (int i = 0; i < NUM_DOF; i++) {
+		// store current angle
 		_angle[i] = getAngle(i);
 		// set motor angle to current angle
 		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
 		// drive motor to get current angle to match future angle
-		if (_angle[i] < _goal[i] - _encoderResolution)
-			dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]);
-		else if (_angle[i] > _goal[i] + _encoderResolution)
-			dJointSetAMotorParam(_motor[i], dParamVel, -_speed[i]);
-		else
-			dJointSetAMotorParam(_motor[i], dParamVel, 0);
+		if (_seek[i]) {
+			if (_angle[i] < _goal[i] - _encoderResolution) {
+				_state[i] = ROBOT_FORWARD;
+				dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]);
+			}
+			else if (_angle[i] > _goal[i] + _encoderResolution) {
+				_state[i] = ROBOT_BACKWARD;
+				dJointSetAMotorParam(_motor[i], dParamVel, -_speed[i]);
+			}
+			else {
+				_state[i] = ROBOT_HOLD;
+				dJointSetAMotorParam(_motor[i], dParamVel, 0);
+			}
+		}
+		else {
+			switch (_state[i]) {
+				case ROBOT_FORWARD:
+				case ROBOT_BACKWARD:
+					dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]);
+					break;
+				case ROBOT_HOLD:
+					dJointSetAMotorParam(_motor[i], dParamVel, 0);
+					break;
+				case ROBOT_NEUTRAL:
+					dJointDisable(_motor[i]);
+					break;
+			}
+		}
 	}
 
 	// unlock angle and goal
@@ -1374,9 +2164,8 @@ void CMobot::simPreCollisionThread(void) {
 }
 
 void CMobot::simPostCollisionThread(void) {
-	// lock angle and goal
-	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_angle_mutex);
+	// lock
+	MUTEX_LOCK(&_success_mutex);
 
 	// check if joint speed is zero -> joint has completed step
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -1386,9 +2175,8 @@ void CMobot::simPostCollisionThread(void) {
 		COND_SIGNAL(&_success_cond);
 	}
 
-	// unlock angle and goal
-	MUTEX_UNLOCK(&_angle_mutex);
-	MUTEX_UNLOCK(&_goal_mutex);
+	// unlock
+	MUTEX_UNLOCK(&_success_mutex);
 }
 
 #ifdef ENABLE_GRAPHICS
@@ -1551,7 +2339,7 @@ void CMobot::draw(osg::Group *root) {
 	body[ENDCAP_R]->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture to robot
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/body.png"));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(mobot/body.png)));
     tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -1591,7 +2379,11 @@ void CMobot::draw(osg::Group *root) {
 	}
 
 	// set update callback for robot
-	robot->setUpdateCallback(new robot4NodeCallback(this));
+	robot->setUpdateCallback(new mobotNodeCallback(this));
+
+	// optimize robot
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(robot);
 
 	// add to scenegraph
 	root->addChild(robot);
@@ -2626,9 +3418,11 @@ int CMobot::init_params(void) {
 	for (int i = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
 		_goal[i] = 0;
+		_seek[i] = false;
 		_recording[i] = false;
 		_success[i] = true;
-		_speed[i] = 0.7854;	// 45 deg/sec
+		_state[i] = ROBOT_NEUTRAL;
+		_speed[i] = 0.7854;		// 45 deg/sec
 		_maxSpeed[i] = 120;		// deg/sec
 	}
 	_conn = NULL;
@@ -2745,52 +3539,6 @@ dReal CMobot::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
         this->pid[i].restart();
 }*/
 
-void* CMobot::record_angle_thread(void *arg) {
-    recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-    double start_time;
-	int time = (int)(*(rArg->robot->_clock)*1000);
-    for (int i = 0; i < rArg->num; i++) {
-		rArg->time[i] = *(rArg->robot->_clock)*1000;
-        if (i == 0) { start_time = rArg->time[i]; }
-        rArg->time[i] = (rArg->time[i] - start_time) / 1000;
-		rArg->robot->getJointAngle(rArg->id, rArg->angle1[i]);
-
-		// increment time step
-		time += rArg->msecs;
-		// pause until next step
-		while ( (int)(*(rArg->robot->_clock)*1000) < time ) {}
-    }
-	SIGNAL(&rArg->robot->_recording_cond, &rArg->robot->_recording_mutex, rArg->robot->_recording[rArg->id] = false);
-	return NULL;
-}
-
-void* CMobot::record_angles_thread(void *arg) {
-    recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-    double start_time;
-	int time = (int)(*(rArg->robot->_clock)*1000);
-    for (int i = 0; i < rArg->num; i++) {
-		rArg->time[i] = *(rArg->robot->_clock)*1000;
-        if (i == 0) { start_time = rArg->time[i]; }
-        rArg->time[i] = (rArg->time[i] - start_time) / 1000;
-		rArg->robot->getJointAngle(ROBOT_JOINT1, rArg->angle1[i]);
-		rArg->robot->getJointAngle(ROBOT_JOINT2, rArg->angle2[i]);
-		rArg->robot->getJointAngle(ROBOT_JOINT3, rArg->angle3[i]);
-		rArg->robot->getJointAngle(ROBOT_JOINT4, rArg->angle4[i]);
-
-		// increment time step
-		time += rArg->msecs;
-		// pause until next step
-		while ( (int)(*(rArg->robot->_clock)*1000) < time ) {}
-    }
-	MUTEX_LOCK(&rArg->robot->_recording_mutex);
-    for (int i = 0; i < NUM_DOF; i++) {
-        rArg->robot->_recording[i] = false;
-    }
-	COND_SIGNAL(&rArg->robot->_recording_cond);
-	MUTEX_UNLOCK(&rArg->robot->_recording_mutex);
-	return NULL;
-}
-
 #ifdef ENABLE_GRAPHICS
 void CMobot::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	// initialize variables
@@ -2808,7 +3556,7 @@ void CMobot::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/conn.png"));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(mobot/conn.png)));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -2817,6 +3565,9 @@ void CMobot::draw_bigwheel(conn_t conn, osg::Group *robot) {
 
 	// add body to pat
 	pat->addChild(body.get());
+	// optimize
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(pat);
 	// add to scenegraph
 	robot->addChild(pat);
 }
@@ -2886,8 +3637,8 @@ void CMobot::draw_caster(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(sph));
     
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/conn.png"));
-    tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(mobot/conn.png)));
+	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
@@ -2895,6 +3646,9 @@ void CMobot::draw_caster(conn_t conn, osg::Group *robot) {
 
 	// add body to pat
 	pat->addChild(body.get());
+	// optimize
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(pat);
 	// add to scenegraph
 	robot->addChild(pat);
 }
@@ -2949,8 +3703,8 @@ void CMobot::draw_simple(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/conn.png"));
-    tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(mobot/conn.png)));
+	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
@@ -2958,6 +3712,9 @@ void CMobot::draw_simple(conn_t conn, osg::Group *robot) {
 
 	// add body to pat
 	pat->addChild(body.get());
+	// optimize
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(pat);
 	// add to scenegraph
 	robot->addChild(pat);
 }
@@ -2978,7 +3735,7 @@ void CMobot::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/conn.png"));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(mobot/conn.png)));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -2987,6 +3744,9 @@ void CMobot::draw_smallwheel(conn_t conn, osg::Group *robot) {
 
 	// add body to pat
 	pat->addChild(body.get());
+	// optimize
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(pat);
 	// add to scenegraph
 	robot->addChild(pat);
 }
@@ -3022,7 +3782,7 @@ void CMobot::draw_square(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/conn.png"));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(mobot/conn.png)));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -3031,6 +3791,9 @@ void CMobot::draw_square(conn_t conn, osg::Group *robot) {
 
 	// add body to pat
 	pat->addChild(body.get());
+	// optimize
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(pat);
 	// add to scenegraph
 	robot->addChild(pat);
 }
@@ -3054,8 +3817,8 @@ void CMobot::draw_tank(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile("/usr/local/ch/package/chrobotsim/data/mobot/conn.png"));
-    tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(mobot/conn.png)));
+	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
@@ -3063,6 +3826,9 @@ void CMobot::draw_tank(conn_t conn, osg::Group *robot) {
 
 	// add body to pat
 	pat->addChild(body.get());
+	// optimize
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(pat);
 	// add to scenegraph
 	robot->addChild(pat);
 }

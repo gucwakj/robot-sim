@@ -7,22 +7,15 @@
  1|   2     |   3    | 4 X 1|    2    |   3    | 4
   |---------|--------|      |---------|--------|
 */
-#include <robotsim.h>
+#include <mobotsim.h>
 #include <chplot.h>
 #include <numeric.h>
 
 /* Declare plotting variables */
 CPlot plot1, plot2, plot3;
 
-/* Declare simulation */
-CRobotSim sim;
-
 /* Declare mobots */
 CMobot mobot1, mobot2;
-
-/* add mobots to simulation */
-sim.addRobot(mobot1);
-sim.addRobot(mobot2);
 
 /* connect to Mobots and move to the zero position at the same time. */
 mobot1.connect();
@@ -38,8 +31,8 @@ double time1[numDataPoints];
 double time2[numDataPoints];
 double angles1[numDataPoints];
 double angles2[numDataPoints];
-mobot1.recordAngle(MOBOT_JOINT2, time1, angles1, numDataPoints, timeInterval);
-mobot2.recordAngle(MOBOT_JOINT2, time2, angles2, numDataPoints, timeInterval);
+mobot1.recordAngle(ROBOT_JOINT2, time1, angles1, numDataPoints, timeInterval);
+mobot2.recordAngle(ROBOT_JOINT2, time2, angles2, numDataPoints, timeInterval);
 /* first lift */
 mobot1.moveToNB(0, -90,  0, 0);
 mobot2.moveToNB(0, 0, 90, 0);

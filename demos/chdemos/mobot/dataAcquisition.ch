@@ -1,17 +1,13 @@
 /* File: dataAcquisition.ch
 */
-#include <robotsim.h>
+#include <mobotsim.h>
+#include <chplot.h>
 #include <numeric.h>
 
 /* Declare mobot */
-CMobot mobot;
+CMobot robot;
 
-/* Declare simulation */
-CRobotSim sim;
-sim.addRobot(mobot);
-
-mobot.resetToZero();
-mobot.connect();
+robot.connect();
 
 double speed = 45; /* Degrees/second */
 double angle = 720; /* Degrees */
@@ -29,18 +25,29 @@ int numDataPoints = movementTime / timeInterval; /* Unitless */
 double time[numDataPoints];
 double angles1[numDataPoints];
 
+/* Declare plotting variables */
+CPlot plot1, plot2, plot3;
+
 /* Start the motion. First, move mobot to zero position */
-mobot.resetToZero();
+robot.resetToZero();
 
 /* Set the joint 1 speed to 45 degrees/second */
-mobot.setJointSpeed(MOBOT_JOINT1, speed);
-mobot.setJointSpeed(MOBOT_JOINT4, speed);
+robot.setJointSpeed(ROBOT_JOINT1, speed);
+robot.setJointSpeed(ROBOT_JOINT4, speed);
 
 /* Start capturing data */
-mobot.recordAngle(MOBOT_JOINT1, time, angles1, numDataPoints, timeInterval);
+robot.recordAngle(ROBOT_JOINT1, time, angles1, numDataPoints, timeInterval);
 
 /* Move the joint 720 degrees */
-mobot.move(angle, 0, 0, angle);
+robot.move(angle, 0, 0, angle);
 
 /* Wait for recording to finish */
-mobot.recordWait();
+robot.recordWait();
+
+/* Plot the data */
+plot1.title("Data for Joint Angle 1 versus Time");
+plot1.label(PLOT_AXIS_X, "Time (seconds)");
+plot1.label(PLOT_AXIS_Y, "Angle (degrees)");
+plot1.data2DCurve(time, angles1, numDataPoints);
+plot1.grid(PLOT_ON);
+plot1.plotting();

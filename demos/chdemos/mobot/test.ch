@@ -1,13 +1,11 @@
-#include "robotsim.h"
+#include <mobotsim.h>
 
-CMobot mobot1;
+CMobot robot;
 
-CRobotSim sim;
-sim.addMobot(mobot1);
+robot.connect();
 
-mobot1.connect();
+robot.resetToZero();
+robot.setJointSpeeds(120, 120, 120, 120);
+robot.moveDistance(14, 1.75);
 
-//mobot1.resetToZero();
-//mobot1.moveTo(0, 0, 45, 0);
-
-sim.setExitState(1);
+robot.setExitState(ROBOT_HOLD);

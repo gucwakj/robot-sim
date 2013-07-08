@@ -24,8 +24,8 @@ include_directories("../../src/opende/include")
 include_directories("../../src/tinyxml2")
 
 # Add OSG library
-include_directories("../../src/openscenegraph/build/include")
 include_directories("../../src/openscenegraph/include")
+include_directories("../../src/openscenegraph/build/include")
 
 # Compilation options
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
@@ -42,5 +42,7 @@ link_directories("../../src/crobotsim/build/Release")
 set(EXTRA_LIBS ${EXTRA_LIBS} optimized robotsim debug robotsimd)
 
 # linkbot demos
-add_executable(itest test.cpp)
-target_link_libraries(itest ${EXTRA_LIBS})
+add_executable(test test.cpp)
+target_link_libraries(test ${EXTRA_LIBS})
+add_executable(recorddistances recorddistances.cpp)
+target_link_libraries(recorddistances ${EXTRA_LIBS})

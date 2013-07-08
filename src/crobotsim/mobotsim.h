@@ -1,71 +1,37 @@
 #ifndef MOBOT_H_
 #define MOBOT_H_
 
-#ifndef _CH_
-#include "config.h"
-#include "pid.h"
-#ifdef ENABLE_GRAPHICS
-#include "graphics.h"
-#endif // ENABLE_GRAPHICS
 #include "robotsim.h"
-#include "base.h"
-#endif // not _CH_
-
-#ifdef ENABLE_DOUBLE
-#define EPSILON DBL_EPSILON
-#else
-#define EPSILON FLT_EPSILON
-#endif // ENABLE_DOUBLE
-
-typedef enum mobot_face_id_e {
-	MOBOT_FACE1 = 1,
-	MOBOT_FACE2,
-	MOBOT_FACE3,
-	MOBOT_FACE4,
-	MOBOT_FACE5,
-	MOBOT_FACE6
-} mobotFaceId_t;
-typedef enum mobot_connector_e {
-	BIGWHEEL,
-	CASTER,
-	L,
-	SIMPLE,
-	SMALLWHEEL,
-	SQUARE,
-	TANK,
-	NUM_CONNECTORS
-} mobotConnector_t;
 
 #ifdef _CH_
 class DLLIMPORT CMobot {
 #else
+#include "config.h"
+//#include "pid.h"
+#include "graphics.h"
 class DLLIMPORT CMobot : virtual public CRobot {
 #endif // _CH_
-	// public api to mimic CMobot class
 	public:
 		CMobot();
 		~CMobot();
 
 		int connect(void);
 		int disconnect(void);
-		int driveJointToDirect(robotJointId_t id, double angle);
 		int driveJointTo(robotJointId_t id, double angle);
+		int driveJointToDirect(robotJointId_t id, double angle);
 		int driveJointToDirectNB(robotJointId_t id, double angle);
 		int driveJointToNB(robotJointId_t id, double angle);
-		int driveToDirect(double angle1, double angle2, double angle3, double angle4);
 		int driveTo(double angle1, double angle2, double angle3, double angle4);
+		int driveToDirect(double angle1, double angle2, double angle3, double angle4);
 		int driveToDirectNB(double angle1, double angle2, double angle3, double angle4);
 		int driveToNB(double angle1, double angle2, double angle3, double angle4);
 		int getJointAngle(robotJointId_t id, double &angle);
-#ifdef _CH_
-		int getJointAngleAverage(robotJointId_t id, double &angle, ... );
-#else
-		int getJointAngleAverage(robotJointId_t id, double &angle, int numReadings=10);
-#endif
 		int getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4);
 #ifdef _CH_
+		int getJointAngleAverage(robotJointId_t id, double &angle, ...);
 		int getJointAnglesAverage(double &angle1, double &angle2, double &angle3, double &angle4, ...);
 #else
+		int getJointAngleAverage(robotJointId_t id, double &angle, int numReadings=10);
 		int getJointAnglesAverage(double &angle1, double &angle2, double &angle3, double &angle4, int numReadings=10);
 #endif
 		int getJointMaxSpeed(robotJointId_t id, double &maxSpeed);
@@ -79,30 +45,30 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int isConnected();
 		int isMoving();
 		int motionArch(double angle);
-		int motionDistance(double distance, double radius);
-		int motionInchwormLeft(int num);
-		int motionInchwormRight(int num);
-		int motionRollBackward(double angle);
-		int motionRollForward(double angle);
-		int motionSkinny(double angle);
-		int motionStand(void);
-		int motionTumbleRight(int num);
-		int motionTumbleLeft(int num);
-		int motionTurnLeft(double angle);
-		int motionTurnRight(double angle);
-		int motionUnstand(void);
 		int motionArchNB(double angle);
+		int motionDistance(double distance, double radius);
 		int motionDistanceNB(double distance, double radius);
+		int motionInchwormLeft(int num);
 		int motionInchwormLeftNB(int num);
+		int motionInchwormRight(int num);
 		int motionInchwormRightNB(int num);
+		int motionRollBackward(double angle);
 		int motionRollBackwardNB(double angle);
+		int motionRollForward(double angle);
 		int motionRollForwardNB(double angle);
+		int motionSkinny(double angle);
 		int motionSkinnyNB(double angle);
+		int motionStand(void);
 		int motionStandNB(void);
-		int motionTumbleRightNB(int num);
+		int motionTumbleLeft(int num);
 		int motionTumbleLeftNB(int num);
+		int motionTumbleRight(int num);
+		int motionTumbleRightNB(int num);
+		int motionTurnLeft(double angle);
 		int motionTurnLeftNB(double angle);
+		int motionTurnRight(double angle);
 		int motionTurnRightNB(double angle);
+		int motionUnstand(void);
 		int motionUnstandNB(void);
 		int motionWait(void);
 		int move(double angle1, double angle2, double angle3, double angle4);
@@ -133,27 +99,21 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int moveWait();
 #ifdef _CH_
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
+		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
 		int recordAngles(double time[:], double angle1[:], double angle2[:], double angle3[:], double angle4[:], int num, double seconds, ...);
+		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, ...);
+		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, ...);
+		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, robotRecordData_t &distance4, double radius, double seconds, ...);
 #else
 		int recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData = 1);
-		int recordAngles(double time[], double angle1[], double angle2[], double angle3[], double angle4[], int num, double seconds, int shiftData = 1);
-#endif
-#ifdef _CH_
-		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
-		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, ...);
-#else
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData = 1);
+		int recordAngles(double time[], double angle1[], double angle2[], double angle3[], double angle4[], int num, double seconds, int shiftData = 1);
+		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, int shiftData = 1);
 		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData = 1);
+		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, robotRecordData_t &distance4, double radius, double seconds, int shiftData = 1);
 #endif
 		int recordAngleEnd(robotJointId_t id, int &num);
 		int recordDistanceEnd(robotJointId_t id, int &num);
-#ifdef _CH_
-		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, ...);
-		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, robotRecordData_t &distance4, double radius, double seconds, ...);
-#else
-		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, int shiftData = 1);
-		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, robotRecordData_t &distance4, double radius, double seconds, int shiftData = 1);
-#endif
 		int recordAnglesEnd(int &num);
 		int recordDistancesEnd(int &num);
 		int recordWait();
@@ -166,8 +126,8 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
-		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
+		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
 		int setMotorPower(robotJointId_t id, int power);
 		int setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4);
@@ -206,10 +166,15 @@ class DLLIMPORT CMobot : virtual public CRobot {
 			int num;
 			int msecs;
 			double *time;
+			double **ptime;
 			double *angle1;
+			double **pangle1;
 			double *angle2;
+			double **pangle2;
 			double *angle3;
+			double **pangle3;
 			double *angle4;
+			double **pangle4;
 		} recordAngleArg_t;
 		typedef struct conn_s {
 			int face, type;
@@ -237,8 +202,15 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int _state[NUM_DOF];		// joint states
 		int _type;					// type of robot
 		int _connected;				// connected to controller
+		int _enc[NUM_DOF];
+		int _goa[NUM_DOF];
+		double _radius;				// wheel radius
+		double **_recording_angles[NUM_DOF];
 		bool _recording[NUM_DOF];	// recording in progress
+		bool _recording_active[NUM_DOF];		// actively recording a new value
+		int _recording_num[NUM_DOF];// recording data points
 		bool _success[NUM_DOF];		// trigger for goal
+		bool _seek[NUM_DOF];		// currently seeking goal?
 		double	_encoderResolution,
 				_center_length, _center_width, _center_height, _center_radius, _center_offset,
 				_body_length, _body_width, _body_height, _body_radius,
@@ -265,9 +237,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		virtual int setID(int id);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
-#ifdef ENABLE_GRAPHICS
-		virtual void draw(osg::Group *root);
-#endif // ENABLE_GRAPHICS
 
 		// private functions
 		int add_connector(int type, int face);
@@ -289,17 +258,39 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int init_dims(void);
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);                 // modify angle from ODE for endcaps to count continuously
         //void resetPID(int i = NUM_DOF);
-		static void* record_angle_thread(void *arg);
-		static void* record_angles_thread(void *arg);
-#ifdef ENABLE_GRAPHICS
+		static void* motionInchwormLeftThread(void *arg);
+		static void* recordAngleThread(void *arg);
+		static void* recordAngleBeginThread(void *arg);
+		static void* recordAnglesThread(void *arg);
+		static void* recordAnglesBeginThread(void *arg);
+//#ifdef ENABLE_GRAPHICS
+		virtual void draw(osg::Group *root);
 		void draw_bigwheel(conn_t conn, osg::Group *robot);
 		void draw_caster(conn_t conn, osg::Group *robot);
 		void draw_simple(conn_t conn, osg::Group *robot);
 		void draw_smallwheel(conn_t conn, osg::Group *robot);
 		void draw_square(conn_t conn, osg::Group *robot);
 		void draw_tank(conn_t conn, osg::Group *robot);
-#endif // ENABLE_GRAPHICS
+//#endif // ENABLE_GRAPHICS
 #endif // not _CH_
 };
 
-#endif  // MOBOTSIM_H_
+typedef struct motionArg_s {
+	int i;
+	double d;
+	CMobot *robot;
+} motionArg_t;
+
+#ifdef _CH_
+#ifndef ROBOTSIM_DLHANDLE
+#define ROBOTSIM_DLHANDLE
+void* CRobotSim::g_chrobotsim_dlhandle = NULL;
+int CRobotSim::g_chrobotsim_dlcount = 0;
+#pragma importf "chrobotsim.chf"
+#endif
+#pragma importf "chmobotsim.chf"
+#else
+extern CRobotSim _simObject;
+#endif
+
+#endif  // MOBOT_H_

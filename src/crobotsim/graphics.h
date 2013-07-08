@@ -46,29 +46,6 @@
 class CRobot;
 class CRobotSim;
 
-class ViewerFrameThread : public OpenThreads::Thread {
-    public:
-        ViewerFrameThread(osgViewer::ViewerBase *viewerBase, bool doApplicationExit):
-            _viewerBase(viewerBase),
-            _doApplicationExit(doApplicationExit) {}
-        ~ViewerFrameThread() {
-            cancel();
-            while ( isRunning() ) {
-                OpenThreads::Thread::YieldCurrentThread();
-            }
-        }
-        int cancel() {
-            _viewerBase->setDone(true);
-            return 0;
-        }
-        void run() {
-            int result = _viewerBase->run();
-            if (_doApplicationExit) exit(result);
-        }
-        osg::ref_ptr<osgViewer::ViewerBase> _viewerBase;
-        bool _doApplicationExit;
-};
-
 class MoveEarthySkyWithEyePointTransform : public osg::Transform {
 	public:
 		/** Get the transformation matrix which moves from local coords to world coords.*/
@@ -92,17 +69,13 @@ class MoveEarthySkyWithEyePointTransform : public osg::Transform {
 };
 
 // Update texture matrix for cubemaps
-class TexMatCallback : public osg::NodeCallback
-{
-public:
+class TexMatCallback : public osg::NodeCallback {
+	public:
+		//TexMatCallback(osg::TexMat& tm);
+		TexMatCallback(osg::TexMat& tm) : _texMat(tm) {}
 
-    TexMatCallback(osg::TexMat& tm) :
-        _texMat(tm)
-    {
-    }
-
-    virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
-    {
+		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+    /*{
         osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
         if (cv)
         {
@@ -117,9 +90,9 @@ public:
         }
 
         traverse(node,nv);
-    }
-
-    osg::TexMat& _texMat;
+    }*/
+	private:
+		osg::TexMat& _texMat;
 };
 
 class rootNodeCallback : public osg::NodeCallback {
@@ -133,9 +106,9 @@ class rootNodeCallback : public osg::NodeCallback {
 		int _number[NUM_TYPES];
 };
 
-class robot4NodeCallback : public osg::NodeCallback {
+class mobotNodeCallback : public osg::NodeCallback {
 	public:
-		robot4NodeCallback(CRobot *robot);
+		mobotNodeCallback(CRobot *robot);
 		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 	private:
 		CRobot *_robot;

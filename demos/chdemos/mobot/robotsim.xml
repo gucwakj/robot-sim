@@ -1,9 +1,25 @@
 <? xml version="1.0" ?>
 <sim>
 	<mobot id="0"></mobot>
-	<!--<mobot id="1"></mobot>-->
-	<!--<simple>
+	<smallwheel>
+		<side id="1" robot="0" face="1" />
+	</smallwheel>
+	<caster>
+		<side id="1" robot="0" face="3" />
+	</caster>
+	<smallwheel>
 		<side id="1" robot="0" face="8" />
+	</smallwheel>
+	<mobot id="1">
+		<position x="1" />
+	</mobot>
+	<smallwheel>
 		<side id="1" robot="1" face="1" />
-	</simple>-->
+	</smallwheel>
+	<caster>
+		<side id="1" robot="1" face="3" />
+	</caster>
+	<smallwheel>
+		<side id="1" robot="1" face="8" />
+	</smallwheel>
 </sim>

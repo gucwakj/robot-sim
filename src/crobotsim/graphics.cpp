@@ -1,17 +1,36 @@
 #include "graphics.h"
 #include "robotsim.h"
 
+/*TexMatCallback::TexMatCallback(osg::TexMat &tm) {
+	_texMat = tm;
+}*/
+
+void TexMatCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
+	osgUtil::CullVisitor *cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
+	if (cv) {
+		const osg::Matrix& MV = *(cv->getModelViewMatrix());
+		const osg::Matrix R = osg::Matrix::rotate( osg::DegreesToRadians(112.0f), 0.0f,0.0f,1.0f)*
+								osg::Matrix::rotate( osg::DegreesToRadians(90.0f), 1.0f,0.0f,0.0f);
+
+		osg::Quat q = MV.getRotate();
+		const osg::Matrix C = osg::Matrix::rotate( q.inverse() );
+
+		_texMat.setMatrix( C*R );
+	}
+	traverse(node, nv);
+}
+
 rootNodeCallback::rootNodeCallback(CRobotSim *sim, CRobot ***robot, osg::Group *root) {
 	_sim = sim;
 	_robot = robot;
 	_root = root;
-	for ( int i = 0; i < NUM_TYPES; i++) { _number[i] = 0; }
+	for (int i = 0; i < NUM_TYPES; i++) { _number[i] = 0; }
 }
 
 void rootNodeCallback::operator()(osg::Node *node, osg::NodeVisitor *nv) {
 	osg::Group *group = dynamic_cast<osg::Group *>(node);
 	if (group) {
-		for ( int i = 0; i < NUM_TYPES; i++) {
+		for (int i = 0; i < NUM_TYPES; i++) {
 			if (_number[i] != _sim->getNumberOfRobots(i)) {
 				_robot[i][_number[i]++]->draw(_root);
 			}
@@ -20,11 +39,11 @@ void rootNodeCallback::operator()(osg::Node *node, osg::NodeVisitor *nv) {
 	traverse(node, nv);
 }
 
-robot4NodeCallback::robot4NodeCallback(CRobot *robot) {
+mobotNodeCallback::mobotNodeCallback(CRobot *robot) {
 	_robot = robot;
 }
 
-void robot4NodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
+void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	osg::Group *group = dynamic_cast<osg::Group *>(node);
 	if (group) {
 		const dReal *pos, *quat;
