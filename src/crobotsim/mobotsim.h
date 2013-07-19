@@ -263,7 +263,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		static void* recordAngleBeginThread(void *arg);
 		static void* recordAnglesThread(void *arg);
 		static void* recordAnglesBeginThread(void *arg);
-//#ifdef ENABLE_GRAPHICS
+#ifdef ENABLE_GRAPHICS
 		virtual void draw(osg::Group *root);
 		void draw_bigwheel(conn_t conn, osg::Group *robot);
 		void draw_caster(conn_t conn, osg::Group *robot);
@@ -271,7 +271,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		void draw_smallwheel(conn_t conn, osg::Group *robot);
 		void draw_square(conn_t conn, osg::Group *robot);
 		void draw_tank(conn_t conn, osg::Group *robot);
-//#endif // ENABLE_GRAPHICS
+#endif // ENABLE_GRAPHICS
 #endif // not _CH_
 };
 

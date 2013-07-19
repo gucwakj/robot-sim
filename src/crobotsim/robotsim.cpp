@@ -460,7 +460,8 @@ void *CRobotSim::graphicsWait(void *arg) {
 
 int CRobotSim::init_viz(void) {
 	// set notification level to no output
-	osg::setNotifyLevel(osg::ALWAYS);
+	//osg::setNotifyLevel(osg::ALWAYS);
+	osg::setNotifyLevel(osg::DEBUG_FP);
 
     // construct the viewer
 	viewer = new osgViewer::Viewer();
@@ -482,12 +483,11 @@ int CRobotSim::init_viz(void) {
 }
 
 void* CRobotSim::graphicsThread(void *arg) {
-	// initialize variables
-	//double fovy, ar, zNear, zFar, nar/*, dar*/;
-	unsigned int width, height;
-
 	// cast viewer
 	CRobotSim *sim = (CRobotSim *)arg;
+
+	// initialize variables
+	unsigned int width, height;
 
 	// window interface
 	osg::GraphicsContext::WindowingSystemInterface *wsi = osg::GraphicsContext::getWindowingSystemInterface();
@@ -519,24 +519,14 @@ void* CRobotSim::graphicsThread(void *arg) {
 		return NULL;
 	}
 
-	// graphics window
-	/*osgViewer::GraphicsWindow *gw = dynamic_cast<osgViewer::GraphicsWindow*>(gc.get());
-	if (gw)
-		gw->getEventQueue()->getCurrentEventState()->setWindowRectangle(traits->x, traits->y, traits->width, traits->height);
-	else
-		OSG_NOTICE<<"  GraphicsWindow has not been created successfully."<<std::endl;*/
-
 	// camera properties
 	osg::ref_ptr<osg::Camera> camera = new osg::Camera;
 	camera->setGraphicsContext(gc.get());
-	/*camera->getProjectionMatrixAsPerspective(fovy, ar, zNear, zFar);
-	nar = double(traits->width) / double(traits->height);
-	if (nar/ar != 1.0) camera->getProjectionMatrix() *= osg::Matrix::scale(ar/nar, 1.0, 1.0);*/
 	camera->setViewport(new osg::Viewport(0,0, traits->width, traits->height));
 	GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
 	camera->setDrawBuffer(buffer);
 	camera->setReadBuffer(buffer);
-	//viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(1, 0, 0.8), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	sim->viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(1, 0, 0.8), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
 	// viewer camera properties
 	sim->viewer->addSlave(camera.get());
@@ -548,9 +538,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 
 	// viewer event handlers
 	sim->viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
-	//sim->viewer->addEventHandler(new osgViewer::ThreadingHandler);
 	sim->viewer->addEventHandler(new osgViewer::WindowSizeHandler);
-    //sim->viewer->addEventHandler(new osgViewer::StatsHandler);
 
     // Creating the root node
 	sim->_osgRoot = new osg::Group();
@@ -563,7 +551,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile(TEXTURE_PATH(ground/terrain.3ds));
 	terrainScaleMAT->addChild(terrainnode.get());
 	terrainScaleMAT->setMatrix(terrainScaleMatrix);
-	//sim->_osgRoot->addChild(terrainScaleMAT.get());
+	sim->_osgRoot->addChild(terrainScaleMAT.get());
 
 	// skybox
 	osg::StateSet* stateset = new osg::StateSet();
@@ -599,7 +587,6 @@ void* CRobotSim::graphicsThread(void *arg) {
 	stateset->setTextureAttributeAndModes(0, skymap, osg::StateAttribute::ON);
 	stateset->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
 	stateset->setMode( GL_CULL_FACE, osg::StateAttribute::OFF );
-	// clear the depth to the far plane.
 	osg::Depth* depth = new osg::Depth;
 	depth->setFunction(osg::Depth::ALWAYS);
 	depth->setRange(1.0,1.0);   
@@ -617,14 +604,13 @@ void* CRobotSim::graphicsThread(void *arg) {
 	clearNode->setRequiresClear(false);
 	clearNode->setCullCallback(new TexMatCallback(*tm));
 	clearNode->addChild(transform);
-	//sim->_osgRoot->addChild(clearNode);
+	sim->_osgRoot->addChild(clearNode);
 
 	// optimize the scene graph, remove redundant nodes and state etc.
 	osgUtil::Optimizer optimizer;
 	optimizer.optimize(sim->_osgRoot);
 
 	// set threading model
-	//sim->viewer->setThreadingModel(osgViewer::Viewer::CullDrawThreadPerContext);
 	sim->viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
 	// set viewable
@@ -680,7 +666,7 @@ void* CRobotSim::simulationThread(void *arg) {
 	unsigned int sum = 0, dt[4] = {0};
 	int i, j;
 #ifdef _WIN32
-		DWORD start = GetTickCount();
+	DWORD start = GetTickCount();
 #endif
 
 	while (1) {

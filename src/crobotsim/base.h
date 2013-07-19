@@ -130,8 +130,12 @@ typedef enum robot_joint_state_e {
 	ROBOT_BACKWARD,
 	ROBOT_HOLD,
 	ROBOT_POSITIVE,
+#ifndef _CH_
 	ROBOT_NEGATIVE,
 	NaN = 0
+#else
+	ROBOT_NEGATIVE
+#endif
 } robotJointState_t;
 typedef enum robot_connector_e {
 	BIGWHEEL,
