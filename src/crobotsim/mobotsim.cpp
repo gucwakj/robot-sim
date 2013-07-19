@@ -1190,7 +1190,7 @@ void* CMobot::recordAngleThread(void *arg) {
 #ifdef _WIN32
 			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
 #else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000)*1000));
+			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
 #endif
 		}
 	}
@@ -1281,7 +1281,7 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 #ifdef _WIN32
 			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
 #else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000)*1000));
+			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
 #endif
 		}
 	}
@@ -1379,7 +1379,7 @@ void* CMobot::recordAnglesThread(void *arg) {
 #ifdef _WIN32
 			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
 #else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000)*1000));
+			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
 #endif
 		}
     }
@@ -1504,7 +1504,7 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 #ifdef _WIN32
 			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
 #else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000)*1000));
+			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
 #endif
 		}
 	}
