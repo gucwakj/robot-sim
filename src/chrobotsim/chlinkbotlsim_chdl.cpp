@@ -1,5 +1,7 @@
 #include "../crobotsim/linkbotsim.h"
+#ifdef _WIN32
 #include <windows.h>
+#endif
 #include <ch.h>
 
 EXPORTCH void CLinkbotL_CLinkbotL_chdl(void *varg) {

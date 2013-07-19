@@ -1,5 +1,7 @@
 #include "../crobotsim/mobotsim.h"
+#ifdef _WIN32
 #include <windows.h>
+#endif
 #include <ch.h>
 
 EXPORTCH void CMobot_CMobot_chdl(void *varg) {

@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #define DLLIMPORT
-#define TEXTURE_PATH "/usr/local/ch/package/chrobotsim/data/"
+#define TEXTURE_PATH(end) "/usr/local/ch/package/chrobotsim/data/" #end
 #endif // _WIN32
 #include "config.h"
 #include <ode/ode.h>

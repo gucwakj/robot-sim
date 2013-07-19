@@ -644,8 +644,13 @@ void* CLinkbot::recordAngleBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
+#ifdef _WIN32
 			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
+#else
+			usleep((time - (int)(*(rArg->robot->_clock)*1000)*1000));
+#endif
+		}
 	}
 
 	// signal completion of recording

@@ -1,5 +1,7 @@
 #include "../crobotsim/robotsim.h"
+#ifdef _WIN32
 #include <windows.h>
+#endif
 #include <ch.h>
 
 EXPORTCH void CRobotSim_CRobotSim_chdl(void *varg) {

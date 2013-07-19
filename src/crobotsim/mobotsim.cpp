@@ -1186,9 +1186,13 @@ void* CMobot::recordAngleThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		//while ( (int)(*(rArg->robot->_clock)*1000) < time ) {Sleep(10);}
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
+#ifdef _WIN32
 			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
+#else
+			usleep((time - (int)(*(rArg->robot->_clock)*1000)*1000));
+#endif
+		}
 	}
 
 	// signal completion of recording
@@ -1273,8 +1277,13 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
+#ifdef _WIN32
 			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
+#else
+			usleep((time - (int)(*(rArg->robot->_clock)*1000)*1000));
+#endif
+		}
 	}
 
 	// signal completion of recording
@@ -1366,8 +1375,13 @@ void* CMobot::recordAnglesThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
+#ifdef _WIN32
 			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
+#else
+			usleep((time - (int)(*(rArg->robot->_clock)*1000)*1000));
+#endif
+		}
     }
 
 	// signal completion of recording
@@ -1486,8 +1500,13 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
+#ifdef _WIN32
 			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
+#else
+			usleep((time - (int)(*(rArg->robot->_clock)*1000)*1000));
+#endif
+		}
 	}
 
 	// signal completion of recording

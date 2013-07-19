@@ -722,8 +722,8 @@ void* CRobotSim::simulationThread(void *arg) {
 		sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
 #else
 		clock_gettime(CLOCK_REALTIME, &end_time);
-		dt = sim->diff_nsecs(start_time, end_time);
-		if ( dt < sim->_step*1000000000 ) { usleep(sim->_step*1000000 - dt/1000); }
+		dt[0] = sim->diff_nsecs(start_time, end_time);
+		if ( dt[0] < sim->_step*1000000000 ) { usleep(sim->_step*1000000 - dt[0]/1000); }
 #endif
 	}
 }
