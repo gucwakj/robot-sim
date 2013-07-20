@@ -210,8 +210,8 @@ class DLLIMPORT CRobot {
 		COND_T _motion_cond;
 		MUTEX_T _recording_mutex;
 		COND_T _recording_cond;
-		MUTEX_T _recording_active_mutex;
-		COND_T _recording_active_cond;
+		MUTEX_T _active_mutex;
+		COND_T _active_cond;
 		MUTEX_T _success_mutex;
 		COND_T _success_cond;
 };

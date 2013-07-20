@@ -607,10 +607,10 @@ void* CLinkbot::recordAngleBeginThread(void *arg) {
 	int time = (int)((*(rArg->robot->_clock))*1000);
 
 	// actively taking a new data point
-	MUTEX_LOCK(&rArg->robot->_recording_active_mutex);
-	rArg->robot->_recording_active[rArg->id] = true;
-	COND_SIGNAL(&rArg->robot->_recording_active_cond);
-	MUTEX_UNLOCK(&rArg->robot->_recording_active_mutex);
+	MUTEX_LOCK(&rArg->robot->_active_mutex);
+	rArg->robot->_active[rArg->id] = true;
+	COND_SIGNAL(&rArg->robot->_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// loop until recording is no longer needed
 	for (int i = 0; rArg->robot->_recording[rArg->id]; i++) {
@@ -654,10 +654,10 @@ void* CLinkbot::recordAngleBeginThread(void *arg) {
 	}
 
 	// signal completion of recording
-	MUTEX_LOCK(&rArg->robot->_recording_active_mutex);
-	rArg->robot->_recording_active[rArg->id] = false;
-	COND_SIGNAL(&rArg->robot->_recording_active_cond);
-	MUTEX_UNLOCK(&rArg->robot->_recording_active_mutex);
+	MUTEX_LOCK(&rArg->robot->_active_mutex);
+	rArg->robot->_active[rArg->id] = false;
+	COND_SIGNAL(&rArg->robot->_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// cleanup
 	delete rArg;
@@ -704,11 +704,11 @@ int CLinkbot::recordAngleEnd(robotJointId_t id, int &num) {
 	MUTEX_UNLOCK(&_recording_mutex);
 
 	// wait for last recording point to finish
-	MUTEX_LOCK(&_recording_active_mutex);
-	while (_recording_active[id]) {
-		COND_WAIT(&_recording_active_cond, &_recording_active_mutex);
+	MUTEX_LOCK(&_active_mutex);
+	while (_active[id]) {
+		COND_WAIT(&_active_cond, &_active_mutex);
 	}
-	MUTEX_UNLOCK(&_recording_active_mutex);
+	MUTEX_UNLOCK(&_active_mutex);
 
 	// report number of data points recorded
 	num = _recording_num[id];
@@ -2041,14 +2041,6 @@ int CLinkbot::init_params(int disabled, int type) {
 	_maxJointForce[ROBOT_JOINT1] = 1.059;
 	_maxJointForce[ROBOT_JOINT2] = 1.059;
 	_maxJointForce[ROBOT_JOINT3] = 1.059;
-
-	// init locks
-	MUTEX_INIT(&_angle_mutex);
-	MUTEX_INIT(&_goal_mutex);
-	MUTEX_INIT(&_recording_mutex);
-	COND_INIT(&_recording_cond);
-	MUTEX_INIT(&_success_mutex);
-	COND_INIT(&_success_cond);
 
 	// success
 	return 0;

@@ -27,18 +27,13 @@ CRobotSim::~CRobotSim(void) {
 	THREAD_CANCEL(_simulation);
 
 	// remove graphics
-	THREAD_CANCEL(_osgThread);
-
-	// remove ground
-	delete [] _ground;
+	if (_osgThread) { THREAD_CANCEL(_osgThread); }
 
 	// remove robots
 	for ( int i = NUM_TYPES - 1; i >= 0; i--) {
-		delete [] _robot[i];
 		for (int j = _robotNumber[i] - 1; j >= 0; j--) {
-			THREAD_CANCEL(_robotThread[i][j]);
+			if (_robotThread[i][j]) {THREAD_CANCEL(_robotThread[i][j]); }
 		}
-		delete [] _robotThread[i];
 	}
 
 	// remove ode
@@ -460,8 +455,8 @@ void *CRobotSim::graphicsWait(void *arg) {
 
 int CRobotSim::init_viz(void) {
 	// set notification level to no output
-	//osg::setNotifyLevel(osg::ALWAYS);
-	osg::setNotifyLevel(osg::DEBUG_FP);
+	osg::setNotifyLevel(osg::ALWAYS);
+	//osg::setNotifyLevel(osg::DEBUG_FP);
 
     // construct the viewer
 	viewer = new osgViewer::Viewer();
@@ -666,15 +661,18 @@ void* CRobotSim::simulationThread(void *arg) {
 	unsigned int sum = 0, dt[4] = {0};
 	int i, j;
 #ifdef _WIN32
-	DWORD start = GetTickCount();
+	DWORD start_time = start = GetTickCount();
+#else
+	struct timespec start_time, end_time;
+	clock_gettime(CLOCK_REALTIME, &start_time);
+	unsigned int end = 0, start = start_time.tv_sec*1000 + start_time.tv_nsec/1000000;
 #endif
 
 	while (1) {
 		// get start time of execution
 #ifdef _WIN32
-		DWORD start_time = GetTickCount();
+		start_time = GetTickCount();
 #else
-		struct timespec start_time, end_time;
 		clock_gettime(CLOCK_REALTIME, &start_time);
 #endif
 
@@ -722,8 +720,18 @@ void* CRobotSim::simulationThread(void *arg) {
 		sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
 #else
 		clock_gettime(CLOCK_REALTIME, &end_time);
-		dt[0] = sim->diff_nsecs(start_time, end_time);
-		if ( dt[0] < sim->_step*1000000000 ) { usleep(sim->_step*1000000 - dt[0]/1000); }
+		dt[0] = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
+		end = end_time.tv_sec*1000 + end_time.tv_nsec/1000000;
+		for (i = 0; i < 4; i++) { sum += dt[i]; }
+		for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
+		sum /= 4;
+		if (end - start > (unsigned int)(sim->_clock*1000))
+			sim->_step = (end - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
+		else {
+			sim->_step = sum/1000.0;
+			usleep(sim->_clock*1000000 - ((end - start)*1000));
+		}
+		sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
 #endif
 	}
 }

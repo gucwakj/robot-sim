@@ -1240,10 +1240,10 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 	int time = (int)((*(rArg->robot->_clock))*1000);
 
 	// actively taking a new data point
-	MUTEX_LOCK(&rArg->robot->_recording_active_mutex);
-	rArg->robot->_recording_active[rArg->id] = true;
-	COND_SIGNAL(&rArg->robot->_recording_active_cond);
-	MUTEX_UNLOCK(&rArg->robot->_recording_active_mutex);
+	MUTEX_LOCK(&rArg->robot->_active_mutex);
+	rArg->robot->_active[rArg->id] = true;
+	COND_SIGNAL(&rArg->robot->_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// loop until recording is no longer needed
 	for (int i = 0; rArg->robot->_recording[rArg->id]; i++) {
@@ -1287,10 +1287,10 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 	}
 
 	// signal completion of recording
-	MUTEX_LOCK(&rArg->robot->_recording_active_mutex);
-	rArg->robot->_recording_active[rArg->id] = false;
-	COND_SIGNAL(&rArg->robot->_recording_active_cond);
-	MUTEX_UNLOCK(&rArg->robot->_recording_active_mutex);
+	MUTEX_LOCK(&rArg->robot->_active_mutex);
+	rArg->robot->_active[rArg->id] = false;
+	COND_SIGNAL(&rArg->robot->_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// cleanup
 	delete rArg;
@@ -1331,17 +1331,17 @@ int CMobot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRe
 }
 
 int CMobot::recordAngleEnd(robotJointId_t id, int &num) {
+	// wait for last recording point to finish
+	MUTEX_LOCK(&_active_mutex);
+	while (_active[id]) {
+		COND_WAIT(&_active_cond, &_active_mutex);
+	}
+	MUTEX_UNLOCK(&_active_mutex);
+
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
 	_recording[id] = false;
 	MUTEX_UNLOCK(&_recording_mutex);
-
-	// wait for last recording point to finish
-	MUTEX_LOCK(&_recording_active_mutex);
-	while (_recording_active[id]) {
-		COND_WAIT(&_recording_active_cond, &_recording_active_mutex);
-	}
-	MUTEX_UNLOCK(&_recording_active_mutex);
 
 	// report number of data points recorded
 	num = _recording_num[id];
@@ -1441,13 +1441,13 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 	int time = (int)((*(rArg->robot->_clock))*1000);
 
 	// actively taking a new data point
-	MUTEX_LOCK(&rArg->robot->_recording_active_mutex);
-	rArg->robot->_recording_active[ROBOT_JOINT1] = true;
-	rArg->robot->_recording_active[ROBOT_JOINT2] = true;
-	rArg->robot->_recording_active[ROBOT_JOINT3] = true;
-	rArg->robot->_recording_active[ROBOT_JOINT4] = true;
-	COND_SIGNAL(&rArg->robot->_recording_active_cond);
-	MUTEX_UNLOCK(&rArg->robot->_recording_active_mutex);
+	MUTEX_LOCK(&rArg->robot->_active_mutex);
+	rArg->robot->_active[ROBOT_JOINT1] = true;
+	rArg->robot->_active[ROBOT_JOINT2] = true;
+	rArg->robot->_active[ROBOT_JOINT3] = true;
+	rArg->robot->_active[ROBOT_JOINT4] = true;
+	COND_SIGNAL(&rArg->robot->_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// loop until recording is no longer needed
 	for (int i = 0; rArg->robot->_recording[rArg->id]; i++) {
@@ -1510,13 +1510,13 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 	}
 
 	// signal completion of recording
-	MUTEX_LOCK(&rArg->robot->_recording_active_mutex);
-	rArg->robot->_recording_active[ROBOT_JOINT1] = false;
-	rArg->robot->_recording_active[ROBOT_JOINT2] = false;
-	rArg->robot->_recording_active[ROBOT_JOINT3] = false;
-	rArg->robot->_recording_active[ROBOT_JOINT4] = false;
-	COND_SIGNAL(&rArg->robot->_recording_active_cond);
-	MUTEX_UNLOCK(&rArg->robot->_recording_active_mutex);
+	MUTEX_LOCK(&rArg->robot->_active_mutex);
+	rArg->robot->_active[ROBOT_JOINT1] = false;
+	rArg->robot->_active[ROBOT_JOINT2] = false;
+	rArg->robot->_active[ROBOT_JOINT3] = false;
+	rArg->robot->_active[ROBOT_JOINT4] = false;
+	COND_SIGNAL(&rArg->robot->_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// cleanup
 	delete rArg;
@@ -1578,11 +1578,11 @@ int CMobot::recordAnglesEnd(int &num) {
 	MUTEX_UNLOCK(&_recording_mutex);
 
 	// wait for last recording point to finish
-	MUTEX_LOCK(&_recording_active_mutex);
-	while (_recording_active[ROBOT_JOINT1] &&_recording_active[ROBOT_JOINT2] &&_recording_active[ROBOT_JOINT3] && _recording_active[ROBOT_JOINT4]) {
-		COND_WAIT(&_recording_active_cond, &_recording_active_mutex);
+	MUTEX_LOCK(&_active_mutex);
+	while (_active[ROBOT_JOINT1] &&_active[ROBOT_JOINT2] &&_active[ROBOT_JOINT3] && _active[ROBOT_JOINT4]) {
+		COND_WAIT(&_active_cond, &_active_mutex);
 	}
-	MUTEX_UNLOCK(&_recording_active_mutex);
+	MUTEX_UNLOCK(&_active_mutex);
 
 	// report number of data points recorded
 	num = _recording_num[ROBOT_JOINT1];
@@ -3452,14 +3452,6 @@ int CMobot::init_params(void) {
 	_maxJointForce[ROBOT_JOINT2] = 1.059;
 	_maxJointForce[ROBOT_JOINT3] = 1.059;
 	_maxJointForce[ROBOT_JOINT4] = 0.260;
-
-	// init locks
-	MUTEX_INIT(&_angle_mutex);
-	MUTEX_INIT(&_goal_mutex);
-	MUTEX_INIT(&_recording_mutex);
-	COND_INIT(&_recording_cond);
-	MUTEX_INIT(&_success_mutex);
-	COND_INIT(&_success_cond);
 
 	// success
 	return 0;

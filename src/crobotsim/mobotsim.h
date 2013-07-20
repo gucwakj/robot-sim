@@ -207,7 +207,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		double _radius;				// wheel radius
 		double **_recording_angles[NUM_DOF];
 		bool _recording[NUM_DOF];	// recording in progress
-		bool _recording_active[NUM_DOF];		// actively recording a new value
+		bool _active[NUM_DOF];		// actively recording a new value
 		int _recording_num[NUM_DOF];// recording data points
 		bool _success[NUM_DOF];		// trigger for goal
 		bool _seek[NUM_DOF];		// currently seeking goal?

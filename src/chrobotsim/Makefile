@@ -4,7 +4,6 @@
 PACKAGE=chrobotsim
 VERSION=0.0.1
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
-ARCH=x64
 
 SRC=../crobotsim
 HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics.h $(SRC)/base.h

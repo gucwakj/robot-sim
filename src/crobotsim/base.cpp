@@ -1,14 +1,27 @@
 #include "base.h"
 
 CRobot::CRobot(void) {
+	MUTEX_INIT(&_angle_mutex);
+	MUTEX_INIT(&_goal_mutex);
+	MUTEX_INIT(&_motion_mutex);
+	COND_INIT(&_motion_cond);
+	MUTEX_INIT(&_recording_mutex);
+	COND_INIT(&_recording_cond);
+	MUTEX_INIT(&_active_mutex);
+	COND_INIT(&_active_cond);
+	MUTEX_INIT(&_success_mutex);
+	COND_INIT(&_success_cond);
 }
 
 CRobot::~CRobot(void) {
-	// destory locks
 	MUTEX_DESTROY(&_angle_mutex);
 	MUTEX_DESTROY(&_goal_mutex);
+	MUTEX_DESTROY(&_motion_mutex);
+	COND_DESTROY(&_motion_cond);
 	MUTEX_DESTROY(&_recording_mutex);
 	COND_DESTROY(&_recording_cond);
+	MUTEX_DESTROY(&_active_mutex);
+	COND_DESTROY(&_active_cond);
 	MUTEX_DESTROY(&_success_mutex);
 	COND_DESTROY(&_success_cond);
 }
