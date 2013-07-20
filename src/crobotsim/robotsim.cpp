@@ -103,7 +103,15 @@ int CRobotSim::init_xml(void) {
 
 	// load xml config file
 	tinyxml2::XMLDocument doc;
-	int output = doc.LoadFile("robotsim.xml");
+	char path[512];
+#ifdef _WIN32
+	SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path);
+	strcat(path, "\\robosimrc");
+#else
+	strcpy(path, getenv("HOME"));
+	strcat(path, "/.robosimrc");
+#endif
+	int output = doc.LoadFile(path);
 	if (output) {
 		fprintf(stderr, "ERROR: could not find xml config file.\n");
 		exit(1);
