@@ -78,8 +78,9 @@ createpkg: librobotsim.dl
 	rm -rf $(PACKAGE)-$(VERSION).zip
 	mkdir -p $(PKGDIR)
 	mkdir $(PKGDIR)/bin
+	cp ../configurator/build/robosimconfigurator $(PKGDIR)/bin
+	cp ../configurator/interface.glade $(PKGDIR)/bin
 	cp ../opende/sys/lib/libode.so $(PKGDIR)/bin
-	cp ../tinyxml2/build/libtinyxml2.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosg.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosgViewer.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosgUtil.so $(PKGDIR)/bin
@@ -92,6 +93,7 @@ createpkg: librobotsim.dl
 	cp ../openscenegraph/build/lib/osgPlugins-3.0.1/osgdb_png.so $(PKGDIR)/bin/osgPlugins-3.0.1
 	cp ../openscenegraph/build/lib/osgPlugins-3.0.1/osgdb_3ds.so $(PKGDIR)/bin/osgPlugins-3.0.1
 	cp ../openscenegraph/build/lib/osgPlugins-3.0.1/osgdb_tga.so $(PKGDIR)/bin/osgPlugins-3.0.1
+	cp ../tinyxml2/build/libtinyxml2.so $(PKGDIR)/bin
 	mkdir $(PKGDIR)/data
 	cp -R ../resources/ground $(PKGDIR)/data
 	cp -R ../resources/mobot $(PKGDIR)/data
