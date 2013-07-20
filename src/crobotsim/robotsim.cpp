@@ -661,7 +661,7 @@ void* CRobotSim::simulationThread(void *arg) {
 	unsigned int sum = 0, dt[4] = {0};
 	int i, j;
 #ifdef _WIN32
-	DWORD start_time = start = GetTickCount();
+	DWORD start_time, start = GetTickCount();
 #else
 	struct timespec start_time, end_time;
 	clock_gettime(CLOCK_REALTIME, &start_time);
