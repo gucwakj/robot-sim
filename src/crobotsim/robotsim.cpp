@@ -397,9 +397,9 @@ int CRobotSim::init_xml(void) {
 					ctmp->next = nc;
 				}
 			}
-			delete rtmp;
-			delete ftmp;
-			delete ntmp;
+			delete [] rtmp;
+			delete [] ftmp;
+			delete [] ntmp;
 		}
 
 		// debug printing
