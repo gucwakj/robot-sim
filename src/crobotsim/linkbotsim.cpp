@@ -9,8 +9,13 @@ CLinkbot::CLinkbot(int disabled, int type) {
 }
 
 CLinkbot::~CLinkbot(void) {
-	// destroy robot space
-	dSpaceDestroy(_space);
+	// destroy new'ed arrays
+	delete [] _enabled;
+
+	// destroy geoms
+	for (int i = NUM_PARTS - 1; i >= 0; i--) {
+		delete [] _geom[i];
+	}
 }
 
 
@@ -2344,10 +2349,12 @@ CLinkbotI::CLinkbotI(void) {
 }
 
 CLinkbotI::~CLinkbotI(void) {
+	// success
+	return 0;
 }
 
 int CLinkbotI::connect(void) {
-	_simObject.addRobot2(this);
+	_simObject.addRobot(this);
 
 	// success
 	return 0;
@@ -2361,10 +2368,12 @@ CLinkbotL::CLinkbotL(void) {
 }
 
 CLinkbotL::~CLinkbotL(void) {
+	// success
+	return 0;
 }
 
 int CLinkbotL::connect(void) {
-	_simObject.addRobot2(this);
+	_simObject.addRobot(this);
 
 	// success
 	return 0;

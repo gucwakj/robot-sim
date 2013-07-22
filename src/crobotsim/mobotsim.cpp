@@ -8,9 +8,6 @@ CMobot::CMobot(void) {
 }
 
 CMobot::~CMobot(void) {
-	// destroy robot space
-	//dSpaceDestroy(_space);
-
 	// remove geoms
 	for (int i = NUM_PARTS - 1; i >= 0; i--) {
 		delete [] _geom[i];

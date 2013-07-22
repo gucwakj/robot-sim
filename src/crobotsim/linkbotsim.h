@@ -12,7 +12,11 @@ class DLLIMPORT CLinkbot {
 class DLLIMPORT CLinkbot : virtual public CRobot {
 #endif
 	public:
+#ifdef _CH_
+		CLinkbot();
+#else
 		CLinkbot(int disabled = -1, int type = LINKBOT);
+#endif
 		~CLinkbot();
 
 		int connect();
@@ -31,9 +35,14 @@ class DLLIMPORT CLinkbot : virtual public CRobot {
 		//int getFormFactor(int &formFactor);
 		//int getID();
 		int getJointAngle(robotJointId_t id, double &angle);
-		int getJointAngleAverage(robotJointId_t id, double &angle, int numReadings=10);
 		int getJointAngles(double &angle1, double &angle2, double &angle3);
-		int getJointAnglesAverage(double &angle1, double &angle2, double &angle3, int numReadings=10);
+#ifdef _CH_
+		int getJointAngleAverage(robotJointId_t id, double &angle, ...);
+		int getJointAnglesAverage(double &angle1, double &angle2, double &angle3, ...);
+#else
+		int getJointAngleAverage(robotJointId_t id, double &angle, int numReadings = 10);
+		int getJointAnglesAverage(double &angle1, double &angle2, double &angle3, int numReadings = 10);
+#endif
 		int getJointMaxSpeed(robotJointId_t id, double &maxSpeed);
 		int getJointSafetyAngle(double &angle);
 		int getJointSafetyAngleTimeout(double &seconds);
@@ -81,6 +90,18 @@ class DLLIMPORT CLinkbot : virtual public CRobot {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
+#ifdef _CH_
+		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
+		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
+		int recordAngleEnd(robotJointId_t id, int &num);
+		int recordAngles(double time[:], double angle1[:], double angle2[:], double angle3[:], int num, double seconds, ...);
+		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, double seconds, ...);
+		int recordAnglesEnd(int &num);
+		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, ...);
+		int recordDistanceEnd(robotJointId_t id, int &num);
+		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, double radius, double seconds, ...);
+		int recordDistancesEnd(int &num);
+#else
 		int recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData = 1);
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData = 1);
 		int recordAngleEnd(robotJointId_t id, int &num);
@@ -91,6 +112,7 @@ class DLLIMPORT CLinkbot : virtual public CRobot {
 		int recordDistanceEnd(robotJointId_t id, int &num);
 		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, double radius, double seconds, int shiftData = 1);
 		int recordDistancesEnd(int &num);
+#endif
 		int recordWait();
 		int reset();
 		int resetToZero();
