@@ -2,6 +2,7 @@
 #include <mobotsim.h>
 #include <dlfcn.h>
 #include <stdarg.h>
+#include <array.h>
 
 CMobot::CMobot() {
 	void *fptr;
@@ -1504,7 +1505,7 @@ int CMobot::turnRightNB(double angle) {
     return retval;
 }
 
-/*CMobotGroup::CMobotGroup() {
+CMobotGroup::CMobotGroup() {
 	void *fptr;
 	if(CRobotSim::g_chrobotsim_dlhandle == NULL || CRobotSim::g_chrobotsim_dlcount == 0) {
 		CRobotSim::g_chrobotsim_dlhandle = dlopen("librobotsim.dl", RTLD_LAZY);
@@ -1537,7 +1538,7 @@ CMobotGroup::~CMobotGroup() {
 	}
 }
 
-int CMobotGroup::addRobot(CLinkbotL &robot) {
+int CMobotGroup::addRobot(CMobot &robot) {
     void *fptr;
     int retval;
 
@@ -1550,7 +1551,7 @@ int CMobotGroup::addRobot(CLinkbotL &robot) {
     return retval;
 }
 
-int CMobotGroup::addRobots(array CLinkbotL robots[], ...) {
+int CMobotGroup::addRobots(array CMobot robots[], ...) {
     void *fptr;
     int retval;
     int numRobots;
@@ -1611,7 +1612,7 @@ int CMobotGroup::driveJointToDirectNB(int id, double angle) {
     return retval;
 }
 
-int CMobotGroup::driveToDirect(double angle1, double angle2, double angle3) {
+int CMobotGroup::driveToDirect(double angle1, double angle2, double angle3, double angle4) {
     void *fptr;
     int retval;
 
@@ -1620,11 +1621,11 @@ int CMobotGroup::driveToDirect(double angle1, double angle2, double angle3) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, driveToDirect, this, angle1, angle2, angle3);
+    dlrunfun(fptr, &retval, driveToDirect, this, angle1, angle2, angle3, angle4);
     return retval;
 }
 
-int CMobotGroup::driveTo(double angle1, double angle2, double angle3) {
+int CMobotGroup::driveTo(double angle1, double angle2, double angle3, double angle4) {
     void *fptr;
     int retval;
 
@@ -1633,11 +1634,11 @@ int CMobotGroup::driveTo(double angle1, double angle2, double angle3) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, driveTo, this, angle1, angle2, angle3);
+    dlrunfun(fptr, &retval, driveTo, this, angle1, angle2, angle3, angle4);
     return retval;
 }
 
-int CMobotGroup::driveToDirectNB(double angle1, double angle2, double angle3) {
+int CMobotGroup::driveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
     void *fptr;
     int retval;
 
@@ -1646,11 +1647,11 @@ int CMobotGroup::driveToDirectNB(double angle1, double angle2, double angle3) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, driveToDirectNB, this, angle1, angle2, angle3);
+    dlrunfun(fptr, &retval, driveToDirectNB, this, angle1, angle2, angle3, angle4);
     return retval;
 }
 
-int CMobotGroup::driveToNB(double angle1, double angle2, double angle3) {
+int CMobotGroup::driveToNB(double angle1, double angle2, double angle3, double angle4) {
     void *fptr;
     int retval;
 
@@ -1659,7 +1660,7 @@ int CMobotGroup::driveToNB(double angle1, double angle2, double angle3) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, driveToNB, this, angle1, angle2, angle3);
+    dlrunfun(fptr, &retval, driveToNB, this, angle1, angle2, angle3, angle4);
     return retval;
 }
 
@@ -1819,7 +1820,7 @@ int CMobotGroup::motionWait() {
     return retval;
 }
 
-int CMobotGroup::move(double angle1, double angle2, double angle3) {
+int CMobotGroup::move(double angle1, double angle2, double angle3, double angle4) {
     void *fptr;
     int retval;
 
@@ -1828,11 +1829,11 @@ int CMobotGroup::move(double angle1, double angle2, double angle3) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, move, this, angle1, angle2, angle3);
+    dlrunfun(fptr, &retval, move, this, angle1, angle2, angle3, angle4);
     return retval;
 }
 
-int CMobotGroup::moveNB(double angle1, double angle2, double angle3) {
+int CMobotGroup::moveNB(double angle1, double angle2, double angle3, double angle4) {
     void *fptr;
     int retval;
 
@@ -1841,7 +1842,7 @@ int CMobotGroup::moveNB(double angle1, double angle2, double angle3) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, moveNB, this, angle1, angle2, angle3);
+    dlrunfun(fptr, &retval, moveNB, this, angle1, angle2, angle3, angle4);
     return retval;
 }
 
@@ -1868,32 +1869,6 @@ int CMobotGroup::moveBackwardNB(double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveBackwardNB, this, angle);
-    return retval;
-}
-
-int CMobotGroup::moveContinuousNB(int dir1, int dir2, int dir3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CMG_moveContinuousNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveContinuousNB, this, dir1, dir2, dir3);
-    return retval;
-}
-
-int CMobotGroup::moveContinuousTime(int dir1, int dir2, int dir3, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CMG_moveContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveContinuousTime, this, dir1, dir2, dir3, seconds);
     return retval;
 }
 
@@ -1946,32 +1921,6 @@ int CMobotGroup::moveForwardNB(double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveForwardNB, this, angle);
-    return retval;
-}
-
-int CMobotGroup::moveJointContinuousNB(int id, int dir) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CMG_moveJointContinuousNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousNB, this, id, dir);
-    return retval;
-}
-
-int CMobotGroup::moveJointContinuousTime(int id, int dir, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CMG_moveJointContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousTime, this, id, dir, seconds);
     return retval;
 }
 
@@ -2040,7 +1989,7 @@ int CMobotGroup::moveJointWait(int id) {
     return retval;
 }
 
-int CMobotGroup::moveTo(double angle1, double angle2, double angle3) {
+int CMobotGroup::moveTo(double angle1, double angle2, double angle3, double angle4) {
     void *fptr;
     int retval;
 
@@ -2049,11 +1998,11 @@ int CMobotGroup::moveTo(double angle1, double angle2, double angle3) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, moveTo, this, angle1, angle2, angle3);
+    dlrunfun(fptr, &retval, moveTo, this, angle1, angle2, angle3, angle4);
     return retval;
 }
 
-int CMobotGroup::moveToDirect(double angle1, double angle2, double angle3) {
+int CMobotGroup::moveToDirect(double angle1, double angle2, double angle3, double angle4) {
     void *fptr;
     int retval;
 
@@ -2062,11 +2011,11 @@ int CMobotGroup::moveToDirect(double angle1, double angle2, double angle3) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, moveToDirect, this, angle1, angle2, angle3);
+    dlrunfun(fptr, &retval, moveToDirect, this, angle1, angle2, angle3, angle4);
     return retval;
 }
 
-int CMobotGroup::moveToNB(double angle1, double angle2, double angle3) {
+int CMobotGroup::moveToNB(double angle1, double angle2, double angle3, double angle4) {
     void *fptr;
     int retval;
 
@@ -2075,11 +2024,11 @@ int CMobotGroup::moveToNB(double angle1, double angle2, double angle3) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, moveToNB, this, angle1, angle2, angle3);
+    dlrunfun(fptr, &retval, moveToNB, this, angle1, angle2, angle3, angle4);
     return retval;
 }
 
-int CMobotGroup::moveToDirectNB(double angle1, double angle2, double angle3) {
+int CMobotGroup::moveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
     void *fptr;
     int retval;
 
@@ -2088,7 +2037,7 @@ int CMobotGroup::moveToDirectNB(double angle1, double angle2, double angle3) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, moveToDirectNB, this, angle1, angle2, angle3);
+    dlrunfun(fptr, &retval, moveToDirectNB, this, angle1, angle2, angle3, angle4);
     return retval;
 }
 
@@ -2261,7 +2210,7 @@ int CMobotGroup::setJointSpeed(int id, double speed) {
     return retval;
 }
 
-int CMobotGroup::setJointSpeeds(double speed1, double speed2, double speed3) {
+int CMobotGroup::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
     void *fptr;
     int retval;
 
@@ -2270,7 +2219,7 @@ int CMobotGroup::setJointSpeeds(double speed1, double speed2, double speed3) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, setJointSpeeds, this, speed1, speed2, speed3);
+    dlrunfun(fptr, &retval, setJointSpeeds, this, speed1, speed2, speed3, speed4);
     return retval;
 }
 
@@ -2287,7 +2236,7 @@ int CMobotGroup::setJointSpeedRatio(int id, double speed) {
     return retval;
 }
 
-int CMobotGroup::setJointSpeedRatios(double ratio1, double ratio2, double ratio3) {
+int CMobotGroup::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4) {
     void *fptr;
     int retval;
 
@@ -2296,11 +2245,11 @@ int CMobotGroup::setJointSpeedRatios(double ratio1, double ratio2, double ratio3
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, setJointSpeedRatios, this, ratio1, ratio2, ratio3);
+    dlrunfun(fptr, &retval, setJointSpeedRatios, this, ratio1, ratio2, ratio3, ratio4);
     return retval;
 }
 
-int CMobotGroup::setMovementStateNB(int dir1, int dir2, int dir3) {
+int CMobotGroup::setMovementStateNB(int dir1, int dir2, int dir3, int dir4) {
     void *fptr;
     int retval;
 
@@ -2309,11 +2258,11 @@ int CMobotGroup::setMovementStateNB(int dir1, int dir2, int dir3) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, setMovementStateNB, this, dir1, dir2, dir3);
+    dlrunfun(fptr, &retval, setMovementStateNB, this, dir1, dir2, dir3, dir4);
     return retval;
 }
 
-int CMobotGroup::setMovementStateTime(int dir1, int dir2, int dir3, double seconds) {
+int CMobotGroup::setMovementStateTime(int dir1, int dir2, int dir3, int dir4, double seconds) {
     void *fptr;
     int retval;
 
@@ -2322,11 +2271,11 @@ int CMobotGroup::setMovementStateTime(int dir1, int dir2, int dir3, double secon
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, setMovementStateTime, this, dir1, dir2, dir3, seconds);
+    dlrunfun(fptr, &retval, setMovementStateTime, this, dir1, dir2, dir3, dir4, seconds);
     return retval;
 }
 
-int CMobotGroup::setMovementStateTimeNB(int dir1, int dir2, int dir3, double seconds) {
+int CMobotGroup::setMovementStateTimeNB(int dir1, int dir2, int dir3, int dir4, double seconds) {
     void *fptr;
     int retval;
 
@@ -2335,7 +2284,7 @@ int CMobotGroup::setMovementStateTimeNB(int dir1, int dir2, int dir3, double sec
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, setMovementStateTimeNB, this, dir1, dir2, dir3, seconds);
+    dlrunfun(fptr, &retval, setMovementStateTimeNB, this, dir1, dir2, dir3, dir4, seconds);
     return retval;
 }
 
@@ -2428,4 +2377,4 @@ int CMobotGroup::turnRightNB(double angle) {
     }
     dlrunfun(fptr, &retval, turnRightNB, this, angle);
     return retval;
-}*/
+}

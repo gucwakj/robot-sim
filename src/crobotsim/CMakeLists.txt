@@ -84,12 +84,6 @@ endif (ROBOTSIM_ENABLE_GRAPHICS)
 find_package(Threads)
 set (EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
-# Set postfix for build types
-#set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
-#set(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
-#set(CMAKE_RELWITHDEBINFO_POSTFIX "rd" CACHE STRING "add a postfix, usually empty on windows")
-#set(CMAKE_MINSIZEREL_POSTFIX "s" CACHE STRING "add a postfix, usually empty on windows")
-
 # Set the build postfix extension according to what configuration is being built
 if (CMAKE_BUILD_TYPE MATCHES "Release")
     set(CMAKE_BUILD_POSTFIX "")
@@ -110,6 +104,7 @@ add_library( robotsim SHARED
 	graphics.cpp
 	robotsim.cpp
 	mobotsim.cpp
+	mobotgroup.cpp
 	linkbotsim.cpp
 	#pid.cpp
 )
@@ -118,6 +113,7 @@ add_library( robotsim SHARED
 	base.cpp
 	robotsim.cpp
 	mobotsim.cpp
+	mobotgroup.cpp
 	linkbotsim.cpp
 	#pid.cpp
 )

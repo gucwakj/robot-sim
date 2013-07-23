@@ -1746,6 +1746,13 @@ int CMobot::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, 
 	return 0;
 }
 
+int CMobot::setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds) {
+	//this->moveJointContinuousNB(id, dir);
+
+	// success
+	return 0;
+}
+
 int CMobot::setJointSafetyAngle(double angle) {
 	// success
 	return 0;

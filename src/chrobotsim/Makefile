@@ -17,6 +17,7 @@ target: librobotsim.dl
 OBJS =	robotsim.o \
 		base.o \
 		mobotsim.o \
+		mobotgroup.o \
 		linkbotsim.o \
 		graphics.o \
 		chrobotsim_chdl.o \
@@ -44,6 +45,9 @@ base.o: $(SRC)/base.cpp $(HEADERS)
 
 mobotsim.o: $(SRC)/mobotsim.cpp $(HEADERS) 
 	ch dlcomp librobotsim.dl cplusplus $(SRC)/mobotsim.cpp $(CPPFLAGS) $(INCLUDES)
+
+mobotgroup.o: $(SRC)/mobotgroup.cpp $(HEADERS) 
+	ch dlcomp librobotsim.dl cplusplus $(SRC)/mobotgroup.cpp $(CPPFLAGS) $(INCLUDES)
 
 linkbotsim.o: $(SRC)/linkbotsim.cpp $(HEADERS) 
 	ch dlcomp librobotsim.dl cplusplus $(SRC)/linkbotsim.cpp $(CPPFLAGS) $(INCLUDES)
