@@ -260,7 +260,19 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int init_dims(void);
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);
 		void resetPID(int i = NUM_DOF);
+		static void* motionArchThread(void *arg);
+		static void* motionDistanceThread(void *arg);
 		static void* motionInchwormLeftThread(void *arg);
+		static void* motionInchwormRightThread(void *arg);
+		static void* motionRollBackwardThread(void *arg);
+		static void* motionRollForwardThread(void *arg);
+		static void* motionSkinnyThread(void *arg);
+		static void* motionStandThread(void *arg);
+		static void* motionTurnLeftThread(void *arg);
+		static void* motionTurnRightThread(void *arg);
+		static void* motionTumbleRightThread(void *arg);
+		static void* motionTumbleLeftThread(void *arg);
+		static void* motionUnstandThread(void *arg);
 		static void* recordAngleThread(void *arg);
 		static void* recordAngleBeginThread(void *arg);
 		static void* recordAnglesThread(void *arg);
@@ -282,11 +294,11 @@ class CMobotGroup {
 		CMobotGroup();
 		virtual ~CMobotGroup();
 
-		int addRobot(CMobot& mobot);
+		int addRobot(CMobot& robot);
 #ifdef _CH_
-		int addRobots(array CMobot mobots[], ...);
+		int addRobots(array CMobot robots[], ...);
 #else
-		int addRobots(CMobot mobots[], int numMobots);
+		int addRobots(CMobot robots[], int num);
 #endif
 		int connect(void);
 		int driveJointToDirect(robotJointId_t id, double angle);
@@ -359,8 +371,10 @@ class CMobotGroup {
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
 		int setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4);
-		int setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds);
-		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds);
+		int setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2,
+								 robotJointState_t dir3, robotJointState_t dir4, double seconds);
+		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2,
+								   robotJointState_t dir3, robotJointState_t dir4, double seconds);
 		int setTwoWheelRobotSpeed(double speed, double radius);
 		int stopAllJoints(void);
 		int stopOneJoint(robotJointId_t id);
@@ -382,19 +396,19 @@ class CMobotGroup {
 		double _d;
 		THREAD_T *_thread;
 
-		static void* motionArchThread(void*);
-		static void* motionDistanceThread(void*);
-		static void* motionInchwormLeftThread(void*);
-		static void* motionInchwormRightThread(void*);
-		static void* motionRollBackwardThread(void*);
-		static void* motionRollForwardThread(void*);
-		static void* motionSkinnyThread(void*);
-		static void* motionStandThread(void*);
-		static void* motionTurnLeftThread(void*);
-		static void* motionTurnRightThread(void*);
-		static void* motionTumbleRightThread(void*);
-		static void* motionTumbleLeftThread(void*);
-		static void* motionUnstandThread(void*);
+		static void* motionArchThread(void *arg);
+		static void* motionDistanceThread(void *arg);
+		static void* motionInchwormLeftThread(void *arg);
+		static void* motionInchwormRightThread(void *arg);
+		static void* motionRollBackwardThread(void *arg);
+		static void* motionRollForwardThread(void *arg);
+		static void* motionSkinnyThread(void *arg);
+		static void* motionStandThread(void *arg);
+		static void* motionTurnLeftThread(void *arg);
+		static void* motionTurnRightThread(void *arg);
+		static void* motionTumbleRightThread(void *arg);
+		static void* motionTumbleLeftThread(void *arg);
+		static void* motionUnstandThread(void *arg);
 #endif // not _CH_
 };
 

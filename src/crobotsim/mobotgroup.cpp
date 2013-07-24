@@ -39,8 +39,8 @@ int CMobotGroup::addRobot(CMobot &robot) {
 	return 0;
 }
 
-int CMobotGroup::addRobots(CMobot robots[], int numRobots) {
-	for (int i = 0; i < numRobots; i++) {
+int CMobotGroup::addRobots(CMobot robots[], int num) {
+	for (int i = 0; i < num; i++) {
 		this->addRobot(robots[i]);
 	}
 

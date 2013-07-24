@@ -1,7 +1,7 @@
 #include <linkbotsim.h>
 
-CLinkbotI robot;
+CLinkbotT robot;
 
 robot.connect();
 robot.resetToZero();
-robot.moveTo(0, 0, 45);
+robot.moveTo(45, 0, 45);

@@ -230,6 +230,42 @@ int CRobotSim::init_xml(void) {
 				rtmp->next = nr;
 			}
 		}
+		else if ( !strcmp(node->Value(), "linkbott") ) {
+			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
+			nr->type = LINKBOTT;
+			nr->x = 0; nr->y = 0; nr->z = 0;
+			nr->psi = 0; nr->theta = 0; nr->phi = 0;
+			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
+			_robotNumber[nr->type]++;
+			node->QueryIntAttribute("id", &(nr->id));
+			if (ele = node->FirstChildElement("position")) {
+				ele->QueryDoubleAttribute("x", &(nr->x));
+				ele->QueryDoubleAttribute("y", &(nr->y));
+				ele->QueryDoubleAttribute("z", &(nr->z));
+			}
+			if (ele = node->FirstChildElement("rotation")) {
+				ele->QueryDoubleAttribute("psi", &(nr->psi));
+				ele->QueryDoubleAttribute("theta", &(nr->theta));
+				ele->QueryDoubleAttribute("phi", &(nr->phi));
+			}
+			if (ele = node->FirstChildElement("joint")) {
+				ele->QueryDoubleAttribute("f1", &(nr->angle1));
+				ele->QueryDoubleAttribute("f2", &(nr->angle2));
+				ele->QueryDoubleAttribute("f3", &(nr->angle3));
+			}
+			nr->conn = NULL;
+			nr->next = NULL;
+
+			// put new bot at end of list
+			bot_t rtmp = bot;
+			if ( bot == NULL )
+				bot = nr;
+			else {
+				while (rtmp->next)
+					rtmp = rtmp->next;
+				rtmp->next = nr;
+			}
+		}
 		else if ( !strcmp(node->Value(), "g_box") ) {
 			ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
 			double lx, ly, lz, px, py, pz, psi, theta, phi;

@@ -113,9 +113,9 @@ extern void delay(double seconds);
 
 typedef enum robot_type_e {
 	MOBOT,
-	LINKBOT,
 	LINKBOTI,
 	LINKBOTL,
+	LINKBOTT,
 	NUM_TYPES
 } robotType_t;
 typedef enum robot_joint_id_e {
@@ -215,6 +215,7 @@ class DLLIMPORT CRobot {
 		MUTEX_T _success_mutex;
 		COND_T _success_cond;
 };
+
 #endif // not _CH_
 
 #endif // BASE_H_

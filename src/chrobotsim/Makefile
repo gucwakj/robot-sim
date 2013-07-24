@@ -19,11 +19,13 @@ OBJS =	robotsim.o \
 		mobotsim.o \
 		mobotgroup.o \
 		linkbotsim.o \
+		linkbotgroup.o \
 		graphics.o \
 		chrobotsim_chdl.o \
 		chmobotsim_chdl.o \
 		chlinkbotisim_chdl.o \
-		chlinkbotlsim_chdl.o
+		chlinkbotlsim_chdl.o \
+		chlinkbott_chdl.o
 
 chrobotsim_chdl.o: chrobotsim_chdl.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus chrobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
@@ -36,6 +38,9 @@ chlinkbotisim_chdl.o: chlinkbotisim_chdl.cpp $(HEADERS)
 	
 chlinkbotlsim_chdl.o: chlinkbotlsim_chdl.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus chlinkbotlsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+
+chlinkbott_chdl.o: chlinkbott_chdl.cpp $(HEADERS)
+	ch dlcomp librobotsim.dl cplusplus chlinkbott_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
 robotsim.o: $(SRC)/robotsim.cpp $(HEADERS) 
 	ch dlcomp librobotsim.dl cplusplus $(SRC)/robotsim.cpp $(CPPFLAGS) $(INCLUDES)
@@ -51,6 +56,9 @@ mobotgroup.o: $(SRC)/mobotgroup.cpp $(HEADERS)
 
 linkbotsim.o: $(SRC)/linkbotsim.cpp $(HEADERS) 
 	ch dlcomp librobotsim.dl cplusplus $(SRC)/linkbotsim.cpp $(CPPFLAGS) $(INCLUDES)
+
+linkbotgroup.o: $(SRC)/linkbotgroup.cpp $(HEADERS) 
+	ch dlcomp librobotsim.dl cplusplus $(SRC)/linkbotgroup.cpp $(CPPFLAGS) $(INCLUDES)
 
 graphics.o: $(SRC)/graphics.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
@@ -93,7 +101,6 @@ createpkg: librobotsim.dl
 	cp -R ../../demos/chdemos/linkbot $(PKGDIR)/demos
 	mkdir $(PKGDIR)/dl
 	cp librobotsim.dl $(PKGDIR)/dl
-	#cp -R C:/Ch/dl/Mi* $(PKGDIR)/dl
 	mkdir $(PKGDIR)/include
 	cp $(HEADERS) $(PKGDIR)/include
 	mkdir $(PKGDIR)/lib
@@ -101,6 +108,7 @@ createpkg: librobotsim.dl
 	cp chmobotsim.chf $(PKGDIR)/lib
 	cp chlinkbotisim.chf $(PKGDIR)/lib
 	cp chlinkbotlsim.chf $(PKGDIR)/lib
+	cp chlinkbott.chf $(PKGDIR)/lib
 	cp delay.chf $(PKGDIR)/lib
 	cp Makefile $(PACKAGE)-$(VERSION)
 	zip -rq $(PACKAGE)-$(VERSION).zip $(PACKAGE)-$(VERSION)

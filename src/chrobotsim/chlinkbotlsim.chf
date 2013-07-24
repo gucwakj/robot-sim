@@ -2,6 +2,7 @@
 #include <linkbotsim.h>
 #include <dlfcn.h>
 #include <stdarg.h>
+#include <array.h>
 
 CLinkbotL::CLinkbotL() {
 	void *fptr;
@@ -1420,7 +1421,7 @@ int CLinkbotL::turnRightNB(double angle) {
     return retval;
 }
 
-/*CLinkbotLGroup::CLinkbotLGroup() {
+CLinkbotLGroup::CLinkbotLGroup() {
 	void *fptr;
 	if(CRobotSim::g_chrobotsim_dlhandle == NULL || CRobotSim::g_chrobotsim_dlcount == 0) {
 		CRobotSim::g_chrobotsim_dlhandle = dlopen("librobotsim.dl", RTLD_LAZY);
@@ -2125,19 +2126,6 @@ int CLinkbotLGroup::setJointMovementStateTime(int id, int dir, double seconds) {
     return retval;
 }
 
-int CLinkbotLGroup::setJointMovementStateTimeNB(int id, int dir, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CLLG_setJointMovementStateTimeNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setJointMovementStateTimeNB, this, id, dir, seconds);
-    return retval;
-}
-
 int CLinkbotLGroup::setJointSafetyAngle(double angle) {
     void *fptr;
     int retval;
@@ -2344,4 +2332,4 @@ int CLinkbotLGroup::turnRightNB(double angle) {
     }
     dlrunfun(fptr, &retval, turnRightNB, this, angle);
     return retval;
-}*/
+}

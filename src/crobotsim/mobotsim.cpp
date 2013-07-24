@@ -214,7 +214,7 @@ int CMobot::motionArch(double angle) {
 	return 0;
 }
 
-void* motionArchThread(void *arg) {
+void* CMobot::motionArchThread(void *arg) {
 	// cast arg
 	motionArg_t *mArg = (motionArg_t *)arg;
 
@@ -332,7 +332,7 @@ int CMobot::motionInchwormRight(int num) {
 	return 0;
 }
 
-void* motionInchwormRightThread(void *arg) {
+void* CMobot::motionInchwormRightThread(void *arg) {
 	// cast arg
 	motionArg_t *mArg = (motionArg_t *)arg;
 
@@ -369,18 +369,14 @@ int CMobot::motionInchwormRightNB(int num) {
 }
 
 int CMobot::motionRollBackward(double angle) {
-	dReal motorPosition[2];
-	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] - angle);
-	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] - angle);
+	this->move(-angle, 0, 0, -angle);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-void* motionRollBackwardThread(void *arg) {
+void* CMobot::motionRollBackwardThread(void *arg) {
 	// cast arg
 	motionArg_t *mArg = (motionArg_t *)arg;
 
@@ -410,7 +406,7 @@ int CMobot::motionRollBackwardNB(double angle) {
 	THREAD_CREATE(&motion, motionRollBackwardThread, (void *)mArg);
 
 	// cleanup
-	delete mArg;
+	//delete mArg;
 
 	// success
 	return 0;
@@ -428,7 +424,7 @@ int CMobot::motionRollForward(dReal angle) {
 	return 0;
 }
 
-void* motionRollForwardThread(void *arg) {
+void* CMobot::motionRollForwardThread(void *arg) {
 	// cast arg
 	motionArg_t *mArg = (motionArg_t *)arg;
 
@@ -473,7 +469,7 @@ int CMobot::motionSkinny(double angle) {
 	return 0;
 }
 
-void* motionSkinnyThread(void *arg) {
+void* CMobot::motionSkinnyThread(void *arg) {
 	// cast arg
 	motionArg_t *mArg = (motionArg_t *)arg;
 
@@ -526,7 +522,7 @@ int CMobot::motionStand(void) {
 	return 0;
 }
 
-void* motionStandThread(void *arg) {
+void* CMobot::motionStandThread(void *arg) {
 	// cast arg
 	motionArg_t *mArg = (motionArg_t *)arg;
 
@@ -593,7 +589,7 @@ int CMobot::motionTumbleLeft(int num) {
 	return 0;
 }
 
-void* motionTumbleLeftThread(void *arg) {
+void* CMobot::motionTumbleLeftThread(void *arg) {
 	// cast arg
 	motionArg_t *mArg = (motionArg_t *)arg;
 
@@ -661,7 +657,7 @@ int CMobot::motionTumbleRight(int num) {
 	return 0;
 }
 
-void* motionTumbleRightThread(void *arg) {
+void* CMobot::motionTumbleRightThread(void *arg) {
 	// cast arg
 	motionArg_t *mArg = (motionArg_t *)arg;
 
@@ -698,18 +694,14 @@ int CMobot::motionTumbleRightNB(int num) {
 }
 
 int CMobot::motionTurnLeft(double angle) {
-	dReal motorPosition[2];
-	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] - angle);
-	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] + angle);
+	this->move(-angle, 0, 0, angle);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-void* motionTurnLeftThread(void *arg) {
+void* CMobot::motionTurnLeftThread(void *arg) {
 	// cast arg
 	motionArg_t *mArg = (motionArg_t *)arg;
 
@@ -746,18 +738,14 @@ int CMobot::motionTurnLeftNB(double angle) {
 }
 
 int CMobot::motionTurnRight(double angle) {
-	double motorPosition[2];
-	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] + angle);
-	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] - angle);
+	this->move(angle, 0, 0, -angle);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-void* motionTurnRightThread(void *arg) {
+void* CMobot::motionTurnRightThread(void *arg) {
 	// cast arg
 	motionArg_t *mArg = (motionArg_t *)arg;
 
@@ -804,7 +792,7 @@ int CMobot::motionUnstand(void) {
 	return 0;
 }
 
-void* motionUnstandThread(void *arg) {
+void* CMobot::motionUnstandThread(void *arg) {
 	// cast arg
 	motionArg_t *mArg = (motionArg_t *)arg;
 
@@ -921,7 +909,11 @@ int CMobot::moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, r
 }
 
 int CMobot::moveDistance(double distance, double radius) {
-	return this->moveForward(distance / radius);
+	this->moveForwardNB(RAD2DEG(distance/radius));
+	this->moveWait();
+
+	// success
+	return 0;
 }
 
 int CMobot::moveDistanceNB(double distance, double radius) {
@@ -1148,11 +1140,10 @@ int CMobot::moveToZeroNB(void) {
 int CMobot::moveWait(void) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_success_mutex);
-	while ( !(_success[0]) && !(_success[1]) && !(_success[2]) && !(_success[3]) ) {
+	while (((int)(_success[0] + _success[1] + _success[2] + _success[3])) != 4) {
 		COND_WAIT(&_success_cond, &_success_mutex);
 	}
 	for (int i = 0; i < NUM_DOF; i++) {
-		_success[i] = true;
 		_seek[i] = false;
 	}
 	MUTEX_UNLOCK(&_success_mutex);

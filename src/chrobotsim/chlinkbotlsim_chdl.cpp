@@ -1763,7 +1763,7 @@ EXPORTCH int CLinkbotL_turnRightNB_chdl(void *varg) {
     return retval;
 }
 
-/*EXPORTCH void CLLG_CLinkbotLGroup_chdl(void *varg) {
+EXPORTCH void CLLG_CLinkbotLGroup_chdl(void *varg) {
   ChInterp_t interp;
   ChVaList_t ap;
   class CLinkbotLGroup *c=new CLinkbotLGroup();
@@ -1789,14 +1789,14 @@ EXPORTCH void CLLG_dCLinkbotLGroup_chdl(void *varg) {
 EXPORTCH int CLLG_addRobot_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
-    class CLinkbotLGroup *robot;
+    class CLinkbotLGroup *group;
     class CLinkbotL *robot;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
-    robot = Ch_VaArg(interp, ap, class CLinkbotL*);
-    retval = robot->addRobot(*robot);
+    group = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    retval = group->addRobot(*robot);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1804,16 +1804,16 @@ EXPORTCH int CLLG_addRobot_chdl(void *varg) {
 EXPORTCH int CLLG_addRobots_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
-    class CLinkbotLGroup *robot;
-    class CLinkbotL *robots;
-    int numRobots;
+    class CLinkbotLGroup *group;
+    class CLinkbotL *robot;
+    int num;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
-    robots = Ch_VaArg(interp, ap, class CLinkbotL*);
-    numRobots = Ch_VaArg(interp, ap, int);
-    retval = robot->addRobots(robots, numRobots);
+    group = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    num = Ch_VaArg(interp, ap, int);
+    retval = group->addRobots(robot, num);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2448,25 +2448,6 @@ EXPORTCH int CLLG_setJointMovementStateTime_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLLG_setJointMovementStateTimeNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotLGroup *robot;
-    robotJointId_t id;
-    robotJointState_t dir;
-    double seconds;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    dir = Ch_VaArg(interp, ap, robotJointState_t);
-    seconds = Ch_VaArg(interp, ap, double);
-    retval = robot->setJointMovementStateTimeNB(id, dir, seconds);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLLG_setJointSafetyAngle_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2604,27 +2585,6 @@ EXPORTCH int CLLG_setMovementStateTime_chdl(void *varg) {
     dir3 = Ch_VaArg(interp, ap, robotJointState_t);
     seconds = Ch_VaArg(interp, ap, double );
     retval = robot->setMovementStateTime(dir1, dir2, dir3, seconds);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLLG_setMovementStateTimeNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotLGroup *robot;
-    robotJointState_t dir1;
-    robotJointState_t dir2;
-    robotJointState_t dir3;
-    double seconds;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
-    dir1 = Ch_VaArg(interp, ap, robotJointState_t);
-    dir2 = Ch_VaArg(interp, ap, robotJointState_t);
-    dir3 = Ch_VaArg(interp, ap, robotJointState_t);
-    seconds = Ch_VaArg(interp, ap, double );
-    retval = robot->setMovementStateTimeNB(dir1, dir2, dir3, seconds);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2891,4 +2851,4 @@ EXPORTCH int CLLG_motionWait_chdl(void *varg) {
     retval = robot->motionWait();
     Ch_VaEnd(interp, ap);
     return retval;
-}*/
+}

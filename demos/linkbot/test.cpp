@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
 	robot.resetToZero();
 	robot.move(45, NaN, 45);
 
-	robot.setExitState(ROBOT_HOLD);
+	//robot.setExitState(ROBOT_HOLD);
 
 	return 0;
 }

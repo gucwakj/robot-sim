@@ -1,6 +1,9 @@
 <? xml version="1.0" ?>
 <sim>
-	<linkboti id="0"></linkboti>
+	<linkbott id="0" />
+	<linkbott id="1">
+		<position x="0.25" />
+	</linkbott>
 	<simple>
 		<side id="1" robot="0" face="3" />
 	</simple>
