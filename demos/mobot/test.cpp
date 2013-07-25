@@ -3,12 +3,13 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CMobot robot;
+	CMobot robot, robot2;
 
 	robot.connect();
+	robot2.connect();
 	robot.resetToZero();
-	//robot.moveDistance(6, 1.75);
+	robot2.resetToZero();
+	robot.moveDistance(6, 1.75);
 
-	robot.setExitState(ROBOT_HOLD);
 	return 0;
 }

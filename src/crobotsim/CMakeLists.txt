@@ -59,6 +59,12 @@ else (ROBOTSIM_ENABLE_DOUBLE)
 	add_definitions(-DdSINGLE)
 endif (ROBOTSIM_ENABLE_DOUBLE)
 
+# Option to enable assertion messages
+option (ROBOSIM_NO_MESSAGES "Enable message output." ON)
+if (ROBOTSIM_NO_MESSAGES)
+	add_definitions(-DdNODEBUG)
+endif (ROBOTSIM_NO_MESSAGES)
+
 # Option to enable graphics
 option (ROBOTSIM_ENABLE_GRAPHICS "Enable graphics for simulation." ON)
 if (ROBOTSIM_ENABLE_GRAPHICS)

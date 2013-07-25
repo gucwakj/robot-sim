@@ -20,15 +20,15 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdarg>
-//#ifdef ENABLE_GRAPHICS
+#ifdef ENABLE_GRAPHICS
 #include <osg/Group>
-//#endif // ENABLE_GRAPHICS
+#endif // ENABLE_GRAPHICS
 #else
 #define DLLIMPORT
 #pragma package <chrobotsim>
 #define dDOUBLE
 #define dReal double
-//#define ENABLE_GRAPHICS
+#define ENABLE_GRAPHICS
 extern void delay(double seconds);
 #endif // no _CH_
 
@@ -36,13 +36,10 @@ extern void delay(double seconds);
 #define RECORD_ANGLE_ALLOC_SIZE 16
 #define DEG2RAD(x) ((x) * M_PI / 180.0)
 #define RAD2DEG(x) ((x) * 180.0 / M_PI)
-//#define NaN 0
 
 #ifdef _WIN32
 //   THREADS
-//#ifndef THREAD_T
 #define THREAD_T HANDLE
-//#endif
 #define THREAD_CANCEL(thread_handle) TerminateThread( thread_handle, 0)
 #define THREAD_CREATE(thread_handle, function, arg) \
 	*(thread_handle) = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)function, arg, 0, NULL)
