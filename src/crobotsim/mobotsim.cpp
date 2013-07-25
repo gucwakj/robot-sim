@@ -9,8 +9,8 @@ CMobot::CMobot(void) {
 
 CMobot::~CMobot(void) {
 	// remove geoms
-	for (int i = NUM_PARTS - 1; i >= 0; i--) {
-		delete [] _geom[i];
+	if (_connected) {
+		for (int i = NUM_PARTS - 1; i >= 0; i--) { delete [] _geom[i]; }
 	}
 }
 
@@ -843,7 +843,6 @@ int CMobot::motionWait(void) {
 	while (_motion) {
 		COND_WAIT(&_motion_cond, &_motion_mutex);
 	}
-	_motion = false;
 	MUTEX_UNLOCK(&_motion_mutex);
 
 	// success
@@ -1066,10 +1065,7 @@ int CMobot::moveJointWait(robotJointId_t id) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_success_mutex);
 	while ( !_success[id] ) { COND_WAIT(&_success_cond, &_success_mutex); }
-	_success[id] = true;
 	MUTEX_UNLOCK(&_success_mutex);
-
-	dJointDisable(_motor[id]);
 
 	// success
 	return 0;
@@ -1150,7 +1146,7 @@ int CMobot::moveToZeroNB(void) {
 int CMobot::moveWait(void) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_success_mutex);
-	while (((int)(_success[0] + _success[1] + _success[2] + _success[3])) != 4) {
+	while (((int)(_success[0] + _success[1] + _success[2] + _success[3])) != NUM_DOF) {
 		COND_WAIT(&_success_cond, &_success_mutex);
 	}
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -1645,10 +1641,6 @@ int CMobot::recordWait(void) {
 	while ( _recording[0] || _recording[1] || _recording[2] || _recording[3] ) {
 		COND_WAIT(&_recording_cond, &_recording_mutex);
 	}
-	_recording[0] = false;
-	_recording[1] = false;
-	_recording[2] = false;
-	_recording[3] = false;
 	MUTEX_UNLOCK(&_recording_mutex);
 
 	// success

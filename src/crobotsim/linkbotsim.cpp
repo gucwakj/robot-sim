@@ -450,7 +450,6 @@ int CLinkbotT::motionWait(void) {
 	while (_motion) {
 		COND_WAIT(&_motion_cond, &_motion_mutex);
 	}
-	_motion = false;
 	MUTEX_UNLOCK(&_motion_mutex);
 
 	// success
@@ -678,7 +677,6 @@ int CLinkbotT::moveJointWait(robotJointId_t id) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_success_mutex);
 	while ( !_success[id] ) { COND_WAIT(&_success_cond, &_success_mutex); }
-	_success[id] = true;
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// success
@@ -769,7 +767,7 @@ int CLinkbotT::moveToZeroNB(void) {
 int CLinkbotT::moveWait(void) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_success_mutex);
-	while (((int)(_success[0] + _success[1] + _success[2])) != 3) {
+	while (((int)(_success[0] + _success[1] + _success[2])) != NUM_DOF) {
 		COND_WAIT(&_success_cond, &_success_mutex);
 	}
 	MUTEX_UNLOCK(&_success_mutex);
@@ -1246,9 +1244,6 @@ int CLinkbotT::recordWait(void) {
 	while ( _recording[0] || _recording[1] || _recording[2] ) {
 		COND_WAIT(&_recording_cond, &_recording_mutex);
 	}
-	_recording[0] = false;
-	_recording[1] = false;
-	_recording[2] = false;
 	MUTEX_UNLOCK(&_recording_mutex);
 
 	// success

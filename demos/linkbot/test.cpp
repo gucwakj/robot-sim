@@ -7,11 +7,9 @@ int main(int argc, char *argv[]) {
 	CLinkbotI robot, robot2;
 
 	robot.connect();
-	//robot2.connect();
-	//robot.resetToZero();
+	robot2.connect();
+	robot.resetToZero();
 	robot.move(45, NaN, 45);
-
-	//robot.setExitState(ROBOT_HOLD);
 
 	return 0;
 }
