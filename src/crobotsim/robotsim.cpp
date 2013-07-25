@@ -870,7 +870,7 @@ int CRobotSim::addRobot(CRobot *robot) {
 	// find if robot is connected to another one
 	Conn_t *ctmp = btmp->conn;
 	while (ctmp) {
-		if ( ctmp->robot != robot->getID() ) {
+		if ( ctmp->robot != robot->getRobotID() ) {
 			break;
 		}
 		ctmp = ctmp->next;
@@ -879,7 +879,7 @@ int CRobotSim::addRobot(CRobot *robot) {
 	// if robot is connected to another one
 	if (ctmp) {
 		for (int i = 0; i < _robotConnected[type]; i++) {
-			if (_robot[type][i]->getID() == ctmp->robot) {
+			if (_robot[type][i]->getRobotID() == ctmp->robot) {
 				_robot[type][_robotConnected[type]]->build(btmp, _robot[type][i], ctmp);
 				break;
 			}

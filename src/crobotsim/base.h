@@ -183,12 +183,12 @@ class DLLIMPORT CRobot {
 		virtual int build(bot_t robot) = 0;
 		virtual int build(bot_t robot, CRobot *base, Conn_t *conn) = 0;
 		virtual bool getSuccess(int i) = 0;
-		virtual int getID(void) = 0;
 		virtual int getType(void) = 0;
 		virtual dBodyID getBodyID(int body) = 0;
 		virtual dBodyID getConnectorBodyID(int face) = 0;
 		virtual dBodyID getConnectorBodyIDs(int num) = 0;
 		virtual int getConnectionParams(int face, dMatrix3 R, dReal *p) = 0;
+		virtual int getRobotID(void) = 0;
 		virtual dJointID getMotorID(int motor) = 0;
 		virtual dReal getAngle(int i) = 0;
 		virtual dReal getPosition(int body, int i) = 0;

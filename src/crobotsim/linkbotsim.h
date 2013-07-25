@@ -30,11 +30,11 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
 		int driveToNB(double angle1, double angle2, double angle3);
-		//int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
-		//int getBatteryVoltage(double &voltage);
-		//int getColorRGB(int &r, int &g, int &b);
-		//int getFormFactor(int &formFactor);
-		//int getID();
+		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
+		int getBatteryVoltage(double &voltage);
+		int getColorRGB(int &r, int &g, int &b);
+		int getFormFactor(int &formFactor);
+		int getID();
 		int getJointAngle(robotJointId_t id, double &angle);
 		int getJointAngles(double &angle1, double &angle2, double &angle3);
 #ifdef _CH_
@@ -118,10 +118,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
-		//int setBuzzerFrequency(int frequency, double time);
-		//int setBuzzerFrequencyOn(int frequency);
-		//int setBuzzerFrequencyOff();
-		//int setColorRGB(int r, int g, int b);
+		int setBuzzerFrequency(int frequency, double time);
+		int setBuzzerFrequencyOn(int frequency);
+		int setBuzzerFrequencyOff();
+		int setColorRGB(int r, int g, int b);
 		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
@@ -207,6 +207,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int _recording_num[NUM_DOF];// recording data points
 		bool _success[NUM_DOF];		// trigger for goal
 		bool _seek[NUM_DOF];		// currently seeking goal?
+		int _rgb[3];				// rgb of 'led'
 		double	_encoderResolution,
 				_body_length, _body_width, _body_height, _body_radius,
 				_face_depth, _face_radius;
@@ -222,7 +223,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual int getConnectionParams(int face, dMatrix3 R, dReal *p);
 		virtual dBodyID getConnectorBodyID(int face);
 		virtual dBodyID getConnectorBodyIDs(int num);
-		virtual int getID(void);
+		virtual int getRobotID(void);
 		virtual dJointID getMotorID(int id);
 		virtual dReal getPosition(int body, int i);
 		virtual dReal getRotation(int body, int i);

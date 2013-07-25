@@ -3,10 +3,12 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CLinkbotI robot;
+	//CLinkbotI robot;
+	CLinkbotI robot, robot2;
 
 	robot.connect();
-	robot.resetToZero();
+	//robot2.connect();
+	//robot.resetToZero();
 	robot.move(45, NaN, 45);
 
 	//robot.setExitState(ROBOT_HOLD);

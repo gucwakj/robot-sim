@@ -46,11 +46,15 @@ int CMobot::driveJointToDirect(robotJointId_t id, double angle) {
 }
 
 int CMobot::driveJointToDirectNB(robotJointId_t id, double angle) {
+	this->moveJointToNB(id, angle);
+
 	// success
 	return 0;
 }
 
 int CMobot::driveJointToNB(robotJointId_t id, double angle) {
+	this->moveJointToNB(id, angle);
+
 	// success
 	return 0;
 }
@@ -72,11 +76,15 @@ int CMobot::driveToDirect(double angle1, double angle2, double angle3, double an
 }
 
 int CMobot::driveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
+	this->moveToDirectNB(angle1, angle2, angle3, angle4);
+
 	// success
 	return 0;
 }
 
 int CMobot::driveToNB(double angle1, double angle2, double angle3, double angle4) {
+	this->moveToNB(angle1, angle2, angle3, angle4);
+
 	// success
 	return 0;
 }
@@ -136,11 +144,15 @@ int CMobot::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
 }
 
 int CMobot::getJointSafetyAngle(double &angle) {
+	printf("not implemented yet\n");
+
 	// success
 	return 0;
 }
 
 int CMobot::getJointSafetyAngleTimeout(double &seconds) {
+	printf("not implemented yet\n");
+
 	// success
 	return 0;
 }
@@ -190,18 +202,16 @@ int CMobot::isConnected(void) {
 }
 
 int CMobot::isMoving(void) {
-	int moving = 0;
 	robotJointState_t state;
 
 	for (int i = 1; i <= NUM_DOF; i++) {
 		this->getJointState((robotJointId_t)i, state);
-		if( (state == ROBOT_FORWARD) || (state == ROBOT_BACKWARD) ) {
-			moving = 1;
-			break;
+		if (state == ROBOT_FORWARD || state == ROBOT_BACKWARD) {
+			return 1;
 		}
 	}
 
-	return moving;
+	return 0;
 }
 
 int CMobot::motionArch(double angle) {
@@ -1620,7 +1630,7 @@ int CMobot::recordDistancesEnd(int &num) {
 
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
-		for (int j = 0; j < 4; j++) {
+		for (int j = 0; j < NUM_DOF; j++) {
 			(*_recording_angles[j])[i] = DEG2RAD((*_recording_angles[j])[i]) * _radius;
 		}
 	}
@@ -1646,6 +1656,8 @@ int CMobot::recordWait(void) {
 }
 
 int CMobot::reset(void) {
+	printf("not yet implemented\n");
+
 	// success
 	return 0;
 }
@@ -1738,18 +1750,27 @@ int CMobot::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, 
 }
 
 int CMobot::setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds) {
-	//this->moveJointContinuousNB(id, dir);
+	this->moveJointContinuousNB(id, dir);
+#ifdef _WIN32
+	Sleep(seconds * 1000);
+#else
+	usleep(seconds * 1000000);
+#endif
 
 	// success
 	return 0;
 }
 
 int CMobot::setJointSafetyAngle(double angle) {
+	printf("not implemented yet\n");
+
 	// success
 	return 0;
 }
 
 int CMobot::setJointSafetyAngleTimeout(double seconds) {
+	printf("not implemented yet\n");
+
 	// success
 	return 0;
 }
@@ -1789,6 +1810,8 @@ int CMobot::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, dou
 }
 
 int CMobot::setMotorPower(robotJointId_t id, int power) {
+	printf("not implemented yet\n");
+
 	// success
 	return 0;
 }
@@ -1813,6 +1836,17 @@ int CMobot::setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2,
 }
 
 int CMobot::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds) {
+	this->moveJointContinuousNB(ROBOT_JOINT1, dir1);
+	this->moveJointContinuousNB(ROBOT_JOINT2, dir2);
+	this->moveJointContinuousNB(ROBOT_JOINT3, dir3);
+	this->moveJointContinuousNB(ROBOT_JOINT4, dir4);
+
+#ifdef _WIN32
+	Sleep(seconds * 1000);
+#else
+	usleep(seconds * 1000000);
+#endif
+
 	// success
 	return 0;
 }
@@ -2079,7 +2113,7 @@ dBodyID CMobot::getConnectorBodyIDs(int num) {
 	
 }*/
 
-int CMobot::getID(void) {
+int CMobot::getRobotID(void) {
 	return _id;
 }
 
