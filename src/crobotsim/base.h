@@ -4,6 +4,8 @@
 #ifndef _CH_
 #ifdef _WIN32
 #include <windows.h>
+#include <Shlobj.h>
+#include <Shlwapi.h>
 #define DLLIMPORT __declspec(dllexport)
 #define TEXTURE_PATH(end) "C:/Ch/package/chrobotsim/data/" #end
 #else

@@ -105,8 +105,9 @@ int CRobotSim::init_xml(void) {
 	tinyxml2::XMLDocument doc;
 	char path[512];
 #ifdef _WIN32
-	SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path);
-	strcat(path, "\\robosimrc");
+	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path))) {
+		strcat(path, "\\robosimrc");
+	}
 #else
 	strcpy(path, getenv("HOME"));
 	strcat(path, "/.robosimrc");
