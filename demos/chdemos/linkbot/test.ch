@@ -1,4 +1,4 @@
-#include <linkbotsim.h>
+#include <linkbot.h>
 
 CLinkbotI robot;
 

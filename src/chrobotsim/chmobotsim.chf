@@ -1,5 +1,5 @@
 #include <robotsim.h>
-#include <mobotsim.h>
+#include <mobot.h>
 #include <dlfcn.h>
 #include <stdarg.h>
 #include <array.h>
@@ -2377,4 +2377,8 @@ int CMobotGroup::turnRightNB(double angle) {
     }
     dlrunfun(fptr, &retval, turnRightNB, this, angle);
     return retval;
+<<<<<<< HEAD
 }
+=======
+}*/
+>>>>>>> working win32 implementation

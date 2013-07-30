@@ -1,4 +1,4 @@
-#include <mobotsim.h>
+#include <mobot.h>
 
 CMobot robot;
 

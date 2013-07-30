@@ -1,5 +1,5 @@
 #include <robotsim.h>
-#include <linkbotsim.h>
+#include <linkbot.h>
 #include <dlfcn.h>
 #include <stdarg.h>
 #include <array.h>
@@ -2332,4 +2332,8 @@ int CLinkbotLGroup::turnRightNB(double angle) {
     }
     dlrunfun(fptr, &retval, turnRightNB, this, angle);
     return retval;
+<<<<<<< HEAD
 }
+=======
+}*/
+>>>>>>> working win32 implementation

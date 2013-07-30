@@ -1,6 +1,6 @@
 /* File: dataAcquisition.ch
 */
-#include <mobotsim.h>
+#include <mobot.h>
 #include <chplot.h>
 #include <numeric.h>
 

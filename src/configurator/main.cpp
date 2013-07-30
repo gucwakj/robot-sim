@@ -10,30 +10,35 @@
 GtkBuilder *g_builder; 
 GtkWidget *g_window;
 tinyxml2::XMLDocument g_doc;
-char g_path[512];
-char g_chrc[512];
-FILE *fp = NULL;
+FILE *fp1 = NULL;
+char g_xml[512], g_chrc[512], fpbuf1[10240], fpbuf2[5120];
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 G_MODULE_EXPORT void on_window_destroy(GtkWidget* widget, gpointer data) {
-	g_doc.SaveFile(g_path);
+	g_doc.SaveFile(g_xml);
     gtk_main_quit();
 }
 
 G_MODULE_EXPORT void on_real_toggled(GtkWidget* widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "real")))) {
-		
-		//printf("output: %s\n", (g_output ? "simulated" : "real"));
+		fp1 = fopen(g_chrc, "w");
+		fputs(fpbuf1, fp1);
+		fputs("// RoboSim Begin\n//_ipath = stradd(\"C:/Ch/package/chrobotsim/include;\", _ipath);\n// RoboSim End\n", fp1);
+		fputs(fpbuf2, fp1);
+		fclose(fp1);
 	}
 }
 
 G_MODULE_EXPORT void on_simulated_toggled(GtkWidget* widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "simulated")))) {
-		//g_output = 1;
-		//printf("output: %s\n", (g_output ? "simulated" : "real"));
+		fp1 = fopen(g_chrc, "w");
+		fputs(fpbuf1, fp1);
+		fputs("// RoboSim Begin\n_ipath = stradd(\"C:/Ch/package/chrobotsim/include;\", _ipath);\n// RoboSim End\n", fp1);
+		fputs(fpbuf2, fp1);
+		fclose(fp1);
 	}
 }
 
@@ -116,7 +121,7 @@ G_MODULE_EXPORT void on_linkbotl_toggled(GtkWidget* widget, gpointer data) {
 }
 
 G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
-	g_doc.SaveFile(g_path);
+	g_doc.SaveFile(g_xml);
 }
 
 G_MODULE_EXPORT void on_one_toggled(GtkWidget* widget, gpointer data) {
@@ -377,26 +382,50 @@ int main (int argc, char *argv[]) {
 	spin = GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "two_z"));
 	gtk_spin_button_set_adjustment(spin, adjustment);*/
 
-	// store config files
+	// get config file paths
 #ifdef _WIN32
-	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, g_path))) {
-		strcat(g_path, "\\robosimrc");
+	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, g_xml))) {
+		strcat(g_xml, "\\robosimrc");
 	}
 	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, g_chrc))) {
 		strcat(g_chrc, "\\_chrc");
 	}
 #else
-	strcpy(g_path, getenv("HOME"));
-	strcat(g_path, "/.robosimrc");
+	strcpy(g_xml, getenv("HOME"));
+	strcat(g_xml, "/.robosimrc");
 	strcpy(g_chrc, getenv("HOME"));
 	strcat(g_chrc, "/.chrc");
 #endif
-	g_doc.SaveFile(g_path);
-	//fp = fopen(g_chrc, "w+");
-	
+
+	// save xml config file
+	g_doc.SaveFile(g_xml);
+
+	// get chrc config file into buffer(s)
+	char line[1024];
+	fp1 = fopen(g_chrc, "r");
+	while (fgets(line, 1024, fp1)) {
+		if (!strcmp(line, "// RoboSim Begin\n")) {
+			fgets(line, 1024, fp1);		// ipath line
+			fgets(line, 1024, fp1);		// robosim end line
+			break;
+		}
+		strcat(fpbuf1, line);
+	}
+	while (fgets(line, 1024, fp1)) {
+		strcat(fpbuf2, line);
+	}
+	fclose(fp1);
+
+	// write config file for hardware robots
+	fp1 = fopen(g_chrc, "w");
+	fputs(fpbuf1, fp1);
+	fputs("// RoboSim Begin\n//_ipath = stradd(\"C:/Ch/package/chrobotsim/include;\", _ipath);\n// RoboSim End\n", fp1);
+	fputs(fpbuf2, fp1);
+	fclose(fp1);
+
+	// show main window
 	gtk_widget_show(g_window);                
 	gtk_main();
 
 	return 0;
 }
-

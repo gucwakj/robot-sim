@@ -1,6 +1,6 @@
 /* File: recorddistances.ch
    Record time and distances, plot the acquired data for two robots */
-#include <mobotsim.h>
+#include <mobot.h>
 #include <chplot.h>
 CMobot robot1, robot2;
 double speed1=1.5, speed2=3; // speeds of robots in inches per second

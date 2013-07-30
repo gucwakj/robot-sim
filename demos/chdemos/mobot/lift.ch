@@ -7,7 +7,7 @@
  1|   2     |   3    | 4 X 1|    2    |   3    | 4
   |---------|--------|      |---------|--------|
 */
-#include <mobotsim.h>
+#include <mobot.h>
 #include <chplot.h>
 #include <numeric.h>
 
