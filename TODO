@@ -1,11 +1,7 @@
 TODO File for iMobot Simulations
 
 General:
-	demos dir with ik_*.cpp and fd_*.cpp
 	docs/, AUTHORS, README
-	build class
-		create CiMobotSim class to allow one build function per demo program
-	CMakeLists.txt much smaller than cimobotsim_test/*
 
 Forward Dynamics:
 	Parallelize the code
@@ -26,34 +22,3 @@ Forward Dynamics:
 	Max Joint Velocity
 		Values are based upon Graham's calculations in his thesis.  Need experimental
 		values true to the module.
-	More accurate completion check
-		Currently the code will only check if all of the joints have completed
-		all of their scheduled positions.  For cases like the camera stand, if
-		the body falls over, can still get a 'success' flag because the bodies
-		have completed their motions.  However the module is obviously not in
-		the right position.
-	Wind
-		Possibly add wind effects to the simulation.  A cross-wind would have an
-		adverse effect especially on larger robots.  Found a link that simulated
-		wind as a group of small spheres.
-			Genetic programming: 6th European Conference
-			EuroGP 2003,
-			Essex ..., Volume 6
-			By Conor Ryan
-			http://books.google.com/books?id=pVhXLZKMF-YC&lpg=PA51&ots=ikZfL8Ztow&dq=open%20dynamics%20engine%20wind&pg=PA51#v=onepage&q=open%20dynamics%20engine%20wind&f=false
-	New features from David
-		PID
-		Mismatched endcap rotation
-    ODE Shared Library
-        recompile ode to be a shared library rather than static
-
-Inverse Kinematics:
-	cleaner implementation of Jacobian type passing
-		do we even need different (lesser) types like pseudoinverse, transpose?  removing
-		them will allow other functions on Matrix and Vector classes to be removed
-	const keyword used excessively
-	properly clean up node_right array in destructor
-	SDLS fails when num_rows > num_cols
-        read up on how N, M are calculated and why they are looping over num_rows
-    what is the meaning of the time variable
-        can the two times be synced by limiting ik to a max joint movement per step

@@ -1,5 +1,5 @@
 #include <robotsim.h>
-#include <linkbotsim.h>
+#include <linkbot.h>
 #include <dlfcn.h>
 #include <stdarg.h>
 #include <array.h>

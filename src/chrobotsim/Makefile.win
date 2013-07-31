@@ -23,7 +23,8 @@ OBJS =	robotsim.obj \
 		chrobotsim_chdl.obj \
 		chmobotsim_chdl.obj \
 		chlinkbotisim_chdl.obj \
-		chlinkbotlsim_chdl.obj
+		chlinkbotlsim_chdl.obj \
+		chlinkbottsim_chdl.obj
 
 chrobotsim_chdl.obj: chrobotsim_chdl.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus chrobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
@@ -36,6 +37,9 @@ chlinkbotisim_chdl.obj: chlinkbotisim_chdl.cpp $(HEADERS)
 	
 chlinkbotlsim_chdl.obj: chlinkbotlsim_chdl.cpp $(HEADERS)
 	ch dlcomp librobotsim.dl cplusplus chlinkbotlsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+
+chlinkbottsim_chdl.obj: chlinkbottsim_chdl.cpp $(HEADERS)
+	ch dlcomp librobotsim.dl cplusplus chlinkbottsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
 robotsim.obj: $(SRC)/robotsim.cpp $(HEADERS) 
 	ch dlcomp librobotsim.dl cplusplus $(SRC)/robotsim.cpp $(CPPFLAGS) $(INCLUDES)
@@ -124,6 +128,7 @@ createpkg: librobotsim.dl
 	cp chmobotsim.chf $(PKGDIR)/lib
 	cp chlinkbotisim.chf $(PKGDIR)/lib
 	cp chlinkbotlsim.chf $(PKGDIR)/lib
+	cp chlinkbottsim.chf $(PKGDIR)/lib
 	cp delay.chf $(PKGDIR)/lib
 	cp Makefile.win $(PACKAGE)-$(VERSION)/Makefile
 	cp pkginstall.ch $(PACKAGE)-$(VERSION)

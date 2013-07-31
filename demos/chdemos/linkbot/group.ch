@@ -1,4 +1,4 @@
-#include "linkbotsim.h"
+#include "linkbot.h"
 
 CLinkbotT robot1, robot2;
 CLinkbotTGroup group;
