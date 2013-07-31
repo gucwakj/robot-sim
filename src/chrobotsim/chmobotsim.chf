@@ -2377,8 +2377,4 @@ int CMobotGroup::turnRightNB(double angle) {
     }
     dlrunfun(fptr, &retval, turnRightNB, this, angle);
     return retval;
-<<<<<<< HEAD
 }
-=======
-}*/
->>>>>>> working win32 implementation

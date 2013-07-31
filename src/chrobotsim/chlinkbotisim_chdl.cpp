@@ -2020,46 +2020,6 @@ EXPORTCH int CLIG_moveBackwardNB_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLIG_moveContinuousNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotIGroup *robot;
-    robotJointState_t dir1;
-    robotJointState_t dir2;
-    robotJointState_t dir3;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
-    dir1 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    dir2 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    dir3 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    retval = robot->moveContinuousNB(dir1, dir2, dir3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLIG_moveContinuousTime_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotIGroup *robot;
-    robotJointState_t dir1;
-    robotJointState_t dir2;
-    robotJointState_t dir3;
-    double seconds;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
-    dir1 = Ch_VaArg(interp, ap, robotJointState_t);
-    dir2 = Ch_VaArg(interp, ap, robotJointState_t);
-    dir3 = Ch_VaArg(interp, ap, robotJointState_t);
-    seconds = Ch_VaArg(interp, ap, double );
-    retval = robot->moveContinuousTime(dir1, dir2, dir3, seconds);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLIG_moveDistance_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2120,42 +2080,6 @@ EXPORTCH int CLIG_moveForwardNB_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
     angle = Ch_VaArg(interp, ap, double);
     retval = robot->moveForwardNB(angle);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLIG_moveJointContinuousNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotIGroup *robot;
-    robotJointId_t id;
-    robotJointState_t dir;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
-    id = Ch_VaArg(interp, ap, robotJointId_t );
-    dir = Ch_VaArg(interp, ap, robotJointState_t);
-    retval = robot->moveJointContinuousNB(id, dir);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLIG_moveJointContinuousTime_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotIGroup *robot;
-    robotJointId_t id;
-    robotJointState_t dir;
-    double seconds;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    dir = Ch_VaArg(interp, ap, robotJointState_t);
-    seconds = Ch_VaArg(interp, ap, double);
-    retval = robot->moveJointContinuousTime(id, dir, seconds);
     Ch_VaEnd(interp, ap);
     return retval;
 }
