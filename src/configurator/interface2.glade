@@ -22,6 +22,7 @@
   <object class="GtkAdjustment" id="two_x_adj">
     <property name="lower">-50</property>
     <property name="upper">50</property>
+    <property name="value">0.5</property>
     <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">0.10000000000000001</property>
   </object>
@@ -457,6 +458,7 @@
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
                             <property name="adjustment">one_x_adj</property>
+                            <property name="digits">1</property>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -473,6 +475,7 @@
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
                             <property name="adjustment">one_y_adj</property>
+                            <property name="digits">1</property>
                           </object>
                           <packing>
                             <property name="left_attach">3</property>
@@ -489,6 +492,7 @@
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
                             <property name="adjustment">one_z_adj</property>
+                            <property name="digits">1</property>
                           </object>
                           <packing>
                             <property name="left_attach">5</property>
@@ -569,6 +573,7 @@
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
                             <property name="adjustment">two_x_adj</property>
+                            <property name="digits">1</property>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -586,6 +591,7 @@
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
                             <property name="adjustment">two_y_adj</property>
+                            <property name="digits">1</property>
                           </object>
                           <packing>
                             <property name="left_attach">3</property>
@@ -603,6 +609,7 @@
                             <property name="primary_icon_sensitive">True</property>
                             <property name="secondary_icon_sensitive">True</property>
                             <property name="adjustment">two_z_adj</property>
+                            <property name="digits">1</property>
                           </object>
                           <packing>
                             <property name="left_attach">5</property>
