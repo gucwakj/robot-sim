@@ -381,21 +381,23 @@ int main (int argc, char *argv[]) {
 	// save xml config file
 	g_doc.SaveFile(g_xml);
 
-	// get chrc config file into buffer(s)
-	char line[1024];
-	fp1 = fopen(g_chrc, "r");
-	while (fgets(line, 1024, fp1)) {
-		if (!strcmp(line, "// RoboSim Begin\n")) {
-			fgets(line, 1024, fp1);		// ipath line
-			fgets(line, 1024, fp1);		// robosim end line
-			break;
+	// if chrc exists, get file into buffer(s)
+	if (fopen(g_chrc, "r") != NULL) {
+		char line[1024];
+		fp1 = fopen(g_chrc, "r");
+		while (fgets(line, 1024, fp1)) {
+			if (!strcmp(line, "// RoboSim Begin\n")) {
+				fgets(line, 1024, fp1);		// ipath line
+				fgets(line, 1024, fp1);		// robosim end line
+				break;
+			}
+			strcat(fpbuf1, line);
 		}
-		strcat(fpbuf1, line);
+		while (fgets(line, 1024, fp1)) {
+			strcat(fpbuf2, line);
+		}
+		fclose(fp1);
 	}
-	while (fgets(line, 1024, fp1)) {
-		strcat(fpbuf2, line);
-	}
-	fclose(fp1);
 
 	// write config file for hardware robots
 	fp1 = fopen(g_chrc, "w");
