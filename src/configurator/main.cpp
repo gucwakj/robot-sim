@@ -363,25 +363,6 @@ int main (int argc, char *argv[]) {
 	robot->SetAttribute("id", 0);
 	ele->InsertFirstChild(robot);
 
-	/*GtkAdjustment *adjustment = gtk_adjustment_new(0.0, -50.0, 50.0, 0.1, 0.1, 0.0);
-	GtkSpinButton *spin = GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "one_x"));
-	gtk_spin_button_set_adjustment(spin, adjustment);
-	adjustment = gtk_adjustment_new(0.0, -50.0, 50.0, 0.1, 0.1, 0.0);
-	spin = GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "one_y"));
-	gtk_spin_button_set_adjustment(spin, adjustment);
-	adjustment = gtk_adjustment_new(0.0, 0.0, 50.0, 0.1, 0.1, 0.0);
-	spin = GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "one_z"));
-	gtk_spin_button_set_adjustment(spin, adjustment);
-	adjustment = gtk_adjustment_new(0.5, -50.0, 50.0, 0.1, 0.1, 0.0);
-	spin = GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "two_x"));
-	gtk_spin_button_set_adjustment(spin, adjustment);
-	adjustment = gtk_adjustment_new(0.0, -50.0, 50.0, 0.1, 0.1, 0.0);
-	spin = GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "two_y"));
-	gtk_spin_button_set_adjustment(spin, adjustment);
-	adjustment = gtk_adjustment_new(0.0, 0.0, 50.0, 0.1, 0.1, 0.0);
-	spin = GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "two_z"));
-	gtk_spin_button_set_adjustment(spin, adjustment);*/
-
 	// get config file paths
 #ifdef _WIN32
 	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, g_xml))) {

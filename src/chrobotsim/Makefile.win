@@ -126,7 +126,7 @@ createpkg: librobotsim.dl
 	cp chlinkbotlsim.chf $(PKGDIR)/lib
 	cp delay.chf $(PKGDIR)/lib
 	cp Makefile.win $(PACKAGE)-$(VERSION)/Makefile
-	cp pkginstall.ch $(PACKAGE)-$(VERSION)/pkginstall.ch
+	cp pkginstall.ch $(PACKAGE)-$(VERSION)
 	zip -rq $(PACKAGE)-$(VERSION).zip $(PACKAGE)-$(VERSION)
 	echo Done Building $(PACKAGE)-$(VERSION)
 

@@ -1,18 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkAdjustment" id="one_x_adjustment">
+    <property name="lower">-50</property>
+    <property name="upper">50</property>
+    <property name="step_increment">0.10000000000000001</property>
+    <property name="page_increment">0.10000000000000001</property>
+  </object>
+  <object class="GtkAdjustment" id="one_y_adjustment">
+    <property name="lower">-50</property>
+    <property name="upper">50</property>
+    <property name="step_increment">0.10000000000000001</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="one_z_adjustment">
+    <property name="upper">50</property>
+    <property name="step_increment">0.10000000000000001</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="two_x_adjustment">
+    <property name="lower">-50</property>
+    <property name="upper">50</property>
+    <property name="value">0.5</property>
+    <property name="step_increment">0.10000000000000001</property>
+    <property name="page_increment">0.10000000000000001</property>
+  </object>
+  <object class="GtkAdjustment" id="two_y_adjustment">
+    <property name="lower">-50</property>
+    <property name="upper">50</property>
+    <property name="step_increment">0.10000000000000001</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="two_z_adjustment">
+    <property name="upper">50</property>
+    <property name="step_increment">0.10000000000000001</property>
+    <property name="page_increment">10</property>
+  </object>
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
-    <!--<property name="valign">start</property>-->
     <property name="title" translatable="yes">RoboSim Configurator</property>
     <signal name="destroy" handler="on_window_destroy" swapped="no"/>
     <child>
       <object class="GtkVBox" id="config">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-	<!--<property name="margin_left">2</property>
-	<property name="margin_right">2</property>-->
-        <property name="orientation">vertical</property>
         <child>
           <object class="GtkMenuBar" id="menubar1">
             <property name="visible">True</property>
@@ -185,7 +216,6 @@
                   <object class="GtkVBox" id="box3">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="orientation">vertical</property>
                     <child>
                       <object class="GtkRadioButton" id="real">
                         <property name="label" translatable="yes">Hardware Robots</property>
@@ -256,7 +286,6 @@
                   <object class="GtkVBox" id="box5">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="orientation">vertical</property>
                     <child>
                       <object class="GtkRadioButton" id="mobot">
                         <property name="label" translatable="yes">Mobot</property>
@@ -344,7 +373,6 @@
                   <object class="GtkVBox" id="box4">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="orientation">vertical</property>
                     <child>
                       <object class="GtkRadioButton" id="one">
                         <property name="label" translatable="yes">One Robot</property>
@@ -366,7 +394,6 @@
                       <object class="GtkGrid" id="one_pos_grid">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-			<!--<property name="margin_left">25</property>-->
                         <property name="hexpand">True</property>
                         <child>
                           <object class="GtkLabel" id="x_label">
@@ -402,7 +429,7 @@
                           <object class="GtkLabel" id="z_label">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="xalign">0.50999999046325684</property>
+                            <property name="xalign">1</property>
                             <property name="xpad">7</property>
                             <property name="label" translatable="yes">Z:</property>
                           </object>
@@ -418,6 +445,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="invisible_char">•</property>
+                            <property name="adjustment">one_x_adjustment</property>
                             <property name="digits">1</property>
                             <signal name="value-changed" handler="on_one_x_value_changed" swapped="no"/>
                           </object>
@@ -433,6 +461,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="invisible_char">•</property>
+                            <property name="adjustment">one_y_adjustment</property>
                             <property name="climb_rate">0.01</property>
                             <property name="digits">1</property>
                             <signal name="value-changed" handler="on_one_y_value_changed" swapped="no"/>
@@ -449,6 +478,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="invisible_char">•</property>
+                            <property name="adjustment">one_z_adjustment</property>
                             <property name="digits">1</property>
                             <signal name="value-changed" handler="on_one_z_value_changed" swapped="no"/>
                           </object>
@@ -488,7 +518,6 @@
                       <object class="GtkGrid" id="two_pos_grid">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-			<!--<property name="margin_left">25</property>-->
                         <property name="hexpand">True</property>
                         <child>
                           <object class="GtkLabel" id="x_label1">
@@ -524,7 +553,7 @@
                           <object class="GtkLabel" id="z_label1">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="xalign">0.50999999046325684</property>
+                            <property name="xalign">1</property>
                             <property name="xpad">7</property>
                             <property name="label" translatable="yes">Z:</property>
                           </object>
@@ -541,6 +570,7 @@
                             <property name="can_focus">False</property>
                             <property name="invisible_char">•</property>
                             <property name="invisible_char_set">True</property>
+                            <property name="adjustment">two_x_adjustment</property>
                             <property name="digits">1</property>
                             <signal name="value-changed" handler="on_two_x_value_changed" swapped="no"/>
                           </object>
@@ -557,6 +587,7 @@
                             <property name="can_focus">False</property>
                             <property name="invisible_char">•</property>
                             <property name="invisible_char_set">True</property>
+                            <property name="adjustment">two_y_adjustment</property>
                             <property name="digits">1</property>
                             <signal name="value-changed" handler="on_two_y_value_changed" swapped="no"/>
                           </object>
@@ -573,6 +604,7 @@
                             <property name="can_focus">False</property>
                             <property name="invisible_char">•</property>
                             <property name="invisible_char_set">True</property>
+                            <property name="adjustment">two_z_adjustment</property>
                             <property name="digits">1</property>
                             <signal name="value-changed" handler="on_two_z_value_changed" swapped="no"/>
                           </object>
@@ -625,18 +657,6 @@
                         <property name="fill">True</property>
                         <property name="position">5</property>
                       </packing>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
                     </child>
                   </object>
                 </child>

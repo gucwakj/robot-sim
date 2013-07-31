@@ -67,10 +67,10 @@ librobotsim.dl: $(OBJS)
 	ch dllink librobotsim.dl cplusplus $(OBJS) $(LIBPATHS) $(LIBS)
 
 install:
-	ch pkginstall.ch $(PACKAGE)
+	ch ./pkginstall.ch $(PACKAGE)
 
 uninstall:
-	ch pkginstall.ch -u $(PACKAGE)
+	ch ./pkginsall.ch -u $(PACKAGE)
 
 createpkg: librobotsim.dl
 	echo Building $(PACKAGE)-$(VERSION).zip
@@ -79,7 +79,7 @@ createpkg: librobotsim.dl
 	mkdir -p $(PKGDIR)
 	mkdir $(PKGDIR)/bin
 	cp ../configurator/build/robosimconfigurator $(PKGDIR)/bin
-	cp ../configurator/interface.glade $(PKGDIR)/bin
+	cp ../configurator/interface3.glade $(PKGDIR)/bin
 	cp ../opende/sys/lib/libode.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosg.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosgViewer.so $(PKGDIR)/bin
@@ -105,6 +105,8 @@ createpkg: librobotsim.dl
 	cp librobotsim.dl $(PKGDIR)/dl
 	mkdir $(PKGDIR)/include
 	cp $(HEADERS) $(PKGDIR)/include
+	mv $(PKGDIR)/include/mobotsim.h $(PKGDIR)/include/mobot.h
+	mv $(PKGDIR)/include/linkbotsim.h $(PKGDIR)/include/linkbot.h
 	mkdir $(PKGDIR)/lib
 	cp chrobotsim.chf $(PKGDIR)/lib
 	cp chmobotsim.chf $(PKGDIR)/lib
@@ -113,6 +115,7 @@ createpkg: librobotsim.dl
 	cp chlinkbott.chf $(PKGDIR)/lib
 	cp delay.chf $(PKGDIR)/lib
 	cp Makefile $(PACKAGE)-$(VERSION)
+	cp pkginstall.ch $(PACKAGE)-$(VERSION)
 	zip -rq $(PACKAGE)-$(VERSION).zip $(PACKAGE)-$(VERSION)
 	echo Done Building $(PACKAGE)-$(VERSION)
 
