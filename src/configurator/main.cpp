@@ -26,7 +26,11 @@ G_MODULE_EXPORT void on_real_toggled(GtkWidget* widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "real")))) {
 		fp1 = fopen(g_chrc, "w");
 		fputs(fpbuf1, fp1);
+#ifdef _WIN32
 		fputs("// RoboSim Begin\n//_ipath = stradd(\"C:/Ch/package/chrobotsim/include;\", _ipath);\n// RoboSim End\n", fp1);
+#else
+		fputs("// RoboSim Begin\n//_ipath = stradd(\"/usr/local/ch/package/chrobotsim/include;\", _ipath);\n// RoboSim End\n", fp1);
+#endif
 		fputs(fpbuf2, fp1);
 		fclose(fp1);
 	}
@@ -36,7 +40,11 @@ G_MODULE_EXPORT void on_simulated_toggled(GtkWidget* widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "simulated")))) {
 		fp1 = fopen(g_chrc, "w");
 		fputs(fpbuf1, fp1);
+#ifdef _WIN32
 		fputs("// RoboSim Begin\n_ipath = stradd(\"C:/Ch/package/chrobotsim/include;\", _ipath);\n// RoboSim End\n", fp1);
+#else
+		fputs("// RoboSim Begin\n_ipath = stradd(\"/usr/local/ch/package/chrobotsim/include;\", _ipath);\n// RoboSim End\n", fp1);
+#endif
 		fputs(fpbuf2, fp1);
 		fclose(fp1);
 	}
@@ -402,7 +410,11 @@ int main (int argc, char *argv[]) {
 	// write config file for hardware robots
 	fp1 = fopen(g_chrc, "w");
 	fputs(fpbuf1, fp1);
-	fputs("// RoboSim Begin\n//_ipath = stradd(\"C:/Ch/package/chrobotsim/include;\", _ipath);\n// RoboSim End\n", fp1);
+#ifdef _WIN32
+		fputs("// RoboSim Begin\n//_ipath = stradd(\"C:/Ch/package/chrobotsim/include;\", _ipath);\n// RoboSim End\n", fp1);
+#else
+		fputs("// RoboSim Begin\n//_ipath = stradd(\"/usr/local/ch/package/chrobotsim/include;\", _ipath);\n// RoboSim End\n", fp1);
+#endif
 	fputs(fpbuf2, fp1);
 	fclose(fp1);
 
