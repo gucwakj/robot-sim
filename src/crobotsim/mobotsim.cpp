@@ -1239,8 +1239,14 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
+	// lock recording
+	MUTEX_LOCK(&(rArg->robot->_recording_mutex));
+
 	// loop until recording is no longer needed
 	for (int i = 0; rArg->robot->_recording[rArg->id]; i++) {
+		// unlock recording
+		MUTEX_UNLOCK(&(rArg->robot->_recording_mutex));
+
 		// store locally num of data points taken
 		rArg->robot->_recording_num[rArg->id] = i;
 
@@ -1278,7 +1284,13 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
 #endif
 		}
+
+		// lock mutex to check on next loop
+		MUTEX_LOCK(&(rArg->robot->_recording_mutex));
 	}
+
+	// done recording
+	MUTEX_UNLOCK(&(rArg->robot->_recording_mutex));
 
 	// signal completion of recording
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
@@ -1325,17 +1337,17 @@ int CMobot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRe
 }
 
 int CMobot::recordAngleEnd(robotJointId_t id, int &num) {
+	// turn off recording
+	MUTEX_LOCK(&_recording_mutex);
+	_recording[id] = false;
+	MUTEX_UNLOCK(&_recording_mutex);
+
 	// wait for last recording point to finish
 	MUTEX_LOCK(&_active_mutex);
 	while (_active[id]) {
 		COND_WAIT(&_active_cond, &_active_mutex);
 	}
 	MUTEX_UNLOCK(&_active_mutex);
-
-	// turn off recording
-	MUTEX_LOCK(&_recording_mutex);
-	_recording[id] = false;
-	MUTEX_UNLOCK(&_recording_mutex);
 
 	// report number of data points recorded
 	num = _recording_num[id];
@@ -1591,7 +1603,7 @@ int CMobot::recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robo
 
 	// record angle of desired joint
 	this->recordAngleBegin(id, time, distance, seconds, shiftData);
-
+printf("recording beginning\n");
 	// success
 	return 0;
 }

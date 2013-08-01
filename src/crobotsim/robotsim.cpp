@@ -409,13 +409,22 @@ int CRobotSim::init_xml(void) {
 			ntmp = new int[cnum];
 
 			// store connector to temp variables
-			side = node->FirstChildElement();
 			int i = 0;
-			while (side) {
-				side->QueryIntAttribute("id", &ntmp[i]);
-				side->QueryIntAttribute("robot", &rtmp[i]);
-				side->QueryIntAttribute("face", &ftmp[i++]);
-				side = side->NextSiblingElement();
+			if (cnum == 1) {
+				i = 1;
+				ntmp[0] = 0;
+				node->QueryIntAttribute("robot", &rtmp[0]);
+				node->QueryIntAttribute("face", &ftmp[0]);
+
+			}
+			else {
+				side = node->FirstChildElement();
+				while (side) {
+					side->QueryIntAttribute("id", &ntmp[i]);
+					side->QueryIntAttribute("robot", &rtmp[i]);
+					side->QueryIntAttribute("face", &ftmp[i++]);
+					side = side->NextSiblingElement();
+				}
 			}
 
 			// store connectors to each robot

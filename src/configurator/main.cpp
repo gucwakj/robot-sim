@@ -196,22 +196,28 @@ G_MODULE_EXPORT void on_wheeled_toggled(GtkWidget* widget, gpointer data) {
 		tinyxml2::XMLElement *robot, *wheel1, *wheel2, *sim = g_doc.FirstChildElement("sim");
 		sim->DeleteChildren();
 		wheel1 = newSmallwheel(0, 1);
+		tinyxml2::XMLElement *caster = g_doc.NewElement("caster");
+		caster->SetAttribute("robot", 0);
 		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "mobot")))) {
 			robot = g_doc.NewElement("mobot");
-			wheel2 = newSmallwheel(0, 4);
+			wheel2 = newSmallwheel(0, 8);
+			caster->SetAttribute("face", 3);
 		}
 		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkboti")))) {
 			robot = g_doc.NewElement("linkboti");
 			wheel2 = newSmallwheel(0, 3);
+			caster->SetAttribute("face", 2);
 		}
 		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkbotl")))) {
 			robot = g_doc.NewElement("linkbotl");
 			wheel2 = newSmallwheel(0, 2);
+			caster->SetAttribute("face", 3);
 		}
 		robot->SetAttribute("id", 0);
 		sim->InsertFirstChild(robot);
 		sim->InsertAfterChild(robot, wheel1);
 		sim->InsertAfterChild(wheel1, wheel2);
+		sim->InsertAfterChild(wheel2, caster);
 	}
 }
 
@@ -227,13 +233,19 @@ G_MODULE_EXPORT void on_twowheeled_toggled(GtkWidget* widget, gpointer data) {
 		wheel3->SetAttribute("robot", 1);
 		tinyxml2::XMLElement *wheel4 = g_doc.NewElement("smallwheel");
 		wheel4->SetAttribute("robot", 1);
+		tinyxml2::XMLElement *caster1 = g_doc.NewElement("caster");
+		caster1->SetAttribute("robot", 0);
+		tinyxml2::XMLElement *caster2 = g_doc.NewElement("caster");
+		caster2->SetAttribute("robot", 1);
 		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "mobot")))) {
 			robot1 = g_doc.NewElement("mobot");
 			robot2 = g_doc.NewElement("mobot");
 			wheel1->SetAttribute("face", 1);
-			wheel2->SetAttribute("face", 4);
+			wheel2->SetAttribute("face", 8);
 			wheel3->SetAttribute("face", 1);
-			wheel4->SetAttribute("face", 4);
+			wheel4->SetAttribute("face", 8);
+			caster1->SetAttribute("face", 3);
+			caster2->SetAttribute("face", 3);
 		}
 		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkboti")))) {
 			robot1 = g_doc.NewElement("linkboti");
@@ -242,6 +254,8 @@ G_MODULE_EXPORT void on_twowheeled_toggled(GtkWidget* widget, gpointer data) {
 			wheel2->SetAttribute("face", 3);
 			wheel3->SetAttribute("face", 1);
 			wheel4->SetAttribute("face", 3);
+			caster1->SetAttribute("face", 2);
+			caster2->SetAttribute("face", 2);
 		}
 		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkbotl")))) {
 			robot1 = g_doc.NewElement("linkbotl");
@@ -250,6 +264,8 @@ G_MODULE_EXPORT void on_twowheeled_toggled(GtkWidget* widget, gpointer data) {
 			wheel2->SetAttribute("face", 2);
 			wheel3->SetAttribute("face", 1);
 			wheel4->SetAttribute("face", 2);
+			caster1->SetAttribute("face", 3);
+			caster2->SetAttribute("face", 3);
 		}
 		robot1->SetAttribute("id", 0);
 		robot2->SetAttribute("id", 1);
@@ -262,6 +278,8 @@ G_MODULE_EXPORT void on_twowheeled_toggled(GtkWidget* widget, gpointer data) {
 		sim->InsertAfterChild(wheel1, wheel2);
 		sim->InsertAfterChild(wheel2, wheel3);
 		sim->InsertAfterChild(wheel3, wheel4);
+		sim->InsertAfterChild(wheel4, caster1);
+		sim->InsertAfterChild(caster1, caster2);
 	}
 }
 
