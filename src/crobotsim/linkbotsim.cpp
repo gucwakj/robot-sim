@@ -1604,7 +1604,11 @@ int CLinkbotT::build(bot_t robot, CRobot *base, Conn_t *conn) {
 }
 
 dReal CLinkbotT::getAngle(int i) {
-	_angle[i] = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
+	if (i != _disabled)
+		_angle[i] = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
+	else
+		_angle[i] = 0;
+
     return _angle[i];
 }
 
@@ -1733,7 +1737,8 @@ void CLinkbotT::simPreCollisionThread(void) {
 	MUTEX_LOCK(&_angle_mutex);
 
 	// update angle values for each degree of freedom
-	for (int i = 0; i < NUM_DOF; i++) {
+	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
+		int i = _enabled[j];
 		// store current angle
 		_angle[i] = getAngle(i);
 		// set motor angle to current angle
@@ -1741,17 +1746,14 @@ void CLinkbotT::simPreCollisionThread(void) {
 		// drive motor to get current angle to match future angle
 		if (_seek[i]) {
 			if (_angle[i] < _goal[i] - _encoderResolution) {
-//printf("forward: angle = %lf; goal = %lf\n", _angle[i], _goal[i]);
 				_state[i] = ROBOT_FORWARD;
 				dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]);
 			}
 			else if (_angle[i] > _goal[i] + _encoderResolution) {
-//printf("backward: angle = %lf; goal = %lf\n", _angle[i], _goal[i]);
 				_state[i] = ROBOT_BACKWARD;
 				dJointSetAMotorParam(_motor[i], dParamVel, -_speed[i]);
 			}
 			else {
-//printf("hold: angle = %lf; goal = %lf\n", _angle[i], _goal[i]);
 				_state[i] = ROBOT_HOLD;
 				dJointSetAMotorParam(_motor[i], dParamVel, 0);
 			}
@@ -1759,8 +1761,10 @@ void CLinkbotT::simPreCollisionThread(void) {
 		else {
 			switch (_state[i]) {
 				case ROBOT_FORWARD:
-				case ROBOT_BACKWARD:
 					dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]);
+					break;
+				case ROBOT_BACKWARD:
+					dJointSetAMotorParam(_motor[i], dParamVel, -_speed[i]);
 					break;
 				case ROBOT_HOLD:
 					dJointSetAMotorParam(_motor[i], dParamVel, 0);
@@ -1988,22 +1992,40 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
     dJointSetHingeParam(_joint[0], dParamCFM, 0);
 
     // joint for body to face 2
-    _joint[1] = dJointCreateHinge(_world, 0);
-    dJointAttach(_joint[1], _body[BODY], _body[FACE2]);
-    dJointSetHingeAnchor(_joint[1], R[0]*f2[3] + R[1]*f2[4] + R[2]*f2[5] + x,
-									R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y,
-									R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
-    dJointSetHingeAxis(_joint[1], R[0], R[4], R[8]);
-    dJointSetHingeParam(_joint[1], dParamCFM, 0);
+	if (_disabled == 1) {
+		dJointID joint = dJointCreateFixed(_world, 0);
+		dJointAttach(joint, _body[BODY], _body[FACE2]);
+		dJointSetFixed(joint);
+		dJointSetFixedParam(joint, dParamCFM, 0);
+		dJointSetFixedParam(joint, dParamERP, 0.9);
+	}
+	else {
+    	_joint[1] = dJointCreateHinge(_world, 0);
+    	dJointAttach(_joint[1], _body[BODY], _body[FACE2]);
+    	dJointSetHingeAnchor(_joint[1], R[0]*f2[3] + R[1]*f2[4] + R[2]*f2[5] + x,
+										R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y,
+										R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
+    	dJointSetHingeAxis(_joint[1], R[0], R[4], R[8]);
+    	dJointSetHingeParam(_joint[1], dParamCFM, 0);
+	}
 
     // joint for body to face 3
-    _joint[2] = dJointCreateHinge(_world, 0);
-    dJointAttach(_joint[2], _body[BODY], _body[FACE3]);
-    dJointSetHingeAnchor(_joint[2], R[0]*f3[3] + R[1]*f3[4] + R[2]*f3[5] + x,
-									R[4]*f3[3] + R[5]*f3[4] + R[6]*f3[5] + y,
-									R[8]*f3[3] + R[9]*f3[4] + R[10]*f3[5] + z);
-    dJointSetHingeAxis(_joint[2], R[1], R[5], R[9]);
-    dJointSetHingeParam(_joint[2], dParamCFM, 0);
+	if (_disabled == 2) {
+		dJointID joint = dJointCreateFixed(_world, 0);
+		dJointAttach(joint, _body[BODY], _body[FACE3]);
+		dJointSetFixed(joint);
+		dJointSetFixedParam(joint, dParamCFM, 0);
+		dJointSetFixedParam(joint, dParamERP, 0.9);
+	}
+	else {
+    	_joint[2] = dJointCreateHinge(_world, 0);
+    	dJointAttach(_joint[2], _body[BODY], _body[FACE3]);
+    	dJointSetHingeAnchor(_joint[2], R[0]*f3[3] + R[1]*f3[4] + R[2]*f3[5] + x,
+										R[4]*f3[3] + R[5]*f3[4] + R[6]*f3[5] + y,
+										R[8]*f3[3] + R[9]*f3[4] + R[10]*f3[5] + z);
+    	dJointSetHingeAxis(_joint[2], R[1], R[5], R[9]);
+    	dJointSetHingeParam(_joint[2], dParamCFM, 0);
+	}
 
     // create rotation matrices for each body part
     dMatrix3 R_f, R_f1, R_f2, R_f3;
@@ -2462,24 +2484,6 @@ int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
 
 	// attach to correct body
 	dJointAttach(joint, cBody, this->getBodyID(face));
-	/*switch (face) {
-		case 1:
-			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_L));
-			break;
-		case 2: case 5:
-			dJointAttach(joint, cBody, this->getBodyID(BODY_L));
-			break;
-		case 3: case 6:
-			dJointAttach(joint, cBody, this->getBodyID(BODY_L));
-			dJointAttach(joint, cBody, this->getBodyID(BODY_R));
-			break;
-		case 4: case 7:
-			dJointAttach(joint, cBody, this->getBodyID(BODY_R));
-			break;
-		case 8:
-			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_R));
-			break;
-	}*/
 
 	// set joint params
 	dJointSetFixed(joint);
@@ -2491,19 +2495,13 @@ int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
 }
 
 int CLinkbotT::fix_connector_to_body(int face, dBodyID cBody) {
+	if (!cBody) { fprintf(stderr,"connector body does not exist\n"); }
+
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
 
 	// attach to correct body
 	dJointAttach(joint, this->getBodyID(face), cBody);
-	/*switch (face) {
-		case 2:
-			dJointAttach(joint, this->getBodyID(FACE2), cBody);
-			break;
-		case 3: case 1:
-			dJointAttach(joint, this->getBodyID(BODY_L), cBody);
-			break;
-	}*/
 
 	// set joint params
 	dJointSetFixed(joint);
@@ -2858,15 +2856,14 @@ void CLinkbotT::draw_square(conn_t conn, osg::Group *robot) {
 
 #ifdef _CH_
 CLinkbotI::CLinkbotI(void) {
-	CLinkbot(1, LINKBOTI);
+	CLinkbotT(1, LINKBOTI);
 
 	// success
 	return 0;
 }
 
 CLinkbotI::~CLinkbotI(void) {
-printf("destructor LinkbotI\n");
-	~CLinkbot();
+	~CLinkbotT();
 
 	// success
 	return 0;
@@ -2880,15 +2877,14 @@ int CLinkbotI::connect(void) {
 }
 
 CLinkbotL::CLinkbotL(void) {
-	CLinkbot(2, LINKBOTL);
+	CLinkbotT(2, LINKBOTL);
 
 	// success
 	return 0;
 }
 
 CLinkbotL::~CLinkbotL(void) {
-printf("destructor LinkbotL\n");
-	~CLinkbot();
+	~CLinkbotT();
 
 	// success
 	return 0;

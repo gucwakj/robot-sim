@@ -831,7 +831,7 @@ void CRobotSim::print_intermediate_data(void) {
     cout.width(10);
     cout.setf(ios::fixed, ios::floatfield);
 	//if (!((int)(_clock*1000) % 100)) { cout << _clock << "\t\t"; }
-	cout << _clock << "\n";
+	cout << _clock << "\t\t";
 	/*for (int i = 0; i < _robotConnected[MOBOT]; i++) {
 		cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT1)) << " ";
 		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT2)) << " ";
@@ -842,12 +842,11 @@ void CRobotSim::print_intermediate_data(void) {
 		//cout << _robot[MOBOT][i]->getPosition(2,2) << "\t\t";
 	}
 	cout << endl;*/
-	/*cout << "LinkbotL:" << "\t";
-	for (int i = 0; i < _robotConnected[LINKBOTL]; i++) {
-		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(MOBOT_JOINT4)) << " ";
-		//cout << _robot[LINKBOTL][i]->getAngle(ROBOT_JOINT1) << " ";
-		//cout << _robot[LINKBOTL][i]->getAngle(ROBOT_JOINT2) << " ";
-		//cout << _robot[LINKBOTL][i]->getAngle(ROBOT_JOINT3) << "\t";
+	//cout << "LinkbotL:" << "\t";
+	for (int i = 0; i < _robotConnected[LINKBOTI]; i++) {
+		cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT1) << " ";
+		cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT2) << " ";
+		cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT3) << "\t";
 		//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
 		//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
 		//cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
@@ -856,7 +855,7 @@ void CRobotSim::print_intermediate_data(void) {
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT4) << "\t";
 	}
-	cout << endl;*/
+	cout << endl;
 }
 
 
