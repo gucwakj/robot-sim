@@ -2283,14 +2283,14 @@ int CLinkbotT::build_bigwheel(conn_t conn, int face) {
 int CLinkbotT::build_caster(conn_t conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
-    conn->geom = new dGeomID[10];
+    conn->geom = new dGeomID[4];
 
     // define parameters
     dMass m;
     dMatrix3 R, R1;
 	double	depth = _connector_depth,
-			width = 2*_face_radius,
-			height = _connector_height,
+			width = 1.5*_face_radius,
+			height = 2*_face_radius,
 			radius = _connector_radius,
 			p[3] = {0},
 			offset[3] = {depth/2, 0, 0};
@@ -2317,59 +2317,25 @@ int CLinkbotT::build_caster(conn_t conn, int face) {
     // rotation matrix for curves
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 
-    // set geometry 1 - center box
-    conn->geom[0] = dCreateBox(_space, depth, width - 2*radius, height);
+    // set geometry 1 - box
+    conn->geom[0] = dCreateBox(_space, depth, width, height);
     dGeomSetBody(conn->geom[0], conn->body);
     dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
-    // set geometry 2 - left box
-    conn->geom[1] = dCreateBox(_space, depth, radius, height - 2*radius);
-    dGeomSetBody(conn->geom[1], conn->body);
-    dGeomSetOffsetPosition(conn->geom[1], -m.c[0], -width/2 + radius/2 - m.c[1], -m.c[2]);
+    // set geometry 2 - horizontal support
+	conn->geom[1] = dCreateBox(_space, 0.036, 0.021, 0.0032);
+	dGeomSetBody(conn->geom[1], conn->body);
+	dGeomSetOffsetPosition(conn->geom[1], depth/2 + 0.036/2 - m.c[0], -m.c[1], -height/2 + 0.0016 - m.c[2]);
 
-    // set geometry 3 - right box
-    conn->geom[2] = dCreateBox(_space, depth, radius, height - 2*radius);
+    // set geometry 3 - ball support
+    conn->geom[2] = dCreateCylinder(_space, 0.0105, 0.003);
     dGeomSetBody(conn->geom[2], conn->body);
-    dGeomSetOffsetPosition(conn->geom[2], -m.c[0], width/2 - radius/2 - m.c[1], -m.c[2]);
-
-    // set geometry 4 - fillet upper left
-    conn->geom[3] = dCreateCylinder(_space, radius, depth);
-    dGeomSetBody(conn->geom[3], conn->body);
-    dGeomSetOffsetPosition(conn->geom[3], -m.c[0], -width/2 + radius - m.c[1], height/2 - radius - m.c[2]);
-    dGeomSetOffsetRotation(conn->geom[3], R1);
-
-    // set geometry 5 - fillet upper right
-    conn->geom[4] = dCreateCylinder(_space, radius, depth);
-    dGeomSetBody(conn->geom[4], conn->body);
-    dGeomSetOffsetPosition(conn->geom[4], -m.c[0], width/2 - radius - m.c[1], height/2 - radius - m.c[2]);
-    dGeomSetOffsetRotation(conn->geom[4], R1);
-
-    // set geometry 6 - fillet lower right
-    conn->geom[5] = dCreateCylinder(_space, radius, depth);
-    dGeomSetBody(conn->geom[5], conn->body);
-    dGeomSetOffsetPosition(conn->geom[5], -m.c[0], width/2 - radius - m.c[1], -height/2 + radius - m.c[2]);
-    dGeomSetOffsetRotation(conn->geom[5], R1);
-
-    // set geometry 7 - fillet lower left
-    conn->geom[6] = dCreateCylinder(_space, radius, depth);
-    dGeomSetBody(conn->geom[6], conn->body);
-    dGeomSetOffsetPosition(conn->geom[6], -m.c[0], -width/2 + radius - m.c[1], -height/2 + radius - m.c[2]);
-    dGeomSetOffsetRotation(conn->geom[6], R1);
-
-    // set geometry 8 - horizontal support
-	conn->geom[7] = dCreateBox(_space, 0.04, 0.021, 0.0032);
-	dGeomSetBody(conn->geom[7], conn->body);
-	dGeomSetOffsetPosition(conn->geom[7], depth/2 + 0.04/2 - m.c[0], -m.c[1], -height/2 + 0.0016 - m.c[2]);
-
-    // set geometry 9 - ball support
-    conn->geom[8] = dCreateCylinder(_space, 0.0105, 0.014);
-    dGeomSetBody(conn->geom[8], conn->body);
-    dGeomSetOffsetPosition(conn->geom[8], depth/2 + 0.04 - m.c[0], -m.c[1], -height/2 - 0.0064 - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[2], depth/2 + 0.038 - m.c[0], -m.c[1], -height/2 + 0.0001 - m.c[2]);
 
     // set geometry 10 - sphere
-    conn->geom[9] = dCreateSphere(_space, 0.0105);
-    dGeomSetBody(conn->geom[9], conn->body);
-    dGeomSetOffsetPosition(conn->geom[9], depth/2 + 0.04 - m.c[0], -m.c[1], -height/2 - 0.0159 - m.c[2]);
+    conn->geom[3] = dCreateSphere(_space, 0.0105);
+    dGeomSetBody(conn->geom[3], conn->body);
+    dGeomSetOffsetPosition(conn->geom[3], depth/2 + 0.038 - m.c[0], -m.c[1], -height/2 - 0.003 - m.c[2]);
 
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -2684,58 +2650,27 @@ void CLinkbotT::draw_caster(conn_t conn, osg::Group *robot) {
 	osg::Cylinder *cyl;
 	osg::Sphere *sph;
 	double	depth = _connector_depth,
-			width = 2*_face_radius,
-			height = _connector_height,
-			radius = _connector_radius;
+			width = 1.5*_face_radius,
+			height = 2*_face_radius;
 
 	pos = dGeomGetOffsetPosition(conn->geom[0]);
 	dGeomGetOffsetQuaternion(conn->geom[0], quat);
-	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), depth, width - 2*radius, height);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), depth, width, height);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(box));
 	pos = dGeomGetOffsetPosition(conn->geom[1]);
 	dGeomGetOffsetQuaternion(conn->geom[1], quat);
-	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), depth, radius, height - 2*radius);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), 0.038, 0.022, 0.003);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(box));
 	pos = dGeomGetOffsetPosition(conn->geom[2]);
 	dGeomGetOffsetQuaternion(conn->geom[2], quat);
-	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), depth, radius, height - 2*radius);
-	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body->addDrawable(new osg::ShapeDrawable(box));
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), 0.011, 0.008);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body->addDrawable(new osg::ShapeDrawable(cyl));
 	pos = dGeomGetOffsetPosition(conn->geom[3]);
 	dGeomGetOffsetQuaternion(conn->geom[3], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), radius, depth);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body->addDrawable(new osg::ShapeDrawable(cyl));
-	pos = dGeomGetOffsetPosition(conn->geom[4]);
-	dGeomGetOffsetQuaternion(conn->geom[4], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), radius, depth);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body->addDrawable(new osg::ShapeDrawable(cyl));
-	pos = dGeomGetOffsetPosition(conn->geom[5]);
-	dGeomGetOffsetQuaternion(conn->geom[5], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), radius, depth);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body->addDrawable(new osg::ShapeDrawable(cyl));
-	pos = dGeomGetOffsetPosition(conn->geom[6]);
-	dGeomGetOffsetQuaternion(conn->geom[6], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), radius, depth);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body->addDrawable(new osg::ShapeDrawable(cyl));
-	pos = dGeomGetOffsetPosition(conn->geom[7]);
-	dGeomGetOffsetQuaternion(conn->geom[7], quat);
-	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), 0.0667, 0.0222, 0.0032);
-	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body->addDrawable(new osg::ShapeDrawable(box));
-	pos = dGeomGetOffsetPosition(conn->geom[8]);
-	dGeomGetOffsetQuaternion(conn->geom[8], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), 0.0111, 0.0191);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body->addDrawable(new osg::ShapeDrawable(cyl));
-	pos = dGeomGetOffsetPosition(conn->geom[9]);
-	dGeomGetOffsetQuaternion(conn->geom[9], quat);
-	sph = new osg::Sphere(osg::Vec3d(pos[0], pos[1], pos[2]), 0.0095);
+	sph = new osg::Sphere(osg::Vec3d(pos[0], pos[1], pos[2]), 0.006);
 	body->addDrawable(new osg::ShapeDrawable(sph));
     
 	// apply texture

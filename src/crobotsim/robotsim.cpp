@@ -575,7 +575,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 	GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
 	camera->setDrawBuffer(buffer);
 	camera->setReadBuffer(buffer);
-	sim->viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(1, 0, 0.8), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	sim->viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0.8), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
 	// viewer camera properties
 	sim->viewer->addSlave(camera.get());
@@ -583,7 +583,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 	//sim->viewer->setCameraManipulator(new osgGA::SphericalManipulator);
 	//sim->viewer->setCameraManipulator(new osgGA::FirstPersonManipulator);
 	sim->viewer->setCameraManipulator(new osgGA::TrackballManipulator);
-	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0, 2, 1), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(2, 2, 1), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
 	// viewer event handlers
 	sim->viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
