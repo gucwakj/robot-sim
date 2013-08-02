@@ -676,19 +676,6 @@ int CLinkbotI::moveJointContinuousNB(int id, int dir) {
     return retval;
 }
 
-int CLinkbotI::moveJointContinuousTime(int id, int dir, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CLinkbotI_moveJointContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousTime, this, id, dir, seconds);
-    return retval;
-}
-
 int CLinkbotI::moveJointNB(int id, double angle) {
     void *fptr;
     int retval;
@@ -1788,32 +1775,6 @@ int CLinkbotIGroup::moveBackwardNB(double angle) {
     return retval;
 }
 
-int CLinkbotIGroup::moveContinuousNB(int dir1, int dir2, int dir3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CLIG_moveContinuousNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveContinuousNB, this, dir1, dir2, dir3);
-    return retval;
-}
-
-int CLinkbotIGroup::moveContinuousTime(int dir1, int dir2, int dir3, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CLIG_moveContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveContinuousTime, this, dir1, dir2, dir3, seconds);
-    return retval;
-}
-
 int CLinkbotIGroup::moveDistance(double distance, double radius) {
     void *fptr;
     int retval;
@@ -1863,32 +1824,6 @@ int CLinkbotIGroup::moveForwardNB(double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveForwardNB, this, angle);
-    return retval;
-}
-
-int CLinkbotIGroup::moveJointContinuousNB(int id, int dir) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CLIG_moveJointContinuousNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousNB, this, id, dir);
-    return retval;
-}
-
-int CLinkbotIGroup::moveJointContinuousTime(int id, int dir, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CLIG_moveJointContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousTime, this, id, dir, seconds);
     return retval;
 }
 

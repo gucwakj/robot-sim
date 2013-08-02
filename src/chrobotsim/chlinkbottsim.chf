@@ -1788,32 +1788,6 @@ int CLinkbotTGroup::moveBackwardNB(double angle) {
     return retval;
 }
 
-int CLinkbotTGroup::moveContinuousNB(int dir1, int dir2, int dir3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CLIG_moveContinuousNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveContinuousNB, this, dir1, dir2, dir3);
-    return retval;
-}
-
-int CLinkbotTGroup::moveContinuousTime(int dir1, int dir2, int dir3, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CLIG_moveContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveContinuousTime, this, dir1, dir2, dir3, seconds);
-    return retval;
-}
-
 int CLinkbotTGroup::moveDistance(double distance, double radius) {
     void *fptr;
     int retval;
@@ -1863,32 +1837,6 @@ int CLinkbotTGroup::moveForwardNB(double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveForwardNB, this, angle);
-    return retval;
-}
-
-int CLinkbotTGroup::moveJointContinuousNB(int id, int dir) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CLIG_moveJointContinuousNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousNB, this, id, dir);
-    return retval;
-}
-
-int CLinkbotTGroup::moveJointContinuousTime(int id, int dir, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CLIG_moveJointContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousTime, this, id, dir, seconds);
     return retval;
 }
 
