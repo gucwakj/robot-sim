@@ -237,41 +237,63 @@ G_MODULE_EXPORT void on_twowheeled_toggled(GtkWidget* widget, gpointer data) {
 		caster1->SetAttribute("robot", 0);
 		tinyxml2::XMLElement *caster2 = g_doc.NewElement("caster");
 		caster2->SetAttribute("robot", 1);
+		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
 		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "mobot")))) {
+			// two mobots
 			robot1 = g_doc.NewElement("mobot");
 			robot2 = g_doc.NewElement("mobot");
+
+			// attach wheels and casters
 			wheel1->SetAttribute("face", 1);
 			wheel2->SetAttribute("face", 8);
 			wheel3->SetAttribute("face", 1);
 			wheel4->SetAttribute("face", 8);
 			caster1->SetAttribute("face", 3);
 			caster2->SetAttribute("face", 3);
+
+			// set offset pos
+			pos->SetAttribute("x", 0.5);
 		}
 		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkboti")))) {
+			// two linkbot i
 			robot1 = g_doc.NewElement("linkboti");
 			robot2 = g_doc.NewElement("linkboti");
+
+			// attach wheels and casters
 			wheel1->SetAttribute("face", 1);
 			wheel2->SetAttribute("face", 3);
 			wheel3->SetAttribute("face", 1);
 			wheel4->SetAttribute("face", 3);
 			caster1->SetAttribute("face", 2);
 			caster2->SetAttribute("face", 2);
+
+			// set offset pos
+			pos->SetAttribute("y", 0.5);
 		}
 		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkbotl")))) {
+			// two linkbot l
 			robot1 = g_doc.NewElement("linkbotl");
 			robot2 = g_doc.NewElement("linkbotl");
+
+			// attach wheels and casters
 			wheel1->SetAttribute("face", 1);
 			wheel2->SetAttribute("face", 2);
 			wheel3->SetAttribute("face", 1);
 			wheel4->SetAttribute("face", 2);
 			caster1->SetAttribute("face", 3);
 			caster2->SetAttribute("face", 3);
+
+			// set offset pos
+			pos->SetAttribute("y", 0.5);
 		}
+
+		// robot 1
 		robot1->SetAttribute("id", 0);
+		// robot 2
 		robot2->SetAttribute("id", 1);
-		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", 0.5);
 		robot2->InsertFirstChild(pos);
+
+		// add elements to simulation
 		sim->InsertFirstChild(robot1);
 		sim->InsertAfterChild(robot1, robot2);
 		sim->InsertAfterChild(robot2, wheel1);

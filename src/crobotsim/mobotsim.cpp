@@ -1603,7 +1603,7 @@ int CMobot::recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robo
 
 	// record angle of desired joint
 	this->recordAngleBegin(id, time, distance, seconds, shiftData);
-printf("recording beginning\n");
+
 	// success
 	return 0;
 }

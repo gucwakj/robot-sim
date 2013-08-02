@@ -1452,8 +1452,9 @@ int CLinkbotT::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t 
 }
 
 int CLinkbotT::setTwoWheelRobotSpeed(double speed, double radius) {
-	_speed[0] = speed;
-	_speed[2] = speed;
+	this->setJointSpeed(ROBOT_JOINT1, RAD2DEG(speed/radius));
+	this->setJointSpeed(ROBOT_JOINT3, RAD2DEG(speed/radius));
+	_radius = radius;
 
 	// success
 	return 0;

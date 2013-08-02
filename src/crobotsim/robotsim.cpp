@@ -845,7 +845,7 @@ void CRobotSim::print_intermediate_data(void) {
 	//cout << "LinkbotL:" << "\t";
 	for (int i = 0; i < _robotConnected[LINKBOTI]; i++) {
 		cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT1) << " ";
-		cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT2) << " ";
+		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT2) << " ";
 		cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT3) << "\t";
 		//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
 		//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
