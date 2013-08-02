@@ -62,8 +62,13 @@ G_MODULE_EXPORT void on_mobot_toggled(GtkWidget* widget, gpointer data) {
 			tinyxml2::XMLElement *wheel = g_doc.FirstChildElement("sim")->FirstChildElement("smallwheel");
 			while (wheel) {
 				if (wheel->IntAttribute("face") != 1)
-					wheel->SetAttribute("face", 4);
+					wheel->SetAttribute("face", 8);
 				wheel = wheel->NextSiblingElement("smallwheel");
+			}
+			tinyxml2::XMLElement *caster = g_doc.FirstChildElement("sim")->FirstChildElement("caster");
+			while (caster) {
+				caster->SetAttribute("face", 3);
+				caster = caster->NextSiblingElement("caster");
 			}
 		}
 	}
@@ -91,6 +96,11 @@ G_MODULE_EXPORT void on_linkboti_toggled(GtkWidget* widget, gpointer data) {
 					wheel->SetAttribute("face", 3);
 				wheel = wheel->NextSiblingElement("smallwheel");
 			}
+			tinyxml2::XMLElement *caster = g_doc.FirstChildElement("sim")->FirstChildElement("caster");
+			while (caster) {
+				caster->SetAttribute("face", 2);
+				caster = caster->NextSiblingElement("caster");
+			}
 		}
 	}
 	else {
@@ -117,6 +127,11 @@ G_MODULE_EXPORT void on_linkbotl_toggled(GtkWidget* widget, gpointer data) {
 					wheel->SetAttribute("face", 2);
 				wheel = wheel->NextSiblingElement("smallwheel");
 			}
+			tinyxml2::XMLElement *caster = g_doc.FirstChildElement("sim")->FirstChildElement("caster");
+			while (caster) {
+				caster->SetAttribute("face", 3);
+				caster = caster->NextSiblingElement("caster");
+			}
 		}
 	}
 	else {
@@ -124,6 +139,37 @@ G_MODULE_EXPORT void on_linkbotl_toggled(GtkWidget* widget, gpointer data) {
 		while (node) {
 			node->SetName("null");
 			node = node->NextSiblingElement("linkbotl");
+		}
+	}
+}
+
+G_MODULE_EXPORT void on_linkbott_toggled(GtkWidget* widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkbott")))) {
+		tinyxml2::XMLElement *node = g_doc.FirstChildElement("sim")->FirstChildElement("null");
+		while (node) {
+			node->SetName("linkbott");
+			node = node->NextSiblingElement("null");
+		}
+		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "wheeled"))) ||
+				gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "twowheeled")))) {
+			tinyxml2::XMLElement *wheel = g_doc.FirstChildElement("sim")->FirstChildElement("smallwheel");
+			while (wheel) {
+				if (wheel->IntAttribute("face") != 1)
+					wheel->SetAttribute("face", 3);
+				wheel = wheel->NextSiblingElement("smallwheel");
+			}
+			tinyxml2::XMLElement *caster = g_doc.FirstChildElement("sim")->FirstChildElement("caster");
+			while (caster) {
+				caster->SetAttribute("face", 2);
+				caster = caster->NextSiblingElement("caster");
+			}
+		}
+	}
+	else {
+		tinyxml2::XMLElement *node = g_doc.FirstChildElement("sim")->FirstChildElement("linkbott");
+		while (node) {
+			node->SetName("null");
+			node = node->NextSiblingElement("linkbott");
 		}
 	}
 }
@@ -142,6 +188,8 @@ G_MODULE_EXPORT void on_one_toggled(GtkWidget* widget, gpointer data) {
 			robot = g_doc.NewElement("linkboti");
 		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkbotl"))))
 			robot = g_doc.NewElement("linkbotl");
+		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkbott"))))
+			robot = g_doc.NewElement("linkbott");
 		robot->SetAttribute("id", 0);
 		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
 		pos->SetAttribute("x", gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "one_x"))));
@@ -161,6 +209,8 @@ G_MODULE_EXPORT void on_two_toggled(GtkWidget* widget, gpointer data) {
 			robot = g_doc.NewElement("linkboti");
 		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkbotl"))))
 			robot = g_doc.NewElement("linkbotl");
+		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkbott"))))
+			robot = g_doc.NewElement("linkbott");
 		robot->SetAttribute("id", 0);
 		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
 		pos->SetAttribute("x", gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "one_x"))));
@@ -174,6 +224,8 @@ G_MODULE_EXPORT void on_two_toggled(GtkWidget* widget, gpointer data) {
 			robot2 = g_doc.NewElement("linkboti");
 		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkbotl"))))
 			robot2 = g_doc.NewElement("linkbotl");
+		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkbott"))))
+			robot2 = g_doc.NewElement("linkbott");
 		robot2->SetAttribute("id", 1);
 		pos = g_doc.NewElement("position");
 		pos->SetAttribute("x", gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "two_x"))));
@@ -212,6 +264,11 @@ G_MODULE_EXPORT void on_wheeled_toggled(GtkWidget* widget, gpointer data) {
 			robot = g_doc.NewElement("linkbotl");
 			wheel2 = newSmallwheel(0, 2);
 			caster->SetAttribute("face", 3);
+		}
+		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkbott")))) {
+			robot = g_doc.NewElement("linkbott");
+			wheel2 = newSmallwheel(0, 3);
+			caster->SetAttribute("face", 2);
 		}
 		robot->SetAttribute("id", 0);
 		sim->InsertFirstChild(robot);
@@ -282,6 +339,22 @@ G_MODULE_EXPORT void on_twowheeled_toggled(GtkWidget* widget, gpointer data) {
 			wheel4->SetAttribute("face", 2);
 			caster1->SetAttribute("face", 3);
 			caster2->SetAttribute("face", 3);
+
+			// set offset pos
+			pos->SetAttribute("y", 0.5);
+		}
+		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "linkbott")))) {
+			// two linkbot l
+			robot1 = g_doc.NewElement("linkbott");
+			robot2 = g_doc.NewElement("linkbott");
+
+			// attach wheels and casters
+			wheel1->SetAttribute("face", 1);
+			wheel2->SetAttribute("face", 3);
+			wheel3->SetAttribute("face", 1);
+			wheel4->SetAttribute("face", 3);
+			caster1->SetAttribute("face", 2);
+			caster2->SetAttribute("face", 2);
 
 			// set offset pos
 			pos->SetAttribute("y", 0.5);
