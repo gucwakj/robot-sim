@@ -22,8 +22,8 @@ set(EXTRA_LIBS ${EXTRA_LIBS} tinyxml2)
 
 # Use the package PkgConfig to detect GTK+ headers/library files
 if (MSVC)
-	include_directories("C:/MinGW/include/gtk-2.0" "C:/MinGW/lib/gtk-2.0/include" "C:/MinGW/include/atk-1.0" "C:/MinGW/include/cairo" "C:/MinGW/include/gdk-pixbuf-2.0" "C:/MinGW/include/pango-1.0" "C:/MinGW/include/glib-2.0" "C:/MinGW/lib/glib-2.0/include" "C:/MinGW/include/freetype2" "C:/MinGW/include/libpng14")
-	link_directories("C:/MinGW/lib")
+	include_directories("C:/gtk32/include/gtk-2.0" "C:/gtk32/lib/gtk-2.0/include" "C:/gtk32/include/atk-1.0" "C:/gtk32/include/cairo" "C:/gtk32/include/gdk-pixbuf-2.0" "C:/gtk32/include/pango-1.0" "C:/gtk32/include/glib-2.0" "C:/gtk32/lib/glib-2.0/include" "C:/gtk32/include/freetype2" "C:/gtk32/include/libpng14")
+	link_directories("C:/gtk32/lib")
 	set(EXTRA_LIBS ${EXTRA_LIBS} gtk-win32-2.0 gdk-win32-2.0 atk-1.0 pangowin32-1.0 gdi32 pangocairo-1.0 gdk_pixbuf-2.0 pango-1.0 cairo gobject-2.0 gmodule-2.0 gthread-2.0 glib-2.0 intl)
 else (MSVC)
 	find_package(PkgConfig REQUIRED)
