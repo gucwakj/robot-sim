@@ -81,6 +81,8 @@ createpkg: librobotsim.dl
 	mkdir $(PKGDIR)/bin
 	cp ../configurator/build/Release/robosimconfigurator.exe $(PKGDIR)/bin
 	cp ../configurator/interface2.glade $(PKGDIR)/bin
+	cp ../configurator/images/linkbot.png $(PKGDIR)/bin
+	cp ../configurator/images/mobot.png $(PKGDIR)/bin
 	cp ../configurator/dll32/freetype6.dll $(PKGDIR)/bin
 	cp ../configurator/dll32/libgdk_pixbuf-2.0-0.dll $(PKGDIR)/bin
 	cp ../configurator/dll32/libpango-1.0-0.dll $(PKGDIR)/bin

@@ -80,6 +80,8 @@ createpkg: librobotsim.dl
 	mkdir $(PKGDIR)/bin
 	cp ../configurator/build/robosimconfigurator $(PKGDIR)/bin
 	cp ../configurator/interface3.glade $(PKGDIR)/bin
+	cp ../configurator/images/linkbot.png $(PKGDIR)/bin
+	cp ../configurator/images/mobot.png $(PKGDIR)/bin
 	cp ../opende/sys/lib/libode.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosg.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosgViewer.so $(PKGDIR)/bin
