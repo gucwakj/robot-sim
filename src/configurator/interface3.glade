@@ -35,7 +35,7 @@
     <property name="upper">50</property>
     <property name="value">0.5</property>
     <property name="step_increment">0.10000000000000001</property>
-    <property name="page_increment">0.10000000000000001</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="two_y_adjustment">
     <property name="lower">-50</property>
@@ -384,6 +384,7 @@
                               <object class="GtkSpinButton" id="first_spin_x">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="hexpand">True</property>
                                 <property name="invisible_char">•</property>
                                 <property name="invisible_char_set">True</property>
                                 <property name="adjustment">one_x_adjustment</property>
@@ -427,9 +428,10 @@
                               <object class="GtkSpinButton" id="first_spin_y">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="hexpand">True</property>
                                 <property name="invisible_char">•</property>
                                 <property name="invisible_char_set">True</property>
-                                <property name="adjustment">one_x_adjustment</property>
+                                <property name="adjustment">one_y_adjustment</property>
                                 <property name="digits">1</property>
                               </object>
                               <packing>
@@ -470,9 +472,10 @@
                               <object class="GtkSpinButton" id="first_spin_z">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="hexpand">True</property>
                                 <property name="invisible_char">•</property>
                                 <property name="invisible_char_set">True</property>
-                                <property name="adjustment">one_x_adjustment</property>
+                                <property name="adjustment">one_z_adjustment</property>
                                 <property name="digits">1</property>
                               </object>
                               <packing>
@@ -708,6 +711,7 @@
                               <object class="GtkSpinButton" id="second_spin_x">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="hexpand">True</property>
                                 <property name="invisible_char">•</property>
                                 <property name="invisible_char_set">True</property>
                                 <property name="adjustment">two_x_adjustment</property>
@@ -751,6 +755,7 @@
                               <object class="GtkSpinButton" id="second_spin_y">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="hexpand">True</property>
                                 <property name="invisible_char">•</property>
                                 <property name="invisible_char_set">True</property>
                                 <property name="adjustment">two_y_adjustment</property>
@@ -791,22 +796,6 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
-                              <object class="GtkSpinButton" id="second_spin_z">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="invisible_char">•</property>
-                                <property name="invisible_char_set">True</property>
-                                <property name="adjustment">two_z_adjustment</property>
-                                <property name="digits">1</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">1</property>
-                                <property name="top_attach">0</property>
-                                <property name="width">1</property>
-                                <property name="height">1</property>
-                              </packing>
-                            </child>
-                            <child>
                               <object class="GtkLabel" id="second_label_z">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
@@ -816,6 +805,23 @@
                               </object>
                               <packing>
                                 <property name="left_attach">0</property>
+                                <property name="top_attach">0</property>
+                                <property name="width">1</property>
+                                <property name="height">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkSpinButton" id="second_spin_z">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="hexpand">True</property>
+                                <property name="invisible_char">•</property>
+                                <property name="invisible_char_set">True</property>
+                                <property name="adjustment">two_z_adjustment</property>
+                                <property name="digits">1</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
                                 <property name="top_attach">0</property>
                                 <property name="width">1</property>
                                 <property name="height">1</property>

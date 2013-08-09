@@ -58,12 +58,13 @@
     <property name="lower">-50</property>
     <property name="upper">50</property>
     <property name="step_increment">0.10000000000000001</property>
-    <property name="page_increment">10</property>
+    <property name="page_increment">0.10000000000000001</property>
   </object>
   <object class="GtkAdjustment" id="one_z_adjustment">
+    <property name="lower">-0.10000000000000001</property>
     <property name="upper">50</property>
     <property name="step_increment">0.10000000000000001</property>
-    <property name="page_increment">10</property>
+    <property name="page_increment">0.10000000000000001</property>
   </object>
   <object class="GtkAdjustment" id="second_angle_adj">
     <property name="lower">-360</property>
@@ -82,12 +83,12 @@
     <property name="lower">-50</property>
     <property name="upper">50</property>
     <property name="step_increment">0.10000000000000001</property>
-    <property name="page_increment">10</property>
+    <property name="page_increment">0.10000000000000001</property>
   </object>
   <object class="GtkAdjustment" id="two_z_adjustment">
     <property name="upper">50</property>
     <property name="step_increment">0.10000000000000001</property>
-    <property name="page_increment">10</property>
+    <property name="page_increment">0.10000000000000001</property>
   </object>
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
@@ -422,6 +423,7 @@
                           <object class="GtkTable" id="grid_first_x">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="homogeneous">True</property>
                             <child>
                               <object class="GtkSpinButton" id="first_spin_x">
                                 <property name="visible">True</property>
@@ -452,12 +454,14 @@
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="top_attach">1</property>
+                            <property name="x_options">GTK_FILL</property>
                           </packing>
                         </child>
                         <child>
                           <object class="GtkTable" id="grid_first_y">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="homogeneous">True</property>
                             <child>
                               <object class="GtkSpinButton" id="first_spin_y">
                                 <property name="visible">True</property>
@@ -468,7 +472,7 @@
                                 <property name="secondary_icon_activatable">False</property>
                                 <property name="primary_icon_sensitive">True</property>
                                 <property name="secondary_icon_sensitive">True</property>
-                                <property name="adjustment">one_x_adjustment</property>
+                                <property name="adjustment">one_y_adjustment</property>
                                 <property name="digits">1</property>
                               </object>
                               <packing>
@@ -488,12 +492,14 @@
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="top_attach">2</property>
+                            <property name="x_options">GTK_FILL</property>
                           </packing>
                         </child>
                         <child>
                           <object class="GtkTable" id="grid_first_z">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="homogeneous">True</property>
                             <child>
                               <object class="GtkSpinButton" id="first_spin_z">
                                 <property name="visible">True</property>
@@ -504,7 +510,7 @@
                                 <property name="secondary_icon_activatable">False</property>
                                 <property name="primary_icon_sensitive">True</property>
                                 <property name="secondary_icon_sensitive">True</property>
-                                <property name="adjustment">one_x_adjustment</property>
+                                <property name="adjustment">one_z_adjustment</property>
                                 <property name="digits">1</property>
                               </object>
                               <packing>
@@ -524,6 +530,7 @@
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="top_attach">3</property>
+                            <property name="x_options">GTK_FILL</property>
                           </packing>
                         </child>
                         <child>
@@ -727,6 +734,7 @@
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="top_attach">1</property>
+                            <property name="x_options">GTK_FILL</property>
                           </packing>
                         </child>
                         <child>
@@ -763,6 +771,7 @@
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="top_attach">2</property>
+                            <property name="x_options">GTK_FILL</property>
                           </packing>
                         </child>
                         <child>
@@ -799,6 +808,7 @@
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="top_attach">3</property>
+                            <property name="x_options">GTK_FILL</property>
                           </packing>
                         </child>
                         <child>
@@ -844,7 +854,7 @@
                                 <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
-                                <property name="group">first_wheel_yes</property>
+                                <property name="group">second_wheel_yes</property>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
