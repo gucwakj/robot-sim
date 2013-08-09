@@ -79,7 +79,8 @@ G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
 		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
 		pos->SetAttribute("x", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_x")))));
 		pos->SetAttribute("y", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_y")))));
-		pos->SetAttribute("z", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_z")))));
+		//pos->SetAttribute("z", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_z")))));
+		pos->SetAttribute("z", 0);
 		robot1->InsertFirstChild(pos);
 
 		// set rotation
@@ -148,7 +149,8 @@ G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
 		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
 		pos->SetAttribute("x", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_x")))));
 		pos->SetAttribute("y", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_y")))));
-		pos->SetAttribute("z", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_z")))));
+		//pos->SetAttribute("z", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_z")))));
+		pos->SetAttribute("z", 0);
 		robot2->InsertFirstChild(pos);
 
 		// set rotation
