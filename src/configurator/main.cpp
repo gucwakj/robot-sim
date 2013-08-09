@@ -160,27 +160,27 @@ G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
 			tinyxml2::XMLElement 	*wheel1 = g_doc.NewElement("smallwheel"), 
 									*wheel2 = g_doc.NewElement("smallwheel"), 
 									*caster = g_doc.NewElement("caster");
-			wheel1->SetAttribute("robot", 0);
+			wheel1->SetAttribute("robot", 1);
 			wheel1->SetAttribute("face", 1);
-			caster->SetAttribute("robot", 0);
+			caster->SetAttribute("robot", 1);
 
 			if ( !strcmp(robot2->Value(), "mobot") ) {
-				wheel2->SetAttribute("robot", 0);
+				wheel2->SetAttribute("robot", 1);
 				wheel2->SetAttribute("face", 8);
 				caster->SetAttribute("face", 3);
 			}
 			else if ( !strcmp(robot2->Value(), "linkboti") ) {
-				wheel2->SetAttribute("robot", 0);
+				wheel2->SetAttribute("robot", 1);
 				wheel2->SetAttribute("face", 3);
 				caster->SetAttribute("face", 2);
 			}
 			else if ( !strcmp(robot2->Value(), "linkbotl") ) {
-				wheel2->SetAttribute("robot", 0);
+				wheel2->SetAttribute("robot", 1);
 				wheel2->SetAttribute("face", 2);
 				caster->SetAttribute("face", 3);
 			}
 			else if ( !strcmp(robot2->Value(), "linkbott") ) {
-				wheel2->SetAttribute("robot", 0);
+				wheel2->SetAttribute("robot", 1);
 				wheel2->SetAttribute("face", 3);
 				caster->SetAttribute("face", 2);
 			}
