@@ -7,6 +7,8 @@
 #include <gtk/gtk.h>
 #include <tinyxml2.h>
 
+#define I2M(x) ((x)/39.370)
+
 GtkBuilder *g_builder; 
 GtkWidget *g_window;
 tinyxml2::XMLDocument g_doc;
@@ -75,9 +77,9 @@ G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
 
 		// set position
 		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_x"))));
-		pos->SetAttribute("y", gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_y"))));
-		pos->SetAttribute("z", gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_z"))));
+		pos->SetAttribute("x", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_x")))));
+		pos->SetAttribute("y", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_y")))));
+		pos->SetAttribute("z", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_z")))));
 		robot1->InsertFirstChild(pos);
 
 		// set rotation
@@ -144,9 +146,9 @@ G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
 
 		// set position
 		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_x"))));
-		pos->SetAttribute("y", gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_y"))));
-		pos->SetAttribute("z", gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_z"))));
+		pos->SetAttribute("x", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_x")))));
+		pos->SetAttribute("y", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_y")))));
+		pos->SetAttribute("z", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_z")))));
 		robot2->InsertFirstChild(pos);
 
 		// set rotation
