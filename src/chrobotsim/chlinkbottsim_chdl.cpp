@@ -27,7 +27,7 @@ EXPORTCH void CLinkbotT_dCLinkbotT_chdl(void *varg) {
 	return;
 }
 
-/*EXPORTCH int CLinkbotT_blinkLED_chdl(void *varg) {
+EXPORTCH int CLinkbotT_blinkLED_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CLinkbotT *robot;
@@ -42,7 +42,7 @@ EXPORTCH void CLinkbotT_dCLinkbotT_chdl(void *varg) {
     retval = robot->blinkLED(delay, numBlinks);
     Ch_VaEnd(interp, ap);
     return retval;
-}*/
+}
 
 EXPORTCH int CLinkbotT_connect_chdl(void *varg) {
     ChInterp_t interp;
@@ -70,7 +70,7 @@ EXPORTCH int CLinkbotT_disconnect_chdl(void *varg) {
     return retval;
 }
 
-/*EXPORTCH int CLinkbotT_getAccelerometerData_chdl(void *varg) {
+EXPORTCH int CLinkbotT_getAccelerometerData_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CLinkbotT *robot;
@@ -91,7 +91,7 @@ EXPORTCH int CLinkbotT_getBatteryVoltage_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CLinkbotT *robot;
-    double* voltage;
+    double *voltage;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
@@ -132,7 +132,20 @@ EXPORTCH int CLinkbotT_getFormFactor_chdl(void *varg) {
     retval = robot->getFormFactor(*formFactor);
     Ch_VaEnd(interp, ap);
     return retval;
-}*/
+}
+
+EXPORTCH int CLinkbotT_getID_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    retval = robot->getID();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
 
 EXPORTCH int CLinkbotT_getJointAngle_chdl(void *varg) {
     ChInterp_t interp;
@@ -607,6 +620,46 @@ EXPORTCH int CLinkbotT_moveBackwardNB_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CLinkbotT *);
     angle = Ch_VaArg(interp, ap, double);
     retval = robot->moveBackwardNB(angle);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotT_moveContinuousNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    robotJointState_t dir1;
+    robotJointState_t dir2;
+    robotJointState_t dir3;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    dir1 = Ch_VaArg(interp, ap, robotJointState_t);
+    dir2 = Ch_VaArg(interp, ap, robotJointState_t);
+    dir3 = Ch_VaArg(interp, ap, robotJointState_t);
+    retval = robot->moveContinuousNB(dir1, dir2, dir3);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotT_moveContinuousTime_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    robotJointState_t dir1;
+    robotJointState_t dir2;
+    robotJointState_t dir3;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    dir1 = Ch_VaArg(interp, ap, robotJointState_t);
+    dir2 = Ch_VaArg(interp, ap, robotJointState_t);
+    dir3 = Ch_VaArg(interp, ap, robotJointState_t);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->moveContinuousTime(dir1, dir2, dir3, seconds);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1311,7 +1364,7 @@ EXPORTCH int CLinkbotT_resetToZeroNB_chdl(void *varg) {
     return retval;
 }
 
-/*EXPORTCH int CLinkbotT_setBuzzerFrequency_chdl(void *varg) {
+EXPORTCH int CLinkbotT_setBuzzerFrequency_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CLinkbotT *robot;
@@ -1371,7 +1424,7 @@ EXPORTCH int CLinkbotT_setColorRGB_chdl(void *varg) {
     retval = robot->setColorRGB(r, g, b);
     Ch_VaEnd(interp, ap);
     return retval;
-}*/
+}
 
 EXPORTCH int CLinkbotT_setExitState_chdl(void *varg) {
     ChInterp_t interp;
@@ -1668,12 +1721,16 @@ EXPORTCH int CLinkbotT_turnLeft_chdl(void *varg) {
     ChVaList_t ap;
     class CLinkbotT *robot;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotT *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = robot->turnLeft(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->turnLeft(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1683,12 +1740,16 @@ EXPORTCH int CLinkbotT_turnLeftNB_chdl(void *varg) {
     ChVaList_t ap;
     class CLinkbotT *robot;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotT *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = robot->turnLeftNB(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->turnLeftNB(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1698,12 +1759,16 @@ EXPORTCH int CLinkbotT_turnRight_chdl(void *varg) {
     ChVaList_t ap;
     class CLinkbotT *robot;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotT *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = robot->turnRight(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->turnRight(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1713,12 +1778,16 @@ EXPORTCH int CLinkbotT_turnRightNB_chdl(void *varg) {
     ChVaList_t ap;
     class CLinkbotT *robot;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotT *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = robot->turnRightNB(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->turnRightNB(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1976,6 +2045,46 @@ EXPORTCH int CLTG_moveBackwardNB_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
     angle = Ch_VaArg(interp, ap, double);
     retval = robot->moveBackwardNB(angle);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLTG_moveContinuousNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotTGroup *robot;
+    robotJointState_t dir1;
+    robotJointState_t dir2;
+    robotJointState_t dir3;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
+    dir1 = Ch_VaArg(interp, ap, robotJointState_t);
+    dir2 = Ch_VaArg(interp, ap, robotJointState_t);
+    dir3 = Ch_VaArg(interp, ap, robotJointState_t);
+    retval = robot->moveContinuousNB(dir1, dir2, dir3);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLTG_moveContinuousTime_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotTGroup *robot;
+    robotJointState_t dir1;
+    robotJointState_t dir2;
+    robotJointState_t dir3;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
+    dir1 = Ch_VaArg(interp, ap, robotJointState_t);
+    dir2 = Ch_VaArg(interp, ap, robotJointState_t);
+    dir3 = Ch_VaArg(interp, ap, robotJointState_t);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->moveContinuousTime(dir1, dir2, dir3, seconds);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2543,12 +2652,16 @@ EXPORTCH int CLTG_turnLeft_chdl(void *varg) {
     ChVaList_t ap;
     class CLinkbotTGroup *robot;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = robot->turnLeft(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->turnLeft(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2558,12 +2671,16 @@ EXPORTCH int CLTG_turnLeftNB_chdl(void *varg) {
     ChVaList_t ap;
     class CLinkbotTGroup *robot;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = robot->turnLeftNB(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->turnLeftNB(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2573,12 +2690,16 @@ EXPORTCH int CLTG_turnRight_chdl(void *varg) {
     ChVaList_t ap;
     class CLinkbotTGroup *robot;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = robot->turnRight(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->turnRight(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2588,12 +2709,16 @@ EXPORTCH int CLTG_turnRightNB_chdl(void *varg) {
     ChVaList_t ap;
     class CLinkbotTGroup *robot;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = robot->turnRightNB(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->turnRightNB(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }

@@ -18,6 +18,12 @@ CLinkbotT::~CLinkbotT(void) {
 	}
 }
 
+int CLinkbotT::blinkLED(double delay, int num) {
+	printf("CLinkbot::blinkLED not implemented.\n");
+
+	// success
+	return 0;
+}
 
 int CLinkbotT::connect(void) {
 	// add to simulation
@@ -99,7 +105,7 @@ int CLinkbotT::driveToNB(double angle1, double angle2, double angle3) {
 }
 
 int CLinkbotT::getAccelerometerData(double &accel_x, double &accel_y, double &accel_z) {
-	printf("not implemented yet\n");
+	printf("CLinkbot::getAccelerometerData not implemented.\n");
 
 	// success
 	return 0;
@@ -185,14 +191,14 @@ int CLinkbotT::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
 }
 
 int CLinkbotT::getJointSafetyAngle(double &angle) {
-	printf("not implemented yet\n");
+	angle = _joint_safety_angle;
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::getJointSafetyAngleTimeout(double &seconds) {
-	printf("not implemented yet\n");
+	seconds = _joint_safety_time;
 
 	// success
 	return 0;
@@ -1251,7 +1257,14 @@ int CLinkbotT::recordWait(void) {
 }
 
 int CLinkbotT::reset(void) {
-	printf("not implemented yet\n");
+	MUTEX_LOCK(&_angle_mutex);
+	for (int i = 0; i < NUM_DOF; i++) {
+		_offset[i] = _angle[i];
+		_angle[i] = 0;
+		_goal[i] -= _offset[i];
+		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
+	}
+	MUTEX_UNLOCK(&_angle_mutex);
 
 	// success
 	return 0;
@@ -1282,21 +1295,21 @@ int CLinkbotT::resetToZeroNB(void) {
 }
 
 int CLinkbotT::setBuzzerFrequency(int frequency, double time) {
-	printf("not implemented yet\n");
+	printf("CLinkbot::setBuzzerFrequency not implemented.\n");
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::setBuzzerFrequencyOn(int frequency) {
-	printf("not implemented yet\n");
+	printf("CLinkbot::setBuzzerFrequencyOn not implemented.\n");
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::setBuzzerFrequencyOff() {
-	printf("not implemented yet\n");
+	printf("CLinkbot::setBuzzerFrequencyOff not implemented.\n");
 
 	// success
 	return 0;
@@ -1367,14 +1380,14 @@ int CLinkbotT::setJointMovementStateTime(robotJointId_t id, robotJointState_t di
 }
 
 int CLinkbotT::setJointSafetyAngle(double angle) {
-	printf("not implemented yet\n");
+	_joint_safety_angle = angle;
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::setJointSafetyAngleTimeout(double seconds) {
-	printf("not implemented yet\n");
+	_joint_safety_time = seconds;
 
 	// success
 	return 0;
@@ -1413,7 +1426,7 @@ int CLinkbotT::setJointSpeedRatios(double ratio1, double ratio2, double ratio3) 
 }
 
 int CLinkbotT::setMotorPower(robotJointId_t id, int power) {
-	printf("not implemented yet\n");
+	printf("CLinkbot::setMotorPower not implemented.\n");
 
 	// success
 	return 0;
@@ -1500,30 +1513,38 @@ int CLinkbotT::stopAllJoints(void) {
 	return 0;
 }
 
-int CLinkbotT::turnLeft(double angle) {
-	this->turnLeftNB(angle);
+int CLinkbotT::turnLeft(double angle, double radius, double tracklength) {
+	this->turnLeftNB(angle, radius, tracklength);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int CLinkbotT::turnLeftNB(double angle) {
+int CLinkbotT::turnLeftNB(double angle, double radius, double tracklength) {
+	// calculate joint angle from global turn angle
+	angle = (angle*tracklength)/(2*radius);
+
+	// move
 	this->moveNB(-angle, 0, angle);
 
 	// success
 	return 0;
 }
 
-int CLinkbotT::turnRight(double angle) {
-	this->turnRightNB(angle);
+int CLinkbotT::turnRight(double angle, double radius, double tracklength) {
+	this->turnRightNB(angle, radius, tracklength);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int CLinkbotT::turnRightNB(double angle) {
+int CLinkbotT::turnRightNB(double angle, double radius, double tracklength) {
+	// calculate joint angle from global turn angle
+	angle = (angle*tracklength)/(2*radius);
+
+	// move
 	this->moveNB(angle, 0, -angle);
 
 	// success
@@ -1573,13 +1594,6 @@ int CLinkbotT::build(bot_t robot) {
 		ctmp = ctmp->next;
 	}
 
-	// debug printing
-	/*const dReal *rot;
-	for (int i = 0; i < 5; i++) {
-		rot = dBodyGetRotation(_body[i]);
-		printf("rotation %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", rot[0], rot[1], rot[2], rot[4], rot[5], rot[6], rot[8], rot[9], rot[10]);
-	}*/
-
 	// success
 	return 0;
 }
@@ -1596,17 +1610,13 @@ int CLinkbotT::build(bot_t robot, CRobot *base, Conn_t *conn) {
 		ctmp = ctmp->next;
 	}
 
-	// debug printing
-	//const dReal *pos = dBodyGetPosition(_body[BODY]);
-	//printf("robot pos: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
-
 	// success
 	return 0;
 }
 
 dReal CLinkbotT::getAngle(int i) {
 	if (i != _disabled)
-		_angle[i] = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
+		_angle[i] = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i])) - _offset[i];
 	else
 		_angle[i] = 0;
 
@@ -1936,13 +1946,6 @@ int CLinkbotT::add_connector(int type, int face) {
 			this->build_smallwheel(nc, face);
 			break;
 	}
-
-	// debug printing
-	/*conn_t ctmp2 = _conn;
-	while (ctmp2) {
-		printf("on face %d draw a %d connector %p\n", ctmp2->face, ctmp2->type, ctmp2->body);
-		ctmp2 = ctmp2->next;
-	}*/
 
 	// success
 	return 0;
@@ -2516,6 +2519,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_success[i] = true;
 		_speed[i] = 0.7854;		// 45 deg/sec
 		_maxSpeed[i] = 120;		// deg/sec
+		_offset[i] = 0;
 		if (i != _disabled)
 			_enabled[j++] = i;
 	}
