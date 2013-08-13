@@ -221,8 +221,23 @@ int main (int argc, char *argv[]) {
 	g_doc.InsertFirstChild(dec);
 
 	// root sim node
-	tinyxml2::XMLElement *ele = g_doc.NewElement("sim");
-	g_doc.InsertAfterChild(dec, ele);
+	tinyxml2::XMLElement *sim = g_doc.NewElement("sim");
+	g_doc.InsertAfterChild(dec, sim);
+	tinyxml2::XMLElement	*robot1 = g_doc.NewElement("linkboti"),
+							*wheel1 = g_doc.NewElement("smallwheel"), 
+							*wheel2 = g_doc.NewElement("smallwheel"), 
+							*caster = g_doc.NewElement("caster");
+	robot1->SetAttribute("id", 0);
+	wheel1->SetAttribute("robot", 0);
+	wheel1->SetAttribute("face", 1);
+	wheel2->SetAttribute("robot", 0);
+	wheel2->SetAttribute("face", 3);
+	caster->SetAttribute("robot", 0);
+	caster->SetAttribute("face", 2);
+	sim->InsertFirstChild(robot1);
+	sim->InsertAfterChild(robot1, wheel1);
+	sim->InsertAfterChild(wheel1, wheel2);
+	sim->InsertAfterChild(wheel2, caster);
 
 	// get config file paths
 #ifdef _WIN32
