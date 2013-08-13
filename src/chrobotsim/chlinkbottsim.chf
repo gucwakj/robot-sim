@@ -2285,7 +2285,7 @@ int CLinkbotTGroup::stopOneJoint(int id) {
     return retval;
 }
 
-int CLinkbotTGroup::turnLeft(double angle) {
+int CLinkbotTGroup::turnLeft(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
@@ -2298,7 +2298,7 @@ int CLinkbotTGroup::turnLeft(double angle) {
     return retval;
 }
 
-int CLinkbotTGroup::turnLeftNB(double angle) {
+int CLinkbotTGroup::turnLeftNB(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
@@ -2311,7 +2311,7 @@ int CLinkbotTGroup::turnLeftNB(double angle) {
     return retval;
 }
 
-int CLinkbotTGroup::turnRight(double angle) {
+int CLinkbotTGroup::turnRight(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
@@ -2324,7 +2324,7 @@ int CLinkbotTGroup::turnRight(double angle) {
     return retval;
 }
 
-int CLinkbotTGroup::turnRightNB(double angle) {
+int CLinkbotTGroup::turnRightNB(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
