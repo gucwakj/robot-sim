@@ -1,7 +1,7 @@
 #
-# chrobotsim
+# chrobosim
 #
-PACKAGE=chrobotsim
+PACKAGE=chrobosim-win
 VERSION=0.0.1
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 ARCH=x86

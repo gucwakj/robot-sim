@@ -1,7 +1,7 @@
 #
-# chrobotsim
+# chrobosim
 #
-PACKAGE=chrobotsim
+PACKAGE=chrobosim-unix
 VERSION=0.0.1
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 
