@@ -522,10 +522,10 @@ class DLLIMPORT CLinkbotI {
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int stopAllJoints(void);
-		int turnLeft(double angle);
-		int turnLeftNB(double angle);
-		int turnRight(double angle);
-		int turnRightNB(double angle);
+		int turnLeft(double angle, double radius, double tracklength);
+		int turnLeftNB(double angle, double radius, double tracklength);
+		int turnRight(double angle, double radius, double tracklength);
+		int turnRightNB(double angle, double radius, double tracklength);
 };
 class DLLIMPORT CLinkbotIGroup {
 	public:
@@ -602,10 +602,10 @@ class DLLIMPORT CLinkbotIGroup {
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int stopAllJoints(void);
-		int turnLeft(double angle);
-		int turnLeftNB(double angle);
-		int turnRight(double angle);
-		int turnRightNB(double angle);
+		int turnLeft(double angle, double radius, double tracklength);
+		int turnLeftNB(double angle, double radius, double tracklength);
+		int turnRight(double angle, double radius, double tracklength);
+		int turnRightNB(double angle, double radius, double tracklength);
 };
 
 class DLLIMPORT CLinkbotL {
@@ -725,10 +725,10 @@ class DLLIMPORT CLinkbotL {
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int stopAllJoints(void);
-		int turnLeft(double angle);
-		int turnLeftNB(double angle);
-		int turnRight(double angle);
-		int turnRightNB(double angle);
+		int turnLeft(double angle, double radius, double tracklength);
+		int turnLeftNB(double angle, double radius, double tracklength);
+		int turnRight(double angle, double radius, double tracklength);
+		int turnRightNB(double angle, double radius, double tracklength);
 };
 class DLLIMPORT CLinkbotLGroup {
 	public:
@@ -818,10 +818,10 @@ class DLLIMPORT CLinkbotLGroup {
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int stopAllJoints(void);
-		int turnLeft(double angle);
-		int turnLeftNB(double angle);
-		int turnRight(double angle);
-		int turnRightNB(double angle);
+		int turnLeft(double angle, double radius, double tracklength);
+		int turnLeftNB(double angle, double radius, double tracklength);
+		int turnRight(double angle, double radius, double tracklength);
+		int turnRightNB(double angle, double radius, double tracklength);
 };
 #ifndef ROBOTSIM_DLHANDLE
 #define ROBOTSIM_DLHANDLE

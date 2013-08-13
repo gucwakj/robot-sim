@@ -1,7 +1,7 @@
 #
 # chrobosim
 #
-PACKAGE=chrobosim-win
+PACKAGE=chrobosim
 VERSION=0.0.1
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 ARCH=x86
@@ -76,7 +76,7 @@ uninstall:
 createpkg: librobotsim.dl
 	echo Building $(PACKAGE)-$(VERSION).zip
 	rm -rf $(PACKAGE)-$(VERSION)
-	rm -rf $(PACKAGE)-$(VERSION).zip
+	rm -rf $(PACKAGE)-win32-$(VERSION).zip
 	mkdir -p $(PKGDIR)
 	mkdir $(PKGDIR)/bin
 	cp ../configurator/build/Release/robosimconfigurator.exe $(PKGDIR)/bin
@@ -142,12 +142,12 @@ createpkg: librobotsim.dl
 	cp delay.chf $(PKGDIR)/lib
 	cp Makefile.win $(PACKAGE)-$(VERSION)/Makefile
 	cp pkginstall.ch $(PACKAGE)-$(VERSION)
-	zip -rq $(PACKAGE)-$(VERSION).zip $(PACKAGE)-$(VERSION)
+	zip -rq $(PACKAGE)-win32-$(VERSION).zip $(PACKAGE)-$(VERSION)
 	echo Done Building $(PACKAGE)-$(VERSION)
 
 cleanpkg: librobotsim.dl
 	rm -rf $(PACKAGE)-$(VERSION)
-	rm -rf $(PACKAGE)-$(VERSION).zip
+	rm -rf $(PACKAGE)-win32-$(VERSION).zip
 
 clean:
 	rm *.obj *.dl *.dl.manifest *.exp *.lib

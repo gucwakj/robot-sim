@@ -1,7 +1,7 @@
 #
 # chrobosim
 #
-PACKAGE=chrobosim-unix
+PACKAGE=chrobosim
 VERSION=0.0.1
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 
@@ -75,7 +75,7 @@ uninstall:
 createpkg: librobotsim.dl
 	echo Building $(PACKAGE)-$(VERSION).zip
 	rm -rf $(PACKAGE)-$(VERSION)
-	rm -rf $(PACKAGE)-$(VERSION).zip
+	rm -rf $(PACKAGE)-unix-$(VERSION).zip
 	mkdir -p $(PKGDIR)
 	mkdir $(PKGDIR)/bin
 	cp ../configurator/build/robosimconfigurator $(PKGDIR)/bin
@@ -118,12 +118,12 @@ createpkg: librobotsim.dl
 	cp delay.chf $(PKGDIR)/lib
 	cp Makefile $(PACKAGE)-$(VERSION)
 	cp pkginstall.ch $(PACKAGE)-$(VERSION)
-	zip -rq $(PACKAGE)-$(VERSION).zip $(PACKAGE)-$(VERSION)
+	zip -rq $(PACKAGE)-unix-$(VERSION).zip $(PACKAGE)-$(VERSION)
 	echo Done Building $(PACKAGE)-$(VERSION)
 
 cleanpkg:
 	rm -rf $(PACKAGE)-$(VERSION)
-	rm -rf $(PACKAGE)-$(VERSION).zip
+	rm -rf $(PACKAGE)-unix-$(VERSION).zip
 
 clean:
 	rm *.o *.dl

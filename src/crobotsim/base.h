@@ -7,12 +7,12 @@
 #include <Shlobj.h>
 #include <Shlwapi.h>
 #define DLLIMPORT __declspec(dllexport)
-#define TEXTURE_PATH(end) "C:/Ch/package/chrobotsim/data/" #end
+#define TEXTURE_PATH(end) "C:/Ch/package/chrobosim/data/" #end
 #else
 #include <pthread.h>
 #include <unistd.h>
 #define DLLIMPORT
-#define TEXTURE_PATH(end) "/usr/local/ch/package/chrobotsim/data/" #end
+#define TEXTURE_PATH(end) "/usr/local/ch/package/chrobosim/data/" #end
 #endif // _WIN32
 #include "config.h"
 #include <ode/ode.h>
@@ -27,7 +27,7 @@
 #endif // ENABLE_GRAPHICS
 #else
 #define DLLIMPORT
-#pragma package <chrobotsim>
+#pragma package <chrobosim>
 #define dDOUBLE
 #define dReal double
 #define ENABLE_GRAPHICS
