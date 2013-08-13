@@ -27,6 +27,23 @@ EXPORTCH void CMobot_dCMobot_chdl(void *varg) {
 	return;
 }
 
+EXPORTCH int CMobot_blinkLED_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    double delay;
+    int numBlinks;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    delay = Ch_VaArg(interp, ap, double);
+    numBlinks = Ch_VaArg(interp, ap, int);
+    retval = robot->blinkLED(delay, numBlinks);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_connect_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -133,6 +150,21 @@ EXPORTCH int CMobot_driveToNB_chdl(void *varg) {
     angle3 = Ch_VaArg(interp, ap, double);
     angle4 = Ch_VaArg(interp, ap, double);
     retval = robot->driveToNB(angle1, angle2, angle3, angle4);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CMobot_getFormFactor_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    int* formFactor;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    formFactor = Ch_VaArg(interp, ap, int *);
+    retval = robot->getFormFactor(*formFactor);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1858,12 +1890,16 @@ EXPORTCH int CMobot_turnLeft_chdl(void *varg) {
     ChVaList_t ap;
     class CMobot *robot;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CMobot *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = robot->turnLeft(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->turnLeft(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1873,12 +1909,16 @@ EXPORTCH int CMobot_turnLeftNB_chdl(void *varg) {
     ChVaList_t ap;
     class CMobot *robot;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CMobot *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = robot->turnLeftNB(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->turnLeftNB(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1888,12 +1928,16 @@ EXPORTCH int CMobot_turnRight_chdl(void *varg) {
     ChVaList_t ap;
     class CMobot *robot;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CMobot *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = robot->turnRight(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->turnRight(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1903,12 +1947,16 @@ EXPORTCH int CMobot_turnRightNB_chdl(void *varg) {
     ChVaList_t ap;
     class CMobot *robot;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CMobot *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = robot->turnRightNB(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->turnRightNB(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1964,6 +2012,23 @@ EXPORTCH int CMG_addRobots_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CMobot*);
     numRobots = Ch_VaArg(interp, ap, int);
     retval = group->addRobots(robot, numRobots);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CMG_blinkLED_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobotGroup *robot;
+    double delay;
+    int numBlinks;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobotGroup *);
+    delay = Ch_VaArg(interp, ap, double);
+    numBlinks = Ch_VaArg(interp, ap, int);
+    retval = robot->blinkLED(delay, numBlinks);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2778,12 +2843,16 @@ EXPORTCH int CMG_turnLeft_chdl(void *varg) {
     ChVaList_t ap;
     class CMobotGroup *group;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     group = Ch_VaArg(interp, ap, class CMobotGroup *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = group->turnLeft(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = group->turnLeft(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2793,12 +2862,16 @@ EXPORTCH int CMG_turnLeftNB_chdl(void *varg) {
     ChVaList_t ap;
     class CMobotGroup *group;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     group = Ch_VaArg(interp, ap, class CMobotGroup *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = group->turnLeftNB(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = group->turnLeftNB(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2808,12 +2881,16 @@ EXPORTCH int CMG_turnRight_chdl(void *varg) {
     ChVaList_t ap;
     class CMobotGroup *group;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     group = Ch_VaArg(interp, ap, class CMobotGroup *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = group->turnRight(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = group->turnRight(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2823,12 +2900,16 @@ EXPORTCH int CMG_turnRightNB_chdl(void *varg) {
     ChVaList_t ap;
     class CMobotGroup *group;
     double angle;
+    double radius;
+    double tracklength;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     group = Ch_VaArg(interp, ap, class CMobotGroup *);
     angle = Ch_VaArg(interp, ap, double);
-    retval = group->turnRightNB(angle);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = group->turnRightNB(angle, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }

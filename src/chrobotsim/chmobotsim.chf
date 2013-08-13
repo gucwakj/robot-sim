@@ -37,6 +37,19 @@ CMobot::~CMobot() {
 	}
 }
 
+int CMobot::blinkLED(double delay, int numBlinks) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CMobot_blinkLED_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, delay, numBlinks);
+    return retval;
+}
+
 int CMobot::connect() {
     void *fptr;
     int retval;
@@ -113,6 +126,19 @@ int CMobot::driveToNB(double angle1, double angle2, double angle3, double angle4
 	}
 	dlrunfun(fptr, &retval, driveToNB, this, angle1, angle2, angle3, angle4);
 	return retval;
+}
+
+int CMobot::getFormFactor(int &formFactor) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CMobot_getFormFactor_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, &formFactor);
+    return retval;
 }
 
 int CMobot::getJointAngle(robotJointId_t id, double &angle) {
@@ -1453,7 +1479,7 @@ int CMobot::stopThreeJoints(int id1, int id2, int id3) {
     return retval;
 }
 
-int CMobot::turnLeft(double angle) {
+int CMobot::turnLeft(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
@@ -1462,11 +1488,11 @@ int CMobot::turnLeft(double angle) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnLeft, this, angle);
+    dlrunfun(fptr, &retval, turnLeft, this, angle, radius, tracklength);
     return retval;
 }
 
-int CMobot::turnLeftNB(double angle) {
+int CMobot::turnLeftNB(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
@@ -1475,11 +1501,11 @@ int CMobot::turnLeftNB(double angle) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnLeftNB, this, angle);
+    dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, tracklength);
     return retval;
 }
 
-int CMobot::turnRight(double angle) {
+int CMobot::turnRight(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
@@ -1488,11 +1514,11 @@ int CMobot::turnRight(double angle) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnRight, this, angle);
+    dlrunfun(fptr, &retval, turnRight, this, angle, radius, tracklength);
     return retval;
 }
 
-int CMobot::turnRightNB(double angle) {
+int CMobot::turnRightNB(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
@@ -1501,7 +1527,7 @@ int CMobot::turnRightNB(double angle) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnRightNB, this, angle);
+    dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, tracklength);
     return retval;
 }
 
@@ -1570,6 +1596,19 @@ int CMobotGroup::addRobots(array CMobot robots[], ...) {
     }
     dlrunfun(fptr, &retval, NULL, this, robots, numRobots);
     va_end(ap);
+    return retval;
+}
+
+int CMobotGroup::blinkLED(double delay, int numBlinks) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CMG_blinkLED_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, delay, numBlinks);
     return retval;
 }
 
@@ -2327,7 +2366,7 @@ int CMobotGroup::stopOneJoint(int id) {
     return retval;
 }
 
-int CMobotGroup::turnLeft(double angle) {
+int CMobotGroup::turnLeft(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
@@ -2336,11 +2375,11 @@ int CMobotGroup::turnLeft(double angle) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnLeft, this, angle);
+    dlrunfun(fptr, &retval, turnLeft, this, angle, radius, tracklength);
     return retval;
 }
 
-int CMobotGroup::turnLeftNB(double angle) {
+int CMobotGroup::turnLeftNB(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
@@ -2349,11 +2388,11 @@ int CMobotGroup::turnLeftNB(double angle) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnLeftNB, this, angle);
+    dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, tracklength);
     return retval;
 }
 
-int CMobotGroup::turnRight(double angle) {
+int CMobotGroup::turnRight(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
@@ -2362,11 +2401,11 @@ int CMobotGroup::turnRight(double angle) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnRight, this, angle);
+    dlrunfun(fptr, &retval, turnRight, this, angle, radius, tracklength);
     return retval;
 }
 
-int CMobotGroup::turnRightNB(double angle) {
+int CMobotGroup::turnRightNB(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
@@ -2375,6 +2414,6 @@ int CMobotGroup::turnRightNB(double angle) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnRightNB, this, angle);
+    dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, tracklength);
     return retval;
 }

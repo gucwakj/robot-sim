@@ -97,9 +97,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int recordAngleBegin(robotJointId_t id,
 							 robotRecordData_t &time,
 							 robotRecordData_t &angle, double seconds, ...);
-		int recordAngles(double time[:], double angle1[:],
-										 double angle2[:],
-										 double angle3[:], int num, double seconds, ...);
+		int recordAngles(double time[:],
+						 double angle1[:],
+						 double angle2[:],
+						 double angle3[:], int num, double seconds, ...);
 		int recordAnglesBegin(robotRecordData_t &time,
 							  robotRecordData_t &angle1,
 							  robotRecordData_t &angle2,
@@ -125,8 +126,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 							  robotRecordData_t &angle3, double seconds, int shiftData = 1);
 		int recordDistanceBegin(robotJointId_t id,
 								robotRecordData_t &time,
-								robotRecordData_t &distance,
-								double radius, double seconds, int shiftData = 1);
+								robotRecordData_t &distance, double radius, double seconds, int shiftData = 1);
 		int recordDistancesBegin(robotRecordData_t &time,
 								 robotRecordData_t &distance1,
 								 robotRecordData_t &distance2,

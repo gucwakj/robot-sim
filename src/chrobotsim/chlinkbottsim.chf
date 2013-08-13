@@ -166,6 +166,7 @@ int CLinkbotT::getColorRGB(int &r, int &g, int &b) {
     dlrunfun(fptr, &retval, NULL, this, &r, &g, &b);
     return retval;
 }
+
 int CLinkbotT::getFormFactor(int & formFactor) {
     void *fptr;
     int retval;
@@ -1501,6 +1502,19 @@ int CLinkbotTGroup::addRobots(array CLinkbotT robots[], ...) {
     }
     dlrunfun(fptr, &retval, NULL, this, robots, numRobots);
     va_end(ap);
+    return retval;
+}
+
+int CLinkbotTGroup::blinkLED(double delay, int numBlinks) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CLTG_blinkLED_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, delay, numBlinks);
     return retval;
 }
 

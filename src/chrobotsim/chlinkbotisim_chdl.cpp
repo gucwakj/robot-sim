@@ -1847,6 +1847,23 @@ EXPORTCH int CLIG_addRobots_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLIG_blinkLED_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotIGroup *robot;
+    double delay;
+    int numBlinks;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
+    delay = Ch_VaArg(interp, ap, double);
+    numBlinks = Ch_VaArg(interp, ap, int);
+    retval = robot->blinkLED(delay, numBlinks);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLIG_connect_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

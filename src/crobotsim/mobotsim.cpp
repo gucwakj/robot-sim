@@ -14,6 +14,13 @@ CMobot::~CMobot(void) {
 	}
 }
 
+int CMobot::blinkLED(double delay, int num) {
+	printf("CMobot::blinkLED not implemented.\n");
+
+	// success
+	return 0;
+}
+
 int CMobot::connect(void) {
 	_simObject.addRobot(this);
 	_connected = 1;
@@ -89,6 +96,13 @@ int CMobot::driveToNB(double angle1, double angle2, double angle3, double angle4
 	return 0;
 }
 
+int CMobot::getFormFactor(int &formFactor) {
+	formFactor = _type;
+
+	// success
+	return 0;
+}
+
 int CMobot::getJointAngle(robotJointId_t id, double &angle) {
 	angle = RAD2DEG(this->getAngle(id));
 
@@ -144,14 +158,14 @@ int CMobot::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
 }
 
 int CMobot::getJointSafetyAngle(double &angle) {
-	printf("not implemented yet\n");
+	angle = _joint_safety_angle;
 
 	// success
 	return 0;
 }
 
 int CMobot::getJointSafetyAngleTimeout(double &seconds) {
-	printf("not implemented yet\n");
+	seconds = _joint_safety_time;
 
 	// success
 	return 0;
@@ -1660,7 +1674,14 @@ int CMobot::recordWait(void) {
 }
 
 int CMobot::reset(void) {
-	printf("not yet implemented\n");
+	MUTEX_LOCK(&_angle_mutex);
+	for (int i = 0; i < NUM_DOF; i++) {
+		_offset[i] = _angle[i];
+		_angle[i] = 0;
+		_goal[i] -= _offset[i];
+		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
+	}
+	MUTEX_UNLOCK(&_angle_mutex);
 
 	// success
 	return 0;
@@ -1766,14 +1787,14 @@ int CMobot::setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir
 }
 
 int CMobot::setJointSafetyAngle(double angle) {
-	printf("not implemented yet\n");
+	_joint_safety_angle = angle;
 
 	// success
 	return 0;
 }
 
 int CMobot::setJointSafetyAngleTimeout(double seconds) {
-	printf("not implemented yet\n");
+	_joint_safety_time = seconds;
 
 	// success
 	return 0;
@@ -1904,30 +1925,38 @@ int CMobot::stopAllJoints(void) {
 	return 0;
 }
 
-int CMobot::turnLeft(double angle) {
-	this->turnLeftNB(angle);
+int CMobot::turnLeft(double angle, double radius, double tracklength) {
+	this->turnLeftNB(angle, radius, tracklength);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int CMobot::turnLeftNB(double angle) {
+int CMobot::turnLeftNB(double angle, double radius, double tracklength) {
+	// calculate joint angle from global turn angle
+	angle = (angle*tracklength)/(2*radius);
+
+	// move
 	this->moveNB(-angle, 0, 0, angle);
 
 	// success
 	return 0;
 }
 
-int CMobot::turnRight(double angle) {
-	this->turnRightNB(angle);
+int CMobot::turnRight(double angle, double radius, double tracklength) {
+	this->turnRightNB(angle, radius, tracklength);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int CMobot::turnRightNB(double angle) {
+int CMobot::turnRightNB(double angle, double radius, double tracklength) {
+	// calculate joint angle from global turn angle
+	angle = (angle*tracklength)/(2*radius);
+
+	// move
 	this->moveNB(angle, 0, 0, -angle);
 
 	// success
@@ -1977,15 +2006,6 @@ int CMobot::build(bot_t robot) {
 		ctmp = ctmp->next;
 	}
 
-	// debug printing
-	//const dReal *pos = dBodyGetPosition(_body[CENTER]);
-	//printf("robot pos: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
-	/*const dReal *rot;
-	for (int i = 0; i < 5; i++) {
-		rot = dBodyGetRotation(_body[i]);
-		printf("rotation %lf %lf %lf %lf %lf %lf %lf %lf %lf\n", rot[0], rot[1], rot[2], rot[4], rot[5], rot[6], rot[8], rot[9], rot[10]);
-	}*/
-
 	// success
 	return 0;
 }
@@ -2001,10 +2021,6 @@ int CMobot::build(bot_t robot, CRobot *base, Conn_t *conn) {
 			this->add_connector(ctmp->type, ctmp->face1);
 		ctmp = ctmp->next;
 	}
-
-	// debug printing
-	//const dReal *pos = dBodyGetPosition(_body[CENTER]);
-	//printf("robot pos: %lf %lf %lf\n", pos[0], pos[1], pos[2]);
 
 	// success
 	return 0;
@@ -2483,13 +2499,6 @@ int CMobot::add_connector(int type, int face) {
 			this->build_tank(nc, face);
 			break;
 	}
-
-	// debug printing
-	/*conn_t ctmp2 = _conn;
-	while (ctmp2) {
-		printf("on face %d draw a %d connector %p\n", ctmp2->face, ctmp2->type, ctmp2->body);
-		ctmp2 = ctmp2->next;
-	}*/
 
 	// success
 	return 0;

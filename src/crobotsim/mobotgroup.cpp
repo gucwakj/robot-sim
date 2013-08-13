@@ -48,6 +48,17 @@ int CMobotGroup::addRobots(CMobot robots[], int num) {
 	return 0;
 }
 
+int CMobotGroup::blinkLED(double delay, int num) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->blinkLED(delay, num);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobotGroup::connect(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -803,15 +814,15 @@ int CMobotGroup::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJo
 	return 0;
 }
 
-int CMobotGroup::turnLeft(double angle) {
-	turnLeftNB(angle);
+int CMobotGroup::turnLeft(double angle, double radius, double tracklength) {
+	this->turnLeftNB(angle, radius, tracklength);
 	return moveWait();
 }
 
-int CMobotGroup::turnLeftNB(double angle) {
+int CMobotGroup::turnLeftNB(double angle, double radius, double tracklength) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->turnLeftNB(angle);
+		rtmp->robot->turnLeftNB(angle, radius, tracklength);
 		rtmp = rtmp->next;
 	}
 
@@ -819,15 +830,15 @@ int CMobotGroup::turnLeftNB(double angle) {
 	return 0;
 }
 
-int CMobotGroup::turnRight(double angle) {
-	turnRightNB(angle);
+int CMobotGroup::turnRight(double angle, double radius, double tracklength) {
+	this->turnRightNB(angle, radius, tracklength);
 	return moveWait();
 }
 
-int CMobotGroup::turnRightNB(double angle) {
+int CMobotGroup::turnRightNB(double angle, double radius, double tracklength) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->turnRightNB(angle);
+		rtmp->robot->turnRightNB(angle, radius, tracklength);
 		rtmp = rtmp->next;
 	}
 
