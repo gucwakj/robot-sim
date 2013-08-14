@@ -550,7 +550,7 @@ int CLinkbotT::moveForward(double angle) {
 }
 
 int CLinkbotT::moveForwardNB(double angle) {
-	return this->moveNB(angle, 0, angle);
+	return this->moveNB(angle, 0, -angle);
 }
 
 int CLinkbotT::moveJoint(robotJointId_t id, dReal angle) {
@@ -1433,6 +1433,25 @@ int CLinkbotT::setMotorPower(robotJointId_t id, int power) {
 }
 
 int CLinkbotT::setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3) {
+	// switch direction for linkbot i to get forward movement
+	if (_type == LINKBOTI) {
+		switch (dir3) {
+			case ROBOT_FORWARD:
+				dir3 = ROBOT_BACKWARD;
+				break;
+			case ROBOT_BACKWARD:
+				dir3 = ROBOT_FORWARD;
+				break;
+			case ROBOT_POSITIVE:
+				dir3 = ROBOT_FORWARD;
+				break;
+			case ROBOT_NEGATIVE:
+				dir3 = ROBOT_BACKWARD;
+				break;
+		}
+	}
+
+	// set joint movements
 	this->setJointMovementStateNB(ROBOT_JOINT1, dir1);
 	this->setJointMovementStateNB(ROBOT_JOINT2, dir2);
 	this->setJointMovementStateNB(ROBOT_JOINT3, dir3);
