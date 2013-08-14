@@ -131,6 +131,8 @@ createpkg: librobotsim.dl
 	mkdir $(PKGDIR)/dl
 	cp librobotsim.dl $(PKGDIR)/dl
 	cp -R C:/Ch/dl/Mi* $(PKGDIR)/dl
+	mkdir $(PKGDIR)/docs
+	cp ../../docs/robosim.pdf $(PKGDIR)/docs
 	mkdir $(PKGDIR)/include
 	cp $(HEADERS) $(PKGDIR)/include
 	mv $(PKGDIR)/include/mobotsim.h $(PKGDIR)/include/mobot.h
