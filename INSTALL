@@ -17,9 +17,11 @@ Linux
 tinyxml2
 -----------------------------
 	cd src/tinyxml2/
-	cmake .
+	mkdir build/
+	cd build/
+	cmake ..
 	make
-	cd ../../
+	cd ../../../
 
 opende
 -----------------------------
@@ -43,25 +45,37 @@ openscenegraph
 crobotsim
 -----------------------------
 	cd src/crobotsim/
-	cmake .
+	mkdir build/
+	cd build/
+	cmake ..
 	make
-	cd ../../
+	cd ../../../
 
+configurator
+-----------------------------
+	cd src/configurator/
+	mkdir build/
+	cd build/
+	cmake ..
+	make
+	cd ../../../
 demos
 -----------------------------
 Each demo can be compiled separately by invoking
 make <name>
-	cd demos/{mobot/linkboti/linkbotl}/
-	cmake .
-	make <name>
-	cd ../../
+	cd demos/{mobot/linkbot}/
+	mkdir build/
+	cd build/
+	cmake ..
+	make <program name>
+	cd ../../../
 
 chrobotsim
 -----------------------------
 	cd src/chrobotsim/
 	make
 	make createpkg
-	cd chrobotsim*/
+	cd chrobosim*/
 	sudo make install
 	cd ../../../
 
@@ -110,11 +124,20 @@ crobotsim
 	build Release solution
 	cd ../../
 
+configurator
+-----------------------------
+	cd src/configurator/
+	mkdir build/
+	use cmake-gui to configure with visual studio 9 32bit and generate
+	open build/robotsimgui.sln in visual studio
+	build Release solution
+	cd ../../
+
 demos
 -----------------------------
 Each demo can be compiled separately by invoking
 make <name>
-	cd demos/{mobot/linkboti/linkbotl}/
+	cd demos/{mobot/linkbot}/
 	mkdir build/
 	use cmake-gui to configure with visual studio 9 and generate
 	open build/CRobotSim_{Mobot/Linkboti/Linkbot}_Demos.sln in visual studio
@@ -124,8 +147,8 @@ make <name>
 chrobotsim
 -----------------------------
 	cd src/chrobotsim/
-	make -f Makefile.win
-	make -f Makefile.win createpkg
+	make -f Makefile.win{32/64}
+	make -f Makefile.win{32/64} createpkg
 	cd chrobotsim*/
 	sudo make install
 	cd ../../../

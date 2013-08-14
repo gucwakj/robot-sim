@@ -74,34 +74,36 @@ uninstall:
 	ch ./pkginstall.ch -u $(PACKAGE)
 
 createpkg: librobotsim.dl
-	echo Building $(PACKAGE)-$(VERSION).zip
+	echo Building $(PACKAGE)-win64-$(VERSION).zip
 	rm -rf $(PACKAGE)-$(VERSION)
 	rm -rf $(PACKAGE)-win64-$(VERSION).zip
 	mkdir -p $(PKGDIR)
 	mkdir $(PKGDIR)/bin
-	cp ../configurator/build/Release/robosimconfigurator.exe $(PKGDIR)/bin
-	cp ../configurator/interface2.glade $(PKGDIR)/bin
-	cp ../configurator/images/linkbot.png $(PKGDIR)/bin
-	cp ../configurator/images/mobot.png $(PKGDIR)/bin
-	cp ../configurator/dll32/freetype6.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libgdk_pixbuf-2.0-0.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libpango-1.0-0.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/intl.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libgio-2.0-0.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libpangocairo-1.0-0.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libatk-1.0-0.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libglib-2.0-0.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libpangoft2-1.0-0.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libcairo-2.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libgmodule-2.0-0.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libpangowin32-1.0-0.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libexpat-1.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libgobject-2.0-0.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libpng14-14.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libfontconfig-1.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libgthread-2.0-0.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libgdk-win32-2.0-0.dll $(PKGDIR)/bin
-	cp ../configurator/dll32/libgtk-win32-2.0-0.dll $(PKGDIR)/bin
+	mkdir $(PKGDIR)/bin/gui
+	cp ../configurator/build/Release/robosimconfigurator.exe $(PKGDIR)/bin/gui
+	cp ../configurator/interface2.glade $(PKGDIR)/bin/gui
+	cp ../configurator/images/linkbot.png $(PKGDIR)/bin/gui
+	cp ../configurator/images/mobot.png $(PKGDIR)/bin/gui
+	cp ../configurator/dll/freetype6.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/intl.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libatk-1.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libcairo-2.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libexpat-1.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libfontconfig-1.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libgdk-win32-2.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libgdk_pixbuf-2.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libgio-2.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libglib-2.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libgmodule-2.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libgobject-2.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libgthread-2.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libgtk-win32-2.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libpango-1.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libpangocairo-1.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libpangoft2-1.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libpangowin32-1.0-0.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/libpng14-14.dll $(PKGDIR)/bin/gui
+	cp ../configurator/dll/tinyxml2.dll $(PKGDIR)/bin/gui
 	cp ../opende/lib/Release/ode.dll $(PKGDIR)/bin
 	cp ../openscenegraph/build/bin/osg80-osg.dll $(PKGDIR)/bin
 	cp ../openscenegraph/build/bin/osg80-osgViewer.dll $(PKGDIR)/bin
@@ -111,9 +113,9 @@ createpkg: librobotsim.dl
 	cp ../openscenegraph/build/bin/osg80-osgFX.dll $(PKGDIR)/bin
 	cp ../openscenegraph/build/bin/osg80-osgText.dll $(PKGDIR)/bin
 	cp ../openscenegraph/build/bin/ot12-OpenThreads.dll $(PKGDIR)/bin
-	cp ../openscenegraph/third_party/${ARCH}/bin/glut32.dll $(PKGDIR)/bin
-	cp ../openscenegraph/third_party/${ARCH}/bin/libpng13.dll $(PKGDIR)/bin
-	cp ../openscenegraph/third_party/${ARCH}/bin/zlib1.dll $(PKGDIR)/bin
+	cp ../openscenegraph/third_party/$(ARCH)/bin/glut32.dll $(PKGDIR)/bin
+	cp ../openscenegraph/third_party/$(ARCH)/bin/libpng13.dll $(PKGDIR)/bin
+	cp ../openscenegraph/third_party/$(ARCH)/bin/zlib1.dll $(PKGDIR)/bin
 	cp ../tinyxml2/build/Release/tinyxml2.dll $(PKGDIR)/bin
 	mkdir $(PKGDIR)/bin/osgPlugins-3.0.1
 	cp ../openscenegraph/build/bin/osgPlugins-3.0.1/osgdb_png.dll $(PKGDIR)/bin/osgPlugins-3.0.1
@@ -140,10 +142,10 @@ createpkg: librobotsim.dl
 	cp chlinkbotlsim.chf $(PKGDIR)/lib
 	cp chlinkbottsim.chf $(PKGDIR)/lib
 	cp delay.chf $(PKGDIR)/lib
-	cp Makefile.win $(PACKAGE)-$(VERSION)/Makefile
+	cp Makefile.win64 $(PACKAGE)-$(VERSION)/Makefile
 	cp pkginstall.ch $(PACKAGE)-$(VERSION)
 	zip -rq $(PACKAGE)-win64-$(VERSION).zip $(PACKAGE)-$(VERSION)
-	echo Done Building $(PACKAGE)-$(VERSION)
+	echo Done Building $(PACKAGE)-win64-$(VERSION)
 
 cleanpkg: librobotsim.dl
 	rm -rf $(PACKAGE)-$(VERSION)
