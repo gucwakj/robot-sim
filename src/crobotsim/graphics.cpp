@@ -51,6 +51,26 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 }
 
 /**********************************************************
+	Mouse Event Handler
+ **********************************************************/
+mouseEventHandler::mouseEventHandler(osgGA::SphericalManipulator *camera) {
+	_camera = camera;
+}
+
+void mouseEventHandler::accept(osgGA::GUIEventHandlerVisitor &v) {
+	v.visit(*this);
+};
+
+bool mouseEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa) {
+	switch (ea.getEventType()) {
+		case osgGA::GUIEventAdapter::SCROLL:
+			return false;
+		default:
+			return false;
+	}
+}
+
+/**********************************************************
 	Root Node Callback
  **********************************************************/
 /*rootNodeCallback::rootNodeCallback(CRobotSim *sim, CRobot ***robot, osg::Group *root) {

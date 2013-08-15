@@ -558,10 +558,10 @@ void* CRobotSim::graphicsThread(void *arg) {
 
 	// viewer camera properties
 	sim->viewer->addSlave(camera.get());
-	//sim->viewer->setCameraManipulator(new osgGA::TerrainManipulator);
-	//sim->viewer->setCameraManipulator(new osgGA::SphericalManipulator);
-	//sim->viewer->setCameraManipulator(new osgGA::FirstPersonManipulator);
-	sim->viewer->setCameraManipulator(new osgGA::TrackballManipulator);
+	osgGA::SphericalManipulator *cameraManipulator = new osgGA::SphericalManipulator();
+	//osgGA::TerrainManipulator *cameraManipulator = new osgGA::TerrainManipulator();
+	//osgGA::TrackballManipulator *cameraManipulator = new osgGA::TrackballManipulator();
+	sim->viewer->setCameraManipulator(cameraManipulator);
 	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1.5, 1.5, 0.6), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
     // Creating the root node
@@ -673,6 +673,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 
 	// viewer event handlers
 	sim->viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause), textHUD));
+	sim->viewer->addEventHandler(new mouseEventHandler(cameraManipulator));
 	sim->viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
 	sim->viewer->addEventHandler(new osgViewer::WindowSizeHandler);
 

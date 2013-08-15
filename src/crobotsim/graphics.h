@@ -83,11 +83,23 @@ class TexMatCallback : public osg::NodeCallback {
 class keyboardEventHandler : public osgGA::GUIEventHandler {
 	public:
 		keyboardEventHandler(int *pause, osgText::Text *text);
-		virtual bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter&);
-		virtual void accept(osgGA::GUIEventHandlerVisitor& v);
+		virtual bool handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa);
+		virtual void accept(osgGA::GUIEventHandlerVisitor &v);
 	private:
 		int *_pause;
 		osgText::Text *_text;
+};
+
+/**********************************************************
+	Mouse Event Handler
+ **********************************************************/
+class mouseEventHandler : public osgGA::GUIEventHandler {
+	public:
+		mouseEventHandler(osgGA::SphericalManipulator *camera);
+		virtual bool handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa);
+		virtual void accept(osgGA::GUIEventHandlerVisitor &v);
+	private:
+		osgGA::SphericalManipulator *_camera;
 };
 
 /**********************************************************
