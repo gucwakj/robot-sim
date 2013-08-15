@@ -32,6 +32,7 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 	switch (ea.getEventType()) {
 		case osgGA::GUIEventAdapter::KEYDOWN:
 			switch (ea.getKey()) {
+				case osgGA::GUIEventAdapter::KEY_Space:
 				case 'p':
 					*_pause = (*_pause) ? 0 : 1;
 					if (*_pause)
