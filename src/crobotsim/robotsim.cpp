@@ -500,6 +500,9 @@ int CRobotSim::init_viz(void) {
     // construct the viewer
 	viewer = new osgViewer::Viewer();
 
+	// graphics hasn't started yet
+	_graphics = 0;
+
 	// create graphics thread
 	THREAD_CREATE(&_osgThread, (void* (*)(void *))&CRobotSim::graphicsThread, (void *)this);
 
@@ -563,7 +566,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 
     // Creating the root node
 	sim->_osgRoot = new osg::Group();
-	sim->_osgRoot->setUpdateCallback(new rootNodeCallback(sim, sim->_robot, sim->_osgRoot));
+	//sim->_osgRoot->setUpdateCallback(new rootNodeCallback(sim, sim->_robot, sim->_osgRoot));
 
 	// load terrain node
 	osg::ref_ptr<osg::MatrixTransform> terrainScaleMAT (new osg::MatrixTransform);
@@ -676,6 +679,9 @@ void* CRobotSim::graphicsThread(void *arg) {
 	// set viewable
 	sim->viewer->setSceneData(sim->_osgRoot);
 
+	// signal connection functions that graphics are set up
+	SIGNAL(&(sim->_graphics_cond), &(sim->_graphics_mutex), sim->_graphics = 1);
+
 	// run viewer
 	sim->viewer->run();
 
@@ -690,9 +696,9 @@ void* CRobotSim::graphicsThread(void *arg) {
 /**********************************************************
 	Public Member Functions
  **********************************************************/
-int CRobotSim::getNumberOfRobots(int type) {
+/*int CRobotSim::getNumberOfRobots(int type) {
 	return _robotConnected[type];
-}
+}*/
 
 int CRobotSim::setExitState(void) {
 	MUTEX_LOCK(&_running_mutex);
@@ -884,6 +890,13 @@ void CRobotSim::print_intermediate_data(void) {
 	Add Robot Functions
  **********************************************************/
 int CRobotSim::addRobot(CRobot *robot) {
+	// wait for graphics to be ready
+	MUTEX_LOCK(&_graphics_mutex);
+	while (!_graphics) {
+		COND_WAIT(&_graphics_cond, &_graphics_mutex);
+	}
+	MUTEX_UNLOCK(&_graphics_mutex);
+
 	// get type of robot being added
 	int type = robot->getType();
 
@@ -928,7 +941,7 @@ int CRobotSim::addRobot(CRobot *robot) {
 	}
 
 	// draw robot
-	//_robot[type][_robotConnected[type]]->draw(_osgRoot);
+	_robot[type][_robotConnected[type]]->draw(_osgRoot);
 
 	// another robot has been 'connected' to simulation
 	_robotConnected[type]++;
@@ -943,13 +956,6 @@ int CRobotSim::addRobot(CRobot *robot) {
 /**********************************************************
 	Utility Functions
  **********************************************************/
-#ifndef _WIN32
-// get difference in two time stamps in nanoseconds
-unsigned int CRobotSim::diff_nsecs(struct timespec t1, struct timespec t2) {
-	return (t2.tv_sec - t1.tv_sec) * 1000000000 + (t2.tv_nsec - t1.tv_nsec);
-}
-#endif
-
 #ifndef _CH_
 void delay(double seconds) {
 #ifdef _WIN32

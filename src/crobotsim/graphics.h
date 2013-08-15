@@ -93,7 +93,7 @@ class keyboardEventHandler : public osgGA::GUIEventHandler {
 /**********************************************************
 	Root Node Callback
  **********************************************************/
-class rootNodeCallback : public osg::NodeCallback {
+/*class rootNodeCallback : public osg::NodeCallback {
 	public:
 		rootNodeCallback(CRobotSim *sim, CRobot ***robot, osg::Group *root);
 		virtual void operator()(osg::Node *node, osg::NodeVisitor *nv);
@@ -102,7 +102,7 @@ class rootNodeCallback : public osg::NodeCallback {
 		CRobot ***_robot;
 		osg::Group *_root;
 		int _number[NUM_TYPES];
-};
+};*/
 
 /**********************************************************
 	Mobot Node Callback

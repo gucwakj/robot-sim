@@ -52,7 +52,7 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 /**********************************************************
 	Root Node Callback
  **********************************************************/
-rootNodeCallback::rootNodeCallback(CRobotSim *sim, CRobot ***robot, osg::Group *root) {
+/*rootNodeCallback::rootNodeCallback(CRobotSim *sim, CRobot ***robot, osg::Group *root) {
 	_sim = sim;
 	_robot = robot;
 	_root = root;
@@ -69,7 +69,7 @@ void rootNodeCallback::operator()(osg::Node *node, osg::NodeVisitor *nv) {
 		}
 	}
 	traverse(node, nv);
-}
+}*/
 
 /**********************************************************
 	Mobot Node Callback

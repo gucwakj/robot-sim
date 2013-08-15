@@ -19,7 +19,7 @@ class DLLIMPORT CRobotSim {
 
 #ifndef _CH_
 		int addRobot(CRobot *robot);
-		int getNumberOfRobots(int type);
+		//int getNumberOfRobots(int type);
 		int setExitState(void);
 	private:
 		// ground struct
@@ -55,9 +55,6 @@ class DLLIMPORT CRobotSim {
 		void print_intermediate_data(void);			// print data out at each time step for analysis
 		static void* simulationThread(void *arg);
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
-#ifndef _WIN32
-		unsigned int diff_nsecs(struct timespec t1, struct timespec t2);
-#endif
 		int init_ode(void);
 		int init_sim(void);
 		int init_xml(void);
@@ -67,6 +64,9 @@ class DLLIMPORT CRobotSim {
 		osgViewer::Viewer *viewer;	// viewer class holds all objects
 		THREAD_T _osgThread;		// thread to hold graphics
 		osg::Group *_osgRoot;		// osg root node
+		int _graphics;
+		MUTEX_T _graphics_mutex;
+		COND_T _graphics_cond;
 		// functions
 		int init_viz(void);
 		static void* graphicsThread(void *arg);
