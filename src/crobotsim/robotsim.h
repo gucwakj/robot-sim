@@ -62,19 +62,15 @@ class DLLIMPORT CRobotSim {
 		int init_sim(void);
 		int init_xml(void);
 
-//#ifdef ENABLE_GRAPHICS
+#ifdef ENABLE_GRAPHICS
 		// variables
 		osgViewer::Viewer *viewer;	// viewer class holds all objects
 		THREAD_T _osgThread;		// thread to hold graphics
 		osg::Group *_osgRoot;		// osg root node
-		bool _graphics;				// graphics ready
-		MUTEX_T _graphics_mutex;	// mutex for actively running program
-		COND_T _graphics_cond;		// condition for actively running program
 		// functions
 		int init_viz(void);
 		static void* graphicsThread(void *arg);
-		static void* graphicsWait(void *arg);
-//#endif // ENABLE_GRAPHICS
+#endif // ENABLE_GRAPHICS
 #else
 	public:
 		static void *g_chrobotsim_dlhandle;

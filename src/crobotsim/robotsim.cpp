@@ -492,22 +492,6 @@ int CRobotSim::init_xml(void) {
 }
 
 #ifdef ENABLE_GRAPHICS
-void *CRobotSim::graphicsWait(void *arg) {
-	CRobotSim *sim = (CRobotSim *)arg;
-// wait for graphics to be set up
-	printf("graphics wait thread\n");
-	MUTEX_LOCK(&sim->_graphics_mutex);
-	printf("graphics wait thread\n");
-	while (!sim->_graphics) {
-		COND_WAIT(&sim->_graphics_cond, &sim->_graphics_mutex);
-	}
-	printf("set up graphics\n");
-	MUTEX_UNLOCK(&sim->_graphics_mutex);
-	
-	// return
-	return arg;
-}
-
 int CRobotSim::init_viz(void) {
 	// set notification level to no output
 	osg::setNotifyLevel(osg::ALWAYS);
@@ -516,17 +500,8 @@ int CRobotSim::init_viz(void) {
     // construct the viewer
 	viewer = new osgViewer::Viewer();
 
-	// init graphics mutex
-	//_graphics = false;
-	//MUTEX_INIT(&_graphics_mutex);
-	//COND_INIT(&_graphics_cond);
-	//THREAD_T thread;
-
 	// create graphics thread
-//THREAD_CREATE(&thread, (void* (*)(void *))&CRobotSim::graphicsWait, (void *)this);
 	THREAD_CREATE(&_osgThread, (void* (*)(void *))&CRobotSim::graphicsThread, (void *)this);
-//THREAD_JOIN(thread);
-
 
 	// success
 	return 0;
@@ -542,7 +517,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 	// window interface
 	osg::GraphicsContext::WindowingSystemInterface *wsi = osg::GraphicsContext::getWindowingSystemInterface();
 	if (!wsi) {
-		osg::notify(osg::NOTICE) << "View::setUpViewAcrossAllScreens() : Error, no WindowSystemInterface available, cannot create windows." << endl;
+		osg::notify(osg::NOTICE) << "osg: cannot create windows." << endl;
 		return NULL;
 	}
 	wsi->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), width, height);
@@ -565,7 +540,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 		gc->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 	else {
-		osg::notify(osg::NOTICE) << "  GraphicsWindow has not been created successfully." << endl;
+		osg::notify(osg::NOTICE) << "osg: cannot create graphics." << endl;
 		return NULL;
 	}
 
@@ -585,11 +560,6 @@ void* CRobotSim::graphicsThread(void *arg) {
 	//sim->viewer->setCameraManipulator(new osgGA::FirstPersonManipulator);
 	sim->viewer->setCameraManipulator(new osgGA::TrackballManipulator);
 	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1.5, 1.5, 0.6), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
-
-	// viewer event handlers
-	sim->viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause)));
-	sim->viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
-	sim->viewer->addEventHandler(new osgViewer::WindowSizeHandler);
 
     // Creating the root node
 	sim->_osgRoot = new osg::Group();
@@ -657,6 +627,40 @@ void* CRobotSim::graphicsThread(void *arg) {
 	clearNode->addChild(transform);
 	sim->_osgRoot->addChild(clearNode);
 
+	// set up HUD
+	osg::Geode *HUDGeode = new osg::Geode();
+	osgText::Text *textHUD = new osgText::Text();
+	osg::Projection *HUDProjectionMatrix = new osg::Projection;
+	osg::MatrixTransform *HUDModelViewMatrix = new osg::MatrixTransform;
+	osg::Geometry *HUDBackgroundGeometry = new osg::Geometry();
+	osg::Vec3Array *HUDBackgroundVertices = new osg::Vec3Array;
+	osg::StateSet *HUDStateSet = new osg::StateSet();
+	HUDProjectionMatrix->setMatrix(osg::Matrix::ortho2D(0,traits->width,0,traits->height));
+	HUDProjectionMatrix->addChild(HUDModelViewMatrix);
+	HUDModelViewMatrix->setMatrix(osg::Matrix::identity());
+	HUDModelViewMatrix->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
+	HUDModelViewMatrix->addChild(HUDGeode);
+	// image
+	//osg::Texture2D *HUDTexture = new osg::Texture2D;
+	//HUDTexture->setDataVariance(osg::Object::DYNAMIC);
+	//osg::Image *imageHUD = osgDB::readImageFile(TEXTURE_PATH(ground/play.png));
+	//HUDTexture->setImage(imageHUD);
+	// state set
+	HUDGeode->setStateSet(HUDStateSet);
+	//HUDStateSet->setTextureAttributeAndModes(0, HUDTexture, osg::StateAttribute::ON);
+	HUDStateSet->setMode(GL_BLEND,osg::StateAttribute::ON);
+	HUDStateSet->setMode(GL_DEPTH_TEST,osg::StateAttribute::OFF);
+	HUDStateSet->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );
+	HUDStateSet->setRenderBinDetails( 11, "RenderBin");
+	HUDGeode->addDrawable( textHUD );
+	textHUD->setCharacterSize(20);
+	textHUD->setText("Paused");
+	textHUD->setAxisAlignment(osgText::Text::SCREEN);
+	textHUD->setAlignment(osgText::Text::CENTER_CENTER);
+	textHUD->setPosition( osg::Vec3(traits->width/2, 50, -1.5) );
+	textHUD->setColor( osg::Vec4(199, 77, 15, 1) );
+	sim->_osgRoot->addChild(HUDProjectionMatrix);
+
 	// optimize the scene graph, remove redundant nodes and state etc.
 	osgUtil::Optimizer optimizer;
 	optimizer.optimize(sim->_osgRoot);
@@ -664,18 +668,13 @@ void* CRobotSim::graphicsThread(void *arg) {
 	// set threading model
 	sim->viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
+	// viewer event handlers
+	sim->viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause), textHUD));
+	sim->viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
+	sim->viewer->addEventHandler(new osgViewer::WindowSizeHandler);
+
 	// set viewable
 	sim->viewer->setSceneData(sim->_osgRoot);
-
-	// trigger graphics is set up
-	/*printf("thread greaphics1: %d\n", sim->_graphics);
-	MUTEX_LOCK(&(sim->_graphics_mutex));
-	sim->_graphics = true;
-	printf("thread greaphics2: %d\n", sim->_graphics);
-	COND_SIGNAL(&(sim->_graphics_cond));
-	MUTEX_UNLOCK(&(sim->_graphics_mutex));
-	printf("\tsignaling\n");*/
-	//SIGNAL(&(sim->_graphics_cond), &(sim->_graphics_mutex), sim->_graphics = true);
 
 	// run viewer
 	sim->viewer->run();

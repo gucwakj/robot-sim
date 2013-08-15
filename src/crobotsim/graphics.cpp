@@ -19,8 +19,9 @@ void TexMatCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 /**********************************************************
 	Keyboard Event Handler
  **********************************************************/
-keyboardEventHandler::keyboardEventHandler(int *pause) {
+keyboardEventHandler::keyboardEventHandler(int *pause, osgText::Text *text) {
 	_pause = pause;
+	_text = text;
 }
 
 void keyboardEventHandler::accept(osgGA::GUIEventHandlerVisitor &v) {
@@ -33,6 +34,10 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 			switch (ea.getKey()) {
 				case 'p':
 					*_pause = (*_pause) ? 0 : 1;
+					if (*_pause)
+						_text->setText("Paused");
+					else
+						_text->setText("");
 					return false;
 				case 'q':
 					return false;
