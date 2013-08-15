@@ -1,10 +1,6 @@
 #include "graphics.h"
 #include "robotsim.h"
 
-/*TexMatCallback::TexMatCallback(osg::TexMat &tm) {
-	_texMat = tm;
-}*/
-
 void TexMatCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	osgUtil::CullVisitor *cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
 	if (cv) {
@@ -20,6 +16,37 @@ void TexMatCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	traverse(node, nv);
 }
 
+/**********************************************************
+	Keyboard Event Handler
+ **********************************************************/
+keyboardEventHandler::keyboardEventHandler(int *pause) {
+	_pause = pause;
+}
+
+void keyboardEventHandler::accept(osgGA::GUIEventHandlerVisitor &v) {
+	v.visit(*this);
+};
+
+bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa) {
+	switch (ea.getEventType()) {
+		case osgGA::GUIEventAdapter::KEYDOWN:
+			switch (ea.getKey()) {
+				case 'p':
+					*_pause = (*_pause) ? 0 : 1;
+					return false;
+				case 'q':
+					return false;
+				default:
+					return false;
+			} 
+		default:
+			return false;
+	}
+}
+
+/**********************************************************
+	Root Node Callback
+ **********************************************************/
 rootNodeCallback::rootNodeCallback(CRobotSim *sim, CRobot ***robot, osg::Group *root) {
 	_sim = sim;
 	_robot = robot;
@@ -39,6 +66,9 @@ void rootNodeCallback::operator()(osg::Node *node, osg::NodeVisitor *nv) {
 	traverse(node, nv);
 }
 
+/**********************************************************
+	Mobot Node Callback
+ **********************************************************/
 mobotNodeCallback::mobotNodeCallback(CRobot *robot) {
 	_robot = robot;
 }
@@ -67,6 +97,9 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	traverse(node, nv);
 }
 
+/**********************************************************
+	Linkbot Node Callback
+ **********************************************************/
 linkbotNodeCallback::linkbotNodeCallback(CRobot *robot) {
 	_robot = robot;
 }

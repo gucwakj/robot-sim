@@ -43,8 +43,10 @@ class DLLIMPORT CRobotSim {
 		int _robotConnected[NUM_TYPES];		// number of each robot type
 		int _connected[NUM_TYPES];			// number connected of each robot type
 		int _running;						// is the program running
+		int _pause;							// is the simulation paused
 		MUTEX_T _robot_mutex;				// mutex for ground collisions
 		MUTEX_T _running_mutex;				// mutex for actively running program
+		MUTEX_T _pause_mutex;				// mutex for paused simulation
 		COND_T _running_cond;				// condition for actively running program
 		THREAD_T _simulation;				// simulation thread
 		THREAD_T* _robotThread[NUM_TYPES];	// thread for each robot

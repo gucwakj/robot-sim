@@ -71,30 +71,27 @@ class MoveEarthySkyWithEyePointTransform : public osg::Transform {
 // Update texture matrix for cubemaps
 class TexMatCallback : public osg::NodeCallback {
 	public:
-		//TexMatCallback(osg::TexMat& tm);
 		TexMatCallback(osg::TexMat& tm) : _texMat(tm) {}
-
 		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
-    /*{
-        osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
-        if (cv)
-        {
-            const osg::Matrix& MV = *(cv->getModelViewMatrix());
-            const osg::Matrix R = osg::Matrix::rotate( osg::DegreesToRadians(112.0f), 0.0f,0.0f,1.0f)*
-                                  osg::Matrix::rotate( osg::DegreesToRadians(90.0f), 1.0f,0.0f,0.0f);
-
-            osg::Quat q = MV.getRotate();
-            const osg::Matrix C = osg::Matrix::rotate( q.inverse() );
-
-            _texMat.setMatrix( C*R );
-        }
-
-        traverse(node,nv);
-    }*/
 	private:
 		osg::TexMat& _texMat;
 };
 
+/**********************************************************
+	Keyboard Event Handler
+ **********************************************************/
+class keyboardEventHandler : public osgGA::GUIEventHandler {
+	public:
+		keyboardEventHandler(int *pause);
+		virtual bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter&);
+		virtual void accept(osgGA::GUIEventHandlerVisitor& v);
+	private:
+		int *_pause;
+};
+
+/**********************************************************
+	Root Node Callback
+ **********************************************************/
 class rootNodeCallback : public osg::NodeCallback {
 	public:
 		rootNodeCallback(CRobotSim *sim, CRobot ***robot, osg::Group *root);
@@ -106,6 +103,9 @@ class rootNodeCallback : public osg::NodeCallback {
 		int _number[NUM_TYPES];
 };
 
+/**********************************************************
+	Mobot Node Callback
+ **********************************************************/
 class mobotNodeCallback : public osg::NodeCallback {
 	public:
 		mobotNodeCallback(CRobot *robot);
@@ -114,6 +114,9 @@ class mobotNodeCallback : public osg::NodeCallback {
 		CRobot *_robot;
 };
 
+/**********************************************************
+	Linkbot Node Callback
+ **********************************************************/
 class linkbotNodeCallback : public osg::NodeCallback {
 	public:
 		linkbotNodeCallback(CRobot *robot);
@@ -121,4 +124,5 @@ class linkbotNodeCallback : public osg::NodeCallback {
 	private:
 		CRobot *_robot;
 };
+
 #endif /* GRAPHICS_H_ */

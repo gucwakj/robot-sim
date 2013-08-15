@@ -81,6 +81,7 @@ int CRobotSim::init_sim(void) {
 
 	// variables to keep track of progress of simulation
 	_running = 1;
+	_pause = 1;
     _step = 0.004;
 	_clock = 0;
 
@@ -586,6 +587,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1.5, 1.5, 0.6), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
 	// viewer event handlers
+	sim->viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause)));
 	sim->viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
 	sim->viewer->addEventHandler(new osgViewer::WindowSizeHandler);
 
@@ -715,78 +717,98 @@ void* CRobotSim::simulationThread(void *arg) {
 	unsigned int sum = 0, dt[4] = {0};
 	int i, j;
 #ifdef _WIN32
-	DWORD start_time, start = GetTickCount();
+	DWORD start_time, start;
 #else
 	struct timespec start_time, end_time;
-	clock_gettime(CLOCK_REALTIME, &start_time);
-	unsigned int end = 0, start = start_time.tv_sec*1000 + start_time.tv_nsec/1000000;
+	unsigned int start, end;
 #endif
 
 	while (1) {
-		// get start time of execution
+		// get starting times
 #ifdef _WIN32
-		start_time = GetTickCount();
+		start = GetTickCount();
 #else
 		clock_gettime(CLOCK_REALTIME, &start_time);
+		start = start_time.tv_sec*1000 + start_time.tv_nsec/1000000;
 #endif
 
-		// perform pre-collision updates
-		//  - lock angle and goal
-		//  - update angles
-		MUTEX_LOCK(&(sim->_robot_mutex));
-		for (i = 0; i < NUM_TYPES; i++) {
-			for (j = 0; j < sim->_robotConnected[i]; j++) {
-				THREAD_CREATE(&(sim->_robotThread[i][j]), (void* (*)(void *))&CRobot::simPreCollisionThreadEntry, (void *)(sim->_robot[i][j]));
-				THREAD_JOIN(sim->_robotThread[i][j]);
-			}
-		}
+		// lock pause variable
+		MUTEX_LOCK(&(sim->_pause_mutex));
 
-		dSpaceCollide(sim->_space, sim, &sim->collision);	// collide all geometries together
-		dWorldStep(sim->_world, sim->_step);				// step world time by one
-		sim->_clock += sim->_step;							// increment world clock
-		dJointGroupEmpty(sim->_group);						// clear out all contact joints
+		while (!(sim->_pause)) {
+			// unlock pause variable
+			MUTEX_UNLOCK(&(sim->_pause_mutex));
 
-		//sim->print_intermediate_data();
-
-		// perform post-collision updates
-		//  - unlock angle and goal
-		//  - check if success
-		for (i = 0; i < NUM_TYPES; i++) {
-			for (j = 0; j < sim->_robotConnected[i]; j++) {
-				THREAD_CREATE(&(sim->_robotThread[i][j]), (void* (*)(void *))&CRobot::simPostCollisionThreadEntry, (void *)(sim->_robot[i][j]));
-				THREAD_JOIN(sim->_robotThread[i][j]);
-			}
-		}
-		MUTEX_UNLOCK(&(sim->_robot_mutex));
-
-		// sleep until next step
+			// get start time of execution
 #ifdef _WIN32
-		dt[0] = GetTickCount() - start_time;
-		for (i = 0; i < 4; i++) { sum += dt[i]; }
-		for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
-		sum /= 4;
-		if (GetTickCount() - start > (unsigned int)(sim->_clock*1000))
-			sim->_step = (GetTickCount() - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
-		else {
-			sim->_step = sum/1000.0;
-			Sleep((unsigned int)(sim->_clock*1000) - (GetTickCount() - start));
-		}
-		sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
+			start_time = GetTickCount();
 #else
-		clock_gettime(CLOCK_REALTIME, &end_time);
-		dt[0] = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
-		end = end_time.tv_sec*1000 + end_time.tv_nsec/1000000;
-		for (i = 0; i < 4; i++) { sum += dt[i]; }
-		for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
-		sum /= 4;
-		if (end - start > (unsigned int)(sim->_clock*1000))
-			sim->_step = (end - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
-		else {
-			sim->_step = sum/1000.0;
-			usleep(sim->_clock*1000000 - ((end - start)*1000));
-		}
-		sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
+			clock_gettime(CLOCK_REALTIME, &start_time);
 #endif
+
+			// perform pre-collision updates
+			MUTEX_LOCK(&(sim->_robot_mutex));
+			for (i = 0; i < NUM_TYPES; i++) {
+				for (j = 0; j < sim->_robotConnected[i]; j++) {
+					THREAD_CREATE(&(sim->_robotThread[i][j]),
+								  (void* (*)(void *))&CRobot::simPreCollisionThreadEntry,
+								  (void *)(sim->_robot[i][j]));
+					THREAD_JOIN(sim->_robotThread[i][j]);
+				}
+			}
+
+			// perform ode update
+			dSpaceCollide(sim->_space, sim, &sim->collision);
+			dWorldStep(sim->_world, sim->_step);
+			sim->_clock += sim->_step;
+			dJointGroupEmpty(sim->_group);
+
+			//sim->print_intermediate_data();
+
+			// perform post-collision updates
+			for (i = 0; i < NUM_TYPES; i++) {
+				for (j = 0; j < sim->_robotConnected[i]; j++) {
+					THREAD_CREATE(&(sim->_robotThread[i][j]),
+								  (void* (*)(void *))&CRobot::simPostCollisionThreadEntry,
+								  (void *)(sim->_robot[i][j]));
+					THREAD_JOIN(sim->_robotThread[i][j]);
+				}
+			}
+			MUTEX_UNLOCK(&(sim->_robot_mutex));
+
+			// sleep until next step
+#ifdef _WIN32
+			dt[0] = GetTickCount() - start_time;
+			for (i = 0; i < 4; i++) { sum += dt[i]; }
+			for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
+			sum /= 4;
+			if (GetTickCount() - start > (unsigned int)(sim->_clock*1000))
+				sim->_step = (GetTickCount() - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
+			else {
+				sim->_step = sum/1000.0;
+				Sleep((unsigned int)(sim->_clock*1000) - (GetTickCount() - start));
+			}
+			sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
+#else
+			clock_gettime(CLOCK_REALTIME, &end_time);
+			dt[0] = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
+			end = end_time.tv_sec*1000 + end_time.tv_nsec/1000000;
+			for (i = 0; i < 4; i++) { sum += dt[i]; }
+			for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
+			sum /= 4;
+			if (end - start > (unsigned int)(sim->_clock*1000))
+				sim->_step = (end - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
+			else {
+				sim->_step = sum/1000.0;
+				usleep(sim->_clock*1000000 - ((end - start)*1000));
+			}
+			sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
+#endif
+			// lock pause variable
+			MUTEX_LOCK(&(sim->_pause_mutex));
+		}
+		// unlock pause variable
+		MUTEX_UNLOCK(&(sim->_pause_mutex));
 	}
 }
 
@@ -831,7 +853,7 @@ void CRobotSim::print_intermediate_data(void) {
     cout.width(10);
     cout.setf(ios::fixed, ios::floatfield);
 	//if (!((int)(_clock*1000) % 100)) { cout << _clock << "\t\t"; }
-	cout << _clock << "\t\t";
+	//cout << _clock << "\t\t";
 	/*for (int i = 0; i < _robotConnected[MOBOT]; i++) {
 		cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT1)) << " ";
 		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT2)) << " ";
@@ -844,12 +866,12 @@ void CRobotSim::print_intermediate_data(void) {
 	cout << endl;*/
 	//cout << "LinkbotL:" << "\t";
 	for (int i = 0; i < _robotConnected[LINKBOTI]; i++) {
-		cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT1) << " ";
+		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT1) << " ";
 		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT2) << " ";
-		cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT3) << "\t";
-		//cout << _robot[MOBOT][i]->getPosition(2, 0) << " ";
-		//cout << _robot[MOBOT][i]->getPosition(2, 1) << " ";
-		//cout << _robot[MOBOT][i]->getPosition(2, 2) << "\t";
+		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT3) << "\t";
+		cout << _robot[LINKBOTI][i]->getPosition(2, 0) << " ";
+		cout << _robot[LINKBOTI][i]->getPosition(2, 1) << " ";
+		cout << _robot[LINKBOTI][i]->getPosition(2, 2) << "\t";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT1) << " ";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT2) << " ";
 		//cout << _robot[IMOBOT][i]->getSuccess(IMOBOT_JOINT3) << " ";
