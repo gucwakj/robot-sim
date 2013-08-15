@@ -36,7 +36,7 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 				case 'p':
 					*_pause = (*_pause) ? 0 : 1;
 					if (*_pause)
-						_text->setText("Paused");
+						_text->setText("PAUSED\npress space to restart");
 					else
 						_text->setText("");
 					return false;
