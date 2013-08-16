@@ -558,8 +558,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 
 	// viewer camera properties
 	sim->viewer->addSlave(camera.get());
-	osgGA::SphericalManipulator *cameraManipulator = new osgGA::SphericalManipulator();
-	//osgGA::TerrainManipulator *cameraManipulator = new osgGA::TerrainManipulator();
+	osgGA::TerrainManipulator *cameraManipulator = new osgGA::TerrainManipulator();
 	//osgGA::TrackballManipulator *cameraManipulator = new osgGA::TrackballManipulator();
 	sim->viewer->setCameraManipulator(cameraManipulator);
 	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1.5, 1.5, 0.6), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
@@ -569,12 +568,21 @@ void* CRobotSim::graphicsThread(void *arg) {
 	//sim->_osgRoot->setUpdateCallback(new rootNodeCallback(sim, sim->_robot, sim->_osgRoot));
 
 	// load terrain node
-	osg::ref_ptr<osg::MatrixTransform> terrainScaleMAT (new osg::MatrixTransform);
+	osg::ref_ptr<osg::MatrixTransform> terrainScaleMAT = new osg::MatrixTransform();
+	osg::Depth *t_depth = new osg::Depth;
+	t_depth->setFunction(osg::Depth::ALWAYS);
+	t_depth->setRange(1.0,1.0);   
+	osg::StateSet *stateSet = new osg::StateSet();
+	stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	stateSet->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
+	stateSet->setAttributeAndModes(t_depth, osg::StateAttribute::ON);
+	stateSet->setRenderBinDetails(-1, "RenderBin");
 	osg::Matrix terrainScaleMatrix;
-	terrainScaleMatrix.makeScale(0.1f,0.1f,0.006f);
+	terrainScaleMatrix.makeScale(2.f,2.f,0.006f);
 	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile(TEXTURE_PATH(ground/terrain.3ds));
 	terrainScaleMAT->addChild(terrainnode.get());
 	terrainScaleMAT->setMatrix(terrainScaleMatrix);
+	terrainnode->setStateSet(stateSet);
 	sim->_osgRoot->addChild(terrainScaleMAT.get());
 
 	// skybox

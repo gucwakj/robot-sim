@@ -95,11 +95,11 @@ class keyboardEventHandler : public osgGA::GUIEventHandler {
  **********************************************************/
 class mouseEventHandler : public osgGA::GUIEventHandler {
 	public:
-		mouseEventHandler(osgGA::SphericalManipulator *camera);
+		mouseEventHandler(osgGA::TerrainManipulator *camera);
 		virtual bool handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa);
 		virtual void accept(osgGA::GUIEventHandlerVisitor &v);
 	private:
-		osgGA::SphericalManipulator *_camera;
+		osgGA::TerrainManipulator *_camera;
 };
 
 /**********************************************************

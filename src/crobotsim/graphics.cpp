@@ -53,7 +53,7 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 /**********************************************************
 	Mouse Event Handler
  **********************************************************/
-mouseEventHandler::mouseEventHandler(osgGA::SphericalManipulator *camera) {
+mouseEventHandler::mouseEventHandler(osgGA::TerrainManipulator *camera) {
 	_camera = camera;
 }
 
