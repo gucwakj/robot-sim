@@ -560,6 +560,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 	sim->viewer->addSlave(camera.get());
 	osgGA::TerrainManipulator *cameraManipulator = new osgGA::TerrainManipulator();
 	//osgGA::TrackballManipulator *cameraManipulator = new osgGA::TrackballManipulator();
+	cameraManipulator->setAllowThrow(false);
 	sim->viewer->setCameraManipulator(cameraManipulator);
 	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1.5, 1.5, 0.6), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
