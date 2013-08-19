@@ -940,7 +940,7 @@ int CMobot::moveDistance(double distance, double radius) {
 }
 
 int CMobot::moveDistanceNB(double distance, double radius) {
-	return this->moveForwardNB(distance / radius);
+	return this->moveForwardNB(RAD2DEG(distance/radius));
 }
 
 int CMobot::moveForward(double angle) {

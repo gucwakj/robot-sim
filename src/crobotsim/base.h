@@ -38,6 +38,8 @@ extern void delay(double seconds);
 #define RECORD_ANGLE_ALLOC_SIZE 16
 #define DEG2RAD(x) ((x) * M_PI / 180.0)
 #define RAD2DEG(x) ((x) * 180.0 / M_PI)
+#define angle2distance(radius, angle) ((radius) * (angle * 0.01745329251994329547))
+#define distance2angle(radius, distance) (((distance)/(radius))*57.29577951308232286465)
 
 #ifdef _WIN32
 //   THREADS
@@ -61,10 +63,6 @@ extern void delay(double seconds);
 #define COND_SIGNAL(cond) SetEvent(*cond)
 #else
 //   THREADS
-//#ifndef _CH_
-//#include <pthread.h>
-//#include <unistd.h>
-//#endif
 #define THREAD_T pthread_t
 #define THREAD_CANCEL(thread_handle) pthread_cancel(thread_handle)
 #define THREAD_CREATE(thread_handle, function, arg) \

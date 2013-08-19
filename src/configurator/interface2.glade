@@ -75,13 +75,13 @@
   <object class="GtkAdjustment" id="two_x_adjustment">
     <property name="lower">-50</property>
     <property name="upper">50</property>
-    <property name="value">0.5</property>
     <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">0.10000000000000001</property>
   </object>
   <object class="GtkAdjustment" id="two_y_adjustment">
     <property name="lower">-50</property>
     <property name="upper">50</property>
+    <property name="value">6</property>
     <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">0.10000000000000001</property>
   </object>
@@ -398,7 +398,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
-                                    <property name="label" translatable="yes">Robot Position:</property>
+                                    <property name="label" translatable="yes">Robot Position (in):</property>
                                   </object>
                                   <packing>
                                     <property name="top_attach">1</property>
@@ -443,6 +443,7 @@
                                         <property name="secondary_icon_sensitive">True</property>
                                         <property name="adjustment">one_x_adjustment</property>
                                         <property name="digits">1</property>
+                                        <property name="numeric">True</property>
                                       </object>
                                       <packing>
                                         <property name="left_attach">1</property>
@@ -481,6 +482,7 @@
                                         <property name="secondary_icon_sensitive">True</property>
                                         <property name="adjustment">one_y_adjustment</property>
                                         <property name="digits">1</property>
+                                        <property name="numeric">True</property>
                                       </object>
                                       <packing>
                                         <property name="left_attach">1</property>
@@ -514,6 +516,7 @@
                                     <property name="secondary_icon_sensitive">True</property>
                                     <property name="adjustment">first_angle_adj</property>
                                     <property name="digits">1</property>
+                                    <property name="numeric">True</property>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>
@@ -626,7 +629,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="xalign">1</property>
-                                    <property name="label" translatable="yes">Robot Position:</property>
+                                    <property name="label" translatable="yes">Robot Position (in):</property>
                                   </object>
                                   <packing>
                                     <property name="top_attach">1</property>
@@ -688,6 +691,7 @@
                                         <property name="secondary_icon_sensitive">True</property>
                                         <property name="adjustment">two_x_adjustment</property>
                                         <property name="digits">1</property>
+                                        <property name="numeric">True</property>
                                       </object>
                                       <packing>
                                         <property name="left_attach">1</property>
@@ -725,6 +729,7 @@
                                         <property name="secondary_icon_sensitive">True</property>
                                         <property name="adjustment">two_y_adjustment</property>
                                         <property name="digits">1</property>
+                                        <property name="numeric">True</property>
                                       </object>
                                       <packing>
                                         <property name="left_attach">1</property>
@@ -758,6 +763,7 @@
                                     <property name="secondary_icon_sensitive">True</property>
                                     <property name="adjustment">second_angle_adj</property>
                                     <property name="digits">1</property>
+                                    <property name="numeric">True</property>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>

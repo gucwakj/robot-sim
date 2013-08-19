@@ -212,7 +212,7 @@ int CLinkbotT::getJointSpeed(robotJointId_t id, double &speed) {
 }
 
 int CLinkbotT::getJointSpeedRatio(robotJointId_t id, double &ratio) {
-	ratio = _speed[id]/_maxSpeed[id];
+	ratio = _speed[id]/DEG2RAD(_maxSpeed[id]);
 
 	// success
 	return 0;
@@ -228,9 +228,9 @@ int CLinkbotT::getJointSpeeds(double &speed1, double &speed2, double &speed3) {
 }
 
 int CLinkbotT::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3) {
-	ratio1 = _speed[0]/_maxSpeed[0];
-	ratio2 = _speed[1]/_maxSpeed[1];
-	ratio3 = _speed[2]/_maxSpeed[2];
+	ratio1 = _speed[0]/DEG2RAD(_maxSpeed[0]);
+	ratio2 = _speed[1]/DEG2RAD(_maxSpeed[1]);
+	ratio3 = _speed[2]/DEG2RAD(_maxSpeed[2]);
 
 	// success
 	return 0;
@@ -522,7 +522,7 @@ int CLinkbotT::moveBackward(double angle) {
 }
 
 int CLinkbotT::moveBackwardNB(double angle) {
-	return this->moveNB(-angle, 0, -angle);
+	return this->moveNB(-angle, 0, angle);
 }
 
 int CLinkbotT::moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3) {
@@ -534,11 +534,11 @@ int CLinkbotT::moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2
 }
 
 int CLinkbotT::moveDistance(double distance, double radius) {
-	return this->moveForward(distance / radius);
+	return this->moveForward(RAD2DEG(distance/radius));
 }
 
 int CLinkbotT::moveDistanceNB(double distance, double radius) {
-	return this->moveForwardNB(distance / radius);
+	return this->moveForwardNB(RAD2DEG(distance/radius));
 }
 
 int CLinkbotT::moveForward(double angle) {
@@ -571,7 +571,7 @@ int CLinkbotT::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir,
 
 int CLinkbotT::moveJointNB(robotJointId_t id, dReal angle) {
 	// check if disabled joint
-	if (_disabled == id-1) return 0;
+	if (_disabled == id) return 0;
 
 	// lock goal
 	MUTEX_LOCK(&_goal_mutex);
@@ -579,9 +579,13 @@ int CLinkbotT::moveJointNB(robotJointId_t id, dReal angle) {
 	// set new goal angles
 	_goal[id] += DEG2RAD(angle);
 
+	// actively seeking an angle
+	_seek[id] = true;
+
 	// enable motor
 	MUTEX_LOCK(&_angle_mutex);
 	dJointEnable(_motor[id]);
+	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
 
 	// set motor state and velocity
 	if ( angle > 0 ) {
@@ -636,7 +640,7 @@ int CLinkbotT::moveJointToDirectNB(robotJointId_t id, double angle) {
 
 int CLinkbotT::moveJointToNB(robotJointId_t id, double angle) {
 	// check if disabled joint
-	if (_disabled == id-1) return 0;
+	if (_disabled == id) return 0;
 
 	// store delta angle
 	dReal delta = angle - _angle[id];
@@ -647,9 +651,13 @@ int CLinkbotT::moveJointToNB(robotJointId_t id, double angle) {
 	// set new goal angles
 	_goal[id] = DEG2RAD(angle);
 
+	// actively seeking an angle
+	_seek[id] = true;
+
 	// enable motor
 	MUTEX_LOCK(&_angle_mutex);
 	dJointEnable(_motor[id]);
+	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
 
 	// set motor state and velocity
 	if ( delta > 0 ) {
@@ -869,7 +877,7 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 		rArg->robot->_recording_num[rArg->id] = i;
 
 		// resize array if filled current one
-		if(i >= rArg->num) {
+		if (i >= rArg->num) {
 			rArg->num += RECORD_ANGLE_ALLOC_SIZE;
 			// create larger array for time
 			double *newBuf = (double *)malloc(sizeof(double) * rArg->num);
@@ -949,6 +957,13 @@ int CLinkbotT::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robo
 }
 
 int CLinkbotT::recordAngleEnd(robotJointId_t id, int &num) {
+	// sleep to capture last data point on ending time
+#ifdef _WIN32
+			Sleep(150);
+#else
+			usleep(150000);
+#endif
+
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
 	_recording[id] = false;
@@ -1357,7 +1372,7 @@ int CLinkbotT::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir)
 			dJointDisable(_motor[id]);
 			break;
 	}
-	_success[id] = false;
+	_success[id] = true;
     dBodyEnable(_body[BODY]);
 
 	// unlock mutexes
@@ -1368,12 +1383,36 @@ int CLinkbotT::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir)
 }
 
 int CLinkbotT::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds) {
-	this->moveJointContinuousNB(id, dir);
+	// switch direction for linkbot i to get forward movement
+	if (_type == LINKBOTI && id == ROBOT_JOINT3) {
+		switch (dir) {
+			case ROBOT_FORWARD:
+				dir = ROBOT_BACKWARD;
+				break;
+			case ROBOT_BACKWARD:
+				dir = ROBOT_FORWARD;
+				break;
+			case ROBOT_POSITIVE:
+				dir = ROBOT_FORWARD;
+				break;
+			case ROBOT_NEGATIVE:
+				dir = ROBOT_BACKWARD;
+				break;
+		}
+	}
+
+	// move joint
+	this->setJointMovementStateNB(id, dir);
+
+	// sleep
 #ifdef _WIN32
 	Sleep(seconds * 1000);
 #else
 	usleep(seconds * 1000000);
 #endif
+
+	// stop joint
+	this->setJointMovementStateNB(id, ROBOT_HOLD);
 
 	// success
 	return 0;
@@ -1404,7 +1443,7 @@ int CLinkbotT::setJointSpeedRatio(robotJointId_t id, double ratio) {
 	if ( ratio < 0 || ratio > 1 ) {
 		return -1;
 	}
-	return this->setJointSpeed(id, ratio * _maxSpeed[(int)id-1]);
+	return this->setJointSpeed(id, ratio * _maxSpeed[(int)id]);
 }
 
 int CLinkbotT::setJointSpeeds(double speed1, double speed2, double speed3) {
@@ -1461,23 +1500,96 @@ int CLinkbotT::setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2
 }
 
 int CLinkbotT::setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
-	this->setJointMovementStateTime(ROBOT_JOINT1, dir1, seconds);
-	this->setJointMovementStateTime(ROBOT_JOINT2, dir2, seconds);
-	this->setJointMovementStateTime(ROBOT_JOINT3, dir3, seconds);
-	// success
-	return 0;
-}
+	// switch direction for linkbot i to get forward movement
+	if (_type == LINKBOTI) {
+		switch (dir3) {
+			case ROBOT_FORWARD:
+				dir3 = ROBOT_BACKWARD;
+				break;
+			case ROBOT_BACKWARD:
+				dir3 = ROBOT_FORWARD;
+				break;
+			case ROBOT_POSITIVE:
+				dir3 = ROBOT_FORWARD;
+				break;
+			case ROBOT_NEGATIVE:
+				dir3 = ROBOT_BACKWARD;
+				break;
+		}
+	}
 
-int CLinkbotT::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
-	this->moveJointContinuousNB(ROBOT_JOINT1, dir1);
-	this->moveJointContinuousNB(ROBOT_JOINT2, dir2);
-	this->moveJointContinuousNB(ROBOT_JOINT3, dir3);
+	// set joint movements
+	this->setJointMovementStateNB(ROBOT_JOINT1, dir1);
+	this->setJointMovementStateNB(ROBOT_JOINT2, dir2);
+	this->setJointMovementStateNB(ROBOT_JOINT3, dir3);
 
+	// sleep
 #ifdef _WIN32
 	Sleep(seconds * 1000);
 #else
 	usleep(seconds * 1000000);
 #endif
+
+	// stop motion
+	this->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
+
+	// success
+	return 0;
+}
+
+void* CLinkbotT::setMovementStateTimeNBThread(void *arg) {
+	// cast argument
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// sleep
+#ifdef _WIN32
+	Sleep(rArg->msecs);
+#else
+	usleep(rArg->msecs * 1000);
+#endif
+
+	// hold all robot motion
+	rArg->robot->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+	
+int CLinkbotT::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
+	// switch direction for linkbot i to get forward movement
+	if (_type == LINKBOTI) {
+		switch (dir3) {
+			case ROBOT_FORWARD:
+				dir3 = ROBOT_BACKWARD;
+				break;
+			case ROBOT_BACKWARD:
+				dir3 = ROBOT_FORWARD;
+				break;
+			case ROBOT_POSITIVE:
+				dir3 = ROBOT_FORWARD;
+				break;
+			case ROBOT_NEGATIVE:
+				dir3 = ROBOT_BACKWARD;
+				break;
+		}
+	}
+
+	// set up threading
+	THREAD_T moving;
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->msecs = 1000*seconds;
+
+	// set joint movements
+	this->setJointMovementStateNB(ROBOT_JOINT1, dir1);
+	this->setJointMovementStateNB(ROBOT_JOINT2, dir2);
+	this->setJointMovementStateNB(ROBOT_JOINT3, dir3);
+
+	// create thread to wait
+	THREAD_CREATE(&moving, (void* (*)(void *))&CLinkbotT::setMovementStateTimeNBThread, (void *)rArg);
 
 	// success
 	return 0;
@@ -1545,7 +1657,7 @@ int CLinkbotT::turnLeftNB(double angle, double radius, double tracklength) {
 	angle = (angle*tracklength)/(2*radius);
 
 	// move
-	this->moveNB(-angle, 0, angle);
+	this->moveNB(-angle, 0, -angle);
 
 	// success
 	return 0;
@@ -1564,7 +1676,7 @@ int CLinkbotT::turnRightNB(double angle, double radius, double tracklength) {
 	angle = (angle*tracklength)/(2*radius);
 
 	// move
-	this->moveNB(angle, 0, -angle);
+	this->moveNB(angle, 0, angle);
 
 	// success
 	return 0;
@@ -1818,7 +1930,9 @@ void CLinkbotT::simPostCollisionThread(void) {
 	MUTEX_LOCK(&_success_mutex);
 
 	// check if joint speed is zero -> joint has completed step
-	for (int i = 0; i < NUM_DOF; i++) {
+	//for (int i = 0; i < NUM_DOF; i++) {
+	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
+		int i = _enabled[j];
 		_success[i] = (bool)(!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
 	}
 	if (_success[0] && _success[1] && _success[2]) {
