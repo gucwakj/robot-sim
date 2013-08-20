@@ -1271,6 +1271,19 @@ int CMobot::setJointMovementStateTime(int id, int dir, double seconds) {
     return retval;
 }
 
+int CMobot::setJointMovementStateTimeNB(int id, int dir, double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CMobot_setJointMovementStateTimeNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, setJointMovementStateTimeNB, this, id, dir, seconds);
+    return retval;
+}
+
 int CMobot::setJointSafetyAngle(double angle) {
     void *fptr;
     int retval;
@@ -1794,6 +1807,32 @@ int CMobotGroup::motionRollForwardNB(double angle) {
     return retval;
 }
 
+int CMobotGroup::motionStand() {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CMG_motionStand_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, motionStand, this);
+    return retval;
+}
+
+int CMobotGroup::motionStandNB() {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CMG_motionStandNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, motionStandNB, this);
+    return retval;
+}
+
 int CMobotGroup::motionTurnLeft(double angle) {
     void *fptr;
     int retval;
@@ -1843,6 +1882,32 @@ int CMobotGroup::motionTurnRightNB(double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, motionTurnRightNB, this, angle);
+    return retval;
+}
+
+int CMobotGroup::motionUnstand() {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CMG_motionUnstand_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, motionUnstand, this);
+    return retval;
+}
+
+int CMobotGroup::motionUnstandNB() {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(CRobotSim::g_chrobotsim_dlhandle, "CMG_motionUnstandNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, motionUnstandNB, this);
     return retval;
 }
 

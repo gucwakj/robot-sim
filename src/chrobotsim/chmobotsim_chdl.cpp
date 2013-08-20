@@ -1600,6 +1600,25 @@ EXPORTCH int CMobot_setJointMovementStateTime_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_setJointMovementStateTimeNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    robotJointId_t id;
+    robotJointState_t dir;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    dir = Ch_VaArg(interp, ap, robotJointState_t);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->setJointMovementStateTimeNB(id, dir, seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_setJointSafetyAngle_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3131,6 +3150,7 @@ EXPORTCH int CMG_motionStand_chdl(void *varg) {
     Ch_VaEnd(interp, ap);
     return retval;
 }
+
 EXPORTCH int CMG_motionStandNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3158,6 +3178,7 @@ EXPORTCH int CMG_motionTurnLeft_chdl(void *varg) {
     Ch_VaEnd(interp, ap);
     return retval;
 }
+
 EXPORTCH int CMG_motionTurnLeftNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3187,6 +3208,7 @@ EXPORTCH int CMG_motionTurnRight_chdl(void *varg) {
     Ch_VaEnd(interp, ap);
     return retval;
 }
+
 EXPORTCH int CMG_motionTurnRightNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3216,6 +3238,7 @@ EXPORTCH int CMG_motionTumbleLeft_chdl(void *varg) {
     Ch_VaEnd(interp, ap);
     return retval;
 }
+
 EXPORTCH int CMG_motionTumbleLeftNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3245,6 +3268,7 @@ EXPORTCH int CMG_motionTumbleRight_chdl(void *varg) {
     Ch_VaEnd(interp, ap);
     return retval;
 }
+
 EXPORTCH int CMG_motionTumbleRightNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3272,6 +3296,7 @@ EXPORTCH int CMG_motionUnstand_chdl(void *varg) {
     Ch_VaEnd(interp, ap);
     return retval;
 }
+
 EXPORTCH int CMG_motionUnstandNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

@@ -959,9 +959,9 @@ int CLinkbotT::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robo
 int CLinkbotT::recordAngleEnd(robotJointId_t id, int &num) {
 	// sleep to capture last data point on ending time
 #ifdef _WIN32
-			Sleep(150);
+	Sleep(150);
 #else
-			usleep(150000);
+	usleep(150000);
 #endif
 
 	// turn off recording
@@ -1557,7 +1557,7 @@ void* CLinkbotT::setMovementStateTimeNBThread(void *arg) {
 	// success
 	return NULL;
 }
-	
+
 int CLinkbotT::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
 	// switch direction for linkbot i to get forward movement
 	if (_type == LINKBOTI) {
