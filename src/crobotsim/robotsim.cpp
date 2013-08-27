@@ -91,7 +91,7 @@ int CRobotSim::init_sim(void) {
 
 int CRobotSim::init_xml(void) {
 	// initialize variables
-	int *rtmp, *ftmp, *ntmp, ctype, cnum;
+	int *rtmp, *ftmp, *ntmp, *atmp, ctype, cnum;
 	bot = NULL;
 	for ( int i = 0; i < NUM_TYPES; i++ ) {
 		_robot[i] = NULL;
@@ -381,8 +381,20 @@ int CRobotSim::init_xml(void) {
 				ctype = BIGWHEEL;
 				cnum = 1;
 			}
+			else if ( !strcmp(node->Value(), "bridge") ) {
+				ctype = BRIDGE;
+				cnum = 2;
+			}
 			else if ( !strcmp(node->Value(), "caster") ) {
 				ctype = CASTER;
+				cnum = 1;
+			}
+			else if ( !strcmp(node->Value(), "cube") ) {
+				ctype = CUBE;
+				cnum = 5;
+			}
+			else if ( !strcmp(node->Value(), "gripper") ) {
+				ctype = GRIPPER;
 				cnum = 1;
 			}
 			else if ( !strcmp(node->Value(), "l") ) {
@@ -408,12 +420,14 @@ int CRobotSim::init_xml(void) {
 			rtmp = new int[cnum];
 			ftmp = new int[cnum];
 			ntmp = new int[cnum];
+			atmp = new int[cnum];
 
 			// store connector to temp variables
 			int i = 0;
 			if (cnum == 1) {
 				i = 1;
-				ntmp[0] = 0;
+				ntmp[0] = -1;
+				atmp[0] = -1;
 				node->QueryIntAttribute("robot", &rtmp[0]);
 				node->QueryIntAttribute("face", &ftmp[0]);
 
@@ -423,7 +437,15 @@ int CRobotSim::init_xml(void) {
 				while (side) {
 					side->QueryIntAttribute("id", &ntmp[i]);
 					side->QueryIntAttribute("robot", &rtmp[i]);
-					side->QueryIntAttribute("face", &ftmp[i++]);
+					if (side->QueryIntAttribute("conn", &atmp[i]) == tinyxml2::XML_NO_ATTRIBUTE) {
+						atmp[i] = -1;
+						side->QueryIntAttribute("face", &ftmp[i]);
+					}
+					else {
+						ftmp[i] = ntmp[i];
+						side->QueryIntAttribute("conn", &atmp[i]);
+					}
+					i++;
 					side = side->NextSiblingElement();
 				}
 			}
@@ -435,6 +457,7 @@ int CRobotSim::init_xml(void) {
 				Conn_t *nc = (Conn_t *)malloc(sizeof(struct Conn_s));
 				nc->robot = rtmp[0];
 				nc->face1 = ftmp[0];
+				nc->conn = atmp[j];
 				nc->face2 = ftmp[j];
 				nc->side = ntmp[j];
 				nc->type = ctype;
@@ -455,6 +478,7 @@ int CRobotSim::init_xml(void) {
 			delete [] rtmp;
 			delete [] ftmp;
 			delete [] ntmp;
+			delete [] atmp;
 		}
 
 		// debug printing
@@ -467,8 +491,8 @@ int CRobotSim::init_xml(void) {
 				rtmp->angle1, rtmp->angle2, rtmp->angle3, rtmp->angle4);
 			Conn_t *ctmp = rtmp->conn;
 			while (ctmp) {
-				printf("on face %d: connect with robot %d on his face %d with type: %d\n", \
-					ctmp->face2, ctmp->robot, ctmp->face1, ctmp->type);
+				printf("on face %d connect with robot %d on his face %d with type %d from side %d with conn %d\n", \
+					ctmp->face2, ctmp->robot, ctmp->face1, ctmp->type, ctmp->side, ctmp->conn);
 				ctmp = ctmp->next;
 			}
 			printf("next = %p\n", rtmp->next);
@@ -908,9 +932,10 @@ int CRobotSim::addRobot(CRobot *robot) {
 
 	// find next robot in list
 	bot_t btmp = bot;
+	int num = 0;
 	while (btmp) {
-		if (btmp->id != _robotConnected[type]) { btmp = btmp->next; continue; }
 		if (btmp->type != type) { btmp = btmp->next; continue; }
+		else { if (num++ != _robotConnected[type]) {btmp = btmp->next; continue;}}
 		break;
 	}
 	if (btmp == NULL) { fprintf(stderr, "could not find robot\n"); exit(1); }
@@ -927,7 +952,7 @@ int CRobotSim::addRobot(CRobot *robot) {
 	// find if robot is connected to another one
 	Conn_t *ctmp = btmp->conn;
 	while (ctmp) {
-		if ( ctmp->robot != robot->getRobotID() ) {
+		if ( ctmp->robot != btmp->id ) {
 			break;
 		}
 		ctmp = ctmp->next;
@@ -935,10 +960,12 @@ int CRobotSim::addRobot(CRobot *robot) {
 
 	// if robot is connected to another one
 	if (ctmp) {
-		for (int i = 0; i < _robotConnected[type]; i++) {
-			if (_robot[type][i]->getRobotID() == ctmp->robot) {
-				_robot[type][_robotConnected[type]]->build(btmp, _robot[type][i], ctmp);
-				break;
+		for (int j = 0; j < NUM_TYPES; j++) {
+			for (int i = 0; i < _robotConnected[j]; i++) {
+				if (_robot[j][i]->getRobotID() == ctmp->robot) {
+					_robot[type][_robotConnected[type]]->build(btmp, _robot[j][i], ctmp);
+					break;
+				}
 			}
 		}
 	}

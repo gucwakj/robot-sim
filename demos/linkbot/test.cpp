@@ -3,17 +3,22 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CLinkbotI robot;
-	//CLinkbotI robot, robot2;
+	//CLinkbotI robot1;
+	CLinkbotI robot1, robot2, robot3, robot4;
+	CLinkbotL gripper;
 
-	robot.connect();
-	//robot2.connect();
-	robot.resetToZero();
-	robot.move(45, 0, -45);
-	//robot.reset();
-	robot.move(45, 0, -45);
+	robot1.connect();
+	robot2.connect();
+	robot3.connect();
+	robot4.connect();
+	gripper.connect();
+	robot1.resetToZero();
+	robot2.resetToZero();
+	robot3.resetToZero();
+	robot4.resetToZero();
+	gripper.resetToZero();
 
-	//robot.setExitState(ROBOT_HOLD);
+	robot1.setExitState(ROBOT_HOLD);
 
 	return 0;
 }

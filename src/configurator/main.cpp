@@ -66,9 +66,179 @@ G_MODULE_EXPORT void on_simulated_toggled(GtkWidget* widget, gpointer data) {
 	}
 }
 
+G_MODULE_EXPORT void on_first_robot_clicked(GtkWidget* widget, gpointer data) {
+	if (gtk_toggle_button_get_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")))) {
+		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), false);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), true);
+	}
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "none")), true);
+}
+
+G_MODULE_EXPORT void on_first_robot_toggled(GtkWidget* widget, gpointer data) {
+	if (!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")))) {
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")), false);
+	}
+}
+
+G_MODULE_EXPORT void on_second_robot_clicked(GtkWidget* widget, gpointer data) {
+	if (gtk_toggle_button_get_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")))) {
+		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), false);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), true);
+		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")), false);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")), true);
+	}
+}
+
+G_MODULE_EXPORT void on_second_robot_toggled(GtkWidget* widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")))) {
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), true);
+	}
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "none")), true);
+}
+
+G_MODULE_EXPORT void on_explorer_toggled(GtkWidget* widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")))) {
+		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), true);
+	}
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")))) {
+		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")), true);
+	}
+}
+
+G_MODULE_EXPORT void on_snake_toggled(GtkWidget* widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")))) {
+		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), true);
+	}
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")))) {
+		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")), true);
+	}
+}
+
 G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
+	// clean out sim node
 	tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
 	sim->DeleteChildren();
+
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")))) {
+		tinyxml2::XMLElement *robot1, *robot2, *robot3, *robot4, *robot5;
+
+		// create first robot
+		robot1 = g_doc.NewElement("linkboti");
+		// set id
+		robot1->SetAttribute("id", 0);
+		// set position
+		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
+		pos->SetAttribute("x", 0);
+		pos->SetAttribute("y", 0);
+		pos->SetAttribute("z", 0);
+		robot1->InsertFirstChild(pos);
+		// set rotation
+		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
+		rot->SetAttribute("psi", 0);
+		rot->SetAttribute("theta", 0);
+		rot->SetAttribute("phi", 0);
+		robot1->InsertAfterChild(pos, rot);
+		// insert robot1
+		sim->InsertFirstChild(robot1);
+
+		// add remaining robots
+		robot2 = g_doc.NewElement("linkboti");
+		robot2->SetAttribute("id", 1);
+		robot3 = g_doc.NewElement("linkboti");
+		robot3->SetAttribute("id", 2);
+		robot4 = g_doc.NewElement("linkboti");
+		robot4->SetAttribute("id", 3);
+		robot5 = g_doc.NewElement("linkbotl");
+		robot5->SetAttribute("id", 4);
+		sim->InsertAfterChild(robot1, robot2);
+		sim->InsertAfterChild(robot2, robot3);
+		sim->InsertAfterChild(robot3, robot4);
+		sim->InsertAfterChild(robot4, robot5);
+
+		// add wheels
+		tinyxml2::XMLElement *wheel1 = g_doc.NewElement("smallwheel"),
+							 *wheel2 = g_doc.NewElement("smallwheel");
+		wheel1->SetAttribute("robot", 0);
+		wheel1->SetAttribute("face", 3);
+		wheel2->SetAttribute("robot", 1);
+		wheel2->SetAttribute("face", 1);
+		sim->InsertAfterChild(robot5, wheel1);
+		sim->InsertAfterChild(wheel1, wheel2);
+
+		// insert cube
+		tinyxml2::XMLElement *cube = g_doc.NewElement("cube");
+		sim->InsertAfterChild(wheel2, cube);
+		tinyxml2::XMLElement *cside1 = g_doc.NewElement("side");
+		cside1->SetAttribute("id", 1);
+		cside1->SetAttribute("robot", 0);
+		cside1->SetAttribute("face", 1);
+		cube->InsertFirstChild(cside1);
+		tinyxml2::XMLElement *cside2 = g_doc.NewElement("side");
+		cside2->SetAttribute("id", 2);
+		cside2->SetAttribute("robot", 0);
+		cside2->SetAttribute("conn", 2);
+		cube->InsertAfterChild(cside1, cside2);
+		tinyxml2::XMLElement *cside3 = g_doc.NewElement("side");
+		cside3->SetAttribute("id", 3);
+		cside3->SetAttribute("robot", 1);
+		cside3->SetAttribute("face", 3);
+		cube->InsertAfterChild(cside2, cside3);
+		tinyxml2::XMLElement *cside5 = g_doc.NewElement("side");
+		cside5->SetAttribute("id", 5);
+		cside5->SetAttribute("robot", 2);
+		cside5->SetAttribute("face", 2);
+		cube->InsertAfterChild(cside3, cside5);
+
+		// insert bridge 1
+		tinyxml2::XMLElement *bridge1 = g_doc.NewElement("bridge");
+		sim->InsertAfterChild(cube, bridge1);
+		tinyxml2::XMLElement *b1side1 = g_doc.NewElement("side");
+		b1side1->SetAttribute("id", 1);
+		b1side1->SetAttribute("robot", 2);
+		b1side1->SetAttribute("face", 3);
+		bridge1->InsertFirstChild(b1side1);
+		tinyxml2::XMLElement *b1side2 = g_doc.NewElement("side");
+		b1side2->SetAttribute("id", 2);
+		b1side2->SetAttribute("robot", 3);
+		b1side2->SetAttribute("face", 3);
+		bridge1->InsertAfterChild(b1side1, b1side2);
+
+		// insert bridge 2
+		tinyxml2::XMLElement *bridge2 = g_doc.NewElement("bridge");
+		sim->InsertAfterChild(bridge1, bridge2);
+		tinyxml2::XMLElement *b2side1 = g_doc.NewElement("side");
+		b2side1->SetAttribute("id", 1);
+		b2side1->SetAttribute("robot", 2);
+		b2side1->SetAttribute("face", 1);
+		bridge2->InsertFirstChild(b2side1);
+		tinyxml2::XMLElement *b2side2 = g_doc.NewElement("side");
+		b2side2->SetAttribute("id", 2);
+		b2side2->SetAttribute("robot", 3);
+		b2side2->SetAttribute("face", 1);
+		bridge2->InsertAfterChild(b2side1, b2side2);
+
+		// insert simple
+		tinyxml2::XMLElement *simple = g_doc.NewElement("simple");
+		sim->InsertAfterChild(bridge2, simple);
+		tinyxml2::XMLElement *sside1 = g_doc.NewElement("side");
+		sside1->SetAttribute("id", 1);
+		sside1->SetAttribute("robot", 3);
+		sside1->SetAttribute("face", 2);
+		simple->InsertFirstChild(sside1);
+		tinyxml2::XMLElement *sside2 = g_doc.NewElement("side");
+		sside2->SetAttribute("id", 2);
+		sside2->SetAttribute("robot", 4);
+		sside2->SetAttribute("face", 2);
+		simple->InsertAfterChild(sside1, sside2);
+
+		// insert gripper
+		tinyxml2::XMLElement *gripper = g_doc.NewElement("gripper");
+		sim->InsertAfterChild(simple, gripper);
+		gripper->SetAttribute("robot", 4);
+	}
+	else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")))) {
+	}
+	else {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")))) {
 #ifdef _WIN32
 		const gchar *type = gtk_combo_box_get_active_text(GTK_COMBO_BOX(gtk_builder_get_object(g_builder, "combo_first_type")));
@@ -93,7 +263,6 @@ G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
 		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
 		pos->SetAttribute("x", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_x")))));
 		pos->SetAttribute("y", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_y")))));
-		//pos->SetAttribute("z", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_z")))));
 		pos->SetAttribute("z", 0);
 		robot1->InsertFirstChild(pos);
 
@@ -206,6 +375,7 @@ G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
 			sim->InsertAfterChild(wheel1, wheel2);
 			sim->InsertAfterChild(wheel2, caster);
 		}
+	}
 	}
 
 	g_doc.SaveFile(g_xml);

@@ -136,7 +136,10 @@ typedef enum robot_joint_state_e {
 } robotJointState_t;
 typedef enum robot_connector_e {
 	BIGWHEEL,
+	BRIDGE,
 	CASTER,
+	CUBE,
+	GRIPPER,
 	L,
 	SIMPLE,
 	SMALLWHEEL,
@@ -147,7 +150,7 @@ typedef enum robot_connector_e {
 
 // connector
 typedef struct Conn_s {
-	int robot, type, side, face1, face2;
+	int robot, type, side, face1, face2, conn;
 	struct Conn_s *next;
 } Conn_t;
 // robot
