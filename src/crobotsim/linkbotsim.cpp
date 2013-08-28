@@ -2912,7 +2912,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_recording[i] = false;
 		_success[i] = true;
 		_speed[i] = 0.7854;		// 45 deg/sec
-		_maxSpeed[i] = 120;		// deg/sec
+		_maxSpeed[i] = 240;		// deg/sec
 		_offset[i] = 0;
 		if (i != _disabled)
 			_enabled[j++] = i;
@@ -2939,8 +2939,8 @@ int CLinkbotT::init_dims(void) {
 	_face_radius = 0.03060;
 	_connector_depth = 0.00380;
 	_connector_height = 0.03715;
-	_bigwheel_radius = 0.04440;
-	_smallwheel_radius = 0.04130;
+	_bigwheel_radius = 0.05080;
+	_smallwheel_radius = 0.04445;
 	_cubic_length = 0.07115;
 	_bridge_length = 0.13525;
 
