@@ -11,7 +11,7 @@ HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics
 CPPFLAGS = -DdDOUBLE /EHsc
 INCLUDES = /I ../opende/include /I ../tinyxml2 /I ../openscenegraph/include
 LIBPATHS = /LIBPATH:../opende/lib/Release/ /LIBPATH:../tinyxml2/build/Release/ /LIBPATH:../openscenegraph/build/lib/
-LIBS = osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgFX.lib ode.lib tinyxml2.lib Shell32.lib
+LIBS = osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgFX.lib osgText.lib ode.lib tinyxml2.lib Shell32.lib
 
 target: librobotsim.dl
 
