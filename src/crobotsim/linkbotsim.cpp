@@ -1740,7 +1740,7 @@ int CLinkbotT::build(bot_t robot, CRobot *base, Conn_t *conn) {
 	Conn_t *ctmp = robot->conn;
 	while (ctmp) {
 		if (ctmp->robot == _id) {
-			if (ctmp->conn == -1 )
+			if (ctmp->conn == -1)
 				this->add_connector(ctmp->type, ctmp->face1);
 			else
 				this->add_daisy_chain(ctmp->conn, ctmp->face1, ctmp->side, ctmp->type);
@@ -2016,7 +2016,7 @@ void CLinkbotT::draw(osg::Group *root) {
     body[0]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
     body[1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
     body[2]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
-    body[3]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
+    body[3]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[2].get(), osg::StateAttribute::ON);
 	if (_disabled > 0) {
     	body[_disabled+1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
 	}
@@ -2185,7 +2185,7 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
 	//for ( int i = 0; i < NUM_DOF; i++ ) { _pid[i].init(100, 1, 10, 0.1, 0.004); }
 
     // adjust input height by body height
-	if (z < _body_height/2) {
+	if (z < (_body_height/2 - EPSILON)) {
     	x += R[2]*_body_height/2;
     	y += R[6]*_body_height/2;
     	z += R[10]*_body_height/2;
@@ -2593,19 +2593,19 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
     dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
     // set geometry 2 - horizontal support
-	conn->geom[1] = dCreateBox(_space, 0.036, 0.021, 0.0032);
+	conn->geom[1] = dCreateBox(_space, 0.02, 0.021, 0.0032);
 	dGeomSetBody(conn->geom[1], conn->body);
-	dGeomSetOffsetPosition(conn->geom[1], depth/2 + 0.036/2 - m.c[0], -m.c[1], -height/2 + 0.0016 - m.c[2]);
+	dGeomSetOffsetPosition(conn->geom[1], depth/2 + 0.02/2 - m.c[0], -m.c[1], -height/2 + 0.0016 - m.c[2]);
 
     // set geometry 3 - ball support
     conn->geom[2] = dCreateCylinder(_space, 0.0105, 0.003);
     dGeomSetBody(conn->geom[2], conn->body);
-    dGeomSetOffsetPosition(conn->geom[2], depth/2 + 0.038 - m.c[0], -m.c[1], -height/2 + 0.0001 - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[2], depth/2 + 0.02 - m.c[0], -m.c[1], -height/2 + 0.0001 - m.c[2]);
 
     // set geometry 10 - sphere
     conn->geom[3] = dCreateSphere(_space, 0.0105);
     dGeomSetBody(conn->geom[3], conn->body);
-    dGeomSetOffsetPosition(conn->geom[3], depth/2 + 0.038 - m.c[0], -m.c[1], -height/2 - 0.003 - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[3], depth/2 + 0.02 - m.c[0], -m.c[1], -height/2 - 0.003 - m.c[2]);
 
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -2862,7 +2862,7 @@ int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, dReal *p) {
 
 	switch (type) {
 		case BRIDGE:
-			offset[1] = 2*_body_radius;
+			offset[1] = _bridge_length - 2*_face_radius;
 			dRFromAxisAndAngle(R1, R[1], R[5], R[9], M_PI);
 			break;
 		case CUBE:
@@ -2922,9 +2922,9 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_type = type;
 	_connected = 0;
 	_encoderResolution = DEG2RAD(0.5);
-	_maxJointForce[ROBOT_JOINT1] = 1.059;
-	_maxJointForce[ROBOT_JOINT2] = 1.059;
-	_maxJointForce[ROBOT_JOINT3] = 1.059;
+	_maxJointForce[ROBOT_JOINT1] = 2;
+	_maxJointForce[ROBOT_JOINT2] = 2;
+	_maxJointForce[ROBOT_JOINT3] = 2;
 
 	// success
 	return 0;
@@ -2942,7 +2942,7 @@ int CLinkbotT::init_dims(void) {
 	_bigwheel_radius = 0.04440;
 	_smallwheel_radius = 0.04130;
 	_cubic_length = 0.07115;
-	_bridge_length = 0.13275;
+	_bridge_length = 0.13525;
 
 	// success
 	return 0;
@@ -3090,7 +3090,7 @@ void CLinkbotT::draw_caster(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 	pos = dGeomGetOffsetPosition(conn->geom[1]);
 	dGeomGetOffsetQuaternion(conn->geom[1], quat);
-	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), 0.038, 0.022, 0.003);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), 0.02, 0.022, 0.003);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(box));
 	pos = dGeomGetOffsetPosition(conn->geom[2]);
