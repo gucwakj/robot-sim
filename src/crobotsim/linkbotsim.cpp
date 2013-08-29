@@ -2312,9 +2312,8 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
 
 int CLinkbotT::build_attached(bot_t robot, CRobot *base, Conn_t *conn) {
 	// initialize new variables
-	int i = 1;
-	dReal m[3] = {0}, offset[3] = {0};
-	dMatrix3 R, R1, R2, R3, R4;
+	dReal m[3] = {0};
+	dMatrix3 R;
 
 	// generate parameters for base robot
 	base->getConnectionParams(conn->face1, R, m);
@@ -2322,40 +2321,11 @@ int CLinkbotT::build_attached(bot_t robot, CRobot *base, Conn_t *conn) {
 	// generate parameters for connector
 	this->get_connector_params(conn->type, conn->side, R, m);
 
-	// collect data from struct
-	dReal r_f1 = robot->angle1;
-	dReal r_f2 = robot->angle2;
-	dReal r_f3 = robot->angle3;
-
-	switch (conn->face2) {
-		case 2:
-			// rotation matrix
-			dRFromAxisAndAngle(R1, R[2], R[6], R[10], 0);
-			dMultiply0(R2, R1, R, 3, 3, 3);
-			dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], DEG2RAD(r_f2));
-			dMultiply0(R4, R3, R2, 3, 3, 3);
-			// center offset
-			offset[0] = _face_depth + _body_length;
-			break;
-		case 3: case 1:
-			i = (conn->face2 == 3) ? -1 : 1;
-			// rotation matrix
-			dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI/2);
-			dMultiply0(R2, R1, R, 3, 3, 3);
-			dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -DEG2RAD(r_f2));
-			dMultiply0(R4, R3, R2, 3, 3, 3);
-			// center offset
-			offset[0] = _body_width/2 + _face_depth;
-			break;
-	}
-
-	// adjust position by rotation matrix
-	m[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
-	m[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
-	m[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
+	// find position of new module
+	this->get_body_params(robot->psi, conn->face2, robot->angle2, R, m);
 
     // build new module
-	this->build_individual(m[0], m[1], m[2], R4, r_f1, r_f2, r_f3);
+	this->build_individual(m[0], m[1], m[2], R, robot->angle1, robot->angle2, robot->angle3);
 
     // add fixed joint to attach two modules
 	this->fix_body_to_connector(base->getConnectorBodyID(conn->face1), conn->face2);
@@ -2856,7 +2826,44 @@ int CLinkbotT::fix_connector_to_body(int face, dBodyID cBody) {
 	return 0;
 }
 
-int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, dReal *p) {
+int CLinkbotT::get_body_params(double angle, int face, double rotation, dMatrix3 R, double *p) {
+	double offset[3] = {0};
+	dMatrix3 R1, R2, R3, R4, R5, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
+
+	// rotate about connection joint
+	dRFromAxisAndAngle(R1, R[0], R[4], R[8], angle);
+
+	// rotate body for connection face
+	switch (face) {
+		case 2:
+			// rotation matrix
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], 0);
+			dMultiply0(R3, R2, R1, 3, 3, 3);
+			dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], DEG2RAD(rotation));
+			dMultiply0(R5, R4, R3, 3, 3, 3);
+			// center offset
+			offset[0] = _face_depth + _body_length;
+			break;
+		case 3: case 1:
+			// rotation matrix
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], ((face == 3) ? -1 : 1)*M_PI/2);
+			dMultiply0(R3, R2, R1, 3, 3, 3);
+			dRFromAxisAndAngle(R4, R3[1], R3[5], R3[9], -DEG2RAD(rotation));
+			dMultiply0(R5, R4, R3, 3, 3, 3);
+			// center offset
+			offset[0] = _body_width/2 + _face_depth;
+			break;
+	}
+	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
+	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
+	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
+	dMultiply0(R, R5, Rtmp, 3, 3, 3);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, double *p) {
 	double offset[3] = {0};
 	dMatrix3 R1, R2, R3, R4, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
 

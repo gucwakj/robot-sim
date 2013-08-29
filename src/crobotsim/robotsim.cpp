@@ -191,6 +191,17 @@ int CRobotSim::init_xml(void) {
 				ele->QueryDoubleAttribute("f2", &(nr->angle2));
 				ele->QueryDoubleAttribute("f3", &(nr->angle3));
 			}
+			int o;
+			if (!node->QueryIntAttribute("orientation", &o)) {
+				if (o == 1)
+					nr->psi = 0;
+				else if (o == 2)
+					nr->psi = M_PI/2;
+				else if (o == 3)
+					nr->psi = M_PI;
+				else if (o == 4)
+					nr->psi = 3*M_PI/2;
+			}
 			nr->conn = NULL;
 			nr->next = NULL;
 
@@ -227,6 +238,17 @@ int CRobotSim::init_xml(void) {
 				ele->QueryDoubleAttribute("f2", &(nr->angle2));
 				ele->QueryDoubleAttribute("f3", &(nr->angle3));
 			}
+			int o;
+			if (!node->QueryIntAttribute("orientation", &o)) {
+				if (o == 1)
+					nr->psi = 0;
+				else if (o == 2)
+					nr->psi = M_PI/2;
+				else if (o == 3)
+					nr->psi = M_PI;
+				else if (o == 4)
+					nr->psi = 3*M_PI/2;
+			}
 			nr->conn = NULL;
 			nr->next = NULL;
 
@@ -262,6 +284,17 @@ int CRobotSim::init_xml(void) {
 				ele->QueryDoubleAttribute("f1", &(nr->angle1));
 				ele->QueryDoubleAttribute("f2", &(nr->angle2));
 				ele->QueryDoubleAttribute("f3", &(nr->angle3));
+			}
+			int o;
+			if (!node->QueryIntAttribute("orientation", &o)) {
+				if (o == 1)
+					nr->psi = 0;
+				else if (o == 2)
+					nr->psi = M_PI/2;
+				else if (o == 3)
+					nr->psi = M_PI;
+				else if (o == 4)
+					nr->psi = 3*M_PI/2;
 			}
 			nr->conn = NULL;
 			nr->next = NULL;
@@ -482,7 +515,7 @@ int CRobotSim::init_xml(void) {
 		}
 
 		// debug printing
-		/*bot_t rtmp = bot;
+		bot_t rtmp = bot;
 		while (rtmp) {
 			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
 			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
@@ -499,7 +532,7 @@ int CRobotSim::init_xml(void) {
 			printf("\n");
 			rtmp = rtmp->next;
 		}
-		printf("\n\n\n");*/
+		printf("\n\n\n");
 
 		// go to next node
 		node = node->NextSiblingElement();

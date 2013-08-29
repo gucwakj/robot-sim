@@ -277,7 +277,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1);	// build small wheel
 		int fix_body_to_connector(dBodyID cBody, int face);							// fix second body to connector
 		int fix_connector_to_body(int face, dBodyID cBody);							// fix connector to robot body
-		int get_connector_params(int type, int side, dMatrix3 R, dReal *p);			// get parameters of connector
+		int get_body_params(double angle, int face, double rotation, dMatrix3 R, double *p);	// get parameters for attaching robot
+		int get_connector_params(int type, int side, dMatrix3 R, double *p);		// get parameters of connector
 		int init_params(int disabled, int type);									// initialize robot parameters
 		int init_dims(void);														// initialize robot dimensions
 		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);				// modify angle to count continuously
