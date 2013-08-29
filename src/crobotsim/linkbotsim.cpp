@@ -1960,7 +1960,7 @@ void CLinkbotT::draw(osg::Group *root) {
 	// initialize variables
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[NUM_PARTS+1];
-	osg::ref_ptr<osg::PositionAttitudeTransform> pat[NUM_PARTS];
+	osg::ref_ptr<osg::PositionAttitudeTransform> pat[NUM_PARTS+1];
 	osg::ref_ptr<osg::Texture2D> tex[3];
 	const dReal *pos;
 	dQuaternion quat;
@@ -1976,15 +1976,17 @@ void CLinkbotT::draw(osg::Group *root) {
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_length, _body_width, _body_height);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[0]->addDrawable(new osg::ShapeDrawable(box));
+	{ // 'led'
+		cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]+0.0001), 0.01, _body_height);
+		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+		body[4]->addDrawable(new osg::ShapeDrawable(cyl));
+	}
 	pos = dGeomGetOffsetPosition(_geom[0][1]);
 	dGeomGetOffsetQuaternion(_geom[0][1], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _body_radius, _body_width);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), 0.1, 0.2);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[4]->addDrawable(new osg::ShapeDrawable(cyl));
-    
+
     // face1
 	pos = dGeomGetOffsetPosition(_geom[1][0]);
 	dGeomGetOffsetQuaternion(_geom[1][0], quat);
@@ -2020,7 +2022,7 @@ void CLinkbotT::draw(osg::Group *root) {
     body[1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
     body[2]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
     body[3]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[2].get(), osg::StateAttribute::ON);
-    body[4]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[2].get(), osg::StateAttribute::ON);
+    body[4]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
 	if (_disabled > 0) {
     	body[_disabled+1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
 	}
