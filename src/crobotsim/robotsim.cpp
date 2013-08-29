@@ -515,7 +515,7 @@ int CRobotSim::init_xml(void) {
 		}
 
 		// debug printing
-		bot_t rtmp = bot;
+		/*bot_t rtmp = bot;
 		while (rtmp) {
 			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
 			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
@@ -532,7 +532,7 @@ int CRobotSim::init_xml(void) {
 			printf("\n");
 			rtmp = rtmp->next;
 		}
-		printf("\n\n\n");
+		printf("\n\n\n");*/
 
 		// go to next node
 		node = node->NextSiblingElement();
