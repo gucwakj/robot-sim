@@ -136,7 +136,7 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		const dReal *pos, *quat;
 		int k = 0;
 		osg::PositionAttitudeTransform *pat;
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 5; i++) {
 			pos = dBodyGetPosition(_robot->getBodyID(i));
 			quat = dBodyGetQuaternion(_robot->getBodyID(i));
 			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i));
@@ -146,7 +146,7 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		while (_robot->getConnectorBodyIDs(k)) {
 			pos = dBodyGetPosition(_robot->getConnectorBodyIDs(k));
 			quat = dBodyGetQuaternion(_robot->getConnectorBodyIDs(k));
-			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(4 + k++));
+			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(5 + k++));
 			pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
 			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		}
