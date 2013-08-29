@@ -130,4 +130,41 @@ The simulation will respond to keyboad input as outlined in Table \ref{tab:keys}
 	\end{center}
 \end{table}
 
+\appendix
+\section{Manual Config File Generation}
+\subsection{Robot Attributes}
+Each robot element is required to have one attribute titled \textbf{id} which is an unique identifier for the
+simulation to reference.  A second optional attribute is \textbf{orientation} which orients the face of a
+second robot when it is being attached to a first robot.
+
+\begin{table}[H]
+	\begin{center}
+	\begin{tabular}{c | l}
+		\hline 
+		\verb|<linkboti id="0"/>| & one linkbot I with id = 0 \\
+		\verb|<linkboti id="0" orientation="3"/>| & Linkbot I is 'upside-down' \\
+		\hline
+	\end{tabular}
+	\caption{Examples}
+	\label{tab:ex}
+	\end{center}
+\end{table}
+
+\begin{table}[H]
+	\begin{center}
+	\begin{tabular}{c | c | l}
+		\hline \hline
+		\textbf{attribute} & \textbf{values} & \textbf{description} \\ \hline
+		id & unique integer & a unique integer to identify each robot \\
+		orientation & 1 & robot face number is at 12 o'clock \\
+		 & 2 & robot face number is at 3 o'clock \\
+		 & 3 & robot face number is at 6 o'clock \\
+		 & 4 & robot face number is at 9 o'clock \\
+		\hline \hline
+	\end{tabular}
+	\caption{Robot Attributes}
+	\label{tab:attributes}
+	\end{center}
+\end{table}
+
 \end{document}
