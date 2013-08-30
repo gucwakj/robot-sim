@@ -426,6 +426,10 @@ int CRobotSim::init_xml(void) {
 				ctype = CUBE;
 				cnum = 5;
 			}
+			else if ( !strcmp(node->Value(), "faceplate") ) {
+				ctype = FACEPLATE;
+				cnum = 1;
+			}
 			else if ( !strcmp(node->Value(), "gripper") ) {
 				ctype = GRIPPER;
 				cnum = 1;

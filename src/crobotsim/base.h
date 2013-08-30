@@ -139,6 +139,7 @@ typedef enum robot_connector_e {
 	BRIDGE,
 	CASTER,
 	CUBE,
+	FACEPLATE,
 	GRIPPER,
 	L,
 	SIMPLE,

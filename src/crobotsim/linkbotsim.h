@@ -272,6 +272,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int build_bridge(conn_t conn, int face, int side = -1, int type = -1);		// build bridge
 		int build_caster(conn_t conn, int face, int side = -1, int type = -1);		// build caster
 		int build_cube(conn_t conn, int face, int side = -1, int type = -1);		// build cube
+		int build_faceplate(conn_t conn, int face, int side = -1, int type = -1);	// build faceplate connector
 		int build_gripper(conn_t conn, int face);									// build gripper
 		int build_simple(conn_t conn, int face, int side = -1, int type = -1);		// build simple connector
 		int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1);	// build small wheel
@@ -299,6 +300,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		void draw_bridge(conn_t conn, osg::Group *robot);
 		void draw_caster(conn_t conn, osg::Group *robot);
 		void draw_cube(conn_t conn, osg::Group *robot);
+		void draw_faceplate(conn_t conn, osg::Group *robot);
 		void draw_gripper(conn_t conn, osg::Group *robot);
 		void draw_simple(conn_t conn, osg::Group *robot);
 		void draw_smallwheel(conn_t conn, osg::Group *robot);
