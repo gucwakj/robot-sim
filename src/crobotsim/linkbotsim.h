@@ -229,7 +229,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int _recording_num[NUM_DOF];// recording data points
 		bool _success[NUM_DOF];		// trigger for goal
 		bool _seek[NUM_DOF];		// currently seeking goal?
-		int _rgb[3];				// rgb of 'led'
+		double _rgb[3];				// rgb of 'led'
 		double _joint_safety_angle;
 		double _joint_safety_time;
 		double _offset[NUM_DOF];
@@ -302,6 +302,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		void draw_gripper(conn_t conn, osg::Group *robot);
 		void draw_simple(conn_t conn, osg::Group *robot);
 		void draw_smallwheel(conn_t conn, osg::Group *robot);
+		osg::ShapeDrawable *_led;
 #endif // ENABLE_GRAPHICS
 	protected:
 		int _disabled;				// which joint is disabled

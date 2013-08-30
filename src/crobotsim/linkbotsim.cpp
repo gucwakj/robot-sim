@@ -19,8 +19,31 @@ CLinkbotT::~CLinkbotT(void) {
 }
 
 int CLinkbotT::blinkLED(double delay, int num) {
-	printf("CLinkbot::blinkLED not implemented.\n");
+	// blink num-1 full times
+	for (int i = 0; i < num-1; i++) {
+  		_led->setColor(osg::Vec4(1, 1, 1, 1));
+#ifdef _WIN32
+		Sleep(delay);
+#else
+		usleep(delay*1000);
+#endif
+  		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
+#ifdef _WIN32
+		Sleep(delay);
+#else
+		usleep(delay*1000);
+#endif
+	}
 
+	// one last off before resetting to original color
+  	_led->setColor(osg::Vec4(1, 1, 1, 1));
+#ifdef _WIN32
+	Sleep(delay);
+#else
+	usleep(delay*1000);
+#endif
+  	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
+		
 	// success
 	return 0;
 }
@@ -31,6 +54,11 @@ int CLinkbotT::connect(void) {
 
 	// and we are connected
 	_connected = 1;
+
+	// set initial 'led' color
+	_rgb[0] = 0;
+	_rgb[1] = 1;
+	_rgb[2] = 0;
 
 	// success
 	return 0;
@@ -119,9 +147,9 @@ int CLinkbotT::getBatteryVoltage(double &voltage) {
 }
 
 int CLinkbotT::getColorRGB(int &r, int &g, int &b) {
-	r = _rgb[0];
-	g = _rgb[1];
-	b = _rgb[2];
+	r = (int)(255*_rgb[0]);
+	g = (int)(255*_rgb[1]);
+	b = (int)(255*_rgb[2]);
 
 	// success
 	return 0;
@@ -1331,9 +1359,10 @@ int CLinkbotT::setBuzzerFrequencyOff() {
 }
 
 int CLinkbotT::setColorRGB(int r, int g, int b) {
-	_rgb[0] = r;
-	_rgb[1] = g;
-	_rgb[2] = b;
+	_rgb[0] = r/255.0;
+	_rgb[1] = g/255.0;
+	_rgb[2] = b/255.0;
+	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
 
 	// success
 	return 0;
@@ -1961,7 +1990,7 @@ void CLinkbotT::draw(osg::Group *root) {
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[NUM_PARTS+1];
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat[NUM_PARTS+1];
-	osg::ref_ptr<osg::Texture2D> tex[3];
+	osg::ref_ptr<osg::Texture2D> tex[2];
 	const dReal *pos;
 	dQuaternion quat;
 	osg::Box *box;
@@ -1979,7 +2008,9 @@ void CLinkbotT::draw(osg::Group *root) {
 	{ // 'led'
 		cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]+0.0001), 0.01, _body_height);
 		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-		body[4]->addDrawable(new osg::ShapeDrawable(cyl));
+		_led = new osg::ShapeDrawable(cyl);
+		body[4]->addDrawable(_led);
+  		_led->setColor(osg::Vec4(0, 1, 0, 1));
 	}
 	pos = dGeomGetOffsetPosition(_geom[0][1]);
 	dGeomGetOffsetQuaternion(_geom[0][1], quat);
@@ -2011,8 +2042,7 @@ void CLinkbotT::draw(osg::Group *root) {
 	// apply texture to robot
 	tex[0] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/body.png)));
 	tex[1] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/face.png)));
-	tex[2] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 2; i++) {
 		tex[i]->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 		tex[i]->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 		tex[i]->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -2021,8 +2051,8 @@ void CLinkbotT::draw(osg::Group *root) {
     body[0]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
     body[1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
     body[2]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
-    body[3]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[2].get(), osg::StateAttribute::ON);
-    body[4]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
+    body[3]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
+    body[4]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
 	if (_disabled > 0) {
     	body[_disabled+1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
 	}

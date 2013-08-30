@@ -71,28 +71,6 @@ bool mouseEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActio
 }
 
 /**********************************************************
-	Root Node Callback
- **********************************************************/
-/*rootNodeCallback::rootNodeCallback(CRobotSim *sim, CRobot ***robot, osg::Group *root) {
-	_sim = sim;
-	_robot = robot;
-	_root = root;
-	for (int i = 0; i < NUM_TYPES; i++) { _number[i] = 0; }
-}
-
-void rootNodeCallback::operator()(osg::Node *node, osg::NodeVisitor *nv) {
-	osg::Group *group = dynamic_cast<osg::Group *>(node);
-	if (group) {
-		for (int i = 0; i < NUM_TYPES; i++) {
-			if (_number[i] != _sim->getNumberOfRobots(i)) {
-				_robot[i][_number[i]++]->draw(_root);
-			}
-		}
-	}
-	traverse(node, nv);
-}*/
-
-/**********************************************************
 	Mobot Node Callback
  **********************************************************/
 mobotNodeCallback::mobotNodeCallback(CRobot *robot) {
@@ -135,8 +113,8 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	if (group) {
 		const dReal *pos, *quat;
 		int k = 0;
-		int parts = 5;
 		osg::PositionAttitudeTransform *pat;
+		// draw body parts
 		for (int i = 0; i < 4; i++) {
 			pos = dBodyGetPosition(_robot->getBodyID(i));
 			quat = dBodyGetQuaternion(_robot->getBodyID(i));
@@ -144,15 +122,17 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 			pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
 			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		}
+		// draw 'led'
 		pos = dBodyGetPosition(_robot->getBodyID(0));
 		quat = dBodyGetQuaternion(_robot->getBodyID(0));
 		pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(4));
 		pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]+0.00001));
 		pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+		// draw connectors
 		while (_robot->getConnectorBodyIDs(k)) {
 			pos = dBodyGetPosition(_robot->getConnectorBodyIDs(k));
 			quat = dBodyGetQuaternion(_robot->getConnectorBodyIDs(k));
-			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(parts + k++));
+			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(5 + k++));
 			pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
 			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		}

@@ -10,6 +10,10 @@ int main(int argc, char *argv[]) {
 	robot1.resetToZero();
 	robot2.resetToZero();
 
+	//delay(1);
+	robot1.setColorRGB(255, 0, 0);
+	robot1.blinkLED(500, 3);
+
 	robot1.setExitState(ROBOT_HOLD);
 
 	return 0;

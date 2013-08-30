@@ -103,20 +103,6 @@ class mouseEventHandler : public osgGA::GUIEventHandler {
 };
 
 /**********************************************************
-	Root Node Callback
- **********************************************************/
-/*class rootNodeCallback : public osg::NodeCallback {
-	public:
-		rootNodeCallback(CRobotSim *sim, CRobot ***robot, osg::Group *root);
-		virtual void operator()(osg::Node *node, osg::NodeVisitor *nv);
-	private:
-		CRobotSim *_sim;
-		CRobot ***_robot;
-		osg::Group *_root;
-		int _number[NUM_TYPES];
-};*/
-
-/**********************************************************
 	Mobot Node Callback
  **********************************************************/
 class mobotNodeCallback : public osg::NodeCallback {
