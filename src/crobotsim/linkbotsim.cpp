@@ -21,13 +21,13 @@ CLinkbotT::~CLinkbotT(void) {
 int CLinkbotT::blinkLED(double delay, int num) {
 	// blink num-1 full times
 	for (int i = 0; i < num-1; i++) {
-  		_led->setColor(osg::Vec4(1, 1, 1, 1));
+		_led->setColor(osg::Vec4(1, 1, 1, 1));
 #ifdef _WIN32
 		Sleep(delay);
 #else
 		usleep(delay*1000);
 #endif
-  		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
+		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
 #ifdef _WIN32
 		Sleep(delay);
 #else
@@ -36,13 +36,13 @@ int CLinkbotT::blinkLED(double delay, int num) {
 	}
 
 	// one last off before resetting to original color
-  	_led->setColor(osg::Vec4(1, 1, 1, 1));
+	_led->setColor(osg::Vec4(1, 1, 1, 1));
 #ifdef _WIN32
 	Sleep(delay);
 #else
 	usleep(delay*1000);
 #endif
-  	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
+	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
 		
 	// success
 	return 0;
@@ -2010,7 +2010,7 @@ void CLinkbotT::draw(osg::Group *root) {
 		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		_led = new osg::ShapeDrawable(cyl);
 		body[4]->addDrawable(_led);
-  		_led->setColor(osg::Vec4(0, 1, 0, 1));
+		_led->setColor(osg::Vec4(0, 1, 0, 1));
 	}
 	pos = dGeomGetOffsetPosition(_geom[0][1]);
 	dGeomGetOffsetQuaternion(_geom[0][1], quat);
