@@ -1923,6 +1923,13 @@ void CLinkbotT::simPreCollisionThread(void) {
 	MUTEX_LOCK(&_goal_mutex);
 	MUTEX_LOCK(&_angle_mutex);
 
+	// get body rotation from world
+	const double *R = dBodyGetRotation(_body[BODY]);
+	// output body equivalent of (0, 0, 1) converted to hardware coord system
+	_accel[0] = -R[9];
+	_accel[1] = R[8];
+	_accel[2] = R[10];
+
 	// update angle values for each degree of freedom
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		int i = _enabled[j];
