@@ -133,7 +133,13 @@ int CLinkbotT::driveToNB(double angle1, double angle2, double angle3) {
 }
 
 int CLinkbotT::getAccelerometerData(double &accel_x, double &accel_y, double &accel_z) {
-	printf("CLinkbot::getAccelerometerData not implemented.\n");
+	// get body rotation from world
+	const double *R = dBodyGetRotation(_body[BODY]);
+
+	// output body equivalent of (0, 0, 1) converted to hardware coord system
+	accel_x = -R[9];
+	accel_y = R[8];
+	accel_z = R[10];
 
 	// success
 	return 0;
