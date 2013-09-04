@@ -1,6 +1,6 @@
 #include <linkbot.h>
 
-CLinkbotI robot;
+CLinkbotT robot;
 
 robot.connect();
 //robot.resetToZero();
