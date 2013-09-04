@@ -179,6 +179,10 @@ class DLLIMPORT CRobot {
 
 		int setMotion(bool motion);
 
+		double uniform(void);
+		double normal(double sigma);
+		int noisy(double *a, int length, double sigma);
+
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock) = 0;
 		virtual int build(bot_t robot) = 0;
@@ -203,6 +207,7 @@ class DLLIMPORT CRobot {
 //#endif // ENABLE_GRAPHICS
 
 		bool _motion;				// motion in progress
+		int _seed;					// seed for random number generation
 
 		// threading locks for each robot
 		MUTEX_T _angle_mutex;

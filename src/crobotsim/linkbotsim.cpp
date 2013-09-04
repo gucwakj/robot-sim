@@ -133,13 +133,10 @@ int CLinkbotT::driveToNB(double angle1, double angle2, double angle3) {
 }
 
 int CLinkbotT::getAccelerometerData(double &accel_x, double &accel_y, double &accel_z) {
-	// get body rotation from world
-	const double *R = dBodyGetRotation(_body[BODY]);
-
-	// output body equivalent of (0, 0, 1) converted to hardware coord system
-	accel_x = -R[9];
-	accel_y = R[8];
-	accel_z = R[10];
+	// output current accel data
+	accel_x = _accel[0];
+	accel_y = _accel[1];
+	accel_z = _accel[2];
 
 	// success
 	return 0;
@@ -1925,10 +1922,12 @@ void CLinkbotT::simPreCollisionThread(void) {
 
 	// get body rotation from world
 	const double *R = dBodyGetRotation(_body[BODY]);
-	// output body equivalent of (0, 0, 1) converted to hardware coord system
+	// put into accel array
 	_accel[0] = -R[9];
 	_accel[1] = R[8];
 	_accel[2] = R[10];
+	// add gaussian noise to accel
+	this->noisy(_accel, 3, 0.005);
 
 	// update angle values for each degree of freedom
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
