@@ -8,8 +8,10 @@
 class DLLIMPORT CMobot {
 #else
 #include "config.h"
-//#include "pid.h"
+#ifdef ENABLE_GRAPHICS
 #include "graphics.h"
+//#include "pid.h"
+#endif // ENABLE_GRAPHICS
 class DLLIMPORT CMobot : virtual public CRobot {
 #endif // _CH_
 	public:

@@ -60,7 +60,7 @@ else (ROBOTSIM_ENABLE_DOUBLE)
 endif (ROBOTSIM_ENABLE_DOUBLE)
 
 # Option to enable assertion messages
-option (ROBOSIM_NO_MESSAGES "Enable message output." ON)
+option (ROBOSIM_NO_MESSAGES "Disable message output." ON)
 if (ROBOTSIM_NO_MESSAGES)
 	add_definitions(-DdNODEBUG)
 endif (ROBOTSIM_NO_MESSAGES)

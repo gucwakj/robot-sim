@@ -26,8 +26,10 @@ CRobotSim::~CRobotSim(void) {
 	// remove simulation
 	THREAD_CANCEL(_simulation);
 
+#ifdef ENABLE_GRAPHICS
 	// remove graphics
 	if (_osgThread) { THREAD_CANCEL(_osgThread); }
+#endif
 
 	// remove robots
 	for ( int i = NUM_TYPES - 1; i >= 0; i--) {
@@ -80,10 +82,13 @@ int CRobotSim::init_sim(void) {
 	COND_INIT(&_running_cond);
 
 	// variables to keep track of progress of simulation
-	_running = 1;
-	_pause = 1;
-    _step = 0.004;
-	_clock = 0;
+	_running = 1;			// is simulation running
+	_pause = 0;				// do not start paused w/o graphics
+#ifdef ENABLE_GRAPHICS
+	_pause = 1;				// pause on graphics start
+#endif
+    _step = 0.004;			// initial time step
+	_clock = 0;				// start clock
 
 	// success
 	return 0;
@@ -767,10 +772,6 @@ void* CRobotSim::graphicsThread(void *arg) {
 /**********************************************************
 	Public Member Functions
  **********************************************************/
-/*int CRobotSim::getNumberOfRobots(int type) {
-	return _robotConnected[type];
-}*/
-
 int CRobotSim::setExitState(void) {
 	MUTEX_LOCK(&_running_mutex);
 	while (_running) {
@@ -929,7 +930,7 @@ void CRobotSim::print_intermediate_data(void) {
     cout.width(10);
     cout.setf(ios::fixed, ios::floatfield);
 	//if (!((int)(_clock*1000) % 100)) { cout << _clock << "\t\t"; }
-	//cout << _clock << "\t\t";
+	cout << _clock << "\t\t";
 	for (int i = 0; i < _robotConnected[MOBOT]; i++) {
 		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT1)) << " ";
 		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT2)) << " ";
@@ -940,8 +941,6 @@ void CRobotSim::print_intermediate_data(void) {
 		//cout << _robot[MOBOT][i]->getPosition(2,2) << "\t\t";
 	}
 	//cout << endl;
-	//cout << "LinkbotL:" << "\t";
-	double x, y, z;
 	for (int i = 0; i < _robotConnected[LINKBOTI]; i++) {
 		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT1) << "\t";
 		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT2) << " ";
@@ -951,18 +950,24 @@ void CRobotSim::print_intermediate_data(void) {
 		//cout << _robot[LINKBOTI][i]->getPosition(2, 2) << "\t";
 	}
 	//cout << endl;
+	for (int i = 0; i < _robotConnected[LINKBOTT]; i++) {
+		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT1) << "\t";
+	}
+	//cout << endl;
 }
 
 /**********************************************************
 	Add Robot Functions
  **********************************************************/
 int CRobotSim::addRobot(CRobot *robot) {
+#ifdef ENABLE_GRAPHICS
 	// wait for graphics to be ready
 	MUTEX_LOCK(&_graphics_mutex);
 	while (!_graphics) {
 		COND_WAIT(&_graphics_cond, &_graphics_mutex);
 	}
 	MUTEX_UNLOCK(&_graphics_mutex);
+#endif // ENABLE_GRAPHICS
 
 	// get type of robot being added
 	int type = robot->getType();
@@ -1010,8 +1015,10 @@ int CRobotSim::addRobot(CRobot *robot) {
 		_robot[type][_robotConnected[type]]->build(btmp);
 	}
 
+#ifdef ENABLE_GRAPHICS
 	// draw robot
 	_robot[type][_robotConnected[type]]->draw(_osgRoot);
+#endif // ENABLE_GRAPHICS
 
 	// another robot has been 'connected' to simulation
 	_robotConnected[type]++;

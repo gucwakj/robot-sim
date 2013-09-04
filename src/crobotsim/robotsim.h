@@ -7,9 +7,9 @@
 #include "config.h"
 #include <iostream>
 #include <tinyxml2.h>
-//#ifdef ENABLE_GRAPHICS
+#ifdef ENABLE_GRAPHICS
 #include "graphics.h"
-//#endif // ENABLE_GRAPHICS
+#endif // ENABLE_GRAPHICS
 #endif // not _CH_
 
 class DLLIMPORT CRobotSim {
@@ -19,7 +19,6 @@ class DLLIMPORT CRobotSim {
 
 #ifndef _CH_
 		int addRobot(CRobot *robot);
-		//int getNumberOfRobots(int type);
 		int setExitState(void);
 	private:
 		// ground struct

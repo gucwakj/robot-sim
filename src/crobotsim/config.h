@@ -1,8 +1,0 @@
-#ifndef _CONFIG_H_
-#define _CONFIG_H_
-
-#define CROBOTSIM_VERSION_MAJOR 
-#define CROBOTSIM_VERSION_MINOR 
-#define ENABLE_GRAPHICS
-
-#endif

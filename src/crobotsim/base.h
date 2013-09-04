@@ -202,9 +202,9 @@ class DLLIMPORT CRobot {
 		virtual int setID(int id) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;
-//#ifdef ENABLE_GRAPHICS
+#ifdef ENABLE_GRAPHICS
 		virtual void draw(osg::Group *root) = 0;
-//#endif // ENABLE_GRAPHICS
+#endif // ENABLE_GRAPHICS
 
 		bool _motion;				// motion in progress
 		int _seed;					// seed for random number generation

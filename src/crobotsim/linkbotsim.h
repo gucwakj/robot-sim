@@ -8,8 +8,10 @@
 class DLLIMPORT CLinkbotT {
 #else
 #include "config.h"
-//#include "pid.h"
+#ifdef ENABLE_GRAPHICS
 #include "graphics.h"
+#endif // ENABLE_GRAPHICS
+//#include "pid.h"
 class DLLIMPORT CLinkbotT : virtual public CRobot {
 #endif
 	public:

@@ -24,8 +24,11 @@ include_directories("../../src/opende/include")
 include_directories("../../src/tinyxml2")
 
 # Add OSG headers
-include_directories("../../src/openscenegraph/include")
-include_directories("../../src/openscenegraph/build/include")
+option (ENABLE_GRAPHICS "Enable graphics for simulation." ON)
+if (ENABLE_GRAPHICS)
+	include_directories("../../src/openscenegraph/include")
+	include_directories("../../src/openscenegraph/build/include")
+endif (ENABLE_GRAPHICS)
 
 # Compilation options
 option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
