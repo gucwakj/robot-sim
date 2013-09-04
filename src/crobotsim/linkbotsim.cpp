@@ -12,6 +12,15 @@ CLinkbotT::~CLinkbotT(void) {
 	// destroy new'ed arrays
 	delete [] _enabled;
 
+	// destroy connectors array
+	conn_t ctmp = _conn;
+	while (ctmp) {
+		conn_t tmp = ctmp->next;
+		delete [] ctmp->geom;
+		delete ctmp;
+		ctmp = tmp;
+	}
+
 	// destroy geoms
 	if (_connected) {
 		for (int i = NUM_PARTS - 1; i >= 0; i--) { delete [] _geom[i]; }
@@ -791,7 +800,6 @@ int CLinkbotT::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
 	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
-
 
 	// success
 	return 0;
@@ -2124,7 +2132,8 @@ void CLinkbotT::draw(osg::Group *root) {
  **********************************************************/
 int CLinkbotT::add_connector(int type, int face) {
 	// create new connector
-	conn_t nc = (conn_t)malloc(sizeof(struct conn_s));
+	//conn_t nc = (conn_t)malloc(sizeof(struct conn_s));
+	conn_t nc = new struct conn_s;
 	nc->face = face; 
 	nc->type = type; 
 	nc->next = NULL;
@@ -2189,7 +2198,8 @@ int CLinkbotT::add_connector(int type, int face) {
 
 int CLinkbotT::add_daisy_chain(int conn, int face, int side, int type) {
 	// create new connector
-	conn_t nc = (conn_t)malloc(sizeof(struct conn_s));
+	//conn_t nc = (conn_t)malloc(sizeof(struct conn_s));
+	conn_t nc = new struct conn_s;
 	nc->face = face;
 	nc->type = conn;
 	nc->next = NULL;

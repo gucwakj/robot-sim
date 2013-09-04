@@ -31,11 +31,35 @@ CRobotSim::~CRobotSim(void) {
 	if (_osgThread) { THREAD_CANCEL(_osgThread); }
 #endif
 
+	// remove ground
+	ground_t gtmp = _ground;
+	while (gtmp) {
+		ground_t tmp = gtmp->next;
+		delete gtmp;
+		gtmp = tmp;
+	}
+
 	// remove robots
 	for ( int i = NUM_TYPES - 1; i >= 0; i--) {
 		for (int j = _robotNumber[i] - 1; j >= 0; j--) {
 			if (_robotThread[i][j]) {THREAD_CANCEL(_robotThread[i][j]); }
 		}
+		delete [] _robotThread[i];
+		delete [] _robot[i];
+	}
+
+	// remove bot+connector list
+	bot_t btmp = bot;
+	while (btmp) {
+		bot_t tmp = btmp->next;
+		Conn_t *ctmp = btmp->conn;
+		while (ctmp) {
+			Conn_t *tmp2 = ctmp->next;
+			delete ctmp;
+			ctmp = tmp2;
+		}
+		delete btmp;
+		btmp = tmp;
 	}
 
 	// remove ode
@@ -51,7 +75,8 @@ int CRobotSim::init_ode(void) {
 	_world = dWorldCreate();							// create world for simulation
 	_space = dHashSpaceCreate(0);						// create space for robots
 	_group = dJointGroupCreate(0);						// create group for joints
-	ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
+	//ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
+	ground_t ng = new struct ground_s;
 	ng->object = dCreatePlane(_space, 0, 0, 1, 0);
 	ng->next = NULL;
 	_ground = ng;
@@ -76,7 +101,7 @@ int CRobotSim::init_sim(void) {
 	_cor[0] = 0.3;	_cor[1] = 0.3;
 
 	// thread variables
-	THREAD_CREATE(&_simulation, (void* (*)(void *))&CRobotSim::simulationThread, (void *)this);
+	THREAD_CREATE(&_simulation, (void* (*)(void *))&CRobotSim::simulationThread, this);
 	MUTEX_INIT(&_robot_mutex);
 	MUTEX_INIT(&_running_mutex);
 	COND_INIT(&_running_cond);
@@ -137,7 +162,8 @@ int CRobotSim::init_xml(void) {
 			node->QueryDoubleAttribute("cor_b", &(_cor[1]));
 		}
 		else if ( !strcmp(node->Value(), "mobot") ) {
-			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
+			//bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
+			bot_t nr = new struct bot_s;
 			nr->type = 0;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
@@ -174,7 +200,8 @@ int CRobotSim::init_xml(void) {
 			}
 		}
 		else if ( !strcmp(node->Value(), "linkboti") ) {
-			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
+			//bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
+			bot_t nr = new struct bot_s;
 			nr->type = LINKBOTI;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
@@ -221,7 +248,8 @@ int CRobotSim::init_xml(void) {
 			}
 		}
 		else if ( !strcmp(node->Value(), "linkbotl") ) {
-			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
+			//bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
+			bot_t nr = new struct bot_s;
 			nr->type = LINKBOTL;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
@@ -268,7 +296,8 @@ int CRobotSim::init_xml(void) {
 			}
 		}
 		else if ( !strcmp(node->Value(), "linkbott") ) {
-			bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
+			//bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
+			bot_t nr = new struct bot_s;
 			nr->type = LINKBOTT;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
@@ -315,7 +344,8 @@ int CRobotSim::init_xml(void) {
 			}
 		}
 		else if ( !strcmp(node->Value(), "g_box") ) {
-			ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
+			//ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
+			ground_t ng = new struct ground_s;
 			double lx, ly, lz, px, py, pz, psi, theta, phi;
 			if (ele = node->FirstChildElement("size")) {
 				ele->QueryDoubleAttribute("x", &lx);
@@ -348,13 +378,14 @@ int CRobotSim::init_xml(void) {
 			dGeomSetRotation(ng->object, R);
 
 			// add object to linked list
-			ground_t *gtmp = _ground;
+			ground_t gtmp = _ground;
 			while (gtmp->next)
 				gtmp = gtmp->next;
 			gtmp->next = ng;
 		}
 		else if ( !strcmp(node->Value(), "g_cylinder") ) {
-			ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
+			//ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
+			ground_t ng = new struct ground_s;
 			double r, l, px, py, pz, psi, theta, phi;
 			if (ele = node->FirstChildElement("size")) {
 				ele->QueryDoubleAttribute("radius", &r);
@@ -386,13 +417,14 @@ int CRobotSim::init_xml(void) {
 			dGeomSetRotation(ng->object, R);
 
 			// add object to linked list
-			ground_t *gtmp = _ground;
+			ground_t gtmp = _ground;
 			while (gtmp->next)
 				gtmp = gtmp->next;
 			gtmp->next = ng;
 		}
 		else if ( !strcmp(node->Value(), "g_sphere") ) {
-			ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
+			//ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
+			ground_t ng = new struct ground_s;
 			double r, px, py, pz;
 			if (ele = node->FirstChildElement("size")) {
 				ele->QueryDoubleAttribute("radius", &r);
@@ -409,7 +441,7 @@ int CRobotSim::init_xml(void) {
 			dGeomSetPosition(ng->object, px, py, pz);
 
 			// add object to linked list
-			ground_t *gtmp = _ground;
+			ground_t gtmp = _ground;
 			while (gtmp->next)
 				gtmp = gtmp->next;
 			gtmp->next = ng;
@@ -496,7 +528,8 @@ int CRobotSim::init_xml(void) {
 			bot_t tmp;
 			Conn_t *ctmp;
 			for (int j = 0; j < i; j++) {
-				Conn_t *nc = (Conn_t *)malloc(sizeof(struct Conn_s));
+				//Conn_t *nc = (Conn_t *)malloc(sizeof(struct Conn_s));
+				Conn_t *nc = new struct Conn_s;
 				nc->robot = rtmp[0];
 				nc->face1 = ftmp[0];
 				nc->conn = atmp[j];
@@ -550,7 +583,9 @@ int CRobotSim::init_xml(void) {
 	// set up robot variables
 	for (int i = 0; i < NUM_TYPES; i++) {
 		_robotThread[i] = new THREAD_T[_robotNumber[i]];
-		_robot[i] =  (CRobot **)realloc(_robot[i], (_robotNumber[i] + 1)*sizeof(CRobot *));
+		//_robot[i] =  (CRobot **)malloc((_robotNumber[i] + 1)*sizeof(CRobot *));
+		_robot[i] = new CRobot *[_robotNumber[i]];
+		//_robot[i] =  (CRobot **)realloc(_robot[i], (_robotNumber[i] + 1)*sizeof(CRobot *));
 	}
 
 	// success
@@ -907,7 +942,7 @@ void CRobotSim::collision(void *data, dGeomID o1, dGeomID o2) {
 		if ( dGeomIsSpace(o2) ) dSpaceCollide((dSpaceID)o2, ptr, &ptr->collision);
 	}
 	else {
-		dContact contact[8];
+		dContact contact[8] = {0};
 		for ( int i = 0; i < dCollide(o1, o2, 8, &contact[0].geom, sizeof(dContact)); i++ ) {
 			if ( dGeomGetSpace(o1) == ptr->_space || dGeomGetSpace(o2) == ptr->_space ) {
 				contact[i].surface.mu = ptr->_mu[0];

@@ -5,7 +5,7 @@ using namespace std;
 int main(int argc, char *argv[]) {
 	CLinkbotT robot1;
 
-	double x, y, z;
+	double x = 0, y = 0, z = 0;
 
 	robot1.connect();
 	robot1.resetToZero();

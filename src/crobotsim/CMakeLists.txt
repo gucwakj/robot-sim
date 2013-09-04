@@ -66,8 +66,8 @@ if (ROBOTSIM_NO_MESSAGES)
 endif (ROBOTSIM_NO_MESSAGES)
 
 # Option to enable graphics
-option (ROBOTSIM_ENABLE_GRAPHICS "Enable graphics for simulation." ON)
-if (ROBOTSIM_ENABLE_GRAPHICS)
+option (ENABLE_GRAPHICS "Enable graphics for simulation." ON)
+if (ENABLE_GRAPHICS)
 	include_directories("../openscenegraph/build/include")
 	include_directories("../openscenegraph/include")
 	link_directories("../openscenegraph/build/lib")
@@ -84,7 +84,7 @@ if (ROBOTSIM_ENABLE_GRAPHICS)
 		include_directories(${OPENGL_INCLUDE_DIR})
 		set (EXTRA_LIBS ${EXTRA_LIBS} ${OPENGL_LIBRARIES})
 	endif (OPENGL_FOUND)
-endif (ROBOTSIM_ENABLE_GRAPHICS)
+endif (ENABLE_GRAPHICS)
 
 # Add pthreads
 find_package(Threads)

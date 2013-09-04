@@ -25,13 +25,13 @@ class DLLIMPORT CRobotSim {
 		typedef struct ground_s {
 			dGeomID object;
 			struct ground_s *next;
-		} ground_t;
+		} *ground_t;
 
 		// private variables to store general information about simulation
 		dWorldID _world;					// world in which simulation occurs
 		dSpaceID _space;					// space for robots in which to live
 		dJointGroupID _group;				// group to store joints
-		ground_t *_ground;					// ground (static) objects
+		ground_t _ground;					// ground (static) objects
 		CRobot** _robot[NUM_TYPES];			// array of all robots of every type
 		bot_t bot;
 		dReal _step;						// time of each step of simulation
