@@ -3,17 +3,17 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CLinkbotT robot1;
-
-	double x = 0, y = 0, z = 0;
+	CLinkbotT robot1, robot2;
 
 	robot1.connect();
+	robot2.connect();
 	robot1.resetToZero();
-	robot1.moveTo(0, 45, 0);
+	robot2.resetToZero();
+	//robot1.moveTo(45, 45, 45);
 
+	double x, y, z;
 	robot1.getAccelerometerData(x, y, z);
-	printf("x:%9.6lf\ty:%9.6lf\tz:%9.6lf\n", x, y, z);
-
+	printf("x: %lf y: %lf z: %lf\n", x, y, z);
 	//robot1.setExitState(ROBOT_HOLD);
 	return 0;
 }

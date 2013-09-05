@@ -1813,42 +1813,33 @@ dBodyID CLinkbotT::getBodyID(int id) {
 }
 
 int CLinkbotT::getConnectionParams(int face, dMatrix3 R, dReal *p) {
-	const dReal *pos, *R1;
-	dMatrix3 R2;
 	double offset[3] = {0};
+	const dReal *pos = dBodyGetPosition(_body[face]);
+	const dReal *R1 = dBodyGetRotation(_body[face]);
+	dMatrix3 R2;
 
+	// get offset and rotation of face connection
 	switch (face) {
 		case 1:
-			pos = dBodyGetPosition(_body[FACE1]);
-			R1 = dBodyGetRotation(_body[FACE1]);
-			offset[1] = _face_depth/2;
-			p[0] = pos[0] + R1[1]*offset[1];
-			p[1] = pos[1] + R1[5]*offset[1];
-			p[2] = pos[2] + R1[9]*offset[1];
-    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], M_PI/2);
-			dMultiply0(R, R2, R1, 3, 3, 3);
+			offset[0] = -_face_depth/2;
+    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], M_PI);
 			break;
 		case 2:
-			pos = dBodyGetPosition(_body[FACE2]);
-			R1 = dBodyGetRotation(_body[FACE2]);
-			offset[0] = -_face_depth/2;
-			p[0] = pos[0] + R1[0]*offset[0];
-			p[1] = pos[1] + R1[4]*offset[0];
-			p[2] = pos[2] + R1[8]*offset[0];
-    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], M_PI);
-			dMultiply0(R, R2, R1, 3, 3, 3);
+			offset[1] = -_face_depth/2;
+    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], -M_PI/2);
 			break;
 		case 3:
-			pos = dBodyGetPosition(_body[FACE3]);
-			R1 = dBodyGetRotation(_body[FACE3]);
-			offset[1] = -_face_depth/2;
-			p[0] = pos[0] + R1[1]*offset[1];
-			p[1] = pos[1] + R1[5]*offset[1];
-			p[2] = pos[2] + R1[9]*offset[1];
-    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], -M_PI/2);
-			dMultiply0(R, R2, R1, 3, 3, 3);
+			offset[0] = _face_depth/2;
+			dRSetIdentity(R2);
 			break;
 	}
+
+	// generate new position
+	p[0] = pos[0] + R1[0]*offset[0] + R1[1]*offset[1];
+	p[1] = pos[1] + R1[4]*offset[0] + R1[5]*offset[1];
+	p[2] = pos[2] + R1[8]*offset[0] + R1[9]*offset[1];
+	// generate new rotation matrix
+	dMultiply0(R, R2, R1, 3, 3, 3);
 
 	// success
 	return 0;
@@ -2026,7 +2017,8 @@ void CLinkbotT::draw(osg::Group *root) {
 	// body
 	pos = dGeomGetOffsetPosition(_geom[0][0]);
 	dGeomGetOffsetQuaternion(_geom[0][0], quat);
-	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_length, _body_width, _body_height);
+	//box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_length, _body_width, _body_height);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_width, _body_length, _body_height);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[0]->addDrawable(new osg::ShapeDrawable(box));
 	{ // 'led'
@@ -2268,16 +2260,16 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
     _angle[F3] = DEG2RAD(r_f3);	// face 3
 
 	// offset values for each body part[0-2] and joint[3-5] from center
-	dReal b[3] = {-_body_length/2, 0, 0};
-	dReal f1[6] = {0, _body_width/2 + _face_depth/2, 0, 0, _body_width/2, 0};
-	dReal f2[6] = {-_body_length - _face_depth/2, 0, -_body_length, 0, 0};
-	dReal f3[6] = {0, -_body_width/2 - _face_depth/2, 0, 0, -_body_width/2, 0};
+	dReal b[3] = {0, -_body_length/2, 0};
+	dReal f1[6] = {-_body_width/2 - _face_depth/2, 0, 0, -_body_width/2, 0, 0};
+	dReal f2[6] = {0, -_body_length - _face_depth/2, 0, 0, -_body_length, 0};
+	dReal f3[6] = {_body_width/2 + _face_depth/2, 0, 0, _body_width/2, 0, 0};
 
 	// build robot bodies
-	this->build_body(R[0]*b[0] + x, R[4]*b[0] + y, R[8]*b[0] + z, R, 0);
-	this->build_face(FACE1, R[1]*f1[1] + x, R[5]*f1[1] + y, R[9]*f1[1] + z, R, 0);
-	this->build_face(FACE2, R[0]*f2[0] + x, R[4]*f2[0] + y, R[8]*f2[0] + z, R, 0);
-	this->build_face(FACE3, R[1]*f3[1] + x, R[5]*f3[1] + y, R[9]*f3[1] + z, R, 0);
+	this->build_body(R[1]*b[1] + x, R[5]*b[1] + y, R[9]*b[1] + z, R, 0);
+	this->build_face(FACE1, R[0]*f1[0] + x, R[4]*f1[0] + y, R[8]*f1[0] + z, R, 0);
+	this->build_face(FACE2, R[1]*f2[1] + x, R[5]*f2[1] + y, R[9]*f2[1] + z, R, 0);
+	this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R, 0);
 
     // joint for body to face 1
     _joint[0] = dJointCreateHinge(_world, 0);
@@ -2285,7 +2277,7 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
     dJointSetHingeAnchor(_joint[0], R[0]*f1[3] + R[1]*f1[4] + R[2]*f1[5] + x, 
 									R[4]*f1[3] + R[5]*f1[4] + R[6]*f1[5] + y,
 									R[8]*f1[3] + R[9]*f1[4] + R[10]*f1[5] + z);
-    dJointSetHingeAxis(_joint[0], -R[1], -R[5], -R[9]);
+    dJointSetHingeAxis(_joint[0], R[0], R[4], R[8]);
     dJointSetHingeParam(_joint[0], dParamCFM, 0);
 
     // joint for body to face 2
@@ -2302,7 +2294,7 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
     	dJointSetHingeAnchor(_joint[1], R[0]*f2[3] + R[1]*f2[4] + R[2]*f2[5] + x,
 										R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y,
 										R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
-    	dJointSetHingeAxis(_joint[1], R[0], R[4], R[8]);
+    	dJointSetHingeAxis(_joint[1], R[1], R[5], R[9]);
     	dJointSetHingeParam(_joint[1], dParamCFM, 0);
 	}
 
@@ -2320,22 +2312,21 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
     	dJointSetHingeAnchor(_joint[2], R[0]*f3[3] + R[1]*f3[4] + R[2]*f3[5] + x,
 										R[4]*f3[3] + R[5]*f3[4] + R[6]*f3[5] + y,
 										R[8]*f3[3] + R[9]*f3[4] + R[10]*f3[5] + z);
-    	dJointSetHingeAxis(_joint[2], R[1], R[5], R[9]);
+    	dJointSetHingeAxis(_joint[2], -R[0], -R[4], -R[8]);
     	dJointSetHingeParam(_joint[2], dParamCFM, 0);
 	}
 
     // create rotation matrices for each body part
     dMatrix3 R_f, R_f1, R_f2, R_f3;
-    dRFromAxisAndAngle(R_f, 0, 1, 0, _angle[F1]);
+    dRFromAxisAndAngle(R_f, 1, 0, 0, _angle[F1]);
     dMultiply0(R_f1, R, R_f, 3, 3, 3);
-    dRFromAxisAndAngle(R_f, -1, 0, 0, _angle[F2]);
+    dRFromAxisAndAngle(R_f, 0, -1, 0, _angle[F2]);
     dMultiply0(R_f2, R, R_f, 3, 3, 3);
-    dRFromAxisAndAngle(R_f, 0, -1, 0, _angle[F3]);
+    dRFromAxisAndAngle(R_f, -1, 0, 0, _angle[F3]);
     dMultiply0(R_f3, R, R_f, 3, 3, 3);
 
 	// if bodies are rotated, then redraw
 	if ( _angle[F1] != 0 || _angle[F2] != 0 ||_angle[F3] != 0 ) {
-    	// re-build pieces of module
 		this->build_face(FACE1, R[1]*f1[1] + x, R[5]*f1[1] + y, R[9]*f1[1] + z, R_f1, 0);
 		this->build_face(FACE2, R[0]*f2[0] + x, R[4]*f2[0] + y, R[8]*f2[0] + z, R_f2, 0);
 		this->build_face(FACE3, R[1]*f3[1] + x, R[5]*f3[1] + y, R[9]*f3[1] + z, R_f3, 0);
@@ -2346,7 +2337,7 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
     dJointAttach(_motor[F1], _body[BODY], _body[FACE1]);
     dJointSetAMotorMode(_motor[F1], dAMotorUser);
     dJointSetAMotorNumAxes(_motor[F1], 1);
-    dJointSetAMotorAxis(_motor[F1], 0, 1, -R[1], -R[5], -R[9]);
+    dJointSetAMotorAxis(_motor[F1], 0, 1, R[0], R[4], R[8]);
     dJointSetAMotorAngle(_motor[F1], 0, 0);
     dJointSetAMotorParam(_motor[F1], dParamCFM, 0);
     dJointSetAMotorParam(_motor[F1], dParamFMax, _maxJointForce[F1]);
@@ -2357,7 +2348,7 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
     dJointAttach(_motor[F2], _body[BODY], _body[FACE2]);
     dJointSetAMotorMode(_motor[F2], dAMotorUser);
     dJointSetAMotorNumAxes(_motor[F2], 1);
-    dJointSetAMotorAxis(_motor[F2], 0, 1, R[0], R[4], R[8]);
+    dJointSetAMotorAxis(_motor[F2], 0, 1, R[1], R[5], R[9]);
     dJointSetAMotorAngle(_motor[F2], 0, 0);
     dJointSetAMotorParam(_motor[F2], dParamCFM, 0);
     dJointSetAMotorParam(_motor[F2], dParamFMax, _maxJointForce[F2]);
@@ -2368,7 +2359,7 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
     dJointAttach(_motor[F3], _body[BODY], _body[FACE3]);
     dJointSetAMotorMode(_motor[F3], dAMotorUser);
     dJointSetAMotorNumAxes(_motor[F3], 1);
-    dJointSetAMotorAxis(_motor[F3], 0, 1, R[1], R[5], R[9]);
+    dJointSetAMotorAxis(_motor[F3], 0, 1, -R[0], -R[4], -R[8]);
     dJointSetAMotorAngle(_motor[F3], 0, 0);
     dJointSetAMotorParam(_motor[F3], dParamCFM, 0);
     dJointSetAMotorParam(_motor[F3], dParamFMax, _maxJointForce[F3]);
@@ -2427,18 +2418,20 @@ int CLinkbotT::build_body(dReal x, dReal y, dReal z, dMatrix3 R, dReal theta) {
     dBodySetRotation(_body[BODY], R);
 
     // rotation matrix for curves of d-shapes
-    dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
+    //dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
+    dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
     dRFromAxisAndAngle(R3, 0, 0, 1, -theta);
     dMultiply0(R2, R1, R3, 3, 3, 3);
 
     // set geometry 1 - square
-    _geom[BODY][0] = dCreateBox(_space, _body_length, _body_width, _body_height);
+    //_geom[BODY][0] = dCreateBox(_space, _body_length, _body_width, _body_height);
+    _geom[BODY][0] = dCreateBox(_space, _body_width, _body_length, _body_height);
     dGeomSetBody( _geom[BODY][0], _body[BODY]);
     dGeomSetOffsetPosition(_geom[BODY][0], -m.c[0], -m.c[1], -m.c[2]);
     // set geometry 2 - curve
 	_geom[BODY][1] = dCreateCylinder(_space, _body_radius, _body_width);
 	dGeomSetBody( _geom[BODY][1], _body[BODY]);
-	dGeomSetOffsetPosition(_geom[BODY][1], _body_length/2 - m.c[0], -m.c[1], -m.c[2]);
+	dGeomSetOffsetPosition(_geom[BODY][1], -m.c[0], _body_length/2 - m.c[1], -m.c[2]);
 	dGeomSetOffsetRotation( _geom[BODY][1], R2);
 
     // set mass center to (0,0,0) of _bodyID
@@ -2472,9 +2465,9 @@ int CLinkbotT::build_face(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal t
 
     // rotation matrix for curves of d-shapes
 	if ( id == 2)
-	    dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
+	    dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);		// SWITCHED X AND Y AXIS
 	else
-	    dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
+	    dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);		// SWITCHED X AND Y AXIS
     dRFromAxisAndAngle(R3, 0, 0, 1, -theta);
     dMultiply0(R2, R1, R3, 3, 3, 3);
 
@@ -2952,28 +2945,31 @@ int CLinkbotT::get_body_params(double angle, int face, double rotation, dMatrix3
 
 	// rotate body for connection face
 	switch (face) {
-		case 2:
-			// rotation matrix
+		case 1:
+			offset[0] = _body_width/2 + _face_depth;
 			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], 0);
 			dMultiply0(R3, R2, R1, 3, 3, 3);
 			dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], DEG2RAD(rotation));
 			dMultiply0(R5, R4, R3, 3, 3, 3);
-			// center offset
-			offset[0] = _face_depth + _body_length;
 			break;
-		case 3: case 1:
-			// rotation matrix
-			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], ((face == 3) ? -1 : 1)*M_PI/2);
+		case 2:
+			offset[0] = _face_depth + _body_length;
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], -M_PI/2);
 			dMultiply0(R3, R2, R1, 3, 3, 3);
 			dRFromAxisAndAngle(R4, R3[1], R3[5], R3[9], -DEG2RAD(rotation));
 			dMultiply0(R5, R4, R3, 3, 3, 3);
-			// center offset
+			break;
+		case 3:
 			offset[0] = _body_width/2 + _face_depth;
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], M_PI);
+			dMultiply0(R3, R2, R1, 3, 3, 3);
+			dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], DEG2RAD(rotation));
+			dMultiply0(R5, R4, R3, 3, 3, 3);
 			break;
 	}
-	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
-	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
-	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
 	dMultiply0(R, R5, Rtmp, 3, 3, 3);
 
 	// success

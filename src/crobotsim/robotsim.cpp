@@ -656,7 +656,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 	GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
 	camera->setDrawBuffer(buffer);
 	camera->setReadBuffer(buffer);
-	sim->viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0.8), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	sim->viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
 	// viewer camera properties
 	sim->viewer->addSlave(camera.get());
@@ -664,7 +664,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 	//osgGA::TrackballManipulator *cameraManipulator = new osgGA::TrackballManipulator();
 	cameraManipulator->setAllowThrow(false);
 	sim->viewer->setCameraManipulator(cameraManipulator);
-	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1.5, 1.5, 0.6), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1.5, 1.5, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
     // Creating the root node
 	sim->_osgRoot = new osg::Group();
@@ -884,7 +884,7 @@ void* CRobotSim::simulationThread(void *arg) {
 			sim->_clock += sim->_step;
 			dJointGroupEmpty(sim->_group);
 
-			//sim->print_intermediate_data();
+			sim->print_intermediate_data();
 
 			// perform post-collision updates
 			for (i = 0; i < NUM_TYPES; i++) {
@@ -998,8 +998,10 @@ void CRobotSim::print_intermediate_data(void) {
 	//cout << endl;
 	for (int i = 0; i < _robotConnected[LINKBOTT]; i++) {
 		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT1) << "\t";
+		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT2) << "\t";
+		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT3) << "\t";
 	}
-	//cout << endl;
+	cout << endl;
 }
 
 /**********************************************************
