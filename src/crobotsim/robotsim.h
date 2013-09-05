@@ -15,7 +15,7 @@
 class DLLIMPORT CRobotSim {
 	public:
 		CRobotSim();
-		~CRobotSim();
+		virtual ~CRobotSim();
 
 #ifndef _CH_
 		int addRobot(CRobot *robot);

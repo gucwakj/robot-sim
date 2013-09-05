@@ -61,7 +61,7 @@ int CLinkbotT::blinkLED(double delay, int num) {
 
 int CLinkbotT::connect(void) {
 	// add to simulation
-	_simObject.addRobot(this);
+	_simObject->addRobot(this);
 
 	// and we are connected
 	_connected = 1;
@@ -1384,7 +1384,7 @@ int CLinkbotT::setColorRGB(int r, int g, int b) {
 }
 
 int CLinkbotT::setExitState(robotJointState_t exitState) {
-	_simObject.setExitState();
+	_simObject->setExitState();
 
 	// success
 	return 0;
@@ -3414,7 +3414,7 @@ CLinkbotI::~CLinkbotI(void) {
 }
 
 int CLinkbotI::connect(void) {
-	_simObject.addRobot(this);
+	_simObject->addRobot(this);
 
 	// success
 	return 0;
@@ -3435,7 +3435,7 @@ CLinkbotL::~CLinkbotL(void) {
 }
 
 int CLinkbotL::connect(void) {
-	_simObject.addRobot(this);
+	_simObject->addRobot(this);
 
 	// success
 	return 0;

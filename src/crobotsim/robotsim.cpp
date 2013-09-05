@@ -3,7 +3,7 @@ using namespace std;
 
 #ifndef ROBOSIM_OBJECT
 #define ROBOSIM_OBJECT
-CRobotSim _simObject;
+CRobotSim *_simObject = new CRobotSim;
 #endif
 
 CRobotSim::CRobotSim(void) {
@@ -24,11 +24,12 @@ CRobotSim::CRobotSim(void) {
 
 CRobotSim::~CRobotSim(void) {
 	// remove simulation
-	THREAD_CANCEL(_simulation);
+	_running = 0;
+	THREAD_JOIN(_simulation);
 
 #ifdef ENABLE_GRAPHICS
 	// remove graphics
-	if (_osgThread) { THREAD_CANCEL(_osgThread); }
+	if (_osgThread) { viewer->setDone(true); THREAD_CANCEL(_osgThread); }
 #endif
 
 	// remove ground
@@ -42,7 +43,7 @@ CRobotSim::~CRobotSim(void) {
 	// remove robots
 	for ( int i = NUM_TYPES - 1; i >= 0; i--) {
 		for (int j = _robotNumber[i] - 1; j >= 0; j--) {
-			if (_robotThread[i][j]) {THREAD_CANCEL(_robotThread[i][j]); }
+			THREAD_JOIN(_robotThread[i][j]);
 		}
 		delete [] _robotThread[i];
 		delete [] _robot[i];
@@ -794,7 +795,10 @@ void* CRobotSim::graphicsThread(void *arg) {
 	SIGNAL(&(sim->_graphics_cond), &(sim->_graphics_mutex), sim->_graphics = 1);
 
 	// run viewer
-	sim->viewer->run();
+	//sim->viewer->run();
+	while (!sim->viewer->done()) {
+		sim->viewer->frame();
+	}
 
 	// trigger end of code when graphics window is closed
 	SIGNAL(&(sim->_running_cond), &(sim->_running_mutex), sim->_running = 0);
@@ -835,7 +839,12 @@ void* CRobotSim::simulationThread(void *arg) {
 	unsigned int start, end;
 #endif
 
-	while (1) {
+	MUTEX_LOCK(&(sim->_running_mutex));
+	while (sim->_running) {
+	//int k = 0;
+	//while (k++ < 100) {
+//printf("k: %d\n", k);
+		MUTEX_UNLOCK(&(sim->_running_mutex));
 		// get starting times
 #ifdef _WIN32
 		start = GetTickCount();
@@ -847,7 +856,7 @@ void* CRobotSim::simulationThread(void *arg) {
 		// lock pause variable
 		MUTEX_LOCK(&(sim->_pause_mutex));
 
-		while (!(sim->_pause)) {
+		while (!(sim->_pause) && sim->_running) {
 			// unlock pause variable
 			MUTEX_UNLOCK(&(sim->_pause_mutex));
 
@@ -921,7 +930,9 @@ void* CRobotSim::simulationThread(void *arg) {
 		}
 		// unlock pause variable
 		MUTEX_UNLOCK(&(sim->_pause_mutex));
+		MUTEX_LOCK(&(sim->_running_mutex));
 	}
+	MUTEX_UNLOCK(&(sim->_running_mutex));
 }
 
 void CRobotSim::collision(void *data, dGeomID o1, dGeomID o2) {

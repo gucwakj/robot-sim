@@ -20,7 +20,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #else
 		CLinkbotT(int disabled = -1, int type = LINKBOTT);
 #endif
-		~CLinkbotT();
+		virtual ~CLinkbotT();
 
 		int blinkLED(double delay, int num);
 		int connect();
@@ -422,7 +422,7 @@ class DLLIMPORT CLinkbotTGroup {
 class DLLIMPORT CLinkbotI {
 	public:
 		CLinkbotI();
-		~CLinkbotI();
+		virtual ~CLinkbotI();
 
 		int blinkLED(double delay, int num);
 		int connect();
@@ -624,7 +624,7 @@ class DLLIMPORT CLinkbotIGroup {
 class DLLIMPORT CLinkbotL {
 	public:
 		CLinkbotL();
-		~CLinkbotL();
+		virtual ~CLinkbotL();
 
 		int blinkLED(double delay, int num);
 		int connect();
@@ -861,7 +861,7 @@ class DLLIMPORT CLinkbotL : public CLinkbotT {
 };
 class DLLIMPORT CLinkbotIGroup : public CLinkbotTGroup {};
 class DLLIMPORT CLinkbotLGroup : public CLinkbotTGroup {};
-extern CRobotSim _simObject;
+extern CRobotSim *_simObject;
 #endif // _CH_
 
 #endif // LINKBOT_H_
