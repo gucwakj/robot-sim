@@ -884,7 +884,7 @@ void* CRobotSim::simulationThread(void *arg) {
 			sim->_clock += sim->_step;
 			dJointGroupEmpty(sim->_group);
 
-			sim->print_intermediate_data();
+			//sim->print_intermediate_data();
 
 			// perform post-collision updates
 			for (i = 0; i < NUM_TYPES; i++) {

@@ -1926,8 +1926,8 @@ void CLinkbotT::simPreCollisionThread(void) {
 	// get body rotation from world
 	const double *R = dBodyGetRotation(_body[BODY]);
 	// put into accel array
-	_accel[0] = -R[9];
-	_accel[1] = R[8];
+	_accel[0] = R[8];
+	_accel[1] = R[9];
 	_accel[2] = R[10];
 	// add gaussian noise to accel
 	this->noisy(_accel, 3, 0.005);
