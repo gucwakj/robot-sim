@@ -1805,6 +1805,8 @@ dReal CLinkbotT::getAngle(int i) {
 	else
 		_angle[i] = 0;
 
+	this->noisy(&(_angle[i]), 1, 0.0005);
+
     return _angle[i];
 }
 

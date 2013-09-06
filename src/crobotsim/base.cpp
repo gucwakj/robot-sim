@@ -69,16 +69,20 @@ int CRobot::noisy(double *a, int length, double sigma) {
 	double rand[length];
 	double sum = 0;
 
-	// compute magnitude of randomized vector
-	for (int i = 0; i < length; i++) {
-		rand[i] = this->normal(sigma);
-		sum += (a[i] + rand[i]) * (a[i] + rand[i]);
-	}
-	double mag = sqrt(sum);
-
-	// normalize vector
-	for (int i = 0; i < length; i++) {
-		a[i] = (a[i] + rand[i])/mag;
+	if (length == 1)
+		a[0] += this->normal(sigma);
+	else {
+		// compute magnitude of randomized vector
+		for (int i = 0; i < length; i++) {
+			rand[i] = this->normal(sigma);
+			sum += (a[i] + rand[i]) * (a[i] + rand[i]);
+		}
+		double mag = sqrt(sum);
+	
+		// normalize vector
+		for (int i = 0; i < length; i++) {
+			a[i] = (a[i] + rand[i])/mag;
+		}
 	}
 
 	// success
