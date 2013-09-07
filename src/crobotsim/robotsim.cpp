@@ -658,6 +658,9 @@ void* CRobotSim::graphicsThread(void *arg) {
 	camera->setReadBuffer(buffer);
 	sim->viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
+	sim->viewer->getCamera()->setComputeNearFarMode(osgUtil::CullVisitor::COMPUTE_NEAR_FAR_USING_PRIMITIVES);
+	sim->viewer->getCamera()->setNearFarRatio(0.00001);
+
 	// viewer camera properties
 	sim->viewer->addSlave(camera.get());
 	osgGA::TerrainManipulator *cameraManipulator = new osgGA::TerrainManipulator();
