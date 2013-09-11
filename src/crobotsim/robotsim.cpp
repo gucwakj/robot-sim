@@ -657,39 +657,50 @@ void* CRobotSim::graphicsThread(void *arg) {
 	camera->setDrawBuffer(buffer);
 	camera->setReadBuffer(buffer);
 	sim->viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
-
 	sim->viewer->getCamera()->setComputeNearFarMode(osgUtil::CullVisitor::COMPUTE_NEAR_FAR_USING_PRIMITIVES);
 	sim->viewer->getCamera()->setNearFarRatio(0.00001);
 
 	// viewer camera properties
 	sim->viewer->addSlave(camera.get());
-	osgGA::TerrainManipulator *cameraManipulator = new osgGA::TerrainManipulator();
-	//osgGA::TrackballManipulator *cameraManipulator = new osgGA::TrackballManipulator();
+	osgGA::OrbitManipulator *cameraManipulator = new osgGA::OrbitManipulator();
+	cameraManipulator->setDistance(0.1);
 	cameraManipulator->setAllowThrow(false);
+	cameraManipulator->setWheelZoomFactor(0);
+	cameraManipulator->setVerticalAxisFixed(true);
+	cameraManipulator->setElevation(0.5);
 	sim->viewer->setCameraManipulator(cameraManipulator);
-	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1.5, 1.5, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1.5, 1.5, 2), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
     // Creating the root node
 	sim->_osgRoot = new osg::Group();
-	//sim->_osgRoot->setUpdateCallback(new rootNodeCallback(sim, sim->_robot, sim->_osgRoot));
 
 	// load terrain node
-	osg::ref_ptr<osg::MatrixTransform> terrainScaleMAT = new osg::MatrixTransform();
 	osg::Depth *t_depth = new osg::Depth;
-	t_depth->setFunction(osg::Depth::ALWAYS);
-	t_depth->setRange(1.0,1.0);   
-	osg::StateSet *stateSet = new osg::StateSet();
-	stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-	stateSet->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
-	stateSet->setAttributeAndModes(t_depth, osg::StateAttribute::ON);
-	stateSet->setRenderBinDetails(-1, "RenderBin");
-	osg::Matrix terrainScaleMatrix;
-	terrainScaleMatrix.makeScale(2.f,2.f,0.006f);
-	osg::ref_ptr<osg::Node> terrainnode = osgDB::readNodeFile(TEXTURE_PATH(ground/terrain.3ds));
-	terrainScaleMAT->addChild(terrainnode.get());
-	terrainScaleMAT->setMatrix(terrainScaleMatrix);
-	terrainnode->setStateSet(stateSet);
-	sim->_osgRoot->addChild(terrainScaleMAT.get());
+	t_depth->setFunction(osg::Depth::LEQUAL);
+	t_depth->setRange(1.0, 1.0);
+
+	osg::StateSet *t_stateset = new osg::StateSet();
+	t_stateset->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	t_stateset->setMode(GL_CULL_FACE, osg::StateAttribute::ON);
+	t_stateset->setAttributeAndModes(t_depth, osg::StateAttribute::ON);
+	t_stateset->setRenderBinDetails(-1, "RenderBin");
+
+	osg::ref_ptr<osg::Node> t_geode = osgDB::readNodeFile(TEXTURE_PATH(ground/terrain.3ds));
+	t_geode->setCullingActive(false);
+	t_geode->setStateSet(t_stateset);
+	osg::ref_ptr<osg::PositionAttitudeTransform> t_transform = new osg::PositionAttitudeTransform();
+	t_transform->setScale(osg::Vec3d(2, 2, 0.001));
+	t_transform->setCullingActive(false);
+	t_transform->addChild(t_geode);
+	sim->_osgRoot->addChild(t_transform);
+
+	osgUtil::LineSegmentIntersector *r_segment = new osgUtil::LineSegmentIntersector(osg::Vec3d(0, 0, 999), osg::Vec3d(0, 0, -999));
+	osgUtil::IntersectionVisitor r_visitor;
+	r_visitor.setIntersector(r_segment);
+	t_transform->accept(r_visitor);
+	osgUtil::LineSegmentIntersector::Intersection r_hits = r_segment->getFirstIntersection();
+	osg::Vec3d r_pos = r_hits.getWorldIntersectPoint();
+	t_transform->setPosition(osg::Vec3d(r_pos[0], r_pos[1], -r_pos[2]));
 
 	// skybox
 	osg::StateSet* stateset = new osg::StateSet();
@@ -702,12 +713,12 @@ void* CRobotSim::graphicsThread(void *arg) {
 	osg::TexMat *tm = new osg::TexMat;
 	stateset->setTextureAttribute(0, tm);
     osg::TextureCubeMap* skymap = new osg::TextureCubeMap;
-	osg::Image* imagePosX = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_front.png));
-	osg::Image* imageNegX = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_back.png));
+	osg::Image* imagePosX = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_right.png));
+	osg::Image* imageNegX = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_left.png));
 	osg::Image* imagePosY = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_top.png));
 	osg::Image* imageNegY = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_top.png));
-	osg::Image* imagePosZ = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_left.png));
-	osg::Image* imageNegZ = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_right.png));
+	osg::Image* imagePosZ = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_front.png));
+	osg::Image* imageNegZ = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_back.png));
 
 	if (imagePosX && imageNegX && imagePosY && imageNegY && imagePosZ && imageNegZ) {
 		skymap->setImage(osg::TextureCubeMap::POSITIVE_X, imagePosX);
@@ -727,7 +738,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 	stateset->setMode( GL_CULL_FACE, osg::StateAttribute::OFF );
 	osg::Depth* depth = new osg::Depth;
 	depth->setFunction(osg::Depth::ALWAYS);
-	depth->setRange(1.0,1.0);   
+	depth->setRange(1.0,1.0);
 	stateset->setAttributeAndModes(depth, osg::StateAttribute::ON );
 	stateset->setRenderBinDetails(-1,"RenderBin");
 	osg::Drawable* drawable = new osg::ShapeDrawable(new osg::Sphere(osg::Vec3(0.0f,0.0f,0.0f),1));
@@ -757,14 +768,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 	HUDModelViewMatrix->setMatrix(osg::Matrix::identity());
 	HUDModelViewMatrix->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
 	HUDModelViewMatrix->addChild(HUDGeode);
-	// image
-	//osg::Texture2D *HUDTexture = new osg::Texture2D;
-	//HUDTexture->setDataVariance(osg::Object::DYNAMIC);
-	//osg::Image *imageHUD = osgDB::readImageFile(TEXTURE_PATH(ground/play.png));
-	//HUDTexture->setImage(imageHUD);
-	// state set
 	HUDGeode->setStateSet(HUDStateSet);
-	//HUDStateSet->setTextureAttributeAndModes(0, HUDTexture, osg::StateAttribute::ON);
 	HUDStateSet->setMode(GL_BLEND,osg::StateAttribute::ON);
 	HUDStateSet->setMode(GL_DEPTH_TEST,osg::StateAttribute::OFF);
 	HUDStateSet->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );
@@ -787,7 +791,6 @@ void* CRobotSim::graphicsThread(void *arg) {
 
 	// viewer event handlers
 	sim->viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause), textHUD));
-	sim->viewer->addEventHandler(new mouseEventHandler(cameraManipulator));
 	sim->viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
 	sim->viewer->addEventHandler(new osgViewer::WindowSizeHandler);
 
@@ -798,7 +801,6 @@ void* CRobotSim::graphicsThread(void *arg) {
 	SIGNAL(&(sim->_graphics_cond), &(sim->_graphics_mutex), sim->_graphics = 1);
 
 	// run viewer
-	//sim->viewer->run();
 	while (!sim->viewer->done()) {
 		sim->viewer->frame();
 	}
@@ -844,10 +846,8 @@ void* CRobotSim::simulationThread(void *arg) {
 
 	MUTEX_LOCK(&(sim->_running_mutex));
 	while (sim->_running) {
-	//int k = 0;
-	//while (k++ < 100) {
-//printf("k: %d\n", k);
 		MUTEX_UNLOCK(&(sim->_running_mutex));
+
 		// get starting times
 #ifdef _WIN32
 		start = GetTickCount();

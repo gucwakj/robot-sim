@@ -28,11 +28,7 @@
 #include <osgDB/Registry>
 
 #include <osgGA/StateSetManipulator>
-#include <osgGA/DriveManipulator>
-#include <osgGA/FirstPersonManipulator>
-#include <osgGA/TerrainManipulator>
-#include <osgGA/TrackballManipulator>
-#include <osgGA/SphericalManipulator>
+#include <osgGA/OrbitManipulator>
 
 #include <osgUtil/Optimizer>
 #include <osgUtil/CullVisitor>
@@ -46,33 +42,22 @@
 class CRobot;
 class CRobotSim;
 
+/**********************************************************
+	MoveEarthySkyWithEyePointTransform
+ **********************************************************/
 class MoveEarthySkyWithEyePointTransform : public osg::Transform {
 	public:
-		/** Get the transformation matrix which moves from local coords to world coords.*/
-		virtual bool computeLocalToWorldMatrix(osg::Matrix& matrix,osg::NodeVisitor* nv) const {
-			osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
-			if (cv) {
-				osg::Vec3 eyePointLocal = cv->getEyeLocal();
-				matrix.preMultTranslate(eyePointLocal);
-			}
-			return true;
-		}
-		/** Get the transformation matrix which moves from world coords to local coords.*/
-		virtual bool computeWorldToLocalMatrix(osg::Matrix& matrix,osg::NodeVisitor* nv) const {
-			osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
-			if (cv) {
-	    		osg::Vec3 eyePointLocal = cv->getEyeLocal();
-				matrix.postMultTranslate(-eyePointLocal);
-			}
-			return true;
-		}
+		virtual bool computeLocalToWorldMatrix(osg::Matrix &matrix, osg::NodeVisitor *nv) const;
+		virtual bool computeWorldToLocalMatrix(osg::Matrix &matrix, osg::NodeVisitor *nv) const;
 };
 
-// Update texture matrix for cubemaps
+/**********************************************************
+	TexMatCallback
+ **********************************************************/
 class TexMatCallback : public osg::NodeCallback {
 	public:
-		TexMatCallback(osg::TexMat& tm) : _texMat(tm) {}
-		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+		TexMatCallback(osg::TexMat &tm) : _texMat(tm) {}
+		virtual void operator()(osg::Node *node, osg::NodeVisitor *nv);
 	private:
 		osg::TexMat& _texMat;
 };
@@ -88,18 +73,6 @@ class keyboardEventHandler : public osgGA::GUIEventHandler {
 	private:
 		int *_pause;
 		osgText::Text *_text;
-};
-
-/**********************************************************
-	Mouse Event Handler
- **********************************************************/
-class mouseEventHandler : public osgGA::GUIEventHandler {
-	public:
-		mouseEventHandler(osgGA::TerrainManipulator *camera);
-		virtual bool handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa);
-		virtual void accept(osgGA::GUIEventHandlerVisitor &v);
-	private:
-		osgGA::TerrainManipulator *_camera;
 };
 
 /**********************************************************

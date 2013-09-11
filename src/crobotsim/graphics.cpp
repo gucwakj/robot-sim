@@ -1,6 +1,31 @@
 #include "graphics.h"
 #include "robotsim.h"
 
+
+/**********************************************************
+	MoveEarthySkyWithEyePointTransform
+ **********************************************************/
+bool MoveEarthySkyWithEyePointTransform::computeLocalToWorldMatrix(osg::Matrix &matrix,osg::NodeVisitor *nv) const {
+	osgUtil::CullVisitor *cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
+	if (cv) {
+		osg::Vec3 eyePointLocal = cv->getEyeLocal();
+		matrix.preMultTranslate(eyePointLocal);
+	}
+	return true;
+}
+
+bool MoveEarthySkyWithEyePointTransform::computeWorldToLocalMatrix(osg::Matrix &matrix,osg::NodeVisitor *nv) const {
+	osgUtil::CullVisitor *cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
+	if (cv) {
+  		osg::Vec3 eyePointLocal = cv->getEyeLocal();
+		matrix.postMultTranslate(-eyePointLocal);
+	}
+	return true;
+}
+
+/**********************************************************
+	TexMatCallback
+ **********************************************************/
 void TexMatCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	osgUtil::CullVisitor *cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
 	if (cv) {
@@ -45,26 +70,6 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 				default:
 					return false;
 			} 
-		default:
-			return false;
-	}
-}
-
-/**********************************************************
-	Mouse Event Handler
- **********************************************************/
-mouseEventHandler::mouseEventHandler(osgGA::TerrainManipulator *camera) {
-	_camera = camera;
-}
-
-void mouseEventHandler::accept(osgGA::GUIEventHandlerVisitor &v) {
-	v.visit(*this);
-};
-
-bool mouseEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa) {
-	switch (ea.getEventType()) {
-		case osgGA::GUIEventAdapter::SCROLL:
-			return false;
 		default:
 			return false;
 	}
