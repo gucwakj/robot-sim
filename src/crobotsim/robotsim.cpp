@@ -41,12 +41,11 @@ CRobotSim::~CRobotSim(void) {
 	}
 
 	// remove robots
-	for ( int i = NUM_TYPES - 1; i >= 0; i--) {
-		for (int j = _robotNumber[i] - 1; j >= 0; j--) {
-			THREAD_JOIN(_robotThread[i][j]);
-		}
-		delete [] _robotThread[i];
-		delete [] _robot[i];
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		robots_t tmp = rtmp->next;
+		delete rtmp;
+		rtmp = tmp;
 	}
 
 	// remove bot+connector list
@@ -79,7 +78,6 @@ int CRobotSim::init_ode(void) {
 	_world = dWorldCreate();							// create world for simulation
 	_space = dHashSpaceCreate(0);						// create space for robots
 	_group = dJointGroupCreate(0);						// create group for joints
-	//ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
 	ground_t ng = new struct ground_s;
 	ng->object = dCreatePlane(_space, 0, 0, 1, 0);
 	ng->next = NULL;
@@ -127,12 +125,7 @@ int CRobotSim::init_xml(void) {
 	// initialize variables
 	int *rtmp, *ftmp, *ntmp, *atmp, ctype, cnum;
 	_bot = NULL;
-	for ( int i = 0; i < NUM_TYPES; i++ ) {
-		_robot[i] = NULL;
-		_robotNumber[i] = 0;
-		_robotConnected[i] = 0;
-		_robotThread[i] = NULL;
-	}
+	_robots = NULL;
 	tinyxml2::XMLElement *ele = NULL;
 	tinyxml2::XMLElement *side = NULL;
 
@@ -166,13 +159,11 @@ int CRobotSim::init_xml(void) {
 			node->QueryDoubleAttribute("cor_b", &(_cor[1]));
 		}
 		else if ( !strcmp(node->Value(), "mobot") ) {
-			//bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
 			bot_t nr = new struct bot_s;
-			nr->type = 0;
+			nr->type = MOBOT;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0; nr->angle4 = 0;
-			_robotNumber[MOBOT]++;
 			node->QueryIntAttribute("id", &(nr->id));
 			if (ele = node->FirstChildElement("position")) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
@@ -204,13 +195,11 @@ int CRobotSim::init_xml(void) {
 			}
 		}
 		else if ( !strcmp(node->Value(), "linkboti") ) {
-			//bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
 			bot_t nr = new struct bot_s;
 			nr->type = LINKBOTI;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
-			_robotNumber[nr->type]++;
 			node->QueryIntAttribute("id", &(nr->id));
 			if (ele = node->FirstChildElement("position")) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
@@ -252,13 +241,11 @@ int CRobotSim::init_xml(void) {
 			}
 		}
 		else if ( !strcmp(node->Value(), "linkbotl") ) {
-			//bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
 			bot_t nr = new struct bot_s;
 			nr->type = LINKBOTL;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
-			_robotNumber[nr->type]++;
 			node->QueryIntAttribute("id", &(nr->id));
 			if (ele = node->FirstChildElement("position")) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
@@ -300,13 +287,11 @@ int CRobotSim::init_xml(void) {
 			}
 		}
 		else if ( !strcmp(node->Value(), "linkbott") ) {
-			//bot_t nr = (bot_t)malloc(sizeof(struct bot_s));
 			bot_t nr = new struct bot_s;
 			nr->type = LINKBOTT;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
-			_robotNumber[nr->type]++;
 			node->QueryIntAttribute("id", &(nr->id));
 			if (ele = node->FirstChildElement("position")) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
@@ -348,7 +333,6 @@ int CRobotSim::init_xml(void) {
 			}
 		}
 		else if ( !strcmp(node->Value(), "g_box") ) {
-			//ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
 			ground_t ng = new struct ground_s;
 			double lx, ly, lz, px, py, pz, psi, theta, phi;
 			if (ele = node->FirstChildElement("size")) {
@@ -388,7 +372,6 @@ int CRobotSim::init_xml(void) {
 			gtmp->next = ng;
 		}
 		else if ( !strcmp(node->Value(), "g_cylinder") ) {
-			//ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
 			ground_t ng = new struct ground_s;
 			double r, l, px, py, pz, psi, theta, phi;
 			if (ele = node->FirstChildElement("size")) {
@@ -427,7 +410,6 @@ int CRobotSim::init_xml(void) {
 			gtmp->next = ng;
 		}
 		else if ( !strcmp(node->Value(), "g_sphere") ) {
-			//ground_t *ng = (ground_t *)malloc(sizeof(struct ground_s));
 			ground_t ng = new struct ground_s;
 			double r, px, py, pz;
 			if (ele = node->FirstChildElement("size")) {
@@ -532,7 +514,6 @@ int CRobotSim::init_xml(void) {
 			bot_t tmp;
 			Conn_t *ctmp;
 			for (int j = 0; j < i; j++) {
-				//Conn_t *nc = (Conn_t *)malloc(sizeof(struct Conn_s));
 				Conn_t *nc = new struct Conn_s;
 				nc->robot = rtmp[0];
 				nc->face1 = ftmp[0];
@@ -584,14 +565,6 @@ int CRobotSim::init_xml(void) {
 		node = node->NextSiblingElement();
 	}
 
-	// set up robot variables
-	for (int i = 0; i < NUM_TYPES; i++) {
-		_robotThread[i] = new THREAD_T[_robotNumber[i]];
-		//_robot[i] =  (CRobot **)malloc((_robotNumber[i] + 1)*sizeof(CRobot *));
-		_robot[i] = new CRobot *[_robotNumber[i]];
-		//_robot[i] =  (CRobot **)realloc(_robot[i], (_robotNumber[i] + 1)*sizeof(CRobot *));
-	}
-
 	// success
 	return 0;
 }
@@ -629,27 +602,41 @@ int CRobotSim::addRobot(CRobot *robot) {
 	MUTEX_UNLOCK(&_graphics_mutex);
 #endif // ENABLE_GRAPHICS
 
-	// get type of robot being added
-	int type = robot->getType();
+	// lock robot data to insert a new one into simulation
+	MUTEX_LOCK(&_robot_mutex);
 
-	// find next robot in list
+	// create new robot struct
+	robots_t nr = new struct robots_s;
+	nr->robot = robot;
+	nr->next = NULL;
+
+	// add to ll
+	robots_t rtmp = _robots;
+	int connected = 0;
+	if ( _robots == NULL )
+		_robots = nr;
+	else {
+		while (rtmp->next) {
+			if (rtmp->robot->getType() == robot->getType()) connected++;
+			rtmp = rtmp->next;
+		}
+		connected++;
+		rtmp->next = nr;
+	}
+
+	// find specs about new robot
 	bot_t btmp = _bot;
 	int num = 0;
 	while (btmp) {
-		if (btmp->type != type) { btmp = btmp->next; continue; }
-		else { if (num++ != _robotConnected[type]) {btmp = btmp->next; continue;}}
+		if (btmp->type != robot->getType()) { btmp = btmp->next; continue; }
+		else { if (num++ != connected) {btmp = btmp->next; continue;}}
 		break;
 	}
 	if (btmp == NULL) { fprintf(stderr, "could not find robot\n"); exit(1); }
-
-	// lock robot data to insert a new one into simulation
-	MUTEX_LOCK(&_robot_mutex);
-	// connect to robot class
-	_robot[type][_robotConnected[type]] = robot;
-	// add simulation variables to robot class
-	_robot[type][_robotConnected[type]]->addToSim(_world, _space, &_clock);
-	// set unique id of this robot
-	_robot[type][_robotConnected[type]]->setID(btmp->id);
+	
+	// give simulation data to robot
+	robot->addToSim(_world, _space, &_clock);
+	robot->setID(btmp->id);
 
 	// find if robot is connected to another one
 	Conn_t *ctmp = btmp->conn;
@@ -662,27 +649,24 @@ int CRobotSim::addRobot(CRobot *robot) {
 
 	// if robot is connected to another one
 	if (ctmp) {
-		for (int j = 0; j < NUM_TYPES; j++) {
-			for (int i = 0; i < _robotConnected[j]; i++) {
-				if (_robot[j][i]->getRobotID() == ctmp->robot) {
-					_robot[type][_robotConnected[type]]->build(btmp, _robot[j][i], ctmp);
-					break;
-				}
+		rtmp = _robots;
+		while (rtmp) {
+			if (rtmp->robot->getRobotID() == ctmp->robot) {
+				robot->build(btmp, rtmp->robot, ctmp);
+				break;
 			}
+			rtmp = rtmp->next;
 		}
 	}
 	else {
-		_robot[type][_robotConnected[type]]->build(btmp);
+		robot->build(btmp);
 	}
 
 #ifdef ENABLE_GRAPHICS
 	// draw robot
-	_robot[type][_robotConnected[type]]->draw(_osgRoot);
+	robot->draw(_osgRoot);
 #endif // ENABLE_GRAPHICS
-
-	// another robot has been 'connected' to simulation
-	_robotConnected[type]++;
-
+	
 	// unlock robot data
 	MUTEX_UNLOCK(&_robot_mutex);
 
@@ -746,13 +730,11 @@ void* CRobotSim::simulation_thread(void *arg) {
 
 			// perform pre-collision updates
 			MUTEX_LOCK(&(sim->_robot_mutex));
-			for (i = 0; i < NUM_TYPES; i++) {
-				for (j = 0; j < sim->_robotConnected[i]; j++) {
-					THREAD_CREATE(&(sim->_robotThread[i][j]),
-								  (void* (*)(void *))&CRobot::simPreCollisionThreadEntry,
-								  (void *)(sim->_robot[i][j]));
-					THREAD_JOIN(sim->_robotThread[i][j]);
-				}
+			robots_t rtmp = sim->_robots;
+			while (rtmp) {
+				THREAD_CREATE(&(rtmp->thread), (void* (*)(void *))&CRobot::simPreCollisionThreadEntry, (void *)rtmp->robot);
+				THREAD_JOIN(rtmp->thread);
+				rtmp = rtmp->next;
 			}
 
 			// perform ode update
@@ -764,14 +746,13 @@ void* CRobotSim::simulation_thread(void *arg) {
 			//sim->print_intermediate_data();
 
 			// perform post-collision updates
-			for (i = 0; i < NUM_TYPES; i++) {
-				for (j = 0; j < sim->_robotConnected[i]; j++) {
-					THREAD_CREATE(&(sim->_robotThread[i][j]),
-								  (void* (*)(void *))&CRobot::simPostCollisionThreadEntry,
-								  (void *)(sim->_robot[i][j]));
-					THREAD_JOIN(sim->_robotThread[i][j]);
-				}
+			rtmp = sim->_robots;
+			while (rtmp) {
+				THREAD_CREATE(&(rtmp->thread), (void* (*)(void *))&CRobot::simPostCollisionThreadEntry, (void *)rtmp->robot);
+				THREAD_JOIN(rtmp->thread);
+				rtmp = rtmp->next;
 			}
+
 			MUTEX_UNLOCK(&(sim->_robot_mutex));
 
 			// sleep until next step
@@ -852,31 +833,30 @@ void CRobotSim::print_intermediate_data(void) {
 
     cout.width(10);
     cout.setf(ios::fixed, ios::floatfield);
-	//if (!((int)(_clock*1000) % 100)) { cout << _clock << "\t\t"; }
 	cout << _clock << "\t\t";
-	for (int i = 0; i < _robotConnected[MOBOT]; i++) {
-		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT1)) << " ";
-		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT2)) << " ";
-		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT3)) << " ";
-		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT4)) << "\t\t";
-		//cout << _robot[MOBOT][i]->getPosition(2,0) << " ";
-		//cout << _robot[MOBOT][i]->getPosition(2,1) << " ";
-		//cout << _robot[MOBOT][i]->getPosition(2,2) << "\t\t";
-	}
-	//cout << endl;
-	for (int i = 0; i < _robotConnected[LINKBOTI]; i++) {
-		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT1) << "\t";
-		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT2) << " ";
-		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT3) << "\t";
-		//cout << _robot[LINKBOTI][i]->getPosition(2, 0) << " ";
-		//cout << _robot[LINKBOTI][i]->getPosition(2, 1) << " ";
-		//cout << _robot[LINKBOTI][i]->getPosition(2, 2) << "\t";
-	}
-	//cout << endl;
-	for (int i = 0; i < _robotConnected[LINKBOTT]; i++) {
-		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT1) << "\t";
-		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT2) << "\t";
-		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT3) << "\t";
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		if (rtmp->robot->getType() == MOBOT) {
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT1)) << " ";
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT2)) << " ";
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT3)) << " ";
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT4)) << "\t\t";
+		}
+		else if (rtmp->robot->getType() == LINKBOTI) {
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT1)) << " ";
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT2)) << " ";
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT3)) << " ";
+		}
+		else if (rtmp->robot->getType() == LINKBOTL) {
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT1)) << " ";
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT2)) << " ";
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT3)) << " ";
+		}
+		else if (rtmp->robot->getType() == LINKBOTT) {
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT1)) << " ";
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT2)) << " ";
+			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT3)) << " ";
+		}
 	}
 	cout << endl;
 }
