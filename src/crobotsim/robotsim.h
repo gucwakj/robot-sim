@@ -60,7 +60,7 @@ class DLLIMPORT CRobotSim {
 
 #ifdef ENABLE_GRAPHICS
 		// variables
-		osgViewer::Viewer *viewer;	// viewer class holds all objects
+		osgViewer::Viewer *_viewer;	// viewer class holds all objects
 		THREAD_T _osgThread;		// thread to hold graphics
 		osg::Group *_osgRoot;		// osg root node
 		int _graphics;

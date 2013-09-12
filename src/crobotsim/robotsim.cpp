@@ -29,7 +29,7 @@ CRobotSim::~CRobotSim(void) {
 
 #ifdef ENABLE_GRAPHICS
 	// remove graphics
-	if (_osgThread) { viewer->setDone(true); THREAD_CANCEL(_osgThread); }
+	if (_osgThread) { _viewer->setDone(true); THREAD_CANCEL(_osgThread); }
 #endif
 
 	// remove ground
@@ -600,7 +600,7 @@ int CRobotSim::init_viz(void) {
 	//osg::setNotifyLevel(osg::DEBUG_FP);
 
     // construct the viewer
-	viewer = new osgViewer::Viewer();
+	_viewer = new osgViewer::Viewer();
 
 	// graphics hasn't started yet
 	_graphics = 0;
@@ -656,20 +656,20 @@ void* CRobotSim::graphicsThread(void *arg) {
 	GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
 	camera->setDrawBuffer(buffer);
 	camera->setReadBuffer(buffer);
-	sim->viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
-	sim->viewer->getCamera()->setComputeNearFarMode(osgUtil::CullVisitor::COMPUTE_NEAR_FAR_USING_PRIMITIVES);
-	sim->viewer->getCamera()->setNearFarRatio(0.00001);
+	sim->_viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	sim->_viewer->getCamera()->setComputeNearFarMode(osgUtil::CullVisitor::COMPUTE_NEAR_FAR_USING_PRIMITIVES);
+	sim->_viewer->getCamera()->setNearFarRatio(0.00001);
 
 	// viewer camera properties
-	sim->viewer->addSlave(camera.get());
+	sim->_viewer->addSlave(camera.get());
 	osgGA::OrbitManipulator *cameraManipulator = new osgGA::OrbitManipulator();
 	cameraManipulator->setDistance(0.1);
 	cameraManipulator->setAllowThrow(false);
 	cameraManipulator->setWheelZoomFactor(0);
 	cameraManipulator->setVerticalAxisFixed(true);
 	cameraManipulator->setElevation(0.5);
-	sim->viewer->setCameraManipulator(cameraManipulator);
-	sim->viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1.5, 1.5, 2), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	sim->_viewer->setCameraManipulator(cameraManipulator);
+	sim->_viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1.5, 1.5, 2), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
     // Creating the root node
 	sim->_osgRoot = new osg::Group();
@@ -787,22 +787,22 @@ void* CRobotSim::graphicsThread(void *arg) {
 	optimizer.optimize(sim->_osgRoot);
 
 	// set threading model
-	sim->viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+	sim->_viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
 	// viewer event handlers
-	sim->viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause), textHUD));
-	sim->viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
-	sim->viewer->addEventHandler(new osgViewer::WindowSizeHandler);
+	sim->_viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause), textHUD));
+	sim->_viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
+	sim->_viewer->addEventHandler(new osgViewer::WindowSizeHandler);
 
 	// set viewable
-	sim->viewer->setSceneData(sim->_osgRoot);
+	sim->_viewer->setSceneData(sim->_osgRoot);
 
 	// signal connection functions that graphics are set up
 	SIGNAL(&(sim->_graphics_cond), &(sim->_graphics_mutex), sim->_graphics = 1);
 
 	// run viewer
-	while (!sim->viewer->done()) {
-		sim->viewer->frame();
+	while (!sim->_viewer->done()) {
+		sim->_viewer->frame();
 	}
 
 	// trigger end of code when graphics window is closed
