@@ -70,6 +70,9 @@ CRobotSim::~CRobotSim(void) {
 	dCloseODE();
 }
 
+/**********************************************************
+	Initialization functions
+ **********************************************************/
 int CRobotSim::init_ode(void) {
 	// create ODE simulation space
 	dInitODE2(0);										// initialized ode library
@@ -102,7 +105,7 @@ int CRobotSim::init_sim(void) {
 	_cor[0] = 0.3;	_cor[1] = 0.3;
 
 	// thread variables
-	THREAD_CREATE(&_simulation, (void* (*)(void *))&CRobotSim::simulationThread, this);
+	THREAD_CREATE(&_simulation, (void* (*)(void *))&CRobotSim::simulation_thread, this);
 	MUTEX_INIT(&_robot_mutex);
 	MUTEX_INIT(&_running_mutex);
 	COND_INIT(&_running_cond);
@@ -606,13 +609,280 @@ int CRobotSim::init_viz(void) {
 	_graphics = 0;
 
 	// create graphics thread
-	THREAD_CREATE(&_osgThread, (void* (*)(void *))&CRobotSim::graphicsThread, (void *)this);
+	THREAD_CREATE(&_osgThread, (void* (*)(void *))&CRobotSim::graphics_thread, (void *)this);
+
+	// success
+	return 0;
+}
+#endif
+
+/**********************************************************
+	Public member functions
+ **********************************************************/
+int CRobotSim::addRobot(CRobot *robot) {
+#ifdef ENABLE_GRAPHICS
+	// wait for graphics to be ready
+	MUTEX_LOCK(&_graphics_mutex);
+	while (!_graphics) {
+		COND_WAIT(&_graphics_cond, &_graphics_mutex);
+	}
+	MUTEX_UNLOCK(&_graphics_mutex);
+#endif // ENABLE_GRAPHICS
+
+	// get type of robot being added
+	int type = robot->getType();
+
+	// find next robot in list
+	bot_t btmp = _bot;
+	int num = 0;
+	while (btmp) {
+		if (btmp->type != type) { btmp = btmp->next; continue; }
+		else { if (num++ != _robotConnected[type]) {btmp = btmp->next; continue;}}
+		break;
+	}
+	if (btmp == NULL) { fprintf(stderr, "could not find robot\n"); exit(1); }
+
+	// lock robot data to insert a new one into simulation
+	MUTEX_LOCK(&_robot_mutex);
+	// connect to robot class
+	_robot[type][_robotConnected[type]] = robot;
+	// add simulation variables to robot class
+	_robot[type][_robotConnected[type]]->addToSim(_world, _space, &_clock);
+	// set unique id of this robot
+	_robot[type][_robotConnected[type]]->setID(btmp->id);
+
+	// find if robot is connected to another one
+	Conn_t *ctmp = btmp->conn;
+	while (ctmp) {
+		if ( ctmp->robot != btmp->id ) {
+			break;
+		}
+		ctmp = ctmp->next;
+	}
+
+	// if robot is connected to another one
+	if (ctmp) {
+		for (int j = 0; j < NUM_TYPES; j++) {
+			for (int i = 0; i < _robotConnected[j]; i++) {
+				if (_robot[j][i]->getRobotID() == ctmp->robot) {
+					_robot[type][_robotConnected[type]]->build(btmp, _robot[j][i], ctmp);
+					break;
+				}
+			}
+		}
+	}
+	else {
+		_robot[type][_robotConnected[type]]->build(btmp);
+	}
+
+#ifdef ENABLE_GRAPHICS
+	// draw robot
+	_robot[type][_robotConnected[type]]->draw(_osgRoot);
+#endif // ENABLE_GRAPHICS
+
+	// another robot has been 'connected' to simulation
+	_robotConnected[type]++;
+
+	// unlock robot data
+	MUTEX_UNLOCK(&_robot_mutex);
 
 	// success
 	return 0;
 }
 
-void* CRobotSim::graphicsThread(void *arg) {
+int CRobotSim::setExitState(void) {
+	MUTEX_LOCK(&_running_mutex);
+	while (_running) {
+		COND_WAIT(&_running_cond, &_running_mutex);
+	}
+	MUTEX_UNLOCK(&_running_mutex);
+
+	// success
+	return 0;
+}
+
+/**********************************************************
+	Private functions
+ **********************************************************/
+void* CRobotSim::simulation_thread(void *arg) {
+	// cast to type sim 
+	CRobotSim *sim = (CRobotSim *)arg;
+
+	// initialize local variables
+	unsigned int sum = 0, dt[4] = {0};
+	int i, j;
+#ifdef _WIN32
+	DWORD start_time, start;
+#else
+	struct timespec start_time, end_time;
+	unsigned int start, end;
+#endif
+
+	MUTEX_LOCK(&(sim->_running_mutex));
+	while (sim->_running) {
+		MUTEX_UNLOCK(&(sim->_running_mutex));
+
+		// get starting times
+#ifdef _WIN32
+		start = GetTickCount();
+#else
+		clock_gettime(CLOCK_REALTIME, &start_time);
+		start = start_time.tv_sec*1000 + start_time.tv_nsec/1000000;
+#endif
+
+		// lock pause variable
+		MUTEX_LOCK(&(sim->_pause_mutex));
+
+		while (!(sim->_pause) && sim->_running) {
+			// unlock pause variable
+			MUTEX_UNLOCK(&(sim->_pause_mutex));
+
+			// get start time of execution
+#ifdef _WIN32
+			start_time = GetTickCount();
+#else
+			clock_gettime(CLOCK_REALTIME, &start_time);
+#endif
+
+			// perform pre-collision updates
+			MUTEX_LOCK(&(sim->_robot_mutex));
+			for (i = 0; i < NUM_TYPES; i++) {
+				for (j = 0; j < sim->_robotConnected[i]; j++) {
+					THREAD_CREATE(&(sim->_robotThread[i][j]),
+								  (void* (*)(void *))&CRobot::simPreCollisionThreadEntry,
+								  (void *)(sim->_robot[i][j]));
+					THREAD_JOIN(sim->_robotThread[i][j]);
+				}
+			}
+
+			// perform ode update
+			dSpaceCollide(sim->_space, sim, &sim->collision);
+			dWorldStep(sim->_world, sim->_step);
+			sim->_clock += sim->_step;
+			dJointGroupEmpty(sim->_group);
+
+			//sim->print_intermediate_data();
+
+			// perform post-collision updates
+			for (i = 0; i < NUM_TYPES; i++) {
+				for (j = 0; j < sim->_robotConnected[i]; j++) {
+					THREAD_CREATE(&(sim->_robotThread[i][j]),
+								  (void* (*)(void *))&CRobot::simPostCollisionThreadEntry,
+								  (void *)(sim->_robot[i][j]));
+					THREAD_JOIN(sim->_robotThread[i][j]);
+				}
+			}
+			MUTEX_UNLOCK(&(sim->_robot_mutex));
+
+			// sleep until next step
+#ifdef _WIN32
+			dt[0] = GetTickCount() - start_time;
+			for (i = 0; i < 4; i++) { sum += dt[i]; }
+			for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
+			sum /= 4;
+			if (GetTickCount() - start > (unsigned int)(sim->_clock*1000))
+				sim->_step = (GetTickCount() - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
+			else {
+				sim->_step = sum/1000.0;
+				Sleep((unsigned int)(sim->_clock*1000) - (GetTickCount() - start));
+			}
+			sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
+#else
+			clock_gettime(CLOCK_REALTIME, &end_time);
+			dt[0] = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
+			end = end_time.tv_sec*1000 + end_time.tv_nsec/1000000;
+			for (i = 0; i < 4; i++) { sum += dt[i]; }
+			for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
+			sum /= 4;
+			if (end - start > (unsigned int)(sim->_clock*1000))
+				sim->_step = (end - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
+			else {
+				sim->_step = sum/1000.0;
+				usleep(sim->_clock*1000000 - ((end - start)*1000));
+			}
+			sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
+#endif
+			// lock pause variable
+			MUTEX_LOCK(&(sim->_pause_mutex));
+		}
+		// unlock pause variable
+		MUTEX_UNLOCK(&(sim->_pause_mutex));
+		MUTEX_LOCK(&(sim->_running_mutex));
+	}
+	MUTEX_UNLOCK(&(sim->_running_mutex));
+}
+
+void CRobotSim::collision(void *data, dGeomID o1, dGeomID o2) {
+	// cast void pointer to pointer to class
+	CRobotSim *ptr = (CRobotSim *)data;
+
+	// get bodies of geoms
+	dBodyID b1 = dGeomGetBody(o1);
+	dBodyID b2 = dGeomGetBody(o2);
+
+	// if geom bodies are connected, do not intersect
+	if ( b1 && b2 && dAreConnected(b1, b2) ) return;
+
+	// special case for collision of spaces
+	if (dGeomIsSpace(o1) || dGeomIsSpace(o2)) {
+		dSpaceCollide2(o1, o2, ptr, &ptr->collision);
+		if ( dGeomIsSpace(o1) )	dSpaceCollide((dSpaceID)o1, ptr, &ptr->collision);
+		if ( dGeomIsSpace(o2) ) dSpaceCollide((dSpaceID)o2, ptr, &ptr->collision);
+	}
+	else {
+		dContact contact[8] = {0};
+		for ( int i = 0; i < dCollide(o1, o2, 8, &contact[0].geom, sizeof(dContact)); i++ ) {
+			if ( dGeomGetSpace(o1) == ptr->_space || dGeomGetSpace(o2) == ptr->_space ) {
+				contact[i].surface.mu = ptr->_mu[0];
+				contact[i].surface.bounce = ptr->_cor[0];
+			}
+			else {
+				contact[i].surface.mu = ptr->_mu[1];
+				contact[i].surface.bounce = ptr->_cor[1];
+			}
+			contact[i].surface.mode = dContactBounce | dContactApprox1;
+			dJointAttach( dJointCreateContact(ptr->_world, ptr->_group, contact + i), b1, b2);
+		}
+	}
+}
+
+void CRobotSim::print_intermediate_data(void) {
+	// initialze loop counters
+	static int j = 0;
+
+    cout.width(10);
+    cout.setf(ios::fixed, ios::floatfield);
+	//if (!((int)(_clock*1000) % 100)) { cout << _clock << "\t\t"; }
+	cout << _clock << "\t\t";
+	for (int i = 0; i < _robotConnected[MOBOT]; i++) {
+		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT1)) << " ";
+		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT2)) << " ";
+		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT3)) << " ";
+		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT4)) << "\t\t";
+		//cout << _robot[MOBOT][i]->getPosition(2,0) << " ";
+		//cout << _robot[MOBOT][i]->getPosition(2,1) << " ";
+		//cout << _robot[MOBOT][i]->getPosition(2,2) << "\t\t";
+	}
+	//cout << endl;
+	for (int i = 0; i < _robotConnected[LINKBOTI]; i++) {
+		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT1) << "\t";
+		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT2) << " ";
+		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT3) << "\t";
+		//cout << _robot[LINKBOTI][i]->getPosition(2, 0) << " ";
+		//cout << _robot[LINKBOTI][i]->getPosition(2, 1) << " ";
+		//cout << _robot[LINKBOTI][i]->getPosition(2, 2) << "\t";
+	}
+	//cout << endl;
+	for (int i = 0; i < _robotConnected[LINKBOTT]; i++) {
+		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT1) << "\t";
+		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT2) << "\t";
+		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT3) << "\t";
+	}
+	cout << endl;
+}
+
+#ifdef ENABLE_GRAPHICS
+void* CRobotSim::graphics_thread(void *arg) {
 	// cast viewer
 	CRobotSim *sim = (CRobotSim *)arg;
 
@@ -814,275 +1084,7 @@ void* CRobotSim::graphicsThread(void *arg) {
 #endif // ENABLE_GRAPHICS
 
 /**********************************************************
-	Public Member Functions
- **********************************************************/
-int CRobotSim::setExitState(void) {
-	MUTEX_LOCK(&_running_mutex);
-	while (_running) {
-		COND_WAIT(&_running_cond, &_running_mutex);
-	}
-	MUTEX_UNLOCK(&_running_mutex);
-
-	// success
-	return 0;
-}
-
-/**********************************************************
-	Private Simulation Functions
- **********************************************************/
-void* CRobotSim::simulationThread(void *arg) {
-	// cast to type sim 
-	CRobotSim *sim = (CRobotSim *)arg;
-
-	// initialize local variables
-	unsigned int sum = 0, dt[4] = {0};
-	int i, j;
-#ifdef _WIN32
-	DWORD start_time, start;
-#else
-	struct timespec start_time, end_time;
-	unsigned int start, end;
-#endif
-
-	MUTEX_LOCK(&(sim->_running_mutex));
-	while (sim->_running) {
-		MUTEX_UNLOCK(&(sim->_running_mutex));
-
-		// get starting times
-#ifdef _WIN32
-		start = GetTickCount();
-#else
-		clock_gettime(CLOCK_REALTIME, &start_time);
-		start = start_time.tv_sec*1000 + start_time.tv_nsec/1000000;
-#endif
-
-		// lock pause variable
-		MUTEX_LOCK(&(sim->_pause_mutex));
-
-		while (!(sim->_pause) && sim->_running) {
-			// unlock pause variable
-			MUTEX_UNLOCK(&(sim->_pause_mutex));
-
-			// get start time of execution
-#ifdef _WIN32
-			start_time = GetTickCount();
-#else
-			clock_gettime(CLOCK_REALTIME, &start_time);
-#endif
-
-			// perform pre-collision updates
-			MUTEX_LOCK(&(sim->_robot_mutex));
-			for (i = 0; i < NUM_TYPES; i++) {
-				for (j = 0; j < sim->_robotConnected[i]; j++) {
-					THREAD_CREATE(&(sim->_robotThread[i][j]),
-								  (void* (*)(void *))&CRobot::simPreCollisionThreadEntry,
-								  (void *)(sim->_robot[i][j]));
-					THREAD_JOIN(sim->_robotThread[i][j]);
-				}
-			}
-
-			// perform ode update
-			dSpaceCollide(sim->_space, sim, &sim->collision);
-			dWorldStep(sim->_world, sim->_step);
-			sim->_clock += sim->_step;
-			dJointGroupEmpty(sim->_group);
-
-			//sim->print_intermediate_data();
-
-			// perform post-collision updates
-			for (i = 0; i < NUM_TYPES; i++) {
-				for (j = 0; j < sim->_robotConnected[i]; j++) {
-					THREAD_CREATE(&(sim->_robotThread[i][j]),
-								  (void* (*)(void *))&CRobot::simPostCollisionThreadEntry,
-								  (void *)(sim->_robot[i][j]));
-					THREAD_JOIN(sim->_robotThread[i][j]);
-				}
-			}
-			MUTEX_UNLOCK(&(sim->_robot_mutex));
-
-			// sleep until next step
-#ifdef _WIN32
-			dt[0] = GetTickCount() - start_time;
-			for (i = 0; i < 4; i++) { sum += dt[i]; }
-			for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
-			sum /= 4;
-			if (GetTickCount() - start > (unsigned int)(sim->_clock*1000))
-				sim->_step = (GetTickCount() - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
-			else {
-				sim->_step = sum/1000.0;
-				Sleep((unsigned int)(sim->_clock*1000) - (GetTickCount() - start));
-			}
-			sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
-#else
-			clock_gettime(CLOCK_REALTIME, &end_time);
-			dt[0] = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
-			end = end_time.tv_sec*1000 + end_time.tv_nsec/1000000;
-			for (i = 0; i < 4; i++) { sum += dt[i]; }
-			for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
-			sum /= 4;
-			if (end - start > (unsigned int)(sim->_clock*1000))
-				sim->_step = (end - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
-			else {
-				sim->_step = sum/1000.0;
-				usleep(sim->_clock*1000000 - ((end - start)*1000));
-			}
-			sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
-#endif
-			// lock pause variable
-			MUTEX_LOCK(&(sim->_pause_mutex));
-		}
-		// unlock pause variable
-		MUTEX_UNLOCK(&(sim->_pause_mutex));
-		MUTEX_LOCK(&(sim->_running_mutex));
-	}
-	MUTEX_UNLOCK(&(sim->_running_mutex));
-}
-
-void CRobotSim::collision(void *data, dGeomID o1, dGeomID o2) {
-	// cast void pointer to pointer to class
-	CRobotSim *ptr = (CRobotSim *)data;
-
-	// get bodies of geoms
-	dBodyID b1 = dGeomGetBody(o1);
-	dBodyID b2 = dGeomGetBody(o2);
-
-	// if geom bodies are connected, do not intersect
-	if ( b1 && b2 && dAreConnected(b1, b2) ) return;
-
-	// special case for collision of spaces
-	if (dGeomIsSpace(o1) || dGeomIsSpace(o2)) {
-		dSpaceCollide2(o1, o2, ptr, &ptr->collision);
-		if ( dGeomIsSpace(o1) )	dSpaceCollide((dSpaceID)o1, ptr, &ptr->collision);
-		if ( dGeomIsSpace(o2) ) dSpaceCollide((dSpaceID)o2, ptr, &ptr->collision);
-	}
-	else {
-		dContact contact[8] = {0};
-		for ( int i = 0; i < dCollide(o1, o2, 8, &contact[0].geom, sizeof(dContact)); i++ ) {
-			if ( dGeomGetSpace(o1) == ptr->_space || dGeomGetSpace(o2) == ptr->_space ) {
-				contact[i].surface.mu = ptr->_mu[0];
-				contact[i].surface.bounce = ptr->_cor[0];
-			}
-			else {
-				contact[i].surface.mu = ptr->_mu[1];
-				contact[i].surface.bounce = ptr->_cor[1];
-			}
-			contact[i].surface.mode = dContactBounce | dContactApprox1;
-			dJointAttach( dJointCreateContact(ptr->_world, ptr->_group, contact + i), b1, b2);
-		}
-	}
-}
-
-void CRobotSim::print_intermediate_data(void) {
-	// initialze loop counters
-	static int j = 0;
-
-    cout.width(10);
-    cout.setf(ios::fixed, ios::floatfield);
-	//if (!((int)(_clock*1000) % 100)) { cout << _clock << "\t\t"; }
-	cout << _clock << "\t\t";
-	for (int i = 0; i < _robotConnected[MOBOT]; i++) {
-		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT1)) << " ";
-		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT2)) << " ";
-		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT3)) << " ";
-		//cout << RAD2DEG(_robot[MOBOT][i]->getAngle(ROBOT_JOINT4)) << "\t\t";
-		//cout << _robot[MOBOT][i]->getPosition(2,0) << " ";
-		//cout << _robot[MOBOT][i]->getPosition(2,1) << " ";
-		//cout << _robot[MOBOT][i]->getPosition(2,2) << "\t\t";
-	}
-	//cout << endl;
-	for (int i = 0; i < _robotConnected[LINKBOTI]; i++) {
-		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT1) << "\t";
-		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT2) << " ";
-		//cout << _robot[LINKBOTI][i]->getAngle(ROBOT_JOINT3) << "\t";
-		//cout << _robot[LINKBOTI][i]->getPosition(2, 0) << " ";
-		//cout << _robot[LINKBOTI][i]->getPosition(2, 1) << " ";
-		//cout << _robot[LINKBOTI][i]->getPosition(2, 2) << "\t";
-	}
-	//cout << endl;
-	for (int i = 0; i < _robotConnected[LINKBOTT]; i++) {
-		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT1) << "\t";
-		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT2) << "\t";
-		cout << _robot[LINKBOTT][i]->getAngle(ROBOT_JOINT3) << "\t";
-	}
-	cout << endl;
-}
-
-/**********************************************************
-	Add Robot Functions
- **********************************************************/
-int CRobotSim::addRobot(CRobot *robot) {
-#ifdef ENABLE_GRAPHICS
-	// wait for graphics to be ready
-	MUTEX_LOCK(&_graphics_mutex);
-	while (!_graphics) {
-		COND_WAIT(&_graphics_cond, &_graphics_mutex);
-	}
-	MUTEX_UNLOCK(&_graphics_mutex);
-#endif // ENABLE_GRAPHICS
-
-	// get type of robot being added
-	int type = robot->getType();
-
-	// find next robot in list
-	bot_t btmp = _bot;
-	int num = 0;
-	while (btmp) {
-		if (btmp->type != type) { btmp = btmp->next; continue; }
-		else { if (num++ != _robotConnected[type]) {btmp = btmp->next; continue;}}
-		break;
-	}
-	if (btmp == NULL) { fprintf(stderr, "could not find robot\n"); exit(1); }
-
-	// lock robot data to insert a new one into simulation
-	MUTEX_LOCK(&_robot_mutex);
-	// connect to robot class
-	_robot[type][_robotConnected[type]] = robot;
-	// add simulation variables to robot class
-	_robot[type][_robotConnected[type]]->addToSim(_world, _space, &_clock);
-	// set unique id of this robot
-	_robot[type][_robotConnected[type]]->setID(btmp->id);
-
-	// find if robot is connected to another one
-	Conn_t *ctmp = btmp->conn;
-	while (ctmp) {
-		if ( ctmp->robot != btmp->id ) {
-			break;
-		}
-		ctmp = ctmp->next;
-	}
-
-	// if robot is connected to another one
-	if (ctmp) {
-		for (int j = 0; j < NUM_TYPES; j++) {
-			for (int i = 0; i < _robotConnected[j]; i++) {
-				if (_robot[j][i]->getRobotID() == ctmp->robot) {
-					_robot[type][_robotConnected[type]]->build(btmp, _robot[j][i], ctmp);
-					break;
-				}
-			}
-		}
-	}
-	else {
-		_robot[type][_robotConnected[type]]->build(btmp);
-	}
-
-#ifdef ENABLE_GRAPHICS
-	// draw robot
-	_robot[type][_robotConnected[type]]->draw(_osgRoot);
-#endif // ENABLE_GRAPHICS
-
-	// another robot has been 'connected' to simulation
-	_robotConnected[type]++;
-
-	// unlock robot data
-	MUTEX_UNLOCK(&_robot_mutex);
-
-	// success
-	return 0;
-}
-
-/**********************************************************
-	Utility Functions
+	Utility functions
  **********************************************************/
 #ifndef _CH_
 void delay(double seconds) {

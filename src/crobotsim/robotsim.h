@@ -51,12 +51,12 @@ class DLLIMPORT CRobotSim {
 		THREAD_T* _robotThread[NUM_TYPES];	// thread for each robot
 
 		// private functions
-		void print_intermediate_data(void);			// print data out at each time step for analysis
-		static void* simulationThread(void *arg);
+		int init_ode(void);				// init function for ode variables
+		int init_sim(void);				// init function for simulation variables
+		int init_xml(void);				// init function to read xml config file
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
-		int init_ode(void);
-		int init_sim(void);
-		int init_xml(void);
+		static void* simulation_thread(void *arg);					// simulation thread function
+		void print_intermediate_data(void);							// print data out at each time step for analysis
 
 #ifdef ENABLE_GRAPHICS
 		// variables
@@ -68,7 +68,7 @@ class DLLIMPORT CRobotSim {
 		COND_T _graphics_cond;
 		// functions
 		int init_viz(void);
-		static void* graphicsThread(void *arg);
+		static void* graphics_thread(void *arg);
 #endif // ENABLE_GRAPHICS
 #else
 	public:
