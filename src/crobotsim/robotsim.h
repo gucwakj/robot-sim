@@ -38,7 +38,6 @@ class DLLIMPORT CRobotSim {
 		dReal _clock;						// clock time of simulation
 		double _cor[2];						// coefficient of restitution [body/ground, body/body]
 		double _mu[2];						// coefficient of friction [body/ground, body/body]
-		int _connected[NUM_TYPES];			// number connected of each robot type
 		int _pause;							// is the simulation paused
 		int _robotNumber[NUM_TYPES];		// number of each robot type
 		int _robotConnected[NUM_TYPES];		// number of each robot type
