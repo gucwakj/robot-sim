@@ -50,7 +50,7 @@ CRobotSim::~CRobotSim(void) {
 	}
 
 	// remove bot+connector list
-	bot_t btmp = bot;
+	bot_t btmp = _bot;
 	while (btmp) {
 		bot_t tmp = btmp->next;
 		Conn_t *ctmp = btmp->conn;
@@ -123,7 +123,7 @@ int CRobotSim::init_sim(void) {
 int CRobotSim::init_xml(void) {
 	// initialize variables
 	int *rtmp, *ftmp, *ntmp, *atmp, ctype, cnum;
-	bot = NULL;
+	_bot = NULL;
 	for ( int i = 0; i < NUM_TYPES; i++ ) {
 		_robot[i] = NULL;
 		_robotNumber[i] = 0;
@@ -191,9 +191,9 @@ int CRobotSim::init_xml(void) {
 			nr->next = NULL;
 
 			// put new bot at end of list
-			bot_t rtmp = bot;
-			if ( bot == NULL )
-				bot = nr;
+			bot_t rtmp = _bot;
+			if ( _bot == NULL )
+				_bot = nr;
 			else {
 				while (rtmp->next)
 					rtmp = rtmp->next;
@@ -239,9 +239,9 @@ int CRobotSim::init_xml(void) {
 			nr->next = NULL;
 
 			// put new bot at end of list
-			bot_t rtmp = bot;
-			if ( bot == NULL )
-				bot = nr;
+			bot_t rtmp = _bot;
+			if ( _bot == NULL )
+				_bot = nr;
 			else {
 				while (rtmp->next)
 					rtmp = rtmp->next;
@@ -287,9 +287,9 @@ int CRobotSim::init_xml(void) {
 			nr->next = NULL;
 
 			// put new bot at end of list
-			bot_t rtmp = bot;
-			if ( bot == NULL )
-				bot = nr;
+			bot_t rtmp = _bot;
+			if ( _bot == NULL )
+				_bot = nr;
 			else {
 				while (rtmp->next)
 					rtmp = rtmp->next;
@@ -335,9 +335,9 @@ int CRobotSim::init_xml(void) {
 			nr->next = NULL;
 
 			// put new bot at end of list
-			bot_t rtmp = bot;
-			if ( bot == NULL )
-				bot = nr;
+			bot_t rtmp = _bot;
+			if ( _bot == NULL )
+				_bot = nr;
 			else {
 				while (rtmp->next)
 					rtmp = rtmp->next;
@@ -538,7 +538,7 @@ int CRobotSim::init_xml(void) {
 				nc->side = ntmp[j];
 				nc->type = ctype;
 				nc->next = NULL;
-				tmp = bot;
+				tmp = _bot;
 				while (tmp && tmp->id != rtmp[j])
 					tmp = tmp->next;
 				if (tmp == NULL) { printf("ERROR: robot %d could not be found.\n", rtmp[j]); exit(1); }
@@ -1024,7 +1024,7 @@ int CRobotSim::addRobot(CRobot *robot) {
 	int type = robot->getType();
 
 	// find next robot in list
-	bot_t btmp = bot;
+	bot_t btmp = _bot;
 	int num = 0;
 	while (btmp) {
 		if (btmp->type != type) { btmp = btmp->next; continue; }

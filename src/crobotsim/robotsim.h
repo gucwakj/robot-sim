@@ -33,20 +33,20 @@ class DLLIMPORT CRobotSim {
 		dJointGroupID _group;				// group to store joints
 		ground_t _ground;					// ground (static) objects
 		CRobot** _robot[NUM_TYPES];			// array of all robots of every type
-		bot_t bot;
+		bot_t _bot;							// robots read from config file
 		dReal _step;						// time of each step of simulation
 		dReal _clock;						// clock time of simulation
-		double _mu[2];						// coefficient of friction [body/ground, body/body]
 		double _cor[2];						// coefficient of restitution [body/ground, body/body]
+		double _mu[2];						// coefficient of friction [body/ground, body/body]
+		int _connected[NUM_TYPES];			// number connected of each robot type
+		int _pause;							// is the simulation paused
 		int _robotNumber[NUM_TYPES];		// number of each robot type
 		int _robotConnected[NUM_TYPES];		// number of each robot type
-		int _connected[NUM_TYPES];			// number connected of each robot type
 		int _running;						// is the program running
-		int _pause;							// is the simulation paused
+		COND_T _running_cond;				// condition for actively running program
+		MUTEX_T _pause_mutex;				// mutex for paused simulation
 		MUTEX_T _robot_mutex;				// mutex for ground collisions
 		MUTEX_T _running_mutex;				// mutex for actively running program
-		MUTEX_T _pause_mutex;				// mutex for paused simulation
-		COND_T _running_cond;				// condition for actively running program
 		THREAD_T _simulation;				// simulation thread
 		THREAD_T* _robotThread[NUM_TYPES];	// thread for each robot
 
