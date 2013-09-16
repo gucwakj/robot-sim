@@ -23,7 +23,8 @@
 #include <cstring>
 #include <cstdarg>
 #ifdef ENABLE_GRAPHICS
-#include <osg/Group>
+//#include <osg/Group>
+#include "graphics.h"
 #endif // ENABLE_GRAPHICS
 #else
 #define DLLIMPORT
@@ -177,8 +178,6 @@ class DLLIMPORT CRobot {
 		static void* simPreCollisionThreadEntry(void *arg);
 		static void* simPostCollisionThreadEntry(void *arg);
 
-		int setMotion(bool motion);
-
 		double uniform(void);
 		double normal(double sigma);
 		int noisy(double *a, int length, double sigma);
@@ -202,12 +201,77 @@ class DLLIMPORT CRobot {
 		virtual int setID(int id) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;
-#ifdef ENABLE_GRAPHICS
-		virtual void draw(osg::Group *root) = 0;
-#endif // ENABLE_GRAPHICS
 
-		bool _motion;				// motion in progress
-		int _seed;					// seed for random number generation
+		// recording angles struct
+		typedef struct recordAngleArg_s {
+			CRobot *robot;
+			robotJointId_t id;
+			int num;
+			int msecs;
+			double *time;
+			double **ptime;
+			double *angle1;
+			double **pangle1;
+			double *angle2;
+			double **pangle2;
+			double *angle3;
+			double **pangle3;
+			double *angle4;
+			double **pangle4;
+		} recordAngleArg_t;
+		// connector
+		typedef struct conn_s {
+			int face, type;
+			dBodyID body;
+			dGeomID *geom;
+			struct conn_s *next;
+		} *conn_t;
+
+		bool _motion;			// motion in progress
+		bool *_recording;		// recording in progress
+		bool *_rec_active;		// actively recording a new value
+		bool *_seek;			// currently seeking goal?
+		conn_t _conn;			// connectors
+		dBodyID *_body;			// body parts
+		dGeomID **_geom;		// geometries of each body part
+		dJointID *_joint;		// joints between body parts
+		dJointID *_motor;		// motors
+		dReal *_clock;			// world clock
+		dReal *_angle;			// angles
+		dReal *_goal;			// goals
+		dReal *_max_force;		// maximum joint forces
+		dReal *_max_speed;		// maximum joint speeds
+		dReal *_speed;			// speed
+		dSpaceID _space;		// space for this robot
+		dWorldID _world;		// world for all robots
+		double _accel[3];		// accelerometer data
+		double _encoder;		// motor encoder resolution
+		double	_center_length, _center_width, _center_height, _center_radius, _center_offset,
+				_body_length, _body_width, _body_height, _body_radius,
+				_body_inner_width_left, _body_inner_width_right, _body_end_depth, _body_mount_center,
+				_end_width, _end_height, _end_depth, _end_radius,
+				_face_depth, _face_radius;
+		double	_connector_depth, _connector_height, _connector_radius,
+				_bigwheel_radius, _smallwheel_radius,
+				// mobot
+				_tank_height, _tank_depth,
+				// linkbot
+				_cubic_length, _bridge_length;
+		double _safety_angle;	// joint safety angle
+		double _safety_timeout;	// joint safety timeout
+		double *_offset;		// offset from zero for resetting
+		double _radius;			// wheel radius
+		double ***_rec_angles;	// recorded angles from thread
+		double _rgb[3];			// rgb of 'led'
+		int _connected; 		// connected to controller
+		int _disabled;			// which joint is disabled
+		int *_enabled;			// list of enabled motors
+		int _id;				// robot id
+		int *_rec_num;			// recording data points
+		int _seed;				// seed for random number generation
+		int *_state;			// joint states
+		int *_success;			// trigger for goal
+		int _type;				// type of robot
 
 		// threading locks for each robot
 		MUTEX_T _angle_mutex;
@@ -220,8 +284,11 @@ class DLLIMPORT CRobot {
 		COND_T _active_cond;
 		MUTEX_T _success_mutex;
 		COND_T _success_cond;
+
+#ifdef ENABLE_GRAPHICS
+		virtual void draw(osg::Group *root) {};
+		osg::ShapeDrawable *_led;
+#endif // ENABLE_GRAPHICS
 };
-
 #endif // not _CH_
-
 #endif // BASE_H_

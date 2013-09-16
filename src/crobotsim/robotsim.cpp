@@ -27,6 +27,12 @@ CRobotSim::~CRobotSim(void) {
 	_running = 0;
 	THREAD_JOIN(_simulation);
 
+	// remove ode
+	dJointGroupDestroy(_group);
+	dSpaceDestroy(_space);
+	dWorldDestroy(_world);
+	dCloseODE();
+
 #ifdef ENABLE_GRAPHICS
 	// remove graphics
 	if (_osgThread) { _viewer->setDone(true); THREAD_CANCEL(_osgThread); }
@@ -61,12 +67,6 @@ CRobotSim::~CRobotSim(void) {
 		delete btmp;
 		btmp = tmp;
 	}
-
-	// remove ode
-	dJointGroupDestroy(_group);
-	dSpaceDestroy(_space);
-	dWorldDestroy(_world);
-	dCloseODE();
 }
 
 /**********************************************************

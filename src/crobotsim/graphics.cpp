@@ -1,7 +1,6 @@
 #include "graphics.h"
 #include "robotsim.h"
 
-
 /**********************************************************
 	MoveEarthySkyWithEyePointTransform
  **********************************************************/

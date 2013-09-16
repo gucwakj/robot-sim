@@ -184,64 +184,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 			F3,
 			NUM_DOF
 		};
-		typedef struct recordAngleArg_s {
-			CLinkbotT *robot;
-			robotJointId_t id;
-			int num;
-			int msecs;
-			double *time;
-			double **ptime;
-			double *angle1;
-			double **pangle1;
-			double *angle2;
-			double **pangle2;
-			double *angle3;
-			double **pangle3;
-		} recordAngleArg_t;
-		typedef struct conn_s {
-			int face, type;
-			dBodyID body;
-			dGeomID *geom;
-			struct conn_s *next;
-		} *conn_t;
-
-		// private member variables
-		dWorldID _world;			// world for all robots
-		dSpaceID _space;			// space for this robot
-		dBodyID  _body[NUM_PARTS];	// body parts
-		dGeomID* _geom[NUM_PARTS];	// geometries of each body part
-		dJointID _motor[NUM_DOF];	// motors
-		dJointID _joint[3];			// joints between body parts
-		dReal* _clock;				// world clock
-		dReal _angle[NUM_DOF];		// angles
-		dReal _speed[NUM_DOF];		// speed
-		dReal _goal[NUM_DOF];		// goals
-		dReal _maxJointForce[NUM_DOF];
-		dReal _maxSpeed[NUM_DOF];	// maximum joint speeds
-		conn_t _conn;				// connectors
-		//PID _pid[NUM_DOF];			// PID control for each joint
-		int _id;					// robot id
-		int _state[NUM_DOF];		// joint states
-		int _connected;
-		int* _enabled;				// list of enabled motors
-		double _radius;				// wheel radius
-		double _accel[3];			// accelerometer data
-		double **_recording_angles[NUM_DOF];
-		bool _recording[NUM_DOF];	// recording in progress
-		bool _active[NUM_DOF];		// actively recording a new value
-		int _recording_num[NUM_DOF];// recording data points
-		bool _success[NUM_DOF];		// trigger for goal
-		bool _seek[NUM_DOF];		// currently seeking goal?
-		double _rgb[3];				// rgb of 'led'
-		double _joint_safety_angle;
-		double _joint_safety_time;
-		double _offset[NUM_DOF];
-		double	_encoderResolution,
-				_body_length, _body_width, _body_height, _body_radius,
-				_face_depth, _face_radius;
-		double	_connector_depth, _connector_height, _connector_radius,
-				_bigwheel_radius, _smallwheel_radius,
-				_cubic_length, _bridge_length;
 
 		// private functions inherited from CRobot class
 		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock);
@@ -307,11 +249,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		void draw_gripper(conn_t conn, osg::Group *robot);
 		void draw_simple(conn_t conn, osg::Group *robot);
 		void draw_smallwheel(conn_t conn, osg::Group *robot);
-		osg::ShapeDrawable *_led;
 #endif // ENABLE_GRAPHICS
-	protected:
-		int _disabled;				// which joint is disabled
-		int _type;					// type of robot
 #endif // not _CH_
 };
 

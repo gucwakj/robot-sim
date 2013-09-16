@@ -2,7 +2,7 @@
 #define GRAPHICS_H_
 
 #include "config.h"
-#include "base.h"
+
 #include <OpenThreads/Thread>
 
 #include <osg/ClearNode>
@@ -38,6 +38,8 @@
 #include <osgViewer/ViewerEventHandlers>
 
 #include <ode/ode.h>
+
+#include "base.h"
 
 class CRobot;
 class CRobotSim;

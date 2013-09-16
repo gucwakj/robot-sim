@@ -213,66 +213,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 			RE,
 			NUM_DOF
 		};
-		typedef struct recordAngleArg_s {
-			CMobot *robot;
-			robotJointId_t id;
-			int num;
-			int msecs;
-			double *time;
-			double **ptime;
-			double *angle1;
-			double **pangle1;
-			double *angle2;
-			double **pangle2;
-			double *angle3;
-			double **pangle3;
-			double *angle4;
-			double **pangle4;
-		} recordAngleArg_t;
-		typedef struct conn_s {
-			int face, type;
-			dBodyID body;
-			dGeomID *geom;
-			struct conn_s *next;
-		} *conn_t;
-
-		// private member variables
-		dWorldID _world;			// world for all robots
-		dSpaceID _space;			// space for this robot
-		dBodyID  _body[NUM_PARTS];	// body parts
-		dGeomID* _geom[NUM_PARTS];	// geometries of each body part
-		dJointID _motor[NUM_DOF];	// motors
-		dJointID _joint[6];			// joints between body parts
-		dReal* _clock;				// world clock
-		dReal _angle[NUM_DOF];		// angles
-		dReal _speed[NUM_DOF];		// speed
-		dReal _goal[NUM_DOF];		// goals
-		dReal _maxJointForce[NUM_DOF];
-		dReal _maxSpeed[NUM_DOF];	// maximum joint speeds
-		conn_t _conn;				// connectors
-		//PID _pid[NUM_DOF];			// PID control for each joint
-		int _id;					// robot id
-		int _state[NUM_DOF];		// joint states
-		int _type;					// type of robot
-		int _connected; 			// connected to controller
-		//int _enc[NUM_DOF];
-		//int _goa[NUM_DOF];
-		double _radius;				// wheel radius
-		double **_recording_angles[NUM_DOF];
-		bool _recording[NUM_DOF];	// recording in progress
-		bool _active[NUM_DOF];		// actively recording a new value
-		int _recording_num[NUM_DOF];// recording data points
-		bool _success[NUM_DOF];		// trigger for goal
-		bool _seek[NUM_DOF];		// currently seeking goal?
-		double _joint_safety_angle;
-		double _joint_safety_time;
-		double _offset[NUM_DOF];
-		double	_encoderResolution,
-				_center_length, _center_width, _center_height, _center_radius, _center_offset,
-				_body_length, _body_width, _body_height, _body_radius,
-				_body_inner_width_left, _body_inner_width_right, _body_end_depth, _body_mount_center,
-				_end_width, _end_height, _end_depth, _end_radius;
-		double	_connector_depth, _connector_height, _connector_radius, _bigwheel_radius, _smallwheel_radius, _tank_height, _tank_depth;
 
 		// private functions inherited from CRobot class
 		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock);

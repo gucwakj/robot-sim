@@ -16,6 +16,33 @@ CRobot::CRobot(void) {
 }
 
 CRobot::~CRobot(void) {
+	// destroy connectors array
+	conn_t ctmp = _conn;
+	while (ctmp) {
+		conn_t tmp = ctmp->next;
+		delete [] ctmp->geom;
+		delete ctmp;
+		ctmp = tmp;
+	}
+
+	// delete all arrays
+	delete [] _angle;
+	delete [] _body;
+	delete [] _enabled;
+	delete [] _goal;
+	delete [] _joint;
+	delete [] _max_force;
+	delete [] _max_speed;
+	delete [] _motor;
+	delete [] _offset;
+	delete [] _rec_active;
+	delete [] _rec_num;
+	delete [] _recording;
+	delete [] _seek;
+	delete [] _speed;
+	delete [] _success;
+
+	// destroy mutexes
 	MUTEX_DESTROY(&_angle_mutex);
 	MUTEX_DESTROY(&_goal_mutex);
 	MUTEX_DESTROY(&_motion_mutex);
@@ -38,11 +65,6 @@ void* CRobot::simPostCollisionThreadEntry(void *arg) {
 	CRobot *p = (CRobot *)arg;
 	p->simPostCollisionThread();
 	return arg;
-}
-
-int CRobot::setMotion(bool motion) {
-	_motion = motion;
-	return 0;
 }
 
 // generate uniform random numbers

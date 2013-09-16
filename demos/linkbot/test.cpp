@@ -3,11 +3,11 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CLinkbotT robot1;
+	CLinkbotI robot1;
 
 	robot1.connect();
-	robot1.resetToZero();
-	robot1.moveTo(45, 45, -45);
+	//robot1.resetToZero();
+	robot1.moveTo(36, 0, -36);
 
 	//double x, y, z;
 	//robot1.getAccelerometerData(x, y, z);
