@@ -835,7 +835,6 @@ void* CLinkbotT::recordAngleThread(void *arg) {
 		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angle
-		//rArg->robot->getJointAngle(rArg->id, rArg->angle1[i]);
 		rArg->angle1[i] = rArg->robot->_angle[rArg->id];
 
 		// increment time step
@@ -922,7 +921,6 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		//rArg->robot->getJointAngle(rArg->id, (*(rArg->pangle1))[i]);
 		(*(rArg->pangle1))[i] = rArg->robot->_angle[rArg->id];
 
 		// store time of data point
@@ -1030,11 +1028,8 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angles
-		//rArg->robot->getJointAngle(ROBOT_JOINT1, rArg->angle1[i]);
 		rArg->angle1[i] = rArg->robot->_angle[ROBOT_JOINT1];
-		//rArg->robot->getJointAngle(ROBOT_JOINT2, rArg->angle2[i]);
 		rArg->angle2[i] = rArg->robot->_angle[ROBOT_JOINT2];
-		//rArg->robot->getJointAngle(ROBOT_JOINT3, rArg->angle3[i]);
 		rArg->angle3[i] = rArg->robot->_angle[ROBOT_JOINT3];
 
 		// increment time step
@@ -1123,7 +1118,6 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 			// create larger array for time
 			double *newBuf = (double *)malloc(sizeof(double) * rArg->num);
 			memcpy(newBuf, *rArg->ptime, sizeof(double)*i);
-			//free(*(rArg->ptime));
 			delete *(rArg->ptime);
 			*(rArg->ptime) = newBuf;
 			// create larger array for angle1
@@ -1144,11 +1138,8 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		//rArg->robot->getJointAngle(ROBOT_JOINT1, (*(rArg->pangle1))[i]);
 		(*(rArg->pangle1))[i] = rArg->robot->_angle[ROBOT_JOINT1];
-		//rArg->robot->getJointAngle(ROBOT_JOINT2, (*(rArg->pangle2))[i]);
 		(*(rArg->pangle2))[i] = rArg->robot->_angle[ROBOT_JOINT2];
-		//rArg->robot->getJointAngle(ROBOT_JOINT3, (*(rArg->pangle3))[i]);
 		(*(rArg->pangle3))[i] = rArg->robot->_angle[ROBOT_JOINT3];
 
 		// store time of data point
@@ -1591,7 +1582,6 @@ void* CLinkbotT::setMovementStateTimeNBThread(void *arg) {
 	// hold all robot motion
 	CLinkbotT *ptr = dynamic_cast<CLinkbotT *>(rArg->robot);
 	ptr->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
-	//rArg->robot->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
 
 	// cleanup
 	delete rArg;

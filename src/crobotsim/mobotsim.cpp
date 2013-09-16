@@ -1196,7 +1196,6 @@ void* CMobot::recordAngleThread(void *arg) {
 		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angle
-		//rArg->robot->getJointAngle(rArg->id, rArg->angle1[i]);
 		rArg->angle1[i] = rArg->robot->_angle[rArg->id];
 
 		// increment time step
@@ -1289,7 +1288,6 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		//rArg->robot->getJointAngle(rArg->id, (*(rArg->pangle1))[i]);
 		(*(rArg->pangle1))[i] = rArg->robot->_angle[rArg->id];
 
 		// store time of data point
@@ -1403,13 +1401,9 @@ void* CMobot::recordAnglesThread(void *arg) {
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angles
-		//rArg->robot->getJointAngle(ROBOT_JOINT1, rArg->angle1[i]);
 		rArg->angle1[i] = rArg->robot->_angle[ROBOT_JOINT1];
-		//rArg->robot->getJointAngle(ROBOT_JOINT2, rArg->angle2[i]);
 		rArg->angle2[i] = rArg->robot->_angle[ROBOT_JOINT2];
-		//rArg->robot->getJointAngle(ROBOT_JOINT3, rArg->angle3[i]);
 		rArg->angle3[i] = rArg->robot->_angle[ROBOT_JOINT3];
-		//rArg->robot->getJointAngle(ROBOT_JOINT4, rArg->angle4[i]);
 		rArg->angle4[i] = rArg->robot->_angle[ROBOT_JOINT4];
 
 		// increment time step
@@ -1527,13 +1521,9 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		//rArg->robot->getJointAngle(ROBOT_JOINT1, (*(rArg->pangle1))[i]);
 		(*(rArg->pangle1))[i] = rArg->robot->_angle[ROBOT_JOINT1];
-		//rArg->robot->getJointAngle(ROBOT_JOINT2, (*(rArg->pangle2))[i]);
 		(*(rArg->pangle2))[i] = rArg->robot->_angle[ROBOT_JOINT2];
-		//rArg->robot->getJointAngle(ROBOT_JOINT3, (*(rArg->pangle3))[i]);
 		(*(rArg->pangle3))[i] = rArg->robot->_angle[ROBOT_JOINT3];
-		//rArg->robot->getJointAngle(ROBOT_JOINT4, (*(rArg->pangle4))[i]);
 		(*(rArg->pangle4))[i] = rArg->robot->_angle[ROBOT_JOINT4];
 
 		// store time of data point
@@ -1808,7 +1798,6 @@ int CMobot::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, 
 void* CMobot::setJointMovementStateTimeNBThread(void *arg) {
 	// cast argument
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-	//args_t *rArg = (args_t *)arg;
 
 	// sleep
 #ifdef _WIN32
@@ -1820,7 +1809,6 @@ void* CMobot::setJointMovementStateTimeNBThread(void *arg) {
 	// hold all robot motion
 	CMobot *ptr = dynamic_cast<CMobot *>(rArg->robot);
 	ptr->setJointMovementStateNB(rArg->id, ROBOT_HOLD);
-	//rArg->robot->setJointMovementStateNB(rArg->id, ROBOT_HOLD);
 
 	// cleanup
 	delete rArg;
@@ -1832,11 +1820,6 @@ void* CMobot::setJointMovementStateTimeNBThread(void *arg) {
 int CMobot::setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds) {
 	// set up threading
 	THREAD_T moving;
-	//args_t *args = new args_t;
-	//args->robot = this;
-	//args->id = id;
-	//args->msecs = 1000*seconds;
-
 	recordAngleArg_t *rArg = new recordAngleArg_t;
 	rArg->robot = this;
 	rArg->id = id;
@@ -1847,7 +1830,6 @@ int CMobot::setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir
 
 	// create thread to wait
 	THREAD_CREATE(&moving, (void* (*)(void *))&CMobot::setJointMovementStateTimeNBThread, (void *)rArg);
-	//THREAD_CREATE(&moving, (void* (*)(void *))&CMobot::setMovementStateTimeNBThread, (void *)args);
 
 	// success
 	return 0;
@@ -1945,7 +1927,6 @@ int CMobot::setMovementStateTime(robotJointState_t dir1,
 void* CMobot::setMovementStateTimeNBThread(void *arg) {
 	// cast argument
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-	//args_t *rArg = (args_t *)arg;
 
 	// sleep
 #ifdef _WIN32
@@ -1957,7 +1938,6 @@ void* CMobot::setMovementStateTimeNBThread(void *arg) {
 	// hold all robot motion
 	CMobot *ptr = dynamic_cast<CMobot *>(rArg->robot);
 	ptr->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
-	//rArg->robot->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
 
 	// cleanup
 	delete rArg;
@@ -1972,10 +1952,6 @@ int CMobot::setMovementStateTimeNB(robotJointState_t dir1,
 								   robotJointState_t dir4, double seconds) {
 	// set up threading
 	THREAD_T moving;
-	//args_t *args = new args_t;
-	//args->robot = this;
-	//args->msecs = 1000*seconds;
-
 	recordAngleArg_t *rArg = new recordAngleArg_t;
 	rArg->robot = this;
 	rArg->msecs = 1000*seconds;
@@ -1988,7 +1964,6 @@ int CMobot::setMovementStateTimeNB(robotJointState_t dir1,
 
 	// create thread to wait
 	THREAD_CREATE(&moving, (void* (*)(void *))&CMobot::setMovementStateTimeNBThread, (void *)rArg);
-	//THREAD_CREATE(&moving, (void* (*)(void *))&CMobot::setMovementStateTimeNBThread, (void *)args);
 
 	// success
 	return 0;
