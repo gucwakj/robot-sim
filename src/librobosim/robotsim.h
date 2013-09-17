@@ -1,5 +1,5 @@
-#ifndef CROBOTSIM_H_
-#define CROBOTSIM_H_
+#ifndef ROBOSIM_H_
+#define ROBOSIM_H_
 
 #include "base.h"
 
@@ -12,10 +12,10 @@
 #endif // ENABLE_GRAPHICS
 #endif // not _CH_
 
-class DLLIMPORT CRobotSim {
+class DLLIMPORT RoboSim {
 	public:
-		CRobotSim();
-		virtual ~CRobotSim();
+		RoboSim();
+		virtual ~RoboSim();
 
 #ifndef _CH_
 		int addRobot(CRobot *robot);
@@ -83,4 +83,4 @@ class DLLIMPORT CRobotSim {
 DLLIMPORT void delay(double seconds);
 #endif
 
-#endif	// CROBOTSIM_H_
+#endif	// ROBOSIM_H_

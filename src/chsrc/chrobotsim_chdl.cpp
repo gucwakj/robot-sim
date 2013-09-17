@@ -4,23 +4,23 @@
 #endif
 #include <ch.h>
 
-EXPORTCH void CRobotSim_CRobotSim_chdl(void *varg) {
+EXPORTCH void RoboSim_RoboSim_chdl(void *varg) {
 	ChInterp_t interp;
 	ChVaList_t ap;
-	class CRobotSim *c=new CRobotSim();
+	class RoboSim *c = new RoboSim();
 	Ch_VaStart(interp, ap, varg);
-	Ch_CppChangeThisPointer(interp, c, sizeof(CRobotSim));
+	Ch_CppChangeThisPointer(interp, c, sizeof(RoboSim));
 	Ch_VaEnd(interp, ap);
 }
 
-EXPORTCH void CRobotSim_dCRobotSim_chdl(void *varg) {
+EXPORTCH void RoboSim_dRoboSim_chdl(void *varg) {
 	ChInterp_t interp;
 	ChVaList_t ap;
-	class CRobotSim *c;
+	class RoboSim *c;
 	Ch_VaStart(interp, ap, varg);
-	c = Ch_VaArg(interp, ap, class CRobotSim *);
+	c = Ch_VaArg(interp, ap, class RoboSim *);
 	if(Ch_CppIsArrayElement(interp))
-		c->~CRobotSim();
+		c->~RoboSim();
 	else
 		delete c;
 	Ch_VaEnd(interp, ap);

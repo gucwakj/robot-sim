@@ -3,10 +3,10 @@ using namespace std;
 
 #ifndef ROBOSIM_OBJECT
 #define ROBOSIM_OBJECT
-CRobotSim *_simObject = new CRobotSim;
+RoboSim *_simObject = new RoboSim;
 #endif
 
-CRobotSim::CRobotSim(void) {
+RoboSim::RoboSim(void) {
 	// initialize ode
 	init_ode();
 
@@ -22,7 +22,7 @@ CRobotSim::CRobotSim(void) {
 #endif
 }
 
-CRobotSim::~CRobotSim(void) {
+RoboSim::~RoboSim(void) {
 	// remove simulation
 	_running = 0;
 	THREAD_JOIN(_simulation);
@@ -72,7 +72,7 @@ CRobotSim::~CRobotSim(void) {
 /**********************************************************
 	Initialization functions
  **********************************************************/
-int CRobotSim::init_ode(void) {
+int RoboSim::init_ode(void) {
 	// create ODE simulation space
 	dInitODE2(0);										// initialized ode library
 	_world = dWorldCreate();							// create world for simulation
@@ -97,13 +97,13 @@ int CRobotSim::init_ode(void) {
 	return 0;
 }
 
-int CRobotSim::init_sim(void) {
+int RoboSim::init_sim(void) {
 	// default collision parameters
 	_mu[0] = 0.4;	_mu[1] = 0.3;
 	_cor[0] = 0.3;	_cor[1] = 0.3;
 
 	// thread variables
-	THREAD_CREATE(&_simulation, (void* (*)(void *))&CRobotSim::simulation_thread, this);
+	THREAD_CREATE(&_simulation, (void* (*)(void *))&RoboSim::simulation_thread, this);
 	MUTEX_INIT(&_robot_mutex);
 	MUTEX_INIT(&_running_mutex);
 	COND_INIT(&_running_cond);
@@ -121,7 +121,7 @@ int CRobotSim::init_sim(void) {
 	return 0;
 }
 
-int CRobotSim::init_xml(void) {
+int RoboSim::init_xml(void) {
 	// initialize variables
 	int *rtmp, *ftmp, *ntmp, *atmp, ctype, cnum;
 	_bot = NULL;
@@ -570,7 +570,7 @@ int CRobotSim::init_xml(void) {
 }
 
 #ifdef ENABLE_GRAPHICS
-int CRobotSim::init_viz(void) {
+int RoboSim::init_viz(void) {
 	// set notification level to no output
 	osg::setNotifyLevel(osg::ALWAYS);
 	//osg::setNotifyLevel(osg::DEBUG_FP);
@@ -582,7 +582,7 @@ int CRobotSim::init_viz(void) {
 	_graphics = 0;
 
 	// create graphics thread
-	THREAD_CREATE(&_osgThread, (void* (*)(void *))&CRobotSim::graphics_thread, (void *)this);
+	THREAD_CREATE(&_osgThread, (void* (*)(void *))&RoboSim::graphics_thread, (void *)this);
 
 	// success
 	return 0;
@@ -592,7 +592,7 @@ int CRobotSim::init_viz(void) {
 /**********************************************************
 	Public member functions
  **********************************************************/
-int CRobotSim::addRobot(CRobot *robot) {
+int RoboSim::addRobot(CRobot *robot) {
 #ifdef ENABLE_GRAPHICS
 	// wait for graphics to be ready
 	MUTEX_LOCK(&_graphics_mutex);
@@ -674,7 +674,7 @@ int CRobotSim::addRobot(CRobot *robot) {
 	return 0;
 }
 
-int CRobotSim::setExitState(void) {
+int RoboSim::setExitState(void) {
 	MUTEX_LOCK(&_running_mutex);
 	while (_running) {
 		COND_WAIT(&_running_cond, &_running_mutex);
@@ -688,9 +688,9 @@ int CRobotSim::setExitState(void) {
 /**********************************************************
 	Private functions
  **********************************************************/
-void* CRobotSim::simulation_thread(void *arg) {
+void* RoboSim::simulation_thread(void *arg) {
 	// cast to type sim 
-	CRobotSim *sim = (CRobotSim *)arg;
+	RoboSim *sim = (RoboSim *)arg;
 
 	// initialize local variables
 	unsigned int sum = 0, dt[4] = {0};
@@ -793,9 +793,9 @@ void* CRobotSim::simulation_thread(void *arg) {
 	MUTEX_UNLOCK(&(sim->_running_mutex));
 }
 
-void CRobotSim::collision(void *data, dGeomID o1, dGeomID o2) {
+void RoboSim::collision(void *data, dGeomID o1, dGeomID o2) {
 	// cast void pointer to pointer to class
-	CRobotSim *ptr = (CRobotSim *)data;
+	RoboSim *ptr = (RoboSim *)data;
 
 	// get bodies of geoms
 	dBodyID b1 = dGeomGetBody(o1);
@@ -827,7 +827,7 @@ void CRobotSim::collision(void *data, dGeomID o1, dGeomID o2) {
 	}
 }
 
-void CRobotSim::print_intermediate_data(void) {
+void RoboSim::print_intermediate_data(void) {
 	// initialze loop counters
 	static int j = 0;
 
@@ -862,9 +862,9 @@ void CRobotSim::print_intermediate_data(void) {
 }
 
 #ifdef ENABLE_GRAPHICS
-void* CRobotSim::graphics_thread(void *arg) {
+void* RoboSim::graphics_thread(void *arg) {
 	// cast viewer
-	CRobotSim *sim = (CRobotSim *)arg;
+	RoboSim *sim = (RoboSim *)arg;
 
 	// initialize variables
 	unsigned int width, height;

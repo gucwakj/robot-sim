@@ -425,13 +425,13 @@ typedef struct motionArg_s {
 #ifdef _CH_
 #ifndef ROBOTSIM_DLHANDLE
 #define ROBOTSIM_DLHANDLE
-void* CRobotSim::g_chrobotsim_dlhandle = NULL;
-int CRobotSim::g_chrobotsim_dlcount = 0;
+void* RoboSim::g_chrobotsim_dlhandle = NULL;
+int RoboSim::g_chrobotsim_dlcount = 0;
 #pragma importf "chrobotsim.chf"
 #endif
 #pragma importf "chmobotsim.chf"
 #else
-extern CRobotSim _simObject;
+extern RoboSim _simObject;
 #endif
 
 #endif  // MOBOT_H_

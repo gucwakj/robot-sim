@@ -776,8 +776,8 @@ class DLLIMPORT CLinkbotLGroup {
 };
 #ifndef ROBOTSIM_DLHANDLE
 #define ROBOTSIM_DLHANDLE
-void* CRobotSim::g_chrobotsim_dlhandle = NULL;
-int CRobotSim::g_chrobotsim_dlcount = 0;
+void* RoboSim::g_chrobotsim_dlhandle = NULL;
+int RoboSim::g_chrobotsim_dlcount = 0;
 #pragma importf "chrobotsim.chf"
 #endif
 #pragma importf "chlinkbottsim.chf"
@@ -799,7 +799,7 @@ class DLLIMPORT CLinkbotL : public CLinkbotT {
 };
 class DLLIMPORT CLinkbotIGroup : public CLinkbotTGroup {};
 class DLLIMPORT CLinkbotLGroup : public CLinkbotTGroup {};
-extern CRobotSim *_simObject;
+extern RoboSim *_simObject;
 #endif // _CH_
 
 #endif // LINKBOT_H_
