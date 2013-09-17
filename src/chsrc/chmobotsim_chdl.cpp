@@ -1,4 +1,4 @@
-#include "../crobotsim/mobotsim.h"
+#include "../librobosim/mobotsim.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif

@@ -36,12 +36,12 @@ else (ENABLE_DOUBLE)
 endif (ENABLE_DOUBLE)
 
 # Add crobotsim library subdirectory
-include_directories("../../src/crobotsim")
+include_directories("../../src/librobosim")
 if (MSVC)
-	link_directories("../../src/crobotsim/build/Debug")
-	link_directories("../../src/crobotsim/build/Release")
+	link_directories("../../src/librobosim/build/Debug")
+	link_directories("../../src/librobosim/build/Release")
 else (MSVC)
-	link_directories("../../src/crobotsim/build")
+	link_directories("../../src/librobosim/build")
 endif (MSVC)
 set(EXTRA_LIBS ${EXTRA_LIBS} optimized robotsim debug robotsimd)
 

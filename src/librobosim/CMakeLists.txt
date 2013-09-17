@@ -104,7 +104,7 @@ else ()
 endif ()
 
 # Add the library
-if (ROBOTSIM_ENABLE_GRAPHICS)
+if (ENABLE_GRAPHICS)
 add_library( robotsim SHARED
 	base.cpp
 	graphics.cpp
@@ -115,7 +115,7 @@ add_library( robotsim SHARED
 	linkbotgroup.cpp
 	#pid.cpp
 )
-else (ROBOTSIM_ENABLE_GRAPHICS)
+else (ENABLE_GRAPHICS)
 add_library( robotsim SHARED
 	base.cpp
 	robotsim.cpp
@@ -125,7 +125,7 @@ add_library( robotsim SHARED
 	linkbotgroup.cpp
 	#pid.cpp
 )
-endif (ROBOTSIM_ENABLE_GRAPHICS)
+endif (ENABLE_GRAPHICS)
 
 # Link library against dependencies
 target_link_libraries(robotsim ${EXTRA_LIBS})

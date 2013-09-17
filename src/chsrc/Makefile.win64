@@ -6,7 +6,7 @@ VERSION=0.0.1
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 ARCH=x64
 
-SRC=../crobotsim
+SRC=../librobosim
 HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics.h $(SRC)/base.h
 CPPFLAGS = -DdDOUBLE /EHsc
 INCLUDES = /I ../opende/include /I ../tinyxml2 /I ../openscenegraph/include
