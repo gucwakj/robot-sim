@@ -42,7 +42,6 @@
 #include "base.h"
 
 class CRobot;
-class CRobotSim;
 
 /**********************************************************
 	MoveEarthySkyWithEyePointTransform
