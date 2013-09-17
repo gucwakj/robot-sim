@@ -13,7 +13,7 @@ INCLUDES = /I ../opende/include /I ../tinyxml2 /I ../openscenegraph/include
 LIBPATHS = /LIBPATH:../opende/lib/Release/ /LIBPATH:../tinyxml2/build/Release/ /LIBPATH:../openscenegraph/build/lib/
 LIBS = osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgFX.lib osgText.lib ode.lib tinyxml2.lib Shell32.lib
 
-target: librobotsim.dl
+target: librobosim.dl
 
 OBJS =	robotsim.obj \
 		base.obj \
@@ -29,43 +29,43 @@ OBJS =	robotsim.obj \
 		chlinkbottsim_chdl.obj
 
 chrobotsim_chdl.obj: chrobotsim_chdl.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus chrobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus chrobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 	
 chmobotsim_chdl.obj: chmobotsim_chdl.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus chmobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus chmobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 	
 chlinkbotisim_chdl.obj: chlinkbotisim_chdl.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus chlinkbotisim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus chlinkbotisim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 	
 chlinkbotlsim_chdl.obj: chlinkbotlsim_chdl.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus chlinkbotlsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus chlinkbotlsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
 chlinkbottsim_chdl.obj: chlinkbottsim_chdl.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus chlinkbottsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus chlinkbottsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
 robotsim.obj: $(SRC)/robotsim.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/robotsim.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/robotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
 base.obj: $(SRC)/base.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/base.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/base.cpp $(CPPFLAGS) $(INCLUDES)
 
 mobotsim.obj: $(SRC)/mobotsim.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/mobotsim.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
 mobotgroup.obj: $(SRC)/mobotgroup.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/mobotgroup.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotgroup.cpp $(CPPFLAGS) $(INCLUDES)
 
 linkbotsim.obj: $(SRC)/linkbotsim.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/linkbotsim.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
 linkbotgroup.obj: $(SRC)/linkbotgroup.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/linkbotgroup.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbotgroup.cpp $(CPPFLAGS) $(INCLUDES)
 
 graphics.obj: $(SRC)/graphics.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
 
-librobotsim.dl: $(OBJS)
-	ch dllink librobotsim.dl cplusplus $(OBJS) $(LIBPATHS) $(LIBS)
+librobosim.dl: $(OBJS)
+	ch dllink librobosim.dl cplusplus $(OBJS) $(LIBPATHS) $(LIBS)
 
 install:
 	ch ./pkginstall.ch $(PACKAGE)
@@ -73,7 +73,7 @@ install:
 uninstall:
 	ch ./pkginstall.ch -u $(PACKAGE)
 
-createpkg: librobotsim.dl
+createpkg: librobosim.dl
 	echo Building $(PACKAGE)-win32-$(VERSION).zip
 	rm -rf $(PACKAGE)-$(VERSION)
 	rm -rf $(PACKAGE)-win32-$(VERSION).zip
@@ -129,7 +129,7 @@ createpkg: librobotsim.dl
 	cp -R ../../demos/chdemos/mobot $(PKGDIR)/demos
 	cp -R ../../demos/chdemos/linkbot $(PKGDIR)/demos
 	mkdir $(PKGDIR)/dl
-	cp librobotsim.dl $(PKGDIR)/dl
+	cp librobosim.dl $(PKGDIR)/dl
 	cp -R C:/Ch/dl/Mi* $(PKGDIR)/dl
 	mkdir $(PKGDIR)/docs
 	cp ../../docs/robosim.pdf $(PKGDIR)/docs
@@ -149,7 +149,7 @@ createpkg: librobotsim.dl
 	zip -rq $(PACKAGE)-win32-$(VERSION).zip $(PACKAGE)-$(VERSION)
 	echo Done Building $(PACKAGE)-win32-$(VERSION)
 
-cleanpkg: librobotsim.dl
+cleanpkg: librobosim.dl
 	rm -rf $(PACKAGE)-$(VERSION)
 	rm -rf $(PACKAGE)-win32-$(VERSION).zip
 

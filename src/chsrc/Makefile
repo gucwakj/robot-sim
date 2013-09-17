@@ -12,7 +12,7 @@ INCLUDES=-I../librobosim/build/ -I../opende/sys/include/ -I../openscenegraph/sys
 LIBPATHS=-L../opende/sys/lib/ -L../openscenegraph/build/lib/ -L../tinyxml2/build/
 LIBS = -losg -losgViewer -losgUtil -lOpenThreads -losgGA -losgDB -losgFX -lode -ltinyxml2
 
-target: librobotsim.dl
+target: librobosim.dl
 
 OBJS =	robotsim.o \
 		base.o \
@@ -28,43 +28,43 @@ OBJS =	robotsim.o \
 		chlinkbottsim_chdl.o
 
 chrobotsim_chdl.o: chrobotsim_chdl.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus chrobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus chrobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 	
 chmobotsim_chdl.o: chmobotsim_chdl.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus chmobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus chmobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 	
 chlinkbotisim_chdl.o: chlinkbotisim_chdl.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus chlinkbotisim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus chlinkbotisim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 	
 chlinkbotlsim_chdl.o: chlinkbotlsim_chdl.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus chlinkbotlsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus chlinkbotlsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
 chlinkbottsim_chdl.o: chlinkbottsim_chdl.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus chlinkbottsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus chlinkbottsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
 robotsim.o: $(SRC)/robotsim.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/robotsim.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/robotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
 base.o: $(SRC)/base.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/base.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/base.cpp $(CPPFLAGS) $(INCLUDES)
 
 mobotsim.o: $(SRC)/mobotsim.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/mobotsim.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
 mobotgroup.o: $(SRC)/mobotgroup.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/mobotgroup.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotgroup.cpp $(CPPFLAGS) $(INCLUDES)
 
 linkbotsim.o: $(SRC)/linkbotsim.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/linkbotsim.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
 linkbotgroup.o: $(SRC)/linkbotgroup.cpp $(HEADERS) 
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/linkbotgroup.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbotgroup.cpp $(CPPFLAGS) $(INCLUDES)
 
 graphics.o: $(SRC)/graphics.cpp $(HEADERS)
-	ch dlcomp librobotsim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
 
-librobotsim.dl: $(OBJS)
-	ch dllink librobotsim.dl cplusplus $(OBJS) $(LIBPATHS) $(LIBS)
+librobosim.dl: $(OBJS)
+	ch dllink librobosim.dl cplusplus $(OBJS) $(LIBPATHS) $(LIBS)
 
 install:
 	ch ./pkginstall.ch $(PACKAGE)
@@ -72,7 +72,7 @@ install:
 uninstall:
 	ch ./pkginsall.ch -u $(PACKAGE)
 
-createpkg: librobotsim.dl
+createpkg: librobosim.dl
 	echo Building $(PACKAGE)-$(VERSION).zip
 	rm -rf $(PACKAGE)-$(VERSION)
 	rm -rf $(PACKAGE)-unix-$(VERSION).zip
@@ -104,7 +104,7 @@ createpkg: librobotsim.dl
 	cp -R ../../demos/chdemos/mobot $(PKGDIR)/demos
 	cp -R ../../demos/chdemos/linkbot $(PKGDIR)/demos
 	mkdir $(PKGDIR)/dl
-	cp librobotsim.dl $(PKGDIR)/dl
+	cp librobosim.dl $(PKGDIR)/dl
 	mkdir $(PKGDIR)/docs
 	cp ../../docs/robosim.pdf $(PKGDIR)/docs
 	mkdir $(PKGDIR)/include

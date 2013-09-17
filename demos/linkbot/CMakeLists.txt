@@ -46,7 +46,7 @@ if (MSVC)
 else (MSVC)
 	link_directories("../../src/librobosim/build")
 endif (MSVC)
-set(EXTRA_LIBS ${EXTRA_LIBS} optimized robotsim debug robotsimd)
+set(EXTRA_LIBS ${EXTRA_LIBS} optimized robosim debug robosimd)
 
 # linkbot demos
 add_executable(test test.cpp)

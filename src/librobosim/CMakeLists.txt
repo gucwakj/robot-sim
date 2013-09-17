@@ -1,4 +1,4 @@
-# Build robotsim simulator
+# Build robosim simulator
 project(robosim)
 
 # Set minimum cmake version
@@ -52,18 +52,19 @@ endif (MSVC)
 set(EXTRA_LIBS ${EXTRA_LIBS} optimized ode debug oded)
 
 # Option to enable double precision
-option (ROBOTSIM_ENABLE_DOUBLE "Enable double precision for simulation." ON)
-if (ROBOTSIM_ENABLE_DOUBLE)
+option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
+if (ENABLE_DOUBLE)
 	add_definitions(-DdDOUBLE)
-else (ROBOTSIM_ENABLE_DOUBLE)
+else (ENABLE_DOUBLE)
 	add_definitions(-DdSINGLE)
-endif (ROBOTSIM_ENABLE_DOUBLE)
+endif (ENABLE_DOUBLE)
 
 # Option to enable assertion messages
-option (ROBOSIM_NO_MESSAGES "Disable message output." ON)
-if (ROBOTSIM_NO_MESSAGES)
+option (ENABLE_MESSAGES "Disable message output." OFF)
+if (ENABLE_MESSAGES)
+else (ENABLE_MESSAGES)
 	add_definitions(-DdNODEBUG)
-endif (ROBOTSIM_NO_MESSAGES)
+endif (ENABLE_MESSAGES)
 
 # Option to enable graphics
 option (ENABLE_GRAPHICS "Enable graphics for simulation." ON)
@@ -105,7 +106,7 @@ endif ()
 
 # Add the library
 if (ENABLE_GRAPHICS)
-add_library( robotsim SHARED
+add_library( robosim SHARED
 	base.cpp
 	graphics.cpp
 	robotsim.cpp
@@ -116,7 +117,7 @@ add_library( robotsim SHARED
 	#pid.cpp
 )
 else (ENABLE_GRAPHICS)
-add_library( robotsim SHARED
+add_library( robosim SHARED
 	base.cpp
 	robotsim.cpp
 	mobotsim.cpp
@@ -128,4 +129,4 @@ add_library( robotsim SHARED
 endif (ENABLE_GRAPHICS)
 
 # Link library against dependencies
-target_link_libraries(robotsim ${EXTRA_LIBS})
+target_link_libraries(robosim ${EXTRA_LIBS})
