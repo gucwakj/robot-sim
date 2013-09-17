@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
-project(CRobotSim_Mobot_Demos)
+project(robosim_mobot_demos)
 
 # Set the version number
-set (CROBOTSIM_MOBOT_DEMOS_VERSION_MAJOR 0)
-set (CROBOTSIM_MOBOT_DEMOS_VERSION_MINOR 1)
+set (CROBOSIM_MOBOT_DEMOS_VERSION_MAJOR 0)
+set (CROBOSIM_MOBOT_DEMOS_VERSION_MINOR 1)
 
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)
