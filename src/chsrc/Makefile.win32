@@ -18,9 +18,9 @@ target: librobosim.dl
 OBJS =	robotsim.obj \
 		base.obj \
 		mobotsim.obj \
-		mobotgroup.obj \
+		mobotgroupsim.obj \
 		linkbotsim.obj \
-		linkbotgroup.obj \
+		linkbotgroupsim.obj \
 		graphics.obj \
 		chrobosim_chdl.obj \
 		chmobotsim_chdl.obj \
@@ -52,14 +52,14 @@ base.obj: $(SRC)/base.cpp $(HEADERS)
 mobotsim.obj: $(SRC)/mobotsim.cpp $(HEADERS) 
 	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
-mobotgroup.obj: $(SRC)/mobotgroup.cpp $(HEADERS) 
-	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotgroup.cpp $(CPPFLAGS) $(INCLUDES)
+mobotgroupsim.obj: $(SRC)/mobotgroupsim.cpp $(HEADERS) 
+	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotgroupsim.cpp $(CPPFLAGS) $(INCLUDES)
 
 linkbotsim.obj: $(SRC)/linkbotsim.cpp $(HEADERS) 
 	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
-linkbotgroup.obj: $(SRC)/linkbotgroup.cpp $(HEADERS) 
-	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbotgroup.cpp $(CPPFLAGS) $(INCLUDES)
+linkbotgroupsim.obj: $(SRC)/linkbotgroupsim.cpp $(HEADERS) 
+	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbotgroupsim.cpp $(CPPFLAGS) $(INCLUDES)
 
 graphics.obj: $(SRC)/graphics.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)

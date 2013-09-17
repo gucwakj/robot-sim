@@ -111,9 +111,9 @@ add_library( robosim SHARED
 	graphics.cpp
 	robotsim.cpp
 	mobotsim.cpp
-	mobotgroup.cpp
+	mobotgroupsim.cpp
 	linkbotsim.cpp
-	linkbotgroup.cpp
+	linkbotgroupsim.cpp
 	#pid.cpp
 )
 else (ENABLE_GRAPHICS)
@@ -121,9 +121,9 @@ add_library( robosim SHARED
 	base.cpp
 	robotsim.cpp
 	mobotsim.cpp
-	mobotgroup.cpp
+	mobotgroupsim.cpp
 	linkbotsim.cpp
-	linkbotgroup.cpp
+	linkbotgroupsim.cpp
 	#pid.cpp
 )
 endif (ENABLE_GRAPHICS)
