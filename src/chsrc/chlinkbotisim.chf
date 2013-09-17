@@ -7,7 +7,7 @@
 CLinkbotI::CLinkbotI() {
 	void *fptr;
 	if(CRobotSim::g_chrobotsim_dlhandle == NULL || CRobotSim::g_chrobotsim_dlcount == 0) {
-		CRobotSim::g_chrobotsim_dlhandle = dlopen("librobotsim.dl", RTLD_LAZY);
+		CRobotSim::g_chrobotsim_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
 		if(CRobotSim::g_chrobotsim_dlhandle == NULL) {
 			printf("Error: %s(): dlopen(): %s\n", __class_func__, dlerror());
 			return;
@@ -1427,7 +1427,7 @@ int CLinkbotI::turnRightNB(double angle, double radius, double tracklength) {
 CLinkbotIGroup::CLinkbotIGroup() {
 	void *fptr;
 	if(CRobotSim::g_chrobotsim_dlhandle == NULL || CRobotSim::g_chrobotsim_dlcount == 0) {
-		CRobotSim::g_chrobotsim_dlhandle = dlopen("librobotsim.dl", RTLD_LAZY);
+		CRobotSim::g_chrobotsim_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
 		if(CRobotSim::g_chrobotsim_dlhandle == NULL) {
 			printf("Error: %s(): dlopen(): %s\n", __class_func__, dlerror());
 			return;
