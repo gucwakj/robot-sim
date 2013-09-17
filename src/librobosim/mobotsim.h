@@ -1,7 +1,7 @@
 #ifndef MOBOT_H_
 #define MOBOT_H_
 
-#include "robotsim.h"
+#include "robosim.h"
 
 #ifdef _CH_
 #include <array.h>
@@ -427,7 +427,7 @@ typedef struct motionArg_s {
 #define ROBOTSIM_DLHANDLE
 void* RoboSim::g_chrobotsim_dlhandle = NULL;
 int RoboSim::g_chrobotsim_dlcount = 0;
-#pragma importf "chrobotsim.chf"
+#pragma importf "chrobosim.chf"
 #endif
 #pragma importf "chmobotsim.chf"
 #else

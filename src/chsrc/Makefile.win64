@@ -7,7 +7,7 @@ PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 ARCH=x64
 
 SRC=../librobosim
-HEADERS= $(SRC)/robotsim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics.h $(SRC)/base.h
+HEADERS= $(SRC)/robosim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics.h $(SRC)/base.h
 CPPFLAGS = -DdDOUBLE /EHsc
 INCLUDES = /I ../opende/include /I ../tinyxml2 /I ../openscenegraph/include
 LIBPATHS = /LIBPATH:../opende/lib/Release/ /LIBPATH:../tinyxml2/build/Release/ /LIBPATH:../openscenegraph/build/lib/
@@ -15,7 +15,7 @@ LIBS = osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osg
 
 target: librobosim.dl
 
-OBJS =	robotsim.obj \
+OBJS =	robosim.obj \
 		base.obj \
 		mobotsim.obj \
 		mobotgroupsim.obj \
@@ -43,8 +43,8 @@ chlinkbotlsim_chdl.obj: chlinkbotlsim_chdl.cpp $(HEADERS)
 chlinkbottsim_chdl.obj: chlinkbottsim_chdl.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus chlinkbottsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-robotsim.obj: $(SRC)/robotsim.cpp $(HEADERS) 
-	ch dlcomp librobosim.dl cplusplus $(SRC)/robotsim.cpp $(CPPFLAGS) $(INCLUDES)
+robosim.obj: $(SRC)/robosim.cpp $(HEADERS) 
+	ch dlcomp librobosim.dl cplusplus $(SRC)/robosim.cpp $(CPPFLAGS) $(INCLUDES)
 
 base.obj: $(SRC)/base.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/base.cpp $(CPPFLAGS) $(INCLUDES)

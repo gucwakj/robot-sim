@@ -1,5 +1,5 @@
 #include "graphics.h"
-#include "robotsim.h"
+#include "robosim.h"
 
 /**********************************************************
 	MoveEarthySkyWithEyePointTransform

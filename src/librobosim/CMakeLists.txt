@@ -109,7 +109,7 @@ if (ENABLE_GRAPHICS)
 add_library( robosim SHARED
 	base.cpp
 	graphics.cpp
-	robotsim.cpp
+	robosim.cpp
 	mobotsim.cpp
 	mobotgroupsim.cpp
 	linkbotsim.cpp
@@ -119,7 +119,7 @@ add_library( robosim SHARED
 else (ENABLE_GRAPHICS)
 add_library( robosim SHARED
 	base.cpp
-	robotsim.cpp
+	robosim.cpp
 	mobotsim.cpp
 	mobotgroupsim.cpp
 	linkbotsim.cpp

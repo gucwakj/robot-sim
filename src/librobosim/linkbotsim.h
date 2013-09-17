@@ -1,7 +1,7 @@
 #ifndef LINKBOT_H_
 #define LINKBOT_H_
 
-#include "robotsim.h"
+#include "robosim.h"
 
 #ifdef _CH_
 #include <array.h>
@@ -778,7 +778,7 @@ class DLLIMPORT CLinkbotLGroup {
 #define ROBOTSIM_DLHANDLE
 void* RoboSim::g_chrobotsim_dlhandle = NULL;
 int RoboSim::g_chrobotsim_dlcount = 0;
-#pragma importf "chrobotsim.chf"
+#pragma importf "chrobosim.chf"
 #endif
 #pragma importf "chlinkbottsim.chf"
 #pragma importf "chlinkbotisim.chf"

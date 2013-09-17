@@ -1,4 +1,4 @@
-#include <robotsim.h>
+#include <robosim.h>
 #include <linkbot.h>
 #include <dlfcn.h>
 #include <stdarg.h>
