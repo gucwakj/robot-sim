@@ -774,10 +774,10 @@ class DLLIMPORT CLinkbotLGroup {
 		int turnRight(double angle, double radius, double tracklength);
 		int turnRightNB(double angle, double radius, double tracklength);
 };
-#ifndef ROBOTSIM_DLHANDLE
-#define ROBOTSIM_DLHANDLE
-void* RoboSim::g_chrobotsim_dlhandle = NULL;
-int RoboSim::g_chrobotsim_dlcount = 0;
+#ifndef ROBOSIM_DLHANDLE
+#define ROBOSIM_DLHANDLE
+void* RoboSim::g_chrobosim_dlhandle = NULL;
+int RoboSim::g_chrobosim_dlcount = 0;
 #pragma importf "chrobosim.chf"
 #endif
 #pragma importf "chlinkbottsim.chf"

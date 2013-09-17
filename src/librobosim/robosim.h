@@ -74,8 +74,8 @@ class DLLIMPORT RoboSim {
 #endif // ENABLE_GRAPHICS
 #else
 	public:
-		static void *g_chrobotsim_dlhandle;
-		static int g_chrobotsim_dlcount;
+		static void *g_chrobosim_dlhandle;
+		static int g_chrobosim_dlcount;
 #endif // not _CH_
 };
 
