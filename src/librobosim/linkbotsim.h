@@ -187,8 +187,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 
 		// private functions inherited from CRobot class
 		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock);
-		virtual int build(bot_t robot);
-		virtual int build(bot_t robot, CRobot *base, Conn_t *conn);
+		virtual int build(xml_robot_t robot);
+		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t *conn);
 		virtual dReal getAngle(int i);
 		virtual dBodyID getBodyID(int id);
 		virtual int getConnectionParams(int face, dMatrix3 R, dReal *p);
@@ -210,7 +210,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int add_daisy_chain(int conn, int side, int face, int type);				// add daisy chained connector
 		int build_individual(dReal x, dReal y, dReal z, dMatrix3 R,					// build individual robot
 							 dReal r_f1, dReal r_f2, dReal r_f3);
-		int build_attached(bot_t robot, CRobot *base, Conn_t *conn);				// build rotated and attached robot
+		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn);				// build rotated and attached robot
 		int build_body(dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);			// build body of mobot
 		int build_face(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);	// build face of mobot
 		int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1);	// build big wheel

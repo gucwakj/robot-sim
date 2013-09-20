@@ -34,23 +34,23 @@ class DLLIMPORT RoboSim {
 		} *robots_t;
 
 		// private variables to store general information about simulation
-		dWorldID _world;					// world in which simulation occurs
-		dSpaceID _space;					// space for robots in which to live
-		dJointGroupID _group;				// group to store joints
-		ground_t _ground;					// ground (static) objects
-		robots_t _robots;					// robot data within simulation
-		bot_t _bot;							// robots read from config file
-		dReal _step;						// time of each step of simulation
-		dReal _clock;						// clock time of simulation
-		double _cor[2];						// coefficient of restitution [body/ground, body/body]
-		double _mu[2];						// coefficient of friction [body/ground, body/body]
-		int _pause;							// is the simulation paused
-		int _running;						// is the program running
-		COND_T _running_cond;				// condition for actively running program
-		MUTEX_T _pause_mutex;				// mutex for paused simulation
-		MUTEX_T _robot_mutex;				// mutex for ground collisions
-		MUTEX_T _running_mutex;				// mutex for actively running program
-		THREAD_T _simulation;				// simulation thread
+		dWorldID _world;			// world in which simulation occurs
+		dSpaceID _space;			// space for robots in which to live
+		dJointGroupID _group;		// group to store joints
+		ground_t _ground;			// ground (static) objects
+		robots_t _robots;			// robot data within simulation
+		xml_robot_t _bot;			// robots read from config file
+		dReal _step;				// time of each step of simulation
+		dReal _clock;				// clock time of simulation
+		double _cor[2];				// coefficient of restitution [body/ground, body/body]
+		double _mu[2];				// coefficient of friction [body/ground, body/body]
+		int _pause;					// is the simulation paused
+		int _running;				// is the program running
+		COND_T _running_cond;		// condition for actively running program
+		MUTEX_T _pause_mutex;		// mutex for paused simulation
+		MUTEX_T _robot_mutex;		// mutex for ground collisions
+		MUTEX_T _running_mutex;		// mutex for actively running program
+		THREAD_T _simulation;		// simulation thread
 
 		// private functions
 		int init_ode(void);				// init function for ode variables

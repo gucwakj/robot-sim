@@ -2068,7 +2068,7 @@ int CMobot::addToSim(dWorldID &world, dSpaceID &space, dReal *clock) {
 	return 0;
 }
 
-int CMobot::build(bot_t robot) {
+int CMobot::build(xml_robot_t robot) {
 	// create rotation matrix
 	dReal   sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
 			stheta = sin(DEG2RAD(robot->theta)),	ctheta = cos(DEG2RAD(robot->theta)),
@@ -2078,7 +2078,7 @@ int CMobot::build(bot_t robot) {
 				  stheta, ctheta*spsi, ctheta*cpsi, 0};
 
 	// check for wheels
-	Conn_t *ctmp = robot->conn;
+	xml_conn_t *ctmp = robot->conn;
 	while (ctmp) {
 		if (ctmp->type == BIGWHEEL || ctmp->type == SMALLWHEEL) {
 			robot->z += ((ctmp->type == SMALLWHEEL) ? _smallwheel_radius : _bigwheel_radius) - _end_height/2;
@@ -2103,12 +2103,12 @@ int CMobot::build(bot_t robot) {
 	return 0;
 }
 
-int CMobot::build(bot_t robot, CRobot *base, Conn_t *conn) {
+int CMobot::build(xml_robot_t robot, CRobot *base, xml_conn_t *conn) {
 	// build robot
 	this->build_attached(robot, base, conn);
 
 	// add connectors
-	Conn_t *ctmp = robot->conn;
+	xml_conn_t *ctmp = robot->conn;
 	while (ctmp) {
 		if ( ctmp->robot == _id )
 			this->add_connector(ctmp->type, ctmp->face1);
@@ -2769,7 +2769,7 @@ int CMobot::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, 
 	return 0;
 }
 
-int CMobot::build_attached(bot_t robot, CRobot *base, Conn_t *conn) {
+int CMobot::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn) {
 	// initialize new variables
 	int i = 1;
 	dReal m[3] = {0}, offset[3] = {0};
@@ -3520,7 +3520,7 @@ int CMobot::fix_connector_to_body(int face, dBodyID cBody) {
 	return 0;
 }
 
-int CMobot::get_connector_params(Conn_t *conn, dMatrix3 R, dReal *p) {
+int CMobot::get_connector_params(xml_conn_t *conn, dMatrix3 R, dReal *p) {
 	double offset[3] = {0};
 	dMatrix3 R1, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
 

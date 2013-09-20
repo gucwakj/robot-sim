@@ -1726,7 +1726,7 @@ int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space, dReal *clock) {
 	return 0;
 }
 
-int CLinkbotT::build(bot_t robot) {
+int CLinkbotT::build(xml_robot_t robot) {
 	// create rotation matrix
 	dReal   sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
 			stheta = sin(DEG2RAD(robot->theta)),	ctheta = cos(DEG2RAD(robot->theta)),
@@ -1736,7 +1736,7 @@ int CLinkbotT::build(bot_t robot) {
 				  stheta, ctheta*spsi, ctheta*cpsi, 0};
 
 	// check for wheels
-	Conn_t *ctmp = robot->conn;
+	xml_conn_t *ctmp = robot->conn;
 	while (ctmp) {
 		if (ctmp->type == BIGWHEEL || ctmp->type == SMALLWHEEL) {
 			robot->z += ((ctmp->type == SMALLWHEEL) ? _smallwheel_radius : _bigwheel_radius) - _body_height/2;
@@ -1764,12 +1764,12 @@ int CLinkbotT::build(bot_t robot) {
 	return 0;
 }
 
-int CLinkbotT::build(bot_t robot, CRobot *base, Conn_t *conn) {
+int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t *conn) {
 	// build robot
 	this->build_attached(robot, base, conn);
 
 	// add connectors
-	Conn_t *ctmp = robot->conn;
+	xml_conn_t *ctmp = robot->conn;
 	while (ctmp) {
 		if (ctmp->robot == _id) {
 			if (ctmp->conn == -1)
@@ -2361,7 +2361,7 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
 	return 0;
 }
 
-int CLinkbotT::build_attached(bot_t robot, CRobot *base, Conn_t *conn) {
+int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn) {
 	// initialize new variables
 	dReal m[3] = {0};
 	dMatrix3 R;

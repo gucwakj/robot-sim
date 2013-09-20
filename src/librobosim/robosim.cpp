@@ -55,12 +55,12 @@ RoboSim::~RoboSim(void) {
 	}
 
 	// remove bot+connector list
-	bot_t btmp = _bot;
+	xml_robot_t btmp = _bot;
 	while (btmp) {
-		bot_t tmp = btmp->next;
-		Conn_t *ctmp = btmp->conn;
+		xml_robot_t tmp = btmp->next;
+		xml_conn_t *ctmp = btmp->conn;
 		while (ctmp) {
-			Conn_t *tmp2 = ctmp->next;
+			xml_conn_t *tmp2 = ctmp->next;
 			delete ctmp;
 			ctmp = tmp2;
 		}
@@ -160,7 +160,7 @@ int RoboSim::init_xml(void) {
 			node->QueryDoubleAttribute("cor_b", &(_cor[1]));
 		}
 		else if ( !strcmp(node->Value(), "mobot") ) {
-			bot_t nr = new struct bot_s;
+			xml_robot_t nr = new struct xml_robot_s;
 			nr->type = MOBOT;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
@@ -186,7 +186,7 @@ int RoboSim::init_xml(void) {
 			nr->next = NULL;
 
 			// put new bot at end of list
-			bot_t rtmp = _bot;
+			xml_robot_t rtmp = _bot;
 			if ( _bot == NULL )
 				_bot = nr;
 			else {
@@ -196,7 +196,7 @@ int RoboSim::init_xml(void) {
 			}
 		}
 		else if ( !strcmp(node->Value(), "linkboti") ) {
-			bot_t nr = new struct bot_s;
+			xml_robot_t nr = new struct xml_robot_s;
 			nr->type = LINKBOTI;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
@@ -232,7 +232,7 @@ int RoboSim::init_xml(void) {
 			nr->next = NULL;
 
 			// put new bot at end of list
-			bot_t rtmp = _bot;
+			xml_robot_t rtmp = _bot;
 			if ( _bot == NULL )
 				_bot = nr;
 			else {
@@ -242,7 +242,7 @@ int RoboSim::init_xml(void) {
 			}
 		}
 		else if ( !strcmp(node->Value(), "linkbotl") ) {
-			bot_t nr = new struct bot_s;
+			xml_robot_t nr = new struct xml_robot_s;
 			nr->type = LINKBOTL;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
@@ -278,7 +278,7 @@ int RoboSim::init_xml(void) {
 			nr->next = NULL;
 
 			// put new bot at end of list
-			bot_t rtmp = _bot;
+			xml_robot_t rtmp = _bot;
 			if ( _bot == NULL )
 				_bot = nr;
 			else {
@@ -288,7 +288,7 @@ int RoboSim::init_xml(void) {
 			}
 		}
 		else if ( !strcmp(node->Value(), "linkbott") ) {
-			bot_t nr = new struct bot_s;
+			xml_robot_t nr = new struct xml_robot_s;
 			nr->type = LINKBOTT;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
@@ -324,7 +324,7 @@ int RoboSim::init_xml(void) {
 			nr->next = NULL;
 
 			// put new bot at end of list
-			bot_t rtmp = _bot;
+			xml_robot_t rtmp = _bot;
 			if ( _bot == NULL )
 				_bot = nr;
 			else {
@@ -512,10 +512,10 @@ int RoboSim::init_xml(void) {
 			}
 
 			// store connectors to each robot
-			bot_t tmp;
-			Conn_t *ctmp;
+			xml_robot_t tmp;
+			xml_conn_t *ctmp;
 			for (int j = 0; j < i; j++) {
-				Conn_t *nc = new struct Conn_s;
+				xml_conn_t *nc = new struct xml_conn_s;
 				nc->robot = rtmp[0];
 				nc->face1 = ftmp[0];
 				nc->conn = atmp[j];
@@ -543,14 +543,14 @@ int RoboSim::init_xml(void) {
 		}
 
 		// debug printing
-		/*bot_t rtmp = bot;
+		/*xml_robot_t rtmp = bot;
 		while (rtmp) {
 			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
 			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
 			printf("psi = %lf, theta = %lf, phi = %lf\n", rtmp->psi, rtmp->theta, rtmp->phi);
 			printf("angle1 = %lf, angle2 = %lf, angle3 = %lf, angle4 = %lf\n", \
 				rtmp->angle1, rtmp->angle2, rtmp->angle3, rtmp->angle4);
-			Conn_t *ctmp = rtmp->conn;
+			xml_conn_t *ctmp = rtmp->conn;
 			while (ctmp) {
 				printf("on face %d connect with robot %d on his face %d with type %d from side %d with conn %d\n", \
 					ctmp->face2, ctmp->robot, ctmp->face1, ctmp->type, ctmp->side, ctmp->conn);
@@ -628,7 +628,7 @@ int RoboSim::addRobot(CRobot *robot) {
 	}
 
 	// find specs about new robot
-	bot_t btmp = _bot;
+	xml_robot_t btmp = _bot;
 	int num = 0;
 	while (btmp) {
 		if (btmp->type != robot->getType()) { btmp = btmp->next; continue; }
@@ -642,7 +642,7 @@ int RoboSim::addRobot(CRobot *robot) {
 	robot->setID(btmp->id);
 
 	// find if robot is connected to another one
-	Conn_t *ctmp = btmp->conn;
+	xml_conn_t *ctmp = btmp->conn;
 	while (ctmp) {
 		if ( ctmp->robot != btmp->id ) {
 			break;

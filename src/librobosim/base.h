@@ -23,7 +23,6 @@
 #include <cstring>
 #include <cstdarg>
 #ifdef ENABLE_GRAPHICS
-//#include <osg/Group>
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
 #else
@@ -151,20 +150,20 @@ typedef enum robot_connector_e {
 } robotConnector_t;
 
 // connector
-typedef struct Conn_s {
+typedef struct xml_conn_s {
 	int robot, type, side, face1, face2, conn;
-	struct Conn_s *next;
-} Conn_t;
+	struct xml_conn_s *next;
+} xml_conn_t;
 // robot
-typedef struct bot_s {
+typedef struct xml_robot_s {
 	int type;
 	int id;
 	double x, y, z;
 	double psi, theta, phi;
 	double angle1, angle2, angle3, angle4;
-	struct Conn_s *conn;
-	struct bot_s *next;
-} *bot_t;
+	struct xml_conn_s *conn;
+	struct xml_robot_s *next;
+} *xml_robot_t;
 
 typedef double* robotRecordData_t;
 
@@ -184,8 +183,8 @@ class DLLIMPORT CRobot {
 
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock) = 0;
-		virtual int build(bot_t robot) = 0;
-		virtual int build(bot_t robot, CRobot *base, Conn_t *conn) = 0;
+		virtual int build(xml_robot_t robot) = 0;
+		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t *conn) = 0;
 		virtual bool getSuccess(int i) = 0;
 		virtual int getType(void) = 0;
 		virtual dBodyID getBodyID(int body) = 0;
