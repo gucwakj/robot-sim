@@ -103,10 +103,11 @@ int RoboSim::init_sim(void) {
 	_cor[0] = 0.3;	_cor[1] = 0.3;
 
 	// thread variables
-	THREAD_CREATE(&_simulation, (void* (*)(void *))&RoboSim::simulation_thread, this);
+	MUTEX_INIT(&_pause_mutex);
 	MUTEX_INIT(&_robot_mutex);
 	MUTEX_INIT(&_running_mutex);
 	COND_INIT(&_running_cond);
+	THREAD_CREATE(&_simulation, (void* (*)(void *))&RoboSim::simulation_thread, this);
 
 	// variables to keep track of progress of simulation
 	_running = 1;			// is simulation running
@@ -579,6 +580,8 @@ int RoboSim::init_viz(void) {
 	_viewer = new osgViewer::Viewer();
 
 	// graphics hasn't started yet
+	COND_INIT(&_graphics_cond);
+	MUTEX_INIT(&_graphics_mutex);
 	_graphics = 0;
 
 	// create graphics thread
