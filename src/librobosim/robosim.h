@@ -40,10 +40,10 @@ class DLLIMPORT RoboSim {
 		ground_t _ground;			// ground (static) objects
 		robots_t _robots;			// robot data within simulation
 		xml_robot_t _bot;			// robots read from config file
-		dReal _step;				// time of each step of simulation
-		dReal _clock;				// clock time of simulation
+		double _clock;				// clock time of simulation
 		double _cor[2];				// coefficient of restitution [body/ground, body/body]
 		double _mu[2];				// coefficient of friction [body/ground, body/body]
+		double _step;				// time of each step of simulation
 		int _pause;					// is the simulation paused
 		int _running;				// is the program running
 		COND_T _running_cond;		// condition for actively running program

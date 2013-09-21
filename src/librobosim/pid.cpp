@@ -21,7 +21,7 @@ PID::PID() {
 PID::~PID() {
 }
 
-void PID::init(dReal kp, dReal ki, dReal kd, dReal error_thresh, dReal step_time) {
+void PID::init(double kp, double ki, double kd, double error_thresh, double step_time) {
 	// initialize controller parameters
 	this->m_kp = kp;
 	this->m_ki = ki;
@@ -43,13 +43,13 @@ void PID::restart() {
 	this->m_started = false;
 }
 
-dReal PID::update(dReal error) {
+double PID::update(double error) {
 	// update the error integral if the error magnitude is below the threshold
 	if (fabs(error) < m_error_thresh)
 		m_integral += this->m_dt*error;
 
 	// compute the error derivative
-	dReal deriv = 0;
+	double deriv = 0;
 	if (!this->m_started)
 		this->m_started = true;
 	else

@@ -215,18 +215,18 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		};
 
 		// private functions inherited from CRobot class
-		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock);
+		virtual int addToSim(dWorldID &world, dSpaceID &space, double *clock);
 		virtual int build(xml_robot_t robot);
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t *conn);
-		virtual dReal getAngle(int i);
+		virtual double getAngle(int i);
 		virtual dBodyID getBodyID(int id);
-		virtual int getConnectionParams(int face, dMatrix3 R, dReal *p);
+		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
 		virtual dBodyID getConnectorBodyID(int face);
 		virtual dBodyID getConnectorBodyIDs(int num);
 		virtual int getRobotID(void);
 		virtual dJointID getMotorID(int id);
-		virtual dReal getPosition(int body, int i);
-		virtual dReal getRotation(int body, int i);
+		virtual double getPosition(int body, int i);
+		virtual double getRotation(int body, int i);
 		virtual bool getSuccess(int i);
 		virtual int getType(void);
 		virtual bool isHome(void);
@@ -236,11 +236,11 @@ class DLLIMPORT CMobot : virtual public CRobot {
 
 		// private functions
 		int add_connector(int type, int face);
-		int build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re);
+		int build_individual(double x, double y, double z, dMatrix3 R, double r_le, double r_lb, double r_rb, double r_re);
 		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn);
-		int build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta);
-		int build_center(dReal x, dReal y, dReal z, dMatrix3 R);
-		int build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R);
+		int build_body(int id, double x, double y, double z, dMatrix3 R, double theta);
+		int build_center(double x, double y, double z, dMatrix3 R);
+		int build_endcap(int id, double x, double y, double z, dMatrix3 R);
 		int build_bigwheel(conn_t conn, int face);
 		int build_caster(conn_t conn, int face);
 		int build_simple(conn_t conn, int face);
@@ -249,10 +249,10 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int build_tank(conn_t conn, int face);
 		int fix_body_to_connector(dBodyID cBody, int face);
 		int fix_connector_to_body(int face, dBodyID cBody);
-		int get_connector_params(xml_conn_t *conn, dMatrix3 R, dReal *p);
+		int get_connector_params(xml_conn_t *conn, dMatrix3 R, double *p);
 		int init_params(void);
 		int init_dims(void);
-		dReal mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate);
+		double mod_angle(double past_ang, double cur_ang, double ang_rate);
 		void resetPID(int i = NUM_DOF);
 		static void* motionArchThread(void *arg);
 		static void* motionDistanceThread(void *arg);

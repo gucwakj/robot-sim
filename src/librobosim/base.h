@@ -29,7 +29,6 @@
 #define DLLIMPORT
 #pragma package <chrobosim>
 #define dDOUBLE
-#define dReal double
 #define ENABLE_GRAPHICS
 extern void delay(double seconds);
 #endif // no _CH_
@@ -182,7 +181,7 @@ class DLLIMPORT CRobot {
 		int noisy(double *a, int length, double sigma);
 
 		// pure virtual functions to be overridden by inherited classes of each robot
-		virtual int addToSim(dWorldID &world, dSpaceID &space, dReal *clock) = 0;
+		virtual int addToSim(dWorldID &world, dSpaceID &space, double *clock) = 0;
 		virtual int build(xml_robot_t robot) = 0;
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t *conn) = 0;
 		virtual bool getSuccess(int i) = 0;
@@ -190,12 +189,12 @@ class DLLIMPORT CRobot {
 		virtual dBodyID getBodyID(int body) = 0;
 		virtual dBodyID getConnectorBodyID(int face) = 0;
 		virtual dBodyID getConnectorBodyIDs(int num) = 0;
-		virtual int getConnectionParams(int face, dMatrix3 R, dReal *p) = 0;
+		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
 		virtual int getRobotID(void) = 0;
 		virtual dJointID getMotorID(int motor) = 0;
-		virtual dReal getAngle(int i) = 0;
-		virtual dReal getPosition(int body, int i) = 0;
-		virtual dReal getRotation(int body, int i) = 0;
+		virtual double getAngle(int i) = 0;
+		virtual double getPosition(int body, int i) = 0;
+		virtual double getRotation(int body, int i) = 0;
 		virtual bool isHome(void) = 0;
 		virtual int setID(int id) = 0;
 		virtual void simPreCollisionThread(void) = 0;
@@ -235,16 +234,22 @@ class DLLIMPORT CRobot {
 		dGeomID **_geom;		// geometries of each body part
 		dJointID *_joint;		// joints between body parts
 		dJointID *_motor;		// motors
-		dReal *_clock;			// world clock
-		dReal *_angle;			// angles
-		dReal *_goal;			// goals
-		dReal *_max_force;		// maximum joint forces
-		dReal *_max_speed;		// maximum joint speeds
-		dReal *_speed;			// speed
 		dSpaceID _space;		// space for this robot
 		dWorldID _world;		// world for all robots
 		double _accel[3];		// accelerometer data
+		double *_angle;			// angles
+		double *_clock;			// world clock
 		double _encoder;		// motor encoder resolution
+		double *_goal;			// goals
+		double *_max_force;		// maximum joint forces
+		double *_max_speed;		// maximum joint speeds
+		double *_offset;		// offset from zero for resetting
+		double _radius;			// wheel radius
+		double ***_rec_angles;	// recorded angles from thread
+		double _rgb[3];			// rgb of 'led'
+		double _safety_angle;	// joint safety angle
+		double _safety_timeout;	// joint safety timeout
+		double *_speed;			// speed
 		double	_center_length, _center_width, _center_height, _center_radius, _center_offset,
 				_body_length, _body_width, _body_height, _body_radius,
 				_body_inner_width_left, _body_inner_width_right, _body_end_depth, _body_mount_center,
@@ -256,12 +261,6 @@ class DLLIMPORT CRobot {
 				_tank_height, _tank_depth,
 				// linkbot
 				_cubic_length, _bridge_length;
-		double _safety_angle;	// joint safety angle
-		double _safety_timeout;	// joint safety timeout
-		double *_offset;		// offset from zero for resetting
-		double _radius;			// wheel radius
-		double ***_rec_angles;	// recorded angles from thread
-		double _rgb[3];			// rgb of 'led'
 		int _connected; 		// connected to controller
 		int _disabled;			// which joint is disabled
 		int *_enabled;			// list of enabled motors

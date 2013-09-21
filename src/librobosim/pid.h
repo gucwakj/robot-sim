@@ -8,13 +8,13 @@ class PID {
 	public:
 		PID();
 		~PID();
-		void init(dReal kp, dReal ki, dReal kd, dReal error_thresh, dReal step_time);
+		void init(double kp, double ki, double kd, double error_thresh, double step_time);
 		void restart();
-		dReal update(dReal error);
+		double update(double error);
 
 	private:
 		bool m_started;
-		dReal	m_kp,				// proportional control constant
+		double	m_kp,				// proportional control constant
 				m_ki,				// integral control constant
 				m_kd,				// derivative control constant
 				m_dt,				// derivative

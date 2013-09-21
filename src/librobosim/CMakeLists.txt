@@ -52,12 +52,7 @@ endif (MSVC)
 set(EXTRA_LIBS ${EXTRA_LIBS} optimized ode debug oded)
 
 # Option to enable double precision
-option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
-if (ENABLE_DOUBLE)
-	add_definitions(-DdDOUBLE)
-else (ENABLE_DOUBLE)
-	add_definitions(-DdSINGLE)
-endif (ENABLE_DOUBLE)
+add_definitions(-DdDOUBLE)
 
 # Option to enable assertion messages
 option (ENABLE_MESSAGES "Disable message output." OFF)

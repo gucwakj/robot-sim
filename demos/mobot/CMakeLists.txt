@@ -28,12 +28,7 @@ include_directories("../../src/openscenegraph/include")
 include_directories("../../src/openscenegraph/build/include")
 
 # Compilation options
-option (ENABLE_DOUBLE "Enable double precision for simulation." ON)
-if (ENABLE_DOUBLE)
-  add_definitions(-DdDOUBLE)
-else (ENABLE_DOUBLE)
-  add_definitions(-DdSINGLE)
-endif (ENABLE_DOUBLE)
+add_definitions(-DdDOUBLE)
 
 # Add crobotsim library subdirectory
 include_directories("../../src/librobosim")

@@ -436,8 +436,8 @@ int CMobot::motionRollBackwardNB(double angle) {
 	return 0;
 }
 
-int CMobot::motionRollForward(dReal angle) {
-	dReal motorPosition[2];
+int CMobot::motionRollForward(double angle) {
+	double motorPosition[2];
 	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
 	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
 	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] + angle);
@@ -2059,7 +2059,7 @@ int CMobot::turnRightNB(double angle, double radius, double tracklength) {
 /**********************************************************
 	inherited functions
  **********************************************************/
-int CMobot::addToSim(dWorldID &world, dSpaceID &space, dReal *clock) {
+int CMobot::addToSim(dWorldID &world, dSpaceID &space, double *clock) {
 	_world = world;
     _space = dHashSpaceCreate(space);
 	_clock = clock;
@@ -2070,7 +2070,7 @@ int CMobot::addToSim(dWorldID &world, dSpaceID &space, dReal *clock) {
 
 int CMobot::build(xml_robot_t robot) {
 	// create rotation matrix
-	dReal   sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
+	double   sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
 			stheta = sin(DEG2RAD(robot->theta)),	ctheta = cos(DEG2RAD(robot->theta)),
 			spsi = sin(DEG2RAD(robot->psi)),		cpsi = cos(DEG2RAD(robot->psi));
 	dMatrix3 R = {cphi*ctheta, -cphi*stheta*spsi - sphi*cpsi, -cphi*stheta*cpsi + sphi*spsi, 0,
@@ -2119,8 +2119,8 @@ int CMobot::build(xml_robot_t robot, CRobot *base, xml_conn_t *conn) {
 	return 0;
 }
 
-dReal CMobot::getAngle(int i) {
-	dReal angle = 0;
+double CMobot::getAngle(int i) {
+	double angle = 0;
 	if (i == LE || i == RE)
 		angle = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
 	else
@@ -2132,8 +2132,8 @@ dBodyID CMobot::getBodyID(int id) {
     return _body[id];
 }
 
-int CMobot::getConnectionParams(int face, dMatrix3 R, dReal *p) {
-	const dReal *pos, *R1;
+int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
+	const double *pos, *R1;
 	dMatrix3 R2;
 	double offset[3] = {0};
 	int i = 1;
@@ -2234,14 +2234,14 @@ dJointID CMobot::getMotorID(int id) {
     return _motor[id];
 }
 
-dReal CMobot::getPosition(int body, int i) {
-	const dReal *pos = dBodyGetPosition(_body[body]);
+double CMobot::getPosition(int body, int i) {
+	const double *pos = dBodyGetPosition(_body[body]);
 	return pos[i];
 }
 
-dReal CMobot::getRotation(int body, int i) {
-	const dReal *R = dBodyGetRotation(_body[body]);
-	dReal angles[3] = {0};
+double CMobot::getRotation(int body, int i) {
+	const double *R = dBodyGetRotation(_body[body]);
+	double angles[3] = {0};
     if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
         angles[0] = atan2(-R[1], -R[2]);		// psi
         angles[1] = M_PI/2;						// theta
@@ -2348,7 +2348,7 @@ void CMobot::draw(osg::Group *root) {
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[5];
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat[5];
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 	osg::Cylinder *cyl;
@@ -2599,7 +2599,7 @@ int CMobot::add_connector(int type, int face) {
 	return 0;
 }
 
-int CMobot::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, dReal r_lb, dReal r_rb, dReal r_re) {
+int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_le, double r_lb, double r_rb, double r_re) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
     _geom[ENDCAP_L] = new dGeomID[7];
@@ -2625,11 +2625,11 @@ int CMobot::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, 
     _angle[RE] = DEG2RAD(r_re);       // right end
 
     // offset values for each body part[0-2] and joint[3-5] from center
-    dReal le[6] = {-_body_radius - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_body_radius/2 - _body_length - _body_end_depth, 0, 0};
-    dReal lb[6] = {-_body_radius - _body_length - _body_end_depth/2, 0, 0, -_center_length/2, _center_width/2, 0};
-	dReal ce[3] = {0, _center_offset, 0};
-    dReal rb[6] = {_body_radius + _body_length + _body_end_depth/2, 0, 0, _center_length/2, _center_width/2, 0};
-    dReal re[6] = {_body_radius + _body_length + _body_end_depth + _end_depth/2, 0, 0, _body_radius/2 + _body_length + _body_end_depth, 0, 0};
+    double le[6] = {-_body_radius - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_body_radius/2 - _body_length - _body_end_depth, 0, 0};
+    double lb[6] = {-_body_radius - _body_length - _body_end_depth/2, 0, 0, -_center_length/2, _center_width/2, 0};
+	double ce[3] = {0, _center_offset, 0};
+    double rb[6] = {_body_radius + _body_length + _body_end_depth/2, 0, 0, _center_length/2, _center_width/2, 0};
+    double re[6] = {_body_radius + _body_length + _body_end_depth + _end_depth/2, 0, 0, _body_radius/2 + _body_length + _body_end_depth, 0, 0};
 
 	// build robot bodies
     this->build_endcap(ENDCAP_L, R[0]*le[0] + x, R[4]*le[0] + y, R[8]*le[0] + z, R);
@@ -2706,10 +2706,10 @@ int CMobot::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, 
 	// if bodies are rotated, then redraw
 	if (_angle[LE] != 0 || _angle[LB] != 0 ||_angle[RB] != 0 || _angle[RE] != 0 ) {
     	// offset values from center of robot
-    	dReal le_r[3] = {-_body_radius - (_body_length + _body_end_depth + _end_depth/2)*cos(_angle[LB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_angle[LB])};
-    	dReal lb_r[3] = {-_body_radius - (_body_length + _body_end_depth/2)*cos(_angle[LB]), 0, (_body_length + _body_end_depth/2)*sin(_angle[LB])};
-    	dReal rb_r[3] = {_body_radius + (_body_length + _body_end_depth/2)*cos(_angle[RB]), 0, (_body_length + _body_end_depth/2)*sin(_angle[RB])};
-    	dReal re_r[3] = {_body_radius + (_body_length + _body_end_depth + _end_depth/2)*cos(_angle[RB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_angle[RB])};
+    	double le_r[3] = {-_body_radius - (_body_length + _body_end_depth + _end_depth/2)*cos(_angle[LB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_angle[LB])};
+    	double lb_r[3] = {-_body_radius - (_body_length + _body_end_depth/2)*cos(_angle[LB]), 0, (_body_length + _body_end_depth/2)*sin(_angle[LB])};
+    	double rb_r[3] = {_body_radius + (_body_length + _body_end_depth/2)*cos(_angle[RB]), 0, (_body_length + _body_end_depth/2)*sin(_angle[RB])};
+    	double re_r[3] = {_body_radius + (_body_length + _body_end_depth + _end_depth/2)*cos(_angle[RB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_angle[RB])};
 
     	// re-build pieces of module
     	this->build_endcap(ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le);
@@ -2772,7 +2772,7 @@ int CMobot::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_le, 
 int CMobot::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn) {
 	// initialize new variables
 	int i = 1;
-	dReal m[3] = {0}, offset[3] = {0};
+	double m[3] = {0}, offset[3] = {0};
 	dMatrix3 R, R1, R2, R3, R4, R5, R6;
 
 	// generate parameters for base robot
@@ -2782,10 +2782,10 @@ int CMobot::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn) {
 	this->get_connector_params(conn, R, m);
 
 	// collect data from struct
-	dReal r_le = robot->angle1;
-	dReal r_lb = robot->angle2;
-	dReal r_rb = robot->angle3;
-	dReal r_re = robot->angle4;
+	double r_le = robot->angle1;
+	double r_lb = robot->angle2;
+	double r_rb = robot->angle3;
+	double r_re = robot->angle4;
 
 	switch (conn->face2) {
 		case 1:
@@ -2867,7 +2867,7 @@ int CMobot::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn) {
 	return 0;
 }
 
-int CMobot::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta) {
+int CMobot::build_body(int id, double x, double y, double z, dMatrix3 R, double theta) {
 	int i = 1;
 	if ( id == BODY_R )
 		i = -1;
@@ -2936,7 +2936,7 @@ int CMobot::build_body(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal thet
 	return 0;
 }
 
-int CMobot::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
+int CMobot::build_center(double x, double y, double z, dMatrix3 R) {
     // define parameters
     dMass m;
     dMatrix3 R1;
@@ -2984,7 +2984,7 @@ int CMobot::build_center(dReal x, dReal y, dReal z, dMatrix3 R) {
 	return 0;
 }
 
-int CMobot::build_endcap(int id, dReal x, dReal y, dReal z, dMatrix3 R) {
+int CMobot::build_endcap(int id, double x, double y, double z, dMatrix3 R) {
     // define parameters
     dMass m;
     dMatrix3 R1;
@@ -3520,7 +3520,7 @@ int CMobot::fix_connector_to_body(int face, dBodyID cBody) {
 	return 0;
 }
 
-int CMobot::get_connector_params(xml_conn_t *conn, dMatrix3 R, dReal *p) {
+int CMobot::get_connector_params(xml_conn_t *conn, dMatrix3 R, double *p) {
 	double offset[3] = {0};
 	dMatrix3 R1, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
 
@@ -3579,18 +3579,18 @@ int CMobot::init_params(void) {
 	_body = new dBodyID[NUM_PARTS];
 	_joint = new dJointID[6];
 	_motor = new dJointID[NUM_DOF];
-	_angle = new dReal[NUM_DOF];
+	_angle = new double[NUM_DOF];
 	_geom = new dGeomID * [NUM_PARTS];
-	_goal = new dReal[NUM_DOF];
-	_max_force = new dReal[NUM_DOF];
-	_max_speed = new dReal[NUM_DOF];
+	_goal = new double[NUM_DOF];
+	_max_force = new double[NUM_DOF];
+	_max_speed = new double[NUM_DOF];
 	_offset = new double[NUM_DOF];
 	_rec_active = new bool[NUM_DOF];
 	_rec_angles = new double ** [NUM_DOF];
 	_rec_num = new int[NUM_DOF];
 	_recording = new bool[NUM_DOF];
 	_seek = new bool[NUM_DOF];
-	_speed = new dReal[NUM_DOF];
+	_speed = new double[NUM_DOF];
 	_state = new int[NUM_DOF];
 	_success = new int[NUM_DOF];
 
@@ -3650,10 +3650,10 @@ int CMobot::init_dims(void) {
 	return 0;
 }
 
-dReal CMobot::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
-    dReal new_ang = 0;
+double CMobot::mod_angle(double past_ang, double cur_ang, double ang_rate) {
+    double new_ang = 0;
     int stp = (int)( fabs(past_ang) / M_PI );
-    dReal past_ang_mod = fabs(past_ang) - stp*M_PI;
+    double past_ang_mod = fabs(past_ang) - stp*M_PI;
 
     if ( (int)(ang_rate*1000) == 0 ) {
         new_ang = past_ang;
@@ -3718,7 +3718,7 @@ void CMobot::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Cylinder *cyl;
 
@@ -3750,7 +3750,7 @@ void CMobot::draw_caster(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 	osg::Cylinder *cyl;
@@ -3831,7 +3831,7 @@ void CMobot::draw_simple(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 	osg::Cylinder *cyl;
@@ -3897,7 +3897,7 @@ void CMobot::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Cylinder *cyl;
 
@@ -3929,7 +3929,7 @@ void CMobot::draw_square(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 
@@ -3976,7 +3976,7 @@ void CMobot::draw_tank(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 	double	depth = _tank_depth,

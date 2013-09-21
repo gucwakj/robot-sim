@@ -84,7 +84,7 @@ mobotNodeCallback::mobotNodeCallback(CRobot *robot) {
 void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	osg::Group *group = dynamic_cast<osg::Group *>(node);
 	if (group) {
-		const dReal *pos, *quat;
+		const double *pos, *quat;
 		int k = 0;
 		osg::PositionAttitudeTransform *pat;
 		for (int i = 0; i < 5; i++) {
@@ -115,7 +115,7 @@ linkbotNodeCallback::linkbotNodeCallback(CRobot *robot) {
 void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	osg::Group *group = dynamic_cast<osg::Group *>(node);
 	if (group) {
-		const dReal *pos, *quat;
+		const double *pos, *quat;
 		int k = 0;
 		osg::PositionAttitudeTransform *pat;
 		// draw body parts

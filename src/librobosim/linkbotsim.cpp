@@ -348,7 +348,7 @@ int CLinkbotT::motionRollBackwardNB(double angle) {
 	return 0;
 }
 
-int CLinkbotT::motionRollForward(dReal angle) {
+int CLinkbotT::motionRollForward(double angle) {
 	this->move(angle, 0, angle);
 	this->moveWait();
 
@@ -502,7 +502,7 @@ int CLinkbotT::move(double angle1, double angle2, double angle3) {
 
 int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 	// store angles into array
-	dReal delta[NUM_DOF] = {angle1, angle2, angle3};
+	double delta[NUM_DOF] = {angle1, angle2, angle3};
 
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
@@ -583,7 +583,7 @@ int CLinkbotT::moveForwardNB(double angle) {
 	return this->moveNB(angle, 0, -angle);
 }
 
-int CLinkbotT::moveJoint(robotJointId_t id, dReal angle) {
+int CLinkbotT::moveJoint(robotJointId_t id, double angle) {
 	this->moveJointNB(id, angle);
 	this->moveJointWait(id);
 
@@ -599,7 +599,7 @@ int CLinkbotT::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir,
 	return this->setJointMovementStateTime(id, dir, seconds);
 }
 
-int CLinkbotT::moveJointNB(robotJointId_t id, dReal angle) {
+int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 	// check if disabled joint
 	if (_disabled == id) return 0;
 
@@ -673,7 +673,7 @@ int CLinkbotT::moveJointToNB(robotJointId_t id, double angle) {
 	if (_disabled == id) return 0;
 
 	// store delta angle
-	dReal delta = angle - _angle[id];
+	double delta = angle - _angle[id];
 
 	// lock goal
 	MUTEX_LOCK(&_goal_mutex);
@@ -750,9 +750,9 @@ int CLinkbotT::moveToDirectNB(double angle1, double angle2, double angle3) {
 	return 0;
 }
 
-int CLinkbotT::moveToNB(dReal angle1, dReal angle2, dReal angle3) {
+int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 	// store angles into array
-	dReal delta[3] = {DEG2RAD(angle1) - _angle[0], DEG2RAD(angle2) - _angle[1], DEG2RAD(angle3) - _angle[2]};
+	double delta[3] = {DEG2RAD(angle1) - _angle[0], DEG2RAD(angle2) - _angle[1], DEG2RAD(angle3) - _angle[2]};
 
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
@@ -1717,7 +1717,7 @@ int CLinkbotT::turnRightNB(double angle, double radius, double tracklength) {
 /**********************************************************
 	inherited functions
  **********************************************************/
-int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space, dReal *clock) {
+int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space, double *clock) {
 	_world = world;
     _space = dHashSpaceCreate(space);
 	_clock = clock;
@@ -1728,7 +1728,7 @@ int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space, dReal *clock) {
 
 int CLinkbotT::build(xml_robot_t robot) {
 	// create rotation matrix
-	dReal   sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
+	double   sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
 			stheta = sin(DEG2RAD(robot->theta)),	ctheta = cos(DEG2RAD(robot->theta)),
 			spsi = sin(DEG2RAD(robot->psi)),		cpsi = cos(DEG2RAD(robot->psi));
 	dMatrix3 R = {cphi*ctheta, -cphi*stheta*spsi - sphi*cpsi, -cphi*stheta*cpsi + sphi*spsi, 0,
@@ -1787,7 +1787,7 @@ int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t *conn) {
 	return 0;
 }
 
-dReal CLinkbotT::getAngle(int i) {
+double CLinkbotT::getAngle(int i) {
 	if (i != _disabled)
 		_angle[i] = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i])) - _offset[i];
 	else
@@ -1802,10 +1802,10 @@ dBodyID CLinkbotT::getBodyID(int id) {
     return _body[id];
 }
 
-int CLinkbotT::getConnectionParams(int face, dMatrix3 R, dReal *p) {
+int CLinkbotT::getConnectionParams(int face, dMatrix3 R, double *p) {
 	double offset[3] = {0};
-	const dReal *pos = dBodyGetPosition(_body[face]);
-	const dReal *R1 = dBodyGetRotation(_body[face]);
+	const double *pos = dBodyGetPosition(_body[face]);
+	const double *R1 = dBodyGetRotation(_body[face]);
 	dMatrix3 R2;
 
 	// get offset and rotation of face connection
@@ -1865,14 +1865,14 @@ dJointID CLinkbotT::getMotorID(int id) {
     return _motor[id];
 }
 
-dReal CLinkbotT::getPosition(int body, int i) {
-	const dReal *pos = dBodyGetPosition(_body[body]);
+double CLinkbotT::getPosition(int body, int i) {
+	const double *pos = dBodyGetPosition(_body[body]);
 	return pos[i];
 }
 
-dReal CLinkbotT::getRotation(int body, int i) {
-	const dReal *R = dBodyGetRotation(_body[body]);
-	dReal angles[3] = {0};
+double CLinkbotT::getRotation(int body, int i) {
+	const double *R = dBodyGetRotation(_body[body]);
+	double angles[3] = {0};
     if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
         angles[0] = atan2(-R[1], -R[2]);		// psi
         angles[1] = M_PI/2;						// theta
@@ -1995,7 +1995,7 @@ void CLinkbotT::draw(osg::Group *root) {
 	osg::ref_ptr<osg::Geode> body[NUM_PARTS+1];
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat[NUM_PARTS+1];
 	osg::ref_ptr<osg::Texture2D> tex[2];
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 	osg::Cylinder *cyl;
@@ -2225,7 +2225,7 @@ int CLinkbotT::add_daisy_chain(int conn, int face, int side, int type) {
 }
 
 
-int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f1, dReal r_f2, dReal r_f3) {
+int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double r_f1, double r_f2, double r_f3) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
     _geom[BODY] = new dGeomID[2];
@@ -2249,10 +2249,10 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
     _angle[F3] = DEG2RAD(r_f3);	// face 3
 
 	// offset values for each body part[0-2] and joint[3-5] from center
-	dReal b[3] = {0, -_body_length/2, 0};
-	dReal f1[6] = {-_body_width/2 - _face_depth/2, 0, 0, -_body_width/2, 0, 0};
-	dReal f2[6] = {0, -_body_length - _face_depth/2, 0, 0, -_body_length, 0};
-	dReal f3[6] = {_body_width/2 + _face_depth/2, 0, 0, _body_width/2, 0, 0};
+	double b[3] = {0, -_body_length/2, 0};
+	double f1[6] = {-_body_width/2 - _face_depth/2, 0, 0, -_body_width/2, 0, 0};
+	double f2[6] = {0, -_body_length - _face_depth/2, 0, 0, -_body_length, 0};
+	double f3[6] = {_body_width/2 + _face_depth/2, 0, 0, _body_width/2, 0, 0};
 
 	// build robot bodies
 	this->build_body(R[1]*b[1] + x, R[5]*b[1] + y, R[9]*b[1] + z, R, 0);
@@ -2363,7 +2363,7 @@ int CLinkbotT::build_individual(dReal x, dReal y, dReal z, dMatrix3 R, dReal r_f
 
 int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn) {
 	// initialize new variables
-	dReal m[3] = {0};
+	double m[3] = {0};
 	dMatrix3 R;
 
 	// generate parameters for base robot
@@ -2385,7 +2385,7 @@ int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn)
 	return 0;
 }
 
-int CLinkbotT::build_body(dReal x, dReal y, dReal z, dMatrix3 R, dReal theta) {
+int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta) {
     // define parameters
     dMass m, m1, m2, m3;
     dMatrix3 R1, R2, R3;
@@ -2431,7 +2431,7 @@ int CLinkbotT::build_body(dReal x, dReal y, dReal z, dMatrix3 R, dReal theta) {
 	return 0;
 }
 
-int CLinkbotT::build_face(int id, dReal x, dReal y, dReal z, dMatrix3 R, dReal theta) {
+int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, double theta) {
     // define parameters
     dMass m, m1, m2, m3;
     dMatrix3 R1, R2, R3;
@@ -3011,14 +3011,14 @@ int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, double *p) {
 
 int CLinkbotT::init_params(int disabled, int type) {
 	// create arrays for linkbots
-	_angle = new dReal[NUM_DOF];
+	_angle = new double[NUM_DOF];
 	_body = new dBodyID[NUM_PARTS];
 	_enabled = new int[(disabled == -1) ? 3 : 2];
 	_geom = new dGeomID * [NUM_PARTS];
-	_goal = new dReal[NUM_DOF];
+	_goal = new double[NUM_DOF];
 	_joint = new dJointID[NUM_DOF];
-	_max_force = new dReal[NUM_DOF];
-	_max_speed = new dReal[NUM_DOF];
+	_max_force = new double[NUM_DOF];
+	_max_speed = new double[NUM_DOF];
 	_motor = new dJointID[NUM_DOF];
 	_offset = new double[NUM_DOF];
 	_rec_active = new bool[NUM_DOF];
@@ -3026,7 +3026,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_rec_num = new int[NUM_DOF];
 	_recording = new bool[NUM_DOF];
 	_seek = new bool[NUM_DOF];
-	_speed = new dReal[NUM_DOF];
+	_speed = new double[NUM_DOF];
 	_state = new int[NUM_DOF];
 	_success = new int[NUM_DOF];
 
@@ -3077,10 +3077,10 @@ int CLinkbotT::init_dims(void) {
 	return 0;
 }
 
-dReal CLinkbotT::mod_angle(dReal past_ang, dReal cur_ang, dReal ang_rate) {
-    dReal new_ang = 0;
+double CLinkbotT::mod_angle(double past_ang, double cur_ang, double ang_rate) {
+    double new_ang = 0;
     int stp = (int)( fabs(past_ang) / M_PI );
-    dReal past_ang_mod = fabs(past_ang) - stp*M_PI;
+    double past_ang_mod = fabs(past_ang) - stp*M_PI;
 
     if ( (int)(ang_rate*1000) == 0 ) {
         new_ang = past_ang;
@@ -3145,7 +3145,7 @@ void CLinkbotT::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Cylinder *cyl;
 
@@ -3174,7 +3174,7 @@ void CLinkbotT::draw_bridge(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 
@@ -3203,7 +3203,7 @@ void CLinkbotT::draw_caster(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 	osg::Cylinder *cyl;
@@ -3250,7 +3250,7 @@ void CLinkbotT::draw_cube(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 
@@ -3282,7 +3282,7 @@ void CLinkbotT::draw_faceplate(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 
@@ -3310,7 +3310,7 @@ void CLinkbotT::draw_gripper(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 
@@ -3348,7 +3348,7 @@ void CLinkbotT::draw_simple(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 
@@ -3376,7 +3376,7 @@ void CLinkbotT::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const dReal *pos;
+	const double *pos;
 	dQuaternion quat;
 	osg::Cylinder *cyl;
 
