@@ -22,7 +22,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdarg>
+#include <ctime>
 #ifdef ENABLE_GRAPHICS
+#include <osg/Group>
+#include <osg/ShapeDrawable>
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
 #else

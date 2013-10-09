@@ -28,7 +28,7 @@ int CMobot::blinkLED(double delay, int num) {
 }
 
 int CMobot::connect(void) {
-	_simObject.addRobot(this);
+	_simObject->addRobot(this);
 	_connected = 1;
 
 	// success
@@ -1741,7 +1741,7 @@ int CMobot::resetToZeroNB(void) {
 }
 
 int CMobot::setExitState(robotJointState_t exitState) {
-	_simObject.setExitState();
+	_simObject->setExitState();
 
 	// success
 	return 0;

@@ -88,7 +88,7 @@ double CRobot::normal(double sigma) {
 
 int CRobot::noisy(double *a, int length, double sigma) {
 	// initialize variables
-	double rand[length];
+	double *rand = new double[length];
 	double sum = 0;
 
 	if (length == 1)
@@ -106,6 +106,9 @@ int CRobot::noisy(double *a, int length, double sigma) {
 			a[i] = (a[i] + rand[i])/mag;
 		}
 	}
+
+	// clean up array
+	delete rand;
 
 	// success
 	return 0;

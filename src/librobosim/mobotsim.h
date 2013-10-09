@@ -431,7 +431,7 @@ int RoboSim::g_chrobosim_dlcount = 0;
 #endif
 #pragma importf "chmobotsim.chf"
 #else
-extern RoboSim _simObject;
+extern RoboSim *_simObject;
 #endif
 
 #endif  // MOBOT_H_

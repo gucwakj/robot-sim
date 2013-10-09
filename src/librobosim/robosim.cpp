@@ -697,7 +697,7 @@ void* RoboSim::simulation_thread(void *arg) {
 
 	// initialize local variables
 	unsigned int sum = 0, dt[4] = {0};
-	int i, j;
+	int i;
 #ifdef _WIN32
 	DWORD start_time, start;
 #else
@@ -794,6 +794,8 @@ void* RoboSim::simulation_thread(void *arg) {
 		MUTEX_LOCK(&(sim->_running_mutex));
 	}
 	MUTEX_UNLOCK(&(sim->_running_mutex));
+
+	return NULL;
 }
 
 void RoboSim::collision(void *data, dGeomID o1, dGeomID o2) {

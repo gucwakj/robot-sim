@@ -2,3 +2,7 @@
 ch*/
 *.zip
 *.dl
+*.obj
+*.lib
+*.exp
+*.manifest
