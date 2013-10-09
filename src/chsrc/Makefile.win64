@@ -9,7 +9,7 @@ ARCH=x64
 SRC=../librobosim
 HEADERS= $(SRC)/robosim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics.h $(SRC)/base.h
 CPPFLAGS = -DdDOUBLE /EHsc
-INCLUDES = /I ../opende/include /I ../tinyxml2 /I ../openscenegraph/include
+INCLUDES = /I ../librobosim/build /I ../opende/include /I ../tinyxml2 /I ../openscenegraph/include /I ../openscenegraph/build/include
 LIBPATHS = /LIBPATH:../opende/lib/Release/ /LIBPATH:../tinyxml2/build/Release/ /LIBPATH:../openscenegraph/build/lib/
 LIBS = osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgFX.lib osgText.lib ode.lib tinyxml2.lib Shell32.lib
 
