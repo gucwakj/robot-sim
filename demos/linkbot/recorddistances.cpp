@@ -23,9 +23,9 @@ int main(int argc, char *argv[]) {
 	robot1.recordDistanceBegin(ROBOT_JOINT1, timedata1, distances1, radius1, timeInterval, shiftData);
 	robot2.recordDistanceBegin(ROBOT_JOINT1, timedata2, distances2, radius2, timeInterval, shiftData);
 
-	robot1.setMovementStateNB(ROBOT_FORWARD, NaN, ROBOT_BACKWARD);
+	robot1.setMovementStateNB(ROBOT_FORWARD, NaN, ROBOT_FORWARD);
 	delay(delaytime);
-	robot2.setMovementStateNB(ROBOT_FORWARD, NaN, ROBOT_BACKWARD);
+	robot2.setMovementStateNB(ROBOT_FORWARD, NaN, ROBOT_FORWARD);
 	delay(time-delaytime);
 	robot1.setMovementStateNB(ROBOT_HOLD, NaN, ROBOT_HOLD);
 	robot2.setMovementStateNB(ROBOT_HOLD, NaN, ROBOT_HOLD);

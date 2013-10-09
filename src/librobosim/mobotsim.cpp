@@ -8,6 +8,12 @@ CMobot::CMobot(void) {
 }
 
 CMobot::~CMobot(void) {
+	// destroy simulation object
+#ifdef ROBOSIM_OBJECT
+#undef ROBOSIM_OBJECT
+	delete _simObject;
+#endif
+
 	// remove geoms
 	if (_connected) {
 		for (int i = NUM_PARTS - 1; i >= 0; i--) { delete [] _geom[i]; }

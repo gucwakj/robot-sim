@@ -9,6 +9,12 @@ CLinkbotT::CLinkbotT(int disabled, int type) {
 }
 
 CLinkbotT::~CLinkbotT(void) {
+	// destroy simulation object
+#ifdef ROBOSIM_OBJECT
+#undef ROBOSIM_OBJECT
+	delete _simObject;
+#endif
+
 	// destroy geoms
 	if (_connected) {
 		for (int i = NUM_PARTS - 1; i >= 0; i--) { delete [] _geom[i]; }
@@ -3412,8 +3418,6 @@ CLinkbotI::CLinkbotI(void) {
 }
 
 CLinkbotI::~CLinkbotI(void) {
-	//~CLinkbotT();
-
 	// success
 	return 0;
 }
@@ -3433,8 +3437,6 @@ CLinkbotL::CLinkbotL(void) {
 }
 
 CLinkbotL::~CLinkbotL(void) {
-	//~CLinkbotT();
-
 	// success
 	return 0;
 }
