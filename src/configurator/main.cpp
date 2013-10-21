@@ -38,6 +38,17 @@ G_MODULE_EXPORT void on_window_destroy(GtkWidget* widget, gpointer data) {
     gtk_main_quit();
 }
 
+G_MODULE_EXPORT void on_about_activate(GtkWidget *widget, gpointer data) {
+	/* Find the about dialog and show it */
+	GtkWidget *w;
+	w = GTK_WIDGET(gtk_builder_get_object(g_builder, "aboutdialog"));
+	gtk_dialog_run(GTK_DIALOG(w));
+}
+
+G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data) {
+	gtk_widget_hide(GTK_WIDGET(dialog));
+}
+
 G_MODULE_EXPORT void on_real_toggled(GtkWidget* widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "real")))) {
 		fp1 = fopen(g_chrc, "w");
