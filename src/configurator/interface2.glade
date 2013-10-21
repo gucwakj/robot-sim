@@ -783,6 +783,40 @@
                                           </packing>
                                         </child>
                                         <child>
+                                          <object class="GtkRadioButton" id="inchworm">
+                                            <property name="label" translatable="yes">Inchworm</property>
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="receives_default">False</property>
+                                            <property name="use_action_appearance">False</property>
+                                            <property name="active">True</property>
+                                            <property name="draw_indicator">True</property>
+                                            <property name="group">none</property>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">1</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkRadioButton" id="lift">
+                                            <property name="label" translatable="yes">Lift</property>
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="receives_default">False</property>
+                                            <property name="use_action_appearance">False</property>
+                                            <property name="active">True</property>
+                                            <property name="draw_indicator">True</property>
+                                            <property name="group">none</property>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">2</property>
+                                          </packing>
+                                        </child>
+                                        <child>
                                           <object class="GtkRadioButton" id="snake">
                                             <property name="label" translatable="yes">Snake</property>
                                             <property name="visible">True</property>
@@ -795,7 +829,7 @@
                                           <packing>
                                             <property name="expand">True</property>
                                             <property name="fill">True</property>
-                                            <property name="position">1</property>
+                                            <property name="position">3</property>
                                           </packing>
                                         </child>
                                         <child>
@@ -812,7 +846,7 @@
                                           <packing>
                                             <property name="expand">True</property>
                                             <property name="fill">True</property>
-                                            <property name="position">2</property>
+                                            <property name="position">4</property>
                                           </packing>
                                         </child>
                                         <child>
@@ -827,7 +861,7 @@
                                           <packing>
                                             <property name="expand">True</property>
                                             <property name="fill">True</property>
-                                            <property name="position">3</property>
+                                            <property name="position">5</property>
                                           </packing>
                                         </child>
                                       </object>
