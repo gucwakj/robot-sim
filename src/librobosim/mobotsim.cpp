@@ -904,7 +904,7 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 			_state[j] = ROBOT_HOLD;
 			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
-		_success[j] = 0;
+		_success[j] = false;
 	}
     dBodyEnable(_body[CENTER]);
 
@@ -1010,7 +1010,7 @@ int CMobot::moveJointNB(robotJointId_t id, double angle) {
 
 	// set success to false
 	MUTEX_LOCK(&_success_mutex);
-	_success[id] = 0;
+	_success[id] = false;
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
@@ -1079,7 +1079,7 @@ int CMobot::moveJointToNB(robotJointId_t id, double angle) {
 
 	// set success to false
 	MUTEX_LOCK(&_success_mutex);
-	_success[id] = 0;
+	_success[id] = false;
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
@@ -1150,7 +1150,7 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
 			_state[j] = ROBOT_HOLD;
 			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
-		_success[j] = 0;
+		_success[j] = false;
 	}
     dBodyEnable(_body[CENTER]);
 
@@ -1773,7 +1773,7 @@ int CMobot::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
 			dJointDisable(_motor[id]);
 			break;
 	}
-	_success[id] = 1;
+	_success[id] = true;
     dBodyEnable(_body[CENTER]);
 
 	// unlock mutexes
@@ -2267,7 +2267,7 @@ double CMobot::getRotation(int body, int i) {
 }
 
 bool CMobot::getSuccess(int i) {
-	return (bool)(_success[i]);
+	return _success[i];
 }
 
 int CMobot::getType(void) {
@@ -3598,7 +3598,7 @@ int CMobot::init_params(void) {
 	_seek = new bool[NUM_DOF];
 	_speed = new double[NUM_DOF];
 	_state = new int[NUM_DOF];
-	_success = new int[NUM_DOF];
+	_success = new bool[NUM_DOF];
 
 	// fill with default data
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -3606,7 +3606,7 @@ int CMobot::init_params(void) {
 		_goal[i] = 0;
 		_seek[i] = false;
 		_recording[i] = false;
-		_success[i] = 1;
+		_success[i] = true;
 		_state[i] = ROBOT_NEUTRAL;
 		_speed[i] = 0.7854;		// 45 deg/sec
 		_max_speed[i] = 120;	// deg/sec

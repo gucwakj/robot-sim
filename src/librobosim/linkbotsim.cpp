@@ -534,7 +534,7 @@ int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 			_state[j] = ROBOT_HOLD;
 			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
-		_success[j] = 0;
+		_success[j] = false;
 	}
 
 	// enable body
@@ -641,7 +641,7 @@ int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 
 	// set success to false
 	MUTEX_LOCK(&_success_mutex);
-	_success[id] = 0;
+	_success[id] = false;
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
@@ -713,7 +713,7 @@ int CLinkbotT::moveJointToNB(robotJointId_t id, double angle) {
 
 	// set success to false
 	MUTEX_LOCK(&_success_mutex);
-	_success[id] = 0;
+	_success[id] = false;
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
@@ -784,7 +784,7 @@ int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 			_state[j] = ROBOT_HOLD;
 			dJointSetAMotorParam(_motor[j], dParamVel, 0);
 		}
-		_success[j] = 0;
+		_success[j] = false;
 	}
 
 	// enable body
@@ -1409,7 +1409,7 @@ int CLinkbotT::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir)
 			dJointDisable(_motor[id]);
 			break;
 	}
-	_success[id] = 1;
+	_success[id] = true;
     dBodyEnable(_body[BODY]);
 
 	// unlock mutexes
@@ -1898,7 +1898,7 @@ double CLinkbotT::getRotation(int body, int i) {
 }
 
 bool CLinkbotT::getSuccess(int i) {
-	return (bool)(_success[i]);
+	return _success[i];
 }
 
 int CLinkbotT::getType(void) {
@@ -3034,14 +3034,14 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_seek = new bool[NUM_DOF];
 	_speed = new double[NUM_DOF];
 	_state = new int[NUM_DOF];
-	_success = new int[NUM_DOF];
+	_success = new bool[NUM_DOF];
 
 	// fill with default data
 	for (int i = 0, j = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
 		_goal[i] = 0;
 		_recording[i] = false;
-		_success[i] = 1;
+		_success[i] = true;
 		_speed[i] = 0.7854;		// 45 deg/sec
 		_max_force[i] = 2;
 		_max_speed[i] = 240;		// deg/sec

@@ -232,6 +232,7 @@ class DLLIMPORT CRobot {
 		bool *_recording;		// recording in progress
 		bool *_rec_active;		// actively recording a new value
 		bool *_seek;			// currently seeking goal?
+		bool *_success;			// trigger for goal
 		conn_t _conn;			// connectors
 		dBodyID *_body;			// body parts
 		dGeomID **_geom;		// geometries of each body part
@@ -271,7 +272,6 @@ class DLLIMPORT CRobot {
 		int *_rec_num;			// recording data points
 		int _seed;				// seed for random number generation
 		int *_state;			// joint states
-		int *_success;			// trigger for goal
 		int _type;				// type of robot
 
 		// threading locks for each robot
