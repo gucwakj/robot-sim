@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <sys/stat.h>
 #ifdef _WIN32
 #include <windows.h>
 #include <Shlobj.h>
@@ -12,68 +13,61 @@
 GtkBuilder *g_builder; 
 GtkWidget *g_window;
 tinyxml2::XMLDocument g_doc;
-FILE *fp1 = NULL;
-char g_xml[512], g_chrc[512], fpbuf1[10240], fpbuf2[5120];
+FILE *fp = NULL;
+char g_xml[512], g_chrc[512], *fpbuf;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+void printRoboSimPath(void) {
+	// print RoboSim config options to file buffer
+#ifdef _WIN32
+	fputs("// RoboSim Begin\n_ipath = stradd(\"C:/Ch/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp);
+#else
+	fputs("// RoboSim Begin\n_ipath = stradd(\"/usr/local/ch/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp);
+#endif
+}
 
 G_MODULE_EXPORT void on_window_destroy(GtkWidget* widget, gpointer data) {
 	// save configuration file
 	g_doc.SaveFile(g_xml);
 
 	// write config file for hardware robots
-	fp1 = fopen(g_chrc, "w");
-	fputs(fpbuf1, fp1);
-#ifdef _WIN32
-		fputs("// RoboSim Begin\n//_ipath = stradd(\"C:/Ch/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp1);
-#else
-		fputs("// RoboSim Begin\n//_ipath = stradd(\"/usr/local/ch/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp1);
-#endif
-	fputs(fpbuf2, fp1);
-	fclose(fp1);
+	fp = fopen(g_chrc, "w");
+	fputs(fpbuf, fp);
+	fclose(fp);
 
 	// quit
     gtk_main_quit();
 }
 
 G_MODULE_EXPORT void on_about_activate(GtkWidget *widget, gpointer data) {
-	/* Find the about dialog and show it */
+	// Find the about dialog and show it
 	GtkWidget *w;
 	w = GTK_WIDGET(gtk_builder_get_object(g_builder, "aboutdialog"));
 	gtk_dialog_run(GTK_DIALOG(w));
 }
 
 G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data) {
+	// close about dialog
 	gtk_widget_hide(GTK_WIDGET(dialog));
 }
 
 G_MODULE_EXPORT void on_real_toggled(GtkWidget* widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "real")))) {
-		fp1 = fopen(g_chrc, "w");
-		fputs(fpbuf1, fp1);
-#ifdef _WIN32
-		fputs("// RoboSim Begin\n//_ipath = stradd(\"C:/Ch/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp1);
-#else
-		fputs("// RoboSim Begin\n//_ipath = stradd(\"/usr/local/ch/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp1);
-#endif
-		fputs(fpbuf2, fp1);
-		fclose(fp1);
+		fp = fopen(g_chrc, "w");
+		fputs(fpbuf, fp);
+		fclose(fp);
 	}
 }
 
 G_MODULE_EXPORT void on_simulated_toggled(GtkWidget* widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "simulated")))) {
-		fp1 = fopen(g_chrc, "w");
-		fputs(fpbuf1, fp1);
-#ifdef _WIN32
-		fputs("// RoboSim Begin\n_ipath = stradd(\"C:/Ch/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp1);
-#else
-		fputs("// RoboSim Begin\n_ipath = stradd(\"/usr/local/ch/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp1);
-#endif
-		fputs(fpbuf2, fp1);
-		fclose(fp1);
+		fp = fopen(g_chrc, "w");
+		fputs(fpbuf, fp);
+		printRoboSimPath();
+		fclose(fp);
 	}
 }
 
@@ -805,34 +799,35 @@ int main (int argc, char *argv[]) {
 	// save xml config file
 	g_doc.SaveFile(g_xml);
 
+	// get size of chrc
+	struct stat stbuf;
+	if (!stat(g_chrc, &stbuf)) {
+		fpbuf = new char[stbuf.st_size+1];
+	}
+	else {
+		fpbuf = new char;
+	}
+	fpbuf[0] = '\0';
+
 	// if chrc exists, get file into buffer(s)
-	if (fopen(g_chrc, "r") != NULL) {
+	if ((fp = fopen(g_chrc, "r")) != NULL) {
 		char line[1024];
-		fp1 = fopen(g_chrc, "r");
-		while (fgets(line, 1024, fp1)) {
+		while (fgets(line, 1024, fp)) {
 			if (!strcmp(line, "// RoboSim Begin\n")) {
-				fgets(line, 1024, fp1);		// ipath line
-				fgets(line, 1024, fp1);		// robosim end line
-				break;
+				fgets(line, 1024, fp);		// ipath line
+				fgets(line, 1024, fp);		// robosim end line
+				continue;
 			}
-			strcat(fpbuf1, line);
+			strcat(fpbuf, line);
 		}
-		while (fgets(line, 1024, fp1)) {
-			strcat(fpbuf2, line);
-		}
-		fclose(fp1);
+		fclose(fp);
 	}
 
 	// write config file for simulated robots
-	fp1 = fopen(g_chrc, "w");
-	fputs(fpbuf1, fp1);
-#ifdef _WIN32
-		fputs("// RoboSim Begin\n_ipath = stradd(\"C:/Ch/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp1);
-#else
-		fputs("// RoboSim Begin\n_ipath = stradd(\"/usr/local/ch/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp1);
-#endif
-	fputs(fpbuf2, fp1);
-	fclose(fp1);
+	fp = fopen(g_chrc, "w");
+	fputs(fpbuf, fp);
+	printRoboSimPath();
+	fclose(fp);
 
 	// show main window
 	gtk_widget_show(g_window);                
