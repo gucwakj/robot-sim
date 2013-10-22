@@ -462,6 +462,10 @@ int RoboSim::init_xml(void) {
 				ctype = L;
 				cnum = 3;
 			}
+			else if ( !strcmp(node->Value(), "omnidrive") ) {
+				ctype = OMNIDRIVE;
+				cnum = 4;
+			}
 			else if ( !strcmp(node->Value(), "simple") ) {
 				ctype = SIMPLE;
 				cnum = 2;

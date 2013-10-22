@@ -408,6 +408,82 @@ G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
 		b4side2->SetAttribute("face", 3);
 		bridge4->InsertAfterChild(b4side1, b4side2);
 	}
+	else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")))) {
+		tinyxml2::XMLElement *robot1, *robot2, *robot3, *robot4;
+
+		// create first robot
+		robot1 = g_doc.NewElement("linkbotl");
+		// set id
+		robot1->SetAttribute("id", 0);
+		// set position
+		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
+		pos->SetAttribute("x", 0);
+		pos->SetAttribute("y", 0);
+		pos->SetAttribute("z", 0);
+		robot1->InsertFirstChild(pos);
+		// set rotation
+		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
+		rot->SetAttribute("psi", -90);
+		rot->SetAttribute("theta", 0);
+		rot->SetAttribute("phi", 0);
+		robot1->InsertAfterChild(pos, rot);
+		// insert robot1
+		sim->InsertFirstChild(robot1);
+
+		// add remaining robots
+		robot2 = g_doc.NewElement("linkbotl");
+		robot2->SetAttribute("id", 1);
+		sim->InsertAfterChild(robot1, robot2);
+		robot3 = g_doc.NewElement("linkbotl");
+		robot3->SetAttribute("id", 2);
+		sim->InsertAfterChild(robot2, robot3);
+		robot4 = g_doc.NewElement("linkbotl");
+		robot4->SetAttribute("id", 3);
+		sim->InsertAfterChild(robot3, robot4);
+
+		// insert omnidrive plate
+		tinyxml2::XMLElement *omni = g_doc.NewElement("omnidrive");
+		sim->InsertAfterChild(robot4, omni);
+		tinyxml2::XMLElement *omnis1 = g_doc.NewElement("side");
+		omnis1->SetAttribute("id", 1);
+		omnis1->SetAttribute("robot", 0);
+		omnis1->SetAttribute("face", 2);
+		omni->InsertFirstChild(omnis1);
+		tinyxml2::XMLElement *omnis2 = g_doc.NewElement("side");
+		omnis2->SetAttribute("id", 2);
+		omnis2->SetAttribute("robot", 1);
+		omnis2->SetAttribute("face", 2);
+		omni->InsertAfterChild(omnis1, omnis2);
+		tinyxml2::XMLElement *omnis3 = g_doc.NewElement("side");
+		omnis3->SetAttribute("id", 3);
+		omnis3->SetAttribute("robot", 2);
+		omnis3->SetAttribute("face", 2);
+		omni->InsertAfterChild(omnis2, omnis3);
+		tinyxml2::XMLElement *omnis4 = g_doc.NewElement("side");
+		omnis4->SetAttribute("id", 4);
+		omnis4->SetAttribute("robot", 3);
+		omnis4->SetAttribute("face", 2);
+		omni->InsertAfterChild(omnis3, omnis4);
+
+		// add wheels
+		tinyxml2::XMLElement *wheel1 = g_doc.NewElement("smallwheel");
+		wheel1->SetAttribute("robot", 0);
+		wheel1->SetAttribute("face", 1);
+		sim->InsertAfterChild(omni, wheel1);
+		tinyxml2::XMLElement *wheel2 = g_doc.NewElement("smallwheel");
+		wheel2->SetAttribute("robot", 1);
+		wheel2->SetAttribute("face", 3);
+		sim->InsertAfterChild(wheel1, wheel2);
+		tinyxml2::XMLElement *wheel3 = g_doc.NewElement("smallwheel");
+		wheel3->SetAttribute("robot", 2);
+		wheel3->SetAttribute("face", 3);
+		sim->InsertAfterChild(wheel2, wheel3);
+		tinyxml2::XMLElement *wheel4 = g_doc.NewElement("smallwheel");
+		wheel4->SetAttribute("robot", 3);
+		wheel4->SetAttribute("face", 1);
+		sim->InsertAfterChild(wheel3, wheel4);
+	}
+
 	else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")))) {
 		tinyxml2::XMLElement *robot1, *robot2, *robot3, *robot4, *robot5;
 

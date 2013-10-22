@@ -2096,6 +2096,9 @@ void CLinkbotT::draw(osg::Group *root) {
 			case GRIPPER:
 				this->draw_gripper(ctmp, robot);
 				break;
+			case OMNIDRIVE:
+				this->draw_omnidrive(ctmp, robot);
+				break;
 			case SIMPLE:
 				this->draw_simple(ctmp, robot);
 				break;
@@ -2154,6 +2157,9 @@ int CLinkbotT::add_connector(int type, int face) {
 			break;
 		case GRIPPER:
 			this->build_gripper(nc, 1);
+			break;
+		case OMNIDRIVE:
+			this->build_omnidrive(nc, face);
 			break;
 		case SIMPLE:
 			this->build_simple(nc, face);
@@ -2218,6 +2224,9 @@ int CLinkbotT::add_daisy_chain(int conn, int face, int side, int type) {
 		case FACEPLATE:
 			this->build_faceplate(nc, face, side, type);
 			break;
+		case OMNIDRIVE:
+			this->build_omnidrive(nc, face, side, type);
+			break;
 		case SIMPLE:
 			this->build_simple(nc, face, side, type);
 			break;
@@ -2234,20 +2243,16 @@ int CLinkbotT::add_daisy_chain(int conn, int face, int side, int type) {
 int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double r_f1, double r_f2, double r_f3) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
-    _geom[BODY] = new dGeomID[2];
-    _geom[FACE1] = new dGeomID[1];
-    _geom[FACE2] = new dGeomID[1];
-    _geom[FACE3] = new dGeomID[1];
+	_geom[BODY] = new dGeomID[2];
+	_geom[FACE1] = new dGeomID[1];
+	_geom[FACE2] = new dGeomID[1];
+	_geom[FACE3] = new dGeomID[1];
 
 	// initialize PID class
 	//for ( int i = 0; i < NUM_DOF; i++ ) { _pid[i].init(100, 1, 10, 0.1, 0.004); }
 
-    // adjust input height by body height
-	if (z < (_body_height/2 - EPSILON)) {
-    	x += R[2]*_body_height/2;
-    	y += R[6]*_body_height/2;
-    	z += R[10]*_body_height/2;
-	}
+	// adjust input height by body height
+	if (fabs(z) < (_body_radius-EPSILON)) {z += _body_height/2; }
 
     // convert input angles to radians
     _angle[F1] = DEG2RAD(r_f1);	// face 1
@@ -2799,6 +2804,52 @@ int CLinkbotT::build_gripper(conn_t conn, int face) {
 	return 0;
 }
 
+int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
+	// create body
+	conn->body = dBodyCreate(_world);
+    conn->geom = new dGeomID[1];
+
+    // define parameters
+    dMass m;
+    dMatrix3 R;
+	double p[3] = {0}, offset[3] = {_connector_depth/2, _omni_length/2 - _face_radius, -_omni_length/2 + _face_radius};
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	if (side != -1) this->get_connector_params(type, side, R, p);
+	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
+	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
+	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
+
+    // set mass of body
+    dMassSetBox(&m, 270, _connector_depth, _omni_length, _omni_length);
+    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
+
+    // adjust x,y,z to position center of mass correctly
+    p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+    p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+    p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+    // set body parameters
+    dBodySetPosition(conn->body, p[0], p[1], p[2]);
+    dBodySetRotation(conn->body, R);
+
+    // set geometry 1 - box
+    conn->geom[0] = dCreateBox(_space, _connector_depth, _omni_length, _omni_length);
+    dGeomSetBody(conn->geom[0], conn->body);
+    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+
+    // set mass center to (0,0,0) of _bodyID
+    dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+    dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	this->fix_connector_to_body(face, conn->body);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::build_simple(conn_t conn, int face, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
@@ -3001,6 +3052,22 @@ int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, double *p) {
 				dMultiply0(R1, R3, R2, 3, 3, 3);
 			}
 			break;
+		case OMNIDRIVE:
+			if (side == 2) {
+				offset[1] = _omni_length - 2*_face_radius;
+				//offset[2] = -_body_radius;
+			}
+			else if (side == 3) {
+				offset[1] = _omni_length - 2*_face_radius;
+				offset[2] = -_omni_length + 2*_face_radius;
+				//offset[2] = -_omni_length + 2*_face_radius - _body_radius;
+			}
+			else if (side == 4) {
+				offset[2] = -_omni_length + 2*_face_radius;
+				//offset[2] = -_omni_length + 2*_face_radius - _body_radius;
+			}
+			dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI);
+			break;
 		case SIMPLE:
 			offset[0] = _connector_depth;
 			dRSetIdentity(R1);
@@ -3075,9 +3142,10 @@ int CLinkbotT::init_dims(void) {
 	_connector_depth = 0.00380;
 	_connector_height = 0.03715;
 	_bigwheel_radius = 0.05080;
-	_smallwheel_radius = 0.04445;
-	_cubic_length = 0.07115;
 	_bridge_length = 0.13525;
+	_cubic_length = 0.07115;
+	_omni_length = 0.16360;
+	_smallwheel_radius = 0.04445;
 
 	// success
 	return 0;
@@ -3333,6 +3401,34 @@ void CLinkbotT::draw_gripper(conn_t conn, osg::Group *robot) {
 	pos = dGeomGetOffsetPosition(conn->geom[2]);
 	dGeomGetOffsetQuaternion(conn->geom[2], quat);
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), 0.0344, 0.04, 0.007);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body->addDrawable(new osg::ShapeDrawable(box));
+
+	// apply texture
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
+    tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
+    tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
+    tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
+    pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+
+	// add body to pat
+	pat->addChild(body.get());
+	// add to scenegraph
+	robot->addChild(pat);
+}
+
+void CLinkbotT::draw_omnidrive(conn_t conn, osg::Group *robot) {
+	// initialize variables
+	osg::ref_ptr<osg::Geode> body = new osg::Geode;
+	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
+	const double *pos;
+	dQuaternion quat;
+	osg::Box *box;
+
+	pos = dGeomGetOffsetPosition(conn->geom[0]);
+	dGeomGetOffsetQuaternion(conn->geom[0], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _connector_depth, _omni_length, _omni_length);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(box));
 

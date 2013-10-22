@@ -144,6 +144,7 @@ typedef enum robot_connector_e {
 	FACEPLATE,
 	GRIPPER,
 	L,
+	OMNIDRIVE,
 	SIMPLE,
 	SMALLWHEEL,
 	SQUARE,
@@ -264,7 +265,7 @@ class DLLIMPORT CRobot {
 				// mobot
 				_tank_height, _tank_depth,
 				// linkbot
-				_cubic_length, _bridge_length;
+				_cubic_length, _bridge_length, _omni_length;
 		int _connected; 		// connected to controller
 		int _disabled;			// which joint is disabled
 		int *_enabled;			// list of enabled motors

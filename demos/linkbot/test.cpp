@@ -3,9 +3,12 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CLinkbotI robot1;
+	CLinkbotL robot1, robot2, robot3, robot4;
 
 	robot1.connect();
+	robot2.connect();
+	robot3.connect();
+	robot4.connect();
 	//robot1.resetToZero();
 	robot1.moveTo(36, 0, -36);
 
@@ -13,6 +16,6 @@ int main(int argc, char *argv[]) {
 	//robot1.getAccelerometerData(x, y, z);
 	//printf("x: %lf y: %lf z: %lf\n", x, y, z);
 
-	//robot1.setExitState(ROBOT_HOLD);
+	robot1.setExitState(ROBOT_HOLD);
 	return 0;
 }
