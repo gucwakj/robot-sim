@@ -23,6 +23,11 @@ RoboSim::RoboSim(void) {
 }
 
 RoboSim::~RoboSim(void) {
+#ifdef ENABLE_GRAPHICS
+	// remove graphics
+	if (_osgThread) { _viewer->setDone(true); THREAD_CANCEL(_osgThread); }
+#endif
+
 	// remove simulation
 	_running = 0;
 	THREAD_JOIN(_simulation);
@@ -32,11 +37,6 @@ RoboSim::~RoboSim(void) {
 	dSpaceDestroy(_space);
 	dWorldDestroy(_world);
 	dCloseODE();
-
-#ifdef ENABLE_GRAPHICS
-	// remove graphics
-	if (_osgThread) { _viewer->setDone(true); THREAD_CANCEL(_osgThread); }
-#endif
 
 	// remove ground
 	ground_t gtmp = _ground;
@@ -866,6 +866,7 @@ void RoboSim::print_intermediate_data(void) {
 			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT2)) << " ";
 			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT3)) << " ";
 		}
+		rtmp = rtmp->next;
 	}
 	cout << endl;
 }

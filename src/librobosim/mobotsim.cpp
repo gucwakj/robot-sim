@@ -1649,7 +1649,7 @@ int CMobot::recordDistanceEnd(robotJointId_t id, int &num) {
 
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
-		(*_rec_angles[id])[i] = DEG2RAD((*_rec_angles[id])[i]) * _radius;
+		(*_rec_angles[id])[i] = (*_rec_angles[id])[i] * _radius;
 	}
 
 	// success

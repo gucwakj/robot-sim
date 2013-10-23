@@ -10,10 +10,11 @@ CLinkbotT::CLinkbotT(int disabled, int type) {
 
 CLinkbotT::~CLinkbotT(void) {
 	// destroy simulation object
-#ifdef ROBOSIM_OBJECT
-#undef ROBOSIM_OBJECT
-	delete _simObject;
-#endif
+	if (_simObject) {
+printf("destroying sim object robot: %d\n", _id);
+		delete _simObject;
+		_simObject = NULL;
+	}
 
 	// destroy geoms
 	if (_connected) {
@@ -1260,7 +1261,7 @@ int CLinkbotT::recordDistanceEnd(robotJointId_t id, int &num) {
 
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
-		(*_rec_angles[id])[i] = DEG2RAD((*_rec_angles[id])[i]) * _radius;
+		(*_rec_angles[id])[i] = (*_rec_angles[id])[i] * _radius;
 	}
 
 	// success
@@ -2398,14 +2399,16 @@ int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn)
 
 int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta) {
     // define parameters
-    dMass m, m1, m2, m3;
+    dMass m, m1, m2;
     dMatrix3 R1, R2, R3;
 
     // set mass of body
     dMassSetZero(&m);
-    // create mass 1
-    dMassSetBox(&m1, 2700, _body_length, _body_height, _body_width);
+    dMassSetBox(&m1, 270, _body_width, _body_length, _body_height);
     dMassAdd(&m, &m1);
+	dMassSetCylinder(&m2, 270, 1, _body_radius, _body_width);
+	dMassTranslate(&m2, 0, _body_length/2, 0);
+    dMassAdd(&m, &m2);
     //dMassSetParameters( &m, 500, 1, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjsut x,y,z to position center of mass correctly
@@ -2444,14 +2447,11 @@ int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta
 
 int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, double theta) {
     // define parameters
-    dMass m, m1, m2, m3;
+    dMass m;
     dMatrix3 R1, R2, R3;
 
     // set mass of body
-    dMassSetZero(&m);
-    // create mass 1
-    dMassSetBox(&m1, 270, _face_depth, 2*_face_radius, 2*_face_radius);
-    dMassAdd(&m, &m1);
+	dMassSetCylinder(&m, 270, 1, 2*_face_radius, _face_depth);
     //dMassSetParameters( &m, 500, 1, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjsut x,y,z to position center of mass correctly
@@ -2503,7 +2503,7 @@ int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0];
 
     // set mass of body
-    dMassSetBox(&m, 270, _connector_depth/2, _body_width, _connector_height);
+	dMassSetCylinder(&m, 270, 1, 2*_bigwheel_radius, _connector_depth/2);
     //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
@@ -2606,7 +2606,7 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0];
 
 	// set mass of body
-	dMassSetBox(&m, 2700, depth, width, height);
+	dMassSetBox(&m, 270, depth, width, height);
 	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
@@ -2822,7 +2822,7 @@ int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
 
     // set mass of body
-    dMassSetBox(&m, 270, _connector_depth, _omni_length, _omni_length);
+    dMassSetBox(&m, 270, _omni_length, _omni_length, _connector_depth);
     //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
@@ -2914,7 +2914,7 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0];
 
     // set mass of body
-    dMassSetBox(&m, 270, _connector_depth/2, 2*_face_radius, _connector_height);
+	dMassSetCylinder(&m, 270, 1, 2*_smallwheel_radius, _connector_depth/2);
     //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
@@ -3055,16 +3055,13 @@ int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, double *p) {
 		case OMNIDRIVE:
 			if (side == 2) {
 				offset[1] = _omni_length - 2*_face_radius;
-				//offset[2] = -_body_radius;
 			}
 			else if (side == 3) {
 				offset[1] = _omni_length - 2*_face_radius;
 				offset[2] = -_omni_length + 2*_face_radius;
-				//offset[2] = -_omni_length + 2*_face_radius - _body_radius;
 			}
 			else if (side == 4) {
 				offset[2] = -_omni_length + 2*_face_radius;
-				//offset[2] = -_omni_length + 2*_face_radius - _body_radius;
 			}
 			dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI);
 			break;
