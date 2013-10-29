@@ -11,7 +11,6 @@ CLinkbotT::CLinkbotT(int disabled, int type) {
 CLinkbotT::~CLinkbotT(void) {
 	// destroy simulation object
 	if (_simObject) {
-printf("destroying sim object robot: %d\n", _id);
 		delete _simObject;
 		_simObject = NULL;
 	}

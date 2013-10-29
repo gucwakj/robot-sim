@@ -9,10 +9,10 @@ CMobot::CMobot(void) {
 
 CMobot::~CMobot(void) {
 	// destroy simulation object
-#ifdef ROBOSIM_OBJECT
-#undef ROBOSIM_OBJECT
-	delete _simObject;
-#endif
+	if (_simObject) {
+		delete _simObject;
+		_simObject = NULL;
+	}
 
 	// remove geoms
 	if (_connected) {
