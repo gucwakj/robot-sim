@@ -39,9 +39,15 @@ else (MSVC)
 endif (MSVC)
 
 # Add an executable compiled from hello.c
+if (MSVC)
+add_executable(robosimconfigurator WIN32
+	main.cpp
+)
+else (MSVC)
 add_executable(robosimconfigurator
 	main.cpp
 )
+endif (MSVC)
 
 # Link the target to the GTK+ libraries
 target_link_libraries(robosimconfigurator ${EXTRA_LIBS})

@@ -192,10 +192,17 @@ G_MODULE_EXPORT void refreshRobotList() {
 		gtk_table_attach(GTK_TABLE(rootTable), w, 0, 1, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		// robot type
 		w = gtk_combo_box_text_new();
+#ifdef _WIN32
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Linkbot I");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Linkbot L");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Linkbot T");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Mobot");
+#else
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "0", "Linkbot I");
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "Linkbot L");
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "Linkbot T");
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "Mobot");
+#endif
 		gtk_combo_box_set_active(GTK_COMBO_BOX(w), 0);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 2, 3, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
@@ -204,7 +211,7 @@ G_MODULE_EXPORT void refreshRobotList() {
 		w = gtk_label_new(" X:");
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 3, 4, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		x_adj = gtk_adjustment_new(tmp->x, -50, 50, 0.1, 0.1, 1);
+		x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->x, -50, 50, 0.1, 0.1, 1));
 		w = gtk_spin_button_new(x_adj, 0.0, 1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 4, 5, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
@@ -213,7 +220,7 @@ G_MODULE_EXPORT void refreshRobotList() {
 		w = gtk_label_new(" Y:");
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 5, 6, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		y_adj = gtk_adjustment_new(tmp->y, -50, 50, 0.1, 0.1, 1);
+		y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->y, -50, 50, 0.1, 0.1, 1));
 		w = gtk_spin_button_new(y_adj, 0.0, 1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 6, 7, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
@@ -222,7 +229,7 @@ G_MODULE_EXPORT void refreshRobotList() {
 		w = gtk_label_new(" Angle:");
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 7, 8, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		phi_adj = gtk_adjustment_new(tmp->phi, -180, 180, 1, 1, 1);
+		phi_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->phi, -180, 180, 1, 1, 1));
 		w = gtk_spin_button_new(phi_adj, 0.0, 1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
@@ -915,9 +922,15 @@ G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
 }
 #endif
 
-int main (int argc, char *argv[]) {
+#ifdef _WIN32
+int WINAPI WinMain(HINSTANCE hinst, HINSTANCE hinstPrev, LPSTR lpCmdLine, int nCmdShow) {
 	// init gtk
-	gtk_init(&argc, &argv);
+	gtk_init(NULL, NULL);
+#else
+int main(int argc, char *argv[]) {
+	// init gtk
+	//gtk_init(&argc, &argv);
+#endif
 
 	// load gtk window
 	g_builder = gtk_builder_new();
