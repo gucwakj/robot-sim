@@ -79,7 +79,7 @@ createpkg: librobosim.dl
 	mkdir -p $(PKGDIR)
 	mkdir $(PKGDIR)/bin
 	cp ../configurator/build/robosimconfigurator $(PKGDIR)/bin
-	cp ../configurator/interface3.glade $(PKGDIR)/bin
+	cp ../configurator/interface3.glade $(PKGDIR)/bin/interface.glade
 	cp ../configurator/images/linkbot.png $(PKGDIR)/bin
 	cp ../configurator/images/mobot.png $(PKGDIR)/bin
 	cp ../opende/sys/lib/libode.so $(PKGDIR)/bin

@@ -10,11 +10,22 @@
 
 #define I2M(x) ((x)/39.370)
 
+typedef struct robots_s {
+	int id;
+	int type;
+	double x, y, z;
+	double psi, theta, phi;
+	bool wheeled;
+	struct robots_s *next;
+} *robots_t;
+
 GtkBuilder *g_builder; 
 GtkWidget *g_window;
+robots_t g_robots = NULL;
 tinyxml2::XMLDocument g_doc;
 FILE *fp = NULL;
 char g_xml[512], g_chrc[512], *fpbuf;
+int g_num = 0;
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,61 +82,218 @@ G_MODULE_EXPORT void on_simulated_toggled(GtkWidget* widget, gpointer data) {
 	}
 }
 
-G_MODULE_EXPORT void on_first_robot_clicked(GtkWidget* widget, gpointer data) {
-	if (gtk_toggle_button_get_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")))) {
-		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), false);
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), true);
-	}
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "none")), true);
-}
-
-G_MODULE_EXPORT void on_first_robot_toggled(GtkWidget* widget, gpointer data) {
-	if (!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")))) {
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")), false);
-	}
-}
-
-G_MODULE_EXPORT void on_second_robot_clicked(GtkWidget* widget, gpointer data) {
-	if (gtk_toggle_button_get_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")))) {
-		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), false);
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), true);
-		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")), false);
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")), true);
-	}
-}
-
-G_MODULE_EXPORT void on_second_robot_toggled(GtkWidget* widget, gpointer data) {
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")))) {
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), true);
-	}
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "none")), true);
-}
-
-G_MODULE_EXPORT void on_explorer_toggled(GtkWidget* widget, gpointer data) {
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")))) {
-		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), true);
-	}
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")))) {
-		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")), true);
+G_MODULE_EXPORT void on_type_changed(GtkWidget *widget, gpointer data) {
+	gint id = GPOINTER_TO_INT(data);
+	robots_t tmp = g_robots;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+	if (tmp) {
+#ifdef _WIN32
+		const gchar *type = gtk_combo_box_get_active_text(GTK_COMBO_BOX(widget));
+#else
+		const gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget));
+#endif
+		if (!strcmp(type, "Linkbot I"))
+			tmp->type = 0;
+		else if (!strcmp(type, "Linkbot L"))
+			tmp->type = 1;
+		else if (!strcmp(type, "Linkbot T"))
+			tmp->type = 2;
+		else if (!strcmp(type, "Mobot"))
+			tmp->type = 3;
 	}
 }
 
-G_MODULE_EXPORT void on_snake_toggled(GtkWidget* widget, gpointer data) {
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")))) {
-		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), true);
+G_MODULE_EXPORT void on_x_value_changed(GtkWidget* widget, gpointer data) {
+	gint id = GPOINTER_TO_INT(data);
+	robots_t tmp = g_robots;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+	if (tmp) tmp->x = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+}
+
+G_MODULE_EXPORT void on_y_value_changed(GtkWidget* widget, gpointer data) {
+	gint id = GPOINTER_TO_INT(data);
+	robots_t tmp = g_robots;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+	if (tmp) tmp->y = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+}
+
+G_MODULE_EXPORT void on_phi_value_changed(GtkWidget* widget, gpointer data) {
+	gint id = GPOINTER_TO_INT(data);
+	robots_t tmp = g_robots;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+	if (tmp) tmp->phi = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+}
+
+G_MODULE_EXPORT void on_wheeled_clicked(GtkWidget* widget, gpointer data) {
+	gint id = GPOINTER_TO_INT(data);
+	robots_t tmp = g_robots;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+	if (tmp) tmp->wheeled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
+}
+
+G_MODULE_EXPORT void refreshRobotList();
+G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data) {
+	gint id = GPOINTER_TO_INT(data);
+	robots_t tmp = g_robots;
+
+	// find and remove ndoe
+	if (g_robots->id == id) {
+		g_robots = g_robots->next;
 	}
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")))) {
-		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")), true);
+	else {
+		while (tmp->next) {
+			if (tmp->next->id == id) {
+				tmp->next = tmp->next->next;
+				break;
+			}
+			tmp = tmp->next;
+		}
+	}
+
+	// reset robot ids to be sequential
+	tmp = g_robots;
+	int i = 0;
+	while (tmp) {
+		tmp->id = i++;
+		tmp = tmp->next;
+	}
+
+	// decrease total number of robots
+	g_num--;
+
+	// refresh robot list
+	refreshRobotList();
+}
+
+G_MODULE_EXPORT void refreshRobotList() {
+	// new table of robots
+	static GtkWidget *rootTable = NULL;
+	if(rootTable != NULL) {
+		gtk_widget_destroy(rootTable);
+	}
+	rootTable = gtk_table_new(g_num*3, 11, FALSE);
+
+	// fill table with widgets
+	GtkWidget *w;
+	GtkAdjustment *x_adj, *y_adj, *phi_adj;
+	robots_t tmp = g_robots;
+	int i = 0;
+	while (tmp) {
+		// label for robot with id
+		char label[11];
+		sprintf(label, "Robot %2d: ", tmp->id);
+		w = gtk_label_new(label);
+		gtk_widget_show(w);
+		gtk_table_attach(GTK_TABLE(rootTable), w, 0, 1, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		// robot type
+		w = gtk_combo_box_text_new();
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "0", "Linkbot I");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "Linkbot L");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "Linkbot T");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "Mobot");
+		gtk_combo_box_set_active(GTK_COMBO_BOX(w), 0);
+		gtk_widget_show(w);
+		gtk_table_attach(GTK_TABLE(rootTable), w, 2, 3, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_type_changed), (void *)(tmp->id));
+		// x position
+		w = gtk_label_new(" X:");
+		gtk_widget_show(w);
+		gtk_table_attach(GTK_TABLE(rootTable), w, 3, 4, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		x_adj = gtk_adjustment_new(tmp->x, -50, 50, 0.1, 0.1, 1);
+		w = gtk_spin_button_new(x_adj, 0.0, 1);
+		gtk_widget_show(w);
+		gtk_table_attach(GTK_TABLE(rootTable), w, 4, 5, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_x_value_changed), (void *)(tmp->id));
+		// y position
+		w = gtk_label_new(" Y:");
+		gtk_widget_show(w);
+		gtk_table_attach(GTK_TABLE(rootTable), w, 5, 6, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		y_adj = gtk_adjustment_new(tmp->y, -50, 50, 0.1, 0.1, 1);
+		w = gtk_spin_button_new(y_adj, 0.0, 1);
+		gtk_widget_show(w);
+		gtk_table_attach(GTK_TABLE(rootTable), w, 6, 7, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_y_value_changed), (void *)(tmp->id));
+		// phi angle
+		w = gtk_label_new(" Angle:");
+		gtk_widget_show(w);
+		gtk_table_attach(GTK_TABLE(rootTable), w, 7, 8, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		phi_adj = gtk_adjustment_new(tmp->phi, -180, 180, 1, 1, 1);
+		w = gtk_spin_button_new(phi_adj, 0.0, 1);
+		gtk_widget_show(w);
+		gtk_table_attach(GTK_TABLE(rootTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_phi_value_changed), (void *)(tmp->id));
+		// wheeled
+		w = gtk_check_button_new_with_label("Wheeled");
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w), 1);
+		gtk_widget_show(w);
+		gtk_table_attach(GTK_TABLE(rootTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_wheeled_clicked), (void *)(tmp->id));
+		if (g_num != 1) {
+			// remove button
+			w = gtk_button_new_with_label("Remove");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_clicked), (void *)(tmp->id));
+		}
+		// next robot
+		tmp = tmp->next;
+		i++;
+	}
+
+	// set size of table
+	GtkRequisition sizeRequest;
+	gtk_widget_size_request(rootTable, &sizeRequest);
+	GtkWidget *layout = GTK_WIDGET(gtk_builder_get_object(g_builder, "layout_robots"));
+	gtk_layout_set_size(GTK_LAYOUT(layout), sizeRequest.width, sizeRequest.height);
+	gtk_layout_put(GTK_LAYOUT(layout), rootTable, 0, 0);
+	gtk_widget_show(rootTable);
+
+	// update liststore
+	static GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(g_builder, "liststore"));
+	gtk_list_store_clear(liststore);
+	GtkTreeIter iter;
+	tmp = g_robots;
+	while (tmp) {
+		gtk_list_store_append(liststore, &iter);
+		tmp = tmp->next;
 	}
 }
 
-G_MODULE_EXPORT void on_stand_toggled(GtkWidget* widget, gpointer data) {
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")))) {
-		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")), true);
-	}
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")))) {
-		gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")), true);
-	}
+G_MODULE_EXPORT void on_button_add_robot_clicked(GtkWidget *widget, gpointer data) {
+	// pointer to linked list
+	robots_t tmp = g_robots;
+
+	// new robot
+	robots_t nr = new struct robots_s;
+	while (tmp->next)
+		tmp = tmp->next;
+	nr->id = tmp->id + 1;
+	nr->type = 0;
+	nr->x = tmp->x + 6;
+	nr->y = 0;
+	nr->z = 0;
+	nr->psi = 0;
+	nr->theta = 0;
+	nr->phi = 0;
+	nr->wheeled = true;
+	nr->next = NULL;
+
+	// add robot to linked list
+	tmp = g_robots;
+	while (tmp->next)
+		tmp = tmp->next;
+	tmp->next = nr;
+
+	// increase total number of robots
+	g_num++;
+
+	// refresh gui list with new robot
+	refreshRobotList();
 }
 
 G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
@@ -669,145 +837,77 @@ G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
 		faceplate2->SetAttribute("face", 2);
 	}
 	else {
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_robot")))) {
-#ifdef _WIN32
-		const gchar *type = gtk_combo_box_get_active_text(GTK_COMBO_BOX(gtk_builder_get_object(g_builder, "combo_first_type")));
-#else
-		const gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(gtk_builder_get_object(g_builder, "combo_first_type")));
-#endif
-		tinyxml2::XMLElement *robot1;
-		if (!strcmp(type, "Linkbot L"))
-			robot1 = g_doc.NewElement("linkbotl");
-		else if (!strcmp(type, "Linkbot T"))
-			robot1 = g_doc.NewElement("linkbott");
-		else if (!strcmp(type, "Mobot"))
-			robot1 = g_doc.NewElement("mobot");
-		else
-			robot1 = g_doc.NewElement("linkboti");
-		sim->InsertFirstChild(robot1);
+		robots_t tmp = g_robots;
+		while (tmp) {
+			// set robot type
+			tinyxml2::XMLElement *robot;
+			if (tmp->type == 0)
+				robot = g_doc.NewElement("linkboti");
+			else if (tmp->type == 1)
+				robot = g_doc.NewElement("linkbotl");
+			else if (tmp->type == 2)
+				robot = g_doc.NewElement("linkbott");
+			else if (tmp->type == 3)
+				robot = g_doc.NewElement("mobot");
 
-		// set id
-		robot1->SetAttribute("id", 0);
+			if (!(tmp->id))
+				sim->InsertFirstChild(robot);
+			else
+				sim->InsertEndChild(robot);
 
-		// set position
-		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_x")))));
-		pos->SetAttribute("y", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "first_spin_y")))));
-		pos->SetAttribute("z", 0);
-		robot1->InsertFirstChild(pos);
+			// set id
+			robot->SetAttribute("id", tmp->id);
 
-		// set rotation
-		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
-		rot->SetAttribute("psi", 0);
-		rot->SetAttribute("theta", 0);
-		rot->SetAttribute("phi", gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "spin_first_angle"))));
-		robot1->InsertAfterChild(pos, rot);
+			// set position
+			tinyxml2::XMLElement *pos = g_doc.NewElement("position");
+			pos->SetAttribute("x", I2M(tmp->x));
+			pos->SetAttribute("y", I2M(tmp->y));
+			pos->SetAttribute("z", I2M(tmp->z));
+			robot->InsertFirstChild(pos);
 
-		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "first_wheel_yes")))) {
-			tinyxml2::XMLElement 	*wheel1 = g_doc.NewElement("smallwheel"), 
-									*wheel2 = g_doc.NewElement("smallwheel"), 
-									*caster = g_doc.NewElement("caster");
-			wheel1->SetAttribute("robot", 0);
-			wheel1->SetAttribute("face", 1);
-			caster->SetAttribute("robot", 0);
+			// set rotation
+			tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
+			rot->SetAttribute("psi", tmp->psi);
+			rot->SetAttribute("theta", tmp->theta);
+			rot->SetAttribute("phi", tmp->phi);
+			robot->InsertAfterChild(pos, rot);
 
-			if ( !strcmp(robot1->Value(), "mobot") ) {
-				wheel2->SetAttribute("robot", 0);
-				wheel2->SetAttribute("face", 8);
-				caster->SetAttribute("face", 3);
+			if (tmp->wheeled) {
+				tinyxml2::XMLElement 	*wheel1 = g_doc.NewElement("smallwheel"), 
+										*wheel2 = g_doc.NewElement("smallwheel"), 
+										*caster = g_doc.NewElement("caster");
+				wheel1->SetAttribute("robot", tmp->id);
+				wheel1->SetAttribute("face", 1);
+				caster->SetAttribute("robot", tmp->id);
+
+				if (tmp->type == 0) {
+					wheel2->SetAttribute("robot", tmp->id);
+					wheel2->SetAttribute("face", 3);
+					caster->SetAttribute("face", 2);
+				}
+				else if (tmp->type == 1) {
+					wheel2->SetAttribute("robot", tmp->id);
+					wheel2->SetAttribute("face", 2);
+					caster->SetAttribute("face", 3);
+				}
+				else if (tmp->type == 2) {
+					wheel2->SetAttribute("robot", tmp->id);
+					wheel2->SetAttribute("face", 3);
+					caster->SetAttribute("face", 2);
+				}
+				else if (tmp->type == 3) {
+					wheel2->SetAttribute("robot", tmp->id);
+					wheel2->SetAttribute("face", 8);
+					caster->SetAttribute("face", 3);
+				}
+				sim->InsertAfterChild(robot, wheel1);
+				sim->InsertAfterChild(wheel1, wheel2);
+				sim->InsertAfterChild(wheel2, caster);
 			}
-			else if ( !strcmp(robot1->Value(), "linkboti") ) {
-				wheel2->SetAttribute("robot", 0);
-				wheel2->SetAttribute("face", 3);
-				caster->SetAttribute("face", 2);
-			}
-			else if ( !strcmp(robot1->Value(), "linkbotl") ) {
-				wheel2->SetAttribute("robot", 0);
-				wheel2->SetAttribute("face", 2);
-				caster->SetAttribute("face", 3);
-			}
-			else if ( !strcmp(robot1->Value(), "linkbott") ) {
-				wheel2->SetAttribute("robot", 0);
-				wheel2->SetAttribute("face", 3);
-				caster->SetAttribute("face", 2);
-			}
-			sim->InsertAfterChild(robot1, wheel1);
-			sim->InsertAfterChild(wheel1, wheel2);
-			sim->InsertAfterChild(wheel2, caster);
+
+			tmp = tmp->next;
 		}
 	}
-
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_robot")))) {
-		// set robot type
-#ifdef _WIN32
-		const gchar *type = gtk_combo_box_get_active_text(GTK_COMBO_BOX(gtk_builder_get_object(g_builder, "combo_second_type")));
-#else
-		const gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(gtk_builder_get_object(g_builder, "combo_second_type")));
-#endif
-		tinyxml2::XMLElement *robot2;
-		if (!strcmp(type, "Linkbot L"))
-			robot2 = g_doc.NewElement("linkbotl");
-		else if (!strcmp(type, "Linkbot T"))
-			robot2 = g_doc.NewElement("linkbott");
-		else if (!strcmp(type, "Mobot"))
-			robot2 = g_doc.NewElement("mobot");
-		else
-			robot2 = g_doc.NewElement("linkboti");
-		sim->InsertEndChild(robot2);
-
-		// set id
-		robot2->SetAttribute("id", 1);
-
-		// set position
-		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_x")))));
-		pos->SetAttribute("y", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_y")))));
-		//pos->SetAttribute("z", I2M(gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "second_spin_z")))));
-		pos->SetAttribute("z", 0);
-		robot2->InsertFirstChild(pos);
-
-		// set rotation
-		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
-		rot->SetAttribute("psi", 0);
-		rot->SetAttribute("theta", 0);
-		rot->SetAttribute("phi", gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "spin_second_angle"))));
-		robot2->InsertAfterChild(pos, rot);
-
-		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "second_wheel_yes")))) {
-			tinyxml2::XMLElement 	*wheel1 = g_doc.NewElement("smallwheel"), 
-									*wheel2 = g_doc.NewElement("smallwheel"), 
-									*caster = g_doc.NewElement("caster");
-			wheel1->SetAttribute("robot", 1);
-			wheel1->SetAttribute("face", 1);
-			caster->SetAttribute("robot", 1);
-
-			if ( !strcmp(robot2->Value(), "mobot") ) {
-				wheel2->SetAttribute("robot", 1);
-				wheel2->SetAttribute("face", 8);
-				caster->SetAttribute("face", 3);
-			}
-			else if ( !strcmp(robot2->Value(), "linkboti") ) {
-				wheel2->SetAttribute("robot", 1);
-				wheel2->SetAttribute("face", 3);
-				caster->SetAttribute("face", 2);
-			}
-			else if ( !strcmp(robot2->Value(), "linkbotl") ) {
-				wheel2->SetAttribute("robot", 1);
-				wheel2->SetAttribute("face", 2);
-				caster->SetAttribute("face", 3);
-			}
-			else if ( !strcmp(robot2->Value(), "linkbott") ) {
-				wheel2->SetAttribute("robot", 1);
-				wheel2->SetAttribute("face", 3);
-				caster->SetAttribute("face", 2);
-			}
-			sim->InsertAfterChild(robot2, wheel1);
-			sim->InsertAfterChild(wheel1, wheel2);
-			sim->InsertAfterChild(wheel2, caster);
-		}
-	}
-	}
-
 	g_doc.SaveFile(g_xml);
 }
 
@@ -817,18 +917,30 @@ G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
 
 int main (int argc, char *argv[]) {
 	// init gtk
-    gtk_init(&argc, &argv);
+	gtk_init(&argc, &argv);
 
 	// load gtk window
-    g_builder = gtk_builder_new();
-#ifdef _WIN32
-    gtk_builder_add_from_file(g_builder, "interface2.glade", NULL);
-#else
-    gtk_builder_add_from_file(g_builder, "interface3.glade", NULL);
-#endif
-    g_window = GTK_WIDGET(gtk_builder_get_object(g_builder, "window1"));
+	g_builder = gtk_builder_new();
+	gtk_builder_add_from_file(g_builder, "interface.glade", NULL);
+	g_window = GTK_WIDGET(gtk_builder_get_object(g_builder, "window1"));
 	if (g_window == NULL) { fprintf(stderr, "Unable to file object with id \"window1\" \n"); exit(1); }
-    gtk_builder_connect_signals(g_builder, NULL);
+	gtk_builder_connect_signals(g_builder, NULL);
+
+	// add first robot
+	robots_t nr = new struct robots_s;
+	nr->id = 0;
+	nr->type = 0;
+	nr->x = 0;
+	nr->y = 0;
+	nr->z = 0;
+	nr->psi = 0;
+	nr->theta = 0;
+	nr->phi = 0;
+	nr->wheeled = true;
+	nr->next = NULL;
+	g_robots = nr;
+	g_num = 1;
+	refreshRobotList();
 
 	// set declaration
 	tinyxml2::XMLDeclaration *dec = g_doc.NewDeclaration();
@@ -867,10 +979,6 @@ int main (int argc, char *argv[]) {
 	strcpy(g_chrc, getenv("HOME"));
 	strcat(g_chrc, "/.chrc");
 #endif
-
-	// set default robot type
-	gtk_combo_box_set_active(GTK_COMBO_BOX(gtk_builder_get_object(g_builder, "combo_first_type")), 0);
-	gtk_combo_box_set_active(GTK_COMBO_BOX(gtk_builder_get_object(g_builder, "combo_second_type")), 0);
 
 	// save xml config file
 	g_doc.SaveFile(g_xml);
