@@ -217,7 +217,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		// private functions inherited from CRobot class
 		virtual int addToSim(dWorldID &world, dSpaceID &space, double *clock);
 		virtual int build(xml_robot_t robot);
-		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t *conn);
+		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn);
 		virtual double getAngle(int i);
 		virtual dBodyID getBodyID(int id);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
@@ -237,7 +237,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		// private functions
 		int add_connector(int type, int face);
 		int build_individual(double x, double y, double z, dMatrix3 R, double r_le, double r_lb, double r_rb, double r_re);
-		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn);
+		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);
 		int build_body(int id, double x, double y, double z, dMatrix3 R, double theta);
 		int build_center(double x, double y, double z, dMatrix3 R);
 		int build_endcap(int id, double x, double y, double z, dMatrix3 R);
@@ -249,7 +249,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int build_tank(conn_t conn, int face);
 		int fix_body_to_connector(dBodyID cBody, int face);
 		int fix_connector_to_body(int face, dBodyID cBody);
-		int get_connector_params(xml_conn_t *conn, dMatrix3 R, double *p);
+		int get_connector_params(xml_conn_t conn, dMatrix3 R, double *p);
 		int init_params(void);
 		int init_dims(void);
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);
@@ -423,12 +423,12 @@ typedef struct motionArg_s {
 } motionArg_t;
 
 #ifdef _CH_
-#ifndef ROBOSIM_DLHANDLE
-#define ROBOSIM_DLHANDLE
-void* RoboSim::g_chrobosim_dlhandle = NULL;
-int RoboSim::g_chrobosim_dlcount = 0;
+//#ifndef ROBOSIM_DLHANDLE
+//#define ROBOSIM_DLHANDLE
+//void* RoboSim::g_chrobosim_dlhandle = NULL;
+//int RoboSim::g_chrobosim_dlcount = 0;
 #pragma importf "chrobosim.chf"
-#endif
+//#endif
 #pragma importf "chmobotsim.chf"
 #else
 extern RoboSim *_simObject;

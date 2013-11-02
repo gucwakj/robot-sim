@@ -29,6 +29,7 @@ CRobot::~CRobot(void) {
 	delete [] _angle;
 	delete [] _body;
 	delete [] _enabled;
+	delete [] _geom;
 	delete [] _goal;
 	delete [] _joint;
 	delete [] _max_force;
@@ -36,10 +37,12 @@ CRobot::~CRobot(void) {
 	delete [] _motor;
 	delete [] _offset;
 	delete [] _rec_active;
+	delete [] _rec_angles;
 	delete [] _rec_num;
 	delete [] _recording;
 	delete [] _seek;
 	delete [] _speed;
+	delete [] _state;
 	delete [] _success;
 
 	// destroy mutexes
@@ -108,7 +111,7 @@ int CRobot::noisy(double *a, int length, double sigma) {
 	}
 
 	// clean up array
-	delete rand;
+	delete [] rand;
 
 	// success
 	return 0;

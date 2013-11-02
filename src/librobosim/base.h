@@ -156,7 +156,7 @@ typedef enum robot_connector_e {
 typedef struct xml_conn_s {
 	int robot, type, side, face1, face2, conn;
 	struct xml_conn_s *next;
-} xml_conn_t;
+} *xml_conn_t;
 // robot
 typedef struct xml_robot_s {
 	int type;
@@ -187,7 +187,7 @@ class DLLIMPORT CRobot {
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int addToSim(dWorldID &world, dSpaceID &space, double *clock) = 0;
 		virtual int build(xml_robot_t robot) = 0;
-		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t *conn) = 0;
+		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn) = 0;
 		virtual bool getSuccess(int i) = 0;
 		virtual int getType(void) = 0;
 		virtual dBodyID getBodyID(int body) = 0;

@@ -13,6 +13,6 @@ int main(int argc, char *argv[]) {
 	//robot1.getAccelerometerData(x, y, z);
 	//printf("x: %lf y: %lf z: %lf\n", x, y, z);
 
-	robot1.setExitState(ROBOT_HOLD);
+	//robot1.setExitState(ROBOT_HOLD);
 	return 0;
 }

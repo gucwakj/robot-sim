@@ -12,6 +12,7 @@ CLinkbotT::~CLinkbotT(void) {
 	// destroy simulation object
 	if (_simObject) {
 		delete _simObject;
+		#undef ROBOSIM_OBJECT
 		_simObject = NULL;
 	}
 
@@ -1742,7 +1743,7 @@ int CLinkbotT::build(xml_robot_t robot) {
 				  stheta, ctheta*spsi, ctheta*cpsi, 0};
 
 	// check for wheels
-	xml_conn_t *ctmp = robot->conn;
+	xml_conn_t ctmp = robot->conn;
 	while (ctmp) {
 		if (ctmp->type == BIGWHEEL || ctmp->type == SMALLWHEEL) {
 			robot->z += ((ctmp->type == SMALLWHEEL) ? _smallwheel_radius : _bigwheel_radius) - _body_height/2;
@@ -1770,12 +1771,12 @@ int CLinkbotT::build(xml_robot_t robot) {
 	return 0;
 }
 
-int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t *conn) {
+int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 	// build robot
 	this->build_attached(robot, base, conn);
 
 	// add connectors
-	xml_conn_t *ctmp = robot->conn;
+	xml_conn_t ctmp = robot->conn;
 	while (ctmp) {
 		if (ctmp->robot == _id) {
 			if (ctmp->conn == -1)
@@ -2122,7 +2123,6 @@ void CLinkbotT::draw(osg::Group *root) {
  **********************************************************/
 int CLinkbotT::add_connector(int type, int face) {
 	// create new connector
-	//conn_t nc = (conn_t)malloc(sizeof(struct conn_s));
 	conn_t nc = new struct conn_s;
 	nc->face = face; 
 	nc->type = type; 
@@ -2191,7 +2191,6 @@ int CLinkbotT::add_connector(int type, int face) {
 
 int CLinkbotT::add_daisy_chain(int conn, int face, int side, int type) {
 	// create new connector
-	//conn_t nc = (conn_t)malloc(sizeof(struct conn_s));
 	conn_t nc = new struct conn_s;
 	nc->face = face;
 	nc->type = conn;
@@ -2372,7 +2371,7 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 	return 0;
 }
 
-int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn) {
+int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 	// initialize new variables
 	double m[3] = {0};
 	dMatrix3 R;

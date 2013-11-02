@@ -6,42 +6,42 @@
 
 CLinkbotI::CLinkbotI() {
 	void *fptr;
-	if(RoboSim::g_chrobosim_dlhandle == NULL || RoboSim::g_chrobosim_dlcount == 0) {
-		RoboSim::g_chrobosim_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
-		if(RoboSim::g_chrobosim_dlhandle == NULL) {
+	/*if(g_chrobosim_dlhandle == NULL || g_chrobosim_dlcount == 0) {
+		g_chrobosim_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
+		if(g_chrobosim_dlhandle == NULL) {
 			printf("Error: %s(): dlopen(): %s\n", __class_func__, dlerror());
 			return;
 		}
-	}
-	fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_CLinkbotI_chdl");
+	}*/
+	fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_CLinkbotI_chdl");
 	if(fptr == NULL) {
 		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
 		return;
 	}
 	dlrunfun(fptr, NULL, NULL);
-	RoboSim::g_chrobosim_dlcount++; // to increase count of instance
+	//g_chrobosim_dlcount++; // to increase count of instance
 }
 
 CLinkbotI::~CLinkbotI() {
 	void *fptr;
-	fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_dCLinkbotI_chdl");
+	fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_dCLinkbotI_chdl");
 	if(fptr == NULL) {
 		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
 		return;
 	}
 	dlrunfun(fptr, NULL, NULL, this);
-	RoboSim::g_chrobosim_dlcount--; // to decrease count of instance
-	if(RoboSim::g_chrobosim_dlcount <= 0 && RoboSim::g_chrobosim_dlhandle != NULL) {
-		if(dlclose(RoboSim::g_chrobosim_dlhandle)!=0)
+	/*g_chrobosim_dlcount--; // to decrease count of instance
+	if(g_chrobosim_dlcount <= 0 && g_chrobosim_dlhandle != NULL) {
+		if(dlclose(g_chrobosim_dlhandle)!=0)
 			printf("Error: %s(): dlclose(): %s\n", __class_func__, dlerror());
-	}
+	}*/
 }
 
 int CLinkbotI::blinkLED(double delay, int numBlinks) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_blinkLED_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_blinkLED_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -54,7 +54,7 @@ int CLinkbotI::connect() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_connect_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_connect_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -67,7 +67,7 @@ int CLinkbotI::disconnect() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_disconnect_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_disconnect_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -80,7 +80,7 @@ int CLinkbotI::driveTo(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_driveTo_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_driveTo_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -93,7 +93,7 @@ int CLinkbotI::driveToDirect(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_driveToDirect_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_driveToDirect_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -106,7 +106,7 @@ int CLinkbotI::driveToDirectNB(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_driveToDirectNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_driveToDirectNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -119,7 +119,7 @@ int CLinkbotI::driveToNB(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_driveToNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_driveToNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -132,7 +132,7 @@ int CLinkbotI::getAccelerometerData(double &x, double &y, double &z) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getAccelerometerData_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getAccelerometerData_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -145,7 +145,7 @@ int CLinkbotI::getBatteryVoltage(double &voltage) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getBatteryVoltage_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getBatteryVoltage_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -158,7 +158,7 @@ int CLinkbotI::getColorRGB(int &r, int &g, int &b) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getColorRGB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getColorRGB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -171,7 +171,7 @@ int CLinkbotI::getFormFactor(int &formFactor) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getFormFactor_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getFormFactor_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -184,7 +184,7 @@ int CLinkbotI::getID() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getID_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getID_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -197,7 +197,7 @@ int CLinkbotI::getJointAngle(int id, double & angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getJointAngle_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getJointAngle_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -213,7 +213,7 @@ int CLinkbotI::getJointAngleAverage(int id, double & angle, ...) {
     va_list ap;
     va_start(ap, angle);
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getJointAngleAverage_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getJointAngleAverage_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -232,7 +232,7 @@ int CLinkbotI::getJointAngles(double &angle1, double &angle2, double &angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getJointAngles_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getJointAngles_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -248,7 +248,7 @@ int CLinkbotI::getJointAnglesAverage(double &angle1, double &angle2, double &ang
     int numReadings;
     va_start(ap, angle3);
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getJointAnglesAverage_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getJointAnglesAverage_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -267,7 +267,7 @@ int CLinkbotI::getJointMaxSpeed(int id, double & speed) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getJointMaxSpeed_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getJointMaxSpeed_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -280,7 +280,7 @@ int CLinkbotI::getJointSafetyAngle(double & angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getJointSafetyAngle_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getJointSafetyAngle_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -293,7 +293,7 @@ int CLinkbotI::getJointSafetyAngleTimeout(double & seconds) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getJointSafetyAngleTimeout_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getJointSafetyAngleTimeout_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -306,7 +306,7 @@ int CLinkbotI::getJointSpeed(int id, double & speed) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getJointSpeed_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getJointSpeed_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -319,7 +319,7 @@ int CLinkbotI::getJointSpeedRatio(int id, double & ratio) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getJointSpeedRatio_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getJointSpeedRatio_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -332,7 +332,7 @@ int CLinkbotI::getJointSpeeds(double &speed1, double &speed2, double &speed3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getJointSpeeds_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getJointSpeeds_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -345,7 +345,7 @@ int CLinkbotI::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getJointSpeedRatios_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getJointSpeedRatios_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -358,7 +358,7 @@ int CLinkbotI::getJointState(int id, int & state) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_getJointState_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_getJointState_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -371,7 +371,7 @@ int CLinkbotI::isConnected() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_isConnected_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_isConnected_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -384,7 +384,7 @@ int CLinkbotI::isMoving() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_isMoving_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_isMoving_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -397,7 +397,7 @@ int CLinkbotI::motionDistance(double distance, double radius) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_motionDistance_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_motionDistance_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -410,7 +410,7 @@ int CLinkbotI::motionDistanceNB(double distance, double radius) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_motionDistanceNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_motionDistanceNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -423,7 +423,7 @@ int CLinkbotI::motionRollBackward(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_motionRollBackward_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_motionRollBackward_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -436,7 +436,7 @@ int CLinkbotI::motionRollBackwardNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_motionRollBackwardNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_motionRollBackwardNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -449,7 +449,7 @@ int CLinkbotI::motionRollForward(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_motionRollForward_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_motionRollForward_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -462,7 +462,7 @@ int CLinkbotI::motionRollForwardNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_motionRollForwardNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_motionRollForwardNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -475,7 +475,7 @@ int CLinkbotI::motionTurnLeft(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_motionTurnLeft_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_motionTurnLeft_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -488,7 +488,7 @@ int CLinkbotI::motionTurnLeftNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_motionTurnLeftNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_motionTurnLeftNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -501,7 +501,7 @@ int CLinkbotI::motionTurnRight(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_motionTurnRight_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_motionTurnRight_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -514,7 +514,7 @@ int CLinkbotI::motionTurnRightNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_motionTurnRightNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_motionTurnRightNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -527,7 +527,7 @@ int CLinkbotI::motionWait() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_motionWait_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_motionWait_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -540,7 +540,7 @@ int CLinkbotI::move(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_move_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_move_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -553,7 +553,7 @@ int CLinkbotI::moveNB(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -566,7 +566,7 @@ int CLinkbotI::moveBackward(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveBackward_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveBackward_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -579,7 +579,7 @@ int CLinkbotI::moveBackwardNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveBackwardNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveBackwardNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -592,7 +592,7 @@ int CLinkbotI::moveContinuousNB(int dir1, int dir2, int dir3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveContinuousNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveContinuousNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -605,7 +605,7 @@ int CLinkbotI::moveContinuousTime(int dir1, int dir2, int dir3, double seconds) 
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveContinuousTime_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveContinuousTime_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -618,7 +618,7 @@ int CLinkbotI::moveDistance(double distance, double radius) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveDistance_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveDistance_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -631,7 +631,7 @@ int CLinkbotI::moveDistanceNB(double distance, double radius) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveDistanceNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveDistanceNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -644,7 +644,7 @@ int CLinkbotI::moveForward(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveForward_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveForward_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -657,7 +657,7 @@ int CLinkbotI::moveForwardNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveForwardNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveForwardNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -670,7 +670,7 @@ int CLinkbotI::moveJoint(int id, double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveJoint_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveJoint_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -683,7 +683,7 @@ int CLinkbotI::moveJointContinuousNB(int id, int dir) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveJointContinuousNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveJointContinuousNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -696,7 +696,7 @@ int CLinkbotI::moveJointNB(int id, double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveJointNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveJointNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -709,7 +709,7 @@ int CLinkbotI::moveJointTo(int id, double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveJointTo_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveJointTo_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -722,7 +722,7 @@ int CLinkbotI::moveJointToDirect(int id, double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveJointToDirect_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveJointToDirect_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -735,7 +735,7 @@ int CLinkbotI::moveJointToDirectNB(int id, double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveJointToDirectNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveJointToDirectNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -748,7 +748,7 @@ int CLinkbotI::moveJointToNB(int id, double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveJointToNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveJointToNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -761,7 +761,7 @@ int CLinkbotI::moveJointWait(int id) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveJointWait_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveJointWait_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -774,7 +774,7 @@ int CLinkbotI::moveTo(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveTo_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveTo_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -787,7 +787,7 @@ int CLinkbotI::moveToDirect(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveToDirect_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveToDirect_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -800,7 +800,7 @@ int CLinkbotI::moveToDirectNB(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveToDirectNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveToDirectNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -813,7 +813,7 @@ int CLinkbotI::moveToNB(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveToNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveToNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -826,7 +826,7 @@ int CLinkbotI::moveToZero() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveToZero_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveToZero_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -839,7 +839,7 @@ int CLinkbotI::moveToZeroNB() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveToZeroNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveToZeroNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -852,7 +852,7 @@ int CLinkbotI::moveWait() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_moveWait_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_moveWait_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -868,7 +868,7 @@ int CLinkbotI::recordAngle(int id, double time[:], double angle[:], int num, dou
     int shiftData;
     va_start(ap, seconds);
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_recordAngle_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_recordAngle_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -890,7 +890,7 @@ int CLinkbotI::recordAngleBegin(int id, double* &time, double* &angle, double se
     int shiftData = 1;
     va_start(ap, seconds);
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_recordAngleBegin_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_recordAngleBegin_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -909,7 +909,7 @@ int CLinkbotI::recordAngleEnd(int id, int &num) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_recordAngleEnd_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_recordAngleEnd_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -925,7 +925,7 @@ int CLinkbotI::recordAngles(double time[:], double angle1[:], double angle2[:], 
     int shiftData;
     va_start(ap, seconds);
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_recordAngles_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_recordAngles_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -947,7 +947,7 @@ int CLinkbotI::recordAnglesBegin(double* &time, double* &angle1, double* &angle2
     va_list ap;
     va_start(ap, seconds);
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_recordAnglesBegin_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_recordAnglesBegin_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -967,7 +967,7 @@ int CLinkbotI::recordAnglesEnd(int &num) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_recordAnglesEnd_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_recordAnglesEnd_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -983,7 +983,7 @@ int CLinkbotI::recordDistanceBegin(int id, double* &time, double* &distance, dou
     int shiftData = 1;
     va_start(ap, seconds);
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_recordDistanceBegin_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_recordDistanceBegin_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1002,7 +1002,7 @@ int CLinkbotI::recordDistanceEnd(int id, int &num) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_recordDistanceEnd_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_recordDistanceEnd_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1018,7 +1018,7 @@ int CLinkbotI::recordDistancesBegin(double* &time, double* &distance1, double* &
     va_list ap;
     va_start(ap, seconds);
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_recordDistancesBegin_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_recordDistancesBegin_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1038,7 +1038,7 @@ int CLinkbotI::recordDistancesEnd(int &num) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_recordDistancesEnd_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_recordDistancesEnd_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1051,7 +1051,7 @@ int CLinkbotI::recordWait() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_recordWait_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_recordWait_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1064,7 +1064,7 @@ int CLinkbotI::reset() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_reset_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_reset_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1077,7 +1077,7 @@ int CLinkbotI::resetToZero() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_resetToZero_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_resetToZero_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1090,7 +1090,7 @@ int CLinkbotI::resetToZeroNB() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_resetToZeroNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_resetToZeroNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1103,7 +1103,7 @@ int CLinkbotI::setBuzzerFrequency(int frequency, double time) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setBuzzerFrequency_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setBuzzerFrequency_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1116,7 +1116,7 @@ int CLinkbotI::setBuzzerFrequencyOn(int frequency) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setBuzzerFrequencyOn_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setBuzzerFrequencyOn_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1129,7 +1129,7 @@ int CLinkbotI::setBuzzerFrequencyOff() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setBuzzerFrequencyOff_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setBuzzerFrequencyOff_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1142,7 +1142,7 @@ int CLinkbotI::setColorRGB(int r, int g, int b) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setColorRGB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setColorRGB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1155,7 +1155,7 @@ int CLinkbotI::setExitState(int exitState) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setExitState_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setExitState_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1168,7 +1168,7 @@ int CLinkbotI::setJointMovementStateNB(int id, int dir) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setJointMovementStateNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setJointMovementStateNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1181,7 +1181,7 @@ int CLinkbotI::setJointMovementStateTime(int id, int dir, double seconds) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setJointMovementStateTime_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setJointMovementStateTime_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1194,7 +1194,7 @@ int CLinkbotI::setJointSafetyAngle(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setJointSafetyAngle_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setJointSafetyAngle_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1207,7 +1207,7 @@ int CLinkbotI::setJointSafetyAngleTimeout(double seconds) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setJointSafetyAngleTimeout_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setJointSafetyAngleTimeout_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1220,7 +1220,7 @@ int CLinkbotI::setJointSpeed(int id, double speed) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setJointSpeed_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setJointSpeed_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1233,7 +1233,7 @@ int CLinkbotI::setJointSpeedRatio(int id, double speed) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setJointSpeedRatio_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setJointSpeedRatio_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1246,7 +1246,7 @@ int CLinkbotI::setJointSpeeds(double speed1, double speed2, double speed3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setJointSpeeds_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setJointSpeeds_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1259,7 +1259,7 @@ int CLinkbotI::setJointSpeedRatios(double ratio1, double ratio2, double ratio3) 
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setJointSpeedRatios_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setJointSpeedRatios_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1272,7 +1272,7 @@ int CLinkbotI::setMotorPower(int id, int power) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setMotorPower_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setMotorPower_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1285,7 +1285,7 @@ int CLinkbotI::setMovementStateNB(int dir1, int dir2, int dir3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setMovementStateNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setMovementStateNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1298,7 +1298,7 @@ int CLinkbotI::setMovementStateTime(int dir1, int dir2, int dir3, double seconds
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setMovementStateTime_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setMovementStateTime_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1311,7 +1311,7 @@ int CLinkbotI::setMovementStateTimeNB(int dir1, int dir2, int dir3, double secon
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setMovementStateTimeNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setMovementStateTimeNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1324,7 +1324,7 @@ int CLinkbotI::setTwoWheelRobotSpeed(double speed, double radius) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_setTwoWheelRobotSpeed_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_setTwoWheelRobotSpeed_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1337,7 +1337,7 @@ int CLinkbotI::stop() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_stop_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_stop_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1350,7 +1350,7 @@ int CLinkbotI::stopAllJoints() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_stopAllJoints_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_stopAllJoints_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1363,7 +1363,7 @@ int CLinkbotI::stopOneJoint(int id) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_stopOneJoint_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_stopOneJoint_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1376,7 +1376,7 @@ int CLinkbotI::turnLeft(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_turnLeft_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_turnLeft_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1389,7 +1389,7 @@ int CLinkbotI::turnLeftNB(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_turnLeftNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_turnLeftNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1402,7 +1402,7 @@ int CLinkbotI::turnRight(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_turnRight_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_turnRight_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1415,7 +1415,7 @@ int CLinkbotI::turnRightNB(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLinkbotI_turnRightNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLinkbotI_turnRightNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1426,42 +1426,42 @@ int CLinkbotI::turnRightNB(double angle, double radius, double tracklength) {
 
 CLinkbotIGroup::CLinkbotIGroup() {
 	void *fptr;
-	if(RoboSim::g_chrobosim_dlhandle == NULL || RoboSim::g_chrobosim_dlcount == 0) {
-		RoboSim::g_chrobosim_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
-		if(RoboSim::g_chrobosim_dlhandle == NULL) {
+	/*if(g_chrobosim_dlhandle == NULL || g_chrobosim_dlcount == 0) {
+		g_chrobosim_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
+		if(g_chrobosim_dlhandle == NULL) {
 			printf("Error: %s(): dlopen(): %s\n", __class_func__, dlerror());
 			return;
 		}
-	}
-	fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_CLinkbotIGroup_chdl");
+	}*/
+	fptr = dlsym(g_chrobosim_dlhandle, "CLIG_CLinkbotIGroup_chdl");
 	if(fptr == NULL) {
 		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
 		return;
 	}
 	dlrunfun(fptr, NULL, NULL);
-	RoboSim::g_chrobosim_dlcount++; // to increase count of instance
+	//g_chrobosim_dlcount++; // to increase count of instance
 }
 
 CLinkbotIGroup::~CLinkbotIGroup() {
 	void *fptr;
-	fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_dCLinkbotIGroup_chdl");
+	fptr = dlsym(g_chrobosim_dlhandle, "CLIG_dCLinkbotIGroup_chdl");
 	if(fptr == NULL) {
 		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
 		return;
 	}
 	dlrunfun(fptr, NULL, NULL, this);
-	RoboSim::g_chrobosim_dlcount--; // to decrease count of instance
-	if(RoboSim::g_chrobosim_dlcount <= 0 && RoboSim::g_chrobosim_dlhandle != NULL) {
-		if(dlclose(RoboSim::g_chrobosim_dlhandle)!=0)
+	/*g_chrobosim_dlcount--; // to decrease count of instance
+	if(g_chrobosim_dlcount <= 0 && g_chrobosim_dlhandle != NULL) {
+		if(dlclose(g_chrobosim_dlhandle)!=0)
 			printf("Error: %s(): dlclose(): %s\n", __class_func__, dlerror());
-	}
+	}*/
 }
 
 int CLinkbotIGroup::addRobot(CLinkbotI &robot) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_addRobot_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_addRobot_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1477,7 +1477,7 @@ int CLinkbotIGroup::addRobots(array CLinkbotI robots[], ...) {
     va_list ap;
     va_start(ap, robots);
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_addRobots_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_addRobots_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1496,7 +1496,7 @@ int CLinkbotIGroup::blinkLED(double delay, int numBlinks) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_blinkLED_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_blinkLED_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1509,7 +1509,7 @@ int CLinkbotIGroup::connect() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_connect_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_connect_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1522,7 +1522,7 @@ int CLinkbotIGroup::driveJointToDirect(int id, double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_driveJointToDirect_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_driveJointToDirect_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1535,7 +1535,7 @@ int CLinkbotIGroup::driveJointToDirectNB(int id, double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_driveJointToDirectNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_driveJointToDirectNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1548,7 +1548,7 @@ int CLinkbotIGroup::driveToDirect(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_driveToDirect_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_driveToDirect_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1561,7 +1561,7 @@ int CLinkbotIGroup::driveTo(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_driveTo_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_driveTo_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1574,7 +1574,7 @@ int CLinkbotIGroup::driveToDirectNB(double angle1, double angle2, double angle3)
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_driveToDirectNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_driveToDirectNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1587,7 +1587,7 @@ int CLinkbotIGroup::driveToNB(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_driveToNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_driveToNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1600,7 +1600,7 @@ int CLinkbotIGroup::isMoving() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_isMoving_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_isMoving_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1613,7 +1613,7 @@ int CLinkbotIGroup::motionDistance(double distance, double radius) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_motionDistance_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_motionDistance_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1626,7 +1626,7 @@ int CLinkbotIGroup::motionDistanceNB(double distance, double radius) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_motionDistanceNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_motionDistanceNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1639,7 +1639,7 @@ int CLinkbotIGroup::motionRollBackward(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_motionRollBackward_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_motionRollBackward_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1652,7 +1652,7 @@ int CLinkbotIGroup::motionRollBackwardNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_motionRollBackwardNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_motionRollBackwardNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1665,7 +1665,7 @@ int CLinkbotIGroup::motionRollForward(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_motionRollForward_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_motionRollForward_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1678,7 +1678,7 @@ int CLinkbotIGroup::motionRollForwardNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_motionRollForwardNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_motionRollForwardNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1691,7 +1691,7 @@ int CLinkbotIGroup::motionTurnLeft(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_motionTurnLeft_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_motionTurnLeft_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1704,7 +1704,7 @@ int CLinkbotIGroup::motionTurnLeftNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_motionTurnLeftNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_motionTurnLeftNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1717,7 +1717,7 @@ int CLinkbotIGroup::motionTurnRight(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_motionTurnRight_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_motionTurnRight_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1730,7 +1730,7 @@ int CLinkbotIGroup::motionTurnRightNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_motionTurnRightNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_motionTurnRightNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1743,7 +1743,7 @@ int CLinkbotIGroup::motionWait() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_motionWait_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_motionWait_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1756,7 +1756,7 @@ int CLinkbotIGroup::move(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_move_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_move_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1769,7 +1769,7 @@ int CLinkbotIGroup::moveNB(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1782,7 +1782,7 @@ int CLinkbotIGroup::moveBackward(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveBackward_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveBackward_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1795,7 +1795,7 @@ int CLinkbotIGroup::moveBackwardNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveBackwardNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveBackwardNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1808,7 +1808,7 @@ int CLinkbotIGroup::moveContinuousNB(int dir1, int dir2, int dir3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveContinuousNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveContinuousNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1821,7 +1821,7 @@ int CLinkbotIGroup::moveContinuousTime(int dir1, int dir2, int dir3, double seco
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveContinuousTime_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveContinuousTime_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1834,7 +1834,7 @@ int CLinkbotIGroup::moveDistance(double distance, double radius) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveDistance_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveDistance_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1847,7 +1847,7 @@ int CLinkbotIGroup::moveDistanceNB(double distance, double radius) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveDistanceNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveDistanceNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1860,7 +1860,7 @@ int CLinkbotIGroup::moveForward(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveForward_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveForward_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1873,7 +1873,7 @@ int CLinkbotIGroup::moveForwardNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveForwardNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveForwardNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1886,7 +1886,7 @@ int CLinkbotIGroup::moveJointTo(int id, double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveJointTo_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveJointTo_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1899,7 +1899,7 @@ int CLinkbotIGroup::moveJointToDirect(int id, double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveJointToDirect_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveJointToDirect_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1912,7 +1912,7 @@ int CLinkbotIGroup::moveJointToNB(int id, double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveJointToNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveJointToNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1925,7 +1925,7 @@ int CLinkbotIGroup::moveJointToDirectNB(int id, double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveJointToDirectNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveJointToDirectNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1938,7 +1938,7 @@ int CLinkbotIGroup::moveJointWait(int id) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveJointWait_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveJointWait_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1951,7 +1951,7 @@ int CLinkbotIGroup::moveTo(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveTo_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveTo_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1964,7 +1964,7 @@ int CLinkbotIGroup::moveToDirect(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveToDirect_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveToDirect_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1977,7 +1977,7 @@ int CLinkbotIGroup::moveToNB(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveToNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveToNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1990,7 +1990,7 @@ int CLinkbotIGroup::moveToDirectNB(double angle1, double angle2, double angle3) 
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveToDirectNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveToDirectNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2003,7 +2003,7 @@ int CLinkbotIGroup::moveToZero() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveToZero_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveToZero_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2016,7 +2016,7 @@ int CLinkbotIGroup::moveToZeroNB() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveToZeroNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveToZeroNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2029,7 +2029,7 @@ int CLinkbotIGroup::moveWait() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_moveWait_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_moveWait_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2042,7 +2042,7 @@ int CLinkbotIGroup::reset() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_reset_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_reset_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2055,7 +2055,7 @@ int CLinkbotIGroup::resetToZero() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_resetToZero_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_resetToZero_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2068,7 +2068,7 @@ int CLinkbotIGroup::resetToZeroNB() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_resetToZeroNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_resetToZeroNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2081,7 +2081,7 @@ int CLinkbotIGroup::setExitState(int exitState) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setExitState_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setExitState_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2094,7 +2094,7 @@ int CLinkbotIGroup::setJointMovementStateNB(int id, int dir) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setJointMovementStateNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setJointMovementStateNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2107,7 +2107,7 @@ int CLinkbotIGroup::setJointMovementStateTime(int id, int dir, double seconds) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setJointMovementStateTime_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setJointMovementStateTime_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2120,7 +2120,7 @@ int CLinkbotIGroup::setJointSafetyAngle(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setJointSafetyAngle_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setJointSafetyAngle_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2133,7 +2133,7 @@ int CLinkbotIGroup::setJointSafetyAngleTimeout(double seconds) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setJointSafetyAngleTimeout_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setJointSafetyAngleTimeout_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2146,7 +2146,7 @@ int CLinkbotIGroup::setJointSpeed(int id, double speed) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setJointSpeed_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setJointSpeed_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2159,7 +2159,7 @@ int CLinkbotIGroup::setJointSpeeds(double speed1, double speed2, double speed3) 
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setJointSpeeds_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setJointSpeeds_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2172,7 +2172,7 @@ int CLinkbotIGroup::setJointSpeedRatio(int id, double speed) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setJointSpeedRatio_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setJointSpeedRatio_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2185,7 +2185,7 @@ int CLinkbotIGroup::setJointSpeedRatios(double ratio1, double ratio2, double rat
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setJointSpeedRatios_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setJointSpeedRatios_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2198,7 +2198,7 @@ int CLinkbotIGroup::setMovementStateNB(int dir1, int dir2, int dir3) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setMovementStateNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setMovementStateNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2211,7 +2211,7 @@ int CLinkbotIGroup::setMovementStateTime(int dir1, int dir2, int dir3, double se
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setMovementStateTime_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setMovementStateTime_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2224,7 +2224,7 @@ int CLinkbotIGroup::setMovementStateTimeNB(int dir1, int dir2, int dir3, double 
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setMovementStateTimeNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setMovementStateTimeNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2237,7 +2237,7 @@ int CLinkbotIGroup::setTwoWheelRobotSpeed(double speed, double radius) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_setTwoWheelRobotSpeed_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_setTwoWheelRobotSpeed_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2250,7 +2250,7 @@ int CLinkbotIGroup::stopAllJoints() {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_stopAllJoints_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_stopAllJoints_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2263,7 +2263,7 @@ int CLinkbotIGroup::stopOneJoint(int id) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_stopOneJoint_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_stopOneJoint_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2276,7 +2276,7 @@ int CLinkbotIGroup::turnLeft(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_turnLeft_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_turnLeft_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2289,7 +2289,7 @@ int CLinkbotIGroup::turnLeftNB(double angle, double radius, double tracklength) 
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_turnLeftNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_turnLeftNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2302,7 +2302,7 @@ int CLinkbotIGroup::turnRight(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_turnRight_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_turnRight_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2315,7 +2315,7 @@ int CLinkbotIGroup::turnRightNB(double angle, double radius, double tracklength)
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::g_chrobosim_dlhandle, "CLIG_turnRightNB_chdl");
+    fptr = dlsym(g_chrobosim_dlhandle, "CLIG_turnRightNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;

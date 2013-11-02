@@ -188,7 +188,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		// private functions inherited from CRobot class
 		virtual int addToSim(dWorldID &world, dSpaceID &space, double *clock);
 		virtual int build(xml_robot_t robot);
-		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t *conn);
+		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn);
 		virtual double getAngle(int i);
 		virtual dBodyID getBodyID(int id);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
@@ -210,7 +210,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int add_daisy_chain(int conn, int side, int face, int type);				// add daisy chained connector
 		int build_individual(double x, double y, double z, dMatrix3 R,					// build individual robot
 							 double r_f1, double r_f2, double r_f3);
-		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t *conn);				// build rotated and attached robot
+		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);			// build rotated and attached robot
 		int build_body(double x, double y, double z, dMatrix3 R, double theta);			// build body of mobot
 		int build_face(int id, double x, double y, double z, dMatrix3 R, double theta);	// build face of mobot
 		int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1);	// build big wheel
@@ -776,12 +776,12 @@ class DLLIMPORT CLinkbotLGroup {
 		int turnRight(double angle, double radius, double tracklength);
 		int turnRightNB(double angle, double radius, double tracklength);
 };
-#ifndef ROBOSIM_DLHANDLE
-#define ROBOSIM_DLHANDLE
-void* RoboSim::g_chrobosim_dlhandle = NULL;
-int RoboSim::g_chrobosim_dlcount = 0;
+//#ifndef ROBOSIM_DLHANDLE
+//#define ROBOSIM_DLHANDLE
+//void* RoboSim::g_chrobosim_dlhandle = NULL;
+//int RoboSim::g_chrobosim_dlcount = 0;
 #pragma importf "chrobosim.chf"
-#endif
+//#endif
 #pragma importf "chlinkbottsim.chf"
 #pragma importf "chlinkbotisim.chf"
 #pragma importf "chlinkbotlsim.chf"

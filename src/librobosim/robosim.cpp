@@ -25,12 +25,23 @@ RoboSim::RoboSim(void) {
 RoboSim::~RoboSim(void) {
 #ifdef ENABLE_GRAPHICS
 	// remove graphics
-	if (_osgThread) { _viewer->setDone(true); THREAD_CANCEL(_osgThread); }
+	if (_osgThread) {
+		MUTEX_LOCK(&_viewer_mutex);
+		_viewer->setDone(true);
+		MUTEX_UNLOCK(&_viewer_mutex);
+		THREAD_JOIN(_osgThread);
+		delete _viewer;
+		MUTEX_DESTROY(&_viewer_mutex);
+	}
 #endif
 
 	// remove simulation
 	_running = 0;
 	THREAD_JOIN(_simulation);
+	COND_DESTROY(&_running_cond);
+	MUTEX_DESTROY(&_running_mutex);
+	MUTEX_DESTROY(&_pause_mutex);
+	MUTEX_DESTROY(&_robot_mutex);
 
 	// remove ode
 	dJointGroupDestroy(_group);
@@ -58,9 +69,9 @@ RoboSim::~RoboSim(void) {
 	xml_robot_t btmp = _bot;
 	while (btmp) {
 		xml_robot_t tmp = btmp->next;
-		xml_conn_t *ctmp = btmp->conn;
+		xml_conn_t ctmp = btmp->conn;
 		while (ctmp) {
-			xml_conn_t *tmp2 = ctmp->next;
+			xml_conn_t tmp2 = ctmp->next;
 			delete ctmp;
 			ctmp = tmp2;
 		}
@@ -517,9 +528,9 @@ int RoboSim::init_xml(void) {
 
 			// store connectors to each robot
 			xml_robot_t tmp;
-			xml_conn_t *ctmp;
+			xml_conn_t ctmp;
 			for (int j = 0; j < i; j++) {
-				xml_conn_t *nc = new struct xml_conn_s;
+				xml_conn_t nc = new struct xml_conn_s;
 				nc->robot = rtmp[0];
 				nc->face1 = ftmp[0];
 				nc->conn = atmp[j];
@@ -540,6 +551,8 @@ int RoboSim::init_xml(void) {
 					ctmp->next = nc;
 				}
 			}
+
+			// delete temporary arrays
 			delete [] rtmp;
 			delete [] ftmp;
 			delete [] ntmp;
@@ -554,7 +567,7 @@ int RoboSim::init_xml(void) {
 			printf("psi = %lf, theta = %lf, phi = %lf\n", rtmp->psi, rtmp->theta, rtmp->phi);
 			printf("angle1 = %lf, angle2 = %lf, angle3 = %lf, angle4 = %lf\n", \
 				rtmp->angle1, rtmp->angle2, rtmp->angle3, rtmp->angle4);
-			xml_conn_t *ctmp = rtmp->conn;
+			xml_conn_t ctmp = rtmp->conn;
 			while (ctmp) {
 				printf("on face %d connect with robot %d on his face %d with type %d from side %d with conn %d\n", \
 					ctmp->face2, ctmp->robot, ctmp->face1, ctmp->type, ctmp->side, ctmp->conn);
@@ -582,6 +595,7 @@ int RoboSim::init_viz(void) {
 
     // construct the viewer
 	_viewer = new osgViewer::Viewer();
+	MUTEX_INIT(&_viewer_mutex);
 
 	// graphics hasn't started yet
 	COND_INIT(&_graphics_cond);
@@ -646,7 +660,7 @@ int RoboSim::addRobot(CRobot *robot) {
 	robot->setID(btmp->id);
 
 	// find if robot is connected to another one
-	xml_conn_t *ctmp = btmp->conn;
+	xml_conn_t ctmp = btmp->conn;
 	while (ctmp) {
 		if ( ctmp->robot != btmp->id ) {
 			break;
@@ -759,7 +773,6 @@ void* RoboSim::simulation_thread(void *arg) {
 				THREAD_JOIN(rtmp->thread);
 				rtmp = rtmp->next;
 			}
-
 			MUTEX_UNLOCK(&(sim->_robot_mutex));
 
 			// sleep until next step
@@ -1061,7 +1074,9 @@ void* RoboSim::graphics_thread(void *arg) {
 	SIGNAL(&(sim->_graphics_cond), &(sim->_graphics_mutex), sim->_graphics = 1);
 
 	// run viewer
+	MUTEX_LOCK(&(sim->_viewer_mutex));
 	while (!sim->_viewer->done()) {
+		MUTEX_UNLOCK(&(sim->_viewer_mutex));
 		sim->_viewer->frame();
 	}
 
