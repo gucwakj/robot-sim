@@ -95,8 +95,6 @@ createpkg: librobosim.dl
 	mkdir $(PKGDIR)/bin/gui
 	cp ../configurator/build/Release/robosimconfigurator.exe $(PKGDIR)/bin/gui
 	cp ../configurator/interface2.glade $(PKGDIR)/bin/gui/interface.glade
-	cp ../configurator/images/linkbot.png $(PKGDIR)/bin/gui
-	cp ../configurator/images/mobot.png $(PKGDIR)/bin/gui
 	cp ../configurator/dll/freetype6.dll $(PKGDIR)/bin/gui
 	cp ../configurator/dll/intl.dll $(PKGDIR)/bin/gui
 	cp ../configurator/dll/libatk-1.0-0.dll $(PKGDIR)/bin/gui
@@ -117,6 +115,16 @@ createpkg: librobosim.dl
 	cp ../configurator/dll/libpangowin32-1.0-0.dll $(PKGDIR)/bin/gui
 	cp ../configurator/dll/libpng14-14.dll $(PKGDIR)/bin/gui
 	cp ../configurator/dll/tinyxml2.dll $(PKGDIR)/bin/gui
+	mkdir $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/linkbot.png $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/mobot.png $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/explorer.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/inchworm.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/lift.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/omnidrive.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/snake.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/stand.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/individual.jpg $(PKGDIR)/bin/gui/images
 	mkdir $(PKGDIR)/bin/osgPlugins-3.0.1
 	cp ../openscenegraph/build/bin/osgPlugins-3.0.1/osgdb_png.dll $(PKGDIR)/bin/osgPlugins-3.0.1
 	cp ../openscenegraph/build/bin/osgPlugins-3.0.1/osgdb_3ds.dll $(PKGDIR)/bin/osgPlugins-3.0.1

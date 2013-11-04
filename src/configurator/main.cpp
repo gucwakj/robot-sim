@@ -40,7 +40,10 @@ void printRoboSimPath(void) {
 #endif
 }
 
-G_MODULE_EXPORT void on_window_destroy(GtkWidget* widget, gpointer data) {
+/*
+ * When windows is closed
+ */
+G_MODULE_EXPORT void on_window_destroy(GtkWidget *widget, gpointer data) {
 	// save configuration file
 	g_doc.SaveFile(g_xml);
 
@@ -53,6 +56,9 @@ G_MODULE_EXPORT void on_window_destroy(GtkWidget* widget, gpointer data) {
     gtk_main_quit();
 }
 
+/*
+ * About Dialog Open
+ */
 G_MODULE_EXPORT void on_about_activate(GtkWidget *widget, gpointer data) {
 	// Find the about dialog and show it
 	GtkWidget *w;
@@ -60,12 +66,17 @@ G_MODULE_EXPORT void on_about_activate(GtkWidget *widget, gpointer data) {
 	gtk_dialog_run(GTK_DIALOG(w));
 }
 
+/*
+ * About Dialog Close
+ */
 G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data) {
-	// close about dialog
 	gtk_widget_hide(GTK_WIDGET(dialog));
 }
 
-G_MODULE_EXPORT void on_real_toggled(GtkWidget* widget, gpointer data) {
+/*
+ * When hardware robots are selected
+ */
+G_MODULE_EXPORT void on_real_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "real")))) {
 		fp = fopen(g_chrc, "w");
 		fputs(fpbuf, fp);
@@ -73,7 +84,10 @@ G_MODULE_EXPORT void on_real_toggled(GtkWidget* widget, gpointer data) {
 	}
 }
 
-G_MODULE_EXPORT void on_simulated_toggled(GtkWidget* widget, gpointer data) {
+/*
+ * When simulated robots are selected
+ */
+G_MODULE_EXPORT void on_simulated_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "simulated")))) {
 		fp = fopen(g_chrc, "w");
 		fputs(fpbuf, fp);
@@ -82,17 +96,27 @@ G_MODULE_EXPORT void on_simulated_toggled(GtkWidget* widget, gpointer data) {
 	}
 }
 
+/*
+ * When a robots type is changed
+ */
 G_MODULE_EXPORT void on_type_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
 	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
 	robots_t tmp = g_robots;
 	while (tmp && tmp->id != id)
 		tmp = tmp->next;
+
+	// if the robot is found, change its type
 	if (tmp) {
+		// get new robot type
 #ifdef _WIN32
 		const gchar *type = gtk_combo_box_get_active_text(GTK_COMBO_BOX(widget));
 #else
 		const gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget));
 #endif
+		// store into database
 		if (!strcmp(type, "Linkbot I"))
 			tmp->type = 0;
 		else if (!strcmp(type, "Linkbot L"))
@@ -104,44 +128,80 @@ G_MODULE_EXPORT void on_type_changed(GtkWidget *widget, gpointer data) {
 	}
 }
 
-G_MODULE_EXPORT void on_x_value_changed(GtkWidget* widget, gpointer data) {
+/*
+ * When robot's x value is changed
+ */
+G_MODULE_EXPORT void on_x_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
 	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
 	robots_t tmp = g_robots;
 	while (tmp && tmp->id != id)
 		tmp = tmp->next;
+
+	// if the robot is found, change its x value
 	if (tmp) tmp->x = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
 }
 
-G_MODULE_EXPORT void on_y_value_changed(GtkWidget* widget, gpointer data) {
+/*
+ * When robot's y value is changed
+ */
+G_MODULE_EXPORT void on_y_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
 	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
 	robots_t tmp = g_robots;
 	while (tmp && tmp->id != id)
 		tmp = tmp->next;
+
+	// if the robot is found, change its y value
 	if (tmp) tmp->y = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
 }
 
-G_MODULE_EXPORT void on_phi_value_changed(GtkWidget* widget, gpointer data) {
+/*
+ * When robot's phi value is changed
+ */
+G_MODULE_EXPORT void on_phi_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
 	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
 	robots_t tmp = g_robots;
 	while (tmp && tmp->id != id)
 		tmp = tmp->next;
+
+	// if the robot is found, change its phi value
 	if (tmp) tmp->phi = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
 }
 
-G_MODULE_EXPORT void on_wheeled_clicked(GtkWidget* widget, gpointer data) {
+/*
+ * When robot's wheeled status is changed
+ */
+G_MODULE_EXPORT void on_wheeled_clicked(GtkWidget *widget, gpointer data) {
+	// cast id of robot
 	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
 	robots_t tmp = g_robots;
 	while (tmp && tmp->id != id)
 		tmp = tmp->next;
+
+	// if the robot is found, change its wheeled state
 	if (tmp) tmp->wheeled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
 }
 
+/*
+ * When robot a robot is removed from the list
+ */
 G_MODULE_EXPORT void refreshRobotList();
 G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data) {
+	// cast id of robot
 	gint id = GPOINTER_TO_INT(data);
-	robots_t tmp = g_robots;
 
 	// find and remove ndoe
+	robots_t tmp = g_robots;
 	if (g_robots->id == id) {
 		g_robots = g_robots->next;
 	}
@@ -170,6 +230,9 @@ G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data) 
 	refreshRobotList();
 }
 
+/*
+ * Refresh the table of robot data
+ */
 G_MODULE_EXPORT void refreshRobotList() {
 	// new table of robots
 	static GtkWidget *rootTable = NULL;
@@ -271,6 +334,9 @@ G_MODULE_EXPORT void refreshRobotList() {
 	}
 }
 
+/*
+ * When a robot is added to the list
+ */
 G_MODULE_EXPORT void on_button_add_robot_clicked(GtkWidget *widget, gpointer data) {
 	// pointer to linked list
 	robots_t tmp = g_robots;
@@ -301,14 +367,106 @@ G_MODULE_EXPORT void on_button_add_robot_clicked(GtkWidget *widget, gpointer dat
 
 	// refresh gui list with new robot
 	refreshRobotList();
+
+	// reset toggle buttons
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "none")), 1);
 }
 
-G_MODULE_EXPORT void on_save_clicked(GtkWidget* widget, gpointer data) {
+/*
+ * When the explorer is selected
+ */
+G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/explorer.jpg", NULL);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		gtk_image_set_from_pixbuf(image, scaled);
+	}
+}
+
+/*
+ * When the inchworm is selected
+ */
+G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/inchworm.jpg", NULL);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		gtk_image_set_from_pixbuf(image, scaled);
+	}
+}
+
+/*
+ * When the lift is selected
+ */
+G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/lift.jpg", NULL);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		gtk_image_set_from_pixbuf(image, scaled);
+	}
+}
+
+/*
+ * When the omnidrive is selected
+ */
+G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/omnidrive.jpg", NULL);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		gtk_image_set_from_pixbuf(image, scaled);
+	}
+}
+
+/*
+ * When the snake is selected
+ */
+G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/snake.jpg", NULL);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		gtk_image_set_from_pixbuf(image, scaled);
+	}
+}
+
+/*
+ * When the stand is selected
+ */
+G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/stand.jpg", NULL);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		gtk_image_set_from_pixbuf(image, scaled);
+	}
+}
+
+/*
+ * When 'individual robots' is selected
+ */
+G_MODULE_EXPORT void on_none_toggled(GtkWidget *widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		gtk_image_set_from_pixbuf(image, scaled);
+	}
+}
+
+/*
+ * When the save button is clicked
+ */
+G_MODULE_EXPORT void on_save_clicked(GtkWidget *widget, gpointer data) {
 	// clean out sim node
 	tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
 	sim->DeleteChildren();
 
+	// first check if preconfigured motions are selected, then default to individual robots
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")))) {
+		// create robots
 		tinyxml2::XMLElement *robot1, *robot2, *robot3, *robot4, *robot5;
 
 		// create first robot
@@ -929,7 +1087,7 @@ int WINAPI WinMain(HINSTANCE hinst, HINSTANCE hinstPrev, LPSTR lpCmdLine, int nC
 #else
 int main(int argc, char *argv[]) {
 	// init gtk
-	//gtk_init(&argc, &argv);
+	gtk_init(&argc, &argv);
 #endif
 
 	// load gtk window
@@ -938,6 +1096,12 @@ int main(int argc, char *argv[]) {
 	g_window = GTK_WIDGET(gtk_builder_get_object(g_builder, "window1"));
 	if (g_window == NULL) { fprintf(stderr, "Unable to file object with id \"window1\" \n"); exit(1); }
 	gtk_builder_connect_signals(g_builder, NULL);
+
+	// load individual robots picture
+	GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+	GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
+	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+	gtk_image_set_from_pixbuf(image, scaled);
 
 	// add first robot
 	robots_t nr = new struct robots_s;

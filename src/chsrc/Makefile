@@ -90,8 +90,16 @@ createpkg: librobosim.dl
 	mkdir $(PKGDIR)/bin/gui
 	cp ../configurator/build/robosimconfigurator $(PKGDIR)/bin/gui
 	cp ../configurator/interface3.glade $(PKGDIR)/bin/gui/interface.glade
-	cp ../configurator/images/linkbot.png $(PKGDIR)/bin/gui
-	cp ../configurator/images/mobot.png $(PKGDIR)/bin/gui
+	mkdir $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/linkbot.png $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/mobot.png $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/explorer.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/inchworm.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/lift.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/omnidrive.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/snake.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/stand.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/individual.jpg $(PKGDIR)/bin/gui/images
 	mkdir $(PKGDIR)/bin/osgPlugins-3.0.1
 	cp ../openscenegraph/build/lib/osgPlugins-3.0.1/osgdb_png.so $(PKGDIR)/bin/osgPlugins-3.0.1
 	cp ../openscenegraph/build/lib/osgPlugins-3.0.1/osgdb_3ds.so $(PKGDIR)/bin/osgPlugins-3.0.1
