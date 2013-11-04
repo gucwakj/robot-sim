@@ -78,10 +78,6 @@ createpkg: librobosim.dl
 	rm -rf $(PACKAGE)-unix-$(VERSION).zip
 	mkdir -p $(PKGDIR)
 	mkdir $(PKGDIR)/bin
-	cp ../configurator/build/robosimconfigurator $(PKGDIR)/bin
-	cp ../configurator/interface3.glade $(PKGDIR)/bin/interface.glade
-	cp ../configurator/images/linkbot.png $(PKGDIR)/bin
-	cp ../configurator/images/mobot.png $(PKGDIR)/bin
 	cp ../opende/sys/lib/libode.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosg.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosgViewer.so $(PKGDIR)/bin
@@ -91,6 +87,11 @@ createpkg: librobosim.dl
 	cp ../openscenegraph/build/lib/libosgFX.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosgText.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libOpenThreads.so $(PKGDIR)/bin
+	mkdir $(PKGDIR)/bin/gui
+	cp ../configurator/build/robosimconfigurator $(PKGDIR)/bin/gui
+	cp ../configurator/interface3.glade $(PKGDIR)/bin/gui/interface.glade
+	cp ../configurator/images/linkbot.png $(PKGDIR)/bin/gui
+	cp ../configurator/images/mobot.png $(PKGDIR)/bin/gui
 	mkdir $(PKGDIR)/bin/osgPlugins-3.0.1
 	cp ../openscenegraph/build/lib/osgPlugins-3.0.1/osgdb_png.so $(PKGDIR)/bin/osgPlugins-3.0.1
 	cp ../openscenegraph/build/lib/osgPlugins-3.0.1/osgdb_3ds.so $(PKGDIR)/bin/osgPlugins-3.0.1

@@ -79,6 +79,19 @@ createpkg: librobosim.dl
 	rm -rf $(PACKAGE)-win64-$(VERSION).zip
 	mkdir -p $(PKGDIR)
 	mkdir $(PKGDIR)/bin
+	cp ../opende/lib/Release/ode.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osg.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgViewer.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgUtil.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgDB.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgGA.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgFX.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgText.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/ot12-OpenThreads.dll $(PKGDIR)/bin
+	cp ../openscenegraph/third_party/$(ARCH)/bin/glut32.dll $(PKGDIR)/bin
+	cp ../openscenegraph/third_party/$(ARCH)/bin/libpng13.dll $(PKGDIR)/bin
+	cp ../openscenegraph/third_party/$(ARCH)/bin/zlib1.dll $(PKGDIR)/bin
+	cp ../tinyxml2/build/Release/tinyxml2.dll $(PKGDIR)/bin
 	mkdir $(PKGDIR)/bin/gui
 	cp ../configurator/build/Release/robosimconfigurator.exe $(PKGDIR)/bin/gui
 	cp ../configurator/interface2.glade $(PKGDIR)/bin/gui/interface.glade
@@ -104,19 +117,6 @@ createpkg: librobosim.dl
 	cp ../configurator/dll/libpangowin32-1.0-0.dll $(PKGDIR)/bin/gui
 	cp ../configurator/dll/libpng14-14.dll $(PKGDIR)/bin/gui
 	cp ../configurator/dll/tinyxml2.dll $(PKGDIR)/bin/gui
-	cp ../opende/lib/Release/ode.dll $(PKGDIR)/bin
-	cp ../openscenegraph/build/bin/osg80-osg.dll $(PKGDIR)/bin
-	cp ../openscenegraph/build/bin/osg80-osgViewer.dll $(PKGDIR)/bin
-	cp ../openscenegraph/build/bin/osg80-osgUtil.dll $(PKGDIR)/bin
-	cp ../openscenegraph/build/bin/osg80-osgDB.dll $(PKGDIR)/bin
-	cp ../openscenegraph/build/bin/osg80-osgGA.dll $(PKGDIR)/bin
-	cp ../openscenegraph/build/bin/osg80-osgFX.dll $(PKGDIR)/bin
-	cp ../openscenegraph/build/bin/osg80-osgText.dll $(PKGDIR)/bin
-	cp ../openscenegraph/build/bin/ot12-OpenThreads.dll $(PKGDIR)/bin
-	cp ../openscenegraph/third_party/$(ARCH)/bin/glut32.dll $(PKGDIR)/bin
-	cp ../openscenegraph/third_party/$(ARCH)/bin/libpng13.dll $(PKGDIR)/bin
-	cp ../openscenegraph/third_party/$(ARCH)/bin/zlib1.dll $(PKGDIR)/bin
-	cp ../tinyxml2/build/Release/tinyxml2.dll $(PKGDIR)/bin
 	mkdir $(PKGDIR)/bin/osgPlugins-3.0.1
 	cp ../openscenegraph/build/bin/osgPlugins-3.0.1/osgdb_png.dll $(PKGDIR)/bin/osgPlugins-3.0.1
 	cp ../openscenegraph/build/bin/osgPlugins-3.0.1/osgdb_3ds.dll $(PKGDIR)/bin/osgPlugins-3.0.1
