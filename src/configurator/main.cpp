@@ -379,7 +379,7 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/explorer.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 }
@@ -391,7 +391,7 @@ G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/inchworm.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 }
@@ -403,7 +403,7 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/lift.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 }
@@ -415,7 +415,7 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/omnidrive.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 }
@@ -427,7 +427,7 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/snake.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 }
@@ -439,7 +439,7 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/stand.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 }
@@ -451,7 +451,7 @@ G_MODULE_EXPORT void on_none_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 }
@@ -1100,7 +1100,7 @@ int main(int argc, char *argv[]) {
 	// load individual robots picture
 	GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 	GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
-	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 200, 133, GDK_INTERP_HYPER);
+	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 	gtk_image_set_from_pixbuf(image, scaled);
 
 	// add first robot
