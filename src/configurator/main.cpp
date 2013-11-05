@@ -1103,6 +1103,18 @@ int main(int argc, char *argv[]) {
 	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 	gtk_image_set_from_pixbuf(image, scaled);
 
+	// load linkbot coordinates picture
+	GtkImage *image_l = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_linkbot"));
+	GdkPixbuf *original_l = gdk_pixbuf_new_from_file("images/linkbot.jpg", NULL);
+	GdkPixbuf *scaled_l = gdk_pixbuf_scale_simple(original_l, 300, 116, GDK_INTERP_HYPER);
+	gtk_image_set_from_pixbuf(image_l, scaled_l);
+
+	// load mobot coordinates picture
+	GtkImage *image_m = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_mobot"));
+	GdkPixbuf *original_m = gdk_pixbuf_new_from_file("images/mobot.jpg", NULL);
+	GdkPixbuf *scaled_m = gdk_pixbuf_scale_simple(original_m, 300, 116, GDK_INTERP_HYPER);
+	gtk_image_set_from_pixbuf(image_m, scaled_m);
+
 	// add first robot
 	robots_t nr = new struct robots_s;
 	nr->id = 0;

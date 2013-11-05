@@ -544,7 +544,7 @@
                       <object class="GtkImage" id="image_linkbot">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="pixbuf">images/linkbot.png</property>
+                        <property name="pixbuf">images/linkbot.jpg</property>
                       </object>
                     </child>
                     <child type="label">
@@ -572,7 +572,7 @@
                       <object class="GtkImage" id="image_mobot">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="pixbuf">images/mobot.png</property>
+                        <property name="pixbuf">images/mobot.jpg</property>
                       </object>
                     </child>
                     <child type="label">
