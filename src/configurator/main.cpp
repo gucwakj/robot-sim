@@ -258,12 +258,12 @@ G_MODULE_EXPORT void refreshRobotList() {
 #ifdef _WIN32
 		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Linkbot I");
 		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Linkbot L");
-		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Linkbot T");
+		//gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Linkbot T");
 		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Mobot");
 #else
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "0", "Linkbot I");
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "Linkbot L");
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "Linkbot T");
+		//gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "Linkbot T");
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "Mobot");
 #endif
 		gtk_combo_box_set_active(GTK_COMBO_BOX(w), 0);
