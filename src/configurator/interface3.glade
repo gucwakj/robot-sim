@@ -4,35 +4,16 @@
   <object class="GtkAboutDialog" id="aboutdialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
+    <property name="modal">True</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">RoboSim</property>
     <property name="version">0.1</property>
-    <property name="copyright" translatable="yes">Copyright (C) 2013, IEL</property>
-    <property name="comments" translatable="yes">Robotic Simulation Environment</property>
+    <property name="copyright" translatable="yes">(C) 2013, IEL</property>
+    <property name="comments" translatable="yes">Robot Simulation Environment</property>
+    <property name="website">www.c-stem.ucdavis.edu</property>
+    <property name="website_label" translatable="yes">Website</property>
+    <property name="authors">Kevin Gucwa</property>
     <signal name="close" handler="on_aboutdialog_close" swapped="no"/>
-    <signal name="response" handler="on_aboutdialog_close" swapped="no"/>
-    <child internal-child="vbox">
-      <object class="GtkBox" id="aboutdialog-vbox1">
-        <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="aboutdialog-action_area1">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-      </object>
-    </child>
   </object>
   <object class="GtkListStore" id="liststore">
     <columns>
@@ -211,7 +192,8 @@
                                 <property name="can_focus">True</property>
                                 <property name="hexpand">True</property>
                                 <property name="vexpand">True</property>
-                                <property name="shadow_type">in</property>
+                                <property name="border_width">2</property>
+                                <property name="shadow_type">etched-in</property>
                                 <child>
                                   <object class="GtkLayout" id="layout_robots">
                                     <property name="visible">True</property>
@@ -245,6 +227,10 @@
                           </object>
                         </child>
                       </object>
+                      <packing>
+                        <property name="top_attach">1</property>
+                        <property name="bottom_attach">2</property>
+                      </packing>
                     </child>
                     <child>
                       <object class="GtkAlignment" id="alignment_images">
@@ -329,10 +315,6 @@
                           </object>
                         </child>
                       </object>
-                      <packing>
-                        <property name="top_attach">1</property>
-                        <property name="bottom_attach">2</property>
-                      </packing>
                     </child>
                   </object>
                 </child>
@@ -362,8 +344,8 @@
                   <object class="GtkTable" id="table_shapes">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="halign">start</property>
                     <property name="n_columns">2</property>
+                    <property name="homogeneous">True</property>
                     <child>
                       <object class="GtkAlignment" id="alignment_shapes">
                         <property name="visible">True</property>
@@ -375,14 +357,13 @@
                             <property name="can_focus">False</property>
                             <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkRadioButton" id="explorer">
+                              <object class="GtkCheckButton" id="explorer">
                                 <property name="label" translatable="yes">Explorer</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="receives_default">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
-                                <property name="group">none</property>
                                 <signal name="toggled" handler="on_explorer_toggled" swapped="no"/>
                               </object>
                               <packing>
@@ -392,15 +373,13 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkRadioButton" id="inchworm">
+                              <object class="GtkCheckButton" id="inchworm">
                                 <property name="label" translatable="yes">Inchworm</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="receives_default">False</property>
                                 <property name="xalign">0</property>
-                                <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
-                                <property name="group">none</property>
                                 <signal name="toggled" handler="on_inchworm_toggled" swapped="no"/>
                               </object>
                               <packing>
@@ -410,15 +389,13 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkRadioButton" id="lift">
+                              <object class="GtkCheckButton" id="lift">
                                 <property name="label" translatable="yes">Lift</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="receives_default">False</property>
                                 <property name="xalign">0</property>
-                                <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
-                                <property name="group">none</property>
                                 <signal name="toggled" handler="on_lift_toggled" swapped="no"/>
                               </object>
                               <packing>
@@ -428,15 +405,13 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkRadioButton" id="omnidrive">
+                              <object class="GtkCheckButton" id="omnidrive">
                                 <property name="label" translatable="yes">Omnidrive</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="receives_default">False</property>
                                 <property name="xalign">0</property>
-                                <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
-                                <property name="group">none</property>
                                 <signal name="toggled" handler="on_omnidrive_toggled" swapped="no"/>
                               </object>
                               <packing>
@@ -446,14 +421,13 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkRadioButton" id="snake">
+                              <object class="GtkCheckButton" id="snake">
                                 <property name="label" translatable="yes">Snake</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="receives_default">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
-                                <property name="group">none</property>
                                 <signal name="toggled" handler="on_snake_toggled" swapped="no"/>
                               </object>
                               <packing>
@@ -463,37 +437,20 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkRadioButton" id="stand">
+                              <object class="GtkCheckButton" id="stand">
                                 <property name="label" translatable="yes">Stand</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="receives_default">False</property>
+                                <property name="relief">half</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
-                                <property name="group">none</property>
                                 <signal name="toggled" handler="on_stand_toggled" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">True</property>
                                 <property name="position">5</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkRadioButton" id="none">
-                                <property name="label" translatable="yes">Individual Robots</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="receives_default">False</property>
-                                <property name="xalign">0</property>
-                                <property name="active">True</property>
-                                <property name="draw_indicator">True</property>
-                                <signal name="toggled" handler="on_none_toggled" swapped="no"/>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="position">6</property>
                               </packing>
                             </child>
                           </object>

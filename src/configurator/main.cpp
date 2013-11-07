@@ -70,7 +70,9 @@ G_MODULE_EXPORT void on_about_activate(GtkWidget *widget, gpointer data) {
  * About Dialog Close
  */
 G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data) {
-	gtk_widget_hide(GTK_WIDGET(dialog));
+	//gtk_widget_hide(GTK_WIDGET(dialog));
+printf("close\n");
+	gtk_widget_destroy(GTK_WIDGET(dialog));
 }
 
 /*
@@ -369,7 +371,11 @@ G_MODULE_EXPORT void on_button_add_robot_clicked(GtkWidget *widget, gpointer dat
 	refreshRobotList();
 
 	// reset toggle buttons
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "none")), 1);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
 }
 
 /*
@@ -377,8 +383,23 @@ G_MODULE_EXPORT void on_button_add_robot_clicked(GtkWidget *widget, gpointer dat
  */
 G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		// uncheck other buttons
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
+		
+		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/explorer.jpg", NULL);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		gtk_image_set_from_pixbuf(image, scaled);
+	}
+	else {
+		// change image
+		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
@@ -389,8 +410,23 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		// uncheck other buttons
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
+		
+		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/inchworm.jpg", NULL);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		gtk_image_set_from_pixbuf(image, scaled);
+	}
+	else {
+		// change image
+		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
@@ -401,8 +437,23 @@ G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		// uncheck other buttons
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
+		
+		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/lift.jpg", NULL);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		gtk_image_set_from_pixbuf(image, scaled);
+	}
+	else {
+		// change image
+		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
@@ -413,8 +464,23 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		// uncheck other buttons
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
+		
+		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/omnidrive.jpg", NULL);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		gtk_image_set_from_pixbuf(image, scaled);
+	}
+	else {
+		// change image
+		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
@@ -425,8 +491,23 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		// uncheck other buttons
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
+		
+		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/snake.jpg", NULL);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		gtk_image_set_from_pixbuf(image, scaled);
+	}
+	else {
+		// change image
+		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
+		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
@@ -437,18 +518,21 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+		// uncheck other buttons
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
+		
+		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/stand.jpg", NULL);
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
-}
-
-/*
- * When 'individual robots' is selected
- */
-G_MODULE_EXPORT void on_none_toggled(GtkWidget *widget, gpointer data) {
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
+	else {
+		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
