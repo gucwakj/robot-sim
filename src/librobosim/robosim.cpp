@@ -2,7 +2,7 @@
 using namespace std;
 
 // global robot simulation object
-RoboSim *_simObject;
+RoboSim *_simObject = NULL;
 
 RoboSim::RoboSim(void) {
 	// initialize ode
@@ -603,6 +603,13 @@ int RoboSim::init_viz(void) {
 	// create graphics thread
 	THREAD_CREATE(&_osgThread, (void* (*)(void *))&RoboSim::graphics_thread, (void *)this);
 
+	// wait for graphics to be ready
+	MUTEX_LOCK(&_graphics_mutex);
+	while (!_graphics) {
+		COND_WAIT(&_graphics_cond, &_graphics_mutex);
+	}
+	MUTEX_UNLOCK(&_graphics_mutex);
+
 	// success
 	return 0;
 }
@@ -612,15 +619,6 @@ int RoboSim::init_viz(void) {
 	Public member functions
  **********************************************************/
 int RoboSim::addRobot(CRobot *robot) {
-#ifdef ENABLE_GRAPHICS
-	// wait for graphics to be ready
-	MUTEX_LOCK(&_graphics_mutex);
-	while (!_graphics) {
-		COND_WAIT(&_graphics_cond, &_graphics_mutex);
-	}
-	MUTEX_UNLOCK(&_graphics_mutex);
-#endif // ENABLE_GRAPHICS
-
 	// lock robot data to insert a new one into simulation
 	MUTEX_LOCK(&_robot_mutex);
 
@@ -940,7 +938,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	cameraManipulator->setVerticalAxisFixed(true);
 	cameraManipulator->setElevation(0.5);
 	sim->_viewer->setCameraManipulator(cameraManipulator);
-	sim->_viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1.5, 1.5, 2), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	sim->_viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1, 1, 0.75), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
     // Creating the root node
 	sim->_osgRoot = new osg::Group();
@@ -1076,6 +1074,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	while (!sim->_viewer->done()) {
 		MUTEX_UNLOCK(&(sim->_viewer_mutex));
 		sim->_viewer->frame();
+		MUTEX_LOCK(&(sim->_viewer_mutex));
 	}
 
 	// trigger end of code when graphics window is closed

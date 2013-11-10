@@ -288,7 +288,7 @@ class DLLIMPORT CRobot {
 		COND_T _success_cond;
 
 #ifdef ENABLE_GRAPHICS
-		virtual void draw(osg::Group *root) {};
+		virtual void draw(osg::Group *root) = 0;
 		osg::ShapeDrawable *_led;
 #endif // ENABLE_GRAPHICS
 };

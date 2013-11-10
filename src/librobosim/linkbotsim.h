@@ -417,6 +417,7 @@ class DLLIMPORT CLinkbotI {
 		int moveForwardNB(double angle);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
+		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToDirect(robotJointId_t id, double angle);
@@ -776,12 +777,7 @@ class DLLIMPORT CLinkbotLGroup {
 		int turnRight(double angle, double radius, double tracklength);
 		int turnRightNB(double angle, double radius, double tracklength);
 };
-//#ifndef ROBOSIM_DLHANDLE
-//#define ROBOSIM_DLHANDLE
-//void* RoboSim::g_chrobosim_dlhandle = NULL;
-//int RoboSim::g_chrobosim_dlcount = 0;
 #pragma importf "chrobosim.chf"
-//#endif
 #pragma importf "chlinkbottsim.chf"
 #pragma importf "chlinkbotisim.chf"
 #pragma importf "chlinkbotlsim.chf"
