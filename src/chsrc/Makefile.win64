@@ -116,8 +116,8 @@ createpkg: librobosim.dl
 	cp ../configurator/dll/libpng14-14.dll $(PKGDIR)/bin/gui
 	cp ../configurator/dll/tinyxml2.dll $(PKGDIR)/bin/gui
 	mkdir $(PKGDIR)/bin/gui/images
-	cp ../configurator/images/linkbot.png $(PKGDIR)/bin/gui/images
-	cp ../configurator/images/mobot.png $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/linkbot.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/mobot.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/explorer.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/inchworm.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/lift.jpg $(PKGDIR)/bin/gui/images

@@ -28,7 +28,14 @@ int CMobot::blinkLED(double delay, int num) {
 }
 
 int CMobot::connect(void) {
+	// create simulation object if necessary
+	if (!_simObject)
+		_simObject = new RoboSim;
+
+	// add to simulation
 	_simObject->addRobot(this);
+
+	// and we are connected
 	_connected = 1;
 
 	// success
@@ -36,6 +43,7 @@ int CMobot::connect(void) {
 }
 
 int CMobot::disconnect(void) {
+	// and we are not connected
 	_connected = 0;
 
 	// success
@@ -3455,7 +3463,7 @@ int CMobot::build_tank(conn_t conn, int face) {
 }
 
 int CMobot::fix_body_to_connector(dBodyID cBody, int face) {
-	if (!cBody) { fprintf(stderr,"connector body does not exist\n"); }
+	if (!cBody) { printf("connector body does not exist\n"); exit(-1); }
 
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);

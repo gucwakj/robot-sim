@@ -1,10 +1,8 @@
 #include "robosim.h"
 using namespace std;
 
-#ifndef ROBOSIM_OBJECT
-#define ROBOSIM_OBJECT
-RoboSim *_simObject = new RoboSim;
-#endif
+// global robot simulation object
+RoboSim *_simObject;
 
 RoboSim::RoboSim(void) {
 	// initialize ode
@@ -154,8 +152,8 @@ int RoboSim::init_xml(void) {
 #endif
 	int output = doc.LoadFile(path);
 	if (output) {
-		fprintf(stderr, "ERROR: could not find xml config file.\n");
-		exit(1);
+		printf("ERROR: could not find xml config file.\n");
+		exit(-1);
 	}
 
 	// get root node of xml file
@@ -541,7 +539,7 @@ int RoboSim::init_xml(void) {
 				tmp = _bot;
 				while (tmp && tmp->id != rtmp[j])
 					tmp = tmp->next;
-				if (tmp == NULL) { printf("ERROR: robot %d could not be found.\n", rtmp[j]); exit(1); }
+				if (tmp == NULL) { printf("ERROR: robot %d could not be found.\n", rtmp[j]); exit(-1); }
 				ctmp = tmp->conn;
 				if ( tmp->conn == NULL )
 					tmp->conn = nc;
@@ -653,7 +651,7 @@ int RoboSim::addRobot(CRobot *robot) {
 		else { if (num++ != connected) {btmp = btmp->next; continue;}}
 		break;
 	}
-	if (btmp == NULL) { fprintf(stderr, "could not find robot\n"); exit(1); }
+	if (btmp == NULL) { printf("could not find robot\n"); exit(-1); }
 	
 	// give simulation data to robot
 	robot->addToSim(_world, _space, &_clock);

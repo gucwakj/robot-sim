@@ -4,20 +4,12 @@
 
 RoboSim::RoboSim() {
 	void *fptr;
-	/*if(RoboSim::g_chrobosim_dlhandle == NULL || RoboSim::g_chrobosim_dlcount == 0) {
-		RoboSim::g_chrobosim_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
-		if(RoboSim::g_chrobosim_dlhandle == NULL) {
-			printf("Error: %s(): dlopen(): %s\n", __class_func__, dlerror());
-			return;
-		}
-	}*/
 	fptr = dlsym(g_chrobosim_dlhandle, "RoboSim_RoboSim_chdl");
 	if(fptr == NULL) {
 		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
 		return;
 	}
 	dlrunfun(fptr, NULL, NULL);
-	//RoboSim::g_chrobosim_dlcount++; // to increase count of instance
 }
 
 RoboSim::~RoboSim() {
@@ -27,10 +19,5 @@ RoboSim::~RoboSim() {
 		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
 		return;
 	}
-	/*dlrunfun(fptr, NULL, NULL, this);
-	RoboSim::g_chrobosim_dlcount--; // to decrease count of instance
-	if(RoboSim::g_chrobosim_dlcount <= 0 && RoboSim::g_chrobosim_dlhandle != NULL) {
-		if(dlclose(RoboSim::g_chrobosim_dlhandle)!=0)
-			printf("Error: %s(): dlclose(): %s\n", __class_func__, dlerror());
-	}*/
+	dlrunfun(fptr, NULL, NULL, this);
 }

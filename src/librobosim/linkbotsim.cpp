@@ -12,7 +12,6 @@ CLinkbotT::~CLinkbotT(void) {
 	// destroy simulation object
 	if (_simObject) {
 		delete _simObject;
-		#undef ROBOSIM_OBJECT
 		_simObject = NULL;
 	}
 
@@ -55,6 +54,10 @@ int CLinkbotT::blinkLED(double delay, int num) {
 }
 
 int CLinkbotT::connect(void) {
+	// create simulation object if necessary
+	if (!_simObject)
+		_simObject = new RoboSim;
+
 	// add to simulation
 	_simObject->addRobot(this);
 
@@ -2945,7 +2948,7 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
 }
 
 int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
-	if (!cBody) { fprintf(stderr,"connector body does not exist\n"); }
+	if (!cBody) { printf("connector body does not exist\n"); exit(-1); }
 
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
@@ -2963,7 +2966,7 @@ int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
 }
 
 int CLinkbotT::fix_connector_to_body(int face, dBodyID cBody) {
-	if (!cBody) { fprintf(stderr,"connector body does not exist\n"); }
+	if (!cBody) { printf("connector body does not exist\n"); exit(-1); }
 
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
