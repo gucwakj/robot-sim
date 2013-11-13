@@ -31,7 +31,7 @@ int g_num = 0;
 extern "C" {
 #endif
 G_MODULE_EXPORT void on_window_destroy(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_about_activate(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_aboutdialog_activate(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data);
 
 G_MODULE_EXPORT void on_real_toggled(GtkWidget *widget, gpointer data);
@@ -42,7 +42,7 @@ G_MODULE_EXPORT void on_x_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_y_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_phi_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_wheeled_clicked(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_button_add_robot_clicked(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data);
 
 G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data);
@@ -204,7 +204,7 @@ G_MODULE_EXPORT void on_window_destroy(GtkWidget *widget, gpointer data) {
 /*
  * About Dialog Open
  */
-G_MODULE_EXPORT void on_about_activate(GtkWidget *widget, gpointer data) {
+G_MODULE_EXPORT void on_aboutdialog_activate(GtkWidget *widget, gpointer data) {
 	// Find the about dialog and show it
 	GtkWidget *w;
 	w = GTK_WIDGET(gtk_builder_get_object(g_builder, "aboutdialog"));
@@ -369,7 +369,7 @@ G_MODULE_EXPORT void on_wheeled_clicked(GtkWidget *widget, gpointer data) {
 /*
  * When a robot is added to the list
  */
-G_MODULE_EXPORT void on_button_add_robot_clicked(GtkWidget *widget, gpointer data) {
+G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data) {
 	// pointer to linked list
 	robots_t tmp = g_robots;
 

@@ -79,6 +79,7 @@
                         <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <signal name="activate" handler="on_aboutdialog_activate" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -217,7 +218,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="use_action_appearance">False</property>
-                                <signal name="clicked" handler="on_button_add_robot_clicked" swapped="no"/>
+                                <signal name="clicked" handler="on_button_add_clicked" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">True</property>
