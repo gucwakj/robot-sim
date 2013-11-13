@@ -1301,615 +1301,81 @@ void saveRobotList(void) {
 	tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
 	sim->DeleteChildren();
 
-	// first check if preconfigured motions are selected, then default to individual robots
-	/*if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")))) {
-		// create robots
-		tinyxml2::XMLElement *robot1, *robot2, *robot3, *robot4, *robot5;
+	// add each robot in list
+	robots_t tmp = g_robots;
+	while (tmp) {
+		// set robot type
+		tinyxml2::XMLElement *robot;
+		if (tmp->type == 0)
+			robot = g_doc.NewElement("linkboti");
+		else if (tmp->type == 1)
+			robot = g_doc.NewElement("linkbotl");
+		else if (tmp->type == 2)
+			robot = g_doc.NewElement("linkbott");
+		else if (tmp->type == 3)
+			robot = g_doc.NewElement("mobot");
 
-		// create first robot
-		robot1 = g_doc.NewElement("linkboti");
+		if (!(tmp->id))
+			sim->InsertFirstChild(robot);
+		else
+			sim->InsertEndChild(robot);
+
 		// set id
-		robot1->SetAttribute("id", 0);
+		robot->SetAttribute("id", tmp->id);
+
 		// set position
 		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", 0);
-		pos->SetAttribute("y", 0);
-		pos->SetAttribute("z", 0);
-		robot1->InsertFirstChild(pos);
+		pos->SetAttribute("x", I2M(tmp->x));
+		pos->SetAttribute("y", I2M(tmp->y));
+		pos->SetAttribute("z", I2M(tmp->z));
+		robot->InsertFirstChild(pos);
+
 		// set rotation
 		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
-		rot->SetAttribute("psi", 0);
-		rot->SetAttribute("theta", 0);
-		rot->SetAttribute("phi", 0);
-		robot1->InsertAfterChild(pos, rot);
-		// insert robot1
-		sim->InsertFirstChild(robot1);
-
-		// add remaining robots
-		robot2 = g_doc.NewElement("linkboti");
-		robot2->SetAttribute("id", 1);
-		robot3 = g_doc.NewElement("linkboti");
-		robot3->SetAttribute("id", 2);
-		robot4 = g_doc.NewElement("linkboti");
-		robot4->SetAttribute("id", 3);
-		robot5 = g_doc.NewElement("linkbotl");
-		robot5->SetAttribute("id", 4);
-		sim->InsertAfterChild(robot1, robot2);
-		sim->InsertAfterChild(robot2, robot3);
-		sim->InsertAfterChild(robot3, robot4);
-		sim->InsertAfterChild(robot4, robot5);
+		rot->SetAttribute("psi", tmp->psi);
+		rot->SetAttribute("theta", tmp->theta);
+		rot->SetAttribute("phi", tmp->phi);
+		robot->InsertAfterChild(pos, rot);
 
 		// add wheels
-		tinyxml2::XMLElement *wheel1 = g_doc.NewElement("smallwheel"),
-							 *wheel2 = g_doc.NewElement("smallwheel");
-		wheel1->SetAttribute("robot", 0);
-		wheel1->SetAttribute("face", 3);
-		wheel2->SetAttribute("robot", 1);
-		wheel2->SetAttribute("face", 1);
-		sim->InsertAfterChild(robot5, wheel1);
-		sim->InsertAfterChild(wheel1, wheel2);
+		if (tmp->wheeled) {
+			tinyxml2::XMLElement 	*wheel1 = g_doc.NewElement("smallwheel"), 
+									*wheel2 = g_doc.NewElement("smallwheel"), 
+									*caster = g_doc.NewElement("caster");
+			wheel1->SetAttribute("robot", tmp->id);
+			wheel1->SetAttribute("face", 1);
+			caster->SetAttribute("robot", tmp->id);
 
-		// insert cube
-		tinyxml2::XMLElement *cube = g_doc.NewElement("cube");
-		sim->InsertAfterChild(wheel2, cube);
-		tinyxml2::XMLElement *cside1 = g_doc.NewElement("side");
-		cside1->SetAttribute("id", 1);
-		cside1->SetAttribute("robot", 0);
-		cside1->SetAttribute("face", 1);
-		cube->InsertFirstChild(cside1);
-		tinyxml2::XMLElement *cside2 = g_doc.NewElement("side");
-		cside2->SetAttribute("id", 2);
-		cside2->SetAttribute("robot", 0);
-		cside2->SetAttribute("conn", 2);
-		cube->InsertAfterChild(cside1, cside2);
-		tinyxml2::XMLElement *cside3 = g_doc.NewElement("side");
-		cside3->SetAttribute("id", 3);
-		cside3->SetAttribute("robot", 1);
-		cside3->SetAttribute("face", 3);
-		cube->InsertAfterChild(cside2, cside3);
-		tinyxml2::XMLElement *cside5 = g_doc.NewElement("side");
-		cside5->SetAttribute("id", 5);
-		cside5->SetAttribute("robot", 2);
-		cside5->SetAttribute("face", 2);
-		cube->InsertAfterChild(cside3, cside5);
-
-		// insert bridge 1
-		tinyxml2::XMLElement *bridge1 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(cube, bridge1);
-		tinyxml2::XMLElement *b1side1 = g_doc.NewElement("side");
-		b1side1->SetAttribute("id", 1);
-		b1side1->SetAttribute("robot", 2);
-		b1side1->SetAttribute("face", 3);
-		bridge1->InsertFirstChild(b1side1);
-		tinyxml2::XMLElement *b1side2 = g_doc.NewElement("side");
-		b1side2->SetAttribute("id", 2);
-		b1side2->SetAttribute("robot", 3);
-		b1side2->SetAttribute("face", 3);
-		bridge1->InsertAfterChild(b1side1, b1side2);
-
-		// insert bridge 2
-		tinyxml2::XMLElement *bridge2 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(bridge1, bridge2);
-		tinyxml2::XMLElement *b2side1 = g_doc.NewElement("side");
-		b2side1->SetAttribute("id", 1);
-		b2side1->SetAttribute("robot", 2);
-		b2side1->SetAttribute("face", 1);
-		bridge2->InsertFirstChild(b2side1);
-		tinyxml2::XMLElement *b2side2 = g_doc.NewElement("side");
-		b2side2->SetAttribute("id", 2);
-		b2side2->SetAttribute("robot", 3);
-		b2side2->SetAttribute("face", 1);
-		bridge2->InsertAfterChild(b2side1, b2side2);
-
-		// insert simple
-		tinyxml2::XMLElement *simple = g_doc.NewElement("simple");
-		sim->InsertAfterChild(bridge2, simple);
-		tinyxml2::XMLElement *sside1 = g_doc.NewElement("side");
-		sside1->SetAttribute("id", 1);
-		sside1->SetAttribute("robot", 3);
-		sside1->SetAttribute("face", 2);
-		simple->InsertFirstChild(sside1);
-		tinyxml2::XMLElement *sside2 = g_doc.NewElement("side");
-		sside2->SetAttribute("id", 2);
-		sside2->SetAttribute("robot", 4);
-		sside2->SetAttribute("face", 2);
-		simple->InsertAfterChild(sside1, sside2);
-
-		// insert gripper
-		tinyxml2::XMLElement *gripper = g_doc.NewElement("gripper");
-		sim->InsertAfterChild(simple, gripper);
-		gripper->SetAttribute("robot", 4);
-	}
-	else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")))) {
-		tinyxml2::XMLElement *robot1, *robot2;
-
-		// create first robot
-		robot1 = g_doc.NewElement("linkboti");
-		// set id
-		robot1->SetAttribute("id", 0);
-		// set position
-		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", 0);
-		pos->SetAttribute("y", 0);
-		pos->SetAttribute("z", 0);
-		robot1->InsertFirstChild(pos);
-		// set rotation
-		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
-		rot->SetAttribute("psi", 0);
-		rot->SetAttribute("theta", 0);
-		rot->SetAttribute("phi", 0);
-		robot1->InsertAfterChild(pos, rot);
-		// insert robot1
-		sim->InsertFirstChild(robot1);
-
-		// add remaining robots
-		robot2 = g_doc.NewElement("linkboti");
-		robot2->SetAttribute("id", 1);
-		sim->InsertAfterChild(robot1, robot2);
-
-		// insert bridge 1
-		tinyxml2::XMLElement *bridge1 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(robot2, bridge1);
-		tinyxml2::XMLElement *b1side1 = g_doc.NewElement("side");
-		b1side1->SetAttribute("id", 1);
-		b1side1->SetAttribute("robot", 0);
-		b1side1->SetAttribute("face", 3);
-		bridge1->InsertFirstChild(b1side1);
-		tinyxml2::XMLElement *b1side2 = g_doc.NewElement("side");
-		b1side2->SetAttribute("id", 2);
-		b1side2->SetAttribute("robot", 1);
-		b1side2->SetAttribute("face", 1);
-		bridge1->InsertAfterChild(b1side1, b1side2);
-
-		// insert bridge 1
-		tinyxml2::XMLElement *bridge2 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(bridge1, bridge2);
-		tinyxml2::XMLElement *b2side1 = g_doc.NewElement("side");
-		b2side1->SetAttribute("id", 1);
-		b2side1->SetAttribute("robot", 0);
-		b2side1->SetAttribute("face", 1);
-		bridge2->InsertFirstChild(b2side1);
-		tinyxml2::XMLElement *b2side2 = g_doc.NewElement("side");
-		b2side2->SetAttribute("id", 2);
-		b2side2->SetAttribute("robot", 1);
-		b2side2->SetAttribute("face", 3);
-		bridge2->InsertAfterChild(b2side1, b2side2);
-	}
-	else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")))) {
-		tinyxml2::XMLElement *robot1, *robot2, *robot3, *robot4;
-
-		// create first robot
-		robot1 = g_doc.NewElement("linkboti");
-		// set id
-		robot1->SetAttribute("id", 0);
-		// set position
-		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", 0);
-		pos->SetAttribute("y", 0);
-		pos->SetAttribute("z", 0);
-		robot1->InsertFirstChild(pos);
-		// set rotation
-		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
-		rot->SetAttribute("psi", 0);
-		rot->SetAttribute("theta", 0);
-		rot->SetAttribute("phi", 0);
-		robot1->InsertAfterChild(pos, rot);
-		// insert robot1
-		sim->InsertFirstChild(robot1);
-
-		// add remaining robots
-		robot2 = g_doc.NewElement("linkboti");
-		robot2->SetAttribute("id", 1);
-		sim->InsertAfterChild(robot1, robot2);
-		robot3 = g_doc.NewElement("linkboti");
-		robot3->SetAttribute("id", 2);
-		sim->InsertAfterChild(robot2, robot3);
-		robot4 = g_doc.NewElement("linkboti");
-		robot4->SetAttribute("id", 3);
-		sim->InsertAfterChild(robot3, robot4);
-
-		// insert bridge 1
-		tinyxml2::XMLElement *bridge1 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(robot4, bridge1);
-		tinyxml2::XMLElement *b1side1 = g_doc.NewElement("side");
-		b1side1->SetAttribute("id", 1);
-		b1side1->SetAttribute("robot", 0);
-		b1side1->SetAttribute("face", 3);
-		bridge1->InsertFirstChild(b1side1);
-		tinyxml2::XMLElement *b1side2 = g_doc.NewElement("side");
-		b1side2->SetAttribute("id", 2);
-		b1side2->SetAttribute("robot", 1);
-		b1side2->SetAttribute("face", 1);
-		bridge1->InsertAfterChild(b1side1, b1side2);
-
-		// insert bridge 2
-		tinyxml2::XMLElement *bridge2 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(bridge1, bridge2);
-		tinyxml2::XMLElement *b2side1 = g_doc.NewElement("side");
-		b2side1->SetAttribute("id", 1);
-		b2side1->SetAttribute("robot", 0);
-		b2side1->SetAttribute("face", 1);
-		bridge2->InsertFirstChild(b2side1);
-		tinyxml2::XMLElement *b2side2 = g_doc.NewElement("side");
-		b2side2->SetAttribute("id", 2);
-		b2side2->SetAttribute("robot", 1);
-		b2side2->SetAttribute("face", 3);
-		bridge2->InsertAfterChild(b2side1, b2side2);
-
-		// insert simple 1
-		tinyxml2::XMLElement *simple1 = g_doc.NewElement("simple");
-		sim->InsertAfterChild(bridge2, simple1);
-		tinyxml2::XMLElement *s1side1 = g_doc.NewElement("side");
-		s1side1->SetAttribute("id", 1);
-		s1side1->SetAttribute("robot", 1);
-		s1side1->SetAttribute("face", 2);
-		simple1->InsertFirstChild(s1side1);
-		tinyxml2::XMLElement *s1side2 = g_doc.NewElement("side");
-		s1side2->SetAttribute("id", 2);
-		s1side2->SetAttribute("robot", 2);
-		s1side2->SetAttribute("face", 2);
-		simple1->InsertAfterChild(s1side1, s1side2);
-
-		// insert bridge 3
-		tinyxml2::XMLElement *bridge3 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(simple1, bridge3);
-		tinyxml2::XMLElement *b3side1 = g_doc.NewElement("side");
-		b3side1->SetAttribute("id", 1);
-		b3side1->SetAttribute("robot", 2);
-		b3side1->SetAttribute("face", 3);
-		bridge3->InsertFirstChild(b3side1);
-		tinyxml2::XMLElement *b3side2 = g_doc.NewElement("side");
-		b3side2->SetAttribute("id", 2);
-		b3side2->SetAttribute("robot", 3);
-		b3side2->SetAttribute("face", 1);
-		bridge3->InsertAfterChild(b3side1, b3side2);
-
-		// insert bridge 4
-		tinyxml2::XMLElement *bridge4 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(bridge3, bridge4);
-		tinyxml2::XMLElement *b4side1 = g_doc.NewElement("side");
-		b4side1->SetAttribute("id", 1);
-		b4side1->SetAttribute("robot", 2);
-		b4side1->SetAttribute("face", 1);
-		bridge4->InsertFirstChild(b4side1);
-		tinyxml2::XMLElement *b4side2 = g_doc.NewElement("side");
-		b4side2->SetAttribute("id", 2);
-		b4side2->SetAttribute("robot", 3);
-		b4side2->SetAttribute("face", 3);
-		bridge4->InsertAfterChild(b4side1, b4side2);
-	}
-	else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")))) {
-		tinyxml2::XMLElement *robot1, *robot2, *robot3, *robot4;
-
-		// create first robot
-		robot1 = g_doc.NewElement("linkbotl");
-		// set id
-		robot1->SetAttribute("id", 0);
-		// set position
-		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", 0);
-		pos->SetAttribute("y", 0);
-		pos->SetAttribute("z", 0);
-		robot1->InsertFirstChild(pos);
-		// set rotation
-		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
-		rot->SetAttribute("psi", -90);
-		rot->SetAttribute("theta", 0);
-		rot->SetAttribute("phi", 0);
-		robot1->InsertAfterChild(pos, rot);
-		// insert robot1
-		sim->InsertFirstChild(robot1);
-
-		// add remaining robots
-		robot2 = g_doc.NewElement("linkbotl");
-		robot2->SetAttribute("id", 1);
-		sim->InsertAfterChild(robot1, robot2);
-		robot3 = g_doc.NewElement("linkbotl");
-		robot3->SetAttribute("id", 2);
-		sim->InsertAfterChild(robot2, robot3);
-		robot4 = g_doc.NewElement("linkbotl");
-		robot4->SetAttribute("id", 3);
-		sim->InsertAfterChild(robot3, robot4);
-
-		// insert omnidrive plate
-		tinyxml2::XMLElement *omni = g_doc.NewElement("omnidrive");
-		sim->InsertAfterChild(robot4, omni);
-		tinyxml2::XMLElement *omnis1 = g_doc.NewElement("side");
-		omnis1->SetAttribute("id", 1);
-		omnis1->SetAttribute("robot", 0);
-		omnis1->SetAttribute("face", 2);
-		omni->InsertFirstChild(omnis1);
-		tinyxml2::XMLElement *omnis2 = g_doc.NewElement("side");
-		omnis2->SetAttribute("id", 2);
-		omnis2->SetAttribute("robot", 1);
-		omnis2->SetAttribute("face", 2);
-		omni->InsertAfterChild(omnis1, omnis2);
-		tinyxml2::XMLElement *omnis3 = g_doc.NewElement("side");
-		omnis3->SetAttribute("id", 3);
-		omnis3->SetAttribute("robot", 2);
-		omnis3->SetAttribute("face", 2);
-		omni->InsertAfterChild(omnis2, omnis3);
-		tinyxml2::XMLElement *omnis4 = g_doc.NewElement("side");
-		omnis4->SetAttribute("id", 4);
-		omnis4->SetAttribute("robot", 3);
-		omnis4->SetAttribute("face", 2);
-		omni->InsertAfterChild(omnis3, omnis4);
-
-		// add wheels
-		tinyxml2::XMLElement *wheel1 = g_doc.NewElement("smallwheel");
-		wheel1->SetAttribute("robot", 0);
-		wheel1->SetAttribute("face", 1);
-		sim->InsertAfterChild(omni, wheel1);
-		tinyxml2::XMLElement *wheel2 = g_doc.NewElement("smallwheel");
-		wheel2->SetAttribute("robot", 1);
-		wheel2->SetAttribute("face", 3);
-		sim->InsertAfterChild(wheel1, wheel2);
-		tinyxml2::XMLElement *wheel3 = g_doc.NewElement("smallwheel");
-		wheel3->SetAttribute("robot", 2);
-		wheel3->SetAttribute("face", 3);
-		sim->InsertAfterChild(wheel2, wheel3);
-		tinyxml2::XMLElement *wheel4 = g_doc.NewElement("smallwheel");
-		wheel4->SetAttribute("robot", 3);
-		wheel4->SetAttribute("face", 1);
-		sim->InsertAfterChild(wheel3, wheel4);
-	}
-
-	else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")))) {
-		tinyxml2::XMLElement *robot1, *robot2, *robot3, *robot4, *robot5;
-
-		// create first robot
-		robot1 = g_doc.NewElement("linkboti");
-		// set id
-		robot1->SetAttribute("id", 0);
-		// set position
-		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", 0);
-		pos->SetAttribute("y", 0);
-		pos->SetAttribute("z", 0);
-		robot1->InsertFirstChild(pos);
-		// set rotation
-		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
-		rot->SetAttribute("psi", 0);
-		rot->SetAttribute("theta", 0);
-		rot->SetAttribute("phi", 0);
-		robot1->InsertAfterChild(pos, rot);
-		// insert robot1
-		sim->InsertFirstChild(robot1);
-
-		// add remaining robots
-		robot2 = g_doc.NewElement("linkboti");
-		robot2->SetAttribute("id", 1);
-		robot3 = g_doc.NewElement("linkboti");
-		robot3->SetAttribute("id", 2);
-		robot4 = g_doc.NewElement("linkboti");
-		robot4->SetAttribute("id", 3);
-		robot5 = g_doc.NewElement("linkboti");
-		robot5->SetAttribute("id", 4);
-		sim->InsertAfterChild(robot1, robot2);
-		sim->InsertAfterChild(robot2, robot3);
-		sim->InsertAfterChild(robot3, robot4);
-		sim->InsertAfterChild(robot4, robot5);
-
-		// insert gripper
-		tinyxml2::XMLElement *gripper = g_doc.NewElement("gripper");
-		sim->InsertAfterChild(robot5, gripper);
-		gripper->SetAttribute("robot", 0);
-
-		// insert simple 1
-		tinyxml2::XMLElement *simple1 = g_doc.NewElement("simple");
-		sim->InsertAfterChild(gripper, simple1);
-		tinyxml2::XMLElement *s1side1 = g_doc.NewElement("side");
-		s1side1->SetAttribute("id", 1);
-		s1side1->SetAttribute("robot", 0);
-		s1side1->SetAttribute("face", 2);
-		simple1->InsertFirstChild(s1side1);
-		tinyxml2::XMLElement *s1side2 = g_doc.NewElement("side");
-		s1side2->SetAttribute("id", 2);
-		s1side2->SetAttribute("robot", 1);
-		s1side2->SetAttribute("face", 2);
-		simple1->InsertAfterChild(s1side1, s1side2);
-
-		// insert bridge 1
-		tinyxml2::XMLElement *bridge1 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(simple1, bridge1);
-		tinyxml2::XMLElement *b1side1 = g_doc.NewElement("side");
-		b1side1->SetAttribute("id", 1);
-		b1side1->SetAttribute("robot", 1);
-		b1side1->SetAttribute("face", 3);
-		bridge1->InsertFirstChild(b1side1);
-		tinyxml2::XMLElement *b1side2 = g_doc.NewElement("side");
-		b1side2->SetAttribute("id", 2);
-		b1side2->SetAttribute("robot", 2);
-		b1side2->SetAttribute("face", 3);
-		bridge1->InsertAfterChild(b1side1, b1side2);
-
-		// insert bridge 2
-		tinyxml2::XMLElement *bridge2 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(bridge1, bridge2);
-		tinyxml2::XMLElement *b2side1 = g_doc.NewElement("side");
-		b2side1->SetAttribute("id", 1);
-		b2side1->SetAttribute("robot", 1);
-		b2side1->SetAttribute("face", 1);
-		bridge2->InsertFirstChild(b2side1);
-		tinyxml2::XMLElement *b2side2 = g_doc.NewElement("side");
-		b2side2->SetAttribute("id", 2);
-		b2side2->SetAttribute("robot", 2);
-		b2side2->SetAttribute("face", 1);
-		bridge2->InsertAfterChild(b2side1, b2side2);
-
-		// insert simple 2
-		tinyxml2::XMLElement *simple2 = g_doc.NewElement("simple");
-		sim->InsertAfterChild(bridge2, simple2);
-		tinyxml2::XMLElement *s2side1 = g_doc.NewElement("side");
-		s2side1->SetAttribute("id", 1);
-		s2side1->SetAttribute("robot", 2);
-		s2side1->SetAttribute("face", 2);
-		simple2->InsertFirstChild(s2side1);
-		tinyxml2::XMLElement *s2side2 = g_doc.NewElement("side");
-		s2side2->SetAttribute("id", 2);
-		s2side2->SetAttribute("robot", 3);
-		s2side2->SetAttribute("face", 2);
-		simple2->InsertAfterChild(s2side1, s2side2);
-
-		// insert bridge 3
-		tinyxml2::XMLElement *bridge3 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(simple2, bridge3);
-		tinyxml2::XMLElement *b3side1 = g_doc.NewElement("side");
-		b3side1->SetAttribute("id", 1);
-		b3side1->SetAttribute("robot", 3);
-		b3side1->SetAttribute("face", 3);
-		bridge3->InsertFirstChild(b3side1);
-		tinyxml2::XMLElement *b3side2 = g_doc.NewElement("side");
-		b3side2->SetAttribute("id", 2);
-		b3side2->SetAttribute("robot", 4);
-		b3side2->SetAttribute("face", 3);
-		bridge3->InsertAfterChild(b3side1, b3side2);
-
-		// insert bridge 4
-		tinyxml2::XMLElement *bridge4 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(bridge3, bridge4);
-		tinyxml2::XMLElement *b4side1 = g_doc.NewElement("side");
-		b4side1->SetAttribute("id", 1);
-		b4side1->SetAttribute("robot", 3);
-		b4side1->SetAttribute("face", 1);
-		bridge4->InsertFirstChild(b4side1);
-		tinyxml2::XMLElement *b4side2 = g_doc.NewElement("side");
-		b4side2->SetAttribute("id", 2);
-		b4side2->SetAttribute("robot", 4);
-		b4side2->SetAttribute("face", 1);
-		bridge4->InsertAfterChild(b4side1, b4side2);
-
-		// insert caster
-		tinyxml2::XMLElement *caster = g_doc.NewElement("caster");
-		sim->InsertAfterChild(bridge4, caster);
-		caster->SetAttribute("robot", 4);
-		caster->SetAttribute("face", 2);
-	}
-	else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")))) {
-		tinyxml2::XMLElement *robot1, *robot2;
-
-		// create first robot
-		robot1 = g_doc.NewElement("linkbotl");
-		// set id
-		robot1->SetAttribute("id", 0);
-		// set position
-		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", 0);
-		pos->SetAttribute("y", 0);
-		pos->SetAttribute("z", 0);
-		robot1->InsertFirstChild(pos);
-		// set rotation
-		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
-		rot->SetAttribute("psi", 0);
-		rot->SetAttribute("theta", 0);
-		rot->SetAttribute("phi", 0);
-		robot1->InsertAfterChild(pos, rot);
-		// insert robot1
-		sim->InsertFirstChild(robot1);
-
-		// add remaining robots
-		robot2 = g_doc.NewElement("linkbotl");
-		robot2->SetAttribute("id", 1);
-		sim->InsertAfterChild(robot1, robot2);
-
-		// insert bridge 1
-		tinyxml2::XMLElement *bridge1 = g_doc.NewElement("bridge");
-		sim->InsertAfterChild(robot2, bridge1);
-		tinyxml2::XMLElement *b1side1 = g_doc.NewElement("side");
-		b1side1->SetAttribute("id", 1);
-		b1side1->SetAttribute("robot", 0);
-		b1side1->SetAttribute("face", 3);
-		bridge1->InsertFirstChild(b1side1);
-		tinyxml2::XMLElement *b1side2 = g_doc.NewElement("side");
-		b1side2->SetAttribute("id", 2);
-		b1side2->SetAttribute("robot", 1);
-		b1side2->SetAttribute("face", 1);
-		bridge1->InsertAfterChild(b1side1, b1side2);
-
-		// insert faceplate 
-		tinyxml2::XMLElement *faceplate1 = g_doc.NewElement("faceplate");
-		sim->InsertAfterChild(bridge1, faceplate1);
-		faceplate1->SetAttribute("robot", 0);
-		faceplate1->SetAttribute("face", 2);
-
-		// insert faceplate 
-		tinyxml2::XMLElement *faceplate2 = g_doc.NewElement("faceplate");
-		sim->InsertAfterChild(faceplate1, faceplate2);
-		faceplate2->SetAttribute("robot", 1);
-		faceplate2->SetAttribute("face", 2);
-	}
-	else {*/
-		robots_t tmp = g_robots;
-		while (tmp) {
-			// set robot type
-			tinyxml2::XMLElement *robot;
-			if (tmp->type == 0)
-				robot = g_doc.NewElement("linkboti");
-			else if (tmp->type == 1)
-				robot = g_doc.NewElement("linkbotl");
-			else if (tmp->type == 2)
-				robot = g_doc.NewElement("linkbott");
-			else if (tmp->type == 3)
-				robot = g_doc.NewElement("mobot");
-
-			if (!(tmp->id))
-				sim->InsertFirstChild(robot);
-			else
-				sim->InsertEndChild(robot);
-
-			// set id
-			robot->SetAttribute("id", tmp->id);
-
-			// set position
-			tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-			pos->SetAttribute("x", I2M(tmp->x));
-			pos->SetAttribute("y", I2M(tmp->y));
-			pos->SetAttribute("z", I2M(tmp->z));
-			robot->InsertFirstChild(pos);
-
-			// set rotation
-			tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
-			rot->SetAttribute("psi", tmp->psi);
-			rot->SetAttribute("theta", tmp->theta);
-			rot->SetAttribute("phi", tmp->phi);
-			robot->InsertAfterChild(pos, rot);
-
-			if (tmp->wheeled) {
-				tinyxml2::XMLElement 	*wheel1 = g_doc.NewElement("smallwheel"), 
-										*wheel2 = g_doc.NewElement("smallwheel"), 
-										*caster = g_doc.NewElement("caster");
-				wheel1->SetAttribute("robot", tmp->id);
-				wheel1->SetAttribute("face", 1);
-				caster->SetAttribute("robot", tmp->id);
-
-				if (tmp->type == 0) {
-					wheel2->SetAttribute("robot", tmp->id);
-					wheel2->SetAttribute("face", 3);
-					caster->SetAttribute("face", 2);
-				}
-				else if (tmp->type == 1) {
-					wheel2->SetAttribute("robot", tmp->id);
-					wheel2->SetAttribute("face", 2);
-					caster->SetAttribute("face", 3);
-				}
-				else if (tmp->type == 2) {
-					wheel2->SetAttribute("robot", tmp->id);
-					wheel2->SetAttribute("face", 3);
-					caster->SetAttribute("face", 2);
-				}
-				else if (tmp->type == 3) {
-					wheel2->SetAttribute("robot", tmp->id);
-					wheel2->SetAttribute("face", 8);
-					caster->SetAttribute("face", 3);
-				}
-				sim->InsertAfterChild(robot, wheel1);
-				sim->InsertAfterChild(wheel1, wheel2);
-				sim->InsertAfterChild(wheel2, caster);
+			if (tmp->type == 0) {
+				wheel2->SetAttribute("robot", tmp->id);
+				wheel2->SetAttribute("face", 3);
+				caster->SetAttribute("face", 2);
 			}
-
-			tmp = tmp->next;
+			else if (tmp->type == 1) {
+				wheel2->SetAttribute("robot", tmp->id);
+				wheel2->SetAttribute("face", 2);
+				caster->SetAttribute("face", 3);
+			}
+			else if (tmp->type == 2) {
+				wheel2->SetAttribute("robot", tmp->id);
+				wheel2->SetAttribute("face", 3);
+				caster->SetAttribute("face", 2);
+			}
+			else if (tmp->type == 3) {
+				wheel2->SetAttribute("robot", tmp->id);
+				wheel2->SetAttribute("face", 8);
+				caster->SetAttribute("face", 3);
+			}
+			sim->InsertAfterChild(robot, wheel1);
+			sim->InsertAfterChild(wheel1, wheel2);
+			sim->InsertAfterChild(wheel2, caster);
 		}
-	//}
+
+		// go to next robot
+		tmp = tmp->next;
+	}
+
+	// save file
 	g_doc.SaveFile(g_xml);
 }
 #ifdef __cplusplus
