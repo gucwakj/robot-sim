@@ -1,6 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkAboutDialog" id="aboutdialog">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="modal">True</property>
+    <property name="type_hint">dialog</property>
+    <property name="program_name">RoboSim</property>
+    <property name="version">0.1</property>
+    <property name="copyright" translatable="yes">(C) 2013, IEL</property>
+    <property name="comments" translatable="yes">Robot Simulation Environment</property>
+    <property name="website">www.c-stem.ucdavis.edu</property>
+    <property name="website_label" translatable="yes">Website</property>
+    <property name="authors">Kevin Gucwa</property>
+    <signal name="close" handler="on_aboutdialog_close" swapped="no"/>
+    <signal name="response" handler="on_aboutdialog_response" swapped="no"/>
+  </object>
   <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkListStore" id="liststore">
     <columns>

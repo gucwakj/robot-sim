@@ -33,6 +33,7 @@ extern "C" {
 G_MODULE_EXPORT void on_window_destroy(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_activate(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data);
+G_MODULE_EXPORT void on_aboutdialog_response(GtkDialog *dialog, gint response_id, gpointer user_data);
 
 G_MODULE_EXPORT void on_real_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_simulated_toggled(GtkWidget *widget, gpointer data);
@@ -202,21 +203,25 @@ G_MODULE_EXPORT void on_window_destroy(GtkWidget *widget, gpointer data) {
 }
 
 /*
- * About Dialog Open
+ * About dialog open
  */
 G_MODULE_EXPORT void on_aboutdialog_activate(GtkWidget *widget, gpointer data) {
-	// Find the about dialog and show it
 	GtkWidget *w;
 	w = GTK_WIDGET(gtk_builder_get_object(g_builder, "aboutdialog"));
 	gtk_dialog_run(GTK_DIALOG(w));
 }
 
 /*
- * About Dialog Close
+ * About dialog x button
  */
 G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data) {
-	//gtk_widget_hide(GTK_WIDGET(dialog));
-printf("close\n");
+	gtk_widget_destroy(GTK_WIDGET(dialog));
+}
+
+/*
+ * About dialog close button
+ */
+G_MODULE_EXPORT void on_aboutdialog_response(GtkDialog *dialog, gint response_id, gpointer user_data) {
 	gtk_widget_destroy(GTK_WIDGET(dialog));
 }
 

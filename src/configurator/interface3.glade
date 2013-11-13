@@ -14,6 +14,7 @@
     <property name="website_label" translatable="yes">Website</property>
     <property name="authors">Kevin Gucwa</property>
     <signal name="close" handler="on_aboutdialog_close" swapped="no"/>
+    <signal name="response" handler="on_aboutdialog_response" swapped="no"/>
   </object>
   <object class="GtkListStore" id="liststore">
     <columns>
