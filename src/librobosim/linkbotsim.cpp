@@ -898,7 +898,7 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
 	// create initial time points
-	double start_time;
+	double start_time = 0;
 	int time = (int)((*(rArg->robot->_clock))*1000);
 
 	// actively taking a new data point
@@ -1103,7 +1103,7 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
 	// create initial time points
-	double start_time;
+	double start_time = 0;
 	int time = (int)((*(rArg->robot->_clock))*1000);
 
 	// actively taking a new data point
@@ -1409,6 +1409,8 @@ int CLinkbotT::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir)
 			_state[id] = ROBOT_NEUTRAL;
 			dJointDisable(_motor[id]);
 			break;
+		default:
+			break;
 	}
 	_success[id] = true;
     dBodyEnable(_body[BODY]);
@@ -1435,6 +1437,8 @@ int CLinkbotT::setJointMovementStateTime(robotJointId_t id, robotJointState_t di
 				break;
 			case ROBOT_NEGATIVE:
 				dir = ROBOT_BACKWARD;
+				break;
+			default:
 				break;
 		}
 	}
@@ -1525,6 +1529,8 @@ int CLinkbotT::setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2
 			case ROBOT_NEGATIVE:
 				dir3 = ROBOT_BACKWARD;
 				break;
+			default:
+				break;
 		}
 	}
 
@@ -1552,6 +1558,8 @@ int CLinkbotT::setMovementStateTime(robotJointState_t dir1, robotJointState_t di
 				break;
 			case ROBOT_NEGATIVE:
 				dir3 = ROBOT_BACKWARD;
+				break;
+			default:
 				break;
 		}
 	}
@@ -1612,6 +1620,8 @@ int CLinkbotT::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t 
 				break;
 			case ROBOT_NEGATIVE:
 				dir3 = ROBOT_BACKWARD;
+				break;
+			default:
 				break;
 		}
 	}
@@ -2596,7 +2606,6 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
 	double	depth = _connector_depth,
 			width = 1.5*_face_radius,
 			height = 2*_face_radius,
-			radius = _connector_radius,
 			p[3] = {0},
 			offset[3] = {depth/2, 0, 0};
 

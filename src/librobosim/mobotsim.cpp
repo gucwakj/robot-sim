@@ -1263,7 +1263,7 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
 	// create initial time points
-	double start_time;
+	double start_time = 0;
 	int time = (int)((*(rArg->robot->_clock))*1000);
 
 	// actively taking a new data point
@@ -1483,7 +1483,7 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
 	// create initial time points
-	double start_time;
+	double start_time = 0;
 	int time = (int)((*(rArg->robot->_clock))*1000);
 
 	// actively taking a new data point
@@ -1776,6 +1776,8 @@ int CMobot::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
 		case ROBOT_NEUTRAL:
 			_state[id] = ROBOT_NEUTRAL;
 			dJointDisable(_motor[id]);
+			break;
+		default:
 			break;
 	}
 	_success[id] = true;

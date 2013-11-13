@@ -615,11 +615,9 @@ int CLinkbotTGroup::setMovementStateTime(robotJointState_t dir1, robotJointState
 }
 
 int CLinkbotTGroup::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
-	int msecs = seconds * 1000.0;
-
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->setMovementStateNB(dir1, dir2, dir3);
+		rtmp->robot->setMovementStateTimeNB(dir1, dir2, dir3, seconds);
 		rtmp = rtmp->next;
 	}
 

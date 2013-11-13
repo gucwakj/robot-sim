@@ -133,7 +133,7 @@ int RoboSim::init_sim(void) {
 
 int RoboSim::init_xml(void) {
 	// initialize variables
-	int *rtmp, *ftmp, *ntmp, *atmp, ctype, cnum;
+	int *rtmp, *ftmp, *ntmp, *atmp, ctype = 0, cnum = 0;
 	_bot = NULL;
 	_robots = NULL;
 	tinyxml2::XMLElement *ele = NULL;
@@ -175,17 +175,17 @@ int RoboSim::init_xml(void) {
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0; nr->angle4 = 0;
 			node->QueryIntAttribute("id", &(nr->id));
-			if (ele = node->FirstChildElement("position")) {
+			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
 				ele->QueryDoubleAttribute("y", &(nr->y));
 				ele->QueryDoubleAttribute("z", &(nr->z));
 			}
-			if (ele = node->FirstChildElement("rotation")) {
+			if ( (ele = node->FirstChildElement("rotation")) ) {
 				ele->QueryDoubleAttribute("psi", &(nr->psi));
 				ele->QueryDoubleAttribute("theta", &(nr->theta));
 				ele->QueryDoubleAttribute("phi", &(nr->phi));
 			}
-			if (ele = node->FirstChildElement("joint")) {
+			if ( (ele = node->FirstChildElement("joint")) ) {
 				ele->QueryDoubleAttribute("a1", &(nr->angle1));
 				ele->QueryDoubleAttribute("a2", &(nr->angle2));
 				ele->QueryDoubleAttribute("a3", &(nr->angle3));
@@ -211,17 +211,17 @@ int RoboSim::init_xml(void) {
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
 			node->QueryIntAttribute("id", &(nr->id));
-			if (ele = node->FirstChildElement("position")) {
+			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
 				ele->QueryDoubleAttribute("y", &(nr->y));
 				ele->QueryDoubleAttribute("z", &(nr->z));
 			}
-			if (ele = node->FirstChildElement("rotation")) {
+			if ( (ele = node->FirstChildElement("rotation")) ) {
 				ele->QueryDoubleAttribute("psi", &(nr->psi));
 				ele->QueryDoubleAttribute("theta", &(nr->theta));
 				ele->QueryDoubleAttribute("phi", &(nr->phi));
 			}
-			if (ele = node->FirstChildElement("joint")) {
+			if ( (ele = node->FirstChildElement("joint")) ) {
 				ele->QueryDoubleAttribute("f1", &(nr->angle1));
 				ele->QueryDoubleAttribute("f2", &(nr->angle2));
 				ele->QueryDoubleAttribute("f3", &(nr->angle3));
@@ -257,17 +257,17 @@ int RoboSim::init_xml(void) {
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
 			node->QueryIntAttribute("id", &(nr->id));
-			if (ele = node->FirstChildElement("position")) {
+			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
 				ele->QueryDoubleAttribute("y", &(nr->y));
 				ele->QueryDoubleAttribute("z", &(nr->z));
 			}
-			if (ele = node->FirstChildElement("rotation")) {
+			if ( (ele = node->FirstChildElement("rotation")) ) {
 				ele->QueryDoubleAttribute("psi", &(nr->psi));
 				ele->QueryDoubleAttribute("theta", &(nr->theta));
 				ele->QueryDoubleAttribute("phi", &(nr->phi));
 			}
-			if (ele = node->FirstChildElement("joint")) {
+			if ( (ele = node->FirstChildElement("joint")) ) {
 				ele->QueryDoubleAttribute("f1", &(nr->angle1));
 				ele->QueryDoubleAttribute("f2", &(nr->angle2));
 				ele->QueryDoubleAttribute("f3", &(nr->angle3));
@@ -303,17 +303,17 @@ int RoboSim::init_xml(void) {
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
 			node->QueryIntAttribute("id", &(nr->id));
-			if (ele = node->FirstChildElement("position")) {
+			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
 				ele->QueryDoubleAttribute("y", &(nr->y));
 				ele->QueryDoubleAttribute("z", &(nr->z));
 			}
-			if (ele = node->FirstChildElement("rotation")) {
+			if ( (ele = node->FirstChildElement("rotation")) ) {
 				ele->QueryDoubleAttribute("psi", &(nr->psi));
 				ele->QueryDoubleAttribute("theta", &(nr->theta));
 				ele->QueryDoubleAttribute("phi", &(nr->phi));
 			}
-			if (ele = node->FirstChildElement("joint")) {
+			if ( (ele = node->FirstChildElement("joint")) ) {
 				ele->QueryDoubleAttribute("f1", &(nr->angle1));
 				ele->QueryDoubleAttribute("f2", &(nr->angle2));
 				ele->QueryDoubleAttribute("f3", &(nr->angle3));
@@ -345,17 +345,17 @@ int RoboSim::init_xml(void) {
 		else if ( !strcmp(node->Value(), "g_box") ) {
 			ground_t ng = new struct ground_s;
 			double lx, ly, lz, px, py, pz, psi, theta, phi;
-			if (ele = node->FirstChildElement("size")) {
+			if ( (ele = node->FirstChildElement("size")) ) {
 				ele->QueryDoubleAttribute("x", &lx);
 				ele->QueryDoubleAttribute("y", &ly);
 				ele->QueryDoubleAttribute("z", &lz);
 			}
-			if (ele = node->FirstChildElement("position")) {
+			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &px);
 				ele->QueryDoubleAttribute("y", &py);
 				ele->QueryDoubleAttribute("z", &pz);
 			}
-			if (ele = node->FirstChildElement("rotation")) {
+			if ( (ele = node->FirstChildElement("rotation")) ) {
 				ele->QueryDoubleAttribute("psi", &psi);
 				ele->QueryDoubleAttribute("theta", &theta);
 				ele->QueryDoubleAttribute("phi", &phi);
@@ -384,16 +384,16 @@ int RoboSim::init_xml(void) {
 		else if ( !strcmp(node->Value(), "g_cylinder") ) {
 			ground_t ng = new struct ground_s;
 			double r, l, px, py, pz, psi, theta, phi;
-			if (ele = node->FirstChildElement("size")) {
+			if ( (ele = node->FirstChildElement("size")) ) {
 				ele->QueryDoubleAttribute("radius", &r);
 				ele->QueryDoubleAttribute("length", &l);
 			}
-			if (ele = node->FirstChildElement("position")) {
+			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &px);
 				ele->QueryDoubleAttribute("y", &py);
 				ele->QueryDoubleAttribute("z", &pz);
 			}
-			if (ele = node->FirstChildElement("rotation")) {
+			if ( (ele = node->FirstChildElement("rotation")) ) {
 				ele->QueryDoubleAttribute("psi", &psi);
 				ele->QueryDoubleAttribute("theta", &theta);
 				ele->QueryDoubleAttribute("phi", &phi);
@@ -422,10 +422,10 @@ int RoboSim::init_xml(void) {
 		else if ( !strcmp(node->Value(), "g_sphere") ) {
 			ground_t ng = new struct ground_s;
 			double r, px, py, pz;
-			if (ele = node->FirstChildElement("size")) {
+			if ( (ele = node->FirstChildElement("size")) ) {
 				ele->QueryDoubleAttribute("radius", &r);
 			}
-			if (ele = node->FirstChildElement("position")) {
+			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &px);
 				ele->QueryDoubleAttribute("y", &py);
 				ele->QueryDoubleAttribute("z", &pz);
@@ -884,9 +884,6 @@ void RoboSim::collision(void *data, dGeomID o1, dGeomID o2) {
 }
 
 void RoboSim::print_intermediate_data(void) {
-	// initialze loop counters
-	static int j = 0;
-
     cout.width(10);
     cout.setf(ios::fixed, ios::floatfield);
 	cout << _clock << "\t\t";
@@ -1067,8 +1064,6 @@ void* RoboSim::graphics_thread(void *arg) {
 	osgText::Text *textHUD = new osgText::Text();
 	osg::Projection *HUDProjectionMatrix = new osg::Projection;
 	osg::MatrixTransform *HUDModelViewMatrix = new osg::MatrixTransform;
-	osg::Geometry *HUDBackgroundGeometry = new osg::Geometry();
-	osg::Vec3Array *HUDBackgroundVertices = new osg::Vec3Array;
 	osg::StateSet *HUDStateSet = new osg::StateSet();
 	HUDProjectionMatrix->setMatrix(osg::Matrix::ortho2D(0,traits->width,0,traits->height));
 	HUDProjectionMatrix->addChild(HUDModelViewMatrix);

@@ -17,6 +17,9 @@ set(CMAKE_VERBOSE_MAKEFILE off)
 # Set build type
 set(CMAKE_BUILD_TYPE "Release")
 
+# Set developer warnings
+set(CMAKE_CXX_FLAGS "-Wall")
+
 # Set up a configure file
 configure_file (
 	"${PROJECT_SOURCE_DIR}/config.h.in"
