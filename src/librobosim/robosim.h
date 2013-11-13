@@ -30,6 +30,7 @@ class DLLIMPORT RoboSim {
 
 #ifndef _CH_
 		int addRobot(CRobot *robot);
+		int deleteRobot(CRobot *robot);
 		int setExitState(void);
 	private:
 		// ground struct
@@ -40,6 +41,7 @@ class DLLIMPORT RoboSim {
 		// robots struct
 		typedef struct robots_s {
 			CRobot *robot;
+			int node;
 			THREAD_T thread;
 			struct robots_s *next;
 		} *robots_t;

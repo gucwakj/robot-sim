@@ -8,11 +8,8 @@ CMobot::CMobot(void) {
 }
 
 CMobot::~CMobot(void) {
-	// destroy simulation object
-	if (_simObject) {
-		delete _simObject;
-		_simObject = NULL;
-	}
+	// remove robot from simulation
+	_simObject->deleteRobot(this);
 
 	// remove geoms
 	if (_connected) {
@@ -2357,7 +2354,7 @@ void CMobot::simPostCollisionThread(void) {
 }
 
 #ifdef ENABLE_GRAPHICS
-void CMobot::draw(osg::Group *root) {
+int CMobot::draw(osg::Group *root) {
 	// initialize variables
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[5];
@@ -2564,6 +2561,7 @@ void CMobot::draw(osg::Group *root) {
 
 	// add to scenegraph
 	root->addChild(robot);
+	return (root->getChildIndex(robot));
 }
 #endif // ENABLE_GRAPHICS
 

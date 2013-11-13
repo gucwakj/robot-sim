@@ -9,11 +9,8 @@ CLinkbotT::CLinkbotT(int disabled, int type) {
 }
 
 CLinkbotT::~CLinkbotT(void) {
-	// destroy simulation object
-	if (_simObject) {
-		delete _simObject;
-		_simObject = NULL;
-	}
+	// remove robot from simulation
+	_simObject->deleteRobot(this);
 
 	// destroy geoms
 	if (_connected) {
@@ -1999,7 +1996,7 @@ void CLinkbotT::simPostCollisionThread(void) {
 }
 
 #ifdef ENABLE_GRAPHICS
-void CLinkbotT::draw(osg::Group *root) {
+int CLinkbotT::draw(osg::Group *root) {
 	// initialize variables
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[NUM_PARTS+1];
@@ -2016,7 +2013,6 @@ void CLinkbotT::draw(osg::Group *root) {
 	// body
 	pos = dGeomGetOffsetPosition(_geom[0][0]);
 	dGeomGetOffsetQuaternion(_geom[0][0], quat);
-	//box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_length, _body_width, _body_height);
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_width, _body_length, _body_height);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[0]->addDrawable(new osg::ShapeDrawable(box));
@@ -2116,8 +2112,13 @@ void CLinkbotT::draw(osg::Group *root) {
 	// set update callback for robot
 	robot->setUpdateCallback(new linkbotNodeCallback(this));
 
+	// optimize robot
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(robot);
+
 	// add to scenegraph
 	root->addChild(robot);
+	return (root->getChildIndex(robot));
 }
 #endif // ENABLE_GRAPHICS
 

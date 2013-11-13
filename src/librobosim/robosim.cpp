@@ -681,9 +681,47 @@ int RoboSim::addRobot(CRobot *robot) {
 
 #ifdef ENABLE_GRAPHICS
 	// draw robot
-	robot->draw(_osgRoot);
+	nr->node = robot->draw(_osgRoot);
 #endif // ENABLE_GRAPHICS
 	
+	// unlock robot data
+	MUTEX_UNLOCK(&_robot_mutex);
+
+	// success
+	return 0;
+}
+
+int RoboSim::deleteRobot(CRobot *robot) {
+	// lock robot data to delete
+	MUTEX_LOCK(&_robot_mutex);
+
+	// remove robots
+	robots_t rtmp = _robots, tmp = NULL;
+	if (rtmp->robot == robot) {
+		_robots = rtmp->next;
+		tmp = rtmp;
+	}
+	else {
+		while (rtmp->next) {
+			if (rtmp->next->robot == robot) {
+				//robots_t tmp = rtmp->next;
+				tmp = rtmp->next;
+				rtmp->next = rtmp->next->next;
+				//delete tmp;
+				break;
+			}
+			rtmp = rtmp->next;
+		}
+	}
+
+	// remove node callback
+#ifdef ENABLE_GRAPHICS
+	_osgRoot->removeChild(_osgRoot->getChild(tmp->node));
+#endif
+
+	// delete robot
+	delete tmp;
+
 	// unlock robot data
 	MUTEX_UNLOCK(&_robot_mutex);
 
