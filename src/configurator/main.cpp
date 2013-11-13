@@ -275,7 +275,7 @@ G_MODULE_EXPORT void refreshRobotList() {
 		w = gtk_label_new(" X:");
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 3, 4, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->x, -50, 50, 0.1, 0.1, 1));
+		x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->x, -500, 500, 0.1, 0.1, 1));
 		w = gtk_spin_button_new(x_adj, 0.0, 1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 4, 5, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
@@ -284,7 +284,7 @@ G_MODULE_EXPORT void refreshRobotList() {
 		w = gtk_label_new(" Y:");
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 5, 6, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->y, -50, 50, 0.1, 0.1, 1));
+		y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->y, -500, 500, 0.1, 0.1, 1));
 		w = gtk_spin_button_new(y_adj, 0.0, 1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 6, 7, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
