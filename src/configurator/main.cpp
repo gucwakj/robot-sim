@@ -238,10 +238,9 @@ G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data) 
 G_MODULE_EXPORT void refreshRobotList() {
 	// new table of robots
 	static GtkWidget *rootTable = NULL;
-	if(rootTable != NULL) {
+	if(rootTable != NULL)
 		gtk_widget_destroy(rootTable);
-	}
-	rootTable = gtk_table_new(g_num*3, 11, FALSE);
+	rootTable = gtk_table_new(g_num, 11, FALSE);
 
 	// fill table with widgets
 	GtkWidget *w;
@@ -318,12 +317,12 @@ G_MODULE_EXPORT void refreshRobotList() {
 	}
 
 	// set size of table
+	gtk_widget_show(rootTable);
 	GtkRequisition sizeRequest;
 	gtk_widget_size_request(rootTable, &sizeRequest);
 	GtkWidget *layout = GTK_WIDGET(gtk_builder_get_object(g_builder, "layout_robots"));
 	gtk_layout_set_size(GTK_LAYOUT(layout), sizeRequest.width, sizeRequest.height);
 	gtk_layout_put(GTK_LAYOUT(layout), rootTable, 0, 0);
-	gtk_widget_show(rootTable);
 
 	// update liststore
 	static GtkListStore *liststore = GTK_LIST_STORE(gtk_builder_get_object(g_builder, "liststore"));
@@ -332,6 +331,7 @@ G_MODULE_EXPORT void refreshRobotList() {
 	tmp = g_robots;
 	while (tmp) {
 		gtk_list_store_append(liststore, &iter);
+		gtk_list_store_set(liststore, &iter, 0, tmp->id, -1);
 		tmp = tmp->next;
 	}
 }
