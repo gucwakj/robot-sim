@@ -188,13 +188,12 @@
                             <property name="can_focus">False</property>
                             <child>
                               <object class="GtkScrolledWindow" id="scrolledwindow">
-                                <property name="width_request">770</property>
+                                <property name="width_request">790</property>
                                 <property name="height_request">200</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="border_width">2</property>
                                 <property name="hscrollbar_policy">automatic</property>
-                                <property name="vscrollbar_policy">automatic</property>
                                 <property name="shadow_type">etched-in</property>
                                 <child>
                                   <object class="GtkLayout" id="layout_robots">
@@ -477,21 +476,6 @@
                 <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="save">
-                <property name="label" translatable="yes">Save Configuration</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
-                <signal name="clicked" handler="on_save_clicked" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">3</property>
               </packing>
             </child>
           </object>
