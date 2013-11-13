@@ -459,10 +459,10 @@
                     </child>
                     <child>
                       <object class="GtkImage" id="image_shapes">
+                        <property name="height_request">155</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="margin_left">10</property>
-                        <property name="stock">gtk-missing-image</property>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>

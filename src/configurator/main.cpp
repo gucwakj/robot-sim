@@ -397,11 +397,9 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 	else {
-		// change image
+		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
-		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
-		gtk_image_set_from_pixbuf(image, scaled);
+		gtk_image_clear(image);
 	}
 }
 
@@ -424,11 +422,9 @@ G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data) {
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 	else {
-		// change image
+		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
-		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
-		gtk_image_set_from_pixbuf(image, scaled);
+		gtk_image_clear(image);
 	}
 }
 
@@ -451,11 +447,9 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 	else {
-		// change image
+		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
-		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
-		gtk_image_set_from_pixbuf(image, scaled);
+		gtk_image_clear(image);
 	}
 }
 
@@ -478,11 +472,9 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 	else {
-		// change image
+		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
-		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
-		gtk_image_set_from_pixbuf(image, scaled);
+		gtk_image_clear(image);
 	}
 }
 
@@ -505,11 +497,9 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 	else {
-		// change image
+		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
-		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
-		gtk_image_set_from_pixbuf(image, scaled);
+		gtk_image_clear(image);
 	}
 }
 
@@ -532,11 +522,9 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
 		gtk_image_set_from_pixbuf(image, scaled);
 	}
 	else {
-		// change image
+		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
-		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
-		gtk_image_set_from_pixbuf(image, scaled);
+		gtk_image_clear(image);
 	}
 }
 
@@ -1180,12 +1168,6 @@ int main(int argc, char *argv[]) {
 	g_window = GTK_WIDGET(gtk_builder_get_object(g_builder, "window1"));
 	if (g_window == NULL) { fprintf(stderr, "Unable to file object with id \"window1\" \n"); exit(1); }
 	gtk_builder_connect_signals(g_builder, NULL);
-
-	// load individual robots picture
-	GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
-	GdkPixbuf *original = gdk_pixbuf_new_from_file("images/individual.jpg", NULL);
-	GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
-	gtk_image_set_from_pixbuf(image, scaled);
 
 	// load linkbot coordinates picture
 	GtkImage *image_l = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_linkbot"));
