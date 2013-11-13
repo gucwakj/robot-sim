@@ -1897,7 +1897,7 @@ int CMobot::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, dou
 }
 
 int CMobot::setMotorPower(robotJointId_t id, int power) {
-	printf("not implemented yet\n");
+	printf("CMobot::setMotorPower not implemented.\n");
 
 	// success
 	return 0;
@@ -3463,7 +3463,7 @@ int CMobot::build_tank(conn_t conn, int face) {
 }
 
 int CMobot::fix_body_to_connector(dBodyID cBody, int face) {
-	if (!cBody) { printf("connector body does not exist\n"); exit(-1); }
+	if (!cBody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
 
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);

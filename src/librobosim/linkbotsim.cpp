@@ -2958,7 +2958,7 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
 }
 
 int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
-	if (!cBody) { printf("connector body does not exist\n"); exit(-1); }
+	if (!cBody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
 
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
@@ -2976,7 +2976,7 @@ int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
 }
 
 int CLinkbotT::fix_connector_to_body(int face, dBodyID cBody) {
-	if (!cBody) { printf("connector body does not exist\n"); exit(-1); }
+	if (!cBody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
 
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);

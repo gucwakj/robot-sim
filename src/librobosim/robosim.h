@@ -14,7 +14,7 @@
 #include <dlfcn.h>
 void *g_chrobosim_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
 if (g_chrobosim_dlhandle == NULL) {
-	printf("Error: dlopen(): %s\n", dlerror());
+	fprintf(stderr, "Error: dlopen(): %s\n", dlerror());
 	exit(-1);
 }
 void _dlclose_chrobosim(void) {

@@ -69,7 +69,7 @@ extern void delay(double seconds);
 #define THREAD_CANCEL(thread_handle) pthread_cancel(thread_handle)
 #define THREAD_CREATE(thread_handle, function, arg) \
 	while (pthread_create(thread_handle, NULL, function, (void*) arg) < 0) { \
-		printf("pthread_create failed. Trying again...\n"); \
+		fprintf(stderr, "Error: pthread_create failed. Trying again...\n"); \
 	}
 #define THREAD_JOIN(thread_handle) pthread_join(thread_handle, NULL)
 //   MUTEX
@@ -78,7 +78,7 @@ extern void delay(double seconds);
 #define MUTEX_DESTROY(mutex) pthread_mutex_destroy(mutex)
 #define MUTEX_LOCK(mutex) \
 	if (pthread_mutex_lock(mutex)) { \
-		printf("pthread lock error: %s:%d\n", __FILE__, __LINE__); \
+		fprintf(stderr, "Error: pthread lock error: %s:%d\n", __FILE__, __LINE__); \
 	}
 #define MUTEX_UNLOCK(mutex) pthread_mutex_unlock(mutex)
 //   COND
@@ -94,19 +94,19 @@ extern void delay(double seconds);
 #define RWLOCK_DESTROY(rwlock) pthread_rwlock_destroy(rwlock)
 #define RWLOCK_RLOCK(rwlock) \
 	if (pthread_rwlock_rdlock(rwlock)) { \
-		printf("rwlock error: %s:%d\n", __FILE__, __LINE__); \
+		fprintf(stderr, "Error: rwlock error: %s:%d\n", __FILE__, __LINE__); \
 	}
 #define RWLOCK_RUNLOCK(rwlock) \
 	if (pthread_rwlock_unlock(rwlock)) { \
-		printf("rwunlock error: %s:%d\n", __FILE__, __LINE__); \
+		fprintf(stderr, "Error: rwunlock error: %s:%d\n", __FILE__, __LINE__); \
 	}
 #define RWLOCK_WLOCK(rwlock) \
 	if (pthread_rwlock_wrlock(rwlock)) { \
-		printf("rwlock error: %s:%d\n", __FILE__, __LINE__); \
+		fprintf(stderr, "Error: rwlock error: %s:%d\n", __FILE__, __LINE__); \
 	}
 #define RWLOCK_WUNLOCK(rwlock) \
 	if (pthread_rwlock_unlock(rwlock)) { \
-		printf("rwunlock error: %s:%d\n", __FILE__, __LINE__); \
+		fprintf(stderr, "Error: rwunlock error: %s:%d\n", __FILE__, __LINE__); \
 	}
 #endif
 

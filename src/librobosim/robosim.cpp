@@ -152,7 +152,7 @@ int RoboSim::init_xml(void) {
 #endif
 	int output = doc.LoadFile(path);
 	if (output) {
-		printf("ERROR: could not find xml config file.\n");
+		fprintf(stderr, "Error: could not find xml config file.\n");
 		exit(-1);
 	}
 
@@ -539,7 +539,10 @@ int RoboSim::init_xml(void) {
 				tmp = _bot;
 				while (tmp && tmp->id != rtmp[j])
 					tmp = tmp->next;
-				if (tmp == NULL) { printf("ERROR: robot %d could not be found.\n", rtmp[j]); exit(-1); }
+				if (tmp == NULL) {
+					fprintf(stderr, "Error: robot %d could not be found.\n", rtmp[j]);
+					exit(-1);
+				}
 				ctmp = tmp->conn;
 				if ( tmp->conn == NULL )
 					tmp->conn = nc;
@@ -649,7 +652,7 @@ int RoboSim::addRobot(CRobot *robot) {
 		else { if (num++ != connected) {btmp = btmp->next; continue;}}
 		break;
 	}
-	if (btmp == NULL) { printf("could not find robot\n"); exit(-1); }
+	if (btmp == NULL) { fprintf(stderr, "Error: could not find robot\n"); exit(-1); }
 	
 	// give simulation data to robot
 	robot->addToSim(_world, _space, &_clock);
