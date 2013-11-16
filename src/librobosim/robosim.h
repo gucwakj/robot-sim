@@ -10,18 +10,7 @@
 #ifdef ENABLE_GRAPHICS
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
-#else
-#include <dlfcn.h>
-void *g_chrobosim_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
-if (g_chrobosim_dlhandle == NULL) {
-	fprintf(stderr, "Error: dlopen(): %s\n", dlerror());
-	exit(-1);
-}
-void _dlclose_chrobosim(void) {
-	dlclose(g_chrobosim_dlhandle);
-}
-atexit(_dlclose_chrobosim);
-#endif
+#endif // not _CH_
 
 class DLLIMPORT RoboSim {
 	public:
@@ -86,6 +75,10 @@ class DLLIMPORT RoboSim {
 		int init_viz(void);							// visualization initialization function
 		static void* graphics_thread(void *arg);	// thread for graphics objects
 #endif // ENABLE_GRAPHICS
+#else
+	public:
+		static void *_dlhandle;
+		static int _dlcount;
 #endif // not _CH_
 };
 

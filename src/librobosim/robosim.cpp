@@ -28,7 +28,6 @@ RoboSim::~RoboSim(void) {
 		_viewer->setDone(true);
 		MUTEX_UNLOCK(&_viewer_mutex);
 		THREAD_JOIN(_osgThread);
-		delete _viewer;
 		MUTEX_DESTROY(&_viewer_mutex);
 	}
 #endif
@@ -707,18 +706,16 @@ int RoboSim::deleteRobot(CRobot *robot) {
 	else {
 		while (rtmp->next) {
 			if (rtmp->next->robot == robot) {
-				//robots_t tmp = rtmp->next;
 				tmp = rtmp->next;
 				rtmp->next = rtmp->next->next;
-				//delete tmp;
 				break;
 			}
 			rtmp = rtmp->next;
 		}
 	}
 
-	// remove node callback
 #ifdef ENABLE_GRAPHICS
+	// remove node callback
 	_osgRoot->removeChild(_osgRoot->getChild(tmp->node));
 #endif
 
@@ -729,7 +726,10 @@ int RoboSim::deleteRobot(CRobot *robot) {
 	MUTEX_UNLOCK(&_robot_mutex);
 
 	// success
-	return 0;
+	if (_robots == NULL)
+		return 0;
+	else
+		return 1;
 }
 
 int RoboSim::setExitState(void) {
@@ -1112,6 +1112,7 @@ void* RoboSim::graphics_thread(void *arg) {
 		sim->_viewer->frame();
 		MUTEX_LOCK(&(sim->_viewer_mutex));
 	}
+	MUTEX_UNLOCK(&(sim->_viewer_mutex));
 
 	// trigger end of code when graphics window is closed
 	SIGNAL(&(sim->_running_cond), &(sim->_running_mutex), sim->_running = 0);

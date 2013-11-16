@@ -3,21 +3,32 @@
 #include <stdarg.h>
 
 RoboSim::RoboSim() {
-	void *fptr;
-	fptr = dlsym(g_chrobosim_dlhandle, "RoboSim_RoboSim_chdl");
-	if(fptr == NULL) {
+	if (RoboSim::_dlhandle == NULL || RoboSim::_dlcount == 0) {
+		RoboSim::_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
+		if (RoboSim::_dlhandle == NULL) {
+			printf("Error: %s(): dlopen(): %s\n", __class_func__, dlerror());
+			return;
+		}
+	}
+	void *fptr = dlsym(RoboSim::_dlhandle, "RoboSim_RoboSim_chdl");
+	if (fptr == NULL) {
 		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
 		return;
 	}
 	dlrunfun(fptr, NULL, NULL);
+	RoboSim::_dlcount++;
 }
 
 RoboSim::~RoboSim() {
-	void *fptr;
-	fptr = dlsym(g_chrobosim_dlhandle, "RoboSim_dRoboSim_chdl");
+	void *fptr = dlsym(RoboSim::_dlhandle, "RoboSim_dRoboSim_chdl");
 	if(fptr == NULL) {
 		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
 		return;
 	}
 	dlrunfun(fptr, NULL, NULL, this);
+	RoboSim::_dlcount--;
+	if (RoboSim::_dlcount <= 0 && RoboSim::_dlhandle != NULL) {
+		if (dlclose(RoboSim::_dlhandle) != 0)
+			printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
+	}
 }

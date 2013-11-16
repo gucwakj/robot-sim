@@ -423,6 +423,8 @@ typedef struct motionArg_s {
 } motionArg_t;
 
 #ifdef _CH_
+void* RoboSim::_dlhandle = NULL;
+int RoboSim::_dlcount = 0;
 #pragma importf "chrobosim.chf"
 #pragma importf "chmobotsim.chf"
 #else

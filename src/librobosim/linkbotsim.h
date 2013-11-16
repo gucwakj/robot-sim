@@ -777,10 +777,12 @@ class DLLIMPORT CLinkbotLGroup {
 		int turnRight(double angle, double radius, double tracklength);
 		int turnRightNB(double angle, double radius, double tracklength);
 };
+void* RoboSim::_dlhandle = NULL;
+int RoboSim::_dlcount = 0;
 #pragma importf "chrobosim.chf"
-#pragma importf "chlinkbottsim.chf"
 #pragma importf "chlinkbotisim.chf"
 #pragma importf "chlinkbotlsim.chf"
+#pragma importf "chlinkbottsim.chf"
 #else
 typedef struct motionArg_s {
 	int i;
