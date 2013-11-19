@@ -25,7 +25,7 @@ RoboSim::~RoboSim(void) {
 	// remove graphics
 	if (_osgThread) {
 		MUTEX_LOCK(&_viewer_mutex);
-		_viewer->setDone(true);
+		_viewer = 0;
 		MUTEX_UNLOCK(&_viewer_mutex);
 		THREAD_JOIN(_osgThread);
 		MUTEX_DESTROY(&_viewer_mutex);
@@ -591,13 +591,12 @@ int RoboSim::init_xml(void) {
 int RoboSim::init_viz(void) {
 	// set notification level to no output
 	osg::setNotifyLevel(osg::ALWAYS);
-	//osg::setNotifyLevel(osg::DEBUG_FP);
 
     // construct the viewer
-	_viewer = new osgViewer::Viewer();
 	MUTEX_INIT(&_viewer_mutex);
+	_viewer = 1;
 
-	// graphics hasn't started yet
+	// graphics haven't started yet
 	COND_INIT(&_graphics_cond);
 	MUTEX_INIT(&_graphics_mutex);
 	_graphics = 0;
@@ -956,6 +955,10 @@ void* RoboSim::graphics_thread(void *arg) {
 		return NULL;
 	}
 
+    // creating the viewer
+	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer;
+	viewer->setThreadSafeRefUnref(true);
+
 	// camera properties
 	osg::ref_ptr<osg::Camera> camera = new osg::Camera;
 	camera->setGraphicsContext(gc.get());
@@ -963,35 +966,34 @@ void* RoboSim::graphics_thread(void *arg) {
 	GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
 	camera->setDrawBuffer(buffer);
 	camera->setReadBuffer(buffer);
-	sim->_viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
-	sim->_viewer->getCamera()->setComputeNearFarMode(osgUtil::CullVisitor::COMPUTE_NEAR_FAR_USING_PRIMITIVES);
-	sim->_viewer->getCamera()->setNearFarRatio(0.00001);
+	viewer->addSlave(camera.get());
+	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	viewer->getCamera()->setComputeNearFarMode(osgUtil::CullVisitor::COMPUTE_NEAR_FAR_USING_PRIMITIVES);
+	viewer->getCamera()->setNearFarRatio(0.00001);
 
 	// viewer camera properties
-	sim->_viewer->addSlave(camera.get());
-	osgGA::OrbitManipulator *cameraManipulator = new osgGA::OrbitManipulator();
+	osg::ref_ptr<osgGA::OrbitManipulator> cameraManipulator = new osgGA::OrbitManipulator();
 	cameraManipulator->setDistance(0.1);
 	cameraManipulator->setAllowThrow(false);
 	cameraManipulator->setWheelZoomFactor(0);
 	cameraManipulator->setVerticalAxisFixed(true);
 	cameraManipulator->setElevation(0.5);
-	sim->_viewer->setCameraManipulator(cameraManipulator);
-	sim->_viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1, 1, 0.75), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
+	viewer->setCameraManipulator(cameraManipulator);
+	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1, 1, 0.75), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
-    // Creating the root node
+	// Creating the root node
 	sim->_osgRoot = new osg::Group();
+	sim->_osgRoot->setThreadSafeRefUnref(true);
 
 	// load terrain node
-	osg::Depth *t_depth = new osg::Depth;
+	osg::ref_ptr<osg::Depth> t_depth = new osg::Depth;
 	t_depth->setFunction(osg::Depth::LEQUAL);
 	t_depth->setRange(1.0, 1.0);
-
-	osg::StateSet *t_stateset = new osg::StateSet();
+	osg::ref_ptr<osg::StateSet> t_stateset = new osg::StateSet();
 	t_stateset->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 	t_stateset->setMode(GL_CULL_FACE, osg::StateAttribute::ON);
 	t_stateset->setAttributeAndModes(t_depth, osg::StateAttribute::ON);
 	t_stateset->setRenderBinDetails(-1, "RenderBin");
-
 	osg::ref_ptr<osg::Node> t_geode = osgDB::readNodeFile(TEXTURE_PATH(ground/terrain.3ds));
 	t_geode->setCullingActive(false);
 	t_geode->setStateSet(t_stateset);
@@ -999,34 +1001,32 @@ void* RoboSim::graphics_thread(void *arg) {
 	t_transform->setScale(osg::Vec3d(2, 2, 0.001));
 	t_transform->setCullingActive(false);
 	t_transform->addChild(t_geode);
-	sim->_osgRoot->addChild(t_transform);
-
-	osgUtil::LineSegmentIntersector *r_segment = new osgUtil::LineSegmentIntersector(osg::Vec3d(0, 0, 999), osg::Vec3d(0, 0, -999));
+	osg::ref_ptr<osgUtil::LineSegmentIntersector> r_segment = new osgUtil::LineSegmentIntersector(osg::Vec3d(0, 0, 999), osg::Vec3d(0, 0, -999));
 	osgUtil::IntersectionVisitor r_visitor;
 	r_visitor.setIntersector(r_segment);
 	t_transform->accept(r_visitor);
 	osgUtil::LineSegmentIntersector::Intersection r_hits = r_segment->getFirstIntersection();
 	osg::Vec3d r_pos = r_hits.getWorldIntersectPoint();
 	t_transform->setPosition(osg::Vec3d(r_pos[0], r_pos[1], -r_pos[2]));
+	sim->_osgRoot->addChild(t_transform);
 
 	// skybox
-	osg::StateSet* stateset = new osg::StateSet();
-	osg::TexEnv* te = new osg::TexEnv;
+	osg::ref_ptr<osg::StateSet> stateset = new osg::StateSet();
+	osg::ref_ptr<osg::TexEnv> te = new osg::TexEnv;
 	te->setMode(osg::TexEnv::REPLACE);
 	stateset->setTextureAttributeAndModes(0, te, osg::StateAttribute::ON);
-	osg::TexGen *tg = new osg::TexGen;
+	osg::ref_ptr<osg::TexGen> tg = new osg::TexGen;
 	tg->setMode(osg::TexGen::NORMAL_MAP);
 	stateset->setTextureAttributeAndModes(0, tg, osg::StateAttribute::ON);
-	osg::TexMat *tm = new osg::TexMat;
+	osg::ref_ptr<osg::TexMat> tm = new osg::TexMat;
 	stateset->setTextureAttribute(0, tm);
-    osg::TextureCubeMap* skymap = new osg::TextureCubeMap;
+	osg::ref_ptr<osg::TextureCubeMap> skymap = new osg::TextureCubeMap;
 	osg::Image* imagePosX = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_right.png));
 	osg::Image* imageNegX = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_left.png));
 	osg::Image* imagePosY = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_top.png));
 	osg::Image* imageNegY = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_top.png));
 	osg::Image* imagePosZ = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_front.png));
 	osg::Image* imageNegZ = osgDB::readImageFile(TEXTURE_PATH(ground/checkered/checkered_back.png));
-
 	if (imagePosX && imageNegX && imagePosY && imageNegY && imagePosZ && imageNegZ) {
 		skymap->setImage(osg::TextureCubeMap::POSITIVE_X, imagePosX);
 		skymap->setImage(osg::TextureCubeMap::NEGATIVE_X, imageNegX);
@@ -1043,31 +1043,31 @@ void* RoboSim::graphics_thread(void *arg) {
 	stateset->setTextureAttributeAndModes(0, skymap, osg::StateAttribute::ON);
 	stateset->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
 	stateset->setMode( GL_CULL_FACE, osg::StateAttribute::OFF );
-	osg::Depth* depth = new osg::Depth;
+	osg::ref_ptr<osg::Depth> depth = new osg::Depth;
 	depth->setFunction(osg::Depth::ALWAYS);
 	depth->setRange(1.0,1.0);
 	stateset->setAttributeAndModes(depth, osg::StateAttribute::ON );
 	stateset->setRenderBinDetails(-1,"RenderBin");
-	osg::Drawable* drawable = new osg::ShapeDrawable(new osg::Sphere(osg::Vec3(0.0f,0.0f,0.0f),1));
-	osg::Geode* geode = new osg::Geode;
+	osg::ref_ptr<osg::Drawable> drawable = new osg::ShapeDrawable(new osg::Sphere(osg::Vec3(0.0f,0.0f,0.0f),1));
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	geode->setCullingActive(false);
 	geode->setStateSet( stateset );
 	geode->addDrawable(drawable);
-	osg::Transform* transform = new MoveEarthySkyWithEyePointTransform;
+	osg::ref_ptr<osg::Transform> transform = new MoveEarthySkyWithEyePointTransform;
 	transform->setCullingActive(false);
 	transform->addChild(geode);
-	osg::ClearNode* clearNode = new osg::ClearNode;
+	osg::ref_ptr<osg::ClearNode> clearNode = new osg::ClearNode;
 	clearNode->setRequiresClear(false);
 	clearNode->setCullCallback(new TexMatCallback(*tm));
 	clearNode->addChild(transform);
 	sim->_osgRoot->addChild(clearNode);
 
 	// set up HUD
-	osg::Geode *HUDGeode = new osg::Geode();
-	osgText::Text *textHUD = new osgText::Text();
-	osg::Projection *HUDProjectionMatrix = new osg::Projection;
-	osg::MatrixTransform *HUDModelViewMatrix = new osg::MatrixTransform;
-	osg::StateSet *HUDStateSet = new osg::StateSet();
+	osg::ref_ptr<osg::Geode> HUDGeode = new osg::Geode();
+	osg::ref_ptr<osgText::Text> textHUD = new osgText::Text();
+	osg::ref_ptr<osg::Projection> HUDProjectionMatrix = new osg::Projection;
+	osg::ref_ptr<osg::MatrixTransform> HUDModelViewMatrix = new osg::MatrixTransform;
+	osg::ref_ptr<osg::StateSet> HUDStateSet = new osg::StateSet();
 	HUDProjectionMatrix->setMatrix(osg::Matrix::ortho2D(0,traits->width,0,traits->height));
 	HUDProjectionMatrix->addChild(HUDModelViewMatrix);
 	HUDModelViewMatrix->setMatrix(osg::Matrix::identity());
@@ -1092,27 +1092,33 @@ void* RoboSim::graphics_thread(void *arg) {
 	optimizer.optimize(sim->_osgRoot);
 
 	// set threading model
-	sim->_viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+	viewer->setThreadingModel(osgViewer::Viewer::AutomaticSelection);
 
 	// viewer event handlers
-	sim->_viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause), textHUD));
-	sim->_viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
-	sim->_viewer->addEventHandler(new osgViewer::WindowSizeHandler);
+	viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause), textHUD));
+	viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
+	viewer->addEventHandler(new osgViewer::WindowSizeHandler);
 
 	// set viewable
-	sim->_viewer->setSceneData(sim->_osgRoot);
+	viewer->setSceneData(sim->_osgRoot);
 
 	// signal connection functions that graphics are set up
 	SIGNAL(&(sim->_graphics_cond), &(sim->_graphics_mutex), sim->_graphics = 1);
 
 	// run viewer
 	MUTEX_LOCK(&(sim->_viewer_mutex));
-	while (!sim->_viewer->done()) {
+	while (sim->_viewer && !viewer->done()) {
 		MUTEX_UNLOCK(&(sim->_viewer_mutex));
-		sim->_viewer->frame();
+		viewer->frame();
 		MUTEX_LOCK(&(sim->_viewer_mutex));
 	}
 	MUTEX_UNLOCK(&(sim->_viewer_mutex));
+
+	// clean up viewer & root
+	//printf("root   ref count: %d\n", sim->_osgRoot->referenceCount());
+	//printf("viewer ref count: %d\n", viewer->referenceCount());
+	viewer->setSceneData(NULL);
+	delete viewer;
 
 	// trigger end of code when graphics window is closed
 	SIGNAL(&(sim->_running_cond), &(sim->_running_mutex), sim->_running = 0);

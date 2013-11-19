@@ -64,13 +64,13 @@ class DLLIMPORT RoboSim {
 
 #ifdef ENABLE_GRAPHICS
 		// variables
-		osgViewer::Viewer *_viewer;	// viewer class holds all objects
-		THREAD_T _osgThread;		// thread to hold graphics
-		osg::Group *_osgRoot;		// osg root node
-		int _graphics;				// flag for graphics
-		MUTEX_T _graphics_mutex;	// mutex for graphics existence
-		COND_T _graphics_cond;		// condition for graphics
-		MUTEX_T _viewer_mutex;		// mutex for viewer running state
+		int _graphics;						// flag for graphics
+		int _viewer;						// flag for viewer
+		osg::ref_ptr<osg::Group> _osgRoot;	// root node to hold graphics
+		COND_T _graphics_cond;				// condition for graphics
+		MUTEX_T _graphics_mutex;			// mutex for graphics existence
+		MUTEX_T _viewer_mutex;				// mutex for viewer running state
+		THREAD_T _osgThread;				// thread to hold graphics
 		// functions
 		int init_viz(void);							// visualization initialization function
 		static void* graphics_thread(void *arg);	// thread for graphics objects
