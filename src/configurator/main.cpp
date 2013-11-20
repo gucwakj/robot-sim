@@ -602,6 +602,9 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
+
+		// save robot list
+		saveRobotList();
 	}
 }
 
@@ -689,6 +692,9 @@ G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data) {
 		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
+
+		// save robot list
+		saveRobotList();
 	}
 }
 
@@ -824,6 +830,9 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
+
+		// save robot list
+		saveRobotList();
 	}
 }
 
@@ -931,6 +940,9 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
+
+		// save robot list
+		saveRobotList();
 	}
 }
 
@@ -1094,6 +1106,9 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
 		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
+
+		// save robot list
+		saveRobotList();
 	}
 }
 
@@ -1179,6 +1194,9 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
 		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
+
+		// save robot list
+		saveRobotList();
 	}
 }
 
