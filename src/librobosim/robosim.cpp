@@ -935,10 +935,10 @@ void* RoboSim::graphics_thread(void *arg) {
 
 	// window traits
 	osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
-	traits->x = width/4;
-	traits->y = height/4;
 	traits->width = width/2;
 	traits->height = 3*width/8;
+	traits->x = width - traits->width;
+	traits->y = height - traits->height;
 	traits->windowDecoration = true;
 	traits->doubleBuffer = true;
 	traits->vsync = false;
