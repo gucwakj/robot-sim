@@ -1118,7 +1118,9 @@ void* RoboSim::graphics_thread(void *arg) {
 	//printf("root   ref count: %d\n", sim->_osgRoot->referenceCount());
 	//printf("viewer ref count: %d\n", viewer->referenceCount());
 	viewer->setSceneData(NULL);
+#ifdef _WIN32_
 	delete viewer;
+#endif
 
 	// trigger end of code when graphics window is closed
 	SIGNAL(&(sim->_running_cond), &(sim->_running_mutex), sim->_running = 0);
