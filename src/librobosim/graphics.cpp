@@ -56,18 +56,13 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 	switch (ea.getEventType()) {
 		case osgGA::GUIEventAdapter::KEYDOWN:
 			switch (ea.getKey()) {
-				case osgGA::GUIEventAdapter::KEY_Space:
-				case 'p':
+				default:
 					*_pause = (*_pause) ? 0 : 1;
 					if (*_pause)
-						_text->setText("PAUSED\npress space to restart");
+						_text->setText("PAUSED\npress any key to restart");
 					else
 						_text->setText("");
 					return true;
-				case 'q':
-					return false;
-				default:
-					return false;
 			} 
 		default:
 			return false;
