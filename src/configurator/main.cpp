@@ -9,6 +9,7 @@
 #include <tinyxml2.h>
 
 #define I2M(x) ((x)/39.370)
+#define M2I(x) ((x)*39.370)
 
 typedef struct robots_s {
 	int id;
@@ -54,6 +55,7 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data);
 
 void printRoboSimPath(void);
+void readXMLConfig(void);
 void refreshRobotList(void);
 void saveRobotList(void);
 #ifdef __cplusplus
@@ -89,45 +91,6 @@ int main(int argc, char *argv[]) {
 	GdkPixbuf *scaled_m = gdk_pixbuf_scale_simple(original_m, 300, 116, GDK_INTERP_HYPER);
 	gtk_image_set_from_pixbuf(image_m, scaled_m);
 
-	// add first robot
-	robots_t nr = new struct robots_s;
-	nr->id = 0;
-	nr->type = 0;
-	nr->x = 0;
-	nr->y = 0;
-	nr->z = 0;
-	nr->psi = 0;
-	nr->theta = 0;
-	nr->phi = 0;
-	nr->wheeled = true;
-	nr->next = NULL;
-	g_robots = nr;
-	g_num = 1;
-	refreshRobotList();
-
-	// set declaration
-	tinyxml2::XMLDeclaration *dec = g_doc.NewDeclaration();
-	g_doc.InsertFirstChild(dec);
-
-	// root sim node
-	tinyxml2::XMLElement *sim = g_doc.NewElement("sim");
-	g_doc.InsertAfterChild(dec, sim);
-	tinyxml2::XMLElement	*robot1 = g_doc.NewElement("linkboti"),
-							*wheel1 = g_doc.NewElement("smallwheel"), 
-							*wheel2 = g_doc.NewElement("smallwheel"), 
-							*caster = g_doc.NewElement("caster");
-	robot1->SetAttribute("id", 0);
-	wheel1->SetAttribute("robot", 0);
-	wheel1->SetAttribute("face", 1);
-	wheel2->SetAttribute("robot", 0);
-	wheel2->SetAttribute("face", 3);
-	caster->SetAttribute("robot", 0);
-	caster->SetAttribute("face", 2);
-	sim->InsertFirstChild(robot1);
-	sim->InsertAfterChild(robot1, wheel1);
-	sim->InsertAfterChild(wheel1, wheel2);
-	sim->InsertAfterChild(wheel2, caster);
-
 	// get config file paths
 #ifdef _WIN32
 	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, g_xml))) {
@@ -143,8 +106,8 @@ int main(int argc, char *argv[]) {
 	strcat(g_chrc, "/.chrc");
 #endif
 
-	// save xml config file
-	g_doc.SaveFile(g_xml);
+	// parse xml config file
+	readXMLConfig();
 
 	// get size of chrc
 	struct stat stbuf;
@@ -364,7 +327,10 @@ G_MODULE_EXPORT void on_wheeled_clicked(GtkWidget *widget, gpointer data) {
 	// if the robot is found, change its wheeled state
 	if (tmp) {
 		// store new value
-		tmp->wheeled = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+			tmp->wheeled = true;
+		else
+			tmp->wheeled = false;
 
 		// save configuration
 		saveRobotList();
@@ -380,11 +346,15 @@ G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data) {
 
 	// new robot
 	robots_t nr = new struct robots_s;
-	while (tmp->next)
-		tmp = tmp->next;
-	nr->id = tmp->id + 1;
+	nr->id = 0;
+	nr->x = 0;
+	if (tmp) {
+		while (tmp->next)
+			tmp = tmp->next;
+		nr->id = tmp->id + 1;
+		nr->x = tmp->x + 6;
+	}
 	nr->type = 0;
-	nr->x = tmp->x + 6;
 	nr->y = 0;
 	nr->z = 0;
 	nr->psi = 0;
@@ -395,9 +365,14 @@ G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data) {
 
 	// add robot to linked list
 	tmp = g_robots;
-	while (tmp->next)
-		tmp = tmp->next;
-	tmp->next = nr;
+	if (g_robots == NULL) {
+		g_robots = nr;
+	}
+	else {
+		while (tmp->next)
+			tmp = tmp->next;
+		tmp->next = nr;
+	}
 
 	// increase total number of robots
 	g_num++;
@@ -473,6 +448,10 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/explorer.jpg", NULL);
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
+
+		// set configuration options
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 1);
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -626,6 +605,10 @@ G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data) {
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
+		// set configuration options
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 2);
+
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
 		sim->DeleteChildren();
@@ -715,6 +698,10 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/lift.jpg", NULL);
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
+
+		// set configuration options
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 3);
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -854,6 +841,10 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
+		// set configuration options
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 4);
+
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
 		sim->DeleteChildren();
@@ -963,6 +954,10 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/snake.jpg", NULL);
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
+
+		// set configuration options
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 5);
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1130,6 +1125,10 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
 		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
+		// set configuration options
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 6);
+
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
 		sim->DeleteChildren();
@@ -1213,6 +1212,233 @@ void printRoboSimPath(void) {
 }
 
 /*
+ * Read config file
+ */
+void readXMLConfig(void) {
+	// check if config file exists
+	if ( g_doc.LoadFile(g_xml) ) {
+		// set declaration
+		tinyxml2::XMLDeclaration *dec = g_doc.NewDeclaration();
+		g_doc.InsertFirstChild(dec);
+
+		// set configuration options
+		tinyxml2::XMLElement *config = g_doc.NewElement("config");
+		g_doc.InsertAfterChild(dec, config);
+		tinyxml2::XMLElement *version = g_doc.NewElement("version");
+		version->SetAttribute("val", 1);
+		config->InsertFirstChild(version);
+		tinyxml2::XMLElement *type = g_doc.NewElement("type");
+		type->SetAttribute("val", 0);
+		config->InsertAfterChild(version, type);
+
+		// create empty simulation
+		tinyxml2::XMLElement *sim = g_doc.NewElement("sim");
+		g_doc.InsertAfterChild(config, sim);
+
+		// save default config file
+		g_doc.SaveFile(g_xml);
+
+		// end
+		return;
+	}
+
+	tinyxml2::XMLElement *node;
+	tinyxml2::XMLElement *ele;
+	int version = 0, type = 0;
+
+	// check version of config file
+	if (node = g_doc.FirstChildElement("config")->FirstChildElement("version")) {
+		node->QueryIntAttribute("val", &version);
+	}
+
+	// check invidivual vs preconfigured
+	if (node = g_doc.FirstChildElement("config")->FirstChildElement("type")) {
+		node->QueryIntAttribute("val", &type);
+		switch (type) {
+			case 1:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 1);
+				break;
+			case 2:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 1);
+				break;
+			case 3:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 1);
+				break;
+			case 4:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 1);
+				break;
+			case 5:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 1);
+				break;
+			case 6:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 1);
+				break;
+		}
+	}
+
+	// read individual robot configuration
+	if (!type) {
+		node = g_doc.FirstChildElement("sim")->FirstChildElement();
+		robots_t tmp = g_robots;
+		while (node) {
+			if ( !strcmp(node->Value(), "linkboti") ) {
+				robots_t nr = new struct robots_s;
+				nr->type = 0;
+				nr->x = 0; nr->y = 0; nr->z = 0;
+				nr->psi = 0; nr->theta = 0; nr->phi = 0;
+				nr->wheeled = false;
+				node->QueryIntAttribute("id", &(nr->id));
+				if ( (ele = node->FirstChildElement("position")) ) {
+					ele->QueryDoubleAttribute("x", &(nr->x));
+					ele->QueryDoubleAttribute("y", &(nr->y));
+					ele->QueryDoubleAttribute("z", &(nr->z));
+				}
+				if ( (ele = node->FirstChildElement("rotation")) ) {
+					ele->QueryDoubleAttribute("psi", &(nr->psi));
+					ele->QueryDoubleAttribute("theta", &(nr->theta));
+					ele->QueryDoubleAttribute("phi", &(nr->phi));
+				}
+				nr->x = M2I(nr->x);
+				nr->y = M2I(nr->y);
+				nr->z = M2I(nr->z);
+				nr->next = NULL;
+				g_num++;
+
+				// add robot to linked list
+				tmp = g_robots;
+				if (g_robots == NULL) {
+					g_robots = nr;
+				}
+				else {
+					while (tmp->next)
+						tmp = tmp->next;
+					tmp->next = nr;
+				}
+			}
+			else if ( !strcmp(node->Value(), "linkbotl") ) {
+				robots_t nr = new struct robots_s;
+				nr->type = 1;
+				nr->x = 0; nr->y = 0; nr->z = 0;
+				nr->psi = 0; nr->theta = 0; nr->phi = 0;
+				nr->wheeled = false;
+				node->QueryIntAttribute("id", &(nr->id));
+				if ( (ele = node->FirstChildElement("position")) ) {
+					ele->QueryDoubleAttribute("x", &(nr->x));
+					ele->QueryDoubleAttribute("y", &(nr->y));
+					ele->QueryDoubleAttribute("z", &(nr->z));
+				}
+				if ( (ele = node->FirstChildElement("rotation")) ) {
+					ele->QueryDoubleAttribute("psi", &(nr->psi));
+					ele->QueryDoubleAttribute("theta", &(nr->theta));
+					ele->QueryDoubleAttribute("phi", &(nr->phi));
+				}
+				nr->x = M2I(nr->x);
+				nr->y = M2I(nr->y);
+				nr->z = M2I(nr->z);
+				nr->next = NULL;
+				g_num++;
+
+				// add robot to linked list
+				tmp = g_robots;
+				if (g_robots == NULL) {
+					g_robots = nr;
+				}
+				else {
+					while (tmp->next)
+						tmp = tmp->next;
+					tmp->next = nr;
+				}
+			}
+			else if ( !strcmp(node->Value(), "linkbott") ) {
+				robots_t nr = new struct robots_s;
+				nr->type = 2;
+				nr->x = 0; nr->y = 0; nr->z = 0;
+				nr->psi = 0; nr->theta = 0; nr->phi = 0;
+				nr->wheeled = false;
+				node->QueryIntAttribute("id", &(nr->id));
+				if ( (ele = node->FirstChildElement("position")) ) {
+					ele->QueryDoubleAttribute("x", &(nr->x));
+					ele->QueryDoubleAttribute("y", &(nr->y));
+					ele->QueryDoubleAttribute("z", &(nr->z));
+				}
+				if ( (ele = node->FirstChildElement("rotation")) ) {
+					ele->QueryDoubleAttribute("psi", &(nr->psi));
+					ele->QueryDoubleAttribute("theta", &(nr->theta));
+					ele->QueryDoubleAttribute("phi", &(nr->phi));
+				}
+				nr->x = M2I(nr->x);
+				nr->y = M2I(nr->y);
+				nr->z = M2I(nr->z);
+				nr->next = NULL;
+				g_num++;
+
+				// add robot to linked list
+				tmp = g_robots;
+				if (g_robots == NULL) {
+					g_robots = nr;
+				}
+				else {
+					while (tmp->next)
+						tmp = tmp->next;
+					tmp->next = nr;
+				}
+			}
+			else if ( !strcmp(node->Value(), "mobot") ) {
+				robots_t nr = new struct robots_s;
+				nr->type = 3;
+				nr->x = 0; nr->y = 0; nr->z = 0;
+				nr->psi = 0; nr->theta = 0; nr->phi = 0;
+				nr->wheeled = false;
+				node->QueryIntAttribute("id", &(nr->id));
+				if ( (ele = node->FirstChildElement("position")) ) {
+					ele->QueryDoubleAttribute("x", &(nr->x));
+					ele->QueryDoubleAttribute("y", &(nr->y));
+					ele->QueryDoubleAttribute("z", &(nr->z));
+				}
+				if ( (ele = node->FirstChildElement("rotation")) ) {
+					ele->QueryDoubleAttribute("psi", &(nr->psi));
+					ele->QueryDoubleAttribute("theta", &(nr->theta));
+					ele->QueryDoubleAttribute("phi", &(nr->phi));
+				}
+				nr->x = M2I(nr->x);
+				nr->y = M2I(nr->y);
+				nr->z = M2I(nr->z);
+				nr->next = NULL;
+				g_num++;
+
+				// add robot to linked list
+				tmp = g_robots;
+				if (g_robots == NULL) {
+					g_robots = nr;
+				}
+				else {
+					while (tmp->next)
+						tmp = tmp->next;
+					tmp->next = nr;
+				}
+			}
+			else if ( !strcmp(node->Value(), "smallwheel") ) {
+				int id = -1;
+				node->QueryIntAttribute("robot", &id);
+				tmp = g_robots;
+				while (tmp && tmp->id != id)
+					tmp = tmp->next;
+				if (tmp) tmp->wheeled = true;
+			}
+
+			// go to next element
+			node = node->NextSiblingElement();
+		}
+
+		// refesh robot list
+		refreshRobotList();
+	}
+
+	// success
+	return;
+}
+
+/*
  * Refresh the table of robot data
  */
 void refreshRobotList(void) {
@@ -1247,7 +1473,7 @@ void refreshRobotList(void) {
 		//gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "Linkbot T");
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "Mobot");
 #endif
-		gtk_combo_box_set_active(GTK_COMBO_BOX(w), 0);
+		gtk_combo_box_set_active(GTK_COMBO_BOX(w), (tmp->type <= 1) ? tmp->type : tmp->type-1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 2, 3, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_type_changed), (void *)(tmp->id));
@@ -1280,17 +1506,15 @@ void refreshRobotList(void) {
 		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_phi_value_changed), (void *)(tmp->id));
 		// wheeled
 		w = gtk_check_button_new_with_label("Wheeled");
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w), 1);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w), tmp->wheeled);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_wheeled_clicked), (void *)(tmp->id));
-		if (g_num != 1) {
-			// remove button
-			w = gtk_button_new_with_label("Remove");
-			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_clicked), (void *)(tmp->id));
-		}
+		// remove button
+		w = gtk_button_new_with_label("Remove");
+		gtk_widget_show(w);
+		gtk_table_attach(GTK_TABLE(rootTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_clicked), (void *)(tmp->id));
 		// next robot
 		tmp = tmp->next;
 		i++;
@@ -1320,6 +1544,10 @@ void refreshRobotList(void) {
  * When the save button is clicked
  */
 void saveRobotList(void) {
+	// set configuration options
+	tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+	type->SetAttribute("val", 0);
+
 	// clean out sim node
 	tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
 	sim->DeleteChildren();
