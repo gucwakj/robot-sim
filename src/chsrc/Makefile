@@ -21,21 +21,17 @@ OBJS =	robosim.o \
 		linkbotsim.o \
 		linkbotgroupsim.o \
 		graphics.o \
-		chrobosim_chdl.o \
 		chmobotsim_chdl.o \
 		chlinkbotisim_chdl.o \
 		chlinkbotlsim_chdl.o \
 		chlinkbottsim_chdl.o
 
-chrobosim_chdl.o: chrobosim_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus chrobosim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
-	
 chmobotsim_chdl.o: chmobotsim_chdl.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus chmobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
-	
+
 chlinkbotisim_chdl.o: chlinkbotisim_chdl.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus chlinkbotisim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
-	
+
 chlinkbotlsim_chdl.o: chlinkbotlsim_chdl.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus chlinkbotlsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
@@ -120,7 +116,6 @@ createpkg: librobosim.dl
 	mv $(PKGDIR)/include/mobotsim.h $(PKGDIR)/include/mobot.h
 	mv $(PKGDIR)/include/linkbotsim.h $(PKGDIR)/include/linkbot.h
 	mkdir $(PKGDIR)/lib
-	cp chrobosim.chf $(PKGDIR)/lib
 	cp chmobotsim.chf $(PKGDIR)/lib
 	cp chlinkbotisim.chf $(PKGDIR)/lib
 	cp chlinkbotlsim.chf $(PKGDIR)/lib
