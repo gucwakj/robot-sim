@@ -1212,7 +1212,7 @@ void refreshRobotList(void) {
 	while (tmp) {
 		// label for robot with id
 		char label[11];
-		sprintf(label, "Robot %2d: ", tmp->id);
+		sprintf(label, "Robot %2d: ", tmp->id+1);
 		w = gtk_label_new(label);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 0, 1, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
