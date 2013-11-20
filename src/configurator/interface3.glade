@@ -186,6 +186,20 @@
                             <property name="can_focus">False</property>
                             <property name="orientation">vertical</property>
                             <child>
+                              <object class="GtkButton" id="button_add_robot">
+                                <property name="label" translatable="yes">Add Robot</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="receives_default">True</property>
+                                <signal name="clicked" handler="on_button_add_clicked" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
                               <object class="GtkScrolledWindow" id="scrolledwindow">
                                 <property name="width_request">790</property>
                                 <property name="height_request">200</property>
@@ -210,20 +224,6 @@
                               <packing>
                                 <property name="expand">True</property>
                                 <property name="fill">True</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkButton" id="button_add_robot">
-                                <property name="label" translatable="yes">Add Robot</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="receives_default">True</property>
-                                <signal name="clicked" handler="on_button_add_clicked" swapped="no"/>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
