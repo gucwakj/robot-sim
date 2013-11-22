@@ -31,6 +31,9 @@
 #include <osgGA/StateSetManipulator>
 #include <osgGA/OrbitManipulator>
 
+#include <osgShadow/ShadowedScene>
+#include <osgShadow/ShadowMap>
+
 #include <osgUtil/Optimizer>
 #include <osgUtil/CullVisitor>
 #include <osgUtil/SmoothingVisitor>

@@ -682,7 +682,7 @@ int RoboSim::addRobot(CRobot *robot) {
 
 #ifdef ENABLE_GRAPHICS
 	// draw robot
-	nr->node = robot->draw(_osgRoot);
+	nr->node = robot->draw(_shadowed);
 #endif // ENABLE_GRAPHICS
 	
 	// unlock robot data
@@ -715,7 +715,7 @@ int RoboSim::deleteRobot(CRobot *robot) {
 
 #ifdef ENABLE_GRAPHICS
 	// remove node callback
-	_osgRoot->removeChild(_osgRoot->getChild(tmp->node));
+	_shadowed->removeChild(_shadowed->getChild(tmp->node));
 #endif
 
 	// delete robot
@@ -982,8 +982,27 @@ void* RoboSim::graphics_thread(void *arg) {
 	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1, 1, 0.75), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 
 	// Creating the root node
-	sim->_osgRoot = new osg::Group();
-	sim->_osgRoot->setThreadSafeRefUnref(true);
+	osg::ref_ptr<osg::Group> root = new osg::Group;
+	root->setThreadSafeRefUnref(true);
+
+	// add shadows
+	osg::ref_ptr<osgShadow::ShadowedScene> shadowedScene = new osgShadow::ShadowedScene;
+	sim->_shadowed = shadowedScene;
+	root->addChild(shadowedScene);
+	shadowedScene->setReceivesShadowTraversalMask(0x1);
+	shadowedScene->setCastsShadowTraversalMask(0x2);
+	osg::ref_ptr<osgShadow::ShadowMap> sm = new osgShadow::ShadowMap;
+	sm->setTextureSize(osg::Vec2s(1024, 1024));
+	shadowedScene->setShadowTechnique(sm.get());
+
+	// add light source
+	osg::ref_ptr<osg::LightSource> ls = new osg::LightSource;
+	ls->getLight()->setPosition(osg::Vec4(0.5, 1.0, 1.0, 0.0));
+	ls->getLight()->setAmbient(osg::Vec4(0.2,0.2,0.2,1.0));
+	ls->getLight()->setAmbient(osg::Vec4(1, 1, 1, 1.0));
+	ls->getLight()->setConstantAttenuation(0.05);
+	ls->getLight()->setQuadraticAttenuation(0.05);
+	shadowedScene->addChild(ls.get());
 
 	// load terrain node
 	osg::ref_ptr<osg::Depth> t_depth = new osg::Depth;
@@ -1008,7 +1027,8 @@ void* RoboSim::graphics_thread(void *arg) {
 	osgUtil::LineSegmentIntersector::Intersection r_hits = r_segment->getFirstIntersection();
 	osg::Vec3d r_pos = r_hits.getWorldIntersectPoint();
 	t_transform->setPosition(osg::Vec3d(r_pos[0], r_pos[1], -r_pos[2]));
-	sim->_osgRoot->addChild(t_transform);
+	t_transform->setNodeMask(0x1);
+	shadowedScene->addChild(t_transform);
 
 	// skybox
 	osg::ref_ptr<osg::StateSet> stateset = new osg::StateSet();
@@ -1060,7 +1080,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	clearNode->setRequiresClear(false);
 	clearNode->setCullCallback(new TexMatCallback(*tm));
 	clearNode->addChild(transform);
-	sim->_osgRoot->addChild(clearNode);
+	root->addChild(clearNode);
 
 	// set up HUD
 	osg::ref_ptr<osg::Geode> HUDGeode = new osg::Geode();
@@ -1085,22 +1105,22 @@ void* RoboSim::graphics_thread(void *arg) {
 	textHUD->setAlignment(osgText::Text::CENTER_CENTER);
 	textHUD->setPosition( osg::Vec3(traits->width/2, 50, -1.5) );
 	textHUD->setColor( osg::Vec4(199, 77, 15, 1) );
-	sim->_osgRoot->addChild(HUDProjectionMatrix);
+	root->addChild(HUDProjectionMatrix);
 
 	// optimize the scene graph, remove redundant nodes and state etc.
 	osgUtil::Optimizer optimizer;
-	optimizer.optimize(sim->_osgRoot);
+	optimizer.optimize(root);
 
 	// set threading model
 	viewer->setThreadingModel(osgViewer::Viewer::AutomaticSelection);
 
 	// viewer event handlers
 	viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause), textHUD));
-	//viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
-	//viewer->addEventHandler(new osgViewer::WindowSizeHandler);
+	viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
+	viewer->addEventHandler(new osgViewer::WindowSizeHandler);
 
 	// set viewable
-	viewer->setSceneData(sim->_osgRoot);
+	viewer->setSceneData(root);
 
 	// signal connection functions that graphics are set up
 	SIGNAL(&(sim->_graphics_cond), &(sim->_graphics_mutex), sim->_graphics = 1);
@@ -1115,7 +1135,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	MUTEX_UNLOCK(&(sim->_viewer_mutex));
 
 	// clean up viewer & root
-	//printf("root   ref count: %d\n", sim->_osgRoot->referenceCount());
+	//printf("root   ref count: %d\n", root->referenceCount());
 	//printf("viewer ref count: %d\n", viewer->referenceCount());
 	viewer->setSceneData(NULL);
 #ifdef _WIN32_

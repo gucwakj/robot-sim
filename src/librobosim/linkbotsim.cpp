@@ -2123,6 +2123,9 @@ int CLinkbotT::draw(osg::Group *root) {
 	// set update callback for robot
 	robot->setUpdateCallback(new linkbotNodeCallback(this));
 
+	// set shadow mask
+	robot->setNodeMask(0x2);
+
 	// optimize robot
 	osgUtil::Optimizer optimizer;
 	optimizer.optimize(robot);

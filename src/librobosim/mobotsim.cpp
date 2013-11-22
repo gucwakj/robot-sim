@@ -2558,6 +2558,9 @@ int CMobot::draw(osg::Group *root) {
 	// set update callback for robot
 	robot->setUpdateCallback(new mobotNodeCallback(this));
 
+	// set shadow mask
+	robot->setNodeMask(0x2);
+
 	// optimize robot
 	osgUtil::Optimizer optimizer;
 	optimizer.optimize(robot);
