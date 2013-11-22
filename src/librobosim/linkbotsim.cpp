@@ -54,7 +54,11 @@ int CLinkbotT::blinkLED(double delay, int num) {
 int CLinkbotT::connect(void) {
 	// create simulation object if necessary
 	if (!_simObject)
-		_simObject = new RoboSim;
+#ifdef _CH_
+		_simObject = new RoboSim(isEmbeddedCh());
+#else
+		_simObject = new RoboSim(1);
+#endif
 
 	// add to simulation
 	_simObject->addRobot(this);

@@ -10,7 +10,7 @@ HEADERS= $(SRC)/robosim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics.
 CPPFLAGS = -DdDOUBLE -fPIC
 INCLUDES=-I../librobosim/build/ -I../opende/sys/include/ -I../openscenegraph/sys/include/ -I../tinyxml2/
 LIBPATHS=-L../opende/sys/lib/ -L../openscenegraph/build/lib/ -L../tinyxml2/build/
-LIBS = -losg -losgViewer -losgUtil -lOpenThreads -losgGA -losgDB -losgFX -lode -ltinyxml2
+LIBS = -losg -losgViewer -losgUtil -lOpenThreads -losgGA -losgDB -losgFX -losgShadow -lode -ltinyxml2
 
 target: librobosim.dl
 
@@ -76,12 +76,13 @@ createpkg: librobosim.dl
 	mkdir $(PKGDIR)/bin
 	cp ../opende/sys/lib/libode.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosg.so $(PKGDIR)/bin
-	cp ../openscenegraph/build/lib/libosgViewer.so $(PKGDIR)/bin
-	cp ../openscenegraph/build/lib/libosgUtil.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosgDB.so $(PKGDIR)/bin
-	cp ../openscenegraph/build/lib/libosgGA.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosgFX.so $(PKGDIR)/bin
+	cp ../openscenegraph/build/lib/libosgGA.so $(PKGDIR)/bin
+	cp ../openscenegraph/build/lib/libosgShadow.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosgText.so $(PKGDIR)/bin
+	cp ../openscenegraph/build/lib/libosgUtil.so $(PKGDIR)/bin
+	cp ../openscenegraph/build/lib/libosgViewer.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libOpenThreads.so $(PKGDIR)/bin
 	mkdir $(PKGDIR)/bin/gui
 	cp ../configurator/build/robosimconfigurator $(PKGDIR)/bin/gui

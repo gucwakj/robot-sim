@@ -11,7 +11,7 @@ HEADERS= $(SRC)/robosim.h $(SRC)/mobotsim.h $(SRC)/linkbotsim.h $(SRC)/graphics.
 CPPFLAGS = -DdDOUBLE /EHsc
 INCLUDES = /I ../librobosim/build /I ../opende/include /I ../tinyxml2 /I ../openscenegraph/include /I ../openscenegraph/build/include
 LIBPATHS = /LIBPATH:../opende/lib/Release/ /LIBPATH:../tinyxml2/build/Release/ /LIBPATH:../openscenegraph/build/lib/
-LIBS = osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgFX.lib osgText.lib ode.lib tinyxml2.lib Shell32.lib
+LIBS = osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgFX.lib osgShadow.lib osgText.lib ode.lib tinyxml2.lib Shell32.lib
 
 target: librobosim.dl
 
@@ -77,12 +77,13 @@ createpkg: librobosim.dl
 	mkdir $(PKGDIR)/bin
 	cp ../opende/lib/Release/ode.dll $(PKGDIR)/bin
 	cp ../openscenegraph/build/bin/osg80-osg.dll $(PKGDIR)/bin
-	cp ../openscenegraph/build/bin/osg80-osgViewer.dll $(PKGDIR)/bin
-	cp ../openscenegraph/build/bin/osg80-osgUtil.dll $(PKGDIR)/bin
 	cp ../openscenegraph/build/bin/osg80-osgDB.dll $(PKGDIR)/bin
-	cp ../openscenegraph/build/bin/osg80-osgGA.dll $(PKGDIR)/bin
 	cp ../openscenegraph/build/bin/osg80-osgFX.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgGA.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgShadow.dll $(PKGDIR)/bin
 	cp ../openscenegraph/build/bin/osg80-osgText.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgUtil.dll $(PKGDIR)/bin
+	cp ../openscenegraph/build/bin/osg80-osgViewer.dll $(PKGDIR)/bin
 	cp ../openscenegraph/build/bin/ot12-OpenThreads.dll $(PKGDIR)/bin
 	cp ../openscenegraph/third_party/$(ARCH)/bin/glut32.dll $(PKGDIR)/bin
 	cp ../openscenegraph/third_party/$(ARCH)/bin/libpng13.dll $(PKGDIR)/bin

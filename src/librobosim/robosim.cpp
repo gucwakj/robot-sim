@@ -4,12 +4,12 @@ using namespace std;
 // global robot simulation object
 RoboSim *_simObject = NULL;
 
-RoboSim::RoboSim(void) {
+RoboSim::RoboSim(int pause) {
 	// initialize ode
 	init_ode();
 
 	// initialize simulation
-	init_sim();
+	init_sim(pause);
 
 	// initialize xml config file
 	init_xml();
@@ -105,7 +105,7 @@ int RoboSim::init_ode(void) {
 	return 0;
 }
 
-int RoboSim::init_sim(void) {
+int RoboSim::init_sim(int pause) {
 	// default collision parameters
 	_mu[0] = 0.4;	_mu[1] = 0.3;
 	_cor[0] = 0.3;	_cor[1] = 0.3;
@@ -121,7 +121,7 @@ int RoboSim::init_sim(void) {
 	_running = 1;			// is simulation running
 	_pause = 0;				// do not start paused w/o graphics
 #ifdef ENABLE_GRAPHICS
-	_pause = 1;				// pause on graphics start
+	_pause = pause;			// pause on graphics start
 #endif
     _step = 0.004;			// initial time step
 	_clock = 0;				// start clock
@@ -1100,7 +1100,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	HUDStateSet->setRenderBinDetails( 11, "RenderBin");
 	HUDGeode->addDrawable( textHUD );
 	textHUD->setCharacterSize(20);
-	textHUD->setText("PAUSED: Press any key to start");
+	if (sim->_pause) textHUD->setText("PAUSED: Press any key to start");
 	textHUD->setAxisAlignment(osgText::Text::SCREEN);
 	textHUD->setAlignment(osgText::Text::CENTER_CENTER);
 	textHUD->setPosition( osg::Vec3(traits->width/2, 50, -1.5) );
@@ -1160,5 +1160,9 @@ void delay(double seconds) {
 #else
 	usleep((int)(seconds*1000000));
 #endif
+}
+#else	// _CH_
+int isEmbeddedCh(void) {
+	return 1;
 }
 #endif
