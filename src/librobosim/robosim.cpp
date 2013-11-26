@@ -996,13 +996,13 @@ void* RoboSim::graphics_thread(void *arg) {
 	shadowedScene->setShadowTechnique(sm.get());
 
 	// add light source
-	osg::ref_ptr<osg::LightSource> ls = new osg::LightSource;
+	/*osg::ref_ptr<osg::LightSource> ls = new osg::LightSource;
 	ls->getLight()->setPosition(osg::Vec4(0.5, 1.0, 1.0, 0.0));
 	ls->getLight()->setAmbient(osg::Vec4(0.2,0.2,0.2,1.0));
 	ls->getLight()->setAmbient(osg::Vec4(1, 1, 1, 1.0));
 	ls->getLight()->setConstantAttenuation(0.05);
 	ls->getLight()->setQuadraticAttenuation(0.05);
-	shadowedScene->addChild(ls.get());
+	shadowedScene->addChild(ls.get());*/
 
 	// load terrain node
 	osg::ref_ptr<osg::Depth> t_depth = new osg::Depth;
