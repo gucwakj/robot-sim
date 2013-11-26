@@ -1215,7 +1215,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	HUDStateSet->setRenderBinDetails( 11, "RenderBin");
 	HUDGeode->addDrawable( textHUD );
 	textHUD->setCharacterSize(20);
-	if (sim->_pause) textHUD->setText("PAUSED: Press any key to start");
+	if (sim->_pause) textHUD->setText("Paused: Press any key to start");
 	textHUD->setAxisAlignment(osgText::Text::SCREEN);
 	textHUD->setAlignment(osgText::Text::CENTER_CENTER);
 	textHUD->setPosition( osg::Vec3(traits->width/2, 50, -1.5) );
