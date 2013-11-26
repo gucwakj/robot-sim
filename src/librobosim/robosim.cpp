@@ -135,6 +135,7 @@ int RoboSim::init_xml(void) {
 	int *rtmp, *ftmp, *ntmp, *atmp, ctype = 0, cnum = 0;
 	_bot = NULL;
 	_robots = NULL;
+	tinyxml2::XMLElement *node = NULL;
 	tinyxml2::XMLElement *ele = NULL;
 	tinyxml2::XMLElement *side = NULL;
 
@@ -155,8 +156,29 @@ int RoboSim::init_xml(void) {
 		exit(-1);
 	}
 
+#ifdef ENABLE_GRAPHICS
+	// read in grid line configuration
+	if (node = doc.FirstChildElement("config")->FirstChildElement("grid")) {
+		node->QueryIntAttribute("units", &_us);
+		node->QueryDoubleAttribute("tics", &_grid[0]);
+		node->QueryDoubleAttribute("major", &_grid[1]);
+		node->QueryDoubleAttribute("dist", &_grid[2]);
+		if (_us) {
+			_grid[0] *= 3.281/_grid[1];
+			_grid[1] = 3.281/_grid[1];
+			_grid[2] /= 3.281;
+		}
+	}
+	else {
+		_us = 1;				// customary units
+		_grid[0] = 12*3.281;	// sub tics
+		_grid[1] = 3.281;		// major grid lines
+		_grid[2] = 4/3.281;		// total distance
+	}
+#endif
+
 	// get root node of xml file
-	tinyxml2::XMLElement *node = doc.FirstChildElement("sim")->FirstChildElement();
+	node = doc.FirstChildElement("sim")->FirstChildElement();
 
 	// loop over all nodes
 	while (node) {
@@ -1031,14 +1053,13 @@ void* RoboSim::graphics_thread(void *arg) {
 	shadowedScene->addChild(t_transform);
 
 	// x- and y-axis lines
-	double dist = 4/3.281;		// number of units in positive direction
 	osg::Geode *gridGeode3 = new osg::Geode();
 	osg::Geometry *gridLines3 = new osg::Geometry();
 	osg::Vec3 myCoords3[4];
-	myCoords3[0] = osg::Vec3(-dist,  0, 0.0);
-	myCoords3[1] = osg::Vec3( dist,  0, 0.0);
-	myCoords3[2] = osg::Vec3( 0, -dist, 0.0);
-	myCoords3[3] = osg::Vec3( 0,  dist, 0.0);
+	myCoords3[0] = osg::Vec3(-sim->_grid[2],  0, 0.0);
+	myCoords3[1] = osg::Vec3( sim->_grid[2],  0, 0.0);
+	myCoords3[2] = osg::Vec3( 0, -sim->_grid[2], 0.0);
+	myCoords3[3] = osg::Vec3( 0,  sim->_grid[2], 0.0);
 	osg::Vec3Array *vertices3 = new osg::Vec3Array(4, myCoords3);
 	gridLines3->setVertexArray(vertices3);
 	gridLines3->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 4));
@@ -1058,20 +1079,19 @@ void* RoboSim::graphics_thread(void *arg) {
 	shadowedScene->addChild(gridGeode3);
 
 	// grid lines for each foot
-	double tics = 3.281;		// tics per unit (meter, foot)
-	int numVertices = 8*(2*dist*tics - 1);
+	int numVertices = 8*(2*sim->_grid[2]*sim->_grid[1] - 1);
 	osg::Geode *gridGeode2 = new osg::Geode();
 	osg::Geometry *gridLines2 = new osg::Geometry();
 	osg::Vec3 myCoords2[numVertices];
-	for (int i = 0; i <= (int)(dist*tics); i++) {
-		myCoords2[8*i+0] = osg::Vec3(-dist,  i/tics, 0.0);
-		myCoords2[8*i+1] = osg::Vec3( dist,  i/tics, 0.0);
-		myCoords2[8*i+2] = osg::Vec3(-dist, -i/tics, 0.0);
-		myCoords2[8*i+3] = osg::Vec3( dist, -i/tics, 0.0);
-		myCoords2[8*i+4] = osg::Vec3( i/tics, -dist, 0.0);
-		myCoords2[8*i+5] = osg::Vec3( i/tics,  dist, 0.0);
-		myCoords2[8*i+6] = osg::Vec3(-i/tics, -dist, 0.0);
-		myCoords2[8*i+7] = osg::Vec3(-i/tics,  dist, 0.0);
+	for (int i = 0; i < (int)(sim->_grid[2]*sim->_grid[1]); i++) {
+		myCoords2[8*i+0] = osg::Vec3(-sim->_grid[2],  (i+1)/sim->_grid[1], 0.0);
+		myCoords2[8*i+1] = osg::Vec3( sim->_grid[2],  (i+1)/sim->_grid[1], 0.0);
+		myCoords2[8*i+2] = osg::Vec3(-sim->_grid[2], -(i+1)/sim->_grid[1], 0.0);
+		myCoords2[8*i+3] = osg::Vec3( sim->_grid[2], -(i+1)/sim->_grid[1], 0.0);
+		myCoords2[8*i+4] = osg::Vec3( (i+1)/sim->_grid[1], -sim->_grid[2], 0.0);
+		myCoords2[8*i+5] = osg::Vec3( (i+1)/sim->_grid[1],  sim->_grid[2], 0.0);
+		myCoords2[8*i+6] = osg::Vec3(-(i+1)/sim->_grid[1], -sim->_grid[2], 0.0);
+		myCoords2[8*i+7] = osg::Vec3(-(i+1)/sim->_grid[1],  sim->_grid[2], 0.0);
 	}
 	osg::Vec3Array *vertices2 = new osg::Vec3Array(numVertices, myCoords2);
 	gridLines2->setVertexArray(vertices2);
@@ -1092,20 +1112,19 @@ void* RoboSim::graphics_thread(void *arg) {
 	shadowedScene->addChild(gridGeode2);
 
 	// grid lines for each sub-foot
-	tics = 12*3.281;		// tics every inch (12in/12tics)
-	numVertices = 8*(2*dist*tics - 1);
+	numVertices = 8*(2*sim->_grid[2]*sim->_grid[0] - 1);
 	osg::Geode *gridGeode = new osg::Geode();
 	osg::Geometry *gridLines = new osg::Geometry();
 	osg::Vec3 myCoords[numVertices];
-	for (int i = 0; i <= (int)(dist*tics); i++) {
-		myCoords[8*i+0] = osg::Vec3(-dist,  i/tics, 0.0);
-		myCoords[8*i+1] = osg::Vec3( dist,  i/tics, 0.0);
-		myCoords[8*i+2] = osg::Vec3(-dist, -i/tics, 0.0);
-		myCoords[8*i+3] = osg::Vec3( dist, -i/tics, 0.0);
-		myCoords[8*i+4] = osg::Vec3( i/tics, -dist, 0.0);
-		myCoords[8*i+5] = osg::Vec3( i/tics,  dist, 0.0);
-		myCoords[8*i+6] = osg::Vec3(-i/tics, -dist, 0.0);
-		myCoords[8*i+7] = osg::Vec3(-i/tics,  dist, 0.0);
+	for (int i = 0; i < (int)(sim->_grid[2]*sim->_grid[0]); i++) {
+		myCoords[8*i+0] = osg::Vec3(-sim->_grid[2],  (i+1)/sim->_grid[0], 0.0);
+		myCoords[8*i+1] = osg::Vec3( sim->_grid[2],  (i+1)/sim->_grid[0], 0.0);
+		myCoords[8*i+2] = osg::Vec3(-sim->_grid[2], -(i+1)/sim->_grid[0], 0.0);
+		myCoords[8*i+3] = osg::Vec3( sim->_grid[2], -(i+1)/sim->_grid[0], 0.0);
+		myCoords[8*i+4] = osg::Vec3( (i+1)/sim->_grid[0], -sim->_grid[2], 0.0);
+		myCoords[8*i+5] = osg::Vec3( (i+1)/sim->_grid[0],  sim->_grid[2], 0.0);
+		myCoords[8*i+6] = osg::Vec3(-(i+1)/sim->_grid[0], -sim->_grid[2], 0.0);
+		myCoords[8*i+7] = osg::Vec3(-(i+1)/sim->_grid[0],  sim->_grid[2], 0.0);
 	}
 	osg::Vec3Array *vertices = new osg::Vec3Array(numVertices, myCoords);
 	gridLines->setVertexArray(vertices);
@@ -1127,7 +1146,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	xtext->setText("x");
 	xtext->setCharacterSize(0.2);
 	xtext->setColor(osg::Vec4(0, 0, 0, 1));
-	xbillboard->addDrawable(xtext, osg::Vec3d(dist, 0.0, 0.0));
+	xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[2], 0.0, 0.0));
 	xbillboard->setMode(osg::Billboard::AXIAL_ROT);
 	xbillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
 	xbillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
@@ -1139,7 +1158,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	ytext->setText("y");
 	ytext->setCharacterSize(0.2);
 	ytext->setColor(osg::Vec4(0, 0, 0, 1));
-	ybillboard->addDrawable(ytext, osg::Vec3d(0.0, dist, 0.0));
+	ybillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[2], 0.0));
 	ybillboard->setMode(osg::Billboard::AXIAL_ROT);
 	ybillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
 	ybillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));

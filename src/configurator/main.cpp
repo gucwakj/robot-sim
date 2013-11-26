@@ -212,6 +212,92 @@ G_MODULE_EXPORT void on_simulated_toggled(GtkWidget *widget, gpointer data) {
 }
 
 /*
+ * When us customary units are chosen
+ */
+G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "us")))) {
+		// set configuration options
+		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+		grid->SetAttribute("units", 1);
+		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
+		grid->SetAttribute("tics", tics);
+		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
+		grid->SetAttribute("major", major);
+		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
+		grid->SetAttribute("dist", dist);
+
+		// change labels
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (ft): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Major Hashmarks (ft): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Tics Per Hashmark: ");
+
+		// save file
+		g_doc.SaveFile(g_xml);
+	}
+}
+
+/*
+ * When metrics units are chosen
+ */
+G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "metric")))) {
+		// set configuration options
+		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+		grid->SetAttribute("units", 0);
+		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
+		grid->SetAttribute("tics", tics);
+		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
+		grid->SetAttribute("major", major);
+		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
+		grid->SetAttribute("dist", dist);
+
+		// change labels
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (m): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Major Hashmarks (m): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Tics Per Hashmark: ");
+
+		// save file
+		g_doc.SaveFile(g_xml);
+	}
+}
+
+/*
+ * When distance value changed
+ */
+G_MODULE_EXPORT void on_dist_value_changed(GtkWidget *widget, gpointer data) {
+	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	grid->SetAttribute("dist", val);
+
+	// save file
+	g_doc.SaveFile(g_xml);
+}
+
+/*
+ * When major tics value changed
+ */
+G_MODULE_EXPORT void on_major_value_changed(GtkWidget *widget, gpointer data) {
+	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	grid->SetAttribute("major", val);
+
+	// save file
+	g_doc.SaveFile(g_xml);
+}
+
+/*
+ * When tics value changed
+ */
+G_MODULE_EXPORT void on_tics_value_changed(GtkWidget *widget, gpointer data) {
+	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	grid->SetAttribute("tics", val);
+
+	// save file
+	g_doc.SaveFile(g_xml);
+}
+
+/*
  * When a robots type is changed
  */
 G_MODULE_EXPORT void on_type_changed(GtkWidget *widget, gpointer data) {
@@ -1230,6 +1316,14 @@ void readXMLConfig(void) {
 		tinyxml2::XMLElement *type = g_doc.NewElement("type");
 		type->SetAttribute("val", 0);
 		config->InsertAfterChild(version, type);
+		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
+		grid->SetAttribute("units", 0);
+		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
+		grid->SetAttribute("tics", tics);
+		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
+		grid->SetAttribute("major", major);
+		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
+		grid->SetAttribute("dist", dist);
 
 		// create empty simulation
 		tinyxml2::XMLElement *sim = g_doc.NewElement("sim");
@@ -1249,6 +1343,35 @@ void readXMLConfig(void) {
 	// check version of config file
 	if (node = g_doc.FirstChildElement("config")->FirstChildElement("version")) {
 		node->QueryIntAttribute("val", &version);
+	}
+
+	// check grid settings
+	if (node = g_doc.FirstChildElement("config")->FirstChildElement("grid")) {
+		int units;
+		node->QueryIntAttribute("units", &units);
+
+		// set labels
+		if (units) {
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "us")), 1);
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (ft): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Major Hashmarks (ft): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Tics Per Hashmark: ");
+		}
+		else {
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "metric")), 1);
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (m): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Major Hashmarks (m): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Tics Per Hashmark: ");
+		}
+
+		// set grid line variables
+		double tics, major, dist;
+		node->QueryDoubleAttribute("tics", &tics);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
+		node->QueryDoubleAttribute("major", &major);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
+		node->QueryDoubleAttribute("dist", &dist);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
 	}
 
 	// check invidivual vs preconfigured
