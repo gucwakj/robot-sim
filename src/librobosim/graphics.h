@@ -6,10 +6,12 @@
 
 #include <OpenThreads/Thread>
 
+#include <osg/Billboard>
 #include <osg/ClearNode>
 #include <osg/CullFace>
 #include <osg/Depth>
 #include <osg/Geometry>
+#include <osg/LineWidth>
 #include <osg/Material>
 #include <osg/MatrixTransform>
 #include <osg/Notify>

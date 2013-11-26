@@ -1030,6 +1030,121 @@ void* RoboSim::graphics_thread(void *arg) {
 	t_transform->setNodeMask(0x1);
 	shadowedScene->addChild(t_transform);
 
+	// x- and y-axis lines
+	double dist = 4/3.281;		// number of units in positive direction
+	osg::Geode *gridGeode3 = new osg::Geode();
+	osg::Geometry *gridLines3 = new osg::Geometry();
+	osg::Vec3 myCoords3[4];
+	myCoords3[0] = osg::Vec3(-dist,  0, 0.0);
+	myCoords3[1] = osg::Vec3( dist,  0, 0.0);
+	myCoords3[2] = osg::Vec3( 0, -dist, 0.0);
+	myCoords3[3] = osg::Vec3( 0,  dist, 0.0);
+	osg::Vec3Array *vertices3 = new osg::Vec3Array(4, myCoords3);
+	gridLines3->setVertexArray(vertices3);
+	gridLines3->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 4));
+	// set color
+	osg::Vec4Array *colors3 = new osg::Vec4Array;
+	colors3->push_back(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f) );	// black
+	gridLines3->setColorArray(colors3);
+	gridLines3->setColorBinding(osg::Geometry::BIND_OVERALL);
+	// set line width
+	osg::LineWidth *linewidth3 = new osg::LineWidth();
+	linewidth3->setWidth(3.0f);
+	gridGeode3->getOrCreateStateSet()->setAttributeAndModes(linewidth3, osg::StateAttribute::ON);
+	// enable shadowing
+	gridGeode3->setNodeMask(0x1);
+	// add to scene
+	gridGeode3->addDrawable(gridLines3);
+	shadowedScene->addChild(gridGeode3);
+
+	// grid lines for each foot
+	double tics = 3.281;		// tics per unit (meter, foot)
+	int numVertices = 8*(2*dist*tics - 1);
+	osg::Geode *gridGeode2 = new osg::Geode();
+	osg::Geometry *gridLines2 = new osg::Geometry();
+	osg::Vec3 myCoords2[numVertices];
+	for (int i = 0; i <= (int)(dist*tics); i++) {
+		myCoords2[8*i+0] = osg::Vec3(-dist,  i/tics, 0.0);
+		myCoords2[8*i+1] = osg::Vec3( dist,  i/tics, 0.0);
+		myCoords2[8*i+2] = osg::Vec3(-dist, -i/tics, 0.0);
+		myCoords2[8*i+3] = osg::Vec3( dist, -i/tics, 0.0);
+		myCoords2[8*i+4] = osg::Vec3( i/tics, -dist, 0.0);
+		myCoords2[8*i+5] = osg::Vec3( i/tics,  dist, 0.0);
+		myCoords2[8*i+6] = osg::Vec3(-i/tics, -dist, 0.0);
+		myCoords2[8*i+7] = osg::Vec3(-i/tics,  dist, 0.0);
+	}
+	osg::Vec3Array *vertices2 = new osg::Vec3Array(numVertices, myCoords2);
+	gridLines2->setVertexArray(vertices2);
+	gridLines2->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, numVertices));
+	// set color
+	osg::Vec4Array *colors2 = new osg::Vec4Array;
+	colors2->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f) );	// red
+	gridLines2->setColorArray(colors2);
+	gridLines2->setColorBinding(osg::Geometry::BIND_OVERALL);
+	// set line width
+	osg::LineWidth *linewidth2 = new osg::LineWidth();
+	linewidth2->setWidth(2.0f);
+	gridGeode2->getOrCreateStateSet()->setAttributeAndModes(linewidth2, osg::StateAttribute::ON);
+	// enable shadowing
+	gridGeode2->setNodeMask(0x1);
+	// add to scene
+	gridGeode2->addDrawable(gridLines2);
+	shadowedScene->addChild(gridGeode2);
+
+	// grid lines for each sub-foot
+	tics = 12*3.281;		// tics every inch (12in/12tics)
+	numVertices = 8*(2*dist*tics - 1);
+	osg::Geode *gridGeode = new osg::Geode();
+	osg::Geometry *gridLines = new osg::Geometry();
+	osg::Vec3 myCoords[numVertices];
+	for (int i = 0; i <= (int)(dist*tics); i++) {
+		myCoords[8*i+0] = osg::Vec3(-dist,  i/tics, 0.0);
+		myCoords[8*i+1] = osg::Vec3( dist,  i/tics, 0.0);
+		myCoords[8*i+2] = osg::Vec3(-dist, -i/tics, 0.0);
+		myCoords[8*i+3] = osg::Vec3( dist, -i/tics, 0.0);
+		myCoords[8*i+4] = osg::Vec3( i/tics, -dist, 0.0);
+		myCoords[8*i+5] = osg::Vec3( i/tics,  dist, 0.0);
+		myCoords[8*i+6] = osg::Vec3(-i/tics, -dist, 0.0);
+		myCoords[8*i+7] = osg::Vec3(-i/tics,  dist, 0.0);
+	}
+	osg::Vec3Array *vertices = new osg::Vec3Array(numVertices, myCoords);
+	gridLines->setVertexArray(vertices);
+	gridLines->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, numVertices));
+	// set color
+	osg::Vec4Array *colors = new osg::Vec4Array;
+	colors->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f) );	// white
+	gridLines->setColorArray(colors);
+	gridLines->setColorBinding(osg::Geometry::BIND_OVERALL);
+	// enable shadowing
+	gridGeode->setNodeMask(0x1);
+	// add to scene
+	gridGeode->addDrawable(gridLines);
+	shadowedScene->addChild(gridGeode);
+
+	// x-axis label
+	osg::ref_ptr<osg::Billboard> xbillboard = new osg::Billboard();
+	osg::ref_ptr<osgText::Text> xtext = new osgText::Text();
+	xtext->setText("x");
+	xtext->setCharacterSize(0.2);
+	xtext->setColor(osg::Vec4(0, 0, 0, 1));
+	xbillboard->addDrawable(xtext, osg::Vec3d(dist, 0.0, 0.0));
+	xbillboard->setMode(osg::Billboard::AXIAL_ROT);
+	xbillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
+	xbillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
+	root->addChild(xbillboard);
+
+	// y-axis label
+	osg::ref_ptr<osg::Billboard> ybillboard = new osg::Billboard();
+	osg::ref_ptr<osgText::Text> ytext = new osgText::Text();
+	ytext->setText("y");
+	ytext->setCharacterSize(0.2);
+	ytext->setColor(osg::Vec4(0, 0, 0, 1));
+	ybillboard->addDrawable(ytext, osg::Vec3d(0.0, dist, 0.0));
+	ybillboard->setMode(osg::Billboard::AXIAL_ROT);
+	ybillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
+	ybillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
+	root->addChild(ybillboard);
+
 	// skybox
 	osg::ref_ptr<osg::StateSet> stateset = new osg::StateSet();
 	osg::ref_ptr<osg::TexEnv> te = new osg::TexEnv;
