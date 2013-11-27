@@ -15,6 +15,7 @@
 #include <osg/Material>
 #include <osg/MatrixTransform>
 #include <osg/Notify>
+#include <osg/Object>
 #include <osg/PositionAttitudeTransform>
 #include <osg/ShapeDrawable>
 #include <osg/StateSet>
@@ -30,14 +31,16 @@
 #include <osgDB/ReadFile>
 #include <osgDB/Registry>
 
-#include <osgGA/StateSetManipulator>
 #include <osgGA/OrbitManipulator>
+#include <osgGA/StateSetManipulator>
 
-#include <osgShadow/ShadowedScene>
 #include <osgShadow/ShadowMap>
+#include <osgShadow/ShadowedScene>
 
-#include <osgUtil/Optimizer>
 #include <osgUtil/CullVisitor>
+#include <osgUtil/IntersectionVisitor>
+#include <osgUtil/LineSegmentIntersector>
+#include <osgUtil/Optimizer>
 #include <osgUtil/SmoothingVisitor>
 
 #include <osgViewer/Viewer>
@@ -81,14 +84,15 @@ class keyboardEventHandler : public osgGA::GUIEventHandler {
 };
 
 /**********************************************************
-	Mobot Node Callback
+	Mouse Pick Event Handler
  **********************************************************/
-class mobotNodeCallback : public osg::NodeCallback {
+class pickHandler : public osgGA::GUIEventHandler {
 	public:
-		mobotNodeCallback(CRobot *robot);
-		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+		pickHandler(void);
+		bool handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa);
+		void pick(const osgGA::GUIEventAdapter &ea, osgViewer::Viewer *viewer);
 	private:
-		CRobot *_robot;
+		float _mx, _my;
 };
 
 /**********************************************************
@@ -97,6 +101,17 @@ class mobotNodeCallback : public osg::NodeCallback {
 class linkbotNodeCallback : public osg::NodeCallback {
 	public:
 		linkbotNodeCallback(CRobot *robot);
+		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+	private:
+		CRobot *_robot;
+};
+
+/**********************************************************
+	Mobot Node Callback
+ **********************************************************/
+class mobotNodeCallback : public osg::NodeCallback {
+	public:
+		mobotNodeCallback(CRobot *robot);
 		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 	private:
 		CRobot *_robot;

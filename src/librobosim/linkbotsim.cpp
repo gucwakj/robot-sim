@@ -2090,6 +2090,7 @@ int CLinkbotT::draw(osg::Group *root) {
 		robot->addChild(pat[i].get());
 	}
 
+	// add connectors
 	conn_t ctmp = _conn;
 	while (ctmp) {
 		switch (ctmp->type) {
@@ -2129,6 +2130,26 @@ int CLinkbotT::draw(osg::Group *root) {
 
 	// set shadow mask
 	robot->setNodeMask(0x2);
+
+	// draw HUD
+	osgText::Text *label = new osgText::Text();
+	osg::Geode *label_geode = new osg::Geode();
+	label_geode->addDrawable(label);
+	label_geode->setNodeMask(0x0);
+	robot->insertChild(0, label_geode);
+	char text[50];
+	pos = dBodyGetPosition(_body[BODY]);
+	sprintf(text, "Robot %d\n\n X: %8.4lf\n Y: %8.4lf", _id+1, pos[0], pos[1]);
+	label->setCharacterSize(0.017);
+	label->setDrawMode(osgText::Text::TEXT | osgText::Text::ALIGNMENT);
+	label->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	label->setAxisAlignment(osgText::Text::SCREEN);
+	label->setAlignment(osgText::Text::CENTER_TOP);
+	label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + 0.2175));
+	label->setColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+	// set user properties of node
+	robot->setName("robot");
 
 	// optimize robot
 	osgUtil::Optimizer optimizer;
