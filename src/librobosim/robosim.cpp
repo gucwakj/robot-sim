@@ -715,6 +715,23 @@ int RoboSim::addRobot(CRobot *robot) {
 }
 
 int RoboSim::deleteRobot(CRobot *robot) {
+	// pause simulation to view results only on first delete
+	MUTEX_LOCK(&(_pause_mutex));
+	static int paused = 0;
+	if (!paused++) {
+		_pause = 1;
+		osgText::Text *txt = dynamic_cast<osgText::Text *>(_shadowed->getParent(0)->getChild(4)->asGroup()->getChild(0)->asTransform()->getChild(0)->asGeode()->getDrawable(0));
+		txt->setText("Paused: Press any key to end");
+		while (_pause) {
+#ifdef _WIN32
+			Sleep(1);
+#else
+			usleep(100);
+#endif
+		}
+	}
+	MUTEX_UNLOCK(&(_pause_mutex));
+
 	// lock robot data to delete
 	MUTEX_LOCK(&_robot_mutex);
 
