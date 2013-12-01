@@ -135,8 +135,9 @@ void pickHandler::pick(const osgGA::GUIEventAdapter &ea, osgViewer::Viewer *view
 /**********************************************************
 	Linkbot Node Callback
  **********************************************************/
-linkbotNodeCallback::linkbotNodeCallback(CRobot *robot) {
+linkbotNodeCallback::linkbotNodeCallback(CRobot *robot, int units) {
 	_robot = robot;
+	_units = units;
 }
 
 void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
@@ -172,7 +173,10 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		osgText::Text *label = dynamic_cast<osgText::Text *>(geode->getDrawable(0));
 		char text[50];
 		pos = dBodyGetPosition(_robot->getBodyID(0));
-		sprintf(text, "Robot %d\n(%.4lf, %.4lf)", _robot->getRobotID()+1, pos[0], pos[1]);
+		if (_units)
+			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [in]", _robot->getRobotID()+1, pos[0]*39.37, pos[1]*39.37);
+		else
+			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [cm]", _robot->getRobotID()+1, pos[0]*10, pos[1]*10);
 		label->setText(text);
 		label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + (_robot->getRobotID()%2 ? 0.1 : 0) + 0.15));
 		// draw tracking line
@@ -191,8 +195,9 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 /**********************************************************
 	Mobot Node Callback
  **********************************************************/
-mobotNodeCallback::mobotNodeCallback(CRobot *robot) {
+mobotNodeCallback::mobotNodeCallback(CRobot *robot, int units) {
 	_robot = robot;
+	_units = units;
 }
 
 void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
@@ -222,7 +227,10 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		osgText::Text *label = dynamic_cast<osgText::Text *>(geode->getDrawable(0));
 		char text[50];
 		pos = dBodyGetPosition(_robot->getBodyID(0));
-		sprintf(text, "Robot %d\n(%.4lf, %.4lf)", _robot->getRobotID()+1, pos[0], pos[1]);
+		if (_units)
+			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [in]", _robot->getRobotID()+1, pos[0]*39.37, pos[1]*39.37);
+		else
+			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [cm]", _robot->getRobotID()+1, pos[0]*10, pos[1]*10);
 		label->setText(text);
 		label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + (_robot->getRobotID()%2 ? 0.1 : 0) + 0.15));
 		// draw tracking line

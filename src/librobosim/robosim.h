@@ -20,6 +20,7 @@ class DLLIMPORT RoboSim {
 #ifndef _CH_
 		int addRobot(CRobot *robot);
 		int deleteRobot(CRobot *robot);
+		int getUnits(void);
 		int setExitState(void);
 	private:
 		// ground struct

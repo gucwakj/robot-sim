@@ -666,6 +666,7 @@
                         <property name="climb_rate">0.01</property>
                         <property name="snap_to_ticks">True</property>
                         <property name="numeric">True</property>
+                        <signal name="value-changed" handler="on_tics_value_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>

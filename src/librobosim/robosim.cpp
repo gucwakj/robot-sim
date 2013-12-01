@@ -770,6 +770,10 @@ int RoboSim::deleteRobot(CRobot *robot) {
 		return 1;
 }
 
+int RoboSim::getUnits(void) {
+	return _us;
+}
+
 int RoboSim::setExitState(void) {
 	MUTEX_LOCK(&_running_mutex);
 	while (_running) {

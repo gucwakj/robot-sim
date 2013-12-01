@@ -100,10 +100,11 @@ class pickHandler : public osgGA::GUIEventHandler {
  **********************************************************/
 class linkbotNodeCallback : public osg::NodeCallback {
 	public:
-		linkbotNodeCallback(CRobot *robot);
+		linkbotNodeCallback(CRobot *robot, int units);
 		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 	private:
 		CRobot *_robot;
+		int _units;
 };
 
 /**********************************************************
@@ -111,10 +112,11 @@ class linkbotNodeCallback : public osg::NodeCallback {
  **********************************************************/
 class mobotNodeCallback : public osg::NodeCallback {
 	public:
-		mobotNodeCallback(CRobot *robot);
+		mobotNodeCallback(CRobot *robot, int units);
 		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 	private:
 		CRobot *_robot;
+		int _units;
 };
 
 #endif /* GRAPHICS_H_ */

@@ -1317,13 +1317,14 @@ void readXMLConfig(void) {
 		type->SetAttribute("val", 0);
 		config->InsertAfterChild(version, type);
 		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
-		grid->SetAttribute("units", 0);
+		grid->SetAttribute("units", 1);
 		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
 		grid->SetAttribute("tics", tics);
 		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
 		grid->SetAttribute("major", major);
 		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
 		grid->SetAttribute("dist", dist);
+		config->InsertAfterChild(type, grid);
 
 		// create empty simulation
 		tinyxml2::XMLElement *sim = g_doc.NewElement("sim");
@@ -1365,8 +1366,9 @@ void readXMLConfig(void) {
 		}
 
 		// set grid line variables
-		double tics, major, dist;
-		node->QueryDoubleAttribute("tics", &tics);
+		double major, dist;
+		int tics;
+		node->QueryIntAttribute("tics", &tics);
 		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
 		node->QueryDoubleAttribute("major", &major);
 		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);

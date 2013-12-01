@@ -2561,7 +2561,7 @@ int CMobot::draw(osg::Group *root) {
 	}
 
 	// set update callback for robot
-	robot->setUpdateCallback(new mobotNodeCallback(this));
+	robot->setUpdateCallback(new mobotNodeCallback(this, _simObject->getUnits()));
 
 	// set shadow mask
 	robot->setNodeMask(0x2);
@@ -2571,10 +2571,6 @@ int CMobot::draw(osg::Group *root) {
 	osg::Geode *label_geode = new osg::Geode();
 	label_geode->addDrawable(label);
 	label_geode->setNodeMask(0x0);
-	robot->insertChild(0, label_geode);
-	char text[50];
-	pos = dBodyGetPosition(_body[CENTER]);
-	sprintf(text, "Robot %d\n(%.4lf, %.4lf)", _id+1, pos[0], pos[1]);
 	label->setCharacterSize(0.017);
 	label->setDrawMode(osgText::Text::TEXT | osgText::Text::ALIGNMENT);
 	label->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
@@ -2582,6 +2578,7 @@ int CMobot::draw(osg::Group *root) {
 	label->setAlignment(osgText::Text::CENTER_TOP);
 	label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + (_id%2 ? 0.05 : 0) + 0.2175));
 	label->setColor(osg::Vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	robot->insertChild(0, label_geode);
 
 	// draw tracking node
 	osg::Geode *trackingGeode = new osg::Geode();
