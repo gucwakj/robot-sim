@@ -88,6 +88,7 @@ createpkg: librobosim.dl
 	cp ../configurator/build/robosimconfigurator $(PKGDIR)/bin/gui
 	cp ../configurator/interface3.glade $(PKGDIR)/bin/gui/interface.glade
 	mkdir $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/robosim.ico $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/linkbot.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/mobot.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/explorer.jpg $(PKGDIR)/bin/gui/images

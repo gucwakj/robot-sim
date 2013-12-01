@@ -172,9 +172,9 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		osgText::Text *label = dynamic_cast<osgText::Text *>(geode->getDrawable(0));
 		char text[50];
 		pos = dBodyGetPosition(_robot->getBodyID(0));
-		sprintf(text, "Robot %d\n\n X: %8.4lf\n Y: %8.4lf", _robot->getRobotID()+1, pos[0], pos[1]);
+		sprintf(text, "Robot %d\n(%.4lf, %.4lf)", _robot->getRobotID()+1, pos[0], pos[1]);
 		label->setText(text);
-		label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + 0.2175));
+		label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + (_robot->getRobotID()%2 ? 0.1 : 0) + 0.15));
 		// draw tracking line
 		static int count = 2;
 		osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
@@ -222,9 +222,9 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		osgText::Text *label = dynamic_cast<osgText::Text *>(geode->getDrawable(0));
 		char text[50];
 		pos = dBodyGetPosition(_robot->getBodyID(0));
-		sprintf(text, "Robot %d\n\n X: %8.4lf\n Y: %8.4lf", _robot->getRobotID()+1, pos[0], pos[1]);
+		sprintf(text, "Robot %d\n(%.4lf, %.4lf)", _robot->getRobotID()+1, pos[0], pos[1]);
 		label->setText(text);
-		label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + 0.2175));
+		label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + (_robot->getRobotID()%2 ? 0.1 : 0) + 0.15));
 		// draw tracking line
 		static int count = 2;
 		osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));

@@ -1099,7 +1099,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	int numVertices = 8*(2*sim->_grid[2]*sim->_grid[1] - 1);
 	osg::Geode *gridGeode2 = new osg::Geode();
 	osg::Geometry *gridLines2 = new osg::Geometry();
-	osg::Vec3 myCoords2[numVertices];
+	osg::Vec3 *myCoords2 = new osg::Vec3[numVertices];
 	for (int i = 0; i < (int)(sim->_grid[2]*sim->_grid[1]); i++) {
 		myCoords2[8*i+0] = osg::Vec3(-sim->_grid[2],  (i+1)/sim->_grid[1], 0.0);
 		myCoords2[8*i+1] = osg::Vec3( sim->_grid[2],  (i+1)/sim->_grid[1], 0.0);
@@ -1132,7 +1132,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	numVertices = 8*(2*sim->_grid[2]*sim->_grid[0] - 1);
 	osg::Geode *gridGeode = new osg::Geode();
 	osg::Geometry *gridLines = new osg::Geometry();
-	osg::Vec3 myCoords[numVertices];
+	osg::Vec3 *myCoords = new osg::Vec3[numVertices];
 	for (int i = 0; i < (int)(sim->_grid[2]*sim->_grid[0]); i++) {
 		myCoords[8*i+0] = osg::Vec3(-sim->_grid[2],  (i+1)/sim->_grid[0], 0.0);
 		myCoords[8*i+1] = osg::Vec3( sim->_grid[2],  (i+1)/sim->_grid[0], 0.0);
