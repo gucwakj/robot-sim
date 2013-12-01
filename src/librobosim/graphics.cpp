@@ -53,9 +53,21 @@ void keyboardEventHandler::accept(osgGA::GUIEventHandlerVisitor &v) {
 };
 
 bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa) {
+	osgViewer::Viewer *viewer = dynamic_cast<osgViewer::Viewer *>(&aa);
+	osg::Group *root = dynamic_cast<osg::Group *>(viewer->getSceneData());
+	osgShadow::ShadowedScene *shadow = dynamic_cast<osgShadow::ShadowedScene*>(root->getChild(0));
+
 	switch (ea.getEventType()) {
 		case osgGA::GUIEventAdapter::KEYDOWN:
 			switch (ea.getKey()) {
+				case 't':
+					for (int i = 0; i < shadow->getNumChildren(); i++) {
+						if (shadow->getChild(i)->getName() == "robot") {
+							osg::Geode *geode = dynamic_cast<osg::Geode *>(shadow->getChild(i)->asGroup()->getChild(1));
+							geode->setNodeMask((geode->getNodeMask() ? 0x0 : 0xffffffff));
+						}
+					}
+					return true;
 				default:
 					*_pause = (*_pause) ? 0 : 1;
 					if (*_pause)
@@ -134,9 +146,9 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		int i, k = 0;
 		osg::PositionAttitudeTransform *pat;
 		// draw body parts
-		for (i = 1; i < 5; i++) {
-			pos = dBodyGetPosition(_robot->getBodyID(i-1));
-			quat = dBodyGetQuaternion(_robot->getBodyID(i-1));
+		for (i = 2; i < 2+4; i++) {
+			pos = dBodyGetPosition(_robot->getBodyID(i-2));
+			quat = dBodyGetQuaternion(_robot->getBodyID(i-2));
 			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i));
 			pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
 			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
@@ -163,6 +175,15 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		sprintf(text, "Robot %d\n\n X: %8.4lf\n Y: %8.4lf", _robot->getRobotID()+1, pos[0], pos[1]);
 		label->setText(text);
 		label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + 0.2175));
+		// draw tracking line
+		static int count = 2;
+		osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
+		osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode2->getDrawable(0)->asGeometry());
+		osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
+		vertices->push_back(osg::Vec3(pos[0], pos[1], 0));
+		vertices->push_back(osg::Vec3(pos[0], pos[1], 0));
+		osg::DrawArrays *array = dynamic_cast<osg::DrawArrays *>(draw->getPrimitiveSet(0));
+		array->setCount(count+=2);
 	}
 	traverse(node, nv);
 }
@@ -181,9 +202,9 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		int i, k = 0;
 		osg::PositionAttitudeTransform *pat;
 		// draw body parts
-		for (i = 1; i < 6; i++) {
-			pos = dBodyGetPosition(_robot->getBodyID(i-1));
-			quat = dBodyGetQuaternion(_robot->getBodyID(i-1));
+		for (i = 2; i < 2+5; i++) {
+			pos = dBodyGetPosition(_robot->getBodyID(i-2));
+			quat = dBodyGetQuaternion(_robot->getBodyID(i-2));
 			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i));
 			pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
 			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
@@ -204,6 +225,15 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		sprintf(text, "Robot %d\n\n X: %8.4lf\n Y: %8.4lf", _robot->getRobotID()+1, pos[0], pos[1]);
 		label->setText(text);
 		label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + 0.2175));
+		// draw tracking line
+		static int count = 2;
+		osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
+		osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode2->getDrawable(0)->asGeometry());
+		osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
+		vertices->push_back(osg::Vec3(pos[0], pos[1], 0));
+		vertices->push_back(osg::Vec3(pos[0], pos[1], 0));
+		osg::DrawArrays *array = dynamic_cast<osg::DrawArrays *>(draw->getPrimitiveSet(0));
+		array->setCount(count+=2);
 	}
 	traverse(node, nv);
 }

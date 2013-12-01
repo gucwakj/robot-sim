@@ -2583,6 +2583,29 @@ int CMobot::draw(osg::Group *root) {
 	label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + 0.2175));
 	label->setColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
+	// draw tracking node
+	osg::Geode *trackingGeode = new osg::Geode();
+	osg::Geometry *trackingLine = new osg::Geometry();
+	osg::Vec3Array *trackingVertices = new osg::Vec3Array();
+	trackingGeode->setNodeMask(0x0);
+	pos = dBodyGetPosition(_body[CENTER]);
+	trackingVertices->push_back(osg::Vec3(0, 0, 0));
+	trackingVertices->push_back(osg::Vec3(pos[0], pos[1], 0));
+	trackingVertices->push_back(osg::Vec3(pos[0], pos[1], 0));
+	trackingLine->setVertexArray(trackingVertices);
+	trackingLine->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 2));
+	trackingLine->setDataVariance(osg::Object::DYNAMIC);
+	trackingLine->setUseDisplayList(false);
+	osg::Vec4Array *colors = new osg::Vec4Array;
+	colors->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f) );	// green
+	trackingLine->setColorArray(colors);
+	trackingLine->setColorBinding(osg::Geometry::BIND_OVERALL);
+	osg::LineWidth *linewidth = new osg::LineWidth();
+	linewidth->setWidth(6.0f);
+	trackingGeode->getOrCreateStateSet()->setAttributeAndModes(linewidth, osg::StateAttribute::ON);
+	trackingGeode->addDrawable(trackingLine);
+	robot->insertChild(1, trackingGeode);
+
 	// set user properties of node
 	robot->setName("robot");
 
