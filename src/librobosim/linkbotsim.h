@@ -779,7 +779,6 @@ class DLLIMPORT CLinkbotLGroup {
 };
 void* RoboSim::_dlhandle = NULL;
 int RoboSim::_dlcount = 0;
-#pragma importf "chrobosim.chf"
 #pragma importf "chlinkbotisim.chf"
 #pragma importf "chlinkbotlsim.chf"
 #pragma importf "chlinkbottsim.chf"
