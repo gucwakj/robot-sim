@@ -203,7 +203,7 @@ mobotNodeCallback::mobotNodeCallback(CRobot *robot, int units) {
 void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	osg::Group *group = dynamic_cast<osg::Group *>(node);
 	if (group) {
-		const double *pos, *quat;
+		const double *pos, *posy, *quat;
 		int i, k = 0;
 		osg::PositionAttitudeTransform *pat;
 		// draw body parts
@@ -226,11 +226,12 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		osg::Geode *geode = dynamic_cast<osg::Geode *>(group->getChild(0));
 		osgText::Text *label = dynamic_cast<osgText::Text *>(geode->getDrawable(0));
 		char text[50];
-		pos = dBodyGetPosition(_robot->getBodyID(0));
+		pos = dBodyGetPosition(_robot->getBodyID(2));
+		posy = dBodyGetPosition(_robot->getBodyID(0));
 		if (_units)
-			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [in]", _robot->getRobotID()+1, pos[0]*39.37, pos[1]*39.37);
+			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [in]", _robot->getRobotID()+1, pos[0]*39.37, posy[1]*39.37);
 		else
-			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [cm]", _robot->getRobotID()+1, pos[0]*10, pos[1]*10);
+			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [cm]", _robot->getRobotID()+1, pos[0]*10, posy[1]*10);
 		label->setText(text);
 		label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + (_robot->getRobotID()%2 ? 0.1 : 0) + 0.15));
 		// draw tracking line

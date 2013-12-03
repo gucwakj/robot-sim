@@ -2322,7 +2322,7 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
     _angle[F3] = DEG2RAD(r_f3);	// face 3
 
 	// offset values for each body part[0-2] and joint[3-5] from center
-	double b[3] = {0, -_body_length/2, 0};
+	double b[3] = {0, 0, 0};
 	double f1[6] = {-_body_width/2 - _face_depth/2, 0, 0, -_body_width/2, 0, 0};
 	double f2[6] = {0, -_body_length - _face_depth/2, 0, 0, -_body_length, 0};
 	double f3[6] = {_body_width/2 + _face_depth/2, 0, 0, _body_width/2, 0, 0};
@@ -2459,88 +2459,87 @@ int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn) 
 }
 
 int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta) {
-    // define parameters
-    dMass m, m1, m2;
-    dMatrix3 R1, R2, R3;
+	// define parameters
+	dMass m, m1, m2;
+	dMatrix3 R1, R2, R3;
 
-    // set mass of body
-    dMassSetZero(&m);
-    dMassSetBox(&m1, 270, _body_width, _body_length, _body_height);
-    dMassAdd(&m, &m1);
+	// set mass of body
+	dMassSetZero(&m);
+	dMassSetBox(&m1, 270, _body_width, _body_length, _body_height);
+	dMassTranslate(&m1, 0, -_body_length/2, 0);
+	dMassAdd(&m, &m1);
 	dMassSetCylinder(&m2, 270, 1, _body_radius, _body_width);
-	dMassTranslate(&m2, 0, _body_length/2, 0);
-    dMassAdd(&m, &m2);
-    //dMassSetParameters( &m, 500, 1, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
+	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
+	dMassRotate(&m2, R1);
+	dMassAdd(&m, &m2);
+	dMassTranslate(&m, x - m.c[0], y - m.c[1], z - m.c[2]);
 
-    // adjsut x,y,z to position center of mass correctly
-    x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-    y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-    z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+	// adjsut x,y,z to position center of mass correctly
+	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
-    // set body parameters
-    dBodySetPosition(_body[BODY], x, y, z);
-    dBodySetRotation(_body[BODY], R);
+	// set body parameters
+	dBodySetPosition(_body[BODY], x, y, z);
+	dBodySetRotation(_body[BODY], R);
 
-    // rotation matrix for curves of d-shapes
-    //dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);
-    dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
-    dRFromAxisAndAngle(R3, 0, 0, 1, -theta);
-    dMultiply0(R2, R1, R3, 3, 3, 3);
+	// rotation matrix for curves of d-shapes
+	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
+	dRFromAxisAndAngle(R3, 0, 0, 1, -theta);
+	dMultiply0(R2, R1, R3, 3, 3, 3);
 
-    // set geometry 1 - square
-    //_geom[BODY][0] = dCreateBox(_space, _body_length, _body_width, _body_height);
-    _geom[BODY][0] = dCreateBox(_space, _body_width, _body_length, _body_height);
-    dGeomSetBody( _geom[BODY][0], _body[BODY]);
-    dGeomSetOffsetPosition(_geom[BODY][0], -m.c[0], -m.c[1], -m.c[2]);
-    // set geometry 2 - curve
+	// set geometry 1 - square
+	_geom[BODY][0] = dCreateBox(_space, _body_width, _body_length, _body_height);
+	dGeomSetBody( _geom[BODY][0], _body[BODY]);
+	dGeomSetOffsetPosition(_geom[BODY][0], -m.c[0], -_body_length/2 - m.c[1], -m.c[2]);
+	// set geometry 2 - curve
 	_geom[BODY][1] = dCreateCylinder(_space, _body_radius, _body_width);
 	dGeomSetBody( _geom[BODY][1], _body[BODY]);
-	dGeomSetOffsetPosition(_geom[BODY][1], -m.c[0], _body_length/2 - m.c[1], -m.c[2]);
+	dGeomSetOffsetPosition(_geom[BODY][1], -m.c[0], -m.c[1], -m.c[2]);
 	dGeomSetOffsetRotation( _geom[BODY][1], R2);
 
-    // set mass center to (0,0,0) of _bodyID
-    dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-    dBodySetMass(_body[BODY], &m);
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(_body[BODY], &m);
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, double theta) {
-    // define parameters
-    dMass m;
-    dMatrix3 R1, R2, R3;
+	// define parameters
+	dMass m;
+	dMatrix3 R1, R2, R3;
 
-    // set mass of body
+	// set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_face_radius, _face_depth);
-    //dMassSetParameters( &m, 500, 1, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
-    // adjsut x,y,z to position center of mass correctly
-    x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-    y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-    z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+	// adjsut x,y,z to position center of mass correctly
+	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
-    // set body parameters
-    dBodySetPosition(_body[id], x, y, z);
-    dBodySetRotation(_body[id], R);
+	// set body parameters
+	dBodySetPosition(_body[id], x, y, z);
+	dBodySetRotation(_body[id], R);
 
-    // rotation matrix for curves of d-shapes
+	// rotation matrix for curves of d-shapes
 	if ( id == 2)
 	    dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);		// SWITCHED X AND Y AXIS
 	else
 	    dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);		// SWITCHED X AND Y AXIS
-    dRFromAxisAndAngle(R3, 0, 0, 1, -theta);
-    dMultiply0(R2, R1, R3, 3, 3, 3);
+	dRFromAxisAndAngle(R3, 0, 0, 1, -theta);
+	dMultiply0(R2, R1, R3, 3, 3, 3);
 
-    // set geometry 2 - curve
+	// set geometry 2 - curve
 	_geom[id][0] = dCreateCylinder(_space, _face_radius, _face_depth);
 	dGeomSetBody( _geom[id][0], _body[id]);
 	dGeomSetOffsetPosition(_geom[id][0], -m.c[0], -m.c[1], -m.c[2]);
 	dGeomSetOffsetRotation( _geom[id][0], R2);
 
-    // set mass center to (0,0,0) of _bodyID
-    dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-    dBodySetMass(_body[id], &m);
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(_body[id], &m);
 
 	// success
 	return 0;
@@ -2549,11 +2548,11 @@ int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, doub
 int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
-    conn->geom = new dGeomID[1];
+	conn->geom = new dGeomID[1];
 
-    // define parameters
-    dMass m;
-    dMatrix3 R, R1;
+	// define parameters
+	dMass m;
+	dMatrix3 R, R1;
 	double p[3] = {0}, offset[3] = {_connector_depth/3, 0, 0};
 
 	// position center of connector
