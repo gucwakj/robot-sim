@@ -169,6 +169,15 @@ int CLinkbotT::getColorRGB(int &r, int &g, int &b) {
 	return 0;
 }
 
+int CLinkbotT::getDistance(double &distance, double radius) {
+	double angle;
+	this->getJointAngleAverage(ROBOT_JOINT1, angle, 2);
+	distance = DEG2RAD(angle) * radius;
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::getFormFactor(int &formFactor) {
 	formFactor = _type;
 
@@ -1815,7 +1824,8 @@ double CLinkbotT::getAngle(int i) {
 	else
 		_angle[i] = 0;
 
-	this->noisy(&(_angle[i]), 1, 0.0005);
+	// add noise to angle
+	//this->noisy(&(_angle[i]), 1, 0.0005);
 
     return _angle[i];
 }
@@ -3177,7 +3187,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_type = type;
 	_disabled = disabled;
 	_connected = 0;
-	_encoder = DEG2RAD(0.5);
+	_encoder = DEG2RAD(0.05);
 	_rgb[0] = 0;
 	_rgb[1] = 0;
 	_rgb[2] = 1;

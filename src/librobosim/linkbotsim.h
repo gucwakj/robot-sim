@@ -36,6 +36,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
 		int getColorRGB(int &r, int &g, int &b);
+		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getID();
 		int getJointAngle(robotJointId_t id, double &angle);
@@ -378,6 +379,7 @@ class DLLIMPORT CLinkbotI {
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
 		int getColorRGB(int &r, int &g, int &b);
+		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getID();
 		int getJointAngle(robotJointId_t id, double &angle);
@@ -581,6 +583,7 @@ class DLLIMPORT CLinkbotL {
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
 		int getColorRGB(int &r, int &g, int &b);
+		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getID();
 		int getJointAngle(robotJointId_t id, double &angle);

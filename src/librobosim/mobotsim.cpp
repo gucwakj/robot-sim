@@ -112,6 +112,15 @@ int CMobot::driveToNB(double angle1, double angle2, double angle3, double angle4
 	return 0;
 }
 
+int CMobot::getDistance(double &distance, double radius) {
+	double angle;
+	this->getJointAngleAverage(ROBOT_JOINT1, angle, 2);
+	distance = DEG2RAD(angle) * radius;
+
+	// success
+	return 0;
+}
+
 int CMobot::getFormFactor(int &formFactor) {
 	formFactor = _type;
 
@@ -2138,12 +2147,15 @@ int CMobot::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 }
 
 double CMobot::getAngle(int i) {
-	double angle = 0;
 	if (i == LE || i == RE)
-		angle = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
+		_angle[i] = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
 	else
-		angle = dJointGetHingeAngle(_joint[i]);
-	return angle;
+		_angle[i] = dJointGetHingeAngle(_joint[i]);
+
+	// add noise to angle
+	//this->noisy(&(_angle[i]), 1, 0.0005);
+
+	return _angle[i];
 }
 
 dBodyID CMobot::getBodyID(int id) {
@@ -3671,7 +3683,7 @@ int CMobot::init_params(void) {
 	_conn = NULL;
 	_id = -1;
 	_type = MOBOT;
-	_encoder = DEG2RAD(0.5);
+	_encoder = DEG2RAD(0.05);
 	_max_force[ROBOT_JOINT1] = 0.260;
 	_max_force[ROBOT_JOINT2] = 1.059;
 	_max_force[ROBOT_JOINT3] = 1.059;

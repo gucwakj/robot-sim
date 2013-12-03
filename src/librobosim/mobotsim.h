@@ -29,6 +29,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int driveToDirect(double angle1, double angle2, double angle3, double angle4);
 		int driveToDirectNB(double angle1, double angle2, double angle3, double angle4);
 		int driveToNB(double angle1, double angle2, double angle3, double angle4);
+		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getJointAngle(robotJointId_t id, double &angle);
 		int getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4);

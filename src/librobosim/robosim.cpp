@@ -107,7 +107,7 @@ int RoboSim::init_ode(void) {
 
 int RoboSim::init_sim(int pause) {
 	// default collision parameters
-	_mu[0] = 0.4;	_mu[1] = 0.3;
+	_mu[0] = 0.9;	_mu[1] = 0.3;
 	_cor[0] = 0.3;	_cor[1] = 0.3;
 
 	// thread variables
@@ -941,7 +941,8 @@ void RoboSim::print_intermediate_data(void) {
 			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT4)) << "\t\t";
 		}
 		else if (rtmp->robot->getType() == LINKBOTI) {
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT1)) << " ";
+			cout << rtmp->robot->getPosition(0, 1) << " ";
+			cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT1)) << " ";
 			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT2)) << " ";
 			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT3)) << " ";
 		}
