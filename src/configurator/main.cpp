@@ -10,6 +10,7 @@
 
 #define I2M(x) ((x)/39.370)
 #define M2I(x) ((x)*39.370)
+#define XML_VERSION 1
 
 typedef struct robots_s {
 	int id;
@@ -1311,7 +1312,7 @@ void readXMLConfig(void) {
 		tinyxml2::XMLElement *config = g_doc.NewElement("config");
 		g_doc.InsertAfterChild(dec, config);
 		tinyxml2::XMLElement *version = g_doc.NewElement("version");
-		version->SetAttribute("val", 1);
+		version->SetAttribute("val", XML_VERSION);
 		config->InsertFirstChild(version);
 		tinyxml2::XMLElement *type = g_doc.NewElement("type");
 		type->SetAttribute("val", 0);
@@ -1341,9 +1342,20 @@ void readXMLConfig(void) {
 	tinyxml2::XMLElement *ele;
 	int version = 0, type = 0;
 
+	// create config node if it doesn't exist
+	if ( (node = g_doc.FirstChildElement("config")) == NULL) {
+		node = g_doc.NewElement("config");
+		g_doc.InsertAfterChild(g_doc.FirstChild(), node);
+	}
+
 	// check version of config file
 	if (node = g_doc.FirstChildElement("config")->FirstChildElement("version")) {
 		node->QueryIntAttribute("val", &version);
+	}
+	else {
+		tinyxml2::XMLElement *version = g_doc.NewElement("version");
+		version->SetAttribute("val", XML_VERSION);
+		g_doc.FirstChildElement("config")->InsertFirstChild(version);
 	}
 
 	// check grid settings
@@ -1375,6 +1387,17 @@ void readXMLConfig(void) {
 		node->QueryDoubleAttribute("dist", &dist);
 		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
 	}
+	else {
+		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
+		grid->SetAttribute("units", 1);
+		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
+		grid->SetAttribute("tics", tics);
+		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
+		grid->SetAttribute("major", major);
+		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
+		grid->SetAttribute("dist", dist);
+		g_doc.FirstChildElement("config")->InsertFirstChild(grid);
+	}
 
 	// check invidivual vs preconfigured
 	if (node = g_doc.FirstChildElement("config")->FirstChildElement("type")) {
@@ -1400,10 +1423,19 @@ void readXMLConfig(void) {
 				break;
 		}
 	}
+	else {
+		tinyxml2::XMLElement *type = g_doc.NewElement("type");
+		type->SetAttribute("val", 0);
+		g_doc.FirstChildElement("config")->InsertFirstChild(type);
+	}
 
 	// read individual robot configuration
 	if (!type) {
-		node = g_doc.FirstChildElement("sim")->FirstChildElement();
+		if ( (node = g_doc.FirstChildElement("sim")) == NULL) {
+			node = g_doc.NewElement("sim");
+			g_doc.InsertAfterChild(g_doc.FirstChildElement("config"), node);
+		}
+		node = node->FirstChildElement();
 		robots_t tmp = g_robots;
 		while (node) {
 			if ( !strcmp(node->Value(), "linkboti") ) {
