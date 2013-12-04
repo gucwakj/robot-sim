@@ -8,8 +8,6 @@
 #include <gtk/gtk.h>
 #include <tinyxml2.h>
 
-#define I2M(x) ((x)/39.370)
-#define M2I(x) ((x)*39.370)
 #define XML_VERSION 1
 
 typedef struct robots_s {
@@ -28,6 +26,7 @@ tinyxml2::XMLDocument g_doc;
 FILE *fp = NULL;
 char g_xml[512], g_chrc[512], *fpbuf;
 int g_num = 0;
+int g_units = 1;
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,6 +54,7 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data);
 
+double convert(double value, int tometer);
 void printRoboSimPath(void);
 void readXMLConfig(void);
 void refreshRobotList(void);
@@ -232,6 +232,15 @@ G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data) {
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
 
+		// save units
+		g_units = 1;
+
+		// change labels
+		refreshRobotList();
+
+		// save configuration
+		saveRobotList();
+
 		// save file
 		g_doc.SaveFile(g_xml);
 	}
@@ -256,6 +265,15 @@ G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data) {
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (cm): ");
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (cm): ");
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (cm): ");
+
+		// save units
+		g_units = 0;
+
+		// change labels
+		refreshRobotList();
+
+		// save configuration
+		saveRobotList();
 
 		// save file
 		g_doc.SaveFile(g_xml);
@@ -348,7 +366,7 @@ G_MODULE_EXPORT void on_x_value_changed(GtkWidget *widget, gpointer data) {
 	// if the robot is found, change its x value
 	if (tmp) {
 		// store new value
-		tmp->x = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+		tmp->x = convert(gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget)), 1);
 
 		// save configuration
 		saveRobotList();
@@ -370,7 +388,7 @@ G_MODULE_EXPORT void on_y_value_changed(GtkWidget *widget, gpointer data) {
 	// if the robot is found, change its y value
 	if (tmp) {
 		// store new value
-		tmp->y = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+		tmp->y = convert(gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget)), 1);
 
 		// save configuration
 		saveRobotList();
@@ -1287,6 +1305,20 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
 }
 
 /*
+ * Convert [in/cm] to [m] and back
+ */
+double convert(double value, int tometer) {
+	double tmp = 0;
+
+	if (tometer)
+		tmp = ((g_units) ? value/39.370 : value/100);
+	else
+		tmp = ((g_units) ? value*39.370 : value*100);
+
+	return tmp;
+}
+
+/*
  * Ch installation path
  */
 void printRoboSimPath(void) {
@@ -1358,47 +1390,6 @@ void readXMLConfig(void) {
 		g_doc.FirstChildElement("config")->InsertFirstChild(version);
 	}
 
-	// check grid settings
-	if (node = g_doc.FirstChildElement("config")->FirstChildElement("grid")) {
-		int units;
-		node->QueryIntAttribute("units", &units);
-
-		// set labels
-		if (units) {
-			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "us")), 1);
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (in): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
-		}
-		else {
-			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "metric")), 1);
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (cm): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (cm): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (cm): ");
-		}
-
-		// set grid line variables
-		double major, dist;
-		int tics;
-		node->QueryIntAttribute("tics", &tics);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
-		node->QueryDoubleAttribute("major", &major);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
-		node->QueryDoubleAttribute("dist", &dist);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
-	}
-	else {
-		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
-		grid->SetAttribute("units", 1);
-		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
-		grid->SetAttribute("tics", tics);
-		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
-		grid->SetAttribute("major", major);
-		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
-		grid->SetAttribute("dist", dist);
-		g_doc.FirstChildElement("config")->InsertFirstChild(grid);
-	}
-
 	// check invidivual vs preconfigured
 	if (node = g_doc.FirstChildElement("config")->FirstChildElement("type")) {
 		node->QueryIntAttribute("val", &type);
@@ -1435,7 +1426,7 @@ void readXMLConfig(void) {
 			node = g_doc.NewElement("sim");
 			g_doc.InsertAfterChild(g_doc.FirstChildElement("config"), node);
 		}
-		node = node->FirstChildElement();
+		node = g_doc.FirstChildElement("sim")->FirstChildElement();
 		robots_t tmp = g_robots;
 		while (node) {
 			if ( !strcmp(node->Value(), "linkboti") ) {
@@ -1455,9 +1446,6 @@ void readXMLConfig(void) {
 					ele->QueryDoubleAttribute("theta", &(nr->theta));
 					ele->QueryDoubleAttribute("phi", &(nr->phi));
 				}
-				nr->x = M2I(nr->x);
-				nr->y = M2I(nr->y);
-				nr->z = M2I(nr->z);
 				nr->next = NULL;
 				g_num++;
 
@@ -1489,9 +1477,6 @@ void readXMLConfig(void) {
 					ele->QueryDoubleAttribute("theta", &(nr->theta));
 					ele->QueryDoubleAttribute("phi", &(nr->phi));
 				}
-				nr->x = M2I(nr->x);
-				nr->y = M2I(nr->y);
-				nr->z = M2I(nr->z);
 				nr->next = NULL;
 				g_num++;
 
@@ -1523,9 +1508,6 @@ void readXMLConfig(void) {
 					ele->QueryDoubleAttribute("theta", &(nr->theta));
 					ele->QueryDoubleAttribute("phi", &(nr->phi));
 				}
-				nr->x = M2I(nr->x);
-				nr->y = M2I(nr->y);
-				nr->z = M2I(nr->z);
 				nr->next = NULL;
 				g_num++;
 
@@ -1557,9 +1539,6 @@ void readXMLConfig(void) {
 					ele->QueryDoubleAttribute("theta", &(nr->theta));
 					ele->QueryDoubleAttribute("phi", &(nr->phi));
 				}
-				nr->x = M2I(nr->x);
-				nr->y = M2I(nr->y);
-				nr->z = M2I(nr->z);
 				nr->next = NULL;
 				g_num++;
 
@@ -1589,6 +1568,46 @@ void readXMLConfig(void) {
 
 		// refesh robot list
 		refreshRobotList();
+	}
+
+	// check grid settings
+	if (node = g_doc.FirstChildElement("config")->FirstChildElement("grid")) {
+		node->QueryIntAttribute("units", &g_units);
+
+		// set labels
+		if (g_units) {
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "us")), 1);
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (in): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
+		}
+		else {
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "metric")), 1);
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (cm): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (cm): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (cm): ");
+		}
+
+		// set grid line variables
+		double major, dist;
+		int tics;
+		node->QueryIntAttribute("tics", &tics);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
+		node->QueryDoubleAttribute("major", &major);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
+		node->QueryDoubleAttribute("dist", &dist);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
+	}
+	else {
+		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
+		grid->SetAttribute("units", 1);
+		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
+		grid->SetAttribute("tics", tics);
+		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
+		grid->SetAttribute("major", major);
+		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
+		grid->SetAttribute("dist", dist);
+		g_doc.FirstChildElement("config")->InsertFirstChild(grid);
 	}
 
 	// success
@@ -1635,25 +1654,25 @@ void refreshRobotList(void) {
 		gtk_table_attach(GTK_TABLE(rootTable), w, 2, 3, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_type_changed), (void *)(tmp->id));
 		// x position
-		w = gtk_label_new(" X:");
+		w = ((g_units) ? gtk_label_new(" X [in]:") : gtk_label_new(" X [cm]:"));
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 3, 4, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->x, -500, 500, 0.1, 0.1, 1));
+		x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(convert(tmp->x, 0), -500, 500, 0.1, 0.1, 1));
 		w = gtk_spin_button_new(x_adj, 0.0, 1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 4, 5, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_x_value_changed), (void *)(tmp->id));
 		// y position
-		w = gtk_label_new(" Y:");
+		w = ((g_units) ? gtk_label_new(" Y [in]:") : gtk_label_new(" Y [cm]:"));
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 5, 6, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->y, -500, 500, 0.1, 0.1, 1));
+		y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(convert(tmp->y, 0), -500, 500, 0.1, 0.1, 1));
 		w = gtk_spin_button_new(y_adj, 0.0, 1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 6, 7, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_y_value_changed), (void *)(tmp->id));
 		// phi angle
-		w = gtk_label_new(" Angle:");
+		w = gtk_label_new(" Angle [deg]:");
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 7, 8, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		phi_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->phi, -180, 180, 1, 1, 1));
@@ -1733,9 +1752,9 @@ void saveRobotList(void) {
 
 		// set position
 		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", I2M(tmp->x));
-		pos->SetAttribute("y", I2M(tmp->y));
-		pos->SetAttribute("z", I2M(tmp->z));
+		pos->SetAttribute("x", tmp->x);
+		pos->SetAttribute("y", tmp->y);
+		pos->SetAttribute("z", tmp->z);
 		robot->InsertFirstChild(pos);
 
 		// set rotation
