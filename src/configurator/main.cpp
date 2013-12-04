@@ -228,9 +228,9 @@ G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data) {
 		grid->SetAttribute("dist", dist);
 
 		// change labels
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (ft): ");
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Major Hashmarks (ft): ");
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Tics Per Hashmark: ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (in): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
 
 		// save file
 		g_doc.SaveFile(g_xml);
@@ -253,9 +253,9 @@ G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data) {
 		grid->SetAttribute("dist", dist);
 
 		// change labels
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (m): ");
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Major Hashmarks (m): ");
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Tics Per Hashmark: ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (cm): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (cm): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (cm): ");
 
 		// save file
 		g_doc.SaveFile(g_xml);
@@ -1366,15 +1366,15 @@ void readXMLConfig(void) {
 		// set labels
 		if (units) {
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "us")), 1);
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (ft): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Major Hashmarks (ft): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Tics Per Hashmark: ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (in): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
 		}
 		else {
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "metric")), 1);
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (m): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Major Hashmarks (m): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Tics Per Hashmark: ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (cm): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (cm): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (cm): ");
 		}
 
 		// set grid line variables

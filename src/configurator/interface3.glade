@@ -17,21 +17,21 @@
     <signal name="response" handler="on_aboutdialog_response" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="adjustment_dist">
-    <property name="lower">1</property>
-    <property name="upper">100</property>
-    <property name="value">4</property>
-    <property name="step_increment">0.5</property>
+    <property name="upper">576</property>
+    <property name="value">96</property>
+    <property name="step_increment">2</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjustment_major">
-    <property name="upper">100</property>
-    <property name="value">1</property>
-    <property name="step_increment">0.5</property>
+    <property name="lower">6</property>
+    <property name="upper">576</property>
+    <property name="value">12</property>
+    <property name="step_increment">6</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjustment_tics">
-    <property name="upper">100</property>
-    <property name="value">12</property>
+    <property name="upper">576</property>
+    <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
@@ -546,7 +546,7 @@
                           <object class="GtkLabel" id="label4">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="xalign">0.98000001907348633</property>
+                            <property name="xalign">1</property>
                             <property name="label" translatable="yes">Units: </property>
                           </object>
                           <packing>
@@ -574,9 +574,6 @@
                             <property name="width">1</property>
                             <property name="height">1</property>
                           </packing>
-                        </child>
-                        <child>
-                          <placeholder/>
                         </child>
                         <child>
                           <object class="GtkLabel" id="label_dist">
@@ -635,7 +632,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="xalign">1</property>
-                            <property name="label" translatable="yes">Major Hashmarks: </property>
+                            <property name="label" translatable="yes">Distance Between Hashmarks: </property>
                           </object>
                           <packing>
                             <property name="left_attach">0</property>
@@ -649,7 +646,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="xalign">1</property>
-                            <property name="label" translatable="yes">Tics: </property>
+                            <property name="label" translatable="yes">Distance Between Tics: </property>
                           </object>
                           <packing>
                             <property name="left_attach">0</property>
@@ -665,6 +662,7 @@
                             <property name="invisible_char">•</property>
                             <property name="adjustment">adjustment_tics</property>
                             <property name="climb_rate">0.01</property>
+                            <property name="digits">2</property>
                             <property name="snap_to_ticks">True</property>
                             <property name="numeric">True</property>
                             <signal name="value-changed" handler="on_tics_value_changed" swapped="no"/>
@@ -675,6 +673,9 @@
                             <property name="width">1</property>
                             <property name="height">1</property>
                           </packing>
+                        </child>
+                        <child>
+                          <placeholder/>
                         </child>
                       </object>
                     </child>

@@ -164,15 +164,21 @@ int RoboSim::init_xml(void) {
 		node->QueryDoubleAttribute("major", &_grid[1]);
 		node->QueryDoubleAttribute("dist", &_grid[2]);
 		if (_us) {
-			_grid[0] *= 3.281/_grid[1];
-			_grid[1] = 3.281/_grid[1];
-			_grid[2] /= 3.281;
+			//_grid[0] *= 3.281/_grid[1];
+			_grid[0] = 39.37/_grid[0];
+			_grid[1] = 39.37/_grid[1];
+			_grid[2] = _grid[2]/39.37/2;
+		}
+		else {
+			_grid[0] = 100/_grid[0];
+			_grid[1] = 100/_grid[1];
+			_grid[2] = _grid[2]/100/2;
 		}
 	}
 	else {
 		_us = 1;				// customary units
-		_grid[0] = 12*3.281;	// sub tics
-		_grid[1] = 3.281;		// major grid lines
+		_grid[0] = 12*3.281;	// 12 tics per foot
+		_grid[1] = 3.281;		// grid lines each foot
 		_grid[2] = 4/3.281;		// total distance
 	}
 #endif
