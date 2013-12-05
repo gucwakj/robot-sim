@@ -1029,7 +1029,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	cameraManipulator->setVerticalAxisFixed(true);
 	cameraManipulator->setElevation(0.5);
 	viewer->setCameraManipulator(cameraManipulator);
-	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1, 1, 0.75), osg::Vec3f(0.25, 0.25, 0), osg::Vec3f(0, 0, 1));
+	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(1, 1, 0.5), osg::Vec3f(0.25, 0.25, 0), osg::Vec3f(0, 0, 1));
 
 	// Creating the root node
 	osg::ref_ptr<osg::Group> root = new osg::Group;
@@ -1041,9 +1041,9 @@ void* RoboSim::graphics_thread(void *arg) {
 	root->addChild(shadowedScene);
 	shadowedScene->setReceivesShadowTraversalMask(0x1);
 	shadowedScene->setCastsShadowTraversalMask(0x2);
-	osg::ref_ptr<osgShadow::ShadowMap> sm = new osgShadow::ShadowMap;
-	sm->setTextureSize(osg::Vec2s(1024, 1024));
-	shadowedScene->setShadowTechnique(sm.get());
+	//osg::ref_ptr<osgShadow::ShadowMap> sm = new osgShadow::ShadowMap;
+	//sm->setTextureSize(osg::Vec2s(1024, 1024));
+	//shadowedScene->setShadowTechnique(sm.get());
 
 	// add light source
 	osg::ref_ptr<osg::LightSource> ls = new osg::LightSource;
@@ -1172,7 +1172,8 @@ void* RoboSim::graphics_thread(void *arg) {
 	osg::ref_ptr<osg::Billboard> xbillboard = new osg::Billboard();
 	osg::ref_ptr<osgText::Text> xtext = new osgText::Text();
 	xtext->setText("x");
-	xtext->setCharacterSize(0.2);
+	xtext->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+	xtext->setCharacterSize(400);
 	xtext->setColor(osg::Vec4(0, 0, 0, 1));
 	xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[2], 0.0, 0.0));
 	xbillboard->setMode(osg::Billboard::AXIAL_ROT);
@@ -1184,7 +1185,8 @@ void* RoboSim::graphics_thread(void *arg) {
 	osg::ref_ptr<osg::Billboard> ybillboard = new osg::Billboard();
 	osg::ref_ptr<osgText::Text> ytext = new osgText::Text();
 	ytext->setText("y");
-	ytext->setCharacterSize(0.2);
+	ytext->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+	ytext->setCharacterSize(400);
 	ytext->setColor(osg::Vec4(0, 0, 0, 1));
 	ybillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[2], 0.0));
 	ybillboard->setMode(osg::Billboard::AXIAL_ROT);
@@ -1258,15 +1260,15 @@ void* RoboSim::graphics_thread(void *arg) {
 	HUDGeode->setStateSet(HUDStateSet);
 	HUDStateSet->setMode(GL_BLEND,osg::StateAttribute::ON);
 	HUDStateSet->setMode(GL_DEPTH_TEST,osg::StateAttribute::OFF);
-	HUDStateSet->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );
-	HUDStateSet->setRenderBinDetails( 11, "RenderBin");
-	HUDGeode->addDrawable( textHUD );
-	textHUD->setCharacterSize(20);
+	HUDStateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	HUDStateSet->setRenderBinDetails(11, "RenderBin");
+	HUDGeode->addDrawable(textHUD);
+	textHUD->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+	textHUD->setCharacterSize(40);
 	if (sim->_pause) textHUD->setText("Paused: Press any key to start");
 	textHUD->setAxisAlignment(osgText::Text::SCREEN);
 	textHUD->setAlignment(osgText::Text::CENTER_CENTER);
-	textHUD->setPosition( osg::Vec3(traits->width/2, 50, -1.5) );
-	textHUD->setColor( osg::Vec4(199, 77, 15, 1) );
+	textHUD->setPosition(osg::Vec3(traits->width/2, 50, -1.5));
 	root->addChild(HUDProjectionMatrix);
 
 	// optimize the scene graph, remove redundant nodes and state etc.

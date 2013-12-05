@@ -2162,6 +2162,15 @@ dBodyID CMobot::getBodyID(int id) {
     return _body[id];
 }
 
+double CMobot::getCenter(int i) {
+	const double *pos = dBodyGetPosition(_body[CENTER]);
+	const double *R = dBodyGetRotation(_body[CENTER]);
+	double p[3] = {	R[0]*_center[0] + R[1]*_center[1] + R[2]*_center[2],
+					R[4]*_center[0] + R[5]*_center[1] + R[6]*_center[2],
+					R[8]*_center[0] + R[9]*_center[1] + R[10]*_center[2]};
+	return pos[i] + p[i];
+}
+
 int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
 	const double *pos, *R1;
 	dMatrix3 R2;
@@ -2583,13 +2592,17 @@ int CMobot::draw(osg::Group *root) {
 	osg::Geode *label_geode = new osg::Geode();
 	label_geode->addDrawable(label);
 	label_geode->setNodeMask(0x0);
-	label->setCharacterSize(0.017);
-	label->setDrawMode(osgText::Text::TEXT | osgText::Text::ALIGNMENT);
-	label->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+	label_geode->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin");
+	label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	label->setAlignment(osgText::Text::CENTER_CENTER);
 	label->setAxisAlignment(osgText::Text::SCREEN);
-	label->setAlignment(osgText::Text::CENTER_TOP);
-	label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + (_id%2 ? 0.05 : 0) + 0.2175));
-	label->setColor(osg::Vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+	label->setCharacterSize(30);
+	label->setColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+	label->setDrawMode(osgText::Text::TEXT | osgText::Text::ALIGNMENT | osgText::Text::BOUNDINGBOX);
 	robot->insertChild(0, label_geode);
 
 	// draw tracking node
@@ -2712,6 +2725,12 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
     this->build_center(R[1]*ce[1] + x, R[5]*ce[1] + y, R[9]*ce[1] + z, R);
     this->build_body(BODY_R, R[0]*rb[0] + x, R[4]*rb[0] + y, R[8]*rb[0] + z, R, 0);
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
+
+	// get center of robot offset from body position
+	const double *pos = dBodyGetPosition(_body[CENTER]);
+	_center[0] = x - pos[0];
+	_center[1] = y - pos[1];
+	_center[2] = z - pos[2];
 
     // joint for left endcap to body
     _joint[0] = dJointCreateHinge(_world, 0);

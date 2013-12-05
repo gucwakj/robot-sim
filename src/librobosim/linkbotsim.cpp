@@ -1834,6 +1834,15 @@ dBodyID CLinkbotT::getBodyID(int id) {
     return _body[id];
 }
 
+double CLinkbotT::getCenter(int i) {
+	const double *pos = dBodyGetPosition(_body[BODY]);
+	const double *R = dBodyGetRotation(_body[BODY]);
+	double p[3] = {	R[0]*_center[0] + R[1]*_center[1] + R[2]*_center[2],
+					R[4]*_center[0] + R[5]*_center[1] + R[6]*_center[2],
+					R[8]*_center[0] + R[9]*_center[1] + R[10]*_center[2]};
+	return pos[i] + p[i];
+}
+
 int CLinkbotT::getConnectionParams(int face, dMatrix3 R, double *p) {
 	double offset[3] = {0};
 	const double *pos = dBodyGetPosition(_body[face]);
@@ -2146,13 +2155,17 @@ int CLinkbotT::draw(osg::Group *root) {
 	osg::Geode *label_geode = new osg::Geode();
 	label_geode->addDrawable(label);
 	label_geode->setNodeMask(0x0);
-	label->setCharacterSize(0.017);
-	label->setDrawMode(osgText::Text::TEXT | osgText::Text::ALIGNMENT);
-	label->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+	label_geode->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin");
+	label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	label->setAlignment(osgText::Text::CENTER_CENTER);
 	label->setAxisAlignment(osgText::Text::SCREEN);
-	label->setAlignment(osgText::Text::CENTER_TOP);
-	label->setPosition(osg::Vec3(pos[0], pos[1], pos[2] + (_id%2 ? 0.05 : 0) + 0.2175));
+	label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+	label->setCharacterSize(30);
 	label->setColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+	label->setDrawMode(osgText::Text::TEXT | osgText::Text::ALIGNMENT | osgText::Text::BOUNDINGBOX);
 	robot->insertChild(0, label_geode);
 
 	// draw tracking node
@@ -2343,6 +2356,12 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 	this->build_face(FACE2, R[1]*f2[1] + x, R[5]*f2[1] + y, R[9]*f2[1] + z, R, 0);
 	this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R, 0);
 
+	// get center of robot offset from body position
+	const double *pos = dBodyGetPosition(_body[BODY]);
+	_center[0] = x - pos[0];
+	_center[1] = y - pos[1];
+	_center[2] = z - pos[2];
+
     // joint for body to face 1
     _joint[0] = dJointCreateHinge(_world, 0);
     dJointAttach(_joint[0], _body[BODY], _body[FACE1]);
@@ -2482,7 +2501,6 @@ int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta
 	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 	dMassRotate(&m2, R1);
 	dMassAdd(&m, &m2);
-	dMassTranslate(&m, x - m.c[0], y - m.c[1], z - m.c[2]);
 
 	// adjsut x,y,z to position center of mass correctly
 	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];

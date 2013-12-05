@@ -197,6 +197,7 @@ class DLLIMPORT CRobot {
 		virtual int getRobotID(void) = 0;
 		virtual dJointID getMotorID(int motor) = 0;
 		virtual double getAngle(int i) = 0;
+		virtual double getCenter(int i) = 0;
 		virtual double getPosition(int body, int i) = 0;
 		virtual double getRotation(int body, int i) = 0;
 		virtual bool isHome(void) = 0;
@@ -244,6 +245,7 @@ class DLLIMPORT CRobot {
 		double _accel[3];		// accelerometer data
 		double *_angle;			// angles
 		double *_clock;			// world clock
+		double _center[3];		// offset of body from initial (x,y,z)
 		double _encoder;		// motor encoder resolution
 		double *_goal;			// goals
 		double *_max_force;		// maximum joint forces

@@ -221,6 +221,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn);
 		virtual double getAngle(int i);
 		virtual dBodyID getBodyID(int id);
+		virtual double getCenter(int i);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
 		virtual dBodyID getConnectorBodyID(int face);
 		virtual dBodyID getConnectorBodyIDs(int num);
