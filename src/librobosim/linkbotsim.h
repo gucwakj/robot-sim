@@ -24,6 +24,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 
 		int blinkLED(double delay, int num);
 		int connect();
+		int delay(double milliseconds);
+		int delaySeconds(double seconds);
 		int disconnect();
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
@@ -370,6 +372,8 @@ class DLLIMPORT CLinkbotI {
 
 		int blinkLED(double delay, int num);
 		int connect();
+		int delay(double milliseconds);
+		int delaySeconds(double seconds);
 		int disconnect();
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
@@ -574,6 +578,8 @@ class DLLIMPORT CLinkbotL {
 
 		int blinkLED(double delay, int num);
 		int connect();
+		int delay(double milliseconds);
+		int delaySeconds(double seconds);
 		int disconnect();
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);

@@ -75,6 +75,31 @@ int CLinkbotT::connect(void) {
 	return 0;
 }
 
+int CLinkbotT::delay(double milliseconds) {
+	// set ending time
+	double end = *_clock + milliseconds/1000;
+
+	// while clock hasn't reached ending time
+	while ((end - *_clock) >= EPSILON) {
+#ifdef _WIN32
+		Sleep(2);
+#else
+		usleep(2000);
+#endif
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::delaySeconds(double seconds) {
+	// delay milliseconds
+	this->delay(1000 * seconds);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::disconnect(void) {
 	// and we are not connected
 	_connected = 0;

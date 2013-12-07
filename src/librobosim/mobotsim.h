@@ -20,6 +20,8 @@ class DLLIMPORT CMobot : virtual public CRobot {
 
 		int blinkLED(double delay, int num);
 		int connect(void);
+		int delay(double milliseconds);
+		int delaySeconds(double seconds);
 		int disconnect(void);
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);

@@ -44,6 +44,31 @@ int CMobot::connect(void) {
 	return 0;
 }
 
+int CMobot::delay(double milliseconds) {
+	// set ending time
+	double end = *_clock + milliseconds/1000;
+
+	// while clock hasn't reached ending time
+	while ((end - *_clock) >= EPSILON) {
+#ifdef _WIN32
+		Sleep(2);
+#else
+		usleep(2000);
+#endif
+	}
+
+	// success
+	return 0;
+}
+
+int CMobot::delaySeconds(double seconds) {
+	// delay milliseconds
+	this->delay(1000 * seconds);
+
+	// success
+	return 0;
+}
+
 int CMobot::disconnect(void) {
 	// and we are not connected
 	_connected = 0;
