@@ -11,7 +11,4 @@ group.addRobot(robot2);
 
 group.resetToZero();
 
-//group.motionStand();
 group.move(36, 0, 36);
-//delay(3);
-//group.motionUnstand();

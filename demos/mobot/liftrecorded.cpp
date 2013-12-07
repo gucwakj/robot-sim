@@ -37,14 +37,12 @@ int main(int argc, char *argv[]) {
 	robot2.moveToNB(0, 0, 90, 0);
 	robot1.moveWait();
 	robot2.moveWait();
-	//delay(1);
 
 	/* second lift */
 	robot1.moveToNB(0, 0, 90,  0);
 	robot2.moveToNB(0,  -90, 0, 0);
 	robot1.moveWait();
 	robot2.moveWait();
-	//delay(1);
 
 	/* move to zero position */
 	robot1.resetToZeroNB(); 

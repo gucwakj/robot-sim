@@ -32,9 +32,9 @@ robot2.recordDistanceBegin(ROBOT_JOINT1, timedata2, distances2, radius2, timeInt
 /* robot1 moves first, 'delaytime' seconds later, robot2 moves.
    Both robots move for 'time-delaytime' seconds at the same time. Then, both robots stop */
 robot1.setMovementStateNB(ROBOT_FORWARD, NaN, ROBOT_FORWARD);
-delay(delaytime);
+robot1.delay(delaytime);
 robot2.setMovementStateNB(ROBOT_FORWARD, NaN, ROBOT_FORWARD);
-delay(time-delaytime);
+robot2.delay(time-delaytime);
 robot1.setMovementStateNB(ROBOT_HOLD, NaN, ROBOT_HOLD);
 robot2.setMovementStateNB(ROBOT_HOLD, NaN, ROBOT_HOLD);
 

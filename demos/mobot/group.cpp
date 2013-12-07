@@ -14,10 +14,7 @@ int main(int argc, char *argv[]) {
 
 	group.resetToZero();
 
-	//group.motionStand();
 	group.move(360, 0, 0, 360);
-	//delay(3);
-	//group.motionUnstand();
 
 	return 0;
 }

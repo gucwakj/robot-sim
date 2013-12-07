@@ -85,9 +85,7 @@ class DLLIMPORT RoboSim {
 #endif // not _CH_
 };
 
-#ifndef _CH_
-DLLIMPORT void delay(double seconds);
-#else
+#ifdef _CH_
 int isEmbeddedCh(void);
 #endif
 

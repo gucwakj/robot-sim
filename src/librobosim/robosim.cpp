@@ -1330,15 +1330,7 @@ void* RoboSim::graphics_thread(void *arg) {
 /**********************************************************
 	Utility functions
  **********************************************************/
-#ifndef _CH_
-void delay(double seconds) {
-#ifdef _WIN32
-	Sleep((int)(seconds*1000));
-#else
-	usleep((int)(seconds*1000000));
-#endif
-}
-#else	// _CH_
+#ifdef _CH_
 int isEmbeddedCh(void) {
 	return 1;
 }

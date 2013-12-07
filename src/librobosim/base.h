@@ -33,7 +33,6 @@
 #pragma package <chrobosim>
 #define dDOUBLE
 #define ENABLE_GRAPHICS
-extern void delay(double seconds);
 #endif // no _CH_
 
 #define EPSILON DBL_EPSILON

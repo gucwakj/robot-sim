@@ -38,14 +38,14 @@ mobot1.moveToNB(0, -90,  0, 0);
 mobot2.moveToNB(0, 0, 90, 0);
 mobot1.moveWait();
 mobot2.moveWait();
-//delay(1);
+mobot1.delay(1);
 
 /* second lift */
 mobot1.moveToNB(0, 0, 90,  0);
 mobot2.moveToNB(0,  -90, 0, 0);
 mobot1.moveWait();
 mobot2.moveWait();
-//delay(1);
+mobot1.delay(1);
 
 /* move to zero position */
 mobot1.resetToZeroNB(); 

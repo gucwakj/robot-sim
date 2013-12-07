@@ -122,7 +122,6 @@ createpkg: librobosim.dl
 	cp chlinkbotisim.chf $(PKGDIR)/lib
 	cp chlinkbotlsim.chf $(PKGDIR)/lib
 	cp chlinkbottsim.chf $(PKGDIR)/lib
-	cp delay.chf $(PKGDIR)/lib
 	cp Makefile $(PACKAGE)-$(VERSION)
 	cp pkginstall.ch $(PACKAGE)-$(VERSION)
 	zip -rq $(PACKAGE)-unix-$(VERSION).zip $(PACKAGE)-$(VERSION)
