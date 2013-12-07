@@ -518,6 +518,10 @@ int RoboSim::init_xml(void) {
 				ctype = TANK;
 				cnum = 3;
 			}
+			else if ( !strcmp(node->Value(), "tinywheel") ) {
+				ctype = TINYWHEEL;
+				cnum = 1;
+			}
 			rtmp = new int[cnum];
 			ftmp = new int[cnum];
 			ntmp = new int[cnum];

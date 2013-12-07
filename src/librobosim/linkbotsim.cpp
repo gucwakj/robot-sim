@@ -1769,8 +1769,16 @@ int CLinkbotT::build(xml_robot_t robot) {
 	// check for wheels
 	xml_conn_t ctmp = robot->conn;
 	while (ctmp) {
-		if (ctmp->type == BIGWHEEL || ctmp->type == SMALLWHEEL) {
-			robot->z += ((ctmp->type == SMALLWHEEL) ? _smallwheel_radius : _bigwheel_radius) - _body_height/2;
+		if (ctmp->type == BIGWHEEL) {
+			robot->z += (_bigwheel_radius - _body_height/2);
+			break;
+		}
+		else if (ctmp->type == SMALLWHEEL) {
+			robot->z += (_smallwheel_radius - _body_height/2);
+			break;
+		}
+		else if (ctmp->type == TINYWHEEL) {
+			robot->z += (_tinywheel_radius - _body_height/2);
 			break;
 		}
 		ctmp = ctmp->next;
@@ -2140,6 +2148,9 @@ int CLinkbotT::draw(osg::Group *root) {
 			case SMALLWHEEL:
 				this->draw_smallwheel(ctmp, robot);
 				break;
+			case TINYWHEEL:
+				this->draw_tinywheel(ctmp, robot);
+				break;
 		}
 		ctmp = ctmp->next;
 	}
@@ -2254,6 +2265,9 @@ int CLinkbotT::add_connector(int type, int face) {
 		case SMALLWHEEL:
 			this->build_smallwheel(nc, face);
 			break;
+		case TINYWHEEL:
+			this->build_tinywheel(nc, face);
+			break;
 	}
 
 	if (type == GRIPPER) {
@@ -2318,6 +2332,9 @@ int CLinkbotT::add_daisy_chain(int conn, int face, int side, int type) {
 			break;
 		case SMALLWHEEL:
 			this->build_smallwheel(nc, face, side, type);
+			break;
+		case TINYWHEEL:
+			this->build_tinywheel(nc, face, side, type);
 			break;
 	}
 
@@ -3034,6 +3051,56 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
 	return 0;
 }
 
+int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
+	// create body
+	conn->body = dBodyCreate(_world);
+    conn->geom = new dGeomID[1];
+
+    // define parameters
+    dMass m;
+    dMatrix3 R, R1;
+	double p[3] = {0}, offset[3] = {_connector_depth/3, 0, 0};
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	if (side != -1) this->get_connector_params(type, side, R, p);
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
+
+    // set mass of body
+	dMassSetCylinder(&m, 270, 1, 2*_tinywheel_radius, _connector_depth/2);
+    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
+
+    // adjust x,y,z to position center of mass correctly
+    p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+    p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+    p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+    // set body parameters
+    dBodySetPosition(conn->body, p[0], p[1], p[2]);
+    dBodySetRotation(conn->body, R);
+
+    // rotation matrix for curves
+    dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
+
+    // set geometry
+    conn->geom[0] = dCreateCylinder(_space, _tinywheel_radius, 2*_connector_depth/3);
+    dGeomSetBody(conn->geom[0], conn->body);
+    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+    dGeomSetOffsetRotation(conn->geom[0], R1);
+
+    // set mass center to (0,0,0) of _bodyID
+    dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+    dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	this->fix_connector_to_body(face, conn->body);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
 	if (!cBody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
 
@@ -3231,6 +3298,7 @@ int CLinkbotT::init_dims(void) {
 	_cubic_length = 0.07115;
 	_omni_length = 0.16360;
 	_smallwheel_radius = 0.04445;
+	_tinywheel_radius = 0.04128;
 
 	// success
 	return 0;
@@ -3588,6 +3656,34 @@ void CLinkbotT::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 
+void CLinkbotT::draw_tinywheel(conn_t conn, osg::Group *robot) {
+	// initialize variables
+	osg::ref_ptr<osg::Geode> body = new osg::Geode;
+	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
+	const double *pos;
+	dQuaternion quat;
+	osg::Cylinder *cyl;
+
+    // set geometry
+	pos = dGeomGetOffsetPosition(conn->geom[0]);
+	dGeomGetOffsetQuaternion(conn->geom[0], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _tinywheel_radius, 2*_connector_depth/3);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body->addDrawable(new osg::ShapeDrawable(cyl));
+
+	// apply texture
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
+	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
+	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
+	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
+	pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+
+	// add body to pat
+	pat->addChild(body.get());
+	// add to scenegraph
+	robot->addChild(pat);
+}
 #endif // ENABLE_GRAPHICS
 
 #ifdef _CH_

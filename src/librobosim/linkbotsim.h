@@ -224,6 +224,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int build_omnidrive(conn_t conn, int face, int side = -1, int type = -1);	// build omnidrive plate
 		int build_simple(conn_t conn, int face, int side = -1, int type = -1);		// build simple connector
 		int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1);	// build small wheel
+		int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);	// build tiny wheel
 		int fix_body_to_connector(dBodyID cBody, int face);							// fix second body to connector
 		int fix_connector_to_body(int face, dBodyID cBody);							// fix connector to robot body
 		int get_body_params(double angle, int face, double rotation, dMatrix3 R, double *p);	// get parameters for attaching robot
@@ -253,6 +254,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		void draw_omnidrive(conn_t conn, osg::Group *robot);
 		void draw_simple(conn_t conn, osg::Group *robot);
 		void draw_smallwheel(conn_t conn, osg::Group *robot);
+		void draw_tinywheel(conn_t conn, osg::Group *robot);
 #endif // ENABLE_GRAPHICS
 #endif // not _CH_
 };

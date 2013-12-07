@@ -149,6 +149,7 @@ typedef enum robot_connector_e {
 	SMALLWHEEL,
 	SQUARE,
 	TANK,
+	TINYWHEEL,
 	NUM_CONNECTORS
 } robotConnector_t;
 
@@ -267,7 +268,7 @@ class DLLIMPORT CRobot {
 				// mobot
 				_tank_height, _tank_depth,
 				// linkbot
-				_cubic_length, _bridge_length, _omni_length;
+				_bridge_length, _cubic_length, _omni_length, _tinywheel_radius;
 		int _connected; 		// connected to controller
 		int _disabled;			// which joint is disabled
 		int *_enabled;			// list of enabled motors

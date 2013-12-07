@@ -10,12 +10,20 @@
 
 #define XML_VERSION 1
 
+typedef enum wheels_e {
+	NONE,
+	BIGWHEEL,
+	SMALLWHEEL,
+	TINYWHEEL,
+	CUSTOM,
+	NUM_WHEELS
+} wheels_t;
 typedef struct robots_s {
 	int id;
 	int type;
 	double x, y, z;
 	double psi, theta, phi;
-	bool wheeled;
+	wheels_t wheel;
 	struct robots_s *next;
 } *robots_t;
 
@@ -43,7 +51,7 @@ G_MODULE_EXPORT void on_type_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_x_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_y_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_phi_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_wheeled_clicked(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_wheeled_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data);
 
@@ -418,9 +426,9 @@ G_MODULE_EXPORT void on_phi_value_changed(GtkWidget *widget, gpointer data) {
 }
 
 /*
- * When robot's wheeled status is changed
+ * When a robot's wheel type is changed
  */
-G_MODULE_EXPORT void on_wheeled_clicked(GtkWidget *widget, gpointer data) {
+G_MODULE_EXPORT void on_wheeled_changed(GtkWidget *widget, gpointer data) {
 	// cast id of robot
 	gint id = GPOINTER_TO_INT(data);
 
@@ -429,13 +437,23 @@ G_MODULE_EXPORT void on_wheeled_clicked(GtkWidget *widget, gpointer data) {
 	while (tmp && tmp->id != id)
 		tmp = tmp->next;
 
-	// if the robot is found, change its wheeled state
+	// if the robot is found, change its type
 	if (tmp) {
-		// store new value
-		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
-			tmp->wheeled = true;
-		else
-			tmp->wheeled = false;
+		// get new robot type
+#ifdef _WIN32
+		const gchar *type = gtk_combo_box_get_active_text(GTK_COMBO_BOX(widget));
+#else
+		const gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget));
+#endif
+		// store into database
+		if (!strcmp(type, "None"))
+			tmp->wheel = NONE;
+		else if (!strcmp(type, "4.0\""))
+			tmp->wheel = BIGWHEEL;
+		else if (!strcmp(type, "3.5\""))
+			tmp->wheel = SMALLWHEEL;
+		else if (!strcmp(type, "3.25\""))
+			tmp->wheel = TINYWHEEL;
 
 		// save configuration
 		saveRobotList();
@@ -465,7 +483,7 @@ G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data) {
 	nr->psi = 0;
 	nr->theta = 0;
 	nr->phi = 0;
-	nr->wheeled = true;
+	nr->wheel = SMALLWHEEL;
 	nr->next = NULL;
 
 	// add robot to linked list
@@ -1434,7 +1452,7 @@ void readXMLConfig(void) {
 				nr->type = 0;
 				nr->x = 0; nr->y = 0; nr->z = 0;
 				nr->psi = 0; nr->theta = 0; nr->phi = 0;
-				nr->wheeled = false;
+				nr->wheel = NONE;
 				node->QueryIntAttribute("id", &(nr->id));
 				if ( (ele = node->FirstChildElement("position")) ) {
 					ele->QueryDoubleAttribute("x", &(nr->x));
@@ -1465,7 +1483,7 @@ void readXMLConfig(void) {
 				nr->type = 1;
 				nr->x = 0; nr->y = 0; nr->z = 0;
 				nr->psi = 0; nr->theta = 0; nr->phi = 0;
-				nr->wheeled = false;
+				nr->wheel = NONE;
 				node->QueryIntAttribute("id", &(nr->id));
 				if ( (ele = node->FirstChildElement("position")) ) {
 					ele->QueryDoubleAttribute("x", &(nr->x));
@@ -1496,7 +1514,7 @@ void readXMLConfig(void) {
 				nr->type = 2;
 				nr->x = 0; nr->y = 0; nr->z = 0;
 				nr->psi = 0; nr->theta = 0; nr->phi = 0;
-				nr->wheeled = false;
+				nr->wheel = NONE;
 				node->QueryIntAttribute("id", &(nr->id));
 				if ( (ele = node->FirstChildElement("position")) ) {
 					ele->QueryDoubleAttribute("x", &(nr->x));
@@ -1527,7 +1545,7 @@ void readXMLConfig(void) {
 				nr->type = 3;
 				nr->x = 0; nr->y = 0; nr->z = 0;
 				nr->psi = 0; nr->theta = 0; nr->phi = 0;
-				nr->wheeled = false;
+				nr->wheel = NONE;
 				node->QueryIntAttribute("id", &(nr->id));
 				if ( (ele = node->FirstChildElement("position")) ) {
 					ele->QueryDoubleAttribute("x", &(nr->x));
@@ -1553,13 +1571,29 @@ void readXMLConfig(void) {
 					tmp->next = nr;
 				}
 			}
+			else if ( !strcmp(node->Value(), "bigwheel") ) {
+				int id = -1;
+				node->QueryIntAttribute("robot", &id);
+				tmp = g_robots;
+				while (tmp && tmp->id != id)
+					tmp = tmp->next;
+				if (tmp) tmp->wheel = BIGWHEEL;
+			}
 			else if ( !strcmp(node->Value(), "smallwheel") ) {
 				int id = -1;
 				node->QueryIntAttribute("robot", &id);
 				tmp = g_robots;
 				while (tmp && tmp->id != id)
 					tmp = tmp->next;
-				if (tmp) tmp->wheeled = true;
+				if (tmp) tmp->wheel = SMALLWHEEL;
+			}
+			else if ( !strcmp(node->Value(), "tinywheel") ) {
+				int id = -1;
+				node->QueryIntAttribute("robot", &id);
+				tmp = g_robots;
+				while (tmp && tmp->id != id)
+					tmp = tmp->next;
+				if (tmp) tmp->wheel = TINYWHEEL;
 			}
 
 			// go to next element
@@ -1622,7 +1656,7 @@ void refreshRobotList(void) {
 	static GtkWidget *rootTable = NULL;
 	if(rootTable != NULL)
 		gtk_widget_destroy(rootTable);
-	rootTable = gtk_table_new(g_num, 11, FALSE);
+	rootTable = gtk_table_new(g_num, 12, FALSE);
 
 	// fill table with widgets
 	GtkWidget *w;
@@ -1681,15 +1715,29 @@ void refreshRobotList(void) {
 		gtk_table_attach(GTK_TABLE(rootTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_phi_value_changed), (void *)(tmp->id));
 		// wheeled
-		w = gtk_check_button_new_with_label("Wheeled");
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w), tmp->wheeled);
+		w = gtk_label_new(" Wheels [in]:");
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_wheeled_clicked), (void *)(tmp->id));
+		w = gtk_combo_box_text_new();
+#ifdef _WIN32
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "None");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "4.0\"");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "3.5\"");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "3.25\"");
+#else
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "0", "None");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "4.0\"");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "3.5\"");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "3.25\"");
+#endif
+		gtk_combo_box_set_active(GTK_COMBO_BOX(w), tmp->wheel);
+		gtk_widget_show(w);
+		gtk_table_attach(GTK_TABLE(rootTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_wheeled_changed), (void *)(tmp->id));
 		// remove button
 		w = gtk_button_new_with_label("Remove");
 		gtk_widget_show(w);
-		gtk_table_attach(GTK_TABLE(rootTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		gtk_table_attach(GTK_TABLE(rootTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_clicked), (void *)(tmp->id));
 		// next robot
 		tmp = tmp->next;
@@ -1765,10 +1813,22 @@ void saveRobotList(void) {
 		robot->InsertAfterChild(pos, rot);
 
 		// add wheels
-		if (tmp->wheeled) {
-			tinyxml2::XMLElement 	*wheel1 = g_doc.NewElement("smallwheel"), 
-									*wheel2 = g_doc.NewElement("smallwheel"), 
-									*caster = g_doc.NewElement("caster");
+		if (tmp->wheel) {
+			tinyxml2::XMLElement *wheel1, *wheel2;
+			tinyxml2::XMLElement *caster = g_doc.NewElement("caster");
+			if (tmp->wheel == BIGWHEEL) {
+				wheel1 = g_doc.NewElement("bigwheel");
+				wheel2 = g_doc.NewElement("bigwheel");
+			}
+			else if (tmp->wheel == SMALLWHEEL) {
+				wheel1 = g_doc.NewElement("smallwheel");
+				wheel2 = g_doc.NewElement("smallwheel");
+			}
+			else if (tmp->wheel == TINYWHEEL) {
+				wheel1 = g_doc.NewElement("tinywheel");
+				wheel2 = g_doc.NewElement("tinywheel");
+			}
+
 			wheel1->SetAttribute("robot", tmp->id);
 			wheel1->SetAttribute("face", 1);
 			caster->SetAttribute("robot", tmp->id);
