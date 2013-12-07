@@ -446,14 +446,26 @@ G_MODULE_EXPORT void on_wheeled_changed(GtkWidget *widget, gpointer data) {
 		const gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget));
 #endif
 		// store into database
-		if (!strcmp(type, "None"))
-			tmp->wheel = NONE;
-		else if (!strcmp(type, "4.0\""))
-			tmp->wheel = BIGWHEEL;
-		else if (!strcmp(type, "3.5\""))
-			tmp->wheel = SMALLWHEEL;
-		else if (!strcmp(type, "3.25\""))
-			tmp->wheel = TINYWHEEL;
+		if (g_units) {
+			if (!strcmp(type, "None"))
+				tmp->wheel = NONE;
+			else if (!strcmp(type, "2.0"))
+				tmp->wheel = BIGWHEEL;
+			else if (!strcmp(type, "1.75"))
+				tmp->wheel = SMALLWHEEL;
+			else if (!strcmp(type, "1.625"))
+				tmp->wheel = TINYWHEEL;
+		}
+		else {
+			if (!strcmp(type, "None"))
+				tmp->wheel = NONE;
+			else if (!strcmp(type, "5.08"))
+				tmp->wheel = BIGWHEEL;
+			else if (!strcmp(type, "4.45"))
+				tmp->wheel = SMALLWHEEL;
+			else if (!strcmp(type, "4.13"))
+				tmp->wheel = TINYWHEEL;
+		}
 
 		// save configuration
 		saveRobotList();
@@ -1715,21 +1727,36 @@ void refreshRobotList(void) {
 		gtk_table_attach(GTK_TABLE(rootTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_phi_value_changed), (void *)(tmp->id));
 		// wheeled
-		w = gtk_label_new(" Wheels [in]:");
+		w = ((g_units) ? gtk_label_new(" Wheels [in]:") : gtk_label_new(" Wheels [cm]:"));
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		w = gtk_combo_box_text_new();
+		if (g_units) {
 #ifdef _WIN32
-		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "None");
-		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "4.0\"");
-		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "3.5\"");
-		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "3.25\"");
+			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "None");
+			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "2.0");
+			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "1.75");
+			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "1.625");
 #else
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "0", "None");
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "4.0\"");
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "3.5\"");
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "3.25\"");
+			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "0", "None");
+			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "2.0");
+			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "1.75");
+			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "1.625");
 #endif
+		}
+		else {
+#ifdef _WIN32
+			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "None");
+			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "5.08");
+			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "4.45");
+			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "4.13");
+#else
+			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "0", "None");
+			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "5.08");
+			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "4.45");
+			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "4.13");
+#endif
+		}
 		gtk_combo_box_set_active(GTK_COMBO_BOX(w), tmp->wheel);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
