@@ -2070,6 +2070,14 @@ int CMobot::stopAllJoints(void) {
 	return 0;
 }
 
+int CMobot::systemTime(double &time) {
+	// get time
+	time = *_clock;
+
+	// success
+	return 0;
+}
+
 int CMobot::turnLeft(double angle, double radius, double tracklength) {
 	this->turnLeftNB(angle, radius, tracklength);
 	this->moveWait();

@@ -1732,6 +1732,14 @@ int CLinkbotT::stopAllJoints(void) {
 	return 0;
 }
 
+int CLinkbotT::systemTime(double &time) {
+	// get time
+	time = *_clock;
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::turnLeft(double angle, double radius, double tracklength) {
 	this->turnLeftNB(angle, radius, tracklength);
 	this->moveWait();

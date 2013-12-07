@@ -195,6 +195,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int stopAllJoints(void);
+		int systemTime(double &time);
 		int turnLeft(double angle, double radius, double tracklength);
 		int turnLeftNB(double angle, double radius, double tracklength);
 		int turnRight(double angle, double radius, double tracklength);
