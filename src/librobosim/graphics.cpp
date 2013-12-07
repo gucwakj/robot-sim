@@ -1,6 +1,12 @@
 #include "graphics.h"
 #include "robosim.h"
 
+osg::Node::NodeMask NOT_VISIBLE_MASK = 0x0;
+osg::Node::NodeMask RECEIVES_SHADOW_MASK = 0x1;
+osg::Node::NodeMask CASTS_SHADOW_MASK = 0x2;
+osg::Node::NodeMask IS_PICKABLE_MASK = 0x3;
+osg::Node::NodeMask VISIBLE_MASK = 0xffffffff;
+
 /**********************************************************
 	MoveEarthySkyWithEyePointTransform
  **********************************************************/
@@ -64,7 +70,7 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 					for (int i = 0; i < shadow->getNumChildren(); i++) {
 						if (shadow->getChild(i)->getName() == "robot") {
 							osg::Geode *geode = dynamic_cast<osg::Geode *>(shadow->getChild(i)->asGroup()->getChild(1));
-							geode->setNodeMask((geode->getNodeMask() ? 0x0 : 0xffffffff));
+							geode->setNodeMask((geode->getNodeMask() ? NOT_VISIBLE_MASK : VISIBLE_MASK));
 						}
 					}
 					return true;
@@ -101,7 +107,7 @@ bool pickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
 			return false;
 		case(osgGA::GUIEventAdapter::RELEASE):
 			if (_mx == ea.getX() && _my == ea.getY())
-				pick(ea,viewer);
+				pick(ea, viewer);
 			return true;
 		default:
 			return false;
@@ -114,20 +120,39 @@ void pickHandler::pick(const osgGA::GUIEventAdapter &ea, osgViewer::Viewer *view
 
 	osg::Group *grandparent = 0;
 	osgUtil::LineSegmentIntersector *picker;
-	picker = new osgUtil::LineSegmentIntersector(osgUtil::Intersector::PROJECTION, ea.getXnormalized(), ea.getYnormalized());
+	double x = ea.getXnormalized(), y = ea.getYnormalized();
+	picker = new osgUtil::LineSegmentIntersector(osgUtil::Intersector::PROJECTION, x, y);
+	picker->setIntersectionLimit(osgUtil::Intersector::LIMIT_ONE_PER_DRAWABLE);
 	osgUtil::IntersectionVisitor iv(picker);
+	iv.setTraversalMask(IS_PICKABLE_MASK);
 	viewer->getCamera()->accept(iv);
+	//scene->accept(iv);
 
 	if (picker->containsIntersections()) {
-		// get node at intersection
+		/*std::multiset<osgUtil::LineSegmentIntersector::Intersection> ins = picker->getIntersections();
+		std::multiset<osgUtil::LineSegmentIntersector::Intersection>::iterator it = ins.begin();
+		osg::NodePath nodePath;
+		for(int j = 0; j < ins.size(); j++) {
+			nodePath = (*it).nodePath;
+			it++;
+			printf("%d nodePath:\t", j);
+			for(int i = 0; i < nodePath.size(); i++) {
+				printf("%s ", nodePath[i]->className());
+			}
+			printf("\n");
+		}*/
+
+		// get node at first intersection
 		osgUtil::LineSegmentIntersector::Intersection intersection = picker->getFirstIntersection();
 		osg::NodePath &nodePath = intersection.nodePath;
+
+		// get robot node
 		grandparent = (nodePath.size()>=3) ? dynamic_cast<osg::Group *>(nodePath[nodePath.size()-3]) : 0;
 
 		// toggle HUD
-		if (grandparent->getName() == "robot") {
+		if (grandparent && (grandparent->getName() == "robot")) {
 			osg::Geode *geode = dynamic_cast<osg::Geode *>(grandparent->getChild(0));
-			geode->setNodeMask((geode->getNodeMask() ? 0x0 : 0xffffffff));
+			geode->setNodeMask((geode->getNodeMask() ? NOT_VISIBLE_MASK : VISIBLE_MASK));
 		}
 	}
 }
@@ -181,7 +206,10 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 				_robot->getCenter(0)*100, _robot->getCenter(1)*100);
 		}
 		label->setText(text);
-		label->setPosition(osg::Vec3(_robot->getCenter(0), _robot->getCenter(1), _robot->getCenter(2) + (_robot->getRobotID()%2 ? 0.08 : 0) + 0.08));
+		double x = _robot->getCenter(0);
+		double y = _robot->getCenter(1);
+		double z = _robot->getCenter(2) + (_robot->getRobotID() % 2 ? 0.08 : 0) + 0.08;
+		label->setPosition(osg::Vec3(x, y, z));
 		// draw tracking line
 		static int count = 2;
 		osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
@@ -238,7 +266,10 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 				_robot->getCenter(0)*100, _robot->getCenter(1)*100);
 		}
 		label->setText(text);
-		label->setPosition(osg::Vec3(_robot->getCenter(0), _robot->getCenter(1), _robot->getCenter(2) + (_robot->getRobotID()%2 ? 0.08 : 0) + 0.08));
+		double x = _robot->getCenter(0);
+		double y = _robot->getCenter(1);
+		double z = _robot->getCenter(2) + (_robot->getRobotID() % 2 ? 0.08 : 0) + 0.08;
+		label->setPosition(osg::Vec3(x, y, z));
 		// draw tracking line
 		static int count = 2;
 		osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));

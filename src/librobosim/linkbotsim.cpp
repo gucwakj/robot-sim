@@ -1825,7 +1825,7 @@ double CLinkbotT::getAngle(int i) {
 		_angle[i] = 0;
 
 	// add noise to angle
-	//this->noisy(&(_angle[i]), 1, 0.0005);
+	this->noisy(&(_angle[i]), 1, 0.0005);
 
     return _angle[i];
 }
@@ -2147,14 +2147,15 @@ int CLinkbotT::draw(osg::Group *root) {
 	// set update callback for robot
 	robot->setUpdateCallback(new linkbotNodeCallback(this, _simObject->getUnits()));
 
-	// set shadow mask
-	robot->setNodeMask(0x2);
+	// set masks
+	//robot->setNodeMask(CASTS_SHADOW_MASK);
+	//robot->setNodeMask(IS_PICKABLE_MASK);
 
 	// draw HUD
 	osgText::Text *label = new osgText::Text();
 	osg::Geode *label_geode = new osg::Geode();
 	label_geode->addDrawable(label);
-	label_geode->setNodeMask(0x0);
+	label_geode->setNodeMask(NOT_VISIBLE_MASK);
 	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
 	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
 	label_geode->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin");
@@ -2172,7 +2173,7 @@ int CLinkbotT::draw(osg::Group *root) {
 	osg::Geode *trackingGeode = new osg::Geode();
 	osg::Geometry *trackingLine = new osg::Geometry();
 	osg::Vec3Array *trackingVertices = new osg::Vec3Array();
-	trackingGeode->setNodeMask(0x0);
+	trackingGeode->setNodeMask(NOT_VISIBLE_MASK);
 	pos = dBodyGetPosition(_body[BODY]);
 	trackingVertices->push_back(osg::Vec3(0, 0, 0));
 	trackingVertices->push_back(osg::Vec3(pos[0], pos[1], 0));

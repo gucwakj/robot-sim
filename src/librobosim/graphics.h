@@ -48,6 +48,12 @@
 
 #include <ode/ode.h>
 
+extern osg::Node::NodeMask NOT_VISIBLE_MASK;
+extern osg::Node::NodeMask RECEIVES_SHADOW_MASK;
+extern osg::Node::NodeMask CASTS_SHADOW_MASK;
+extern osg::Node::NodeMask IS_PICKABLE_MASK;
+extern osg::Node::NodeMask VISIBLE_MASK;
+
 class CRobot;
 
 /**********************************************************

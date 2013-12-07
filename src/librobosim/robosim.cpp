@@ -1019,6 +1019,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	viewer->addSlave(camera.get());
 	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
 	viewer->getCamera()->setComputeNearFarMode(osgUtil::CullVisitor::COMPUTE_NEAR_FAR_USING_PRIMITIVES);
+	viewer->getCamera()->setCullingMode(osgUtil::CullVisitor::NO_CULLING);
 	viewer->getCamera()->setNearFarRatio(0.00001);
 
 	// viewer camera properties
@@ -1039,8 +1040,8 @@ void* RoboSim::graphics_thread(void *arg) {
 	osg::ref_ptr<osgShadow::ShadowedScene> shadowedScene = new osgShadow::ShadowedScene;
 	sim->_shadowed = shadowedScene;
 	root->addChild(shadowedScene);
-	shadowedScene->setReceivesShadowTraversalMask(0x1);
-	shadowedScene->setCastsShadowTraversalMask(0x2);
+	shadowedScene->setReceivesShadowTraversalMask(RECEIVES_SHADOW_MASK);
+	shadowedScene->setCastsShadowTraversalMask(CASTS_SHADOW_MASK);
 	//osg::ref_ptr<osgShadow::ShadowMap> sm = new osgShadow::ShadowMap;
 	//sm->setTextureSize(osg::Vec2s(1024, 1024));
 	//shadowedScene->setShadowTechnique(sm.get());
@@ -1071,13 +1072,13 @@ void* RoboSim::graphics_thread(void *arg) {
 	t_transform->setCullingActive(false);
 	t_transform->addChild(t_geode);
 	osg::ref_ptr<osgUtil::LineSegmentIntersector> r_segment = new osgUtil::LineSegmentIntersector(osg::Vec3d(0, 0, 999), osg::Vec3d(0, 0, -999));
-	osgUtil::IntersectionVisitor r_visitor;
-	r_visitor.setIntersector(r_segment);
+	osgUtil::IntersectionVisitor r_visitor(r_segment);
 	t_transform->accept(r_visitor);
 	osgUtil::LineSegmentIntersector::Intersection r_hits = r_segment->getFirstIntersection();
 	osg::Vec3d r_pos = r_hits.getWorldIntersectPoint();
 	t_transform->setPosition(osg::Vec3d(r_pos[0], r_pos[1], -r_pos[2]));
-	//t_transform->setNodeMask(0x1);
+	//t_transform->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
+	t_transform->setNodeMask(~IS_PICKABLE_MASK);
 	shadowedScene->addChild(t_transform);
 
 	// x- and y-axis lines
@@ -1093,7 +1094,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	gridLines3->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 4));
 	// set color
 	osg::Vec4Array *colors3 = new osg::Vec4Array;
-	colors3->push_back(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f) );	// black
+	colors3->push_back(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f) );
 	gridLines3->setColorArray(colors3);
 	gridLines3->setColorBinding(osg::Geometry::BIND_OVERALL);
 	// set line width
@@ -1101,7 +1102,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	linewidth3->setWidth(3.0f);
 	gridGeode3->getOrCreateStateSet()->setAttributeAndModes(linewidth3, osg::StateAttribute::ON);
 	// enable shadowing
-	gridGeode3->setNodeMask(0x1);
+	//gridGeode3->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
 	// add to scene
 	gridGeode3->addDrawable(gridLines3);
 	shadowedScene->addChild(gridGeode3);
@@ -1134,7 +1135,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	linewidth2->setWidth(2.0f);
 	gridGeode2->getOrCreateStateSet()->setAttributeAndModes(linewidth2, osg::StateAttribute::ON);
 	// enable shadowing
-	gridGeode2->setNodeMask(0x1);
+	//gridGeode2->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
 	// add to scene
 	gridGeode2->addDrawable(gridLines2);
 	shadowedScene->addChild(gridGeode2);
@@ -1163,7 +1164,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	gridLines->setColorArray(colors);
 	gridLines->setColorBinding(osg::Geometry::BIND_OVERALL);
 	// enable shadowing
-	gridGeode->setNodeMask(0x1);
+	//gridGeode->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
 	// add to scene
 	gridGeode->addDrawable(gridLines);
 	shadowedScene->addChild(gridGeode);
@@ -1173,12 +1174,15 @@ void* RoboSim::graphics_thread(void *arg) {
 	osg::ref_ptr<osgText::Text> xtext = new osgText::Text();
 	xtext->setText("x");
 	xtext->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	xtext->setCharacterSize(400);
-	xtext->setColor(osg::Vec4(0, 0, 0, 1));
+	xtext->setAlignment(osgText::Text::LEFT_CENTER);
+	xtext->setCharacterSize(60);
+	xtext->setColor(osg::Vec4(1, 1, 1, 1));
+	xtext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
 	xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[2], 0.0, 0.0));
 	xbillboard->setMode(osg::Billboard::AXIAL_ROT);
 	xbillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
 	xbillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
+	xbillboard->setNodeMask(~IS_PICKABLE_MASK);
 	root->addChild(xbillboard);
 
 	// y-axis label
@@ -1186,12 +1190,15 @@ void* RoboSim::graphics_thread(void *arg) {
 	osg::ref_ptr<osgText::Text> ytext = new osgText::Text();
 	ytext->setText("y");
 	ytext->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	ytext->setCharacterSize(400);
-	ytext->setColor(osg::Vec4(0, 0, 0, 1));
+	ytext->setAlignment(osgText::Text::CENTER_BASE_LINE);
+	ytext->setCharacterSize(60);
+	ytext->setColor(osg::Vec4(1, 1, 1, 1));
+	ytext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
 	ybillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[2], 0.0));
 	ybillboard->setMode(osg::Billboard::AXIAL_ROT);
 	ybillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
 	ybillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
+	ybillboard->setNodeMask(~IS_PICKABLE_MASK);
 	root->addChild(ybillboard);
 
 	// skybox
@@ -1244,6 +1251,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	clearNode->setRequiresClear(false);
 	clearNode->setCullCallback(new TexMatCallback(*tm));
 	clearNode->addChild(transform);
+	clearNode->setNodeMask(~IS_PICKABLE_MASK);
 	root->addChild(clearNode);
 
 	// set up HUD

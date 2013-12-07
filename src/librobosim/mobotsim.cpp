@@ -2585,13 +2585,13 @@ int CMobot::draw(osg::Group *root) {
 	robot->setUpdateCallback(new mobotNodeCallback(this, _simObject->getUnits()));
 
 	// set shadow mask
-	robot->setNodeMask(0x2);
+	robot->setNodeMask(CASTS_SHADOW_MASK);
 
 	// draw HUD
 	osgText::Text *label = new osgText::Text();
 	osg::Geode *label_geode = new osg::Geode();
 	label_geode->addDrawable(label);
-	label_geode->setNodeMask(0x0);
+	label_geode->setNodeMask(NOT_VISIBLE_MASK);
 	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
 	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
 	label_geode->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin");
@@ -2609,7 +2609,7 @@ int CMobot::draw(osg::Group *root) {
 	osg::Geode *trackingGeode = new osg::Geode();
 	osg::Geometry *trackingLine = new osg::Geometry();
 	osg::Vec3Array *trackingVertices = new osg::Vec3Array();
-	trackingGeode->setNodeMask(0x0);
+	trackingGeode->setNodeMask(NOT_VISIBLE_MASK);
 	pos = dBodyGetPosition(_body[CENTER]);
 	trackingVertices->push_back(osg::Vec3(0, 0, 0));
 	trackingVertices->push_back(osg::Vec3(pos[0], pos[1], 0));
