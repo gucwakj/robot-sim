@@ -1785,7 +1785,8 @@ int CMobot::resetToZeroNB(void) {
 }
 
 int CMobot::setExitState(robotJointState_t exitState) {
-	_simObject->setExitState();
+	// set exit state of joints
+	this->setMovementStateNB(exitState, exitState, exitState, exitState);
 
 	// success
 	return 0;

@@ -1417,7 +1417,8 @@ int CLinkbotT::setColorRGB(int r, int g, int b) {
 }
 
 int CLinkbotT::setExitState(robotJointState_t exitState) {
-	_simObject->setExitState();
+	// set exit state of joints
+	this->setMovementStateNB(exitState, exitState, exitState);
 
 	// success
 	return 0;
