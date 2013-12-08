@@ -55,6 +55,12 @@ G_MODULE_EXPORT void on_wheeled_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data);
 
+G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_dist_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_major_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_tics_value_changed(GtkWidget *widget, gpointer data);
+
 G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data);
@@ -316,8 +322,38 @@ G_MODULE_EXPORT void on_major_value_changed(GtkWidget *widget, gpointer data) {
  * When tics value changed
  */
 G_MODULE_EXPORT void on_tics_value_changed(GtkWidget *widget, gpointer data) {
-	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+	// get old  value
 	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	double oldval = 0;
+	grid->QueryDoubleAttribute("tics", &oldval);
+
+	// get new value
+	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+
+	// check if new val is factor of major value
+	double maj = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
+	int imaj = (int)maj;
+	int ival = (int)val;
+	if ( ival && ((imaj % ival) != 0) ) {
+		int i = 1, j = 1;
+		while ( (ival != imaj) && ((imaj % (ival + i)) != 0) ) { i++; }
+		while ( (ival != imaj) && ((imaj % (ival - j)) != 0) ) { j++; }
+		if ((int)val - (int)oldval == 1) {
+			val += i;
+		}
+		else if ((int)val - (int)oldval == -1) {
+			val -= j;
+		}
+		else {
+			if (i < j)
+				val += i;
+			else
+				val -= j;
+		}
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(widget), val);
+	}
+
+	// set new value
 	grid->SetAttribute("tics", val);
 
 	// save file
@@ -487,7 +523,7 @@ G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data) {
 		while (tmp->next)
 			tmp = tmp->next;
 		nr->id = tmp->id + 1;
-		nr->x = tmp->x + 6;
+		nr->x = tmp->x + ((g_units) ? 0.1524 : 0.15); // add 6in or 15 cm
 	}
 	nr->type = 0;
 	nr->y = 0;
@@ -1612,6 +1648,15 @@ void readXMLConfig(void) {
 	if (node = g_doc.FirstChildElement("config")->FirstChildElement("grid")) {
 		node->QueryIntAttribute("units", &g_units);
 
+		// set grid line variables
+		double dist, major, tics;
+		node->QueryDoubleAttribute("dist", &dist);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
+		node->QueryDoubleAttribute("major", &major);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
+		node->QueryDoubleAttribute("tics", &tics);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
+
 		// set labels
 		if (g_units) {
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "us")), 1);
@@ -1625,16 +1670,6 @@ void readXMLConfig(void) {
 			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (cm): ");
 			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (cm): ");
 		}
-
-		// set grid line variables
-		double major, dist;
-		int tics;
-		node->QueryIntAttribute("tics", &tics);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
-		node->QueryDoubleAttribute("major", &major);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
-		node->QueryDoubleAttribute("dist", &dist);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
 	}
 	else {
 		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
