@@ -1802,15 +1802,15 @@ int CLinkbotT::build(xml_robot_t robot) {
 	// check for wheels
 	xml_conn_t ctmp = robot->conn;
 	while (ctmp) {
-		if (ctmp->type == BIGWHEEL) {
+		if (ctmp->conn == BIGWHEEL) {
 			robot->z += (_bigwheel_radius - _body_height/2);
 			break;
 		}
-		else if (ctmp->type == SMALLWHEEL) {
+		else if (ctmp->conn == SMALLWHEEL) {
 			robot->z += (_smallwheel_radius - _body_height/2);
 			break;
 		}
-		else if (ctmp->type == TINYWHEEL) {
+		else if (ctmp->conn == TINYWHEEL) {
 			robot->z += (_tinywheel_radius - _body_height/2);
 			break;
 		}
@@ -2632,7 +2632,7 @@ int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
 	// define parameters
 	dMass m;
 	dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_connector_depth/3, 0, 0};
+	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
 
 	// position center of connector
 	this->getConnectionParams(face, R, p);
@@ -2642,7 +2642,7 @@ int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0];
 
     // set mass of body
-	dMassSetCylinder(&m, 270, 1, 2*_bigwheel_radius, _connector_depth/2);
+	dMassSetCylinder(&m, 270, 1, 2*_bigwheel_radius, _wheel_depth);
     //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
@@ -2658,7 +2658,7 @@ int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 
     // set geometry
-    conn->geom[0] = dCreateCylinder(_space, _bigwheel_radius, 2*_connector_depth/3);
+    conn->geom[0] = dCreateCylinder(_space, _bigwheel_radius, _wheel_depth);
     dGeomSetBody(conn->geom[0], conn->body);
     dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
     dGeomSetOffsetRotation(conn->geom[0], R1);
@@ -3042,7 +3042,7 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
     // define parameters
     dMass m;
     dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_connector_depth/3, 0, 0};
+	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
 
 	// position center of connector
 	this->getConnectionParams(face, R, p);
@@ -3052,7 +3052,7 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0];
 
     // set mass of body
-	dMassSetCylinder(&m, 270, 1, 2*_smallwheel_radius, _connector_depth/2);
+	dMassSetCylinder(&m, 270, 1, 2*_smallwheel_radius, _wheel_depth/2);
     //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
@@ -3068,7 +3068,7 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 
     // set geometry
-    conn->geom[0] = dCreateCylinder(_space, _smallwheel_radius, 2*_connector_depth/3);
+    conn->geom[0] = dCreateCylinder(_space, _smallwheel_radius, _wheel_depth);
     dGeomSetBody(conn->geom[0], conn->body);
     dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
     dGeomSetOffsetRotation(conn->geom[0], R1);
@@ -3092,7 +3092,7 @@ int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
     // define parameters
     dMass m;
     dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_connector_depth/3, 0, 0};
+	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
 
 	// position center of connector
 	this->getConnectionParams(face, R, p);
@@ -3102,7 +3102,7 @@ int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0];
 
     // set mass of body
-	dMassSetCylinder(&m, 270, 1, 2*_tinywheel_radius, _connector_depth/2);
+	dMassSetCylinder(&m, 270, 1, 2*_tinywheel_radius, _wheel_depth);
     //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
@@ -3118,7 +3118,7 @@ int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 
     // set geometry
-    conn->geom[0] = dCreateCylinder(_space, _tinywheel_radius, 2*_connector_depth/3);
+    conn->geom[0] = dCreateCylinder(_space, _tinywheel_radius, _wheel_depth);
     dGeomSetBody(conn->geom[0], conn->body);
     dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
     dGeomSetOffsetRotation(conn->geom[0], R1);
@@ -3332,6 +3332,7 @@ int CLinkbotT::init_dims(void) {
 	_omni_length = 0.16360;
 	_smallwheel_radius = 0.04445;
 	_tinywheel_radius = 0.04128;
+	_wheel_depth = 0.00390;
 
 	// success
 	return 0;
@@ -3412,7 +3413,7 @@ void CLinkbotT::draw_bigwheel(conn_t conn, osg::Group *robot) {
     // set geometry
 	pos = dGeomGetOffsetPosition(conn->geom[0]);
 	dGeomGetOffsetQuaternion(conn->geom[0], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _bigwheel_radius, 2*_connector_depth/3);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _bigwheel_radius, _wheel_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
@@ -3671,7 +3672,7 @@ void CLinkbotT::draw_smallwheel(conn_t conn, osg::Group *robot) {
     // set geometry
 	pos = dGeomGetOffsetPosition(conn->geom[0]);
 	dGeomGetOffsetQuaternion(conn->geom[0], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _smallwheel_radius, 2*_connector_depth/3);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _smallwheel_radius, _wheel_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
@@ -3700,7 +3701,7 @@ void CLinkbotT::draw_tinywheel(conn_t conn, osg::Group *robot) {
     // set geometry
 	pos = dGeomGetOffsetPosition(conn->geom[0]);
 	dGeomGetOffsetQuaternion(conn->geom[0], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _tinywheel_radius, 2*_connector_depth/3);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _tinywheel_radius, _wheel_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 

@@ -1583,29 +1583,21 @@ void readXMLConfig(void) {
 					tmp->next = nr;
 				}
 			}
-			else if ( !strcmp(node->Value(), "bigwheel") ) {
-				int id = -1;
-				node->QueryIntAttribute("robot", &id);
-				tmp = g_robots;
-				while (tmp && tmp->id != id)
-					tmp = tmp->next;
-				if (tmp) tmp->wheel = BIGWHEEL;
-			}
-			else if ( !strcmp(node->Value(), "smallwheel") ) {
-				int id = -1;
-				node->QueryIntAttribute("robot", &id);
-				tmp = g_robots;
-				while (tmp && tmp->id != id)
-					tmp = tmp->next;
-				if (tmp) tmp->wheel = SMALLWHEEL;
-			}
-			else if ( !strcmp(node->Value(), "tinywheel") ) {
-				int id = -1;
-				node->QueryIntAttribute("robot", &id);
-				tmp = g_robots;
-				while (tmp && tmp->id != id)
-					tmp = tmp->next;
-				if (tmp) tmp->wheel = TINYWHEEL;
+			else if ( !strcmp(node->Value(), "simple") ) {
+				tinyxml2::XMLElement *side = node->LastChildElement();
+				if (side) {
+					int id = -1, wheeltype = -1;
+					side->QueryIntAttribute("robot", &id);
+					if (side->QueryIntAttribute("conn", &wheeltype) != tinyxml2::XML_NO_ATTRIBUTE) {
+						tmp = g_robots;
+						while (tmp && tmp->id != id)
+							tmp = tmp->next;
+
+						if (wheeltype == 0) { if (tmp) tmp->wheel = BIGWHEEL; }
+						else if (wheeltype == 9) { if (tmp) tmp->wheel = SMALLWHEEL; }
+						else if (wheeltype == 12) { if (tmp) tmp->wheel = TINYWHEEL; }
+					}
+				}
 			}
 
 			// go to next element
@@ -1841,48 +1833,62 @@ void saveRobotList(void) {
 
 		// add wheels
 		if (tmp->wheel) {
-			tinyxml2::XMLElement *wheel1, *wheel2;
-			tinyxml2::XMLElement *caster = g_doc.NewElement("caster");
+			tinyxml2::XMLElement *simple1 = g_doc.NewElement("simple");
+			tinyxml2::XMLElement *s1side1 = g_doc.NewElement("side");
+			s1side1->SetAttribute("id", 1);
+			s1side1->SetAttribute("robot", tmp->id);
+			s1side1->SetAttribute("face", 1);
+			simple1->InsertFirstChild(s1side1);
+			tinyxml2::XMLElement *s1side2 = g_doc.NewElement("side");
+			s1side2->SetAttribute("id", 2);
+			s1side2->SetAttribute("robot", tmp->id);
+			simple1->InsertAfterChild(s1side1, s1side2);
+
+			tinyxml2::XMLElement *simple2 = g_doc.NewElement("simple");
+			tinyxml2::XMLElement *s2side1 = g_doc.NewElement("side");
+			s2side1->SetAttribute("id", 1);
+			s2side1->SetAttribute("robot", tmp->id);
+			simple2->InsertFirstChild(s2side1);
+			tinyxml2::XMLElement *s2side2 = g_doc.NewElement("side");
+			s2side2->SetAttribute("id", 2);
+			s2side2->SetAttribute("robot", tmp->id);
+			simple2->InsertAfterChild(s2side1, s2side2);
+
 			if (tmp->wheel == BIGWHEEL) {
-				wheel1 = g_doc.NewElement("bigwheel");
-				wheel2 = g_doc.NewElement("bigwheel");
+				s1side2->SetAttribute("conn", 0);
+				s2side2->SetAttribute("conn", 0);
 			}
 			else if (tmp->wheel == SMALLWHEEL) {
-				wheel1 = g_doc.NewElement("smallwheel");
-				wheel2 = g_doc.NewElement("smallwheel");
+				s1side2->SetAttribute("conn", 9);
+				s2side2->SetAttribute("conn", 9);
 			}
 			else if (tmp->wheel == TINYWHEEL) {
-				wheel1 = g_doc.NewElement("tinywheel");
-				wheel2 = g_doc.NewElement("tinywheel");
+				s1side2->SetAttribute("conn", 12);
+				s2side2->SetAttribute("conn", 12);
 			}
 
-			wheel1->SetAttribute("robot", tmp->id);
-			wheel1->SetAttribute("face", 1);
+			tinyxml2::XMLElement *caster = g_doc.NewElement("caster");
 			caster->SetAttribute("robot", tmp->id);
 
 			if (tmp->type == 0) {
-				wheel2->SetAttribute("robot", tmp->id);
-				wheel2->SetAttribute("face", 3);
+				s2side1->SetAttribute("face", 3);
 				caster->SetAttribute("face", 2);
 			}
 			else if (tmp->type == 1) {
-				wheel2->SetAttribute("robot", tmp->id);
-				wheel2->SetAttribute("face", 2);
+				s2side1->SetAttribute("face", 2);
 				caster->SetAttribute("face", 3);
 			}
 			else if (tmp->type == 2) {
-				wheel2->SetAttribute("robot", tmp->id);
-				wheel2->SetAttribute("face", 3);
+				s2side1->SetAttribute("face", 3);
 				caster->SetAttribute("face", 2);
 			}
 			else if (tmp->type == 3) {
-				wheel2->SetAttribute("robot", tmp->id);
-				wheel2->SetAttribute("face", 8);
+				s2side1->SetAttribute("face", 8);
 				caster->SetAttribute("face", 3);
 			}
-			sim->InsertAfterChild(robot, wheel1);
-			sim->InsertAfterChild(wheel1, wheel2);
-			sim->InsertAfterChild(wheel2, caster);
+			sim->InsertAfterChild(robot, simple1);
+			sim->InsertAfterChild(simple1, simple2);
+			sim->InsertAfterChild(simple2, caster);
 		}
 
 		// go to next robot
