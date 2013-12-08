@@ -1,0 +1,3 @@
+void delay(double seconds) {
+	fprintf(_stderr, "Error: delay() is invalid for simulation in RoboSim, please use robot.delaySeconds()\n");
+}

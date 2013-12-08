@@ -1,0 +1,4 @@
+double systemTime() {
+	fprintf(_stderr, "Error: systemTime() is invalid for simulation in RoboSim, please use robot.systemTime()\n");
+	return 0;
+}
