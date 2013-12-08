@@ -1867,7 +1867,7 @@ void saveRobotList(void) {
 		robot->InsertAfterChild(pos, rot);
 
 		// add wheels
-		if (tmp->wheel) {
+		if (tmp->type != 3 && tmp->wheel) {
 			tinyxml2::XMLElement *simple1 = g_doc.NewElement("simple");
 			tinyxml2::XMLElement *s1side1 = g_doc.NewElement("side");
 			s1side1->SetAttribute("id", 1);
@@ -1924,6 +1924,38 @@ void saveRobotList(void) {
 			sim->InsertAfterChild(robot, simple1);
 			sim->InsertAfterChild(simple1, simple2);
 			sim->InsertAfterChild(simple2, caster);
+		}
+		else if (tmp->type == 3 && tmp->wheel) {
+			tinyxml2::XMLElement 	*wheel1 = g_doc.NewElement("smallwheel"),
+									*wheel2 = g_doc.NewElement("smallwheel"),
+									*caster = g_doc.NewElement("caster");
+			wheel1->SetAttribute("robot", tmp->id);
+			wheel1->SetAttribute("face", 1);
+			caster->SetAttribute("robot", tmp->id);
+
+			if (tmp->type == 0) {
+				wheel2->SetAttribute("robot", tmp->id);
+				wheel2->SetAttribute("face", 3);
+				caster->SetAttribute("face", 2);
+			}
+			else if (tmp->type == 1) {
+				wheel2->SetAttribute("robot", tmp->id);
+				wheel2->SetAttribute("face", 2);
+				caster->SetAttribute("face", 3);
+			}
+			else if (tmp->type == 2) {
+				wheel2->SetAttribute("robot", tmp->id);
+				wheel2->SetAttribute("face", 3);
+				caster->SetAttribute("face", 2);
+			}
+			else if (tmp->type == 3) {
+				wheel2->SetAttribute("robot", tmp->id);
+				wheel2->SetAttribute("face", 8);
+				caster->SetAttribute("face", 3);
+			}
+			sim->InsertAfterChild(robot, wheel1);
+			sim->InsertAfterChild(wheel1, wheel2);
+			sim->InsertAfterChild(wheel2, caster);
 		}
 
 		// go to next robot
