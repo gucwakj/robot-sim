@@ -1851,7 +1851,7 @@ int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 				this->add_daisy_chain(ctmp->conn, ctmp->face1, ctmp->side, ctmp->type);
 		}
 		else if (ctmp->face2 != conn->face2) {
-			this->fix_connector_to_body(ctmp->face2, base->getConnectorBodyID(ctmp->face1));
+			this->fix_connector_to_body(this->getBodyID(ctmp->face2), base->getConnectorBodyID(ctmp->face1));
 		}
 		ctmp = ctmp->next;
 	}
@@ -2670,7 +2670,10 @@ int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;
@@ -2718,7 +2721,10 @@ int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;
@@ -2786,7 +2792,10 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;
@@ -2832,7 +2841,10 @@ int CLinkbotT::build_cube(conn_t conn, int face, int side, int type) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;
@@ -2878,7 +2890,10 @@ int CLinkbotT::build_faceplate(conn_t conn, int face, int side, int type) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;
@@ -2938,7 +2953,7 @@ int CLinkbotT::build_gripper(conn_t conn, int face) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;
@@ -2984,7 +2999,10 @@ int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;
@@ -3030,7 +3048,10 @@ int CLinkbotT::build_simple(conn_t conn, int face, int side, int type) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;
@@ -3080,7 +3101,10 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;
@@ -3130,7 +3154,10 @@ int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;
@@ -3154,14 +3181,14 @@ int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
 	return 0;
 }
 
-int CLinkbotT::fix_connector_to_body(int face, dBodyID cBody) {
+int CLinkbotT::fix_connector_to_body(dBodyID rBody, dBodyID cBody) {
 	if (!cBody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
 
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
 
 	// attach to correct body
-	dJointAttach(joint, this->getBodyID(face), cBody);
+	dJointAttach(joint, rBody, cBody);
 
 	// set joint params
 	dJointSetFixed(joint);
