@@ -682,7 +682,23 @@ int RoboSim::addRobot(CRobot *robot) {
 		else { if (num++ != connected) {btmp = btmp->next; continue;}}
 		break;
 	}
-	if (btmp == NULL) { fprintf(stderr, "Error: could not find robot\n"); exit(-1); }
+	if (btmp == NULL) {
+		switch (robot->getType()) {
+			case LINKBOTI:
+				fprintf(stderr, "Error: Could Not Find LinkbotI In Config File.\n");
+				break;
+			case LINKBOTL:
+				fprintf(stderr, "Error: Could Not Find LinkbotL In Config File.\n");
+				break;
+			case LINKBOTT:
+				fprintf(stderr, "Error: Could Not Find LinkbotT In Config File.\n");
+				break;
+			case MOBOT:
+				fprintf(stderr, "Error: Could Not Find Mobot In Config File.\n");
+				break;
+		}
+		exit(-1);
+	}
 	
 	// give simulation data to robot
 	robot->addToSim(_world, _space, &_clock);
