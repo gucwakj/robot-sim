@@ -1443,7 +1443,7 @@ void readXMLConfig(void) {
 		grid->SetAttribute("dist", dist);
 		config->InsertAfterChild(type, grid);
 		tinyxml2::XMLElement *tracking = g_doc.NewElement("tracking");
-		type->SetAttribute("val", 0);
+		tracking->SetAttribute("val", 0);
 		config->InsertAfterChild(grid, tracking);
 
 		// create empty simulation
