@@ -161,6 +161,7 @@ typedef struct xml_conn_s {
 typedef struct xml_robot_s {
 	int type;
 	int id;
+	int tracking;
 	double x, y, z;
 	double psi, theta, phi;
 	double angle1, angle2, angle3, angle4;
@@ -290,7 +291,7 @@ class DLLIMPORT CRobot {
 		COND_T _success_cond;
 
 #ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group *root) = 0;
+		virtual int draw(osg::Group *root, int tracking) = 0;
 		osg::ShapeDrawable *_led;
 #endif // ENABLE_GRAPHICS
 };

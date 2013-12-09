@@ -279,7 +279,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		static void* setJointMovementStateTimeNBThread(void *arg);
 		static void* setMovementStateTimeNBThread(void *arg);
 #ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group *root);
+		virtual int draw(osg::Group *root, int tracking);
 		void draw_bigwheel(conn_t conn, osg::Group *robot);
 		void draw_caster(conn_t conn, osg::Group *robot);
 		void draw_simple(conn_t conn, osg::Group *robot);

@@ -67,7 +67,7 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 		case osgGA::GUIEventAdapter::KEYDOWN:
 			switch (ea.getKey()) {
 				case 't':
-					for (int i = 0; i < shadow->getNumChildren(); i++) {
+					for (int i = 0; i < (int)(shadow->getNumChildren()); i++) {
 						if (shadow->getChild(i)->getName() == "robot") {
 							osg::Geode *geode = dynamic_cast<osg::Geode *>(shadow->getChild(i)->asGroup()->getChild(1));
 							geode->setNodeMask((geode->getNodeMask() ? NOT_VISIBLE_MASK : VISIBLE_MASK));
@@ -215,8 +215,8 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
 		osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode2->getDrawable(0)->asGeometry());
 		osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
-		vertices->push_back(osg::Vec3(pos[0], pos[1], 0));
-		vertices->push_back(osg::Vec3(pos[0], pos[1], 0));
+		vertices->push_back(osg::Vec3(x, y, 0));
+		vertices->push_back(osg::Vec3(x, y, 0));
 		osg::DrawArrays *array = dynamic_cast<osg::DrawArrays *>(draw->getPrimitiveSet(0));
 		array->setCount(count+=2);
 	}
@@ -275,8 +275,8 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
 		osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode2->getDrawable(0)->asGeometry());
 		osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
-		vertices->push_back(osg::Vec3(pos[0], pos[1], 0));
-		vertices->push_back(osg::Vec3(pos[0], pos[1], 0));
+		vertices->push_back(osg::Vec3(x, y, 0));
+		vertices->push_back(osg::Vec3(x, y, 0));
 		osg::DrawArrays *array = dynamic_cast<osg::DrawArrays *>(draw->getPrimitiveSet(0));
 		array->setCount(count+=2);
 	}

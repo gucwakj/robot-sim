@@ -133,6 +133,7 @@ int RoboSim::init_sim(int pause) {
 int RoboSim::init_xml(void) {
 	// initialize variables
 	int *rtmp, *ftmp, *ntmp, *atmp, ctype = 0, cnum = 0;
+	int tracking = 0;
 	_bot = NULL;
 	_robots = NULL;
 	tinyxml2::XMLElement *node = NULL;
@@ -158,7 +159,7 @@ int RoboSim::init_xml(void) {
 
 #ifdef ENABLE_GRAPHICS
 	// read in grid line configuration
-	if (node = doc.FirstChildElement("config")->FirstChildElement("grid")) {
+	if ( (node = doc.FirstChildElement("config")->FirstChildElement("grid")) ) {
 		node->QueryIntAttribute("units", &_us);
 		node->QueryDoubleAttribute("tics", &_grid[0]);
 		node->QueryDoubleAttribute("major", &_grid[1]);
@@ -181,6 +182,11 @@ int RoboSim::init_xml(void) {
 		_grid[1] = 3.281;		// grid lines each foot
 		_grid[2] = 4/3.281;		// total distance
 	}
+
+	// check if robot tracking is enabled
+	if ( (node = doc.FirstChildElement("config")->FirstChildElement("tracking")) ) {
+		node->QueryIntAttribute("val", &tracking);
+	}
 #endif
 
 	// get root node of xml file
@@ -201,6 +207,7 @@ int RoboSim::init_xml(void) {
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0; nr->angle4 = 0;
+			nr->tracking = tracking;
 			node->QueryIntAttribute("id", &(nr->id));
 			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
@@ -237,6 +244,7 @@ int RoboSim::init_xml(void) {
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
+			nr->tracking = tracking;
 			node->QueryIntAttribute("id", &(nr->id));
 			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
@@ -283,6 +291,7 @@ int RoboSim::init_xml(void) {
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
+			nr->tracking = tracking;
 			node->QueryIntAttribute("id", &(nr->id));
 			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
@@ -329,6 +338,7 @@ int RoboSim::init_xml(void) {
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
+			nr->tracking = tracking;
 			node->QueryIntAttribute("id", &(nr->id));
 			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &(nr->x));
@@ -730,7 +740,7 @@ int RoboSim::addRobot(CRobot *robot) {
 
 #ifdef ENABLE_GRAPHICS
 	// draw robot
-	nr->node = robot->draw(_shadowed);
+	nr->node = robot->draw(_shadowed, btmp->tracking);
 #endif // ENABLE_GRAPHICS
 	
 	// unlock robot data

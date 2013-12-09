@@ -2416,7 +2416,7 @@ void CMobot::simPostCollisionThread(void) {
 }
 
 #ifdef ENABLE_GRAPHICS
-int CMobot::draw(osg::Group *root) {
+int CMobot::draw(osg::Group *root, int tracking) {
 	// initialize variables
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[5];
@@ -2643,11 +2643,12 @@ int CMobot::draw(osg::Group *root) {
 	osg::Geode *trackingGeode = new osg::Geode();
 	osg::Geometry *trackingLine = new osg::Geometry();
 	osg::Vec3Array *trackingVertices = new osg::Vec3Array();
-	trackingGeode->setNodeMask(NOT_VISIBLE_MASK);
-	pos = dBodyGetPosition(_body[CENTER]);
-	trackingVertices->push_back(osg::Vec3(0, 0, 0));
-	trackingVertices->push_back(osg::Vec3(pos[0], pos[1], 0));
-	trackingVertices->push_back(osg::Vec3(pos[0], pos[1], 0));
+	trackingGeode->setNodeMask((tracking) ? VISIBLE_MASK : NOT_VISIBLE_MASK);
+	double xstart = this->getCenter(0);
+	double ystart = this->getCenter(1);
+	trackingVertices->push_back(osg::Vec3(xstart, ystart, 0));
+	trackingVertices->push_back(osg::Vec3(xstart, ystart, 0));
+	trackingVertices->push_back(osg::Vec3(xstart, ystart, 0));
 	trackingLine->setVertexArray(trackingVertices);
 	trackingLine->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 2));
 	trackingLine->setDataVariance(osg::Object::DYNAMIC);
