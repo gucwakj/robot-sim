@@ -410,7 +410,7 @@ G_MODULE_EXPORT void on_x_value_changed(GtkWidget *widget, gpointer data) {
 	// if the robot is found, change its x value
 	if (tmp) {
 		// store new value
-		tmp->x = convert(gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget)), 1);
+		tmp->x = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
 
 		// save configuration
 		saveRobotList();
@@ -432,7 +432,7 @@ G_MODULE_EXPORT void on_y_value_changed(GtkWidget *widget, gpointer data) {
 	// if the robot is found, change its y value
 	if (tmp) {
 		// store new value
-		tmp->y = convert(gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget)), 1);
+		tmp->y = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
 
 		// save configuration
 		saveRobotList();
@@ -523,7 +523,7 @@ G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data) {
 		while (tmp->next)
 			tmp = tmp->next;
 		nr->id = tmp->id + 1;
-		nr->x = tmp->x + ((g_units) ? 0.1524 : 0.15); // add 6in or 15 cm
+		nr->x = tmp->x + ((g_units) ? 6 : 15); // add 6in or 15 cm
 	}
 	nr->type = 0;
 	nr->y = 0;
@@ -1683,6 +1683,15 @@ void readXMLConfig(void) {
 		g_doc.FirstChildElement("config")->InsertFirstChild(grid);
 	}
 
+	// convert meters into gui units
+	robots_t tmp = g_robots;
+	while (tmp) {
+		tmp->x = convert(tmp->x, 0);
+		tmp->y = convert(tmp->y, 0);
+		tmp->z = convert(tmp->z, 0);
+		tmp = tmp->next;
+	}
+
 	// success
 	return;
 }
@@ -1730,7 +1739,7 @@ void refreshRobotList(void) {
 		w = ((g_units) ? gtk_label_new(" X [in]:") : gtk_label_new(" X [cm]:"));
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 3, 4, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(convert(tmp->x, 0), -500, 500, 0.1, 0.1, 1));
+		x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->x, -500, 500, 0.1, 0.1, 1));
 		w = gtk_spin_button_new(x_adj, 0.0, 1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 4, 5, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
@@ -1739,7 +1748,7 @@ void refreshRobotList(void) {
 		w = ((g_units) ? gtk_label_new(" Y [in]:") : gtk_label_new(" Y [cm]:"));
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 5, 6, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(convert(tmp->y, 0), -500, 500, 0.1, 0.1, 1));
+		y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->y, -500, 500, 0.1, 0.1, 1));
 		w = gtk_spin_button_new(y_adj, 0.0, 1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 6, 7, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
@@ -1854,9 +1863,9 @@ void saveRobotList(void) {
 
 		// set position
 		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", tmp->x);
-		pos->SetAttribute("y", tmp->y);
-		pos->SetAttribute("z", tmp->z);
+		pos->SetAttribute("x", convert(tmp->x, 1));
+		pos->SetAttribute("y", convert(tmp->y, 1));
+		pos->SetAttribute("z", convert(tmp->z, 1));
 		robot->InsertFirstChild(pos);
 
 		// set rotation
