@@ -61,6 +61,32 @@ int CMobot::connect() {
     return retval;
 }
 
+int CMobot::delay(double milliseconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_delay_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, milliseconds);
+    return retval;
+}
+
+int CMobot::delaySeconds(double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_delaySeconds_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, seconds);
+    return retval;
+}
+
 int CMobot::disconnect() {
     void *fptr;
     int retval;
@@ -1487,6 +1513,19 @@ int CMobot::stopThreeJoints(int id1, int id2, int id3) {
         return -1;
     }
     dlrunfun(fptr, &retval, stopThreeJoints, this, id1, id2, id3);
+    return retval;
+}
+
+int CMobot::systemTime(double &systemTime) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_systemTime_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, &systemTime);
     return retval;
 }
 

@@ -61,6 +61,32 @@ int CLinkbotT::connect() {
     return retval;
 }
 
+int CLinkbotT::delay(double milliseconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_delay_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, milliseconds);
+    return retval;
+}
+
+int CLinkbotT::delaySeconds(double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_delaySeconds_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, seconds);
+    return retval;
+}
+
 int CLinkbotT::disconnect() {
     void *fptr;
     int retval;
@@ -1380,6 +1406,19 @@ int CLinkbotT::stopOneJoint(int id) {
         return -1;
     }
     dlrunfun(fptr, &retval, stopOneJoint, this, id);
+    return retval;
+}
+
+int CLinkbotT::systemTime(double &systemTime) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_systemTime_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, &systemTime);
     return retval;
 }
 

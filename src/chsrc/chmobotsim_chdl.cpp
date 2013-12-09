@@ -57,6 +57,36 @@ EXPORTCH int CMobot_connect_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_delay_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    double milliseconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    milliseconds = Ch_VaArg(interp, ap, double);
+    retval = robot->delay(milliseconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CMobot_delaySeconds_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->delaySeconds(seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_disconnect_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -1900,6 +1930,21 @@ EXPORTCH int CMobot_stopAllJoints_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CMobot *);
     retval = robot->stopAllJoints();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CMobot_systemTime_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    double *systemTime;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    systemTime = Ch_VaArg(interp, ap, double *);
+    retval = robot->systemTime(*systemTime);
     Ch_VaEnd(interp, ap);
     return retval;
 }

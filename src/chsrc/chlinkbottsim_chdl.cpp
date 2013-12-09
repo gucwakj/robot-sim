@@ -57,6 +57,36 @@ EXPORTCH int CLinkbotT_connect_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotT_delay_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    double milliseconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    milliseconds = Ch_VaArg(interp, ap, double);
+    retval = robot->delay(milliseconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotT_delaySeconds_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->delaySeconds(seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotT_disconnect_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -1712,6 +1742,21 @@ EXPORTCH int CLinkbotT_stop_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotT *);
     retval = robot->stop();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotT_systemTime_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    double *systemTime;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    systemTime = Ch_VaArg(interp, ap, double *);
+    retval = robot->systemTime(*systemTime);
     Ch_VaEnd(interp, ap);
     return retval;
 }
