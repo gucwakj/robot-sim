@@ -2141,8 +2141,12 @@ int CMobot::build(xml_robot_t robot) {
 	// check for wheels
 	xml_conn_t ctmp = robot->conn;
 	while (ctmp) {
-		if (ctmp->type == BIGWHEEL || ctmp->type == SMALLWHEEL) {
-			robot->z += ((ctmp->type == SMALLWHEEL) ? _smallwheel_radius : _bigwheel_radius) - _end_height/2;
+		if (ctmp->type == BIGWHEEL) {
+			robot->z += (_bigwheel_radius - _end_height/2);
+			break;
+		}
+		else if (ctmp->type == SMALLWHEEL) {
+			robot->z += (_smallwheel_radius - _end_height/2);
 			break;
 		}
 		ctmp = ctmp->next;
