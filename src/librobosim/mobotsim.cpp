@@ -961,6 +961,35 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 	return 0;
 }
 
+int CMobot::movexy(double x, double y, double radius, double tracklength) {
+	this->movexyNB(x, y, radius, tracklength);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::movexyNB(double x, double y, double radius, double tracklength) {
+	// calculate change from current position to (x,y)
+	x -= this->getCenter(0);
+	y -= this->getCenter(1);
+
+	// get angle to turn
+	double angle = atan2(x, y);
+
+	// turn in shortest path
+	if (angle > EPSILON)
+		this->turnRight(RAD2DEG(angle), radius, tracklength);
+	else
+		this->turnLeft(RAD2DEG(-angle), radius, tracklength);
+
+	// move along length of line
+	this->moveDistanceNB(sqrt(x*x + y*y), radius);
+
+	// success
+	return 0;
+}
+
 int CMobot::moveBackward(double angle) {
 	this->moveBackwardNB(angle);
 	this->moveWait();

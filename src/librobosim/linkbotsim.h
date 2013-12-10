@@ -73,6 +73,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int motionWait();
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
+		int movexy(double x, double y, double radius, double tracklength);
+		int movexyNB(double x, double y, double radius, double tracklength);
 		int moveBackward(double angle);
 		int moveBackwardNB(double angle);
 		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
@@ -417,6 +419,8 @@ class DLLIMPORT CLinkbotI {
 		int motionWait();
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
+		int movexy(double x, double y, double radius, double tracklength);
+		int movexyNB(double x, double y, double radius, double tracklength);
 		int moveBackward(double angle);
 		int moveBackwardNB(double angle);
 		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
@@ -624,6 +628,8 @@ class DLLIMPORT CLinkbotL {
 		int motionWait();
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
+		int movexy(double x, double y, double radius, double tracklength);
+		int movexyNB(double x, double y, double radius, double tracklength);
 		int moveBackward(double angle);
 		int moveBackwardNB(double angle);
 		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);

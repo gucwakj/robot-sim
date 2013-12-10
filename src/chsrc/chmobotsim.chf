@@ -718,6 +718,32 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
     return retval;
 }
 
+int CMobot::movexy(double x, double y, double radius, double tracklength) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_movexy_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, movexy, this, x, y, radius, tracklength);
+    return retval;
+}
+
+int CMobot::movexyNB(double x, double y, double radius, double tracklength) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_movexyNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, movexyNB, this, x, y, radius, tracklength);
+    return retval;
+}
+
 int CMobot::moveBackward(double angle) {
     void *fptr;
     int retval;
