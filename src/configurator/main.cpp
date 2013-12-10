@@ -1769,6 +1769,9 @@ void readXMLConfig(void) {
 		tmp = tmp->next;
 	}
 
+	// refesh robot list
+	refreshRobotList();
+
 	// success
 	return;
 }
