@@ -1204,11 +1204,12 @@ void* RoboSim::graphics_thread(void *arg) {
 	osg::ref_ptr<osgText::Text> xtext = new osgText::Text();
 	xtext->setText("x");
 	xtext->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	xtext->setAlignment(osgText::Text::LEFT_CENTER);
-	xtext->setCharacterSize(60);
+	xtext->setAlignment(osgText::Text::CENTER_BASE_LINE);
+	xtext->setRotation(osg::Quat(-1.57, osg::Vec3(0, 0, 1)));
+	xtext->setCharacterSize(50);
 	xtext->setColor(osg::Vec4(0, 0, 0, 1));
 	xtext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[2], 0.0, 0.0));
+	xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[2]+0.03, 0.0, 0.0));
 	xbillboard->setMode(osg::Billboard::AXIAL_ROT);
 	xbillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
 	xbillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
@@ -1221,10 +1222,10 @@ void* RoboSim::graphics_thread(void *arg) {
 	ytext->setText("y");
 	ytext->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 	ytext->setAlignment(osgText::Text::CENTER_BASE_LINE);
-	ytext->setCharacterSize(60);
+	ytext->setCharacterSize(50);
 	ytext->setColor(osg::Vec4(0, 0, 0, 1));
 	ytext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	ybillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[2], 0.0));
+	ybillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[2]+0.03, 0.0));
 	ybillboard->setMode(osg::Billboard::AXIAL_ROT);
 	ybillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
 	ybillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
