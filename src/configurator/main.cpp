@@ -60,6 +60,7 @@ G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_dist_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_major_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_tics_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_defaults_clicked(GtkWidget *widget, gpointer data);
 
 G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data);
@@ -475,18 +476,28 @@ G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data) 
  */
 G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "us")))) {
+		// get current values
+		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
+		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
+		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
+
+		// set to metric defaults if at customary defaults
+		if ( ((int)dist == 400) && ((int)major == 50) && ((int)tics == 5) ) {
+			dist = 96, major = 12, tics = 1;
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
+		}
+			
 		// set configuration options
 		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
 		grid->SetAttribute("units", 1);
-		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
 		grid->SetAttribute("tics", tics);
-		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
 		grid->SetAttribute("major", major);
-		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
 		grid->SetAttribute("dist", dist);
 
 		// change labels
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (in): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance of Grid Lines (in): ");
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
 
@@ -509,18 +520,28 @@ G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "metric")))) {
+		// get current values
+		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
+		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
+		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
+
+		// set to metric defaults if at customary defaults
+		if ( ((int)dist == 96) && ((int)major == 12) && ((int)tics == 1) ) {
+			dist = 400, major = 50, tics = 5;
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
+		}
+			
 		// set configuration options
 		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
 		grid->SetAttribute("units", 0);
-		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
 		grid->SetAttribute("tics", tics);
-		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
 		grid->SetAttribute("major", major);
-		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
 		grid->SetAttribute("dist", dist);
 
 		// change labels
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (cm): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance of Grid Lines (cm): ");
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (cm): ");
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (cm): ");
 
@@ -599,6 +620,25 @@ G_MODULE_EXPORT void on_tics_value_changed(GtkWidget *widget, gpointer data) {
 
 	// set new value
 	grid->SetAttribute("tics", val);
+
+	// save file
+	g_doc.SaveFile(g_xml);
+}
+
+/*
+ * Restore default grid values
+ */
+G_MODULE_EXPORT void on_defaults_clicked(GtkWidget *widget, gpointer data) {
+	if (g_units) {
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), 96);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), 12);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), 1);
+	}
+	else {
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), 400);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), 50);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), 5);
+	}
 
 	// save file
 	g_doc.SaveFile(g_xml);
@@ -1435,12 +1475,16 @@ void readXMLConfig(void) {
 		config->InsertAfterChild(version, type);
 		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
 		grid->SetAttribute("units", 1);
-		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
-		grid->SetAttribute("tics", tics);
-		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
-		grid->SetAttribute("major", major);
-		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
+		double dist = 96, major = 12, tics = 1;
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance of Grid Lines (in): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
 		grid->SetAttribute("dist", dist);
+		grid->SetAttribute("major", major);
+		grid->SetAttribute("tics", tics);
 		config->InsertAfterChild(type, grid);
 		tinyxml2::XMLElement *tracking = g_doc.NewElement("tracking");
 		tracking->SetAttribute("val", 0);
@@ -1681,13 +1725,13 @@ void readXMLConfig(void) {
 		// set labels
 		if (g_units) {
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "us")), 1);
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (in): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance of Grid Lines (in): ");
 			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
 			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
 		}
 		else {
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "metric")), 1);
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance (cm): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance of Grid Lines (cm): ");
 			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (cm): ");
 			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (cm): ");
 		}
