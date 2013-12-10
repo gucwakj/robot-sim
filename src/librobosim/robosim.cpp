@@ -33,7 +33,9 @@ RoboSim::~RoboSim(void) {
 #endif
 
 	// remove simulation
+	MUTEX_LOCK(&_running_mutex);
 	_running = 0;
+	MUTEX_UNLOCK(&_running_mutex);
 	THREAD_JOIN(_simulation);
 	COND_DESTROY(&_running_cond);
 	MUTEX_DESTROY(&_running_mutex);
@@ -756,17 +758,25 @@ int RoboSim::deleteRobot(CRobot *robot) {
 	static int paused = 0;
 	if (!paused++ && _running) {
 		_pause = 1;
+		MUTEX_UNLOCK(&(_pause_mutex));
+
+		// get HUD and set message
 		osgText::Text *txt = dynamic_cast<osgText::Text *>(_shadowed->getParent(0)->getChild(4)->asGroup()->getChild(0)->asTransform()->getChild(0)->asGeode()->getDrawable(0));
 		txt->setText("Paused: Press any key to end");
+
+		// sleep until pausing halted by user
+		MUTEX_LOCK(&(_pause_mutex));
 		while (_pause) {
+			MUTEX_UNLOCK(&(_pause_mutex));
 #ifdef _WIN32
-			Sleep(1);
+			Sleep(100);
 #else
-			usleep(100);
+			usleep(100000);
 #endif
+			MUTEX_LOCK(&(_pause_mutex));
 		}
+		MUTEX_UNLOCK(&(_pause_mutex));
 	}
-	MUTEX_UNLOCK(&(_pause_mutex));
 
 	// lock robot data to delete
 	MUTEX_LOCK(&_robot_mutex);
@@ -835,12 +845,15 @@ void* RoboSim::simulation_thread(void *arg) {
 	DWORD start_time, start;
 #else
 	struct timespec start_time, end_time;
-	unsigned int start, end;
+	unsigned int start, end, clock = 0, restart = 0;
 #endif
 
 	MUTEX_LOCK(&(sim->_running_mutex));
 	while (sim->_running) {
 		MUTEX_UNLOCK(&(sim->_running_mutex));
+
+		// lock pause variable
+		MUTEX_LOCK(&(sim->_pause_mutex));
 
 		// get starting times
 #ifdef _WIN32
@@ -849,9 +862,6 @@ void* RoboSim::simulation_thread(void *arg) {
 		clock_gettime(CLOCK_REALTIME, &start_time);
 		start = start_time.tv_sec*1000 + start_time.tv_nsec/1000000;
 #endif
-
-		// lock pause variable
-		MUTEX_LOCK(&(sim->_pause_mutex));
 
 		while (!(sim->_pause) && sim->_running) {
 			// unlock pause variable
@@ -892,30 +902,63 @@ void* RoboSim::simulation_thread(void *arg) {
 
 			// sleep until next step
 #ifdef _WIN32
+			// get ending time
 			dt[0] = GetTickCount() - start_time;
-			for (i = 0; i < 4; i++) { sum += dt[i]; }
-			for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
-			sum /= 4;
-			if (GetTickCount() - start > (unsigned int)(sim->_clock*1000))
+
+			// running mean of last four time steps
+			if (start != init) {
+				for (i = 0; i < 4; i++) { sum += dt[i]; }
+				for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
+				sum /= 4;
+			}
+			// on restart, reset all time steps
+			else {
+				sum = 0.004;
+				for (i = 1; i < 4; i++) { dt[i] = 0; }
+			}
+
+			// set next time step if calculations took longer than step
+			if (GetTickCount() - start > (unsigned int)(sim->_clock*1000)) {
 				sim->_step = (GetTickCount() - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
+			}
+			// sleep until clock time equals step time
 			else {
 				sim->_step = sum/1000.0;
 				Sleep((unsigned int)(sim->_clock*1000) - (GetTickCount() - start));
 			}
+
+			// make sure time step is large enough
 			sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
 #else
+			// get ending time
 			clock_gettime(CLOCK_REALTIME, &end_time);
 			dt[0] = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
 			end = end_time.tv_sec*1000 + end_time.tv_nsec/1000000;
-			for (i = 0; i < 4; i++) { sum += dt[i]; }
-			for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
-			sum /= 4;
-			if (end - start > (unsigned int)(sim->_clock*1000))
+
+			// running mean of last four time steps
+			if (!restart) {
+				for (i = 0; i < 4; i++) { sum += dt[i]; }
+				for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
+				sum /= 4;
+			}
+			// on restart, reset all time steps
+			else {
+				restart = 0;
+				sum = dt[0];
+				for (i = 1; i < 4; i++) { dt[i] = 0; }
+			}
+
+			// set next time step if calculations took longer than step
+			if (end - start > (unsigned int)(sim->_clock*1000)) {
 				sim->_step = (end - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
+			}
+			// sleep until clock time equals step time
 			else {
 				sim->_step = sum/1000.0;
-				usleep(sim->_clock*1000000 - ((end - start)*1000));
+				usleep(sim->_clock*1000000 - ((end - start)*1000) - clock);
 			}
+
+			// make sure time step is large enough
 			sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
 #endif
 			// lock pause variable
@@ -923,8 +966,16 @@ void* RoboSim::simulation_thread(void *arg) {
 		}
 		// unlock pause variable
 		MUTEX_UNLOCK(&(sim->_pause_mutex));
+
+		// reset clock counters on pausing
+		restart = 1;
+		end = start;
+		clock = (unsigned int)(sim->_clock*1000000);
+
+		// lock running mutex
 		MUTEX_LOCK(&(sim->_running_mutex));
 	}
+	// unlock running variable
 	MUTEX_UNLOCK(&(sim->_running_mutex));
 
 	return NULL;
