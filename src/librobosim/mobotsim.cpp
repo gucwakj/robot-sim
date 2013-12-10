@@ -2677,13 +2677,9 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	osg::Geometry *trackingLine = new osg::Geometry();
 	osg::Vec3Array *trackingVertices = new osg::Vec3Array();
 	trackingGeode->setNodeMask((tracking) ? VISIBLE_MASK : NOT_VISIBLE_MASK);
-	double xstart = this->getCenter(0);
-	double ystart = this->getCenter(1);
-	trackingVertices->push_back(osg::Vec3(xstart, ystart, 0));
-	trackingVertices->push_back(osg::Vec3(xstart, ystart, 0));
-	trackingVertices->push_back(osg::Vec3(xstart, ystart, 0));
+	trackingVertices->push_back(osg::Vec3(this->getCenter(0), this->getCenter(1), 0));
 	trackingLine->setVertexArray(trackingVertices);
-	trackingLine->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 2));
+	trackingLine->insertPrimitiveSet(0, new osg::DrawArrays(osg::PrimitiveSet::LINE_STRIP, 0, 1, 1));
 	trackingLine->setDataVariance(osg::Object::DYNAMIC);
 	trackingLine->setUseDisplayList(false);
 	osg::Vec4Array *colors = new osg::Vec4Array;
