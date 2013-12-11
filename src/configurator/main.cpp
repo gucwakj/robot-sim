@@ -1467,25 +1467,27 @@ void readXMLConfig(void) {
 		// set configuration options
 		tinyxml2::XMLElement *config = g_doc.NewElement("config");
 		g_doc.InsertAfterChild(dec, config);
+
+		// set new version
 		tinyxml2::XMLElement *version = g_doc.NewElement("version");
 		version->SetAttribute("val", XML_VERSION);
 		config->InsertFirstChild(version);
+
+		// set individual robots as default
 		tinyxml2::XMLElement *type = g_doc.NewElement("type");
 		type->SetAttribute("val", 0);
 		config->InsertAfterChild(version, type);
+
+		// set grid values
 		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
 		grid->SetAttribute("units", 1);
 		double dist = 96, major = 12, tics = 1;
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance of Grid Lines (in): ");
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
-		grid->SetAttribute("dist", dist);
-		grid->SetAttribute("major", major);
-		grid->SetAttribute("tics", tics);
+		grid->SetAttribute("dist", (int)dist);
+		grid->SetAttribute("major", (int)major);
+		grid->SetAttribute("tics", (int)tics);
 		config->InsertAfterChild(type, grid);
+
+		// set tracking of robots
 		tinyxml2::XMLElement *tracking = g_doc.NewElement("tracking");
 		tracking->SetAttribute("val", 0);
 		config->InsertAfterChild(grid, tracking);
@@ -1496,6 +1498,14 @@ void readXMLConfig(void) {
 
 		// save default config file
 		g_doc.SaveFile(g_xml);
+
+		// set default values for grid
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance of Grid Lines (in): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
 
 		// end
 		return;

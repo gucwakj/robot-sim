@@ -708,7 +708,7 @@
                             </child>
                             <child>
                               <object class="GtkButton" id="defaults">
-                                <property name="label" translatable="yes">Restore Grid Defaults</property>
+                                <property name="label" translatable="yes">Reset to Default Values</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="receives_default">True</property>
