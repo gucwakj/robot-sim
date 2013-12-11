@@ -3268,8 +3268,8 @@ int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, double *p) {
 
 	switch (type) {
 		case BRIDGE:
-			offset[1] = _bridge_length - 2*_face_radius;
-			dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI);
+			offset[1] = -_bridge_length + 2*_face_radius;
+			dRFromAxisAndAngle(R1, R[1], R[5], R[9], M_PI);
 			break;
 		case CUBE:
 			if (side == 2) {
