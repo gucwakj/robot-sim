@@ -965,6 +965,7 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 		sim->InsertAfterChild(robot1, robot2);
 		robot3 = g_doc.NewElement("linkboti");
 		robot3->SetAttribute("id", 2);
+		robot3->SetAttribute("orientation", 3);
 		sim->InsertAfterChild(robot2, robot3);
 		robot4 = g_doc.NewElement("linkboti");
 		robot4->SetAttribute("id", 3);
@@ -976,7 +977,7 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *b1side1 = g_doc.NewElement("side");
 		b1side1->SetAttribute("id", 1);
 		b1side1->SetAttribute("robot", 0);
-		b1side1->SetAttribute("face", 3);
+		b1side1->SetAttribute("face", 1);
 		bridge1->InsertFirstChild(b1side1);
 		tinyxml2::XMLElement *b1side2 = g_doc.NewElement("side");
 		b1side2->SetAttribute("id", 2);
@@ -990,7 +991,7 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *b2side1 = g_doc.NewElement("side");
 		b2side1->SetAttribute("id", 1);
 		b2side1->SetAttribute("robot", 0);
-		b2side1->SetAttribute("face", 1);
+		b2side1->SetAttribute("face", 3);
 		bridge2->InsertFirstChild(b2side1);
 		tinyxml2::XMLElement *b2side2 = g_doc.NewElement("side");
 		b2side2->SetAttribute("id", 2);
@@ -1018,7 +1019,7 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *b3side1 = g_doc.NewElement("side");
 		b3side1->SetAttribute("id", 1);
 		b3side1->SetAttribute("robot", 2);
-		b3side1->SetAttribute("face", 3);
+		b3side1->SetAttribute("face", 1);
 		bridge3->InsertFirstChild(b3side1);
 		tinyxml2::XMLElement *b3side2 = g_doc.NewElement("side");
 		b3side2->SetAttribute("id", 2);
@@ -1032,7 +1033,7 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *b4side1 = g_doc.NewElement("side");
 		b4side1->SetAttribute("id", 1);
 		b4side1->SetAttribute("robot", 2);
-		b4side1->SetAttribute("face", 1);
+		b4side1->SetAttribute("face", 3);
 		bridge4->InsertFirstChild(b4side1);
 		tinyxml2::XMLElement *b4side2 = g_doc.NewElement("side");
 		b4side2->SetAttribute("id", 2);
