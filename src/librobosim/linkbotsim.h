@@ -58,6 +58,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3);
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
+		int getxy(double &x, double &y);
 		int isConnected(void);
 		int isMoving(void);
 		int motionDistance(double distance, double radius);
@@ -73,8 +74,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int motionWait();
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
-		int movexy(double x, double y, double radius, double tracklength);
-		int movexyNB(double x, double y, double radius, double tracklength);
 		int moveBackward(double angle);
 		int moveBackwardNB(double angle);
 		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
@@ -99,6 +98,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
+		int movexy(double x, double y, double radius, double tracklength);
+		int movexyNB(double x, double y, double radius, double tracklength);
+		int movexyTo(double x, double y, double radius, double tracklength);
+		int movexyToNB(double x, double y, double radius, double tracklength);
 #ifdef _CH_
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id,
@@ -404,6 +407,7 @@ class DLLIMPORT CLinkbotI {
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3);
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
+		int getxy(double &x, double &y);
 		int isConnected();
 		int isMoving();
 		int motionDistance(double distance, double radius);
@@ -419,8 +423,6 @@ class DLLIMPORT CLinkbotI {
 		int motionWait();
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
-		int movexy(double x, double y, double radius, double tracklength);
-		int movexyNB(double x, double y, double radius, double tracklength);
 		int moveBackward(double angle);
 		int moveBackwardNB(double angle);
 		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
@@ -445,6 +447,10 @@ class DLLIMPORT CLinkbotI {
 		int moveToZero();
 		int moveToZeroNB();
 		int moveWait();
+		int movexy(double x, double y, double radius, double tracklength);
+		int movexyNB(double x, double y, double radius, double tracklength);
+		int movexyTo(double x, double y, double radius, double tracklength);
+		int movexyToNB(double x, double y, double radius, double tracklength);
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
 		int recordAngleEnd(robotJointId_t id, int &num);
@@ -613,6 +619,7 @@ class DLLIMPORT CLinkbotL {
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3);
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
+		int getxy(double &x, double &y);
 		int isConnected();
 		int isMoving();
 		int motionDistance(double distance, double radius);
@@ -628,8 +635,6 @@ class DLLIMPORT CLinkbotL {
 		int motionWait();
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
-		int movexy(double x, double y, double radius, double tracklength);
-		int movexyNB(double x, double y, double radius, double tracklength);
 		int moveBackward(double angle);
 		int moveBackwardNB(double angle);
 		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
@@ -654,6 +659,10 @@ class DLLIMPORT CLinkbotL {
 		int moveToZero();
 		int moveToZeroNB();
 		int moveWait();
+		int movexy(double x, double y, double radius, double tracklength);
+		int movexyNB(double x, double y, double radius, double tracklength);
+		int movexyTo(double x, double y, double radius, double tracklength);
+		int movexyToNB(double x, double y, double radius, double tracklength);
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
 		int recordAngleEnd(robotJointId_t id, int &num);

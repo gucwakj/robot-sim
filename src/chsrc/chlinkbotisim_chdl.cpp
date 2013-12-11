@@ -397,6 +397,23 @@ EXPORTCH int CLinkbotI_getJointState_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotI_getxy_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    double *x;
+    double *y;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    x = Ch_VaArg(interp, ap, double *);
+    y = Ch_VaArg(interp, ap, double *);
+    retval = robot->getxy(*x, *y);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotI_isConnected_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -620,48 +637,6 @@ EXPORTCH int CLinkbotI_moveNB_chdl(void *varg) {
     angle2 = Ch_VaArg(interp, ap, double);
     angle3 = Ch_VaArg(interp, ap, double);
     retval = robot->moveNB(angle1, angle2, angle3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotI_movexy_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotI *robot;
-    double x;
-    double y;
-    double radius;
-    double tracklength;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    x = Ch_VaArg(interp, ap, double);
-    y = Ch_VaArg(interp, ap, double);
-    radius = Ch_VaArg(interp, ap, double);
-    tracklength = Ch_VaArg(interp, ap, double);
-    retval = robot->movexy(x, y, radius, tracklength);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotI_movexyNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotI *robot;
-    double x;
-    double y;
-    double radius;
-    double tracklength;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    x = Ch_VaArg(interp, ap, double);
-    y = Ch_VaArg(interp, ap, double);
-    radius = Ch_VaArg(interp, ap, double);
-    tracklength = Ch_VaArg(interp, ap, double);
-    retval = robot->movexyNB(x, y, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1112,6 +1087,90 @@ EXPORTCH int CLinkbotI_moveWait_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotI *);
     retval = robot->moveWait();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotI_movexy_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    double x;
+    double y;
+    double radius;
+    double tracklength;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    x = Ch_VaArg(interp, ap, double);
+    y = Ch_VaArg(interp, ap, double);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->movexy(x, y, radius, tracklength);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotI_movexyNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    double x;
+    double y;
+    double radius;
+    double tracklength;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    x = Ch_VaArg(interp, ap, double);
+    y = Ch_VaArg(interp, ap, double);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->movexyNB(x, y, radius, tracklength);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotI_movexyTo_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    double x;
+    double y;
+    double radius;
+    double tracklength;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    x = Ch_VaArg(interp, ap, double);
+    y = Ch_VaArg(interp, ap, double);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->movexyTo(x, y, radius, tracklength);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotI_movexyToNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    double x;
+    double y;
+    double radius;
+    double tracklength;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    x = Ch_VaArg(interp, ap, double);
+    y = Ch_VaArg(interp, ap, double);
+    radius = Ch_VaArg(interp, ap, double);
+    tracklength = Ch_VaArg(interp, ap, double);
+    retval = robot->movexyToNB(x, y, radius, tracklength);
     Ch_VaEnd(interp, ap);
     return retval;
 }

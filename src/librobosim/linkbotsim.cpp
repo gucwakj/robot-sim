@@ -319,6 +319,15 @@ int CLinkbotT::getJointState(robotJointId_t id, robotJointState_t &state) {
 	return 0;
 }
 
+int CLinkbotT::getxy(double &x, double &y) {
+	// retrn x and y positions
+	x = (_simObject->getUnits()) ? 39.37*this->getCenter(0) : 100*this->getCenter(0);
+	y = (_simObject->getUnits()) ? 39.37*this->getCenter(1) : 100*this->getCenter(1);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::isConnected(void) {
 	return _connected;
 }
@@ -584,35 +593,6 @@ int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexy(double x, double y, double radius, double tracklength) {
-	this->movexyNB(x, y, radius, tracklength);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyNB(double x, double y, double radius, double tracklength) {
-	// calculate change from current position to (x,y)
-	x -= this->getCenter(0);
-	y -= this->getCenter(1);
-
-	// get angle to turn
-	double angle = atan2(x, y);
-
-	// turn in shortest path
-	if (angle > EPSILON)
-		this->turnRight(RAD2DEG(angle), radius, tracklength);
-	else
-		this->turnLeft(RAD2DEG(-angle), radius, tracklength);
-
-	// move along length of line
-	this->moveDistanceNB(sqrt(x*x + y*y), radius);
 
 	// success
 	return 0;
@@ -889,6 +869,64 @@ int CLinkbotT::moveWait(void) {
 		COND_WAIT(&_success_cond, &_success_mutex);
 	}
 	MUTEX_UNLOCK(&_success_mutex);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::movexy(double x, double y, double radius, double tracklength) {
+	this->movexyNB(x, y, radius, tracklength);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::movexyNB(double x, double y, double radius, double tracklength) {
+	// get current body rotation
+	double r0 = this->getRotation(BODY, 2);
+
+	// get angle to turn
+	double angle = atan2(x, y);
+
+	// turn in shortest path
+	if ((angle+r0) > EPSILON)
+		this->turnRight(RAD2DEG(angle+r0), radius, tracklength);
+	else
+		this->turnLeft(RAD2DEG(-angle-r0), radius, tracklength);
+
+	// move along length of line
+	this->moveDistanceNB(sqrt(x*x + y*y), radius);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::movexyTo(double x, double y, double radius, double tracklength) {
+	this->movexyToNB(x, y, radius, tracklength);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::movexyToNB(double x, double y, double radius, double tracklength) {
+	// get current position and convert to in or cm
+	double x0, y0;
+	this->getxy(x0, y0);
+	double r0 = this->getRotation(BODY, 2);
+
+	// get angle to turn
+	double angle = atan2(x-x0, y-y0);
+
+	// turn in shortest path
+	if ((angle+r0) > EPSILON)
+		this->turnRight(RAD2DEG(angle+r0), radius, tracklength);
+	else
+		this->turnLeft(RAD2DEG(-angle-r0), radius, tracklength);
+
+	// move along length of line
+	this->moveDistanceNB(sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0)), radius);
 
 	// success
 	return 0;

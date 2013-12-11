@@ -391,6 +391,19 @@ int CLinkbotL::getJointState(int id, int & state) {
     return retval;
 }
 
+int CLinkbotL::getxy(double &x, double &y) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_getxy_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, &x, &y);
+    return retval;
+}
+
 int CLinkbotL::isConnected() {
     void *fptr;
     int retval;
@@ -583,32 +596,6 @@ int CLinkbotL::moveNB(double angle1, double angle2, double angle3) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveNB, this, angle1, angle2, angle3);
-    return retval;
-}
-
-int CLinkbotL::movexy(double x, double y, double radius, double tracklength) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_movexy_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, movexy, this, x, y, radius, tracklength);
-    return retval;
-}
-
-int CLinkbotL::movexyNB(double x, double y, double radius, double tracklength) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_movexyNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, movexyNB, this, x, y, radius, tracklength);
     return retval;
 }
 
@@ -921,6 +908,58 @@ int CLinkbotL::moveWait() {
         return -1;
     }
     dlrunfun(fptr, &retval, moveWait, this);
+    return retval;
+}
+
+int CLinkbotL::movexy(double x, double y, double radius, double tracklength) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_movexy_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, movexy, this, x, y, radius, tracklength);
+    return retval;
+}
+
+int CLinkbotL::movexyNB(double x, double y, double radius, double tracklength) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_movexyNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, movexyNB, this, x, y, radius, tracklength);
+    return retval;
+}
+
+int CLinkbotL::movexyTo(double x, double y, double radius, double tracklength) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_movexyTo_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, movexyTo, this, x, y, radius, tracklength);
+    return retval;
+}
+
+int CLinkbotL::movexyToNB(double x, double y, double radius, double tracklength) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_movexyToNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, movexyToNB, this, x, y, radius, tracklength);
     return retval;
 }
 
