@@ -604,7 +604,7 @@ int RoboSim::init_xml(void) {
 		}
 
 		// debug printing
-		/*xml_robot_t rtmp = bot;
+		/*xml_robot_t rtmp = _bot;
 		while (rtmp) {
 			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
 			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
@@ -682,7 +682,7 @@ int RoboSim::addRobot(CRobot *robot) {
 			if (rtmp->robot->getType() == robot->getType()) connected++;
 			rtmp = rtmp->next;
 		}
-		connected++;
+		if (rtmp->robot->getType() == robot->getType()) connected++;
 		rtmp->next = nr;
 	}
 

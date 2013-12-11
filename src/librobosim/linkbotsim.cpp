@@ -3229,7 +3229,7 @@ int CLinkbotT::get_body_params(double angle, int face, double rotation, dMatrix3
 	dMatrix3 R1, R2, R3, R4, R5;
 
 	// rotate about connection joint
-	dRFromAxisAndAngle(R1, R[1], R[5], R[9], angle);
+	dRFromAxisAndAngle(R1, R[0], R[4], R[8], angle);
 	dMultiply0(R2, R1, R, 3, 3, 3);
 
 	// rotate body for connection face
