@@ -3296,13 +3296,13 @@ int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, double *p) {
 			break;
 		case OMNIDRIVE:
 			if (side == 2) {
-				offset[1] = _omni_length - 2*_face_radius;
-			}
-			else if (side == 3) {
-				offset[1] = _omni_length - 2*_face_radius;
 				offset[2] = -_omni_length + 2*_face_radius;
 			}
+			else if (side == 3) {
+				offset[1] = +_omni_length - 2*_face_radius;
+			}
 			else if (side == 4) {
+				offset[1] = _omni_length - 2*_face_radius;
 				offset[2] = -_omni_length + 2*_face_radius;
 			}
 			dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI);

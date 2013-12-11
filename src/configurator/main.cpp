@@ -1095,8 +1095,8 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		robot1->InsertFirstChild(pos);
 		// set rotation
 		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
-		rot->SetAttribute("psi", -90);
-		rot->SetAttribute("theta", 0);
+		rot->SetAttribute("psi", 90);
+		rot->SetAttribute("theta", 180);
 		rot->SetAttribute("phi", 0);
 		robot1->InsertAfterChild(pos, rot);
 		// insert robot1
@@ -1108,9 +1108,11 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		sim->InsertAfterChild(robot1, robot2);
 		robot3 = g_doc.NewElement("linkbotl");
 		robot3->SetAttribute("id", 2);
+		robot3->SetAttribute("orientation", 3);
 		sim->InsertAfterChild(robot2, robot3);
 		robot4 = g_doc.NewElement("linkbotl");
 		robot4->SetAttribute("id", 3);
+		robot4->SetAttribute("orientation", 3);
 		sim->InsertAfterChild(robot3, robot4);
 
 		// insert omnidrive plate
@@ -1138,22 +1140,58 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		omni->InsertAfterChild(omnis3, omnis4);
 
 		// add wheels
-		tinyxml2::XMLElement *wheel1 = g_doc.NewElement("smallwheel");
-		wheel1->SetAttribute("robot", 0);
-		wheel1->SetAttribute("face", 1);
-		sim->InsertAfterChild(omni, wheel1);
-		tinyxml2::XMLElement *wheel2 = g_doc.NewElement("smallwheel");
-		wheel2->SetAttribute("robot", 1);
-		wheel2->SetAttribute("face", 3);
-		sim->InsertAfterChild(wheel1, wheel2);
-		tinyxml2::XMLElement *wheel3 = g_doc.NewElement("smallwheel");
-		wheel3->SetAttribute("robot", 2);
-		wheel3->SetAttribute("face", 3);
-		sim->InsertAfterChild(wheel2, wheel3);
-		tinyxml2::XMLElement *wheel4 = g_doc.NewElement("smallwheel");
-		wheel4->SetAttribute("robot", 3);
-		wheel4->SetAttribute("face", 1);
-		sim->InsertAfterChild(wheel3, wheel4);
+		tinyxml2::XMLElement *simple1 = g_doc.NewElement("simple");
+		tinyxml2::XMLElement *s1side1 = g_doc.NewElement("side");
+		s1side1->SetAttribute("id", 1);
+		s1side1->SetAttribute("robot", 0);
+		s1side1->SetAttribute("face", 1);
+		simple1->InsertFirstChild(s1side1);
+		tinyxml2::XMLElement *s1side2 = g_doc.NewElement("side");
+		s1side2->SetAttribute("id", 2);
+		s1side2->SetAttribute("robot", 0);
+		s1side2->SetAttribute("conn", 9);
+		simple1->InsertAfterChild(s1side1, s1side2);
+		sim->InsertAfterChild(omni, simple1);
+
+		tinyxml2::XMLElement *simple2 = g_doc.NewElement("simple");
+		tinyxml2::XMLElement *s2side1 = g_doc.NewElement("side");
+		s2side1->SetAttribute("id", 1);
+		s2side1->SetAttribute("robot", 1);
+		s2side1->SetAttribute("face", 1);
+		simple2->InsertFirstChild(s2side1);
+		tinyxml2::XMLElement *s2side2 = g_doc.NewElement("side");
+		s2side2->SetAttribute("id", 2);
+		s2side2->SetAttribute("robot", 1);
+		s2side2->SetAttribute("conn", 9);
+		simple2->InsertAfterChild(s2side1, s2side2);
+		sim->InsertAfterChild(simple1, simple2);
+
+		tinyxml2::XMLElement *simple3 = g_doc.NewElement("simple");
+		tinyxml2::XMLElement *s3side1 = g_doc.NewElement("side");
+		s3side1->SetAttribute("id", 1);
+		s3side1->SetAttribute("robot", 2);
+		s3side1->SetAttribute("face", 1);
+		simple3->InsertFirstChild(s3side1);
+		tinyxml2::XMLElement *s3side2 = g_doc.NewElement("side");
+		s3side2->SetAttribute("id", 2);
+		s3side2->SetAttribute("robot", 2);
+		s3side2->SetAttribute("conn", 9);
+		simple3->InsertAfterChild(s3side1, s3side2);
+		sim->InsertAfterChild(simple2, simple3);
+
+		tinyxml2::XMLElement *simple4 = g_doc.NewElement("simple");
+		tinyxml2::XMLElement *s4side1 = g_doc.NewElement("side");
+		s4side1->SetAttribute("id", 1);
+		s4side1->SetAttribute("robot", 3);
+		s4side1->SetAttribute("face", 1);
+		simple4->InsertFirstChild(s4side1);
+		tinyxml2::XMLElement *s4side2 = g_doc.NewElement("side");
+		s4side2->SetAttribute("id", 2);
+		s4side2->SetAttribute("robot", 3);
+		s4side2->SetAttribute("conn", 9);
+		simple4->InsertAfterChild(s4side1, s4side2);
+		sim->InsertAfterChild(simple3, simple4);
+
 
 		// save file
 		g_doc.SaveFile(g_xml);
