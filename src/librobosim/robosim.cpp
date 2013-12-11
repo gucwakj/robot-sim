@@ -1354,11 +1354,15 @@ void* RoboSim::graphics_thread(void *arg) {
 	HUDStateSet->setRenderBinDetails(11, "RenderBin");
 	HUDGeode->addDrawable(textHUD);
 	textHUD->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	textHUD->setCharacterSize(40);
+	textHUD->setMaximumWidth(traits->width);
+	textHUD->setCharacterSize(25);
 	if (sim->_pause) textHUD->setText("Paused: Press any key to start");
 	textHUD->setAxisAlignment(osgText::Text::SCREEN);
 	textHUD->setAlignment(osgText::Text::CENTER_CENTER);
 	textHUD->setPosition(osg::Vec3(traits->width/2, 50, -1.5));
+	textHUD->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+	textHUD->setBackdropColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	textHUD->setBackdropOffset(0.1);
 	root->addChild(HUDProjectionMatrix);
 
 	// optimize the scene graph, remove redundant nodes and state etc.
