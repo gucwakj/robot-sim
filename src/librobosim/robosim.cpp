@@ -839,13 +839,13 @@ void* RoboSim::simulation_thread(void *arg) {
 	RoboSim *sim = (RoboSim *)arg;
 
 	// initialize local variables
-	unsigned int sum = 0, dt[4] = {0};
+	unsigned int sum = 0, dt[4] = {0}, clock = 0, restart = 0;
 	int i;
 #ifdef _WIN32
-	DWORD start_time, start;
+	DWORD start_time, start, end;
 #else
 	struct timespec start_time, end_time;
-	unsigned int start, end, clock = 0, restart = 0;
+	unsigned int start, end;
 #endif
 
 	MUTEX_LOCK(&(sim->_running_mutex));
@@ -906,14 +906,14 @@ void* RoboSim::simulation_thread(void *arg) {
 			dt[0] = GetTickCount() - start_time;
 
 			// running mean of last four time steps
-			if (start != init) {
+			if (!restart) {
 				for (i = 0; i < 4; i++) { sum += dt[i]; }
 				for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
 				sum /= 4;
 			}
 			// on restart, reset all time steps
 			else {
-				sum = 0.004;
+				sum = dt[0];
 				for (i = 1; i < 4; i++) { dt[i] = 0; }
 			}
 
