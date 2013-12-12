@@ -1358,7 +1358,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	HUDGeode->addDrawable(textHUD);
 	textHUD->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 	textHUD->setMaximumWidth(traits->width);
-	textHUD->setCharacterSize(25);
+	textHUD->setCharacterSize(15);
 	if (sim->_pause) textHUD->setText("Paused: Press any key to start");
 	textHUD->setAxisAlignment(osgText::Text::SCREEN);
 	textHUD->setAlignment(osgText::Text::CENTER_CENTER);
