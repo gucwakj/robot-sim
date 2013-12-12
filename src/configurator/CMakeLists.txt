@@ -1,5 +1,5 @@
 # Set the name and the supported language of the project
-project(robosimconfigurator)
+project(robosim)
 
 # Set the minimum version of cmake required to build this project
 cmake_minimum_required(VERSION 2.8)
@@ -43,14 +43,14 @@ endif (MSVC)
 
 # Add an executable compiled from hello.c
 if (MSVC)
-add_executable(robosimconfigurator WIN32
+add_executable(robosim WIN32
 	main.cpp
 )
 else (MSVC)
-add_executable(robosimconfigurator
+add_executable(robosim
 	main.cpp
 )
 endif (MSVC)
 
 # Link the target to the GTK+ libraries
-target_link_libraries(robosimconfigurator ${EXTRA_LIBS})
+target_link_libraries(robosim ${EXTRA_LIBS})

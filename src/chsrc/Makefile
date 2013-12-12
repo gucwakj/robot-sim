@@ -85,7 +85,7 @@ createpkg: librobosim.dl
 	cp ../openscenegraph/build/lib/libosgViewer.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libOpenThreads.so $(PKGDIR)/bin
 	mkdir $(PKGDIR)/bin/gui
-	cp ../configurator/build/robosimconfigurator $(PKGDIR)/bin/gui
+	cp ../configurator/build/robosim $(PKGDIR)/bin/gui
 	cp ../configurator/interface3.glade $(PKGDIR)/bin/gui/interface.glade
 	mkdir $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/robosim.ico $(PKGDIR)/bin/gui/images
