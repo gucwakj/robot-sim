@@ -3804,7 +3804,7 @@ int CMobot::init_params(void) {
 	_conn = NULL;
 	_id = -1;
 	_type = MOBOT;
-	_encoder = DEG2RAD(0.05);
+	_encoder = DEG2RAD(0.1);
 	_max_force[ROBOT_JOINT1] = 0.260;
 	_max_force[ROBOT_JOINT2] = 1.059;
 	_max_force[ROBOT_JOINT3] = 1.059;

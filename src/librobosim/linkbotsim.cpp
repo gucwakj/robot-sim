@@ -1818,7 +1818,8 @@ int CLinkbotT::turnLeft(double angle, double radius, double tracklength) {
 
 int CLinkbotT::turnLeftNB(double angle, double radius, double tracklength) {
 	// calculate joint angle from global turn angle
-	angle = (angle*tracklength)/(2*radius);
+	double d = (_simObject->getUnits()) ? 39.37*_wheel_depth : 100*_wheel_depth;
+	angle = (angle*(tracklength-d))/(2*radius);
 
 	// move
 	this->moveNB(-angle, 0, -angle);
@@ -1837,7 +1838,8 @@ int CLinkbotT::turnRight(double angle, double radius, double tracklength) {
 
 int CLinkbotT::turnRightNB(double angle, double radius, double tracklength) {
 	// calculate joint angle from global turn angle
-	angle = (angle*tracklength)/(2*radius);
+	double d = (_simObject->getUnits()) ? 39.37*_wheel_depth : 100*_wheel_depth;
+	angle = (angle*(tracklength-d))/(2*radius);
 
 	// move
 	this->moveNB(angle, 0, angle);
@@ -3398,7 +3400,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_type = type;
 	_disabled = disabled;
 	_connected = 0;
-	_encoder = DEG2RAD(0.05);
+	_encoder = DEG2RAD(0.1);
 	_rgb[0] = 0;
 	_rgb[1] = 0;
 	_rgb[2] = 1;
