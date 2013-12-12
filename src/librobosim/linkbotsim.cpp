@@ -1936,7 +1936,7 @@ double CLinkbotT::getAngle(int i) {
 		_angle[i] = 0;
 
 	// add noise to angle
-	this->noisy(&(_angle[i]), 1, 0.0005);
+	//this->noisy(&(_angle[i]), 1, 0.0005);
 
     return _angle[i];
 }
