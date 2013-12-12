@@ -2717,16 +2717,16 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	trackingGeode->setNodeMask((tracking) ? VISIBLE_MASK : NOT_VISIBLE_MASK);
 	trackingVertices->push_back(osg::Vec3(this->getCenter(0), this->getCenter(1), 0));
 	trackingLine->setVertexArray(trackingVertices);
-	trackingLine->insertPrimitiveSet(0, new osg::DrawArrays(osg::PrimitiveSet::LINE_STRIP, 0, 1, 1));
+	trackingLine->insertPrimitiveSet(0, new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, 1, 1));
 	trackingLine->setDataVariance(osg::Object::DYNAMIC);
 	trackingLine->setUseDisplayList(false);
 	osg::Vec4Array *colors = new osg::Vec4Array;
 	colors->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f) );	// green
 	trackingLine->setColorArray(colors);
 	trackingLine->setColorBinding(osg::Geometry::BIND_OVERALL);
-	osg::LineWidth *linewidth = new osg::LineWidth();
-	linewidth->setWidth(6.0f);
-	trackingGeode->getOrCreateStateSet()->setAttributeAndModes(linewidth, osg::StateAttribute::ON);
+	osg::Point *point = new osg::Point();
+	point->setSize(6.0f);
+	trackingGeode->getOrCreateStateSet()->setAttributeAndModes(point, osg::StateAttribute::ON);
 	trackingGeode->addDrawable(trackingLine);
 	robot->insertChild(1, trackingGeode);
 

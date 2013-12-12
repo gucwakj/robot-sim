@@ -16,6 +16,7 @@
 #include <osg/MatrixTransform>
 #include <osg/Notify>
 #include <osg/Object>
+#include <osg/Point>
 #include <osg/PositionAttitudeTransform>
 #include <osg/ShapeDrawable>
 #include <osg/StateSet>
@@ -111,6 +112,7 @@ class linkbotNodeCallback : public osg::NodeCallback {
 	private:
 		CRobot *_robot;
 		int _units;
+		int _count;
 };
 
 /**********************************************************
@@ -123,6 +125,7 @@ class mobotNodeCallback : public osg::NodeCallback {
 	private:
 		CRobot *_robot;
 		int _units;
+		int _count;
 };
 
 #endif /* GRAPHICS_H_ */

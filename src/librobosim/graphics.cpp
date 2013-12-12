@@ -163,6 +163,7 @@ void pickHandler::pick(const osgGA::GUIEventAdapter &ea, osgViewer::Viewer *view
 linkbotNodeCallback::linkbotNodeCallback(CRobot *robot, int units) {
 	_robot = robot;
 	_units = units;
+	_count = 1;
 }
 
 void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
@@ -211,14 +212,12 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		double z = _robot->getCenter(2) + (_robot->getRobotID() % 2 ? 0.08 : 0) + 0.08;
 		label->setPosition(osg::Vec3(x, y, z));
 		// draw tracking line
-		static int count = 1;
 		osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
 		osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode2->getDrawable(0)->asGeometry());
 		osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
 		vertices->push_back(osg::Vec3(x, y, 0));
-		vertices->push_back(osg::Vec3(x, y, 0));
 		osg::DrawArrays *array = dynamic_cast<osg::DrawArrays *>(draw->getPrimitiveSet(0));
-		array->setCount(count++);
+		array->setCount(_count++);
 	}
 	traverse(node, nv);
 }
@@ -229,6 +228,7 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 mobotNodeCallback::mobotNodeCallback(CRobot *robot, int units) {
 	_robot = robot;
 	_units = units;
+	_count = 1;
 }
 
 void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
@@ -271,14 +271,12 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		double z = _robot->getCenter(2) + (_robot->getRobotID() % 2 ? 0.08 : 0) + 0.08;
 		label->setPosition(osg::Vec3(x, y, z));
 		// draw tracking line
-		static int count = 1;
 		osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
 		osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode2->getDrawable(0)->asGeometry());
 		osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
 		vertices->push_back(osg::Vec3(x, y, 0));
-		vertices->push_back(osg::Vec3(x, y, 0));
 		osg::DrawArrays *array = dynamic_cast<osg::DrawArrays *>(draw->getPrimitiveSet(0));
-		array->setCount(count++);
+		array->setCount(_count++);
 	}
 	traverse(node, nv);
 }
