@@ -1071,7 +1071,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
 	traits->width = width/2;
 	traits->height = 3*width/8;
-	traits->x = width - traits->width - 50;
+	traits->x = width - traits->width - 10;
 	traits->y = height - traits->height - 50;
 	traits->windowDecoration = true;
 	traits->doubleBuffer = true;
