@@ -804,6 +804,9 @@ int RoboSim::deleteRobot(CRobot *robot) {
 	//_shadowed->removeChild(_shadowed->getChild(tmp->node));
 #endif
 
+	// delete struct
+	delete tmp;
+
 	// unlock robot data
 	MUTEX_UNLOCK(&_robot_mutex);
 
@@ -842,8 +845,8 @@ void* RoboSim::simulation_thread(void *arg) {
 #ifdef _WIN32
 	DWORD start_time, start, end;
 #else
-	struct timespec start_time, end_time;
-	unsigned int start, end;
+	struct timespec s_time;
+	unsigned int start_time, start, end;
 #endif
 
 	MUTEX_LOCK(&(sim->_running_mutex));
@@ -857,19 +860,20 @@ void* RoboSim::simulation_thread(void *arg) {
 #ifdef _WIN32
 		start = GetTickCount();
 #else
-		clock_gettime(CLOCK_REALTIME, &start_time);
-		start = start_time.tv_sec*1000 + start_time.tv_nsec/1000000;
+		clock_gettime(CLOCK_REALTIME, &s_time);
+		start = s_time.tv_sec*1000 + s_time.tv_nsec/1000000;
 #endif
 
 		while (!(sim->_pause) && sim->_running) {
 			// unlock pause variable
 			MUTEX_UNLOCK(&(sim->_pause_mutex));
 
-			// get start time of execution
+			// get start time of execution in milliseconds
 #ifdef _WIN32
 			start_time = GetTickCount();
 #else
-			clock_gettime(CLOCK_REALTIME, &start_time);
+			clock_gettime(CLOCK_REALTIME, &s_time);
+			start_time = s_time.tv_sec*1000 + s_time.tv_nsec/1000000;
 #endif
 
 			// perform pre-collision updates
@@ -905,13 +909,14 @@ void* RoboSim::simulation_thread(void *arg) {
 
 			// running mean of last four time steps
 			if (!restart) {
-				for (i = 0; i < 2; i--) { dt[i+1] = dt[i]; }
+				for (i = 0; i < 2; i++) { dt[i+1] = dt[i]; }
 				dt[0] = end - start_time;
 				for (i = 0; i < 4; i++) { sum += dt[i]; }
 				sum /= 4;
 			}
 			// on restart, reset all time steps
 			else {
+				restart = 0;
 				sum = 4;
 				dt[0] = 4;
 				for (i = 1; i < 4; i++) { dt[i] = 0; }
@@ -928,26 +933,27 @@ void* RoboSim::simulation_thread(void *arg) {
 			}
 #else
 			// get ending time
-			clock_gettime(CLOCK_REALTIME, &end_time);
-			dt[0] = (end_time.tv_sec - start_time.tv_sec)*1000 + (end_time.tv_nsec - start_time.tv_nsec)/1000000;
-			end = end_time.tv_sec*1000 + end_time.tv_nsec/1000000;
+			clock_gettime(CLOCK_REALTIME, &s_time);
+			end = s_time.tv_sec*1000 + s_time.tv_nsec/1000000;
 
 			// running mean of last four time steps
 			if (!restart) {
+				for (i = 0; i < 2; i++) { dt[i+1] = dt[i]; }
+				dt[0] = end - start_time;
 				for (i = 0; i < 4; i++) { sum += dt[i]; }
-				for (i = 2; i >=0; i--) { dt[i+1] = dt[i]; }
 				sum /= 4;
 			}
 			// on restart, reset all time steps
 			else {
 				restart = 0;
 				sum = dt[0];
+				dt[0] = 4;
 				for (i = 1; i < 4; i++) { dt[i] = 0; }
 			}
 
 			// set next time step if calculations took longer than step
-			if (end - start > (unsigned int)(sim->_clock*1000)) {
-				sim->_step = (end - start - (unsigned int)(sim->_clock*1000) + sum)/1000.0;
+			if ( (end - start) > ((unsigned int)(sim->_clock*1000) - clock/1000) ) {
+				sim->_step = (end - start - ((unsigned int)(sim->_clock*1000) - clock/1000) + sum)/1000.0;
 			}
 			// sleep until clock time equals step time
 			else {
