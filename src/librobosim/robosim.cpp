@@ -801,7 +801,7 @@ int RoboSim::deleteRobot(CRobot *robot) {
 
 #ifdef ENABLE_GRAPHICS
 	// remove node callback
-	_shadowed->removeChild(_shadowed->getChild(tmp->node));
+	//_shadowed->removeChild(_shadowed->getChild(tmp->node));
 #endif
 
 	// unlock robot data
