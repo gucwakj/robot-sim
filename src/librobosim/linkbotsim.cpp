@@ -80,11 +80,11 @@ int CLinkbotT::delay(double milliseconds) {
 	double end = *_clock + milliseconds/1000;
 
 	// while clock hasn't reached ending time
-	while ((end - *_clock) >= EPSILON) {
+	while ((end - *_clock) > EPSILON) {
 #ifdef _WIN32
-		Sleep(2);
+		Sleep(50);
 #else
-		usleep(2000);
+		usleep(500000);
 #endif
 	}
 
@@ -1819,7 +1819,7 @@ int CLinkbotT::turnLeft(double angle, double radius, double tracklength) {
 int CLinkbotT::turnLeftNB(double angle, double radius, double tracklength) {
 	// calculate joint angle from global turn angle
 	double d = (_simObject->getUnits()) ? 39.37*_wheel_depth : 100*_wheel_depth;
-	angle = (angle*(tracklength-d))/(2*radius);
+	angle = (angle*(tracklength))/(2*radius);
 
 	// move
 	this->moveNB(-angle, 0, -angle);
@@ -1839,7 +1839,7 @@ int CLinkbotT::turnRight(double angle, double radius, double tracklength) {
 int CLinkbotT::turnRightNB(double angle, double radius, double tracklength) {
 	// calculate joint angle from global turn angle
 	double d = (_simObject->getUnits()) ? 39.37*_wheel_depth : 100*_wheel_depth;
-	angle = (angle*(tracklength-d))/(2*radius);
+	angle = (angle*(tracklength))/(2*radius);
 
 	// move
 	this->moveNB(angle, 0, angle);
@@ -2298,7 +2298,7 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	trackingLine->setColorArray(colors);
 	trackingLine->setColorBinding(osg::Geometry::BIND_OVERALL);
 	osg::Point *point = new osg::Point();
-	point->setSize(6.0f);
+	point->setSize(4.0f);
 	trackingGeode->getOrCreateStateSet()->setAttributeAndModes(point, osg::StateAttribute::ON);
 	trackingGeode->addDrawable(trackingLine);
 	robot->insertChild(1, trackingGeode);

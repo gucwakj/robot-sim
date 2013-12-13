@@ -100,7 +100,7 @@ int RoboSim::init_ode(void) {
 	dWorldSetAutoDisableSteps(_world, 4);				// number of steps below thresholds before stationary
 	dWorldSetCFM(_world, 0.0000000001);					// constraint force mixing - how much a joint can be violated by excess force
 	dWorldSetContactSurfaceLayer(_world, 0.001);		// depth each body can sink into another body before resting
-	dWorldSetERP(_world, 0.7);							// error reduction parameter (0-1) - how much error is corrected on each step
+	dWorldSetERP(_world, 0.95);							// error reduction parameter (0-1) - how much error is corrected on each step
 	dWorldSetGravity(_world, 0, 0, -9.81);				// gravity
 
 	// success

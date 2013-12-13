@@ -51,9 +51,9 @@ int CMobot::delay(double milliseconds) {
 	// while clock hasn't reached ending time
 	while ((end - *_clock) >= EPSILON) {
 #ifdef _WIN32
-		Sleep(2);
+		Sleep(50);
 #else
-		usleep(2000);
+		usleep(50000);
 #endif
 	}
 
@@ -2725,7 +2725,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	trackingLine->setColorArray(colors);
 	trackingLine->setColorBinding(osg::Geometry::BIND_OVERALL);
 	osg::Point *point = new osg::Point();
-	point->setSize(6.0f);
+	point->setSize(4.0f);
 	trackingGeode->getOrCreateStateSet()->setAttributeAndModes(point, osg::StateAttribute::ON);
 	trackingGeode->addDrawable(trackingLine);
 	robot->insertChild(1, trackingGeode);
