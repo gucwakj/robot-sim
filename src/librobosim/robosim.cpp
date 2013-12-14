@@ -697,19 +697,22 @@ int RoboSim::addRobot(CRobot *robot) {
 	if (btmp == NULL) {
 		switch (robot->getType()) {
 			case LINKBOTI:
-				fprintf(stderr, "Error: Could Not Find LinkbotI In Config File.\n");
+				fprintf(stderr, "Error: Could Not Find LinkbotI In RoboSim.\n");
+				exit(-1);
 				break;
 			case LINKBOTL:
-				fprintf(stderr, "Error: Could Not Find LinkbotL In Config File.\n");
+				fprintf(stderr, "Error: Could Not Find LinkbotL In RoboSim.\n");
+				exit(-1);
 				break;
 			case LINKBOTT:
-				fprintf(stderr, "Error: Could Not Find LinkbotT In Config File.\n");
+				fprintf(stderr, "Error: Could Not Find LinkbotT In RoboSim.\n");
+				exit(-1);
 				break;
 			case MOBOT:
-				fprintf(stderr, "Error: Could Not Find Mobot In Config File.\n");
+				fprintf(stderr, "Error: Could Not Find Mobot In RoboSim.\n");
+				exit(-1);
 				break;
 		}
-		exit(-1);
 	}
 	
 	// give simulation data to robot
