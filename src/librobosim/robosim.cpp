@@ -891,7 +891,7 @@ void* RoboSim::simulation_thread(void *arg) {
 			sim->_clock += sim->_step;
 			dJointGroupEmpty(sim->_group);
 
-			//sim->print_intermediate_data();
+			sim->print_intermediate_data();
 
 			// perform post-collision updates
 			rtmp = sim->_robots;
@@ -1031,10 +1031,9 @@ void RoboSim::print_intermediate_data(void) {
 			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT4)) << "\t\t";
 		}
 		else if (rtmp->robot->getType() == LINKBOTI) {
-			cout << rtmp->robot->getPosition(0, 1) << " ";
 			cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT1)) << " ";
 			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT2)) << " ";
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT3)) << " ";
+			cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT3)) << "\t";
 		}
 		else if (rtmp->robot->getType() == LINKBOTL) {
 			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT1)) << " ";
