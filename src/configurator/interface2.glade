@@ -11,8 +11,11 @@
     <property name="copyright" translatable="yes">(C) 2013, UC Davis C-STEM Center</property>
     <property name="comments" translatable="yes">Robot Simulation Environment</property>
     <property name="authors">Kevin Gucwa</property>
+    <property name="website">http://c-stem.ucdavis.edu</property>
+    <property name="website_label" translatable="yes">C-STEM Center</property>
     <signal name="close" handler="on_aboutdialog_close"/>
     <signal name="response" handler="on_aboutdialog_response"/>
+    <signal name="activate-link" handler="on_aboutdialog_activate_link"/>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox1">
         <child internal-child="action_area">

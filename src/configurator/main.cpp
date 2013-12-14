@@ -41,6 +41,7 @@ extern "C" {
 #endif
 G_MODULE_EXPORT void on_window_destroy(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_activate(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_aboutdialog_activate_link(GtkAboutDialog *label, gchar *uri, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data);
 G_MODULE_EXPORT void on_aboutdialog_response(GtkDialog *dialog, gint response_id, gpointer user_data);
 
@@ -193,17 +194,26 @@ G_MODULE_EXPORT void on_aboutdialog_activate(GtkWidget *widget, gpointer data) {
 }
 
 /*
+ * Open webpage when URL is clicked
+ */
+G_MODULE_EXPORT void on_aboutdialog_activate_link(GtkAboutDialog *label, gchar *uri, gpointer data) {
+#ifdef _WIN32
+	ShellExecuteA(NULL, "open", uri, NULL, NULL, 0);
+#endif
+}
+
+/*
  * About dialog x button
  */
 G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data) {
-	gtk_widget_destroy(GTK_WIDGET(dialog));
+	gtk_widget_hide(GTK_WIDGET(dialog));
 }
 
 /*
  * About dialog close button
  */
 G_MODULE_EXPORT void on_aboutdialog_response(GtkDialog *dialog, gint response_id, gpointer user_data) {
-	gtk_widget_destroy(GTK_WIDGET(dialog));
+	gtk_widget_hide(GTK_WIDGET(dialog));
 }
 
 /*
