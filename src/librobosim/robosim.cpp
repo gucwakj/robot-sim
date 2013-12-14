@@ -714,7 +714,7 @@ int RoboSim::addRobot(CRobot *robot) {
 				break;
 		}
 	}
-	
+
 	// give simulation data to robot
 	robot->addToSim(_world, _space, &_clock);
 	robot->setID(btmp->id);
@@ -1093,7 +1093,6 @@ void* RoboSim::graphics_thread(void *arg) {
 
     // creating the viewer
 	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer;
-	viewer->setThreadSafeRefUnref(true);
 
 	// camera properties
 	osg::ref_ptr<osg::Camera> camera = new osg::Camera;
@@ -1120,7 +1119,6 @@ void* RoboSim::graphics_thread(void *arg) {
 
 	// Creating the root node
 	osg::ref_ptr<osg::Group> root = new osg::Group;
-	root->setThreadSafeRefUnref(true);
 
 	// add shadows
 	osg::ref_ptr<osgShadow::ShadowedScene> shadowedScene = new osgShadow::ShadowedScene;
@@ -1375,7 +1373,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	optimizer.optimize(root);
 
 	// set threading model
-	viewer->setThreadingModel(osgViewer::Viewer::AutomaticSelection);
+	viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
 	// viewer event handlers
 	viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause), textHUD));
