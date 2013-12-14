@@ -184,6 +184,22 @@ EXPORTCH int CMobot_driveToNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_getDistance_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+	double *distance;
+	double radius;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    distance = Ch_VaArg(interp, ap, double *);
+    radius = Ch_VaArg(interp, ap, double);
+    retval = robot->getDistance(*distance, radius);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
 EXPORTCH int CMobot_getFormFactor_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

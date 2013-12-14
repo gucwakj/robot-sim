@@ -149,6 +149,23 @@ EXPORTCH int CLinkbotT_getColorRGB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotT_getDistance_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+	double *distance;
+	double radius;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    distance = Ch_VaArg(interp, ap, double *);
+    radius = Ch_VaArg(interp, ap, double);
+    retval = robot->getDistance(*distance, radius);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotT_getFormFactor_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

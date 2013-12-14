@@ -152,6 +152,19 @@ int CMobot::driveToNB(double angle1, double angle2, double angle3, double angle4
 	return retval;
 }
 
+int CMobot::getDistance(double &distance, double radius) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_getDistance_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, &distance, radius);
+    return retval;
+}
+
 int CMobot::getFormFactor(int &formFactor) {
     void *fptr;
     int retval;
