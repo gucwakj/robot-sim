@@ -463,7 +463,7 @@
                                 <property name="orientation">vertical</property>
                                 <child>
                                   <object class="GtkCheckButton" id="explorer">
-                                    <property name="label" translatable="yes">Explorer</property>
+                                    <property name="label" translatable="yes">explorer.ch</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="receives_default">False</property>
@@ -479,7 +479,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkCheckButton" id="inchworm">
-                                    <property name="label" translatable="yes">Inchworm</property>
+                                    <property name="label" translatable="yes">inchworm.ch</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="receives_default">False</property>
@@ -495,7 +495,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkCheckButton" id="lift">
-                                    <property name="label" translatable="yes">Lift</property>
+                                    <property name="label" translatable="yes">lift.ch</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="receives_default">False</property>
@@ -511,7 +511,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkCheckButton" id="omnidrive">
-                                    <property name="label" translatable="yes">Omnidrive</property>
+                                    <property name="label" translatable="yes">omnidrive.ch</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="receives_default">False</property>
@@ -527,7 +527,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkCheckButton" id="snake">
-                                    <property name="label" translatable="yes">Snake</property>
+                                    <property name="label" translatable="yes">snake.ch</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="receives_default">False</property>
@@ -543,7 +543,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkCheckButton" id="stand">
-                                    <property name="label" translatable="yes">Stand</property>
+                                    <property name="label" translatable="yes">stand.ch</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="receives_default">False</property>
