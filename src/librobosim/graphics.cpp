@@ -74,6 +74,19 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 						}
 					}
 					return true;
+				case 'r':
+					for (int i = 0; i < (int)(shadow->getNumChildren()); i++) {
+						if (shadow->getChild(i)->getName() == "robot") {
+							osg::Geode *geode = dynamic_cast<osg::Geode *>(shadow->getChild(i)->asGroup()->getChild(1));
+							geode->setNodeMask(VISIBLE_MASK);
+							for (int j = 2; j < (int)(shadow->getChild(i)->asGroup()->getNumChildren()); j++) {
+								osg::PositionAttitudeTransform *pat;
+								pat = dynamic_cast<osg::PositionAttitudeTransform *>(shadow->getChild(i)->asGroup()->getChild(j));
+								pat->setNodeMask((pat->getNodeMask() ? NOT_VISIBLE_MASK : VISIBLE_MASK));
+							}
+						}
+					}
+					return true;
 				default:
 					*_pause = (*_pause) ? 0 : 1;
 					if (*_pause)
