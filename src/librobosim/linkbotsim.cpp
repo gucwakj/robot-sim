@@ -3509,12 +3509,16 @@ void CLinkbotT::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
-	// add zero position dot
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0]+0.0001, pos[1], pos[2]+5*_bigwheel_radius/6), 0.0025, _wheel_depth);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	osg::ShapeDrawable *color = new osg::ShapeDrawable(cyl);
-	color->setColor(osg::Vec4(0, 0, 0, 1));
-	body->addDrawable(color);
+	// add zero position dots
+	int n = 5;
+	double step = (_bigwheel_radius*5/6)/(n-1);
+	for (int i = 0; i < n; i++) {
+		cyl = new osg::Cylinder(osg::Vec3d(pos[0]+0.0001, pos[1], pos[2]+i*step), 0.0025, _wheel_depth);
+		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+		osg::ShapeDrawable *color = new osg::ShapeDrawable(cyl);
+		color->setColor(osg::Vec4(0, 0, 0, 1));
+		body->addDrawable(color);
+	}
 
 	// apply texture
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
@@ -3775,12 +3779,16 @@ void CLinkbotT::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
-	// add zero position dot
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0]+0.0001, pos[1], pos[2]+5*_smallwheel_radius/6), 0.0025, _wheel_depth);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	osg::ShapeDrawable *color = new osg::ShapeDrawable(cyl);
-	color->setColor(osg::Vec4(0, 0, 0, 1));
-	body->addDrawable(color);
+	// add zero position dots
+	int n = 4;
+	double step = (_smallwheel_radius*5/6)/(n-1);
+	for (int i = 0; i < n; i++) {
+		cyl = new osg::Cylinder(osg::Vec3d(pos[0]+0.0001, pos[1], pos[2]+i*step), 0.0025, _wheel_depth);
+		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+		osg::ShapeDrawable *color = new osg::ShapeDrawable(cyl);
+		color->setColor(osg::Vec4(0, 0, 0, 1));
+		body->addDrawable(color);
+	}
 
 	// apply texture
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
@@ -3811,12 +3819,16 @@ void CLinkbotT::draw_tinywheel(conn_t conn, osg::Group *robot) {
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
-	// add zero position dot
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0]+0.0001, pos[1], pos[2]+5*_tinywheel_radius/6), 0.0025, _wheel_depth);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	osg::ShapeDrawable *color = new osg::ShapeDrawable(cyl);
-	color->setColor(osg::Vec4(0, 0, 0, 1));
-	body->addDrawable(color);
+	// add zero position dots
+	int n = 3;
+	double step = (_tinywheel_radius*5/6)/(n-1);
+	for (int i = 0; i < n; i++) {
+		cyl = new osg::Cylinder(osg::Vec3d(pos[0]+0.0001, pos[1], pos[2]+i*step), 0.0025, _wheel_depth);
+		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+		osg::ShapeDrawable *color = new osg::ShapeDrawable(cyl);
+		color->setColor(osg::Vec4(0, 0, 0, 1));
+		body->addDrawable(color);
+	}
 
 	// apply texture
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
