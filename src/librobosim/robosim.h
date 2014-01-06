@@ -85,8 +85,6 @@ class DLLIMPORT RoboSim {
 #endif // not _CH_
 };
 
-#ifdef _CH_
 int isEmbeddedCh(void);
-#endif
 
 #endif	// ROBOSIM_H_
