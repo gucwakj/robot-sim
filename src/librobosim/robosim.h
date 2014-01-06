@@ -49,6 +49,7 @@ class DLLIMPORT RoboSim {
 		double _step;				// time of each step of simulation
 		int _pause;					// is the simulation paused
 		int _running;				// is the program running
+		int _preconfig;				// preconfigured robot shape or not
 		COND_T _running_cond;		// condition for actively running program
 		MUTEX_T _pause_mutex;		// mutex for paused simulation
 		MUTEX_T _robot_mutex;		// mutex for ground collisions

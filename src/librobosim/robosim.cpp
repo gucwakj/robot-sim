@@ -191,6 +191,11 @@ int RoboSim::init_xml(void) {
 	}
 #endif
 
+	// check if individual vs preconfig
+	if ( (node = doc.FirstChildElement("config")->FirstChildElement("type")) ) {
+		node->QueryIntAttribute("val", &_preconfig);
+	}
+
 	// get root node of xml file
 	node = doc.FirstChildElement("sim")->FirstChildElement();
 
@@ -697,22 +702,23 @@ int RoboSim::addRobot(CRobot *robot) {
 	if (btmp == NULL) {
 		switch (robot->getType()) {
 			case LINKBOTI:
-				fprintf(stderr, "Error: Could Not Find LinkbotI In RoboSim GUI.\n");
-				exit(-1);
+				fprintf(stderr, "Error: Could not find LinkbotI in RoboSim GUI.\n");
 				break;
 			case LINKBOTL:
-				fprintf(stderr, "Error: Could Not Find LinkbotL In RoboSim GUI.\n");
-				exit(-1);
+				fprintf(stderr, "Error: Could not find LinkbotL in RoboSim GUI.\n");
 				break;
 			case LINKBOTT:
-				fprintf(stderr, "Error: Could Not Find LinkbotT In RoboSim GUI.\n");
-				exit(-1);
+				fprintf(stderr, "Error: Could not find LinkbotT in RoboSim GUI.\n");
 				break;
 			case MOBOT:
-				fprintf(stderr, "Error: Could Not Find Mobot In RoboSim GUI.\n");
-				exit(-1);
+				fprintf(stderr, "Error: Could not find Mobot in RoboSim GUI.\n");
 				break;
 		}
+		if (_preconfig) {
+			fprintf(stderr, "       Preconfigured Robot Configuration selected.\n");
+			fprintf(stderr, "       Please uncheck if you want to use the Individual Robot List.\n");
+		}
+		exit(-1);
 	}
 
 	// give simulation data to robot
