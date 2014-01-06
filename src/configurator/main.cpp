@@ -1564,19 +1564,62 @@ void readXMLConfig(void) {
 		tinyxml2::XMLElement *sim = g_doc.NewElement("sim");
 		g_doc.InsertAfterChild(config, sim);
 
+		// set robot type
+		tinyxml2::XMLElement *robot = g_doc.NewElement("linkboti");
+		robot->SetAttribute("id", 0);
+		sim->InsertFirstChild(robot);
+
+		// set position
+		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
+		pos->SetAttribute("x", 0);
+		pos->SetAttribute("y", 0);
+		pos->SetAttribute("z", 0);
+		robot->InsertFirstChild(pos);
+
+		// set rotation
+		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
+		rot->SetAttribute("psi", 0);
+		rot->SetAttribute("theta", 0);
+		rot->SetAttribute("phi", 0);
+		robot->InsertAfterChild(pos, rot);
+
+		// add wheels
+		tinyxml2::XMLElement *simple1 = g_doc.NewElement("simple");
+		tinyxml2::XMLElement *s1side1 = g_doc.NewElement("side");
+		s1side1->SetAttribute("id", 1);
+		s1side1->SetAttribute("robot", 0);
+		s1side1->SetAttribute("face", 1);
+		simple1->InsertFirstChild(s1side1);
+		tinyxml2::XMLElement *s1side2 = g_doc.NewElement("side");
+		s1side2->SetAttribute("id", 2);
+		s1side2->SetAttribute("robot", 0);
+		s1side2->SetAttribute("conn", 9);
+		simple1->InsertAfterChild(s1side1, s1side2);
+
+		tinyxml2::XMLElement *simple2 = g_doc.NewElement("simple");
+		tinyxml2::XMLElement *s2side1 = g_doc.NewElement("side");
+		s2side1->SetAttribute("id", 1);
+		s2side1->SetAttribute("robot", 0);
+		s2side1->SetAttribute("face", 3);
+		simple2->InsertFirstChild(s2side1);
+		tinyxml2::XMLElement *s2side2 = g_doc.NewElement("side");
+		s2side2->SetAttribute("id", 2);
+		s2side2->SetAttribute("robot", 0);
+		s2side2->SetAttribute("conn", 9);
+		simple2->InsertAfterChild(s2side1, s2side2);
+
+		// add caster
+		tinyxml2::XMLElement *caster = g_doc.NewElement("caster");
+		caster->SetAttribute("robot", 0);
+		caster->SetAttribute("face", 2);
+
+		// add accessories to robot
+		sim->InsertAfterChild(robot, simple1);
+		sim->InsertAfterChild(simple1, simple2);
+		sim->InsertAfterChild(simple2, caster);
+
 		// save default config file
 		g_doc.SaveFile(g_xml);
-
-		// set default values for grid
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance of Grid Lines (in): ");
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
-
-		// end
-		return;
 	}
 
 	tinyxml2::XMLElement *node;
