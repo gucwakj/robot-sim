@@ -155,7 +155,7 @@ int RoboSim::init_xml(void) {
 #endif
 	int output = doc.LoadFile(path);
 	if (output) {
-		fprintf(stderr, "Error: could not find xml config file.\n");
+		fprintf(stderr, "Error: Could not find RoboSim config file.\nPlease run RoboSim GUI.\n");
 		exit(-1);
 	}
 
@@ -583,7 +583,7 @@ int RoboSim::init_xml(void) {
 				while (tmp && tmp->id != rtmp[j])
 					tmp = tmp->next;
 				if (tmp == NULL) {
-					fprintf(stderr, "Error: robot %d could not be found.\n", rtmp[j]);
+					fprintf(stderr, "Error: Robot %d could not be found in RoboSim config file.\n", rtmp[j]);
 					exit(-1);
 				}
 				ctmp = tmp->conn;
@@ -697,19 +697,19 @@ int RoboSim::addRobot(CRobot *robot) {
 	if (btmp == NULL) {
 		switch (robot->getType()) {
 			case LINKBOTI:
-				fprintf(stderr, "Error: Could Not Find LinkbotI In RoboSim.\n");
+				fprintf(stderr, "Error: Could Not Find LinkbotI In RoboSim GUI.\n");
 				exit(-1);
 				break;
 			case LINKBOTL:
-				fprintf(stderr, "Error: Could Not Find LinkbotL In RoboSim.\n");
+				fprintf(stderr, "Error: Could Not Find LinkbotL In RoboSim GUI.\n");
 				exit(-1);
 				break;
 			case LINKBOTT:
-				fprintf(stderr, "Error: Could Not Find LinkbotT In RoboSim.\n");
+				fprintf(stderr, "Error: Could Not Find LinkbotT In RoboSim GUI.\n");
 				exit(-1);
 				break;
 			case MOBOT:
-				fprintf(stderr, "Error: Could Not Find Mobot In RoboSim.\n");
+				fprintf(stderr, "Error: Could Not Find Mobot In RoboSim GUI.\n");
 				exit(-1);
 				break;
 		}
