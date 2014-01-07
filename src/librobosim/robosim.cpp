@@ -632,6 +632,21 @@ int RoboSim::init_xml(void) {
 		node = node->NextSiblingElement();
 	}
 
+	// check if any robots are possibly colliding
+	if (!_preconfig) {
+		xml_robot_t btmp = _bot;
+		while (btmp) {
+			xml_robot_t tmp2 = btmp->next;
+			while (tmp2) {
+				if ( (fabs(btmp->x - tmp2->x) < 0.1) && (fabs(btmp->y - tmp2->y) < 0.1) )
+					fprintf(stderr, "Warning: Robot %d and Robot %d are possibly colliding.\n", btmp->id + 1, tmp2->id + 1);
+					fprintf(stderr, "         Please check RoboSim GUI for position errors.\n");
+				tmp2 = tmp2->next;
+			}
+			btmp = btmp->next;
+		}
+	}
+
 	// success
 	return 0;
 }
