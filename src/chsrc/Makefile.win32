@@ -2,7 +2,7 @@
 # chrobosim
 #
 PACKAGE=chrobosim
-VERSION=0.5.0
+VERSION=win32-0.5.0
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 ARCH=x86
 
@@ -70,9 +70,9 @@ uninstall:
 	ch ./pkginstall.ch -u $(PACKAGE)
 
 createpkg: librobosim.dl
-	echo Building $(PACKAGE)-win32-$(VERSION).zip
+	echo Building $(PACKAGE)-$(VERSION).zip
 	rm -rf $(PACKAGE)-$(VERSION)
-	rm -rf $(PACKAGE)-win32-$(VERSION).zip
+	rm -rf $(PACKAGE)-$(VERSION).zip
 	mkdir -p $(PKGDIR)
 	mkdir $(PKGDIR)/bin
 	cp ../opende/lib/Release/ode.dll $(PKGDIR)/bin
@@ -151,12 +151,12 @@ createpkg: librobosim.dl
 	cp systemTime.chf $(PKGDIR)/lib
 	cp Makefile.win32 $(PACKAGE)-$(VERSION)/Makefile
 	cp pkginstall.ch $(PACKAGE)-$(VERSION)
-	zip -rq $(PACKAGE)-win32-$(VERSION).zip $(PACKAGE)-$(VERSION)
-	echo Done Building $(PACKAGE)-win32-$(VERSION)
+	zip -rq $(PACKAGE)-$(VERSION).zip $(PACKAGE)-$(VERSION)
+	echo Done Building $(PACKAGE)-$(VERSION)
 
 cleanpkg: librobosim.dl
 	rm -rf $(PACKAGE)-$(VERSION)
-	rm -rf $(PACKAGE)-win32-$(VERSION).zip
+	rm -rf $(PACKAGE)-$(VERSION).zip
 
 clean:
 	rm *.obj *.dl *.dl.manifest *.exp *.lib

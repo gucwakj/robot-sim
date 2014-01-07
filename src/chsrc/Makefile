@@ -2,7 +2,7 @@
 # chrobosim
 #
 PACKAGE=chrobosim
-VERSION=0.5.0
+VERSION=linux-0.5.0
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 
 SRC=../librobosim
@@ -71,7 +71,7 @@ uninstall:
 createpkg: librobosim.dl
 	echo Building $(PACKAGE)-$(VERSION).zip
 	rm -rf $(PACKAGE)-$(VERSION)
-	rm -rf $(PACKAGE)-unix-$(VERSION).zip
+	rm -rf $(PACKAGE)-$(VERSION).zip
 	mkdir -p $(PKGDIR)
 	mkdir $(PKGDIR)/bin
 	cp ../opende/sys/lib/libode.so $(PKGDIR)/bin
@@ -126,12 +126,12 @@ createpkg: librobosim.dl
 	cp systemTime.chf $(PKGDIR)/lib
 	cp Makefile $(PACKAGE)-$(VERSION)
 	cp pkginstall.ch $(PACKAGE)-$(VERSION)
-	zip -rq $(PACKAGE)-unix-$(VERSION).zip $(PACKAGE)-$(VERSION)
+	zip -rq $(PACKAGE)-$(VERSION).zip $(PACKAGE)-$(VERSION)
 	echo Done Building $(PACKAGE)-$(VERSION)
 
 cleanpkg:
 	rm -rf $(PACKAGE)-$(VERSION)
-	rm -rf $(PACKAGE)-unix-$(VERSION).zip
+	rm -rf $(PACKAGE)-$(VERSION).zip
 
 clean:
 	rm *.o *.dl
