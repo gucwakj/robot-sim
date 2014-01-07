@@ -28,19 +28,20 @@
 \newpage
 
 \section{Introduction}
-\texttt{RoboSim} is designed to test programs written to control Barobo Mobot
-and Linkbot modules within a simulated environment.  It has been designed to
-allow any Ch code which can control hardware Barobo robots to now control them
-from within a simulated environment making zero changes to the code.  The
-RoboSim GUI allows users to change between hardware and simulated robots and
-position the robots in their initial position for simulation.
+\texttt{RoboSim} is a robot simulation environment, developed by the UC Davis
+C-STEM Center, for programming Barobo Mobots and Linkbots.  Almost any program
+that can control hardware Barobo robots, except for programs using a controller
+robot, can be used to run virtual robots in RoboSim without any modification.
+Also any program that can control virtual robots in RoboSim, except for the
+coordinate system programs in Appendix B, can be run on hardware Barobo robots
+without any changes.
 
 \section{RoboSim GUI}
 \label{sec:gui}
-The RoboSim GUI, shown in Figure \ref{fig:gui}, allows users to configure their
-computer to run simulated robots in place of the hardware ones.  There is no
-save button within the GUI, all changes are automatically saved on each click.
-
+The RoboSim graphical user interface (GUI), shown in Figure \ref{fig:gui},
+allows the user to change between hardware and virtual robots when a Ch robot
+program is executed.  There is no save button within the GUI, all changes are
+automatically saved on each click.
 \begin{figure}[H]
 	\begin{center}
 		\includegraphics[width=6in]{images/gui}
@@ -50,10 +51,10 @@ save button within the GUI, all changes are automatically saved on each click.
 \end{figure}
 
 \subsection{Platform}
-This lets a user pick whether the output is sent to the hardware or simulated
+This lets a user pick whether the output is sent to the virtual or hardware 
 robots.  Each time a new Ch code is started, it will check this variable.
 Therefore to run subsequent trials on simulated and hardware robots, run the Ch
-code with the simulated button checked.  Close the code, change to 'Hardware
+code with the 'Virtual Robots' button checked.  Close the code, change to 'Hardware
 Robots' and then rerun the same code.  It will now output to the physical
 robots.
 \begin{figure}[H]
@@ -86,16 +87,17 @@ without wheels but not attached to each other.
 
 Images for the Linkbot and Mobot showing the meaning of each of the options is
 shown above the configuration box.  These are screenshots of the simulation
-program with the robots positioned at 1 foot in both the x and y dimensions and
+program with the robots positioned at 1 foot in both the X and Y dimensions and
 at an angle of 30 degrees.  These are the dimensions available to initially position
 robots within the simulation.
 
 Initially the individual robot list is empty but can be populated by the large
-'add robot' button below the configuration images.  Clicking this button will
+'Add Robot' button below the configuration images.  Clicking this button will
 add more and more robots into the scene each offset from the previous in the
 x-direction by 6 inches or 15 centimeters depending upon the units selected.
 The order within the robot list will be the order in which the robots will be
-read into the simulation program.
+read into the simulation program similar to how BaroboLink reads the list of
+available hardware robots.
 
 \subsubsection{Robot Type}
 There are three options for robot type available.  Linkbot-I, Linkbot-L,
@@ -110,7 +112,7 @@ Figure \ref{fig:type}.
 \end{figure}
 
 \subsubsection{Robot Position}
-Both x and y positions can be chosen independently for each robot.
+Both X and Y positions can be chosen independently for each robot.
 
 \subsubsection{Robot Angle}
 The rotation angle from the x-axis can be used for changing the orientation of
@@ -120,6 +122,24 @@ the two robots respective to each other.
 Since so many times the robots are run with wheels and a caster connected, a
 drop down menu is provided to select different wheel sizes.  The options listed
 are the radii of the wheels provided with Linkbots when purchased from Barobo.
+Each wheel is drawn with a series of dots along the one radius to easily show
+the rotation of the wheel.  The correlation between wheel radius and number of
+dots is given in Table \ref{tab:wheels}.
+
+\begin{table}[H]
+	\begin{center}
+	\begin{tabular}{c | l }
+		\hline \hline
+		\textbf{Number of Dots} & \textbf{Wheel Radius} \\ \hline
+		3 & 1.625 inch \\
+		4 & 1.75 inch \\
+		5 & 2.00 inch \\
+		\hline \hline
+	\end{tabular}
+	\caption{Wheel sizes and number of dots.}
+	\label{tab:wheels}
+	\end{center}
+\end{table}
 
 \subsubsection{Remove}
 Each robot can be removed from the scene by clicking the remove button.  All
@@ -154,8 +174,7 @@ change these default values to logical starting points for the metric system.
 \subsection{Tracking}
 Tracking where robots have been can be enabled by default by selecting the
 check box.  This will draw green lines which draw out everywhere that each robot
-has been.  Once a simulation is running, the tracking line can be enabled or
-disabled by pressing the 't' key.
+has been.
 
 \section{Running a Simulation}
 Once the simulation environment has been configured with the RoboSim GUI in
@@ -176,9 +195,16 @@ viewing the robots from below to be able to inspect the movement from all
 angles.
 
 \subsection{Keyboard Input}
-The simulation will respond to keyboad input as outlined in Table
+The simulation will respond to keyboard input as outlined in Table
 \ref{tab:keys}.
 
+Once a simulation is running, the tracking line can be enabled or
+disabled by pressing the 't' key.  Since the robot can get in the way of viewing
+the tracked locations, the 'r' key enables the tacking line as well as makes the
+robot disappear.  The motion robot is still moving around and completing its
+motion, however it is just not drawn onto the screen.  Any other key on the
+keyboard will either pause or unpause the simulation depending upon the current
+state.
 \begin{table}[H]
 	\begin{center}
 	\begin{tabular}{c | l }
@@ -196,12 +222,27 @@ The simulation will respond to keyboad input as outlined in Table
 
 \subsection{Mouse Input}
 The mouse can be used to move the camera around the scene.  Left clicking and
-dragging the mouse pans the camera.  Right clicking enables scaling of the view.
-Clicking both left and right mouse buttons and dragging changes the location of
-the camera within the scene.
+dragging the mouse spins the camera around the fixed camera position.  Right
+clicking and dragging enables scaling of the view.  Clicking both left and right
+mouse buttons and dragging changes the location of the camera within the scene.
+\begin{table}[H]
+	\begin{center}
+	\begin{tabular}{c | l }
+		\hline \hline
+		\textbf{Button} & \textbf{Action} \\ \hline
+		Left & Spin around fixed camera point \\
+		Right & Scale simulation view \\
+		Both & Pan around scene \\
+		\hline \hline
+	\end{tabular}
+	\caption{Keyboard input for RoboSim}
+	\label{tab:mouse}
+	\end{center}
+\end{table}
 
 Clicking on any robot will enable a pop up which displays the robot name and the
-current position of the robot.  Clicking again will disable the display.
+current position of the robot.  Clicking again will disable the display.  The
+display will update automatically as the robot is moving.
 
 \appendix
 \section{Manual Configuration File Generation}
