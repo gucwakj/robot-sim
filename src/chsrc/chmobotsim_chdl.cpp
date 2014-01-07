@@ -1396,6 +1396,19 @@ EXPORTCH int CMobot_movexyToNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_movexyWait_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    retval = robot->movexyWait();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_recordAngle_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

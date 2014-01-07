@@ -1236,14 +1236,6 @@ int CMobot::moveWait(void) {
 }
 
 int CMobot::movexy(double x, double y, double radius, double tracklength) {
-	this->movexyNB(x, y, radius, tracklength);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CMobot::movexyNB(double x, double y, double radius, double tracklength) {
 	// get current body rotation
 	double r0 = this->getRotation(CENTER, 2);
 
@@ -1257,21 +1249,52 @@ int CMobot::movexyNB(double x, double y, double radius, double tracklength) {
 		this->turnLeft(RAD2DEG(-angle-r0), radius, tracklength);
 
 	// move along length of line
-	this->moveDistanceNB(sqrt(x*x + y*y), radius);
+	this->moveDistance(sqrt(x*x + y*y), radius);
+
+	// success
+	return 0;
+}
+
+void* CMobot::movexyThread(void *arg) {
+	// cast arg
+	moveArg_t *mArg = (moveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->movexy(mArg->x, mArg->y, mArg->radius, mArg->tracklength);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+int CMobot::movexyNB(double x, double y, double radius, double tracklength) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	moveArg_t *mArg = new moveArg_t;
+	mArg->robot = this;
+	mArg->x = x;
+	mArg->y = y;
+	mArg->radius = radius;
+	mArg->tracklength = tracklength;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, movexyThread, (void *)mArg);
 
 	// success
 	return 0;
 }
 
 int CMobot::movexyTo(double x, double y, double radius, double tracklength) {
-	this->movexyToNB(x, y, radius, tracklength);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CMobot::movexyToNB(double x, double y, double radius, double tracklength) {
 	// get current position and convert to in or cm
 	double x0, y0;
 	this->getxy(x0, y0);
@@ -1287,7 +1310,58 @@ int CMobot::movexyToNB(double x, double y, double radius, double tracklength) {
 		this->turnLeft(RAD2DEG(-angle-r0), radius, tracklength);
 
 	// move along length of line
-	this->moveDistanceNB(sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0)), radius);
+	this->moveDistance(sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0)), radius);
+
+	// success
+	return 0;
+}
+
+void* CMobot::movexyToThread(void *arg) {
+	// cast arg
+	moveArg_t *mArg = (moveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->movexyTo(mArg->x, mArg->y, mArg->radius, mArg->tracklength);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+int CMobot::movexyToNB(double x, double y, double radius, double tracklength) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	moveArg_t *mArg = new moveArg_t;
+	mArg->robot = this;
+	mArg->x = x;
+	mArg->y = y;
+	mArg->radius = radius;
+	mArg->tracklength = tracklength;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, movexyToThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
+int CMobot::movexyWait(void) {
+	// wait for motion to complete
+	MUTEX_LOCK(&_motion_mutex);
+	while (_motion) {
+		COND_WAIT(&_motion_cond, &_motion_mutex);
+	}
+	MUTEX_UNLOCK(&_motion_mutex);
 
 	// success
 	return 0;

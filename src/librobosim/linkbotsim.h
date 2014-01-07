@@ -102,6 +102,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int movexyNB(double x, double y, double radius, double tracklength);
 		int movexyTo(double x, double y, double radius, double tracklength);
 		int movexyToNB(double x, double y, double radius, double tracklength);
+		int movexyWait();
 #ifdef _CH_
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id,
@@ -246,6 +247,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		static void* motionRollForwardThread(void *arg);							// thread to run motion roll forward
 		static void* motionTurnLeftThread(void *arg);								// thread to run motion turn left
 		static void* motionTurnRightThread(void *arg);								// thread to run motion turn right
+		static void* movexyThread(void *arg);										// thread to run movexy
+		static void* movexyToThread(void *arg);										// thread to run movexy
 		static void* recordAngleThread(void *arg);									// thread to record angle
 		static void* recordAngleBeginThread(void *arg);								// thread to record angle
 		static void* recordAnglesThread(void *arg);									// thread to record angles
@@ -451,6 +454,7 @@ class DLLIMPORT CLinkbotI {
 		int movexyNB(double x, double y, double radius, double tracklength);
 		int movexyTo(double x, double y, double radius, double tracklength);
 		int movexyToNB(double x, double y, double radius, double tracklength);
+		int movexyWait();
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
 		int recordAngleEnd(robotJointId_t id, int &num);
@@ -663,6 +667,7 @@ class DLLIMPORT CLinkbotL {
 		int movexyNB(double x, double y, double radius, double tracklength);
 		int movexyTo(double x, double y, double radius, double tracklength);
 		int movexyToNB(double x, double y, double radius, double tracklength);
+		int movexyWait();
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
 		int recordAngleEnd(robotJointId_t id, int &num);
@@ -818,6 +823,10 @@ typedef struct motionArg_s {
 	double d;
 	CLinkbotT *robot;
 } motionArg_t;
+typedef struct moveArg_s {
+	double x, y, radius, tracklength;
+	CLinkbotT *robot;
+} moveArg_t;
 class DLLIMPORT CLinkbotI : public CLinkbotT {
 	public:
 		CLinkbotI(void) : CLinkbotT(1, LINKBOTI) {}

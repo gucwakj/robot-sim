@@ -976,6 +976,19 @@ int CLinkbotI::movexyToNB(double x, double y, double radius, double tracklength)
     return retval;
 }
 
+int CLinkbotI::movexyWait() {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_movexyWait_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, movexyWait, this);
+    return retval;
+}
+
 int CLinkbotI::recordAngle(int id, double time[:], double angle[:], int num, double seconds, ...) {
     void *fptr;
     int retval;

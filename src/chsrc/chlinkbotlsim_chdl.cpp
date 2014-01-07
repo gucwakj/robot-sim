@@ -1218,6 +1218,19 @@ EXPORTCH int CLinkbotL_movexyToNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotL_movexyWait_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    retval = robot->movexyWait();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotL_recordAngle_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

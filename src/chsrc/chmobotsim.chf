@@ -1094,6 +1094,19 @@ int CMobot::movexyToNB(double x, double y, double radius, double tracklength) {
     return retval;
 }
 
+int CMobot::movexyWait() {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_movexyWait_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, movexyWait, this);
+    return retval;
+}
+
 int CMobot::recordAngle(int id, double time[:], double angle[:], int num, double seconds, ...) {
     void *fptr;
     int retval;

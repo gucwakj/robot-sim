@@ -116,6 +116,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int movexyNB(double x, double y, double radius, double tracklength);
 		int movexyTo(double x, double y, double radius, double tracklength);
 		int movexyToNB(double x, double y, double radius, double tracklength);
+		int movexyWait();
 #ifdef _CH_
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id,
@@ -277,6 +278,8 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		static void* motionTumbleRightThread(void *arg);
 		static void* motionTumbleLeftThread(void *arg);
 		static void* motionUnstandThread(void *arg);
+		static void* movexyThread(void *arg);
+		static void* movexyToThread(void *arg);
 		static void* recordAngleThread(void *arg);
 		static void* recordAngleBeginThread(void *arg);
 		static void* recordAnglesThread(void *arg);
@@ -431,6 +434,10 @@ typedef struct motionArg_s {
 	double d;
 	CMobot *robot;
 } motionArg_t;
+typedef struct moveArg_s {
+	double x, y, radius, tracklength;
+	CMobot *robot;
+} moveArg_t;
 
 #ifdef _CH_
 void* RoboSim::_dlhandle = NULL;
