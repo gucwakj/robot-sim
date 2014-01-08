@@ -8,6 +8,7 @@ int main(int argc, char *argv[]) {
 	robot1.connect();
 	robot1.movexyTo(1, 1, 1.75, 3.69);
 	robot1.movexy(0, 1, 1.75, 3.69);
+	robot1.setColorRGB(255, 0, 0);
 	robot1.movexyTo(0, 1, 1.75, 3.69);
 
 	return 0;
