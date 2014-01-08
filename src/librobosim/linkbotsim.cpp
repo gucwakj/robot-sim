@@ -2595,18 +2595,20 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 
     // create rotation matrices for each body part
     dMatrix3 R_f, R_f1, R_f2, R_f3;
-    dRFromAxisAndAngle(R_f, 1, 0, 0, _angle[F1]);
+    dRFromAxisAndAngle(R_f, -1, 0, 0, _angle[F1]);
     dMultiply0(R_f1, R, R_f, 3, 3, 3);
+	dRSetIdentity(R_f);
     dRFromAxisAndAngle(R_f, 0, -1, 0, _angle[F2]);
     dMultiply0(R_f2, R, R_f, 3, 3, 3);
-    dRFromAxisAndAngle(R_f, -1, 0, 0, _angle[F3]);
+	dRSetIdentity(R_f);
+    dRFromAxisAndAngle(R_f, 1, 0, 0, _angle[F3]);
     dMultiply0(R_f3, R, R_f, 3, 3, 3);
 
 	// if bodies are rotated, then redraw
 	if ( _angle[F1] != 0 || _angle[F2] != 0 ||_angle[F3] != 0 ) {
-		this->build_face(FACE1, R[1]*f1[1] + x, R[5]*f1[1] + y, R[9]*f1[1] + z, R_f1, 0);
-		this->build_face(FACE2, R[0]*f2[0] + x, R[4]*f2[0] + y, R[8]*f2[0] + z, R_f2, 0);
-		this->build_face(FACE3, R[1]*f3[1] + x, R[5]*f3[1] + y, R[9]*f3[1] + z, R_f3, 0);
+		this->build_face(FACE1, R[0]*f1[0] + x, R[4]*f1[0] + y, R[8]*f1[0] + z, R_f1, 0);
+		this->build_face(FACE2, R[1]*f2[1] + x, R[5]*f2[1] + y, R[9]*f2[1] + z, R_f2, 0);
+		this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R_f3, 0);
 	}
 
     // motor for body to face 1
@@ -2661,7 +2663,19 @@ int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn) 
 	this->get_connector_params(conn->type, conn->side, R, m);
 
 	// find position of new module
-	this->get_body_params(robot->psi, conn->face2, robot->angle2, R, m);
+	double angle = 0;
+	switch (conn->face2) {
+		case FACE1:
+			angle = robot->angle1;
+			break;
+		case FACE2:
+			angle = robot->angle2;
+			break;
+		case FACE3:
+			angle = robot->angle3;
+			break;
+	}
+	this->get_body_params(robot->psi, conn->face2, angle, R, m);
 
     // build new module
 	this->build_individual(m[0], m[1], m[2], R, robot->angle1, robot->angle2, robot->angle3);
