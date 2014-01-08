@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{graphicx}
 \usepackage{wrapfig}
+\usepackage{xcolor}
 \usepackage{amsmath}
 \usepackage{verbatim}
 \usepackage{makeidx}
@@ -19,7 +20,10 @@
 {\Huge\sf\bf RoboSim User's Guide}\\
 \vspace*{2.5cm}
 {\Large\bf Version 0.5.0}
-\vspace{4.5cm}
+\vspace{4in}
+
+Copyright \copyright\ \today\ by UC Davis C-STEM Center, All rights reserved.
+
 \end{center}
 
 %\maketitle
@@ -29,19 +33,19 @@
 
 \section{Introduction}
 \texttt{RoboSim} is a robot simulation environment, developed by the UC Davis
-C-STEM Center, for programming Barobo Mobots and Linkbots.  Almost any program
-that can control hardware Barobo robots, except for programs using a controller
-robot, can be used to run virtual robots in RoboSim without any modification.
-Also any program that can control virtual robots in RoboSim, except for the
-coordinate system programs in Appendix B, can be run on hardware Barobo robots
-without any changes.
+Center for Integrated Computing and STEM Education (C-STEM) {\color{blue} \bf
+(http://c-stem.ucdavis.edu)}, for programming Barobo Mobot and Linkbot.  The
+same Ch program  can control hardware robots or virtual robots in RoboSim
+without any modification.
 
 \section{RoboSim GUI}
 \label{sec:gui}
-The RoboSim graphical user interface (GUI), shown in Figure \ref{fig:gui},
-allows the user to change between hardware and virtual robots when a Ch robot
-program is executed.  There is no save button within the GUI, all changes are
-automatically saved on each click.
+RoboSim can be conveniently launched by double clicking its icon
+\includegraphics[height=24pt]{images/robosim} on the desktop.  The RoboSim
+graphical user interface (GUI), shown in Figure \ref{fig:gui}, allows the user
+to change between hardware and virtual robots when a Ch robot program is
+executed.  There is no save button within the GUI, all changes made are
+automatically saved.
 \begin{figure}[H]
 	\begin{center}
 		\includegraphics[width=6in]{images/gui}
@@ -51,12 +55,12 @@ automatically saved on each click.
 \end{figure}
 
 \subsection{Platform}
-This lets a user pick whether the output is sent to the virtual or hardware 
-robots.  Each time a new Ch code is started, it will check this variable.
-Therefore to run subsequent trials on simulated and hardware robots, run the Ch
-code with the 'Virtual Robots' button checked.  Close the code, change to 'Hardware
-Robots' and then rerun the same code.  It will now output to the physical
-robots.
+The {\bf Platform} entry as shown in Figure \ref{fig:platform}, allows the user
+to decide whether a Ch program controls the hardware or virtual robots.  Each
+time a new Ch program is started, it will check the setup based on this entry.
+For a Ch robot program to control a virtual robot, check the box for {\bf
+Simulated Robots}.  If the box for {\bf Hardware Robots} is checked, a Ch
+program will control the physical hardware robots.
 \begin{figure}[H]
 	\begin{center}
 		\includegraphics[width=3in]{images/platform}
@@ -66,17 +70,21 @@ robots.
 \end{figure}
 
 \subsection{Units}
-Simulations within RoboSim can be run either in US Customary units consisting of
-inches, degrees, and seconds or Metric units with centimeters, degrees, and
-seconds.  Changing units will effect the grid spacing drawn beneath the robots
-and the spacing between robots.  Changing between these two options will
-change the labels within the GUI to indicate the units being used.
+\label{sec:units}
+Simulations within RoboSim can be run either in {\bf US Customary} units
+consisting of inches, degrees, and seconds or {\bf Metric} units with
+centimeters, degrees, and seconds.  Changing units will effect the grid spacing
+drawn beneath the robots and the spacing between robots.  Changing between these
+two options will change the labels within the GUI to indicate the units being
+used.
+
 
 \subsection{Individual Robot Configuration}
-Initial robot configurations can either be done through the individual robot
-section or the preconfigured options.  The individual robot section has options
-to allow robots to be positioned within the simulated scene either with or
-without wheels but not attached to each other.
+Initial robot configurations can either be done through the {\bf Individual
+Robot Configuration} or {\bf Preconfigured Robot Configuration} section.  The
+{\bf Individual Robot Configuration} section, as shown in Figure
+\ref{fig:config}, has options to allow robots to be positioned within the
+RoboSim scene either with or without wheels but not attached to each other.
 \begin{figure}[H]
 	\begin{center}
 		\includegraphics[width=6in]{images/individual}
@@ -85,24 +93,22 @@ without wheels but not attached to each other.
 	\label{fig:config}
 \end{figure}
 
-Images for the Linkbot and Mobot showing the meaning of each of the options is
-shown above the configuration box.  These are screenshots of the simulation
-program with the robots positioned at 1 foot in both the X and Y dimensions and
-at an angle of 30 degrees.  These are the dimensions available to initially position
-robots within the simulation.
+The user can specify the X and Y coordinates  as well as the orientation angle
+of a virtual robot.  Images for the Linkbot and Mobot showing the meaning of
+each of the options are displayed above the configuration box.  They are
+screenshots of the virtual robots positioned at one foot in both the X and Y
+coordinates with the orientation angle of 30 degrees from the X-axis.
 
-Initially the individual robot list is empty but can be populated by the large
-'Add Robot' button below the configuration images.  Clicking this button will
-add more and more robots into the scene each offset from the previous in the
-x-direction by 6 inches or 15 centimeters depending upon the units selected.
-The order within the robot list will be the order in which the robots will be
-read into the simulation program similar to how BaroboLink reads the list of
-available hardware robots.
+Initially, the individual robot list contains one Linkbot-I at (0, 0) with 1.75
+inch wheels.  More robots can be added by the 'Add Robot' button below the
+configuration images.  Clicking this button will add a robot into RoboSim, each
+offset from the previous one in the x-direction by 6 inches or 15 centimeters
+depending upon the units selected.  The order within the robot list will be the
+order in which the robots will be read into the simulation program.
 
 \subsubsection{Robot Type}
 There are three options for robot type available.  Linkbot-I, Linkbot-L,
-and Mobot.  The options are presented in a drop down menu as shown in
-Figure \ref{fig:type}.
+and Mobot.  The options are presented in a drop down menu.
 \begin{figure}[H]
 	\begin{center}
 		\includegraphics[width=6in]{images/type}
@@ -125,7 +131,6 @@ are the radii of the wheels provided with Linkbots when purchased from Barobo.
 Each wheel is drawn with a series of dots along the one radius to easily show
 the rotation of the wheel.  The correlation between wheel radius and number of
 dots is given in Table \ref{tab:wheels}.
-
 \begin{table}[H]
 	\begin{center}
 	\begin{tabular}{c | l }
@@ -142,18 +147,19 @@ dots is given in Table \ref{tab:wheels}.
 \end{table}
 
 \subsubsection{Remove}
-Each robot can be removed from the scene by clicking the remove button.  All
-remaining robots will remain within the simulation and be at the same positions.
+A robot can be removed from the RoboSim by clicking the 'Remove' button. 
 
 \subsection{Preconfigured Robot Configurations}
-In addition to positioning robots independently within the scene, six 
-preconfigured options are available to users which represent common Linkbot
-configurations.  Selecting one of the options will display a picture of the
-configuration built with the hardware Linkbots and corresponding to code within
-the C-STEM Learn Linkbot book.  When one of these options is selected, the
-specific configuration for this setup is passed into Ch and any robots in the
-individual robot list are ignored.  To switch back to the individual
-configuration, just unselect the selected robot configuration.
+In addition to positioning robots independently within the RoboSim, some {\bf
+Preconfigured Robot Configurations}, as shown in Figure \ref{fig:preconfig},
+which represent commonly used Linkbot configurations  are available to the user.
+Selecting one of these options will display a picture of the configuration built
+with the hardware Linkbots and corresponding to a Ch robot program presented in
+Chapter 13 in the book {\em Learning Robot Programming with Linkbot for the
+Absolute Beginner}.  When one of these options is selected, the specific
+configuration for this setup is passed into Ch and robots specified in the
+individual robot configuration are ignored.  To switch back to the individual
+configuration, just unselect the selected preconfigured robot configuration.
 \begin{figure}[H]
 	\begin{center}
 		\includegraphics[width=4in]{images/preconfig}
@@ -164,65 +170,116 @@ configuration, just unselect the selected robot configuration.
 
 \subsection{Grid Configuration}
 To be able to see how far robots have moved, a grid is enabled under the robots.
-There are three options to alter the layout of the grid lines.  Total distance
-is the entire distance between -x and x for which grid lines will be displayed.
-Hashmarks are the red lines drawn within the configuration images.  By default
-they are every foot.  Tics are the most frequent lines drawn in a light gray
-and by default every inch.  Switching between US Customary and Metric units will
-change these default values to logical starting points for the metric system.
-At any point the defaults can be restored using the 'Restore to Default Values'
-button.  It will restore to the defaults of the units selected.  The defaults
-for US and Metric units are shown in Figures \ref{fig:us} and \ref{fig:metric},
-respectively.
+There are three options to alter the layout of the grid lines under the {\bf
+Grid Configuration}.  Total distance is the entire distance between -x and x for
+which grid lines will be displayed.  Hashmarks are the red lines drawn within
+the configuration images.  By default, the distance between two hashmarks is 12
+inches in US Customary units and 50 centimeters in Metric units.  Tics are the
+most frequent lines drawn in a light gray.  By default, the distance between two
+tics is 1 inch in US Customary units and 5 centimeters in Metric units.
+
+Switching between US Customary and Metric units will change these default values
+to logical starting points for the metric system.  The reset to defaults button
+will allow the default values for both US Customary and Metric to be reinstated
+after they have been changed.  Depending upon which units are currently selected
+from Section \ref{sec:units}, either the US Customary defaults, shown in Figure
+\ref{fig:grid_us}, or the Metric defaults, as shown in Figure
+\ref{fig:grid_metric}, will be set.
 \begin{figure}[H]
 	\begin{center}
 		\includegraphics[width=4in]{images/grid_us}
 	\end{center}
 	\caption{Default US Customary Grid Spacing.}
-	\label{fig:us}
+	\label{fig:grid_us}
 \end{figure}
 \begin{figure}[H]
 	\begin{center}
 		\includegraphics[width=4in]{images/grid_metric}
 	\end{center}
 	\caption{Default Metric Grid Spacing.}
-	\label{fig:metric}
+	\label{fig:grid_metric}
 \end{figure}
 
 \subsection{Tracking}
-Tracking where robots have been can be enabled by default by selecting the
-check box.  This will draw green lines which draw out everywhere that each robot
-has been.
+{\bf Tracking} where robots have been can be enabled by selecting the check box
+``Enable Robot Position Tracking", as shown in Figure \ref{fig:gui}.  When the
+tracking is enabled, green lines for robot trajectories will be drawn for each
+robot.
 
-\section{Running a Simulation}
+\section{Running a Ch Program with RoboSim}
 Once the simulation environment has been configured with the RoboSim GUI in
-Section \ref{sec:gui}, users can now run code written to control the hardware
-Barobo robots within simulation.  The RoboSim GUI should remain open while
-simulating robots, once it is closed, it will revert to hardware mode.  The
-graphics for each simulation are created upon running the code.
+Section \ref{sec:gui}, the user can run Ch programs in ChIDE to control the
+virtual robots.  The RoboSim GUI should remain open while simulating robots.
+Once it is closed, the system will revert to hardware mode.  The RoboSim scene
+with virtual robots for each simulation are created upon running a Ch program.
+For example, when the Ch program {\tt moveforward3.ch} below
+\begin{verbatim}
+/* File: moveforward3.ch
+   Move forward for Linkbot-I as a two-wheel vehicle */
+#include <linkbot.h>
+CLinkbotI robot;
 
-\section{Interacting with a Simulation}
-The simulation window responds to mouse inputs to allow users to move about the
-scene.  The mouse wheel or right mouse button allows zooming in and out from the
-robots.  Holding the left button rotates the camera about the viewpoint.
-Clicking, holding, and dragging both mouse buttons pans around the scene to
-change the camera location.
+/* connect to the paired robot and move to the zero position */
+robot.connect();
+robot.resetToZero();
+
+/* move forward by rolling two wheels for 360 degrees */
+robot.moveForward(360);
+\end{verbatim}
+\noindent
+is executed in ChIDE, a RoboSim scene shown in Figure \ref{fig:robosim_scene}
+will be displayed.
+\begin{verbatim}
+    Paused: Press any key to start
+\end{verbatim}
+is displayed in the RoboSim scene to reminder the user that the virtual robot
+will not move until the user presses any key on the keyboard. This gives the
+user an opportunity to examine the RoboSim scene before the motion begins.
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width=3in]{images/robosim_scene}
+	\end{center}
+	\caption{A RoboSim scene with a virtual robot at its starting position.}
+	\label{fig:robosim_scene}
+\end{figure}
+
+While a robot is moving in the RoboSim scene, the user can press any key to
+pause the motion of the robot.  When the motion is paused, the message
+\begin{verbatim}
+    Paused: Press any key to restart
+\end{verbatim}
+will be displayed in the RoboSim scene. The user can press any key to restart
+the motion.
+
+When the user presses the 't' key, the robot trajectory is tracked in a green
+line in the RoboSim scene as shown in Figure \ref{fig:robosim_tracked}.
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width=3in]{images/robosim_tracked}
+	\end{center}
+	\caption{A RoboSim scene with a virtual robot and its trajectory tracked.}
+	\label{fig:robosim_tracked}
+\end{figure}
+
+When the program is finished, the message
+\begin{verbatim}
+    Paused: Press any key to end
+\end{verbatim}
+will be displayed in the RoboSim scene.  Pressing any key, the RoboSim scene
+will disappear.
+
+\section{Interacting with a RoboSim Scene}
+The user can interact with a RoboSim scene through the keyboard and mouse.
 
 The ground plane is for reference only.  It is designed to disappear when
 viewing the robots from below to be able to inspect the movement from all
 angles.
 
 \subsection{Keyboard Input}
-The simulation will respond to keyboard input as outlined in Table
-\ref{tab:keys}.
+The RoboSim scene responds to keyboad input as outlined in Table
+\ref{tab:keys}.  As described in the previous sections, 
+the 't' key will toggle the tracking of robot trajectories.
 
-Once a simulation is running, the tracking line can be enabled or
-disabled by pressing the 't' key.  Since the robot can get in the way of viewing
-the tracked locations, the 'r' key enables the tacking line as well as makes the
-robot disappear.  The motion robot is still moving around and completing its
-motion, however it is just not drawn onto the screen.  Any other key on the
-keyboard will either pause or unpause the simulation depending upon the current
-state.
 \begin{table}[H]
 	\begin{center}
 	\begin{tabular}{c | l }
@@ -238,30 +295,71 @@ state.
 	\end{center}
 \end{table}
 
-\subsection{Mouse Input}
-The mouse can be used to move the camera around the scene.  Left clicking and
-dragging the mouse spins the camera around the fixed camera position.  Right
-clicking and dragging enables scaling of the view.  Clicking both left and right
-mouse buttons and dragging changes the location of the camera within the scene.
-\begin{table}[H]
+The 'r' key will toggle the display of virtual robots or robot trajectories.
+This feature is useful when the user would like to view a trajectory traced by a
+robot without the virtual root blocking the trajectory.  Figure
+\ref{fig:robosim_norobot} shows a RoboSim scene with a tracked robot trajectory
+only, without the robot displayed.
+\begin{figure}[H]
 	\begin{center}
-	\begin{tabular}{c | l }
-		\hline \hline
-		\textbf{Button} & \textbf{Action} \\ \hline
-		Left & Spin around fixed camera point \\
-		Right & Scale simulation view \\
-		Both & Pan around scene \\
+		\includegraphics[width=3in]{images/robosim_norobot}
+	\end{center}
+	\caption{A RoboSim scene with a tracked robot trajectory only.}
+	\label{fig:robosim_norobot}
+\end{figure}
+
+As described in the previous section, the motion of robots in the RoboSim scene
+can be paused and restarted by pressing any other key on the keyboard.
+
+\subsection{Mouse Input}
+Clicking on a robot in a RoboSim scene will enable a pop up which displays the
+robot number and the current position of the robot, as shown in Figure
+\ref{fig:robosim_pos} with the position (0, 10.9817) inches for the X and Y
+coordinates for the robot 1.  Clicking again, the displayed position for the
+robot will disappear.
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width=3in]{images/robosim_pos}
+	\end{center}
+	\caption{A RoboSim scene with a virtual robot and its position displayed.}
+	\label{fig:robosim_pos}
+\end{figure}
+
+The user can execute a Ch robot program in debug mode in ChIDE, line by line,
+with the command {\tt Next}. At the end of each motion statement, the user can
+click the robot in the RoboSim scene to obtain the X and Y coordinates of the
+robot.  The ability to obtain the X and Y coordinates of a robot during its
+motion along a trajectory can be very useful for learning many math concepts.
+
+The mouse can be used to move the camera around the scene.  Holding the left
+mouse button and dragging the mouse pans the camera as outlined in Table
+\ref{tab:buttons}.  Holding the right mouse button and dragging the mouse
+enables scaling of the view by zooming in and out.  Holding both left and right
+mouse buttons and dragging changes the location of the camera within the scene.
+
+The ground plane is for reference only.  The ground plane will disappear when
+viewing the robots from below so that the user can inspect the movement from all
+angles.
+
+\begin{table}[H]
+        \begin{center}
+        \begin{tabular}{c | l }
+                \hline \hline
+                \textbf{button} & \textbf{action} \\ \hline
+                Hold left mouse button and drag& rotate camera \\
+                Hold right mouse button and drag& zoom in and out \\
+                Hold both left and right buttons,  and drag & pan around scene \\
+                Click on a robot & display the robot position\\
 		\hline \hline
 	\end{tabular}
-	\caption{Keyboard input for RoboSim}
-	\label{tab:mouse}
+	\caption{Mouse input for the RoboSim scene.}
+	\label{tab:buttons}
 	\end{center}
 \end{table}
 
-Clicking on any robot will enable a pop up which displays the robot name and the
-current position of the robot.  Clicking again will disable the display.  The
-display will update automatically as the robot is moving.
 
+
+\newpage
 \appendix
 \section{Manual Configuration File Generation}
 \subsection{Robot Attributes}
