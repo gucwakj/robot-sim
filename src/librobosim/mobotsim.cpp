@@ -2911,7 +2911,6 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 									R[4]*le[3] + R[5]*le[4] + R[6]*le[5] + y,
 									R[8]*le[3] + R[9]*le[4] + R[10]*le[5] + z);
     dJointSetHingeAxis(_joint[0], R[0], R[4], R[8]);
-    dJointSetHingeParam(_joint[0], dParamCFM, 0);
 
     // joint for center to left body 1
     _joint[1] = dJointCreateHinge(_world, 0);
@@ -2920,7 +2919,6 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 									R[4]*lb[3] + R[5]*(_center_offset+lb[4]) + R[6]*lb[5] + y,
 									R[8]*lb[3] + R[9]*(_center_offset+lb[4]) + R[10]*lb[5] + z);
     dJointSetHingeAxis(_joint[1], -R[1], -R[5], -R[9]);
-    dJointSetHingeParam(_joint[1], dParamCFM, 0);
 
     // joint for center to left body 2
     _joint[4] = dJointCreateHinge(_world, 0);
@@ -2929,7 +2927,6 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 									R[4]*lb[3] + R[5]*(_center_offset-lb[4]) + R[6]*lb[5] + y,
 									R[8]*lb[3] + R[9]*(_center_offset-lb[4]) + R[10]*lb[5] + z);
     dJointSetHingeAxis(_joint[4], R[1], R[5], R[9]);
-    dJointSetHingeParam(_joint[4], dParamCFM, 0);
 
     // joint for center to right body 1
     _joint[2] = dJointCreateHinge(_world, 0);
@@ -2938,7 +2935,6 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 									R[4]*rb[3] + R[5]*(_center_offset+rb[4]) + R[6]*rb[5] + y,
 									R[8]*rb[3] + R[9]*(_center_offset+rb[4]) + R[10]*rb[5] + z);
     dJointSetHingeAxis(_joint[2], -R[1], -R[5], -R[9]);
-    dJointSetHingeParam(_joint[2], dParamCFM, 0);
 
     // joint for center to right body 2
     _joint[5] = dJointCreateHinge(_world, 0);
@@ -2947,7 +2943,6 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 									R[4]*rb[3] + R[5]*(_center_offset-rb[4]) + R[6]*rb[5] + y,
 									R[8]*rb[3] + R[9]*(_center_offset-rb[4]) + R[10]*rb[5] + z);
     dJointSetHingeAxis(_joint[5], R[1], R[5], R[9]);
-    dJointSetHingeParam(_joint[5], dParamCFM, 0);
 
     // joint for right body to endcap
     _joint[3] = dJointCreateHinge(_world, 0);
@@ -2956,7 +2951,6 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 									R[4]*re[3] + R[5]*re[4] + R[6]*re[5] + y,
 									R[8]*re[3] + R[9]*re[4] + R[10]*re[5] + z);
     dJointSetHingeAxis(_joint[3], R[0], R[4], R[8]);
-    dJointSetHingeParam(_joint[3], dParamCFM, 0);
 
     // create rotation matrices for each body part
     dMatrix3 R_e, R_b, R_le, R_lb, R_rb, R_re;
@@ -2991,7 +2985,6 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
     dJointSetAMotorNumAxes(_motor[0], 1);
     dJointSetAMotorAxis(_motor[0], 0, 1, R_lb[0], R_lb[4], R_lb[8]);
     dJointSetAMotorAngle(_motor[0], 0, 0);
-    dJointSetAMotorParam(_motor[0], dParamCFM, 0);
     dJointSetAMotorParam(_motor[0], dParamFMax, _max_force[LE]);
 	dJointDisable(_motor[0]);
 
@@ -3002,7 +2995,6 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
     dJointSetAMotorNumAxes(_motor[1], 1);
     dJointSetAMotorAxis(_motor[1], 0, 1, -R[1], -R[5], -R[9]);
     dJointSetAMotorAngle(_motor[1], 0, 0);
-    dJointSetAMotorParam(_motor[1], dParamCFM, 0);
     dJointSetAMotorParam(_motor[1], dParamFMax, _max_force[LB]);
 	dJointDisable(_motor[1]);
 
@@ -3013,7 +3005,6 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
     dJointSetAMotorNumAxes(_motor[2], 1);
     dJointSetAMotorAxis(_motor[2], 0, 1, -R[1], -R[5], -R[9]);
     dJointSetAMotorAngle(_motor[2], 0, 0);
-    dJointSetAMotorParam(_motor[2], dParamCFM, 0);
     dJointSetAMotorParam(_motor[2], dParamFMax, _max_force[RB]);
 	dJointDisable(_motor[2]);
 
@@ -3024,7 +3015,6 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
     dJointSetAMotorNumAxes(_motor[3], 1);
     dJointSetAMotorAxis(_motor[3], 0, 1, R_rb[0], R_rb[4], R_rb[8]);
     dJointSetAMotorAngle(_motor[3], 0, 0);
-    dJointSetAMotorParam(_motor[3], dParamCFM, 0);
     dJointSetAMotorParam(_motor[3], dParamFMax, _max_force[RE]);
 	dJointDisable(_motor[3]);
 
@@ -3742,8 +3732,6 @@ int CMobot::fix_body_to_connector(dBodyID cBody, int face) {
 
 	// set joint params
 	dJointSetFixed(joint);
-	dJointSetFixedParam(joint, dParamCFM, 0);
-	dJointSetFixedParam(joint, dParamERP, 0.9);
 
 	// success
 	return 0;
@@ -3766,8 +3754,6 @@ int CMobot::fix_connector_to_body(int face, dBodyID cBody) {
 			dJointAttach(joint, this->getBodyID(BODY_L), cBody);
 			dJointAttach(joint2, this->getBodyID(BODY_R), cBody);
 			dJointSetFixed(joint2);
-			dJointSetFixedParam(joint2, dParamCFM, 0);
-			dJointSetFixedParam(joint2, dParamERP, 0.9);
 			break;
 		case 4: case 7:
 			dJointAttach(joint, this->getBodyID(BODY_R), cBody);
@@ -3779,8 +3765,6 @@ int CMobot::fix_connector_to_body(int face, dBodyID cBody) {
 
 	// set joint params
 	dJointSetFixed(joint);
-	dJointSetFixedParam(joint, dParamCFM, 0);
-	dJointSetFixedParam(joint, dParamERP, 0.9);
 
 	// success
 	return 0;

@@ -2555,15 +2555,12 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 									R[4]*f1[3] + R[5]*f1[4] + R[6]*f1[5] + y,
 									R[8]*f1[3] + R[9]*f1[4] + R[10]*f1[5] + z);
     dJointSetHingeAxis(_joint[0], R[0], R[4], R[8]);
-    dJointSetHingeParam(_joint[0], dParamCFM, 0);
 
     // joint for body to face 2
 	if (_disabled == 1) {
 		dJointID joint = dJointCreateFixed(_world, 0);
 		dJointAttach(joint, _body[BODY], _body[FACE2]);
 		dJointSetFixed(joint);
-		dJointSetFixedParam(joint, dParamCFM, 0);
-		dJointSetFixedParam(joint, dParamERP, 0.9);
 	}
 	else {
     	_joint[1] = dJointCreateHinge(_world, 0);
@@ -2572,7 +2569,6 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 										R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y,
 										R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
     	dJointSetHingeAxis(_joint[1], R[1], R[5], R[9]);
-    	dJointSetHingeParam(_joint[1], dParamCFM, 0);
 	}
 
     // joint for body to face 3
@@ -2580,8 +2576,6 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 		dJointID joint = dJointCreateFixed(_world, 0);
 		dJointAttach(joint, _body[BODY], _body[FACE3]);
 		dJointSetFixed(joint);
-		dJointSetFixedParam(joint, dParamCFM, 0);
-		dJointSetFixedParam(joint, dParamERP, 0.9);
 	}
 	else {
     	_joint[2] = dJointCreateHinge(_world, 0);
@@ -2590,7 +2584,6 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 										R[4]*f3[3] + R[5]*f3[4] + R[6]*f3[5] + y,
 										R[8]*f3[3] + R[9]*f3[4] + R[10]*f3[5] + z);
     	dJointSetHingeAxis(_joint[2], -R[0], -R[4], -R[8]);
-    	dJointSetHingeParam(_joint[2], dParamCFM, 0);
 	}
 
     // create rotation matrices for each body part
@@ -2618,7 +2611,6 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
     dJointSetAMotorNumAxes(_motor[F1], 1);
     dJointSetAMotorAxis(_motor[F1], 0, 1, R[0], R[4], R[8]);
     dJointSetAMotorAngle(_motor[F1], 0, 0);
-    dJointSetAMotorParam(_motor[F1], dParamCFM, 0);
     dJointSetAMotorParam(_motor[F1], dParamFMax, _max_force[F1]);
 	dJointDisable(_motor[F1]);
 
@@ -2629,7 +2621,6 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
     dJointSetAMotorNumAxes(_motor[F2], 1);
     dJointSetAMotorAxis(_motor[F2], 0, 1, R[1], R[5], R[9]);
     dJointSetAMotorAngle(_motor[F2], 0, 0);
-    dJointSetAMotorParam(_motor[F2], dParamCFM, 0);
     dJointSetAMotorParam(_motor[F2], dParamFMax, _max_force[F2]);
 	dJointDisable(_motor[F2]);
 
@@ -2640,9 +2631,8 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
     dJointSetAMotorNumAxes(_motor[F3], 1);
     dJointSetAMotorAxis(_motor[F3], 0, 1, -R[0], -R[4], -R[8]);
     dJointSetAMotorAngle(_motor[F3], 0, 0);
-    dJointSetAMotorParam(_motor[F3], dParamCFM, 0);
     dJointSetAMotorParam(_motor[F3], dParamFMax, _max_force[F3]);
-	dJointDisable(_motor[F3]); 
+	dJointDisable(_motor[F3]);
 
     // set damping on all bodies to 0.1
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(_body[i], 0.1, 0.1);
@@ -3321,8 +3311,6 @@ int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
 
 	// set joint params
 	dJointSetFixed(joint);
-	dJointSetFixedParam(joint, dParamCFM, 0);
-	dJointSetFixedParam(joint, dParamERP, 0.9);
 
 	// success
 	return 0;
@@ -3339,8 +3327,6 @@ int CLinkbotT::fix_connector_to_body(dBodyID rBody, dBodyID cBody) {
 
 	// set joint params
 	dJointSetFixed(joint);
-	dJointSetFixedParam(joint, dParamCFM, 0);
-	dJointSetFixedParam(joint, dParamERP, 0.9);
 
 	// success
 	return 0;
