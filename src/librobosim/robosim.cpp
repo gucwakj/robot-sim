@@ -936,7 +936,7 @@ void* RoboSim::simulation_thread(void *arg) {
 
 			// running mean of last four time steps
 			if (!restart) {
-				for (i = 0; i < num-2; i++) { dt[i+1] = dt[i]; }
+				for (i = num-2; i >= 0; i--) { dt[i+1] = dt[i]; }
 				dt[0] = end - start_time;
 				for (i = 0; i < num; i++) { sum += dt[i]; }
 				sum /= num;
@@ -951,7 +951,7 @@ void* RoboSim::simulation_thread(void *arg) {
 
 			// set next time step if calculations took longer than step
 			if ( (end - start) > ((unsigned int)(sim->_clock*1000) - clock/1000) ) {
-				sim->_step = (end - start - ((unsigned int)(sim->_clock*1000) - clock/1000) + sum)/1000.0;
+				sim->_step = ((end - start - ((unsigned int)(sim->_clock*1000) - clock/1000))/num + sum)/1000.0;
 			}
 			// sleep until clock time equals step time
 			else {
