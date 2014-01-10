@@ -40,6 +40,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
 		int getColorRGB(int &r, int &g, int &b);
+		int getColor(char color[]);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getID();
@@ -158,6 +159,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int setBuzzerFrequencyOn(int frequency);
 		int setBuzzerFrequencyOff();
 		int setColorRGB(int r, int g, int b);
+		int setColor(char *color);
 		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);

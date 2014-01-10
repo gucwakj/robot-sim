@@ -7,11 +7,11 @@ int main(int argc, char *argv[]) {
 
 	robot1.connect();
 
-	robot1.moveForward(180);
-	robot1.turnLeft(90, 1.75, 3.69);
-	robot1.moveForward(180);
-	robot1.turnRight(90, 1.75, 3.69);
-	robot1.moveForward(180);
+	robot1.move(45, 0, -45);
+	char color[20];
+	robot1.getColor(color);
+	printf("%s\n", color);
+	usleep(100000);
 
 	return 0;
 }

@@ -15,6 +15,7 @@
 #define TEXTURE_PATH(end) "/usr/local/ch/package/chrobosim/data/" #end
 #endif // _WIN32
 #include "config.h"
+#include "rgbhashtable.h"
 #include <ode/ode.h>
 #include <cctype>
 #include <climits>

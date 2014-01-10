@@ -206,6 +206,16 @@ int CLinkbotT::getColorRGB(int &r, int &g, int &b) {
 	return 0;
 }
 
+int CLinkbotT::getColor(char color[]) {
+	rgbHashTable *rgbTable = HT_Create();
+	int getRGB[3] = {(int)(255*_rgb[0]), (int)(255*_rgb[1]), (int)(255*_rgb[2])};
+	int retval = HT_GetKey(rgbTable, getRGB, color);
+	HT_Destroy(rgbTable);
+
+	// success
+	return retval;
+}
+
 int CLinkbotT::getDistance(double &distance, double radius) {
 	double angle;
 	this->getJointAngleAverage(ROBOT_JOINT1, angle, 2);
@@ -1659,6 +1669,30 @@ int CLinkbotT::setColorRGB(int r, int g, int b) {
 
 	// success
 	return 0;
+}
+
+int CLinkbotT::setColor(char *color) {
+	int getRGB[3] = {0};
+	rgbHashTable *rgbTable = HT_Create();
+	int htRetval = HT_Get(rgbTable, color, getRGB);
+	HT_Destroy(rgbTable);
+
+	if (htRetval) {
+		_rgb[0] = getRGB[0]/255.0;
+		_rgb[1] = getRGB[1]/255.0;
+		_rgb[2] = getRGB[2]/255.0;
+
+	#ifdef ENABLE_GRAPHICS
+		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
+	#endif // ENABLE_GRAPHICS
+
+		// success
+		return 0;
+	}
+	else {
+		return htRetval;
+	}
+
 }
 
 int CLinkbotT::setExitState(robotJointState_t exitState) {
