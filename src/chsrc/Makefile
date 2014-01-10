@@ -24,7 +24,8 @@ OBJS =	robosim.o \
 		chmobotsim_chdl.o \
 		chlinkbotisim_chdl.o \
 		chlinkbotlsim_chdl.o \
-		chlinkbottsim_chdl.o
+		chlinkbottsim_chdl.o \
+		rgbhashtable.o
 
 chmobotsim_chdl.o: chmobotsim_chdl.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus chmobotsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
@@ -58,6 +59,9 @@ linkbotgroupsim.o: $(SRC)/linkbotgroupsim.cpp $(HEADERS)
 
 graphics.o: $(SRC)/graphics.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
+
+rgbhashtable.o: $(SRC)/rgbhashtable.c $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/rgbhashtable.c $(CPPFLAGS) $(INCLUDES)
 
 librobosim.dl: $(OBJS)
 	ch dllink librobosim.dl cplusplus $(OBJS) $(LIBPATHS) $(LIBS)

@@ -1613,6 +1613,21 @@ EXPORTCH int CLinkbotI_setBuzzerFrequencyOff_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotI_setColor_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+	char *color;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    color = Ch_VaArg(interp, ap, char *);
+    retval = robot->setColor(color);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotI_setColorRGB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

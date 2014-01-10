@@ -158,8 +158,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int setBuzzerFrequency(int frequency, double time);
 		int setBuzzerFrequencyOn(int frequency);
 		int setBuzzerFrequencyOff();
-		int setColorRGB(int r, int g, int b);
 		int setColor(char *color);
+		int setColorRGB(int r, int g, int b);
 		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
@@ -489,6 +489,7 @@ class DLLIMPORT CLinkbotI {
 		int setBuzzerFrequency(int frequency, double time);
 		int setBuzzerFrequencyOn(int frequency);
 		int setBuzzerFrequencyOff();
+		int setColor(char *color);
 		int setColorRGB(int r, int g, int b);
 		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
@@ -705,6 +706,7 @@ class DLLIMPORT CLinkbotL {
 		int setBuzzerFrequency(int frequency, double time);
 		int setBuzzerFrequencyOn(int frequency);
 		int setBuzzerFrequencyOff();
+		int setColor(char *color);
 		int setColorRGB(int r, int g, int b);
 		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
