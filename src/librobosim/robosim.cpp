@@ -784,7 +784,7 @@ int RoboSim::deleteRobot(CRobot *robot) {
 		MUTEX_UNLOCK(&(_pause_mutex));
 
 		// get HUD and set message
-		osgText::Text *txt = dynamic_cast<osgText::Text *>(_shadowed->getParent(0)->getChild(4)->asGroup()->getChild(0)->asTransform()->getChild(0)->asGeode()->getDrawable(0));
+		osgText::Text *txt = dynamic_cast<osgText::Text *>(_shadowed->getParent(0)->getChild(6)->asGroup()->getChild(0)->asTransform()->getChild(0)->asGeode()->getDrawable(0));
 		txt->setText("Paused: Press any key to end");
 
 		// sleep until pausing halted by user
