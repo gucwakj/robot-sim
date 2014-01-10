@@ -66,15 +66,14 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 	switch (ea.getEventType()) {
 		case osgGA::GUIEventAdapter::KEYDOWN:
 			switch (ea.getKey()) {
-				case 't':
-					for (int i = 0; i < (int)(shadow->getNumChildren()); i++) {
-						if (shadow->getChild(i)->getName() == "robot") {
-							osg::Geode *geode = dynamic_cast<osg::Geode *>(shadow->getChild(i)->asGroup()->getChild(1));
-							geode->setNodeMask((geode->getNodeMask() ? NOT_VISIBLE_MASK : VISIBLE_MASK));
-						}
-					}
+				case 'n': {
+					osg::Billboard *billboard = dynamic_cast<osg::Billboard *>(root->getChild(3));
+					billboard->setNodeMask((billboard->getNodeMask() ? NOT_VISIBLE_MASK : VISIBLE_MASK));
+					billboard = dynamic_cast<osg::Billboard *>(root->getChild(4));
+					billboard->setNodeMask((billboard->getNodeMask() ? NOT_VISIBLE_MASK : VISIBLE_MASK));
 					return true;
-				case 'r':
+				}
+				case 'r': {
 					for (int i = 0; i < (int)(shadow->getNumChildren()); i++) {
 						if (shadow->getChild(i)->getName() == "robot") {
 							osg::Geode *geode = dynamic_cast<osg::Geode *>(shadow->getChild(i)->asGroup()->getChild(1));
@@ -87,6 +86,16 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 						}
 					}
 					return true;
+				}
+				case 't': {
+					for (int i = 0; i < (int)(shadow->getNumChildren()); i++) {
+						if (shadow->getChild(i)->getName() == "robot") {
+							osg::Geode *geode = dynamic_cast<osg::Geode *>(shadow->getChild(i)->asGroup()->getChild(1));
+							geode->setNodeMask((geode->getNodeMask() ? NOT_VISIBLE_MASK : VISIBLE_MASK));
+						}
+					}
+					return true;
+				}
 				default:
 					*_pause = (*_pause) ? 0 : 1;
 					if (*_pause)
