@@ -45,6 +45,7 @@ endif (MSVC)
 if (MSVC)
 add_executable(robosim WIN32
 	main.cpp
+	RoboSim.rc
 )
 else (MSVC)
 add_executable(robosim
