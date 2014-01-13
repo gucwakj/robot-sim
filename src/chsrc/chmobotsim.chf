@@ -1259,6 +1259,19 @@ int CMobot::recordDistanceEnd(int id, int &num) {
     return retval;
 }
 
+int CMobot::recordDistanceOffset(ind id, double distance) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_recordDistanceOffset_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, id, distance);
+    return retval;
+}
+
 int CMobot::recordDistancesBegin(double* &time, double* &distance1, double* &distance2, double* &distance3, double* &distance4, double radius, double seconds, ...) {
     void *fptr;
     int retval;

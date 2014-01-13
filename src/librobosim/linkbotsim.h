@@ -146,6 +146,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int recordAngleEnd(robotJointId_t id, int &num);
 		int recordAnglesEnd(int &num);
 		int recordDistanceEnd(robotJointId_t id, int &num);
+		int recordDistanceOffset(robotJointId_t id, double distance);
 		int recordDistancesEnd(int &num);
 		int recordWait();
 		int reset();
@@ -468,6 +469,7 @@ class DLLIMPORT CLinkbotI {
 								robotRecordData_t &time,
 								robotRecordData_t &distance, double radius, double seconds, ...);
 		int recordDistanceEnd(robotJointId_t id, int &num);
+		int recordDistanceOffset(robotJointId_t id, double distance);
 		int recordDistancesBegin(robotRecordData_t &time,
 								 robotRecordData_t &distance1,
 								 robotRecordData_t &distance2,
@@ -681,6 +683,7 @@ class DLLIMPORT CLinkbotL {
 								robotRecordData_t &time,
 								robotRecordData_t &distance, double radius, double seconds, ...);
 		int recordDistanceEnd(robotJointId_t id, int &num);
+		int recordDistanceOffset(robotJointId_t id, double distance);
 		int recordDistancesBegin(robotRecordData_t &time,
 								 robotRecordData_t &distance1,
 								 robotRecordData_t &distance2,

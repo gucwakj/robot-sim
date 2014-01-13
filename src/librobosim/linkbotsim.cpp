@@ -1438,7 +1438,15 @@ int CLinkbotT::recordDistanceEnd(robotJointId_t id, int &num) {
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
 		(*_rec_angles[id])[i] = (*_rec_angles[id])[i] * _radius;
+		(*_rec_angles[id])[i] += _distOffset[id];
 	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::recordDistanceOffset(robotJointId_t id, double distance) {
+	_distOffset[id] = distance;
 
 	// success
 	return 0;
@@ -1463,6 +1471,7 @@ int CLinkbotT::recordDistancesEnd(int &num) {
 	for (int i = 0; i < num; i++) {
 		for (int j = 0; j < NUM_DOF; j++) {
 			(*_rec_angles[j])[i] = DEG2RAD((*_rec_angles[j])[i]) * _radius;
+			(*_rec_angles[j])[i] += _distOffset[j];
 		}
 	}
 
@@ -3433,6 +3442,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	// create arrays for linkbots
 	_angle = new double[NUM_DOF];
 	_body = new dBodyID[NUM_PARTS];
+	_distOffset = new double[NUM_DOF];
 	_enabled = new int[(disabled == -1) ? 3 : 2];
 	_geom = new dGeomID * [NUM_PARTS];
 	_goal = new double[NUM_DOF];
@@ -3453,27 +3463,28 @@ int CLinkbotT::init_params(int disabled, int type) {
 	// fill with default data
 	for (int i = 0, j = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
+		_distOffset[i] = 0;
 		_goal[i] = 0;
-		_recording[i] = false;
-		_success[i] = true;
-		_speed[i] = 0.7854;		// 45 deg/sec
 		_max_force[i] = 2;
 		_max_speed[i] = 240;		// deg/sec
 		_offset[i] = 0;
+		_recording[i] = false;
+		_success[i] = true;
+		_speed[i] = 0.7854;		// 45 deg/sec
 		if (i != disabled)
 			_enabled[j++] = i;
 	}
 	_conn = NULL;
-	_id = -1;
-	_type = type;
-	_disabled = disabled;
 	_connected = 0;
+	_disabled = disabled;
 	_encoder = DEG2RAD(0.1);
+	_id = -1;
 	_rgb[0] = 0;
 	_rgb[1] = 0;
 	_rgb[2] = 1;
 	_safety_angle = 10;
 	_safety_timeout = 4;
+	_type = type;
 
 	// success
 	return 0;

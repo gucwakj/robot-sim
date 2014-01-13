@@ -1139,6 +1139,19 @@ int CLinkbotI::recordDistanceEnd(int id, int &num) {
     return retval;
 }
 
+int CLinkbotI::recordDistanceOffset(int id, double distance) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_recordDistanceOffset_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, id, distance);
+    return retval;
+}
+
 int CLinkbotI::recordDistancesBegin(double* &time, double* &distance1, double* &distance2, double* &distance3, double radius, double seconds, ...) {
     void *fptr;
     int retval;

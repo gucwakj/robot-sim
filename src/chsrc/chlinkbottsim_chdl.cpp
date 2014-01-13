@@ -1426,6 +1426,23 @@ EXPORTCH int CLinkbotT_recordDistanceEnd_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotT_recordDistanceOffset_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    robotJointId_t id;
+    double distance;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    distance = Ch_VaArg(interp, ap, double);
+    retval = robot->recordDistanceOffset(id, distance);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotT_recordDistancesBegin_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
