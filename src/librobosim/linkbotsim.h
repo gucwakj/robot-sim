@@ -39,8 +39,11 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int enableRecordDataShift();
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
+#ifdef _CH_
+		int getColor(string_t &color);
+#endif
+		int getColorName(char color[]);
 		int getColorRGB(int &r, int &g, int &b);
-		int getColor(char color[]);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getID();
@@ -402,6 +405,8 @@ class DLLIMPORT CLinkbotI {
 		int enableRecordDataShift();
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
+		int getColor(string_t &color);
+		int getColorName(char color[]);
 		int getColorRGB(int &r, int &g, int &b);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
@@ -619,6 +624,8 @@ class DLLIMPORT CLinkbotL {
 		int enableRecordDataShift();
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
+		int getColor(string_t &color);
+		int getColorName(char color[]);
 		int getColorRGB(int &r, int &g, int &b);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);

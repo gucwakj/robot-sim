@@ -197,16 +197,7 @@ int CLinkbotT::getBatteryVoltage(double &voltage) {
 	return 0;
 }
 
-int CLinkbotT::getColorRGB(int &r, int &g, int &b) {
-	r = (int)(255*_rgb[0]);
-	g = (int)(255*_rgb[1]);
-	b = (int)(255*_rgb[2]);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::getColor(char color[]) {
+int CLinkbotT::getColorName(char color[]) {
 	rgbHashTable *rgbTable = HT_Create();
 	int getRGB[3] = {(int)(255*_rgb[0]), (int)(255*_rgb[1]), (int)(255*_rgb[2])};
 	int retval = HT_GetKey(rgbTable, getRGB, color);
@@ -214,6 +205,15 @@ int CLinkbotT::getColor(char color[]) {
 
 	// success
 	return retval;
+}
+
+int CLinkbotT::getColorRGB(int &r, int &g, int &b) {
+	r = (int)(255*_rgb[0]);
+	g = (int)(255*_rgb[1]);
+	b = (int)(255*_rgb[2]);
+
+	// success
+	return 0;
 }
 
 int CLinkbotT::getDistance(double &distance, double radius) {

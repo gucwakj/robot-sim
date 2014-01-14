@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
 
 	robot1.move(45, 0, -45);
 	char color[20];
-	robot1.getColor(color);
+	robot1.getColorName(color);
 	printf("%s\n", color);
 	usleep(100000);
 

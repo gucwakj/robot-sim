@@ -158,6 +158,21 @@ EXPORTCH int CLinkbotL_getBatteryVoltage_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotL_getColorName_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+    char *color;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    color = Ch_VaArg(interp, ap, char *);
+    retval = robot->getColorName(color);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotL_getColorRGB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

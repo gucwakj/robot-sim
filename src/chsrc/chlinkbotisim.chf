@@ -204,6 +204,28 @@ int CLinkbotI::getBatteryVoltage(double &voltage) {
     return retval;
 }
 
+int CLinkbotI::getColor(string_t &color) {
+	int retval;
+	char color1[25];
+
+	retval = getColorName(color1);
+	color = color1;
+	return retval;
+}
+
+int CLinkbotI::getColorName(char color[]) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_getColorName_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, color);
+	return retval;
+}
+
 int CLinkbotI::getColorRGB(int &r, int &g, int &b) {
     void *fptr;
     int retval;
