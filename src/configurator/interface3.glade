@@ -10,9 +10,9 @@
     <property name="version">0.5.0</property>
     <property name="copyright" translatable="yes">(C) 2013, UC Davis C-STEM Center</property>
     <property name="comments" translatable="yes">Robot Simulation Environment</property>
-    <property name="authors">Kevin Gucwa</property>
     <property name="website">http://c-stem.ucdavis.edu</property>
     <property name="website_label" translatable="yes">C-STEM Center</property>
+    <property name="authors">Kevin Gucwa</property>
     <signal name="close" handler="on_aboutdialog_close" swapped="no"/>
     <signal name="response" handler="on_aboutdialog_response" swapped="no"/>
   </object>
@@ -626,7 +626,6 @@
                                 <property name="invisible_char_set">True</property>
                                 <property name="adjustment">adjustment_dist</property>
                                 <property name="climb_rate">1</property>
-                                <property name="digits">2</property>
                                 <property name="snap_to_ticks">True</property>
                                 <property name="numeric">True</property>
                                 <signal name="value-changed" handler="on_dist_value_changed" swapped="no"/>
@@ -646,7 +645,6 @@
                                 <property name="invisible_char_set">True</property>
                                 <property name="adjustment">adjustment_major</property>
                                 <property name="climb_rate">1</property>
-                                <property name="digits">2</property>
                                 <property name="snap_to_ticks">True</property>
                                 <property name="numeric">True</property>
                                 <signal name="value-changed" handler="on_major_value_changed" swapped="no"/>
@@ -694,7 +692,6 @@
                                 <property name="invisible_char_set">True</property>
                                 <property name="adjustment">adjustment_tics</property>
                                 <property name="climb_rate">0.01</property>
-                                <property name="digits">2</property>
                                 <property name="snap_to_ticks">True</property>
                                 <property name="numeric">True</property>
                                 <signal name="value-changed" handler="on_tics_value_changed" swapped="no"/>

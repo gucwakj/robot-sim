@@ -1299,8 +1299,8 @@ void* RoboSim::graphics_thread(void *arg) {
 	for (int i = 1; i < (int)(sim->_grid[2]*sim->_grid[1]+1); i++) {
 		// positive
 		osg::ref_ptr<osgText::Text> xnumpos_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.2lf", 39.37*i/sim->_grid[1]);
-		else sprintf(text, "%.2lf", 100*i/sim->_grid[1]);
+		if (sim->_us) sprintf(text, "%.0lf   ", 39.37*i/sim->_grid[1]);
+		else sprintf(text, "%.0lf   ", 100*i/sim->_grid[1]);
 		xnumpos_text->setText(text);
 		xnumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 		xnumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
@@ -1310,8 +1310,8 @@ void* RoboSim::graphics_thread(void *arg) {
 		xnum_billboard->addDrawable(xnumpos_text, osg::Vec3d(i/sim->_grid[1], -0.5/sim->_grid[0], 0.0));
 		// negative
 		osg::ref_ptr<osgText::Text> xnumneg_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.2lf", -39.37*i/sim->_grid[1]);
-		else sprintf(text, "%.2lf", -100*i/sim->_grid[1]);
+		if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i/sim->_grid[1]);
+		else sprintf(text, "%.0lf   ", -100*i/sim->_grid[1]);
 		xnumneg_text->setText(text);
 		xnumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 		xnumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
@@ -1331,8 +1331,8 @@ void* RoboSim::graphics_thread(void *arg) {
 	for (int i = 1; i < (int)(sim->_grid[2]*sim->_grid[1]+1); i++) {
 		// positive
 		osg::ref_ptr<osgText::Text> ynumpos_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.2lf", 39.37*i/sim->_grid[1]);
-		else sprintf(text, "%.2lf", 100*i/sim->_grid[1]);
+		if (sim->_us) sprintf(text, "%.0lf   ", 39.37*i/sim->_grid[1]);
+		else sprintf(text, "%.0lf   ", 100*i/sim->_grid[1]);
 		ynumpos_text->setText(text);
 		ynumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 		ynumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
@@ -1342,8 +1342,8 @@ void* RoboSim::graphics_thread(void *arg) {
 		ynum_billboard->addDrawable(ynumpos_text, osg::Vec3d(0, i/sim->_grid[1] - 0.5/sim->_grid[0], 0.0));
 		// negative
 		osg::ref_ptr<osgText::Text> ynumneg_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.2lf", -39.37*i/sim->_grid[1]);
-		else sprintf(text, "%.2lf", -100*i/sim->_grid[1]);
+		if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i/sim->_grid[1]);
+		else sprintf(text, "%.0lf   ", -100*i/sim->_grid[1]);
 		ynumneg_text->setText(text);
 		ynumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 		ynumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
