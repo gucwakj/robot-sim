@@ -286,6 +286,8 @@ the 't' key will toggle the tracking of robot trajectories.
 	\begin{tabular}{c | l }
 		\hline \hline
 		\textbf{key} & \textbf{action} \\ \hline
+		1 & return to home camera position \\
+		2 & set camera to overhead view \\
 		n & toggle grid line numbering \\
 		r & toggle robot visibility and enable tracking \\
 		t & toggle robot tracking \\
@@ -296,6 +298,20 @@ the 't' key will toggle the tracking of robot trajectories.
 	\label{tab:keys}
 	\end{center}
 \end{table}
+
+There are two views available to the user.  The default view, which can be
+toggled with the '1' key, is from behind the robots looking into the first
+quadrant.  This view can be seen in any of the RoboSim scene screenshots within
+this document, except for Figure \ref{fig:robosim_overhead} which shows the
+overhead view.  The '2' key moves the camera directly above the origin looking
+down on the scene creating a 2D viewpoint of the robots.
+\begin{figure}[H]
+	\begin{center}
+		%\includegraphics[width=3in]{images/robosim_overhead}
+	\end{center}
+	\caption{A RoboSim scene with the overhead viewing angle.}
+	\label{fig:robosim_overhead}
+\end{figure}
 
 The 'n' key allows the user to toggle the display of the grid numbering.  X and
 Y numbering is by default enabled and given for every hashmark on the grid.

@@ -66,6 +66,22 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 	switch (ea.getEventType()) {
 		case osgGA::GUIEventAdapter::KEYDOWN:
 			switch (ea.getKey()) {
+				case '1': {
+					osg::Vec3f eye = osg::Vec3f(0.7, -0.7, 0.55);
+					osg::Vec3f center = osg::Vec3f(0.1, 0.3, 0);
+					osg::Vec3f up = osg::Vec3f(0, 0, 1);
+					viewer->getCameraManipulator()->setHomePosition(eye, center, up);
+					viewer->getCameraManipulator()->home(ea, aa);
+					return true;
+				}
+				case '2': {
+					osg::Vec3f eye = osg::Vec3f(0, 0, 5);
+					osg::Vec3f center = osg::Vec3f(0, 0, 0);
+					osg::Vec3f up = osg::Vec3f(0, 0, 1);
+					viewer->getCameraManipulator()->setHomePosition(eye, center, up);
+					viewer->getCameraManipulator()->home(ea, aa);
+					return true;
+				}
 				case 'n': {
 					osg::Billboard *billboard = dynamic_cast<osg::Billboard *>(root->getChild(3));
 					billboard->setNodeMask((billboard->getNodeMask() ? NOT_VISIBLE_MASK : VISIBLE_MASK));
