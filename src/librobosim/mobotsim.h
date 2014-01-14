@@ -22,6 +22,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int connect(void);
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
+		int disableRecordDataShift();
 		int disconnect(void);
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
@@ -31,6 +32,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int driveToDirect(double angle1, double angle2, double angle3, double angle4);
 		int driveToDirectNB(double angle1, double angle2, double angle3, double angle4);
 		int driveToNB(double angle1, double angle2, double angle3, double angle4);
+		int enableRecordDataShift();
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getJointAngle(robotJointId_t id, double &angle);
@@ -242,6 +244,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		virtual bool getSuccess(int i);
 		virtual int getType(void);
 		virtual bool isHome(void);
+		virtual int isShiftEnabled(void);
 		virtual int setID(int id);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);

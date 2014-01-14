@@ -65,6 +65,14 @@ int CMobot::delaySeconds(double seconds) {
 	return 0;
 }
 
+int CMobot::disableRecordDataShift() {
+	_g_shift_data = 0;
+	_g_shift_data_en = 1;
+
+	// success
+	return 0;
+}
+
 int CMobot::disconnect(void) {
 	// and we are not connected
 	_connected = 0;
@@ -128,6 +136,14 @@ int CMobot::driveToDirectNB(double angle1, double angle2, double angle3, double 
 
 int CMobot::driveToNB(double angle1, double angle2, double angle3, double angle4) {
 	this->moveToNB(angle1, angle2, angle3, angle4);
+
+	// success
+	return 0;
+}
+
+int CMobot::enableRecordDataShift() {
+	_g_shift_data = 1;
+	_g_shift_data_en = 1;
 
 	// success
 	return 0;
@@ -1375,6 +1391,9 @@ void* CMobot::recordAngleThread(void *arg) {
 	double start_time;
 	int time = (int)(*(rArg->robot->_clock)*1000);
 
+	// is robot moving
+	int *moving = new int[rArg->num];
+
 	// get 'num' data points
 	for (int i = 0; i < rArg->num; i++) {
 		// store time of data point
@@ -1384,6 +1403,9 @@ void* CMobot::recordAngleThread(void *arg) {
 
 		// store joint angle
 		rArg->angle1[i] = rArg->robot->_angle[rArg->id];
+
+		// check if joint is moving
+		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
 
 		// increment time step
 		time += rArg->msecs;
@@ -1398,11 +1420,34 @@ void* CMobot::recordAngleThread(void *arg) {
 		}
 	}
 
+	// shift time to start of movement
+	double shiftTime = 0;
+	int shiftTimeIndex = 0;
+	if(rArg->robot->isShiftEnabled()) {
+		for (int i = 0; i < rArg->num; i++) {
+			if( moving[i] ) {
+				shiftTime = rArg->time[i];
+				shiftTimeIndex = i;
+				break;
+			}
+		}
+		for (int i = 0; i < rArg->num; i++) {
+			if (i < shiftTimeIndex) {
+				rArg->time[i] = 0;
+				rArg->angle1[i] = rArg->angle1[shiftTimeIndex];
+			}
+			else {
+				rArg->time[i] = rArg->time[i] - shiftTime;
+			}
+		}
+	}
+
 	// signal completion of recording
 	SIGNAL(&rArg->robot->_recording_cond, &rArg->robot->_recording_mutex, rArg->robot->_recording[rArg->id] = false);
 
 	// cleanup
 	delete rArg;
+	delete moving;
 
 	// success
 	return NULL;
@@ -1442,6 +1487,9 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 	double start_time = 0;
 	int time = (int)((*(rArg->robot->_clock))*1000);
 
+	// is robot moving
+	int moving;
+
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
 	rArg->robot->_rec_active[rArg->id] = true;
@@ -1477,6 +1525,9 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 		// store joint angles
 		(*(rArg->pangle1))[i] = rArg->robot->_angle[rArg->id];
 
+		// check if joint is moving
+		moving = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
+
 		// store time of data point
 		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
 		if (i == 0) { start_time = (*rArg->ptime)[i]; }
@@ -1492,6 +1543,11 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 #else
 			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
 #endif
+		}
+
+		// wait until movement to start recording
+		if( !moving && rArg->robot->isShiftEnabled() ) {
+			i--;
 		}
 
 		// lock mutex to check on next loop
@@ -1580,6 +1636,9 @@ void* CMobot::recordAnglesThread(void *arg) {
     double start_time;
 	int time = (int)(*(rArg->robot->_clock)*1000);
 
+	// is robot moving
+	int *moving = new int[rArg->num];
+
 	// get 'num' data points
     for (int i = 0; i < rArg->num; i++) {
 		// store time of data point
@@ -1592,6 +1651,12 @@ void* CMobot::recordAnglesThread(void *arg) {
 		rArg->angle2[i] = rArg->robot->_angle[ROBOT_JOINT2];
 		rArg->angle3[i] = rArg->robot->_angle[ROBOT_JOINT3];
 		rArg->angle4[i] = rArg->robot->_angle[ROBOT_JOINT4];
+
+		// check if joints are moving
+		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(ROBOT_JOINT1), dParamVel)*1000);
+		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(ROBOT_JOINT2), dParamVel)*1000);
+		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(ROBOT_JOINT3), dParamVel)*1000);
+		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(ROBOT_JOINT4), dParamVel)*1000);
 
 		// increment time step
 		time += rArg->msecs;
@@ -1606,6 +1671,29 @@ void* CMobot::recordAnglesThread(void *arg) {
 		}
     }
 
+	// shift time to start of movement
+	double shiftTime = 0;
+	int shiftTimeIndex = 0;
+	if(rArg->robot->isShiftEnabled()) {
+		for (int i = 0; i < rArg->num; i++) {
+			if( moving[i] ) {
+				shiftTime = rArg->time[i];
+				shiftTimeIndex = i;
+				break;
+			}
+		}
+		for (int i = 0; i < rArg->num; i++) {
+			if (i < shiftTimeIndex) {
+				rArg->time[i] = 0;
+				rArg->angle1[i] = rArg->angle1[shiftTimeIndex];
+				rArg->angle2[i] = rArg->angle2[shiftTimeIndex];
+				rArg->angle3[i] = rArg->angle3[shiftTimeIndex];
+			}
+			else {
+				rArg->time[i] = rArg->time[i] - shiftTime;
+			}
+		}
+	}
 	// signal completion of recording
 	MUTEX_LOCK(&rArg->robot->_recording_mutex);
     for (int i = 0; i < NUM_DOF; i++) {
@@ -1616,6 +1704,7 @@ void* CMobot::recordAnglesThread(void *arg) {
 
 	// cleanup
 	delete rArg;
+	delete moving;
 
 	// success
 	return NULL;
@@ -2493,6 +2582,15 @@ int CMobot::getType(void) {
 
 bool CMobot::isHome(void) {
     return ( fabs(_angle[LE]) < EPSILON && fabs(_angle[LB]) < EPSILON && fabs(_angle[RB]) < EPSILON && fabs(_angle[RE]) < EPSILON );
+}
+
+int CMobot::isShiftEnabled(void) {
+	if(_shift_data && !_g_shift_data_en)
+		return 1;
+	else if (_g_shift_data_en && _g_shift_data)
+		return 1;
+	else
+		return 0;
 }
 
 int CMobot::setID(int id) {
@@ -3875,6 +3973,9 @@ int CMobot::init_params(void) {
 	_max_force[ROBOT_JOINT4] = 0.260;
 	_safety_angle = 10;
 	_safety_timeout = 4;
+	_shift_data = 0;
+	_g_shift_data = 0;
+	_g_shift_data_en = 0;
 	_type = MOBOT;
 
 	// success

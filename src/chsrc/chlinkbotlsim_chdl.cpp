@@ -87,6 +87,19 @@ EXPORTCH int CLinkbotL_delaySeconds_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotL_disableRecordDataShift_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    retval = robot->disableRecordDataShift();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotL_disconnect_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -96,6 +109,19 @@ EXPORTCH int CLinkbotL_disconnect_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotL *);
     retval = robot->disconnect();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotL_enableRecordDataShift_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    retval = robot->enableRecordDataShift();
     Ch_VaEnd(interp, ap);
     return retval;
 }

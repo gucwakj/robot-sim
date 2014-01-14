@@ -87,6 +87,19 @@ EXPORTCH int CMobot_delaySeconds_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_disableRecordDataShift_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    retval = robot->disableRecordDataShift();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_disconnect_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -180,6 +193,19 @@ EXPORTCH int CMobot_driveToNB_chdl(void *varg) {
     angle3 = Ch_VaArg(interp, ap, double);
     angle4 = Ch_VaArg(interp, ap, double);
     retval = robot->driveToNB(angle1, angle2, angle3, angle4);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CMobot_enableRecordDataShift_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    retval = robot->enableRecordDataShift();
     Ch_VaEnd(interp, ap);
     return retval;
 }

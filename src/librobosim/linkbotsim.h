@@ -26,6 +26,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int connect();
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
+		int disableRecordDataShift();
 		int disconnect();
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
@@ -35,6 +36,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
 		int driveToNB(double angle1, double angle2, double angle3);
+		int enableRecordDataShift();
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
 		int getColorRGB(int &r, int &g, int &b);
@@ -213,6 +215,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual bool getSuccess(int i);
 		virtual int getType(void);
 		virtual bool isHome(void);
+		virtual int isShiftEnabled(void);
 		virtual int setID(int id);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
@@ -384,6 +387,7 @@ class DLLIMPORT CLinkbotI {
 		int connect();
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
+		int disableRecordDataShift();
 		int disconnect();
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
@@ -393,6 +397,7 @@ class DLLIMPORT CLinkbotI {
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
 		int driveToNB(double angle1, double angle2, double angle3);
+		int enableRecordDataShift();
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
 		int getColorRGB(int &r, int &g, int &b);
@@ -598,6 +603,7 @@ class DLLIMPORT CLinkbotL {
 		int connect();
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
+		int disableRecordDataShift();
 		int disconnect();
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
@@ -607,6 +613,7 @@ class DLLIMPORT CLinkbotL {
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
 		int driveToNB(double angle1, double angle2, double angle3);
+		int enableRecordDataShift();
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
 		int getColorRGB(int &r, int &g, int &b);

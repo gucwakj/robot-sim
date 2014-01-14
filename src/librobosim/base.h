@@ -202,6 +202,7 @@ class DLLIMPORT CRobot {
 		virtual double getPosition(int body, int i) = 0;
 		virtual double getRotation(int body, int i) = 0;
 		virtual bool isHome(void) = 0;
+		virtual int isShiftEnabled(void) = 0;
 		virtual int setID(int id) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;
@@ -276,6 +277,9 @@ class DLLIMPORT CRobot {
 		int _id;				// robot id
 		int *_rec_num;			// recording data points
 		int _seed;				// seed for random number generation
+		int _shift_data;		// shift recorded data or not
+		int _g_shift_data;		// globally shift data for robot
+		int _g_shift_data_en;	// globally shift data for robot enable/disable flag
 		int *_state;			// joint states
 		int _type;				// type of robot
 
