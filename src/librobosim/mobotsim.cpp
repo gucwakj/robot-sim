@@ -1920,15 +1920,15 @@ int CMobot::recordDistanceEnd(robotJointId_t id, int &num) {
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
 		(*_rec_angles[id])[i] = (*_rec_angles[id])[i] * _radius;
-		(*_rec_angles[id])[i] += _distOffset[id];
+		(*_rec_angles[id])[i] += _distOffset;
 	}
 
 	// success
 	return 0;
 }
 
-int CMobot::recordDistanceOffset(robotJointId_t id, double distance) {
-	_distOffset[id] = distance;
+int CMobot::recordDistanceOffset(double distance) {
+	_distOffset = distance;
 
 	// success
 	return 0;
@@ -1953,7 +1953,7 @@ int CMobot::recordDistancesEnd(int &num) {
 	for (int i = 0; i < num; i++) {
 		for (int j = 0; j < NUM_DOF; j++) {
 			(*_rec_angles[j])[i] = DEG2RAD((*_rec_angles[j])[i]) * _radius;
-			(*_rec_angles[j])[i] += _distOffset[j];
+			(*_rec_angles[j])[i] += _distOffset;
 		}
 	}
 
@@ -3935,7 +3935,6 @@ int CMobot::init_params(void) {
 	// create arrays for mobots
 	_angle = new double[NUM_DOF];
 	_body = new dBodyID[NUM_PARTS];
-	_distOffset = new double[NUM_DOF];
 	_geom = new dGeomID * [NUM_PARTS];
 	_goal = new double[NUM_DOF];
 	_joint = new dJointID[6];
@@ -3955,7 +3954,6 @@ int CMobot::init_params(void) {
 	// fill with default data
 	for (int i = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
-		_distOffset[i] = 0;
 		_goal[i] = 0;
 		_max_speed[i] = 120;	// deg/sec
 		_recording[i] = false;
@@ -3965,6 +3963,7 @@ int CMobot::init_params(void) {
 		_success[i] = true;
 	}
 	_conn = NULL;
+	_distOffset = 0;
 	_encoder = DEG2RAD(0.1);
 	_id = -1;
 	_max_force[ROBOT_JOINT1] = 0.260;

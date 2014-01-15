@@ -249,7 +249,7 @@ class DLLIMPORT CRobot {
 		double *_angle;			// angles
 		double *_clock;			// world clock
 		double _center[3];		// offset of body from initial (x,y,z)
-		double *_distOffset;	// offset for recorded distance
+		double _distOffset;		// offset for recorded distance
 		double _encoder;		// motor encoder resolution
 		double *_goal;			// goals
 		double *_max_force;		// maximum joint forces

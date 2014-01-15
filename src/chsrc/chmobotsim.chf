@@ -1285,7 +1285,7 @@ int CMobot::recordDistanceEnd(int id, int &num) {
     return retval;
 }
 
-int CMobot::recordDistanceOffset(ind id, double distance) {
+int CMobot::recordDistanceOffset(double distance) {
     void *fptr;
     int retval;
 
@@ -1294,7 +1294,7 @@ int CMobot::recordDistanceOffset(ind id, double distance) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, NULL, this, id, distance);
+    dlrunfun(fptr, &retval, NULL, this, distance);
     return retval;
 }
 

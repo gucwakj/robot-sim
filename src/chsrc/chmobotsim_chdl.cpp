@@ -1638,15 +1638,13 @@ EXPORTCH int CMobot_recordDistanceOffset_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CMobot *robot;
-    robotJointId_t id;
     double distance;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CMobot *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
     distance = Ch_VaArg(interp, ap, double);
-    retval = robot->recordDistanceOffset(id, distance);
+    retval = robot->recordDistanceOffset(distance);
     Ch_VaEnd(interp, ap);
     return retval;
 }
