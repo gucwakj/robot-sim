@@ -1164,79 +1164,6 @@ void* RoboSim::graphics_thread(void *arg) {
 	t_transform->setNodeMask(~IS_PICKABLE_MASK);
 	shadowedScene->addChild(t_transform);
 
-	// x grid numbering
-	osg::ref_ptr<osg::Billboard> xnum_billboard = new osg::Billboard();
-	char text[50];
-	osg::ref_ptr<osgText::Text> xzero_text = new osgText::Text();
-	xzero_text->setText("0   ");
-	xzero_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	xzero_text->setAlignment(osgText::Text::CENTER_CENTER);
-	xzero_text->setCharacterSize(30);
-	xzero_text->setColor(osg::Vec4(0, 0, 0, 1));
-	xzero_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	xnum_billboard->addDrawable(xzero_text, osg::Vec3d(0, -0.5/sim->_grid[0], 0.0));
-	for (int i = 1; i < (int)(sim->_grid[2]*sim->_grid[1]+1); i++) {
-		// positive
-		osg::ref_ptr<osgText::Text> xnumpos_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.0lf   ", 39.37*i/sim->_grid[1]);
-		else sprintf(text, "%.0lf   ", 100*i/sim->_grid[1]);
-		xnumpos_text->setText(text);
-		xnumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-		xnumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
-		xnumpos_text->setCharacterSize(30);
-		xnumpos_text->setColor(osg::Vec4(0, 0, 0, 1));
-		xnumpos_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		xnum_billboard->addDrawable(xnumpos_text, osg::Vec3d(i/sim->_grid[1], -0.5/sim->_grid[0], 0.0));
-		// negative
-		osg::ref_ptr<osgText::Text> xnumneg_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i/sim->_grid[1]);
-		else sprintf(text, "%.0lf   ", -100*i/sim->_grid[1]);
-		xnumneg_text->setText(text);
-		xnumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-		xnumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
-		xnumneg_text->setCharacterSize(30);
-		xnumneg_text->setColor(osg::Vec4(0, 0, 0, 1));
-		xnumneg_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		xnum_billboard->addDrawable(xnumneg_text, osg::Vec3d(-i/sim->_grid[1], -0.5/sim->_grid[0], 0.0));
-	}
-	xnum_billboard->setMode(osg::Billboard::AXIAL_ROT);
-	xnum_billboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
-	xnum_billboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
-	xnum_billboard->setNodeMask(~IS_PICKABLE_MASK);
-	root->addChild(xnum_billboard);
-
-	// y grid numbering
-	osg::ref_ptr<osg::Billboard> ynum_billboard = new osg::Billboard();
-	for (int i = 1; i < (int)(sim->_grid[2]*sim->_grid[1]+1); i++) {
-		// positive
-		osg::ref_ptr<osgText::Text> ynumpos_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.0lf   ", 39.37*i/sim->_grid[1]);
-		else sprintf(text, "%.0lf   ", 100*i/sim->_grid[1]);
-		ynumpos_text->setText(text);
-		ynumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-		ynumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
-		ynumpos_text->setCharacterSize(30);
-		ynumpos_text->setColor(osg::Vec4(0, 0, 0, 1));
-		ynumpos_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		ynum_billboard->addDrawable(ynumpos_text, osg::Vec3d(0, i/sim->_grid[1] - 0.5/sim->_grid[0], 0.0));
-		// negative
-		osg::ref_ptr<osgText::Text> ynumneg_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i/sim->_grid[1]);
-		else sprintf(text, "%.0lf   ", -100*i/sim->_grid[1]);
-		ynumneg_text->setText(text);
-		ynumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-		ynumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
-		ynumneg_text->setCharacterSize(30);
-		ynumneg_text->setColor(osg::Vec4(0, 0, 0, 1));
-		ynumneg_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		ynum_billboard->addDrawable(ynumneg_text, osg::Vec3d(0, -i/sim->_grid[1] - 0.5/sim->_grid[0], 0.0));
-	}
-	ynum_billboard->setMode(osg::Billboard::AXIAL_ROT);
-	ynum_billboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
-	ynum_billboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
-	ynum_billboard->setNodeMask(~IS_PICKABLE_MASK);
-	root->addChild(ynum_billboard);
-
 	// x- and y-axis lines
 	osg::Geode *gridGeode3 = new osg::Geode();
 	osg::Geometry *gridLines3 = new osg::Geometry();
@@ -1357,6 +1284,79 @@ void* RoboSim::graphics_thread(void *arg) {
 	ybillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
 	ybillboard->setNodeMask(~IS_PICKABLE_MASK);
 	root->addChild(ybillboard);
+
+	// x grid numbering
+	osg::ref_ptr<osg::Billboard> xnum_billboard = new osg::Billboard();
+	char text[50];
+	osg::ref_ptr<osgText::Text> xzero_text = new osgText::Text();
+	xzero_text->setText("0   ");
+	xzero_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+	xzero_text->setAlignment(osgText::Text::CENTER_CENTER);
+	xzero_text->setCharacterSize(30);
+	xzero_text->setColor(osg::Vec4(0, 0, 0, 1));
+	xzero_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+	xnum_billboard->addDrawable(xzero_text, osg::Vec3d(0, -0.5/sim->_grid[0], 0.0));
+	for (int i = 1; i < (int)(sim->_grid[2]*sim->_grid[1]+1); i++) {
+		// positive
+		osg::ref_ptr<osgText::Text> xnumpos_text = new osgText::Text();
+		if (sim->_us) sprintf(text, "%.0lf   ", 39.37*i/sim->_grid[1]);
+		else sprintf(text, "%.0lf   ", 100*i/sim->_grid[1]);
+		xnumpos_text->setText(text);
+		xnumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+		xnumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
+		xnumpos_text->setCharacterSize(30);
+		xnumpos_text->setColor(osg::Vec4(0, 0, 0, 1));
+		xnumpos_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+		xnum_billboard->addDrawable(xnumpos_text, osg::Vec3d(i/sim->_grid[1], -0.5/sim->_grid[0], 0.0));
+		// negative
+		osg::ref_ptr<osgText::Text> xnumneg_text = new osgText::Text();
+		if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i/sim->_grid[1]);
+		else sprintf(text, "%.0lf   ", -100*i/sim->_grid[1]);
+		xnumneg_text->setText(text);
+		xnumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+		xnumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
+		xnumneg_text->setCharacterSize(30);
+		xnumneg_text->setColor(osg::Vec4(0, 0, 0, 1));
+		xnumneg_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+		xnum_billboard->addDrawable(xnumneg_text, osg::Vec3d(-i/sim->_grid[1], -0.5/sim->_grid[0], 0.0));
+	}
+	xnum_billboard->setMode(osg::Billboard::AXIAL_ROT);
+	xnum_billboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
+	xnum_billboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
+	xnum_billboard->setNodeMask(~IS_PICKABLE_MASK);
+	root->addChild(xnum_billboard);
+
+	// y grid numbering
+	osg::ref_ptr<osg::Billboard> ynum_billboard = new osg::Billboard();
+	for (int i = 1; i < (int)(sim->_grid[2]*sim->_grid[1]+1); i++) {
+		// positive
+		osg::ref_ptr<osgText::Text> ynumpos_text = new osgText::Text();
+		if (sim->_us) sprintf(text, "%.0lf   ", 39.37*i/sim->_grid[1]);
+		else sprintf(text, "%.0lf   ", 100*i/sim->_grid[1]);
+		ynumpos_text->setText(text);
+		ynumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+		ynumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
+		ynumpos_text->setCharacterSize(30);
+		ynumpos_text->setColor(osg::Vec4(0, 0, 0, 1));
+		ynumpos_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+		ynum_billboard->addDrawable(ynumpos_text, osg::Vec3d(0, i/sim->_grid[1] - 0.5/sim->_grid[0], 0.0));
+		// negative
+		osg::ref_ptr<osgText::Text> ynumneg_text = new osgText::Text();
+		if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i/sim->_grid[1]);
+		else sprintf(text, "%.0lf   ", -100*i/sim->_grid[1]);
+		ynumneg_text->setText(text);
+		ynumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+		ynumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
+		ynumneg_text->setCharacterSize(30);
+		ynumneg_text->setColor(osg::Vec4(0, 0, 0, 1));
+		ynumneg_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+		ynum_billboard->addDrawable(ynumneg_text, osg::Vec3d(0, -i/sim->_grid[1] - 0.5/sim->_grid[0], 0.0));
+	}
+	ynum_billboard->setMode(osg::Billboard::AXIAL_ROT);
+	ynum_billboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
+	ynum_billboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
+	ynum_billboard->setNodeMask(~IS_PICKABLE_MASK);
+	root->addChild(ynum_billboard);
 
 	// skybox
 	osg::ref_ptr<osg::StateSet> stateset = new osg::StateSet();
