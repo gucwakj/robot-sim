@@ -1289,7 +1289,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	osg::ref_ptr<osg::Billboard> xnum_billboard = new osg::Billboard();
 	char text[50];
 	osg::ref_ptr<osgText::Text> xzero_text = new osgText::Text();
-	xzero_text->setText("0.00");
+	xzero_text->setText("0   ");
 	xzero_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 	xzero_text->setAlignment(osgText::Text::CENTER_CENTER);
 	xzero_text->setCharacterSize(30);
