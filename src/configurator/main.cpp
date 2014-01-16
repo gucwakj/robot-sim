@@ -115,7 +115,10 @@ int main(int argc, char *argv[]) {
 	// load gtk window
 	gtk_builder_add_from_file(g_builder, "interface.glade", NULL);
 	g_window = GTK_WIDGET(gtk_builder_get_object(g_builder, "window1"));
-	if (g_window == NULL) { fprintf(stderr, "Unable to file object with id \"window1\" \n"); exit(1); }
+	if (g_window == NULL) {
+		g_warning("Unable to find interface file.");
+		exit(1);
+	}
 	gtk_builder_connect_signals(g_builder, NULL);
 
 	// load linkbot coordinates picture
@@ -170,6 +173,16 @@ int main(int argc, char *argv[]) {
 			strcat(fpbuf, line);
 		}
 		fclose(fp);
+	}
+	else {
+		GtkWidget *d = gtk_message_dialog_new(
+			GTK_WINDOW(gtk_builder_get_object(g_builder, "window1")),
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_ERROR,
+			GTK_BUTTONS_OK,
+			"Could not load CHRC file.  Please run 'ch -d' from the Ch Command Shell.");
+		int rc = gtk_dialog_run(GTK_DIALOG(d));
+		exit(1);
 	}
 
 	// write config file for simulated robots
