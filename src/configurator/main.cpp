@@ -85,14 +85,34 @@ void saveRobotList(void);
 int WINAPI WinMain(HINSTANCE hinst, HINSTANCE hinstPrev, LPSTR lpCmdLine, int nCmdShow) {
 	// init gtk
 	gtk_init(NULL, NULL);
+
+	// check for multiple instances
+	HANDLE hMutex;
+	hMutex = CreateMutex(NULL, TRUE, TEXT("Global\\RoboSimMutex"));
+	DWORD dwerror = GetLastError();
 #else
 int main(int argc, char *argv[]) {
 	// init gtk
 	gtk_init(&argc, &argv);
 #endif
+	// load builder
+	g_builder = gtk_builder_new();
+
+#ifdef _WIN32
+	// another instance running
+	if (dwerror == ERROR_ALREADY_EXISTS) {
+		GtkWidget *d = gtk_message_dialog_new(
+			GTK_WINDOW(gtk_builder_get_object(g_builder, "window1")),
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_ERROR,
+			GTK_BUTTONS_OK,
+			"Another instance of RoboSim GUI is already running.  Please terminate the other process and try again.");
+		int rc = gtk_dialog_run(GTK_DIALOG(d));
+		exit(0);
+	}
+#endif
 
 	// load gtk window
-	g_builder = gtk_builder_new();
 	gtk_builder_add_from_file(g_builder, "interface.glade", NULL);
 	g_window = GTK_WIDGET(gtk_builder_get_object(g_builder, "window1"));
 	if (g_window == NULL) { fprintf(stderr, "Unable to file object with id \"window1\" \n"); exit(1); }
