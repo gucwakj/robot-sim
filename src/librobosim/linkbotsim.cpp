@@ -916,7 +916,6 @@ int CLinkbotT::movexy(double x, double y, double radius, double tracklength) {
 
 	// success
 	return 0;
-
 }
 
 void* CLinkbotT::movexyThread(void *arg) {

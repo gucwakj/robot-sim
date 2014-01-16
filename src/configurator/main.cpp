@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
 	fclose(fp);
 
 	// show main window
-	gtk_widget_show(g_window);                
+	gtk_widget_show(g_window);
 	gtk_main();
 
 	return 0;
