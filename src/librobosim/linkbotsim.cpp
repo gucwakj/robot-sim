@@ -897,11 +897,13 @@ int CLinkbotT::moveWait(void) {
 }
 
 int CLinkbotT::movexy(double x, double y, double radius, double tracklength) {
-	// get current body rotation
+	// get current position
+	double x0, y0;
+	this->getxy(x0, y0);
 	double r0 = this->getRotation(BODY, 2);
 
 	// get angle to turn
-	double angle = atan2(x, y);
+	double angle = atan2(x-x0, y-y0);
 
 	// turn in shortest path
 	if ((angle+r0) > EPSILON)
@@ -910,10 +912,11 @@ int CLinkbotT::movexy(double x, double y, double radius, double tracklength) {
 		this->turnLeft(RAD2DEG(-angle-r0), radius, tracklength);
 
 	// move along length of line
-	this->moveDistance(sqrt(x*x + y*y), radius);
+	this->moveDistance(sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0)), radius);
 
 	// success
 	return 0;
+
 }
 
 void* CLinkbotT::movexyThread(void *arg) {
@@ -956,7 +959,7 @@ int CLinkbotT::movexyNB(double x, double y, double radius, double tracklength) {
 }
 
 int CLinkbotT::movexyTo(double x, double y, double radius, double tracklength) {
-	// get current position and convert to in or cm
+	// get current position
 	double x0, y0;
 	this->getxy(x0, y0);
 	double r0 = this->getRotation(BODY, 2);
