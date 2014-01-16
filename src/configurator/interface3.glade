@@ -17,20 +17,20 @@
     <signal name="response" handler="on_aboutdialog_response" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="adjustment_dist">
-    <property name="upper">576</property>
+    <property name="upper">1000000000000</property>
     <property name="value">96</property>
     <property name="step_increment">2</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjustment_major">
     <property name="lower">6</property>
-    <property name="upper">576</property>
+    <property name="upper">1000000000000</property>
     <property name="value">12</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjustment_tics">
-    <property name="upper">576</property>
+    <property name="upper">1000000000000</property>
     <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
