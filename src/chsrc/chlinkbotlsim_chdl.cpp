@@ -1272,6 +1272,27 @@ EXPORTCH int CLinkbotL_movexyWait_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotL_point_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+	double x;
+	double y;
+	int pointsize;
+	char *color;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    x = Ch_VaArg(interp, ap, double);
+    y = Ch_VaArg(interp, ap, double);
+    pointsize = Ch_VaArg(interp, ap, int);
+    color = Ch_VaArg(interp, ap, char *);
+    retval = robot->point(x, y, pointsize, color);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotL_recordAngle_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

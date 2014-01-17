@@ -1030,6 +1030,32 @@ int CLinkbotT::movexyWait(void) {
 	return 0;
 }
 
+int CLinkbotT::point(double x, double y, int pointsize, char *color) {
+	// convert x and y into meters
+	x = (_simObject->getUnits()) ? x/39.37 : x/100;
+	y = (_simObject->getUnits()) ? y/39.37 : y/100;
+
+	// get color
+	int getRGB[3] = {0};
+	rgbHashTable *rgbTable = HT_Create();
+	int htRetval = HT_Get(rgbTable, color, getRGB);
+	HT_Destroy(rgbTable);
+
+	// create sphere
+	osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(x, y, 0), pointsize/100.0);
+	osg::Geode *point = new osg::Geode;
+	osg::ShapeDrawable *pointDrawable = new osg::ShapeDrawable(sphere);
+	point->addDrawable(pointDrawable);
+	if (htRetval)
+		pointDrawable->setColor(osg::Vec4(getRGB[0]/255.0, getRGB[1]/255.0, getRGB[2]/255.0, 1));
+	else
+		pointDrawable->setColor(osg::Vec4(1, 1, 1, 1));
+	_root->addChild(point);
+
+	// success
+	return htRetval;
+}
+
 void* CLinkbotT::recordAngleThread(void *arg) {
 	// cast arg struct
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
@@ -2363,6 +2389,9 @@ void CLinkbotT::simPostCollisionThread(void) {
 
 #ifdef ENABLE_GRAPHICS
 int CLinkbotT::draw(osg::Group *root, int tracking) {
+	// save root graphics node
+	_root = root;
+
 	// initialize variables
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[NUM_PARTS+1];

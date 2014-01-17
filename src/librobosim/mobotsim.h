@@ -119,6 +119,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int movexyTo(double x, double y, double radius, double tracklength);
 		int movexyToNB(double x, double y, double radius, double tracklength);
 		int movexyWait();
+		int point(double x, double y, int pointsize, char *color);
 #ifdef _CH_
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id,
