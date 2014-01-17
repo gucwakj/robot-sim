@@ -44,6 +44,7 @@ G_MODULE_EXPORT void on_aboutdialog_activate(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_activate_link(GtkAboutDialog *label, gchar *uri, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data);
 G_MODULE_EXPORT void on_aboutdialog_response(GtkDialog *dialog, gint response_id, gpointer user_data);
+G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data);
 
 G_MODULE_EXPORT void on_real_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_simulated_toggled(GtkWidget *widget, gpointer data);
@@ -247,6 +248,38 @@ G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data)
  */
 G_MODULE_EXPORT void on_aboutdialog_response(GtkDialog *dialog, gint response_id, gpointer user_data) {
 	gtk_widget_hide(GTK_WIDGET(dialog));
+}
+
+/*
+ * Help menu
+ */
+G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data) {
+#ifdef _WIN32
+	DWORD size;
+	//char path[1024];
+	char  *chhome;
+	chhome = getenv("CHHOME");
+
+	/*HKEY key;
+	RegOpenKeyEx(
+		HKEY_LOCAL_MACHINE,
+		"Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\robosim.exe",
+		0,
+		KEY_QUERY_VALUE,
+		&key);
+	RegQueryValueEx(
+		key,
+		"PATH",
+		NULL,
+		NULL,
+		(LPBYTE)path,
+		&size);
+	path[size]='\0';*/
+	//strcat(path, "C:\\Ch\\package\\chrobosim\\docs\\robosim.pdf");
+	char path[1024] = "C:\\Ch\\package\\chrobosim\\docs\\robosim.pdf";
+
+	ShellExecute(NULL, "open", path, NULL, NULL, SW_SHOW);
+#endif
 }
 
 /*

@@ -14,9 +14,9 @@
 Harry H. Cheng</property>
     <property name="website">http://c-stem.ucdavis.edu</property>
     <property name="website_label" translatable="yes">C-STEM Center</property>
+    <signal name="activate_link" handler="on_aboutdialog_activate_link"/>
     <signal name="close" handler="on_aboutdialog_close"/>
     <signal name="response" handler="on_aboutdialog_response"/>
-    <signal name="activate-link" handler="on_aboutdialog_activate_link"/>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox1">
         <child internal-child="action_area">
@@ -108,6 +108,15 @@ Harry H. Cheng</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="help_menu">
                     <property name="visible">True</property>
+                    <child>
+                      <object class="GtkImageMenuItem" id="help ">
+                        <property name="label">gtk-help</property>
+                        <property name="visible">True</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                        <signal name="activate" handler="on_menuitem_help _activate"/>
+                      </object>
+                    </child>
                     <child>
                       <object class="GtkImageMenuItem" id="about">
                         <property name="label">gtk-about</property>
