@@ -254,6 +254,13 @@ G_MODULE_EXPORT void on_aboutdialog_response(GtkDialog *dialog, gint response_id
  * Help menu
  */
 G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data) {
+			GtkWidget *d = gtk_message_dialog_new(
+			GTK_WINDOW(gtk_builder_get_object(g_builder, "window1")),
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_ERROR,
+			GTK_BUTTONS_OK,
+			"Could not load CHRC file.  Please run 'ch -d' from the Ch Command Shell.");
+		int rc = gtk_dialog_run(GTK_DIALOG(d));
 #ifdef _WIN32
 	DWORD size;
 	//char path[1024];
@@ -276,9 +283,9 @@ G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data)
 		&size);
 	path[size]='\0';*/
 	//strcat(path, "C:\\Ch\\package\\chrobosim\\docs\\robosim.pdf");
-	char path[1024] = "C:\\Ch\\package\\chrobosim\\docs\\robosim.pdf";
+	char path[1024] = "C:\\Ch\\package\\chrobosim\\docs\\index.html";
 
-	ShellExecute(NULL, "open", path, NULL, NULL, SW_SHOW);
+	ShellExecuteA(NULL, "open", "C:\\Ch\\package\\chrobosim\\docs\\index.html", NULL, NULL, SW_SHOW);
 #endif
 }
 

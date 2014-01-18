@@ -10,10 +10,10 @@
     <property name="version">1.0.0</property>
     <property name="copyright" translatable="yes">(C) 2013-2014, UC Davis C-STEM Center</property>
     <property name="comments" translatable="yes">Robot Simulation Environment</property>
-    <property name="authors">Kevin Gucwa
-Harry H. Cheng</property>
     <property name="website">http://c-stem.ucdavis.edu</property>
     <property name="website_label" translatable="yes">C-STEM Center</property>
+    <property name="authors">Kevin Gucwa
+Harry H. Cheng</property>
     <signal name="activate_link" handler="on_aboutdialog_activate_link"/>
     <signal name="close" handler="on_aboutdialog_close"/>
     <signal name="response" handler="on_aboutdialog_response"/>
@@ -110,10 +110,11 @@ Harry H. Cheng</property>
                     <property name="visible">True</property>
                     <child>
                       <object class="GtkImageMenuItem" id="help ">
-                        <property name="label">gtk-help</property>
+                        <property name="label">Help</property>
                         <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image1</property>
+                        <property name="use_stock">False</property>
+                        <property name="always_show_image">True</property>
                         <signal name="activate" handler="on_menuitem_help _activate"/>
                       </object>
                     </child>
@@ -731,5 +732,9 @@ Harry H. Cheng</property>
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="stock">gtk-help</property>
   </object>
 </interface>
