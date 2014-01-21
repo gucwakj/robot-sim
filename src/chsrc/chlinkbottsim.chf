@@ -1037,7 +1037,7 @@ int CLinkbotT::movexyWait() {
     return retval;
 }
 
-int CLinkbotT::point(double x, double y, int pointsize, char *color) {
+int CLinkbotT::point(double x, double y, double z, int pointsize, char *color) {
     void *fptr;
     int retval;
 
@@ -1046,7 +1046,7 @@ int CLinkbotT::point(double x, double y, int pointsize, char *color) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, point, this, x, y, pointsize, color);
+    dlrunfun(fptr, &retval, point, this, x, y, z, pointsize, color);
     return retval;
 }
 

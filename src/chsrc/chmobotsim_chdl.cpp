@@ -1441,6 +1441,7 @@ EXPORTCH int CMobot_point_chdl(void *varg) {
     class CMobot *robot;
 	double x;
 	double y;
+	double z;
 	int pointsize;
 	char *color;
     int retval;
@@ -1449,9 +1450,10 @@ EXPORTCH int CMobot_point_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CMobot *);
     x = Ch_VaArg(interp, ap, double);
     y = Ch_VaArg(interp, ap, double);
+    z = Ch_VaArg(interp, ap, double);
     pointsize = Ch_VaArg(interp, ap, int);
     color = Ch_VaArg(interp, ap, char *);
-    retval = robot->point(x, y, pointsize, color);
+    retval = robot->point(x, y, z, pointsize, color);
     Ch_VaEnd(interp, ap);
     return retval;
 }

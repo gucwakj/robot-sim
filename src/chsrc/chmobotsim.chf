@@ -1133,7 +1133,7 @@ int CMobot::movexyWait() {
     return retval;
 }
 
-int CMobot::point(double x, double y, int pointsize, char *color) {
+int CMobot::point(double x, double y, double z, int pointsize, char *color) {
     void *fptr;
     int retval;
 
@@ -1142,9 +1142,10 @@ int CMobot::point(double x, double y, int pointsize, char *color) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, point, this, x, y, pointsize, color);
+    dlrunfun(fptr, &retval, point, this, x, y, z, pointsize, color);
     return retval;
 }
+
 int CMobot::recordAngle(int id, double time[:], double angle[:], int num, double seconds, ...) {
     void *fptr;
     int retval;

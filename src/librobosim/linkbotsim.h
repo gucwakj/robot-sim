@@ -109,7 +109,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int movexyTo(double x, double y, double radius, double tracklength);
 		int movexyToNB(double x, double y, double radius, double tracklength);
 		int movexyWait();
-		int point(double x, double y, int pointsize, char *color);
+		int point(double x, double y, double z, int pointsize, char *color);
 #ifdef _CH_
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id,
@@ -469,7 +469,7 @@ class DLLIMPORT CLinkbotI {
 		int movexyTo(double x, double y, double radius, double tracklength);
 		int movexyToNB(double x, double y, double radius, double tracklength);
 		int movexyWait();
-		int point(double x, double y, int pointsize, char *color);
+		int point(double x, double y, double z, int pointsize, char *color);
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
 		int recordAngleEnd(robotJointId_t id, int &num);
@@ -689,7 +689,7 @@ class DLLIMPORT CLinkbotL {
 		int movexyTo(double x, double y, double radius, double tracklength);
 		int movexyToNB(double x, double y, double radius, double tracklength);
 		int movexyWait();
-		int point(double x, double y, int pointsize, char *color);
+		int point(double x, double y, double z, int pointsize, char *color);
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
 		int recordAngleEnd(robotJointId_t id, int &num);

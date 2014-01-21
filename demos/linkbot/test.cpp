@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
 	CLinkbotI robot1;
 
 	robot1.connect();
-	robot1.point(12, 5.5, 1, "red");
+	robot1.point(12, 5.5, 1, 1, "red");
 	robot1.move(45, 0, -45);
 	char color[20];
 	robot1.getColorName(color);

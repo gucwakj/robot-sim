@@ -1385,10 +1385,11 @@ int CMobot::movexyWait(void) {
 	return 0;
 }
 
-int CMobot::point(double x, double y, int pointsize, char *color) {
+int CMobot::point(double x, double y, double z, int pointsize, char *color) {
 	// convert x and y into meters
 	x = (_simObject->getUnits()) ? x/39.37 : x/100;
 	y = (_simObject->getUnits()) ? y/39.37 : y/100;
+	z = (_simObject->getUnits()) ? z/39.37 : z/100;
 
 	// get color
 	int getRGB[3] = {0};
@@ -1397,7 +1398,7 @@ int CMobot::point(double x, double y, int pointsize, char *color) {
 	HT_Destroy(rgbTable);
 
 	// create sphere
-	osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(x, y, 0), pointsize/100.0);
+	osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(x, y, z), pointsize/100.0);
 	osg::Geode *point = new osg::Geode;
 	osg::ShapeDrawable *pointDrawable = new osg::ShapeDrawable(sphere);
 	point->addDrawable(pointDrawable);
@@ -2693,6 +2694,9 @@ void CMobot::simPostCollisionThread(void) {
 
 #ifdef ENABLE_GRAPHICS
 int CMobot::draw(osg::Group *root, int tracking) {
+	// save root graphics node
+	_root = root;
+
 	// initialize variables
 	osg::ref_ptr<osg::Group> robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[5];
