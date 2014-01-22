@@ -56,7 +56,8 @@ rgbHashTable * HT_Create()
 	int coral[3]; 
 	int cornflowerBlue[3]; 
 	int cornSilk[3]; 
-	int crimson[3]; 
+	int crimson[3];
+	int cyan[3];
 	int darkBlue[3]; 
 	int darkCyan[3]; 
 	int darkGoldenrod[3]; 
@@ -114,6 +115,7 @@ rgbHashTable * HT_Create()
 	int lightYellow[3]; 
 	int limeGreen[3];
     int linen[3]; 
+	int magenta[3];
 	int maroon[3]; 
 	int mediumAquamarine[3]; 
 	int mediumBlue[3]; 
@@ -260,7 +262,11 @@ rgbHashTable * HT_Create()
 	
 	crimson[0] = 220;
 	crimson[1] = 20;
-	crimson[2] = 60;	
+	crimson[2] = 60;
+
+	cyan[0] = 0;
+	cyan[1] = 255;
+	cyan[2] = 255;
 	
 	darkBlue[0] = 0;
 	darkBlue[1] = 0;
@@ -491,6 +497,10 @@ rgbHashTable * HT_Create()
 	linen[0] = 250; 
 	linen[1] = 240; 
 	linen[2] = 230;
+	
+	magenta[0] = 255;
+	magenta[1] = 0; 
+	magenta[2] = 255;
 	
 	maroon[0] = 128; 
 	maroon[1] = 0; 
@@ -754,6 +764,7 @@ rgbHashTable * HT_Create()
   	HT_Add(rgbHT, "cornflowerBlue", cornflowerBlue);
   	HT_Add(rgbHT, "cornSilk", cornSilk);
   	HT_Add(rgbHT, "crimson", crimson);
+	HT_Add(rgbHT, "cyan", cyan);
   	HT_Add(rgbHT, "darkBlue", darkBlue);
   	HT_Add(rgbHT, "darkCyan", darkCyan);
   	HT_Add(rgbHT, "darkGoldenrod", darkGoldenrod);
@@ -811,6 +822,7 @@ rgbHashTable * HT_Create()
 	HT_Add(rgbHT, "lightYellow", lightYellow);
 	HT_Add(rgbHT, "limeGreen", limeGreen);
 	HT_Add(rgbHT, "linen", linen);
+	HT_Add(rgbHT, "magenta", magenta);
 	HT_Add(rgbHT, "maroon", maroon);
 	HT_Add(rgbHT, "mediumAquamarine", mediumAquamarine);
 	HT_Add(rgbHT, "mediumBlue", mediumBlue);
@@ -1030,6 +1042,14 @@ int HT_GetKey(rgbHashTable * rgbHT, int values[], char color[])
 			n = n->next;
 		}
 	}
-	strcpy(color, shortestKey);
+	if (strcmp("aqua", shortestKey) == 0){
+		strcpy(color, "cyan");
+	}
+	else if (strcmp("fuchsia", shortestKey) == 0){
+		strcpy(color, "magenta");
+	}
+	else{
+		strcpy(color, shortestKey);
+	}
 	return 0;
 }
