@@ -314,18 +314,25 @@ int CMobot::line(double x1, double y1, double z1, double x2, double y2, double z
 	int htRetval = HT_Get(rgbTable, color, getRGB);
 	HT_Destroy(rgbTable);
 
-	// create sphere
-	double length = sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)+(z2-z1)*(z2-z1));
-	osg::Cylinder *cylinder = new osg::Cylinder(osg::Vec3d((x2+x1)/2, (y2+y1)/2, (z2+z1)/2), linewidth/1000.0, length);
-	double angle = atan(sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))/(z2-z1));
-	cylinder->setRotation(osg::Quat(angle, osg::Vec3f(-fabs(y2-y1), fabs(x2-x1), 0)));
-	osg::Geode *line = new osg::Geode;
-	osg::ShapeDrawable *lineDrawable = new osg::ShapeDrawable(cylinder);
-	line->addDrawable(lineDrawable);
+	// draw line
+	osg::Geode *line = new osg::Geode();
+	osg::Geometry *geom = new osg::Geometry();
+	osg::Vec3Array *vert = new osg::Vec3Array();
+	vert->push_back(osg::Vec3(x1, y1, z1));
+	vert->push_back(osg::Vec3(x2, y2, z2));
+	geom->setVertexArray(vert);
+	geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 2));
+	osg::Vec4Array *colors = new osg::Vec4Array;
 	if (htRetval)
-		lineDrawable->setColor(osg::Vec4(getRGB[0]/255.0, getRGB[1]/255.0, getRGB[2]/255.0, 1));
+		colors->push_back(osg::Vec4(getRGB[0]/255.0, getRGB[1]/255.0, getRGB[2]/255.0, 1.0f));
 	else
-		lineDrawable->setColor(osg::Vec4(1, 1, 1, 1));
+		colors->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	geom->setColorArray(colors);
+	geom->setColorBinding(osg::Geometry::BIND_OVERALL);
+	osg::LineWidth *width = new osg::LineWidth();
+	width->setWidth(linewidth*3.0f);
+	line->getOrCreateStateSet()->setAttributeAndModes(width, osg::StateAttribute::ON);
+	line->addDrawable(geom);
 	_root->addChild(line);
 
 	// success
