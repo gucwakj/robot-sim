@@ -367,6 +367,39 @@ int CLinkbotT::isMoving(void) {
 	return 0;
 }
 
+int CLinkbotT::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
+	// convert x and y into meters
+	x1 = (_simObject->getUnits()) ? x1/39.37 : x1/100;
+	y1 = (_simObject->getUnits()) ? y1/39.37 : y1/100;
+	z1 = (_simObject->getUnits()) ? z1/39.37 : z1/100;
+	x2 = (_simObject->getUnits()) ? x2/39.37 : x2/100;
+	y2 = (_simObject->getUnits()) ? y2/39.37 : y2/100;
+	z2 = (_simObject->getUnits()) ? z2/39.37 : z2/100;
+
+	// get color
+	int getRGB[3] = {0};
+	rgbHashTable *rgbTable = HT_Create();
+	int htRetval = HT_Get(rgbTable, color, getRGB);
+	HT_Destroy(rgbTable);
+
+	// create sphere
+	double length = sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)+(z2-z1)*(z2-z1));
+	osg::Cylinder *cylinder = new osg::Cylinder(osg::Vec3d((x2+x1)/2, (y2+y1)/2, (z2+z1)/2), linewidth/1000.0, length);
+	double angle = atan(sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))/(z2-z1));
+	cylinder->setRotation(osg::Quat(angle, osg::Vec3f(-fabs(y2-y1), fabs(x2-x1), 0)));
+	osg::Geode *line = new osg::Geode;
+	osg::ShapeDrawable *lineDrawable = new osg::ShapeDrawable(cylinder);
+	line->addDrawable(lineDrawable);
+	if (htRetval)
+		lineDrawable->setColor(osg::Vec4(getRGB[0]/255.0, getRGB[1]/255.0, getRGB[2]/255.0, 1));
+	else
+		lineDrawable->setColor(osg::Vec4(1, 1, 1, 1));
+	_root->addChild(line);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::motionDistance(double distance, double radius) {
 	this->motionRollForward(distance/radius);
 

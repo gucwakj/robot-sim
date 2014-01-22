@@ -67,6 +67,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int getxy(double &x, double &y);
 		int isConnected(void);
 		int isMoving(void);
+		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int motionDistance(double distance, double radius);
 		int motionDistanceNB(double distance, double radius);
 		int motionRollBackward(double angle);
@@ -427,6 +428,7 @@ class DLLIMPORT CLinkbotI {
 		int getxy(double &x, double &y);
 		int isConnected();
 		int isMoving();
+		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int motionDistance(double distance, double radius);
 		int motionDistanceNB(double distance, double radius);
 		int motionRollBackward(double angle);
@@ -647,6 +649,7 @@ class DLLIMPORT CLinkbotL {
 		int getxy(double &x, double &y);
 		int isConnected();
 		int isMoving();
+		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int motionDistance(double distance, double radius);
 		int motionDistanceNB(double distance, double radius);
 		int motionRollBackward(double angle);

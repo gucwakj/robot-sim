@@ -498,6 +498,30 @@ EXPORTCH int CLinkbotI_isMoving_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotI_line_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+	double x1, y1, z1;
+	double x2, y2, z2;
+	int linewidth;
+	char *color;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    x1 = Ch_VaArg(interp, ap, double);
+    y1 = Ch_VaArg(interp, ap, double);
+    z1 = Ch_VaArg(interp, ap, double);
+    x2 = Ch_VaArg(interp, ap, double);
+    y2 = Ch_VaArg(interp, ap, double);
+    z2 = Ch_VaArg(interp, ap, double);
+    linewidth = Ch_VaArg(interp, ap, int);
+    color = Ch_VaArg(interp, ap, char *);
+    retval = robot->line(x1, y1, z1, x2, y2, z2, linewidth, color);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
 
 EXPORTCH int CLinkbotI_motionDistance_chdl(void *varg) {
     ChInterp_t interp;
