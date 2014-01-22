@@ -185,6 +185,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int stopAllJoints(void);
 		int systemTime(double &time);
+		int text(double x, double y, double z, char *text);
 		int turnLeft(double angle, double radius, double tracklength);
 		int turnLeftNB(double angle, double radius, double tracklength);
 		int turnRight(double angle, double radius, double tracklength);
@@ -520,6 +521,7 @@ class DLLIMPORT CLinkbotI {
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int stopAllJoints(void);
 		int systemTime(double &time);
+		int text(double x, double y, double z, char *text);
 		int turnLeft(double angle, double radius, double tracklength);
 		int turnLeftNB(double angle, double radius, double tracklength);
 		int turnRight(double angle, double radius, double tracklength);
@@ -741,6 +743,7 @@ class DLLIMPORT CLinkbotL {
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int stopAllJoints(void);
 		int systemTime(double &time);
+		int text(double x, double y, double z, char *text);
 		int turnLeft(double angle, double radius, double tracklength);
 		int turnLeftNB(double angle, double radius, double tracklength);
 		int turnRight(double angle, double radius, double tracklength);

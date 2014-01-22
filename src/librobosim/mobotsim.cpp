@@ -2376,6 +2376,37 @@ int CMobot::systemTime(double &time) {
 	return 0;
 }
 
+int CMobot::text(double x, double y, double z, char *text) {
+	// convert xyz positions to meters
+	x = (_simObject->getUnits()) ? x/39.37 : x/100;
+	y = (_simObject->getUnits()) ? y/39.37 : y/100;
+	z = (_simObject->getUnits()) ? z/39.37 : z/100;
+
+	// generate text node
+	osgText::Text *label = new osgText::Text();
+	osg::Geode *label_geode = new osg::Geode();
+	label_geode->addDrawable(label);
+	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+	label_geode->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin");
+	label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	label->setAlignment(osgText::Text::CENTER_CENTER);
+	label->setAxisAlignment(osgText::Text::SCREEN);
+	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+	label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+	label->setCharacterSize(25);
+	label->setColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	label->setDrawMode(osgText::Text::TEXT);
+	label->setPosition(osg::Vec3(x, y, z));
+	label->setText(text);
+
+	// add to root
+	_root->addChild(label_geode);
+
+	// success
+	return 0;
+}
+
 int CMobot::turnLeft(double angle, double radius, double tracklength) {
 	this->turnLeftNB(angle, radius, tracklength);
 	this->moveWait();

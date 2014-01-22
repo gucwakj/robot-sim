@@ -2010,6 +2010,27 @@ EXPORTCH int CLinkbotI_systemTime_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotI_text_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+	double x;
+	double y;
+	double z;
+	char *text;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    x = Ch_VaArg(interp, ap, double);
+    y = Ch_VaArg(interp, ap, double);
+    z = Ch_VaArg(interp, ap, double);
+    text = Ch_VaArg(interp, ap, char *);
+    retval = robot->text(x, y, z, text);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotI_turnLeft_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

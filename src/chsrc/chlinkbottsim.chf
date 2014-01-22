@@ -1613,6 +1613,19 @@ int CLinkbotT::systemTime(double &systemTime) {
     return retval;
 }
 
+int CLinkbotT::text(double x, double y, double z, char *text) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_text_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, point, this, x, y, z, text);
+    return retval;
+}
+
 int CLinkbotT::turnLeft(double angle, double radius, double tracklength) {
     void *fptr;
     int retval;
