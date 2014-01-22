@@ -3714,7 +3714,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_connected = 0;
 	_disabled = disabled;
 	_distOffset = 0;
-	_encoder = DEG2RAD(0.1);
+	_encoder = DEG2RAD(0.25);
 	_id = -1;
 	_rgb[0] = 0;
 	_rgb[1] = 0;
