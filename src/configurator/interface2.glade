@@ -115,7 +115,7 @@ Harry H. Cheng</property>
                         <property name="image">image1</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
-                        <signal name="activate" handler="on_menuitem_help _activate"/>
+                        <signal name="activate" handler="on_menuitem_help_activate"/>
                       </object>
                     </child>
                     <child>
