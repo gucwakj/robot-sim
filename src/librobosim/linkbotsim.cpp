@@ -2386,6 +2386,9 @@ void CLinkbotT::simPreCollisionThread(void) {
 	// add gaussian noise to accel
 	this->noisy(_accel, 3, 0.005);
 
+	// starting out counter to slowly ramp up speed
+	static int starting[NUM_DOF] = {0};
+
 	// update angle values for each degree of freedom
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		int i = _enabled[j];
@@ -2395,16 +2398,47 @@ void CLinkbotT::simPreCollisionThread(void) {
 		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
 		// drive motor to get current angle to match future angle
 		if (_seek[i]) {
-			if (_angle[i] < _goal[i] - _encoder) {
+			if ((_goal[i] - 6*_encoder - _angle[i]) > EPSILON) {
 				_state[i] = ROBOT_FORWARD;
-				dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]);
+				if (starting[i]++ < 25)
+					dJointSetAMotorParam(_motor[i], dParamVel, starting[i]*_speed[i]/50);
+				else if (starting[i]++ < 50)
+					dJointSetAMotorParam(_motor[i], dParamVel, starting[i]*_speed[i]/150 + 0.3*_speed[i]);
+				else if (starting[i]++ < 100)
+					dJointSetAMotorParam(_motor[i], dParamVel, starting[i]*_speed[i]/150 + _speed[i]/3);
+				else
+					dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]);
 			}
-			else if (_angle[i] > _goal[i] + _encoder) {
+			else if ((_goal[i] - 3*_encoder - _angle[i]) > EPSILON) {
+				_state[i] = ROBOT_FORWARD;
+				dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]/2);
+			}
+			else if ((_goal[i] - _encoder - _angle[i]) > EPSILON) {
+				_state[i] = ROBOT_FORWARD;
+				dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]/4);
+			}
+			else if ((_angle[i] - _goal[i] - 6*_encoder) > EPSILON) {
 				_state[i] = ROBOT_BACKWARD;
-				dJointSetAMotorParam(_motor[i], dParamVel, -_speed[i]);
+				if (starting[i]++ < 25)
+					dJointSetAMotorParam(_motor[i], dParamVel, -starting[i]*_speed[i]/50);
+				else if (starting[i]++ < 50)
+					dJointSetAMotorParam(_motor[i], dParamVel, -starting[i]*_speed[i]/150 - 0.3*_speed[i]);
+				else if (starting[i]++ < 100)
+					dJointSetAMotorParam(_motor[i], dParamVel, -starting[i]*_speed[i]/150 - _speed[i]/3);
+				else
+					dJointSetAMotorParam(_motor[i], dParamVel, -_speed[i]);
+			}
+			else if ((_angle[i] - _goal[i] - 3*_encoder) > EPSILON) {
+				_state[i] = ROBOT_BACKWARD;
+				dJointSetAMotorParam(_motor[i], dParamVel, -_speed[i]/2);
+			}
+			else if ((_angle[i] - _goal[i] - _encoder) > EPSILON) {
+				_state[i] = ROBOT_BACKWARD;
+				dJointSetAMotorParam(_motor[i], dParamVel, -_speed[i]/4);
 			}
 			else {
 				_state[i] = ROBOT_HOLD;
+				starting[i] = 0;
 				dJointSetAMotorParam(_motor[i], dParamVel, 0);
 			}
 		}
@@ -2437,10 +2471,18 @@ void CLinkbotT::simPostCollisionThread(void) {
 	MUTEX_LOCK(&_angle_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
+	// how long has the motor been stopped
+	static int stopped[NUM_DOF] = {0};
+
 	// check if joint speed is zero -> joint has completed step
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		int i = _enabled[j];
-		_success[i] = (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
+		stopped[i] += (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
+		// once motor has been stopped for 5 steps
+		if (stopped[i] == 5) {
+			stopped[i] = 0;
+			_success[i] = 1;
+		}
 	}
 	if (_success[0] && _success[1] && _success[2]) {
 		COND_SIGNAL(&_success_cond);
@@ -2931,10 +2973,10 @@ int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta
 
 	// set mass of body
 	dMassSetZero(&m);
-	dMassSetBox(&m1, 270, _body_width, _body_length, _body_height);
+	dMassSetBox(&m1, 10000, _body_width, _body_length, _body_height);
 	dMassTranslate(&m1, 0, -_body_length/2, 0);
 	dMassAdd(&m, &m1);
-	dMassSetCylinder(&m2, 270, 1, _body_radius, _body_width);
+	dMassSetCylinder(&m2, 1000, 1, _body_radius, _body_width);
 	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 	dMassRotate(&m2, R1);
 	dMassAdd(&m, &m2);
@@ -2977,7 +3019,7 @@ int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, doub
 	dMatrix3 R1, R2, R3;
 
 	// set mass of body
-	dMassSetCylinder(&m, 270, 1, 2*_face_radius, _face_depth);
+	dMassSetCylinder(&m, 2000, 1, 2*_face_radius, _face_depth);
 
 	// adjsut x,y,z to position center of mass correctly
 	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3136,7 +3178,7 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0];
 
 	// set mass of body
-	dMassSetBox(&m, 500, depth, width, height);
+	dMassSetBox(&m, 2000, 10*depth, width, height);
 	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
@@ -3701,7 +3743,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	for (int i = 0, j = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
 		_goal[i] = 0;
-		_max_force[i] = 2;
+		_max_force[i] = 1;
 		_max_speed[i] = 240;		// deg/sec
 		_offset[i] = 0;
 		_recording[i] = false;
