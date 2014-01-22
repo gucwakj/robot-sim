@@ -3136,7 +3136,7 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0];
 
 	// set mass of body
-	dMassSetBox(&m, 270, depth, width, height);
+	dMassSetBox(&m, 500, depth, width, height);
 	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly

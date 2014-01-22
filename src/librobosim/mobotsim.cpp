@@ -3582,7 +3582,7 @@ int CMobot::build_caster(conn_t conn, int face) {
 	p[2] += R[8]*offset[0];
 
 	// set mass of body
-	dMassSetBox(&m, 2700, 0.0667, width, height/2);
+	dMassSetBox(&m, 500, 0.0667, width, height/2);
 	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
