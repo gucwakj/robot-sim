@@ -116,7 +116,6 @@ createpkg: librobosim.dl
 	mkdir $(PKGDIR)/dl
 	cp librobosim.dl $(PKGDIR)/dl
 	mkdir $(PKGDIR)/docs
-	cp ../../docs/index.html $(PKGDIR)/docs
 	cp ../../docs/robosim.pdf $(PKGDIR)/docs
 	cp ../../docs/images/robosim.png $(PKGDIR)/docs
 	mkdir $(PKGDIR)/include
