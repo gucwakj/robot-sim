@@ -2980,7 +2980,7 @@ int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta
 
 	// set mass of body
 	dMassSetZero(&m);
-	dMassSetBox(&m1, 10000, _body_width, _body_length, _body_height);
+	dMassSetBox(&m1, 1000, _body_width, _body_length, _body_height);
 	dMassTranslate(&m1, 0, -_body_length/2, 0);
 	dMassAdd(&m, &m1);
 	dMassSetCylinder(&m2, 1000, 1, _body_radius, _body_width);
@@ -3185,7 +3185,7 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0];
 
 	// set mass of body
-	dMassSetBox(&m, 2000, 10*depth, width, height);
+	dMassSetBox(&m, 1000, 10*depth, width, height);
 	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
@@ -3750,7 +3750,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	for (int i = 0, j = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
 		_goal[i] = 0;
-		_max_force[i] = 1;
+		_max_force[i] = 2;
 		_max_speed[i] = 240;		// deg/sec
 		_offset[i] = 0;
 		_recording[i] = false;
