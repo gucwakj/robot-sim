@@ -253,7 +253,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		virtual void simPostCollisionThread(void);
 
 		// private functions
-		int add_connector(int type, int face);
+		int add_connector(int type, int face, double size);
 		int build_individual(double x, double y, double z, dMatrix3 R, double r_le, double r_lb, double r_rb, double r_re);
 		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);
 		int build_body(int id, double x, double y, double z, dMatrix3 R, double theta);
@@ -265,6 +265,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int build_smallwheel(conn_t conn, int face);
 		int build_square(conn_t conn, int face);
 		int build_tank(conn_t conn, int face);
+		int build_wheel(conn_t conn, int face, double size);
 		int fix_body_to_connector(dBodyID cBody, int face);
 		int fix_connector_to_body(int face, dBodyID cBody);
 		int get_connector_params(xml_conn_t conn, dMatrix3 R, double *p);
@@ -301,6 +302,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		void draw_smallwheel(conn_t conn, osg::Group *robot);
 		void draw_square(conn_t conn, osg::Group *robot);
 		void draw_tank(conn_t conn, osg::Group *robot);
+		void draw_wheel(conn_t conn, osg::Group *robot);
 #endif // ENABLE_GRAPHICS
 #endif // not _CH_
 };

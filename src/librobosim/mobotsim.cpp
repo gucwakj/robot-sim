@@ -2484,6 +2484,11 @@ int CMobot::build(xml_robot_t robot) {
 			robot->z += (_smallwheel_radius - _end_height/2);
 			break;
 		}
+		else if (ctmp->conn == WHEEL) {
+			robot->z += (ctmp->size - _body_height/2);
+			if (fabs(robot->z) > (_body_radius-EPSILON)) {robot->z += _body_height/2; }
+			break;
+		}
 		ctmp = ctmp->next;
 	}
 
@@ -2494,7 +2499,7 @@ int CMobot::build(xml_robot_t robot) {
 	ctmp = robot->conn;
 	while (ctmp) {
 		if ( ctmp->robot == _id ) {
-			this->add_connector(ctmp->type, ctmp->face1);
+			this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
 		}
 		ctmp = ctmp->next;
 	}
@@ -2511,7 +2516,7 @@ int CMobot::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 	xml_conn_t ctmp = robot->conn;
 	while (ctmp) {
 		if ( ctmp->robot == _id )
-			this->add_connector(ctmp->type, ctmp->face1);
+			this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
 		ctmp = ctmp->next;
 	}
 
@@ -2962,6 +2967,9 @@ int CMobot::draw(osg::Group *root, int tracking) {
 			case TANK:
 				this->draw_tank(ctmp, robot);
 				break;
+			case WHEEL:
+				this->draw_wheel(ctmp, robot);
+				break;
 		}
 		ctmp = ctmp->next;
 	}
@@ -3026,11 +3034,11 @@ int CMobot::draw(osg::Group *root, int tracking) {
 /**********************************************************
 	private functions
  **********************************************************/
-int CMobot::add_connector(int type, int face) {
+int CMobot::add_connector(int type, int face, double size) {
 	// create new connector
 	conn_t nc = (conn_t)malloc(sizeof(struct conn_s));
-	nc->face = face; 
-	nc->type = type; 
+	nc->face = face;
+	nc->type = type;
 	nc->next = NULL;
 
 	// add to list of connectors
@@ -3062,6 +3070,9 @@ int CMobot::add_connector(int type, int face) {
 			break;
 		case TANK:
 			this->build_tank(nc, face);
+			break;
+		case WHEEL:
+			this->build_wheel(nc, face, size);
 			break;
 	}
 
@@ -3914,6 +3925,58 @@ int CMobot::build_tank(conn_t conn, int face) {
 	return 0;
 }
 
+int CMobot::build_wheel(conn_t conn, int face, double size) {
+	// create body
+	conn->body = dBodyCreate(_world);
+    conn->geom = new dGeomID[1];
+
+	// store wheel radius
+	_wheel_radius = size;
+
+    // define parameters
+	dMass m;
+	dMatrix3 R, R1;
+	double p[3] = {0}, offset[3] = {_connector_depth/3, 0, 0};
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
+
+    // set mass of body
+    dMassSetBox(&m, 270, _connector_depth/2, _end_width, _connector_height);
+    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
+
+    // adjust x,y,z to position center of mass correctly
+    p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+    p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+    p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+    // set body parameters
+    dBodySetPosition(conn->body, p[0], p[1], p[2]);
+    dBodySetRotation(conn->body, R);
+
+    // rotation matrix for curves
+    dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
+
+    // set geometry
+    conn->geom[0] = dCreateCylinder(_space, _wheel_radius, 2*_connector_depth/3);
+    dGeomSetBody(conn->geom[0], conn->body);
+    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+    dGeomSetOffsetRotation(conn->geom[0], R1);
+
+    // set mass center to (0,0,0) of _bodyID
+    dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+    dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	this->fix_connector_to_body(face, conn->body);
+
+	// success
+	return 0;
+}
+
 int CMobot::fix_body_to_connector(dBodyID cBody, int face) {
 	if (!cBody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
 
@@ -4109,6 +4172,7 @@ int CMobot::init_dims(void) {
 	_smallwheel_radius = 0.0445;
 	_tank_depth = 0.0413;
 	_tank_height = 0.0460;
+	_wheel_radius = 0.0445;
 
 	// success
 	return 0;
@@ -4461,6 +4525,38 @@ void CMobot::draw_tank(conn_t conn, osg::Group *robot) {
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
     pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+
+	// add body to pat
+	pat->addChild(body.get());
+	// optimize
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(pat);
+	// add to scenegraph
+	robot->addChild(pat);
+}
+
+void CMobot::draw_wheel(conn_t conn, osg::Group *robot) {
+	// initialize variables
+	osg::ref_ptr<osg::Geode> body = new osg::Geode;
+	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
+	const double *pos;
+	dQuaternion quat;
+	osg::Cylinder *cyl;
+
+    // set geometry
+	pos = dGeomGetOffsetPosition(conn->geom[0]);
+	dGeomGetOffsetQuaternion(conn->geom[0], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _wheel_radius, 2*_connector_depth/3);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body->addDrawable(new osg::ShapeDrawable(cyl));
+
+	// apply texture
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(mobot/conn.png)));
+	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
+	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
+	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
+	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
+	pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 
 	// add body to pat
 	pat->addChild(body.get());
