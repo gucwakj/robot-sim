@@ -134,6 +134,7 @@ int RoboSim::init_xml(void) {
 	// initialize variables
 	int *rtmp, *ftmp, *ntmp, *atmp, ctype = 0, cnum = 0;
 	int tracking = 0;
+	double size = 0;
 	_bot = NULL;
 	_robots = NULL;
 	tinyxml2::XMLElement *node = NULL;
@@ -537,6 +538,11 @@ int RoboSim::init_xml(void) {
 				ctype = TINYWHEEL;
 				cnum = 1;
 			}
+			else if ( !strcmp(node->Value(), "wheel") ) {
+				ctype = WHEEL;
+				cnum = 1;
+				node->QueryDoubleAttribute("dia", &size);
+			}
 			rtmp = new int[cnum];
 			ftmp = new int[cnum];
 			ntmp = new int[cnum];
@@ -564,6 +570,7 @@ int RoboSim::init_xml(void) {
 					else {
 						ftmp[i] = ntmp[i];
 						side->QueryIntAttribute("conn", &atmp[i]);
+						side->QueryDoubleAttribute("dia", &size);
 					}
 					i++;
 					side = side->NextSiblingElement();
@@ -581,6 +588,7 @@ int RoboSim::init_xml(void) {
 				nc->face2 = ftmp[j];
 				nc->side = ntmp[j];
 				nc->type = ctype;
+				nc->size = size;
 				nc->next = NULL;
 				tmp = _bot;
 				while (tmp && tmp->id != rtmp[j])

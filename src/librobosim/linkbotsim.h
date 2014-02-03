@@ -229,8 +229,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual void simPostCollisionThread(void);
 
 		// private functions
-		int add_connector(int type, int face);										// add connector to robot
-		int add_daisy_chain(int conn, int side, int face, int type);				// add daisy chained connector
+		int add_connector(int type, int face, double size);								// add connector to robot
+		int add_daisy_chain(int conn, int side, double size, int face, int type);		// add daisy chained connector
 		int build_individual(double x, double y, double z, dMatrix3 R,					// build individual robot
 							 double r_f1, double r_f2, double r_f3);
 		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);			// build rotated and attached robot
@@ -246,6 +246,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int build_simple(conn_t conn, int face, int side = -1, int type = -1);		// build simple connector
 		int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1);	// build small wheel
 		int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);	// build tiny wheel
+		int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);	// build tiny wheel
 		int fix_body_to_connector(dBodyID cBody, int face);							// fix second body to connector
 		int fix_connector_to_body(dBodyID rBody, dBodyID cBody);					// fix connector to robot body
 		int get_body_params(double angle, int face, double rotation, dMatrix3 R, double *p);	// get parameters for attaching robot
@@ -278,6 +279,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		void draw_simple(conn_t conn, osg::Group *robot);
 		void draw_smallwheel(conn_t conn, osg::Group *robot);
 		void draw_tinywheel(conn_t conn, osg::Group *robot);
+		void draw_wheel(conn_t conn, osg::Group *robot);
 #endif // ENABLE_GRAPHICS
 #endif // not _CH_
 };

@@ -150,12 +150,14 @@ typedef enum robot_connector_e {
 	SQUARE,
 	TANK,
 	TINYWHEEL,
+	WHEEL,
 	NUM_CONNECTORS
 } robotConnector_t;
 
 // connector
 typedef struct xml_conn_s {
 	int robot, type, side, face1, face2, conn;
+	double size;
 	struct xml_conn_s *next;
 } *xml_conn_t;
 // robot
@@ -267,7 +269,7 @@ class DLLIMPORT CRobot {
 				_end_width, _end_height, _end_depth, _end_radius,
 				_face_depth, _face_radius;
 		double	_connector_depth, _connector_height, _connector_radius,
-				_bigwheel_radius, _smallwheel_radius, _wheel_depth,
+				_bigwheel_radius, _smallwheel_radius, _wheel_depth, _wheel_radius,
 				// mobot
 				_tank_height, _tank_depth,
 				// linkbot
