@@ -541,7 +541,7 @@ int RoboSim::init_xml(void) {
 			else if ( !strcmp(node->Value(), "wheel") ) {
 				ctype = WHEEL;
 				cnum = 1;
-				node->QueryDoubleAttribute("dia", &size);
+				node->QueryDoubleAttribute("radius", &size);
 			}
 			rtmp = new int[cnum];
 			ftmp = new int[cnum];
@@ -570,7 +570,7 @@ int RoboSim::init_xml(void) {
 					else {
 						ftmp[i] = ntmp[i];
 						side->QueryIntAttribute("conn", &atmp[i]);
-						side->QueryDoubleAttribute("dia", &size);
+						side->QueryDoubleAttribute("radius", &size);
 					}
 					i++;
 					side = side->NextSiblingElement();

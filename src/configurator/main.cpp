@@ -24,6 +24,7 @@ typedef struct robots_s {
 	double x, y, z;
 	double psi, theta, phi;
 	wheels_t wheel;
+	double radius;
 	struct robots_s *next;
 } *robots_t;
 
@@ -54,6 +55,7 @@ G_MODULE_EXPORT void on_x_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_y_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_phi_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_wheeled_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_wheel_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data);
 
@@ -417,6 +419,8 @@ G_MODULE_EXPORT void on_wheeled_changed(GtkWidget *widget, gpointer data) {
 				tmp->wheel = SMALLWHEEL;
 			else if (!strcmp(type, "1.625"))
 				tmp->wheel = TINYWHEEL;
+			else if (!strcmp(type, "Custom"))
+				tmp->wheel = CUSTOM;
 		}
 		else {
 			if (!strcmp(type, "None"))
@@ -427,7 +431,34 @@ G_MODULE_EXPORT void on_wheeled_changed(GtkWidget *widget, gpointer data) {
 				tmp->wheel = SMALLWHEEL;
 			else if (!strcmp(type, "4.13"))
 				tmp->wheel = TINYWHEEL;
+			else if (!strcmp(type, "Custom"))
+				tmp->wheel = CUSTOM;
 		}
+
+		// save configuration
+		saveRobotList();
+	}
+
+	// refesh robot list
+	refreshRobotList();
+}
+
+/*
+ * When a robot's wheel type is changed
+ */
+G_MODULE_EXPORT void on_wheel_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
+	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
+	robots_t tmp = g_robots;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if the robot is found, change its type
+	if (tmp) {
+		// save new wheel radius
+		tmp->radius = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
 
 		// save configuration
 		saveRobotList();
@@ -1866,6 +1897,7 @@ void readXMLConfig(void) {
 				tinyxml2::XMLElement *side = node->LastChildElement();
 				if (side) {
 					int id = -1, wheeltype = -1;
+					double radius = 0;
 					side->QueryIntAttribute("robot", &id);
 					if (side->QueryIntAttribute("conn", &wheeltype) != tinyxml2::XML_NO_ATTRIBUTE) {
 						tmp = g_robots;
@@ -1875,6 +1907,10 @@ void readXMLConfig(void) {
 						if (wheeltype == 0) { if (tmp) tmp->wheel = BIGWHEEL; }
 						else if (wheeltype == 9) { if (tmp) tmp->wheel = SMALLWHEEL; }
 						else if (wheeltype == 12) { if (tmp) tmp->wheel = TINYWHEEL; }
+						else if (wheeltype == 13) { if (tmp) tmp->wheel = CUSTOM; }
+
+						side->QueryDoubleAttribute("radius", &radius);
+						tmp->radius = convert(radius, 0);
 					}
 				}
 			}
@@ -1962,11 +1998,11 @@ void refreshRobotList(void) {
 	static GtkWidget *rootTable = NULL;
 	if(rootTable != NULL)
 		gtk_widget_destroy(rootTable);
-	rootTable = gtk_table_new(g_num, 12, FALSE);
+	rootTable = gtk_table_new(g_num, 13, FALSE);
 
 	// fill table with widgets
 	GtkWidget *w;
-	GtkAdjustment *x_adj, *y_adj, *phi_adj;
+	GtkAdjustment *x_adj, *y_adj, *phi_adj, *wheel_adj;
 	robots_t tmp = g_robots;
 	int i = 0;
 	while (tmp) {
@@ -2031,11 +2067,13 @@ void refreshRobotList(void) {
 			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "2.0");
 			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "1.75");
 			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "1.625");
+			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Custom");
 #else
 			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "0", "None");
 			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "2.0");
 			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "1.75");
 			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "1.625");
+			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "4", "Custom");
 #endif
 		}
 		else {
@@ -2044,21 +2082,34 @@ void refreshRobotList(void) {
 			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "5.08");
 			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "4.45");
 			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "4.13");
+			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Custom");
 #else
 			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "0", "None");
 			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "5.08");
 			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "4.45");
 			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "4.13");
+			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "4", "Custom");
 #endif
 		}
 		gtk_combo_box_set_active(GTK_COMBO_BOX(w), tmp->wheel);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_wheeled_changed), (void *)(tmp->id));
+		// wheel radius
+		if (tmp->wheel == CUSTOM) {
+			wheel_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->radius, 0, 180, 0.1, 1, 1));
+			w = gtk_spin_button_new(wheel_adj, 0.1, 3);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_wheel_value_changed), (void *)(tmp->id));
+		}
 		// remove button
 		w = gtk_button_new_with_label("Remove");
 		gtk_widget_show(w);
-		gtk_table_attach(GTK_TABLE(rootTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		if (tmp->wheel == CUSTOM)
+			gtk_table_attach(GTK_TABLE(rootTable), w, 12, 13, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		else
+			gtk_table_attach(GTK_TABLE(rootTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_clicked), (void *)(tmp->id));
 		// next robot
 		tmp = tmp->next;
@@ -2167,6 +2218,12 @@ void saveRobotList(void) {
 			else if (tmp->wheel == TINYWHEEL) {
 				s1side2->SetAttribute("conn", 12);
 				s2side2->SetAttribute("conn", 12);
+			}
+			else if (tmp->wheel == CUSTOM) {
+				s1side2->SetAttribute("conn", 13);
+				s2side2->SetAttribute("conn", 13);
+				s1side2->SetAttribute("radius", convert(tmp->radius, 1));
+				s2side2->SetAttribute("radius", convert(tmp->radius, 1));
 			}
 
 			tinyxml2::XMLElement *caster = g_doc.NewElement("caster");
