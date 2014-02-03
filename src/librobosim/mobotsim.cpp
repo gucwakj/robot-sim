@@ -2475,6 +2475,13 @@ int CMobot::turnRightNB(double angle, double radius, double tracklength) {
 /**********************************************************
 	inherited functions
  **********************************************************/
+int CMobot::addBuddy(int i, CRobot *robot) {
+	_buddy[i-1] = robot;
+
+	// success
+	return 0;
+}
+
 int CMobot::addToSim(dWorldID &world, dSpaceID &space, double *clock) {
 	_world = world;
     _space = dHashSpaceCreate(space);
@@ -2554,6 +2561,10 @@ double CMobot::getAngle(int i) {
 	//this->noisy(&(_angle[i]), 1, 0.0005);
 
 	return _angle[i];
+}
+
+double CMobot::getAngularRate(int i) {
+	return dJointGetAMotorParam(this->getMotorID(i), dParamVel);
 }
 
 dBodyID CMobot::getBodyID(int id) {
@@ -4150,6 +4161,7 @@ int CMobot::init_params(void) {
 	// fill with default data
 	for (int i = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
+		_buddy[i] = NULL;
 		_goal[i] = 0;
 		_max_speed[i] = 120;	// deg/sec
 		_recording[i] = false;

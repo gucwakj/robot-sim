@@ -235,10 +235,12 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		};
 
 		// private functions inherited from CRobot class
+		virtual int addBuddy(int i, CRobot *robot);
 		virtual int addToSim(dWorldID &world, dSpaceID &space, double *clock);
 		virtual int build(xml_robot_t robot);
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn);
 		virtual double getAngle(int i);
+		virtual double getAngularRate(int i);
 		virtual dBodyID getBodyID(int id);
 		virtual double getCenter(int i);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);

@@ -757,6 +757,7 @@ int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 	}
 	dBodyEnable(_body[BODY]);
 	MUTEX_UNLOCK(&_angle_mutex);
+printf("set joint speed: %lf\n", dJointGetAMotorParam(_motor[id], dParamVel));
 
 	// set success to false
 	MUTEX_LOCK(&_success_mutex);
@@ -2181,6 +2182,13 @@ int CLinkbotT::turnRightNB(double angle, double radius, double tracklength) {
 /**********************************************************
 	inherited functions
  **********************************************************/
+int CLinkbotT::addBuddy(int i, CRobot *robot) {
+	_buddy[i-1] = robot;
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space, double *clock) {
 	_world = world;
     _space = dHashSpaceCreate(space);
@@ -2274,6 +2282,10 @@ double CLinkbotT::getAngle(int i) {
 	//this->noisy(&(_angle[i]), 1, 0.0005);
 
     return _angle[i];
+}
+
+double CLinkbotT::getAngularRate(int i) {
+	return dJointGetAMotorParam(_motor[i], dParamVel);
 }
 
 dBodyID CLinkbotT::getBodyID(int id) {
@@ -2417,6 +2429,44 @@ void CLinkbotT::simPreCollisionThread(void) {
 	_accel[2] = R[10];
 	// add gaussian noise to accel
 	this->noisy(_accel, 3, 0.005);
+
+	// ############################
+	double rate[3] = {0};
+	//printf("robot %d ", _id);
+	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
+		int i = _enabled[j];
+		if (_buddy[i])
+			rate[i] = _buddy[i]->getAngularRate(i);
+		_seek[i] = 0;
+		//printf("joint %d rate %lf ", i, rate[i]);
+		if (rate[i] > 0) {
+			_state[i] = ROBOT_BACKWARD;
+			//printf("backward\t");
+		}
+		else if (rate[i] < 0) {
+			_state[i] = ROBOT_FORWARD;
+			//printf("forward\t");
+		}
+		else {
+			_state[i] = ROBOT_HOLD;
+			//printf("hold\t");
+		}
+		_speed[i] = fabs(rate[i]);
+
+		if (i == 0 && -0.90 < _accel[2] && _accel[2] < 0.90) {
+//printf("accel %lf ", _accel[2]);
+			_speed[i] = 0.25*DEG2RAD(_max_speed[i]);
+			_state[i] = (_state[i] == ROBOT_FORWARD) ? ROBOT_BACKWARD : ROBOT_FORWARD;
+		}
+		/*else if (i == 0 && _accel[2] < 0.90 && _accel[2] > 0) {
+//printf("accel %lf ", _accel[2]);
+			_speed[i] = 0.25*DEG2RAD(_max_speed[i]);
+			_state[i] = (_state[i] == ROBOT_FORWARD) ? ROBOT_BACKWARD : ROBOT_FORWARD;
+		}*/
+	}
+printf("\n");
+	//printf("robot %d speed %lf state %d accel %lf\n", _id, _speed[0], _state[0], _accel[2]);
+	// ############################
 
 	// starting out counter to slowly ramp up speed
 	static int starting[NUM_DOF] = {0};
@@ -3830,6 +3880,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	// create arrays for linkbots
 	_angle = new double[NUM_DOF];
 	_body = new dBodyID[NUM_PARTS];
+	_buddy = new CRobot * [NUM_DOF];
 	_enabled = new int[(disabled == -1) ? 3 : 2];
 	_geom = new dGeomID * [NUM_PARTS];
 	_goal = new double[NUM_DOF];
@@ -3850,6 +3901,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	// fill with default data
 	for (int i = 0, j = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
+		_buddy[i] = NULL;
 		_goal[i] = 0;
 		_max_force[i] = 2;
 		_max_speed[i] = 240;		// deg/sec

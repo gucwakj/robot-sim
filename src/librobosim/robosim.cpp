@@ -780,7 +780,24 @@ int RoboSim::addRobot(CRobot *robot) {
 	// draw robot
 	nr->node = robot->draw(_shadowed, btmp->tracking);
 #endif // ENABLE_GRAPHICS
-	
+
+	// find buddies	
+	ctmp = btmp->conn;
+	while (ctmp) {
+		if (ctmp->robot != btmp->id) {
+			rtmp = _robots;
+			while (rtmp) {
+				if (rtmp->robot->getRobotID() == ctmp->robot) {
+					robot->addBuddy(ctmp->face2, rtmp->robot);
+					rtmp->robot->addBuddy(ctmp->face1, robot);
+					break;
+				}
+				rtmp = rtmp->next;
+			}
+		}
+		ctmp = ctmp->next;
+	}
+
 	// unlock robot data
 	MUTEX_UNLOCK(&_robot_mutex);
 

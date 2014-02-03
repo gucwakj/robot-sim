@@ -189,6 +189,7 @@ class DLLIMPORT CRobot {
 		int noisy(double *a, int length, double sigma);
 
 		// pure virtual functions to be overridden by inherited classes of each robot
+		virtual int addBuddy(int i, CRobot *robot) = 0;
 		virtual int addToSim(dWorldID &world, dSpaceID &space, double *clock) = 0;
 		virtual int build(xml_robot_t robot) = 0;
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn) = 0;
@@ -201,6 +202,7 @@ class DLLIMPORT CRobot {
 		virtual int getRobotID(void) = 0;
 		virtual dJointID getMotorID(int motor) = 0;
 		virtual double getAngle(int i) = 0;
+		virtual double getAngularRate(int i) = 0;
 		virtual double getCenter(int i) = 0;
 		virtual double getPosition(int body, int i) = 0;
 		virtual double getRotation(int body, int i) = 0;
@@ -241,6 +243,7 @@ class DLLIMPORT CRobot {
 		bool *_seek;			// currently seeking goal?
 		bool *_success;			// trigger for goal
 		conn_t _conn;			// connectors
+		CRobot **_buddy;
 		dBodyID *_body;			// body parts
 		dGeomID **_geom;		// geometries of each body part
 		dJointID *_joint;		// joints between body parts
