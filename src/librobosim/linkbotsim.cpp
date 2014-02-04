@@ -4301,8 +4301,8 @@ void CLinkbotT::draw_wheel(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// add zero position dots
-	int n = 3;
-	double step = (_tinywheel_radius*5/6)/(n-1);
+	int n = 2;
+	double step = (_wheel_radius*5/6)/(n-1);
 	for (int i = 0; i < n; i++) {
 		cyl = new osg::Cylinder(osg::Vec3d(pos[0]+0.0001, pos[1], pos[2]+i*step), 0.0025, _wheel_depth);
 		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
