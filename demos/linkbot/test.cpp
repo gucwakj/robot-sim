@@ -6,12 +6,8 @@ int main(int argc, char *argv[]) {
 	CLinkbotI robot1;
 
 	robot1.connect();
-	//robot1.setTwoWheelRobotSpeed(7, 1.75);
-	robot1.setJointSpeed(ROBOT_JOINT1, 250);
-	robot1.setJointSpeed(ROBOT_JOINT3, 240);
-	//robot1.moveForward(360);
-	//robot1.moveBackward(360);
-	//robot1.moveDistance(5, 1.75);
+
+	robot1.movexy(-1, 0, 1.625, 3.69);
 
 	return 0;
 }
