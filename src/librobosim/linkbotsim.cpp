@@ -1863,7 +1863,15 @@ int CLinkbotT::setJointSafetyAngleTimeout(double seconds) {
 }
 
 int CLinkbotT::setJointSpeed(robotJointId_t id, double speed) {
-	_speed[id] = DEG2RAD((speed > _max_speed[id]) ? _max_speed[id] : speed);
+	if (speed > _max_speed[id]) {
+		fprintf(stderr, "Warning: Cannot set speed for joint %d to %.2lf degrees/second which is "
+			"beyond the maximum limit of %.2lf degrees/second.\n",
+			id, speed, _max_speed[id]);
+		_speed[id] = DEG2RAD(_max_speed[id]);
+	}
+	else {
+		_speed[id] = DEG2RAD(speed);
+	}
 
 	// success
 	return 0;
