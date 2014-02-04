@@ -706,10 +706,9 @@ int RoboSim::addRobot(CRobot *robot) {
 		_robots = nr;
 	else {
 		while (rtmp->next) {
-			if (rtmp->robot->getType() == robot->getType()) connected++;
+			connected++;
 			rtmp = rtmp->next;
 		}
-		if (rtmp->robot->getType() == robot->getType()) connected++;
 		rtmp->next = nr;
 	}
 
@@ -717,11 +716,15 @@ int RoboSim::addRobot(CRobot *robot) {
 	xml_robot_t btmp = _bot;
 	int num = 0;
 	while (btmp) {
-		if (btmp->type != robot->getType()) { btmp = btmp->next; continue; }
-		else { if (num++ != connected) {btmp = btmp->next; continue;}}
+		if (num++ != connected) {
+			btmp = btmp->next;
+			continue;
+		}
 		break;
 	}
-	if (btmp == NULL) {
+
+	// no robot found
+	if (btmp == NULL || btmp->type != robot->getType()) {
 		switch (robot->getType()) {
 			case LINKBOTI:
 				fprintf(stderr, "Error: Could not find LinkbotI in RoboSim GUI.\n");
