@@ -329,10 +329,18 @@ int CMobot::line(double x1, double y1, double z1, double x2, double y2, double z
 		colors->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	geom->setColorArray(colors);
 	geom->setColorBinding(osg::Geometry::BIND_OVERALL);
+	line->addDrawable(geom);
+
+	// set line width
 	osg::LineWidth *width = new osg::LineWidth();
 	width->setWidth(linewidth*3.0f);
 	line->getOrCreateStateSet()->setAttributeAndModes(width, osg::StateAttribute::ON);
-	line->addDrawable(geom);
+
+	// set rendering properties
+	line->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+	line->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+	// add to root
 	_root->addChild(line);
 
 	// success
@@ -1446,6 +1454,12 @@ int CMobot::point(double x, double y, double z, int pointsize, char *color) {
 		pointDrawable->setColor(osg::Vec4(getRGB[0]/255.0, getRGB[1]/255.0, getRGB[2]/255.0, 1));
 	else
 		pointDrawable->setColor(osg::Vec4(1, 1, 1, 1));
+
+	// set rendering properties
+	point->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+	point->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+	// add to root
 	_root->addChild(point);
 
 	// success
@@ -2401,9 +2415,7 @@ int CMobot::text(double x, double y, double z, char *text) {
 	osgText::Text *label = new osgText::Text();
 	osg::Geode *label_geode = new osg::Geode();
 	label_geode->addDrawable(label);
-	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	label_geode->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin");
+	label_geode->getOrCreateStateSet()->setRenderBinDetails(22, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
 	label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 	label->setAlignment(osgText::Text::CENTER_CENTER);
 	label->setAxisAlignment(osgText::Text::SCREEN);
@@ -2946,6 +2958,12 @@ int CMobot::draw(osg::Group *root, int tracking) {
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
     robot->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 
+	// set rendering properties
+	for (int i = 0; i < 5; i++) {
+		body[i]->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+		body[i]->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	}
+
 	// position each body within robot
 	for (int i = 0; i < NUM_PARTS; i++) {
 		pat[i] = new osg::PositionAttitudeTransform;
@@ -2995,7 +3013,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	label_geode->setNodeMask(NOT_VISIBLE_MASK);
 	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
 	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	label_geode->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin");
+	label_geode->getOrCreateStateSet()->setRenderBinDetails(22, "RenderBin");
 	label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 	label->setAlignment(osgText::Text::CENTER_CENTER);
 	label->setAxisAlignment(osgText::Text::SCREEN);
@@ -3023,6 +3041,10 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	osg::Point *point = new osg::Point();
 	point->setSize(4.0f);
 	trackingGeode->getOrCreateStateSet()->setAttributeAndModes(point, osg::StateAttribute::ON);
+	trackingGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+	trackingGeode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+	trackingGeode->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+	trackingGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
 	trackingGeode->addDrawable(trackingLine);
 	robot->insertChild(1, trackingGeode);
 
@@ -4273,6 +4295,10 @@ void CMobot::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
 	pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 
+	// set rendering
+	body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin");
+	body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
 	// add body to pat
 	pat->addChild(body.get());
 	// optimize
@@ -4354,6 +4380,10 @@ void CMobot::draw_caster(conn_t conn, osg::Group *robot) {
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
     pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 
+	// set rendering
+	body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin");
+	body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
 	// add body to pat
 	pat->addChild(body.get());
 	// optimize
@@ -4420,6 +4450,10 @@ void CMobot::draw_simple(conn_t conn, osg::Group *robot) {
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
     pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 
+	// set rendering
+	body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin");
+	body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
 	// add body to pat
 	pat->addChild(body.get());
 	// optimize
@@ -4451,6 +4485,10 @@ void CMobot::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
 	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
 	pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+
+	// set rendering
+	body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin");
+	body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 
 	// add body to pat
 	pat->addChild(body.get());
@@ -4499,6 +4537,10 @@ void CMobot::draw_square(conn_t conn, osg::Group *robot) {
 	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
 	pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 
+	// set rendering
+	body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin");
+	body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
 	// add body to pat
 	pat->addChild(body.get());
 	// optimize
@@ -4534,6 +4576,10 @@ void CMobot::draw_tank(conn_t conn, osg::Group *robot) {
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
     pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 
+	// set rendering
+	body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin");
+	body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
 	// add body to pat
 	pat->addChild(body.get());
 	// optimize
@@ -4565,6 +4611,10 @@ void CMobot::draw_wheel(conn_t conn, osg::Group *robot) {
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
 	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
 	pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+
+	// set rendering
+	body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin");
+	body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 
 	// add body to pat
 	pat->addChild(body.get());
