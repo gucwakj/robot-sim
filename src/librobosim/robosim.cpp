@@ -1526,9 +1526,3 @@ void* RoboSim::graphics_thread(void *arg) {
 }
 #endif // ENABLE_GRAPHICS
 
-/**********************************************************
-	Utility functions
- **********************************************************/
-int isEmbeddedCh(void) {
-	return 1;
-}

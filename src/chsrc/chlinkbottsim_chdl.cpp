@@ -50,9 +50,11 @@ EXPORTCH int CLinkbotT_connect_chdl(void *varg) {
     class CLinkbotT *robot;
     int retval;
 
+	int embed = 0;
+
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotT *);
-    retval = robot->connect();
+    retval = robot->connect(!embed);
     Ch_VaEnd(interp, ap);
     return retval;
 }

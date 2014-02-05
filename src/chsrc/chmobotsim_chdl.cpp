@@ -50,9 +50,11 @@ EXPORTCH int CMobot_connect_chdl(void *varg) {
     class CMobot *robot;
     int retval;
 
+	int embed = 0;
+
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CMobot *);
-    retval = robot->connect();
+    retval = robot->connect(!embed);
     Ch_VaEnd(interp, ap);
     return retval;
 }

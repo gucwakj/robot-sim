@@ -3,12 +3,12 @@
 #include <windows.h>
 #endif
 #include <ch.h>
-struct langflags {
+/*struct langflags {
 	int tmp1;
 	char *tmp2;
 	int embedch;
 };
-extern struct langflags *e_lang;
+extern struct langflags *e_lang;*/
 
 EXPORTCH void CLinkbotI_CLinkbotI_chdl(void *varg) {
 	ChInterp_t interp;
@@ -56,18 +56,18 @@ EXPORTCH int CLinkbotI_connect_chdl(void *varg) {
     class CLinkbotI *robot;
     int retval;
 
-int embed;
-	if (e_lang != NULL) {
+	int embed = 0;
+	/*if (e_lang != NULL) {
 		embed = 0;
 	}
 	else {
 		embed = 1;
 	}
-printf("embed: %d\n", embed);
+printf("embed: %d\n", embed);*/
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    retval = robot->connect();
+    retval = robot->connect(!embed);
     Ch_VaEnd(interp, ap);
     return retval;
 }
