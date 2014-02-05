@@ -775,7 +775,7 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
 		rot->SetAttribute("psi", 0);
 		rot->SetAttribute("theta", 0);
-		rot->SetAttribute("phi", 0);
+		rot->SetAttribute("phi", -90);
 		robot1->InsertAfterChild(pos, rot);
 		// insert robot1
 		sim->InsertFirstChild(robot1);
@@ -1195,7 +1195,7 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
 		rot->SetAttribute("psi", 90);
 		rot->SetAttribute("theta", 180);
-		rot->SetAttribute("phi", 0);
+		rot->SetAttribute("phi", -90);
 		robot1->InsertAfterChild(pos, rot);
 		// insert robot1
 		sim->InsertFirstChild(robot1);
@@ -1347,7 +1347,7 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
 		rot->SetAttribute("psi", 0);
 		rot->SetAttribute("theta", 0);
-		rot->SetAttribute("phi", 0);
+		rot->SetAttribute("phi", 180);
 		robot1->InsertAfterChild(pos, rot);
 		// insert robot1
 		sim->InsertFirstChild(robot1);

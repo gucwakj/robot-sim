@@ -3768,7 +3768,7 @@ int CLinkbotT::get_body_params(double angle, int face, double rotation, dMatrix3
 
 int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, double *p) {
 	double offset[3] = {0};
-	dMatrix3 R1, R2, R3, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
+	dMatrix3 R1, R2, R3, R4, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
 
 	switch (type) {
 		case BRIDGE:
@@ -3793,9 +3793,10 @@ int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, double *p) {
 			else if (side == 5) {
 				offset[0] = _cubic_length/2;
 				offset[2] = _cubic_length/2;
-				dRFromAxisAndAngle(R2, R[2], R[6], R[10], -M_PI/2);
-				dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], M_PI/2);
-				dMultiply0(R1, R3, R2, 3, 3, 3);
+				dRFromAxisAndAngle(R2, R[1], R[5], R[9], -M_PI/2);
+				dMultiply0(R3, R2, R, 3, 3, 3);
+				dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -M_PI/2);
+				dMultiply0(R1, R4, R2, 3, 3, 3);
 			}
 			break;
 		case OMNIDRIVE:

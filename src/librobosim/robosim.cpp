@@ -709,14 +709,16 @@ int RoboSim::addRobot(CRobot *robot) {
 			connected++;
 			rtmp = rtmp->next;
 		}
+		connected++;
 		rtmp->next = nr;
 	}
+	connected++;
 
 	// find specs about new robot
 	xml_robot_t btmp = _bot;
 	int num = 0;
 	while (btmp) {
-		if (num++ != connected) {
+		if (++num != connected) {
 			btmp = btmp->next;
 			continue;
 		}
