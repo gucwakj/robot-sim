@@ -261,7 +261,7 @@ G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data)
 	char  *chhome = getenv("CHHOME");
 	strcpy(path, chhome);
 	strcat(path, "\\package\\chrobosim\\docs\\robosim.pdf");
-	ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOW);
+	ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOWNORMAL);
 #endif
 }
 
