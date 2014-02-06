@@ -2437,40 +2437,40 @@ void CLinkbotT::simPreCollisionThread(void) {
 	this->noisy(_accel, 3, 0.005);
 
 	// ############################
-	/*double rate[3] = {0};
 	//printf("robot %d ", _id);
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
+		double rate[3] = {0};
 		int i = _enabled[j];
-		if (_buddy[i])
+		if (_buddy[i]) {
 			rate[i] = _buddy[i]->getAngularRate(i);
-		_seek[i] = 0;
-		//printf("joint %d rate %lf ", i, rate[i]);
-		if (rate[i] > 0) {
-			_state[i] = ROBOT_BACKWARD;
-			//printf("backward\t");
-		}
-		else if (rate[i] < 0) {
-			_state[i] = ROBOT_FORWARD;
-			//printf("forward\t");
-		}
-		else {
-			_state[i] = ROBOT_HOLD;
-			//printf("hold\t");
-		}
-		_speed[i] = fabs(rate[i]);
+			_seek[i] = 0;
+			//printf("joint %d rate %lf ", i, rate[i]);
+			if (rate[i] > 0) {
+				_state[i] = ROBOT_BACKWARD;
+				//printf("backward\t");
+			}
+			else if (rate[i] < 0) {
+				_state[i] = ROBOT_FORWARD;
+				//printf("forward\t");
+			}
+			else {
+				_state[i] = ROBOT_HOLD;
+				//printf("hold\t");
+			}
+			_speed[i] = fabs(rate[i]);
 
-		if (i == 0 && -0.90 < _accel[2] && _accel[2] < 0.90) {
-//printf("accel %lf ", _accel[2]);
-			_speed[i] = 0.25*DEG2RAD(_max_speed[i]);
-			_state[i] = (_state[i] == ROBOT_FORWARD) ? ROBOT_BACKWARD : ROBOT_FORWARD;
+			if (i == 0 && -0.90 < _accel[2] && _accel[2] < 0.90) {
+				//printf("accel %lf ", _accel[2]);
+				_speed[i] = 0.25*DEG2RAD(_max_speed[i]);
+				_state[i] = (_state[i] == ROBOT_FORWARD) ? ROBOT_BACKWARD : ROBOT_FORWARD;
+			}
+			else if (i == 0 && _accel[2] < 0.90 && _accel[2] > 0) {
+				//printf("accel %lf ", _accel[2]);
+				_speed[i] = 0.25*DEG2RAD(_max_speed[i]);
+				_state[i] = (_state[i] == ROBOT_FORWARD) ? ROBOT_BACKWARD : ROBOT_FORWARD;
+			}
 		}
-		else if (i == 0 && _accel[2] < 0.90 && _accel[2] > 0) {
-//printf("accel %lf ", _accel[2]);
-			_speed[i] = 0.25*DEG2RAD(_max_speed[i]);
-			_state[i] = (_state[i] == ROBOT_FORWARD) ? ROBOT_BACKWARD : ROBOT_FORWARD;
-		}
-	}*/
-//printf("\n");
+	}
 	//printf("robot %d speed %lf state %d accel %lf\n", _id, _speed[0], _state[0], _accel[2]);
 	// ############################
 
