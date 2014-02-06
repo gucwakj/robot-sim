@@ -77,6 +77,7 @@ createpkg: librobosim.dl
 	rm -rf $(PACKAGE)-$(VERSION)
 	rm -rf $(PACKAGE)-$(VERSION).zip
 	mkdir -p $(PKGDIR)
+	cp ../../README $(PKGDIR)
 	mkdir $(PKGDIR)/bin
 	cp ../opende/sys/lib/libode.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosg.so $(PKGDIR)/bin
