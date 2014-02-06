@@ -2097,7 +2097,7 @@ void refreshRobotList(void) {
 		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_wheeled_changed), (void *)(tmp->id));
 		// wheel radius
 		if (tmp->wheel == CUSTOM) {
-			wheel_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->radius, 0, 180, 0.1, 1, 1));
+			wheel_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->radius, 0.1, 180, 0.1, 1, 1));
 			w = gtk_spin_button_new(wheel_adj, 0.1, 3);
 			gtk_widget_show(w);
 			gtk_table_attach(GTK_TABLE(rootTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
