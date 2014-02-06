@@ -235,44 +235,45 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual void simPostCollisionThread(void);
 
 		// private functions
-		int add_connector(int type, int face, double size);								// add connector to robot
-		int add_daisy_chain(int conn, int side, double size, int face, int type);		// add daisy chained connector
-		int build_individual(double x, double y, double z, dMatrix3 R,					// build individual robot
+		int add_connector(int type, int face, double size);									// add connector to robot
+		int add_daisy_chain(int conn, int side, double size, int face, int type);			// add daisy chained connector
+		int build_individual(double x, double y, double z, dMatrix3 R,						// build individual robot
 							 double r_f1, double r_f2, double r_f3);
-		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);			// build rotated and attached robot
-		int build_body(double x, double y, double z, dMatrix3 R, double theta);			// build body of mobot
-		int build_face(int id, double x, double y, double z, dMatrix3 R, double theta);	// build face of mobot
-		int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1);	// build big wheel
-		int build_bridge(conn_t conn, int face, int side = -1, int type = -1);		// build bridge
-		int build_caster(conn_t conn, int face, int side = -1, int type = -1);		// build caster
-		int build_cube(conn_t conn, int face, int side = -1, int type = -1);		// build cube
-		int build_faceplate(conn_t conn, int face, int side = -1, int type = -1);	// build faceplate connector
-		int build_gripper(conn_t conn, int face);									// build gripper
-		int build_omnidrive(conn_t conn, int face, int side = -1, int type = -1);	// build omnidrive plate
-		int build_simple(conn_t conn, int face, int side = -1, int type = -1);		// build simple connector
-		int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1);	// build small wheel
-		int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);	// build tiny wheel
+		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);				// build rotated and attached robot
+		int build_body(double x, double y, double z, dMatrix3 R, double theta);				// build body of mobot
+		int build_face(int id, double x, double y, double z, dMatrix3 R, double theta);		// build face of mobot
+		int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1);			// build big wheel
+		int build_bridge(conn_t conn, int face, int side = -1, int type = -1);				// build bridge
+		int build_caster(conn_t conn, int face, int side = -1, int type = -1);				// build caster
+		int build_cube(conn_t conn, int face, int side = -1, int type = -1);				// build cube
+		int build_faceplate(conn_t conn, int face, int side = -1, int type = -1);			// build faceplate connector
+		int build_gripper(conn_t conn, int face);											// build gripper
+		int build_omnidrive(conn_t conn, int face, int side = -1, int type = -1);			// build omnidrive plate
+		int build_simple(conn_t conn, int face, int side = -1, int type = -1);				// build simple connector
+		int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1);			// build small wheel
+		int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);			// build tiny wheel
 		int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);	// build tiny wheel
-		int fix_body_to_connector(dBodyID cBody, int face);							// fix second body to connector
-		int fix_connector_to_body(dBodyID rBody, dBodyID cBody);					// fix connector to robot body
-		int get_body_params(double angle, int face, double rotation, dMatrix3 R, double *p);	// get parameters for attaching robot
-		int get_connector_params(int type, int side, dMatrix3 R, double *p);		// get parameters of connector
-		int init_params(int disabled, int type);									// initialize robot parameters
-		int init_dims(void);														// initialize robot dimensions
-		double mod_angle(double past_ang, double cur_ang, double ang_rate);				// modify angle to count continuously
-        //void resetPID(int i = NUM_DOF);											// reset PID controller
-		static void* motionDistanceThread(void *arg);								// thread to run motion distance
-		static void* motionRollBackwardThread(void *arg);							// thread to run motion roll backward
-		static void* motionRollForwardThread(void *arg);							// thread to run motion roll forward
-		static void* motionTurnLeftThread(void *arg);								// thread to run motion turn left
-		static void* motionTurnRightThread(void *arg);								// thread to run motion turn right
-		static void* movexyThread(void *arg);										// thread to run movexy
-		static void* movexyToThread(void *arg);										// thread to run movexy
-		static void* recordAngleThread(void *arg);									// thread to record angle
-		static void* recordAngleBeginThread(void *arg);								// thread to record angle
-		static void* recordAnglesThread(void *arg);									// thread to record angles
-		static void* recordAnglesBeginThread(void *arg);							// thread to record angles
-		static void* setMovementStateTimeNBThread(void *arg);						// thread to set movement state
+		int fix_body_to_connector(dBodyID cBody, int face);									// fix second body to connector
+		int fix_body_to_ground(dBodyID cbody);												// fix body to ground
+		int fix_connector_to_body(dBodyID rBody, dBodyID cBody);							// fix connector to robot body
+		int get_body_params(double angle, int face, double rotation, dMatrix3 R, double *p);// get parameters for attaching robot
+		int get_connector_params(int type, int side, dMatrix3 R, double *p);				// get parameters of connector
+		int init_params(int disabled, int type);											// initialize robot parameters
+		int init_dims(void);																// initialize robot dimensions
+		double mod_angle(double past_ang, double cur_ang, double ang_rate);					// modify angle to count continuously
+        //void resetPID(int i = NUM_DOF);													// reset PID controller
+		static void* motionDistanceThread(void *arg);										// thread to run motion distance
+		static void* motionRollBackwardThread(void *arg);									// thread to run motion roll backward
+		static void* motionRollForwardThread(void *arg);									// thread to run motion roll forward
+		static void* motionTurnLeftThread(void *arg);										// thread to run motion turn left
+		static void* motionTurnRightThread(void *arg);										// thread to run motion turn right
+		static void* movexyThread(void *arg);												// thread to run movexy
+		static void* movexyToThread(void *arg);												// thread to run movexy
+		static void* recordAngleThread(void *arg);											// thread to record angle
+		static void* recordAngleBeginThread(void *arg);										// thread to record angle
+		static void* recordAnglesThread(void *arg);											// thread to record angles
+		static void* recordAnglesBeginThread(void *arg);									// thread to record angles
+		static void* setMovementStateTimeNBThread(void *arg);								// thread to set movement state
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group *root, int tracking);
 		void draw_bigwheel(conn_t conn, osg::Group *robot);

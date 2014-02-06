@@ -231,6 +231,9 @@ int RoboSim::init_xml(void) {
 				ele->QueryDoubleAttribute("a3", &(nr->angle3));
 				ele->QueryDoubleAttribute("a4", &(nr->angle4));
 			}
+			if (node->QueryIntAttribute("ground", &(nr->ground))) {
+				nr->ground = 0;
+			}
 			nr->conn = NULL;
 			nr->next = NULL;
 
@@ -277,6 +280,9 @@ int RoboSim::init_xml(void) {
 					nr->psi = M_PI;
 				else if (o == 4)
 					nr->psi = 3*M_PI/2;
+			}
+			if (node->QueryIntAttribute("ground", &(nr->ground))) {
+				nr->ground = 0;
 			}
 			nr->conn = NULL;
 			nr->next = NULL;
@@ -325,6 +331,9 @@ int RoboSim::init_xml(void) {
 				else if (o == 4)
 					nr->psi = 3*M_PI/2;
 			}
+			if (node->QueryIntAttribute("ground", &(nr->ground))) {
+				nr->ground = 0;
+			}
 			nr->conn = NULL;
 			nr->next = NULL;
 
@@ -371,6 +380,9 @@ int RoboSim::init_xml(void) {
 					nr->psi = M_PI;
 				else if (o == 4)
 					nr->psi = 3*M_PI/2;
+			}
+			if (node->QueryIntAttribute("ground", &(nr->ground))) {
+				nr->ground = 0;
 			}
 			nr->conn = NULL;
 			nr->next = NULL;

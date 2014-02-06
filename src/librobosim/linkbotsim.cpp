@@ -2245,6 +2245,9 @@ int CLinkbotT::build(xml_robot_t robot) {
 		ctmp = ctmp->next;
 	}
 
+	// fix to ground
+	if (robot->ground) this->fix_body_to_ground(_body[BODY]);
+
 	// success
 	return 0;
 }
@@ -2267,6 +2270,9 @@ int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 		}
 		ctmp = ctmp->next;
 	}
+
+	// fix to ground
+	if (robot->ground) this->fix_body_to_ground(_body[BODY]);
 
 	// success
 	return 0;
@@ -2431,7 +2437,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 	this->noisy(_accel, 3, 0.005);
 
 	// ############################
-	double rate[3] = {0};
+	/*double rate[3] = {0};
 	//printf("robot %d ", _id);
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		int i = _enabled[j];
@@ -2458,13 +2464,13 @@ void CLinkbotT::simPreCollisionThread(void) {
 			_speed[i] = 0.25*DEG2RAD(_max_speed[i]);
 			_state[i] = (_state[i] == ROBOT_FORWARD) ? ROBOT_BACKWARD : ROBOT_FORWARD;
 		}
-		/*else if (i == 0 && _accel[2] < 0.90 && _accel[2] > 0) {
+		else if (i == 0 && _accel[2] < 0.90 && _accel[2] > 0) {
 //printf("accel %lf ", _accel[2]);
 			_speed[i] = 0.25*DEG2RAD(_max_speed[i]);
 			_state[i] = (_state[i] == ROBOT_FORWARD) ? ROBOT_BACKWARD : ROBOT_FORWARD;
-		}*/
-	}
-printf("\n");
+		}
+	}*/
+//printf("\n");
 	//printf("robot %d speed %lf state %d accel %lf\n", _id, _speed[0], _state[0], _accel[2]);
 	// ############################
 
@@ -3754,6 +3760,22 @@ int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
 
 	// attach to correct body
 	dJointAttach(joint, cBody, this->getBodyID(face));
+
+	// set joint params
+	dJointSetFixed(joint);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::fix_body_to_ground(dBodyID cbody) {
+	if (!cbody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
+
+	// fixed joint
+	dJointID joint = dJointCreateFixed(_world, 0);
+
+	// attach to correct body
+	dJointAttach(joint, 0, cbody);
 
 	// set joint params
 	dJointSetFixed(joint);
