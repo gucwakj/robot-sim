@@ -1,14 +1,9 @@
-TODO File for iMobot Simulations
+TODO File for RoboSim
 
 General:
-	docs/, AUTHORS, README
+	AUTHORS, README
 
 Forward Dynamics:
-	Parallelize the code
-		The gumstix aren't as fast as desktops and the simulations take a few
-		seconds to run.  If not parallel, only one module can be doing work at a
-		time leaving the others to sit idle.  When stringing multiple
-		simulations together, this can add up.
 	Weight distribution
 		Values are currently guessed.  Need a more accurate distribution of
 		weights from a cad model.  Started work based on Graham's cad model within
