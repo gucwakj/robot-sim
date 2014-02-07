@@ -2246,7 +2246,7 @@ int CLinkbotT::build(xml_robot_t robot) {
 	}
 
 	// fix to ground
-	if (robot->ground) this->fix_body_to_ground(_body[BODY]);
+	if (robot->ground != -1) this->fix_body_to_ground(_body[robot->ground]);
 
 	// success
 	return 0;
@@ -2272,7 +2272,7 @@ int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 	}
 
 	// fix to ground
-	if (robot->ground) this->fix_body_to_ground(_body[BODY]);
+	if (robot->ground != -1) this->fix_body_to_ground(_body[robot->ground]);
 
 	// success
 	return 0;
