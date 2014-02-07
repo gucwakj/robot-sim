@@ -898,6 +898,10 @@ int RoboSim::getUnits(void) {
 	return _us;
 }
 
+int RoboSim::runSimulation(void) {
+	return this->setExitState();
+}
+
 int RoboSim::setExitState(void) {
 	MUTEX_LOCK(&_running_mutex);
 	while (_running) {

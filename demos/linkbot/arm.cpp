@@ -15,5 +15,7 @@ int main(int argc, char *argv[]) {
 	robot2.resetToZero();
 	robot3.resetToZero();
 
+	_simObject->runSimulation();
+
 	return 0;
 }

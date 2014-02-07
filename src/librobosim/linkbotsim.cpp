@@ -2438,6 +2438,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 
 	// ############################
 	//printf("robot %d ", _id);
+
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		double rate[3] = {0};
 		int i = _enabled[j];
