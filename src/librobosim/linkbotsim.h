@@ -26,7 +26,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #ifdef _CH_
 		int connect();
 #else
-		int connect(int pause = 1);
+		int connect(char *name = NULL, int pause = 1);
 #endif
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <version val="1"/>
+    <type val="0"/>
+    <grid units="1" dist="48" major="12" tics="1"/>
+    <tracking val="0"/>
+</config>
+
+<sim>
+    <linkbotl id="0" ground="2">
+        <position x="0" y="0" z="0.1"/>
+        <rotation psi="0" theta="0" phi="0"/>
+    </linkbotl>
+    <linkbotl id="1"/>
+    <linkbotl id="2"/>
+	<bridge>
+        <side id="1" robot="0" face="1"/>
+        <side id="2" robot="1" face="1"/>
+	</bridge>
+	<simple>
+        <side id="1" robot="1" face="2"/>
+        <side id="2" robot="2" face="2"/>
+	</simple>
+	<gripper robot="2"/>
+</sim>

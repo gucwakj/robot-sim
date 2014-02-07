@@ -4,7 +4,7 @@ using namespace std;
 // global robot simulation object
 RoboSim *_simObject = NULL;
 
-RoboSim::RoboSim(int pause) {
+RoboSim::RoboSim(char *name, int pause) {
 	// initialize ode
 	init_ode();
 
@@ -12,7 +12,7 @@ RoboSim::RoboSim(int pause) {
 	init_sim(pause);
 
 	// initialize xml config file
-	init_xml();
+	init_xml(name);
 
 #ifdef ENABLE_GRAPHICS
 	// initialize graphics
@@ -130,7 +130,7 @@ int RoboSim::init_sim(int pause) {
 	return 0;
 }
 
-int RoboSim::init_xml(void) {
+int RoboSim::init_xml(char *name) {
 	// initialize variables
 	int *rtmp, *ftmp, *ntmp, *atmp, ctype = 0, cnum = 0;
 	int tracking = 0;
@@ -150,7 +150,19 @@ int RoboSim::init_xml(void) {
 	}
 #else
 	strcpy(path, getenv("HOME"));
-	strcat(path, "/.robosimrc");
+	if (name) {
+		FILE *fp = fopen(name, "r");
+		if (fp) {
+			strcpy(path, name);
+			fclose(fp);
+		}
+		else {
+			strcat(path, "/.robosimrc");
+		}
+	}
+	else {
+		strcat(path, "/.robosimrc");
+	}
 #endif
 	int output = doc.LoadFile(path);
 	if (output) {
