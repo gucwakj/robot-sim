@@ -390,7 +390,10 @@ angles.
 Each robot element is required to have one attribute titled \textbf{id} which is
 an unique identifier for the simulation to reference.  A second optional
 attribute is \textbf{orientation} which orients the face of a second robot when
-it is being attached to a first robot.
+it is being attached to a first robot.  A third optional argument is
+\textbf{ground} which specifies which body part of the robot is attached to the
+ground.  A fixed, permanent joint is created between this body part and the
+ground.
 
 \begin{table}[H]
 	\begin{center}
@@ -415,6 +418,10 @@ it is being attached to a first robot.
 		 & 2 & robot face number is at 3 o'clock \\
 		 & 3 & robot face number is at 6 o'clock \\
 		 & 4 & robot face number is at 9 o'clock \\
+		ground & 0 & body is attached to ground \\
+		 & 1 & face 1 is attached to ground \\
+		 & 2 & face 2 is attached to ground \\
+		 & 3 & face 3 is attached to ground \\
 		\hline \hline
 	\end{tabular}
 	\caption{Robot Attributes}
