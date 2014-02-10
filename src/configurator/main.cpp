@@ -138,11 +138,29 @@ int main(int argc, char *argv[]) {
 
 	// get config file paths
 #ifdef _WIN32
+	// store robosimrc into local appdata path
 	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, g_xml))) {
 		strcat(g_xml, "\\robosimrc");
 	}
+	// find _chrc file
 	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, g_chrc))) {
 		strcat(g_chrc, "\\_chrc");
+		MessageBox(NULL, g_chrc, "CHRC Path Method A", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
+	}
+	// try method 2 on failure
+	if ((fp = fopen(g_chrc, "r+")) == NULL) {
+		char *home = getenv("HOME");
+		strcpy(g_chrc, home);
+		strcat(g_chrc, "\\_chrc");
+		MessageBox(NULL, g_chrc, "CHRC Path Method B", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
+	}
+	// copy chrc on repeated failure
+	if ((fp = fopen(g_chrc, "r+")) == NULL) {
+		system("ch -d");
+		char *home = getenv("HOME");
+		strcpy(g_chrc, home);
+		strcat(g_chrc, "\\_chrc");
+		MessageBox(NULL, g_chrc, "CHRC Path Method C", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
 	}
 #else
 	strcpy(g_xml, getenv("HOME"));
