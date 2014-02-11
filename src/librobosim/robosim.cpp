@@ -226,6 +226,118 @@ int RoboSim::init_xml(char *name) {
 		node->QueryDoubleAttribute("body", &(_cor[1]));
 	}
 
+	// check for existence of ground node
+	if ( (node = doc.FirstChildElement("ground")) ) {
+		node = node->FirstChildElement();
+	}
+
+	// loop over all ground nodes
+	while (node) {
+		if ( !strcmp(node->Value(), "box") ) {
+			ground_t ng = new struct ground_s;
+			double lx, ly, lz, px, py, pz, psi, theta, phi;
+			if ( (ele = node->FirstChildElement("size")) ) {
+				ele->QueryDoubleAttribute("x", &lx);
+				ele->QueryDoubleAttribute("y", &ly);
+				ele->QueryDoubleAttribute("z", &lz);
+			}
+			if ( (ele = node->FirstChildElement("position")) ) {
+				ele->QueryDoubleAttribute("x", &px);
+				ele->QueryDoubleAttribute("y", &py);
+				ele->QueryDoubleAttribute("z", &pz);
+			}
+			if ( (ele = node->FirstChildElement("rotation")) ) {
+				ele->QueryDoubleAttribute("psi", &psi);
+				ele->QueryDoubleAttribute("theta", &theta);
+				ele->QueryDoubleAttribute("phi", &phi);
+			}
+			ng->next = NULL;
+
+			// set rotation of object
+			dMatrix3 R, R_x, R_y, R_z, R_xy;
+			dRFromAxisAndAngle(R_x, 1, 0, 0, psi);
+			dRFromAxisAndAngle(R_y, 0, 1, 0, theta);
+			dRFromAxisAndAngle(R_z, 0, 0, 1, phi);
+			dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+			dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+			// position object
+			ng->object = dCreateBox(_space, lx, ly, lz);
+			dGeomSetPosition(ng->object, px, py, pz);
+			dGeomSetRotation(ng->object, R);
+
+			// add object to linked list
+			ground_t gtmp = _ground;
+			while (gtmp->next)
+				gtmp = gtmp->next;
+			gtmp->next = ng;
+		}
+		else if ( !strcmp(node->Value(), "cylinder") ) {
+			ground_t ng = new struct ground_s;
+			double r, l, px, py, pz, psi, theta, phi;
+			if ( (ele = node->FirstChildElement("size")) ) {
+				ele->QueryDoubleAttribute("radius", &r);
+				ele->QueryDoubleAttribute("length", &l);
+			}
+			if ( (ele = node->FirstChildElement("position")) ) {
+				ele->QueryDoubleAttribute("x", &px);
+				ele->QueryDoubleAttribute("y", &py);
+				ele->QueryDoubleAttribute("z", &pz);
+			}
+			if ( (ele = node->FirstChildElement("rotation")) ) {
+				ele->QueryDoubleAttribute("psi", &psi);
+				ele->QueryDoubleAttribute("theta", &theta);
+				ele->QueryDoubleAttribute("phi", &phi);
+			}
+			ng->next = NULL;
+
+			// set rotation of object
+			dMatrix3 R, R_x, R_y, R_z, R_xy;
+			dRFromAxisAndAngle(R_x, 1, 0, 0, psi);
+			dRFromAxisAndAngle(R_y, 0, 1, 0, theta);
+			dRFromAxisAndAngle(R_z, 0, 0, 1, phi);
+			dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
+			dMultiply0(R, R_xy, R_z, 3, 3, 3);
+
+			// position object
+			ng->object = dCreateCylinder(_space, r, l);
+			dGeomSetPosition(ng->object, px, py, pz);
+			dGeomSetRotation(ng->object, R);
+
+			// add object to linked list
+			ground_t gtmp = _ground;
+			while (gtmp->next)
+				gtmp = gtmp->next;
+			gtmp->next = ng;
+		}
+		else if ( !strcmp(node->Value(), "sphere") ) {
+			ground_t ng = new struct ground_s;
+			double r, px, py, pz;
+			if ( (ele = node->FirstChildElement("size")) ) {
+				ele->QueryDoubleAttribute("radius", &r);
+			}
+			if ( (ele = node->FirstChildElement("position")) ) {
+				ele->QueryDoubleAttribute("x", &px);
+				ele->QueryDoubleAttribute("y", &py);
+				ele->QueryDoubleAttribute("z", &pz);
+			}
+			ng->next = NULL;
+
+			// position object
+			ng->object = dCreateSphere(_space, r);
+			dGeomSetPosition(ng->object, px, py, pz);
+
+			// add object to linked list
+			ground_t gtmp = _ground;
+			while (gtmp->next)
+				gtmp = gtmp->next;
+			gtmp->next = ng;
+		}
+
+		// go to next node
+		node = node->NextSiblingElement();
+	}
+
 	// get root node of xml file
 	node = doc.FirstChildElement("sim")->FirstChildElement();
 
@@ -421,106 +533,6 @@ int RoboSim::init_xml(char *name) {
 					rtmp = rtmp->next;
 				rtmp->next = nr;
 			}
-		}
-		else if ( !strcmp(node->Value(), "g_box") ) {
-			ground_t ng = new struct ground_s;
-			double lx, ly, lz, px, py, pz, psi, theta, phi;
-			if ( (ele = node->FirstChildElement("size")) ) {
-				ele->QueryDoubleAttribute("x", &lx);
-				ele->QueryDoubleAttribute("y", &ly);
-				ele->QueryDoubleAttribute("z", &lz);
-			}
-			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &px);
-				ele->QueryDoubleAttribute("y", &py);
-				ele->QueryDoubleAttribute("z", &pz);
-			}
-			if ( (ele = node->FirstChildElement("rotation")) ) {
-				ele->QueryDoubleAttribute("psi", &psi);
-				ele->QueryDoubleAttribute("theta", &theta);
-				ele->QueryDoubleAttribute("phi", &phi);
-			}
-			ng->next = NULL;
-
-			// set rotation of object
-			dMatrix3 R, R_x, R_y, R_z, R_xy;
-			dRFromAxisAndAngle(R_x, 1, 0, 0, psi);
-			dRFromAxisAndAngle(R_y, 0, 1, 0, theta);
-			dRFromAxisAndAngle(R_z, 0, 0, 1, phi);
-			dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
-			dMultiply0(R, R_xy, R_z, 3, 3, 3);
-
-			// position object
-			ng->object = dCreateBox(_space, lx, ly, lz);
-			dGeomSetPosition(ng->object, px, py, pz);
-			dGeomSetRotation(ng->object, R);
-
-			// add object to linked list
-			ground_t gtmp = _ground;
-			while (gtmp->next)
-				gtmp = gtmp->next;
-			gtmp->next = ng;
-		}
-		else if ( !strcmp(node->Value(), "g_cylinder") ) {
-			ground_t ng = new struct ground_s;
-			double r, l, px, py, pz, psi, theta, phi;
-			if ( (ele = node->FirstChildElement("size")) ) {
-				ele->QueryDoubleAttribute("radius", &r);
-				ele->QueryDoubleAttribute("length", &l);
-			}
-			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &px);
-				ele->QueryDoubleAttribute("y", &py);
-				ele->QueryDoubleAttribute("z", &pz);
-			}
-			if ( (ele = node->FirstChildElement("rotation")) ) {
-				ele->QueryDoubleAttribute("psi", &psi);
-				ele->QueryDoubleAttribute("theta", &theta);
-				ele->QueryDoubleAttribute("phi", &phi);
-			}
-			ng->next = NULL;
-
-			// set rotation of object
-			dMatrix3 R, R_x, R_y, R_z, R_xy;
-			dRFromAxisAndAngle(R_x, 1, 0, 0, psi);
-			dRFromAxisAndAngle(R_y, 0, 1, 0, theta);
-			dRFromAxisAndAngle(R_z, 0, 0, 1, phi);
-			dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
-			dMultiply0(R, R_xy, R_z, 3, 3, 3);
-
-			// position object
-			ng->object = dCreateCylinder(_space, r, l);
-			dGeomSetPosition(ng->object, px, py, pz);
-			dGeomSetRotation(ng->object, R);
-
-			// add object to linked list
-			ground_t gtmp = _ground;
-			while (gtmp->next)
-				gtmp = gtmp->next;
-			gtmp->next = ng;
-		}
-		else if ( !strcmp(node->Value(), "g_sphere") ) {
-			ground_t ng = new struct ground_s;
-			double r, px, py, pz;
-			if ( (ele = node->FirstChildElement("size")) ) {
-				ele->QueryDoubleAttribute("radius", &r);
-			}
-			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &px);
-				ele->QueryDoubleAttribute("y", &py);
-				ele->QueryDoubleAttribute("z", &pz);
-			}
-			ng->next = NULL;
-
-			// position object
-			ng->object = dCreateSphere(_space, r);
-			dGeomSetPosition(ng->object, px, py, pz);
-
-			// add object to linked list
-			ground_t gtmp = _ground;
-			while (gtmp->next)
-				gtmp = gtmp->next;
-			gtmp->next = ng;
 		}
 		else {
 			if ( !strcmp(node->Value(), "bigwheel") ) {
