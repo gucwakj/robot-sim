@@ -386,7 +386,60 @@ angles.
 \newpage
 \appendix
 \section{Manual Configuration File Generation}
-\subsection{Robot Attributes}
+\subsection{Configuration Section}
+General parameters about the simulation can be added within the config section.
+Each one is its own line placed between the starting \verb%<config>% and ending
+\verb%</config>%.
+\begin{verbatim}
+<config>
+</config>
+\end{verbatim}
+
+\subsubsection{Version}
+\begin{verbatim}
+<version val="1"/>
+\end{verbatim}
+The version of the XML configuration file.  Updated internally when
+new non-backward-compatible changes are made.
+
+\subsubsection{Type}
+\begin{verbatim}
+<type val="0"/>
+\end{verbatim}
+There are two options: either preconfigured robots or individual robots.  Used
+to load the right options when launching the GUI.  Can be 0 to show that the
+robots within the \verb%<sim></sim>% are individual.  Above that represent the
+preconfigured robots within the GUI.
+
+\subsubsection{Grid}
+\begin{verbatim}
+<grid units="1" dist="48" major="12" tics="1"/>
+\end{verbatim}
+The grid boxes from the GUI put their information here.  \verb%units%: 1 for US
+Customary and 0 for Metric.  \verb%dist% is the total distance; \verb%major% are
+the red hashmarks; \verb%tics% are the gray tick marks.
+
+\subsubsection{Tracking}
+\begin{verbatim}
+<tracking val="1"/>
+\end{verbatim}
+Setting to track robot location with lines on the ground.  1 for on; 0 for off.
+
+\subsubsection{Buddy}
+\begin{verbatim}
+<buddy val="1"/>
+\end{verbatim}
+Setting to apply constraints based upon buddy motion.  1 for on; 0 for off.
+
+\subsection{Simulation Section}
+The simulation section holds the robots and accessories for the current
+simulation.  Everything to be added is put between the \verb%<sim>% tags.
+\begin{verbatim}
+<sim>
+</sim>
+\end{verbatim}
+
+\subsubsection{Robot Attributes}
 Each robot element is required to have one attribute titled \textbf{id} which is
 an unique identifier for the simulation to reference.  A second optional
 attribute is \textbf{orientation} which orients the face of a second robot when
