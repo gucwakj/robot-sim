@@ -4,6 +4,7 @@
     <type val="0"/>
     <grid units="1" dist="48" major="12" tics="1"/>
     <tracking val="0"/>
+    <buddy val="1"/>
 </config>
 
 <sim>
