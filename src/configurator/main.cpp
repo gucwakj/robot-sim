@@ -279,7 +279,10 @@ G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data)
 	char  *chhome = getenv("CHHOME");
 	strcpy(path, chhome);
 	strcat(path, "\\package\\chrobosim\\docs\\robosim.pdf");
-	ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOWNORMAL);
+	HINSTANCE retval = ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOWNORMAL);
+	char str[512];
+	sprintf(str, "help exit code: %d\n", (int)retval);
+	MessageBox(NULL, str, "Help retval", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
 #endif
 }
 
