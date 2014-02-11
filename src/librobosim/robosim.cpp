@@ -214,18 +214,24 @@ int RoboSim::init_xml(char *name) {
 		node->QueryIntAttribute("val", &_buddy);
 	}
 
+	// check for custom mu params
+	if ( (node = doc.FirstChildElement("config")->FirstChildElement("mu")) ) {
+		node->QueryDoubleAttribute("ground", &(_mu[0]));
+		node->QueryDoubleAttribute("body", &(_mu[1]));
+	}
+
+	// check for custom cor params
+	if ( (node = doc.FirstChildElement("config")->FirstChildElement("cor")) ) {
+		node->QueryDoubleAttribute("ground", &(_cor[0]));
+		node->QueryDoubleAttribute("body", &(_cor[1]));
+	}
+
 	// get root node of xml file
 	node = doc.FirstChildElement("sim")->FirstChildElement();
 
 	// loop over all nodes
 	while (node) {
 		if (node->ToComment()) {}
-		else if ( !strcmp(node->Value(), "params") ) {
-			node->QueryDoubleAttribute("mu_g", &(_mu[0]));
-			node->QueryDoubleAttribute("mu_b", &(_mu[1]));
-			node->QueryDoubleAttribute("cor_g", &(_cor[0]));
-			node->QueryDoubleAttribute("cor_b", &(_cor[1]));
-		}
 		else if ( !strcmp(node->Value(), "mobot") ) {
 			xml_robot_t nr = new struct xml_robot_s;
 			nr->type = MOBOT;

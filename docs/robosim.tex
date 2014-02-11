@@ -431,6 +431,22 @@ Setting to track robot location with lines on the ground.  1 for on; 0 for off.
 \end{verbatim}
 Setting to apply constraints based upon buddy motion.  1 for on; 0 for off.
 
+\subsubsection{Mu}
+\begin{verbatim}
+<mu ground="0.9" body="0.3"/>
+\end{verbatim}
+The coefficient of friction can be altered between the robots and the ground and
+between robots themselves.  The default values are given here.
+
+\subsubsection{Coefficient of Restitution}
+\begin{verbatim}
+<cor ground="0.3" body="0.3"/>
+\end{verbatim}
+The coefficient of restitution can be altered between the robots and the ground
+and between robots themselves.  The default values are given here.  The COR is a
+measure of how bouncy a surface is.  Small values correspond to hard surfaces
+while larger values are for softer surfaces.
+
 \subsection{Simulation Section}
 The simulation section holds the robots and accessories for the current
 simulation.  Everything to be added is put between the \verb%<sim>% tags.
