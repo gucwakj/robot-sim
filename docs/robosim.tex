@@ -525,7 +525,7 @@ actuate.
 		\verb|<linkbotl/>| \\
 		\verb|<linkbott/>| \\
 		\verb|<mobot/>| \\
-		\hline
+		\hline \hline
 	\end{tabular}
 	\caption{Robots}
 	\label{tab:robots}
@@ -547,10 +547,10 @@ ground.
 \begin{table}[H]
 	\begin{center}
 	\begin{tabular}{c | l}
-		\hline 
+		\hline \hline
 		\verb|<linkboti id="0"/>| & one linkbot I with id = 0 \\
 		\verb|<linkboti id="0" orientation="3"/>| & Linkbot I is 'upside-down' \\
-		\hline
+		\hline \hline
 	\end{tabular}
 	\caption{Examples}
 	\label{tab:ex}
@@ -602,6 +602,28 @@ Linkbot and Mobot are shown below.
     <rotation psi="0" theta="0" phi="0"/>
     <joint a1="-20" a2="0" a3="20" a4="45"/>
 </mobot>
+\end{verbatim}
+
+\noindent
+\newline
+\textbf{Attaching Robots}
+\newline
+When a second robot is going to be attached to the first robot, the only
+required argument is the id number.  The positioning will be figured out
+automatically.  The code below shows the configuration for the inchworm linkbot
+configuration.  The first robot is placed at the origin and the second one is
+positioned by the code since it is attached to the bridge connector to the first
+one.
+\begin{verbatim}
+<linkbotl id="0">
+    <position x="0" y="0" z="0"/>
+    <rotation psi="0" theta="180" phi="0"/>
+</linkbotl>
+<linkbotl id="1"/>
+<bridge>
+    <side id="1" robot="0" face="1"/>
+    <side id="2" robot="1" face="1"/>
+</bridge>
 \end{verbatim}
 
 \subsubsection{Accessories}
