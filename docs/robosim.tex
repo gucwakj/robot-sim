@@ -505,7 +505,32 @@ simulation.  Everything to be added is put between the \verb%<sim>% tags.
 </sim>
 \end{verbatim}
 
-\subsubsection{Robot Attributes}
+\subsubsection{Robots}
+Each robot has its own xml tag to configure its position, orientation, and
+rotation in space.  The types of robot tags are tabulated in \ref{tab:robots}.
+All robots much have attributes associated with them, and optionally positioning
+arguments.  The Linkbot-T is a Linkbot with all three joints being able to
+actuate.
+
+\begin{table}[H]
+	\begin{center}
+	\begin{tabular}{c}
+		\hline \hline
+		\verb|<linkboti/>| \\
+		\verb|<linkbotl/>| \\
+		\verb|<linkbott/>| \\
+		\verb|<mobot/>| \\
+		\hline
+	\end{tabular}
+	\caption{Robots}
+	\label{tab:robots}
+	\end{center}
+\end{table}
+
+\noindent
+\newline
+\textbf{Robot Attributes}
+\newline
 Each robot element is required to have one attribute titled \textbf{id} which is
 an unique identifier for the simulation to reference.  A second optional
 attribute is \textbf{orientation} which orients the face of a second robot when
@@ -547,6 +572,32 @@ ground.
 	\label{tab:attributes}
 	\end{center}
 \end{table}
+
+\noindent
+\newline
+\textbf{Robot Positioning}
+\newline
+In addition to IDing each robot, they can be positioned in space independently
+of each other.  There are there sub-tags which specify the global attributes of
+the robot.  \verb%<position>% specifies the X, Y, and Z coordinates of the
+robot.  \verb%<rotation>% specifies the three Euler Angles of the robot about
+the X (psi), Y (theta), and Z (phi) axes.  \verb%joint% allows the joints to be
+rotated initially as opposed to being built at zero rotation.  Examples of
+Linkbot and Mobot are shown below.
+\begin{verbatim}
+<linkboti id="0">
+    <position x="0" y="0" z="0"/>
+    <rotation psi="0" theta="0" phi="0"/>
+    <joint f1="-20" f2="0" f3="20"/>
+</linkboti>
+\end{verbatim}
+\begin{verbatim}
+<mobot id="0">
+    <position x="0" y="0" z="0"/>
+    <rotation psi="0" theta="0" phi="0"/>
+    <joint a1="-20" a2="0" a3="20" a4="45"/>
+</mobot>
+\end{verbatim}
 
 \subsubsection{Accessories}
 The accessories of the robots can be added to the scene and attached to the
