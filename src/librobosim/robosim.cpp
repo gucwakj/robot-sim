@@ -925,6 +925,10 @@ int RoboSim::getUnits(void) {
 	return _us;
 }
 
+int RoboSim::getBuddy(void) {
+	return _buddy;
+}
+
 int RoboSim::runSimulation(void) {
 	return this->setExitState();
 }

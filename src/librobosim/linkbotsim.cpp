@@ -1787,6 +1787,19 @@ int CLinkbotT::setExitState(robotJointState_t exitState) {
 	return 0;
 }
 
+int CLinkbotT::setGoal(double x, double y, double z) {
+	_goal_pos[0] = x;
+	_goal_pos[1] = y;
+	_goal_pos[2] = z;
+	_goal_pos[3] = 1;
+	_goal_pos[4] = sqrt(pow(x-this->getCenter(0),2) +
+						pow(y-this->getCenter(1),2) +
+						pow(z-this->getCenter(2),2));
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
 	// lock mutexes
 	MUTEX_LOCK(&_success_mutex);
@@ -2437,8 +2450,9 @@ void CLinkbotT::simPreCollisionThread(void) {
 	this->noisy(_accel, 3, 0.005);
 
 	// ############################
+	if (_simObject->getBuddy()) {
 	//printf("robot %d ", _id);
-	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
+	/*for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		double rate[3] = {0};
 		int i = _enabled[j];
 		if (_buddy[i]) {
@@ -2470,8 +2484,51 @@ void CLinkbotT::simPreCollisionThread(void) {
 				_state[i] = (_state[i] == ROBOT_FORWARD) ? ROBOT_BACKWARD : ROBOT_FORWARD;
 			}
 		}
+	}*/
+if (_id == 1) {
+	double rate[3] = {0};
+	//printf("robot %d buddy %p state %d\n", _id, _buddy[F2], _state[F2]);
+	if (_buddy[F2]) {
+		rate[F1] = _buddy[F2]->getAngularRate(F2);
+		_seek[F1] = 0;
+		if (rate[F1] > 0) {
+			_state[F1] = ROBOT_FORWARD;
+			//printf("backward\t");
+		}
+		else if (rate[F1] < 0) {
+			_state[F1] = ROBOT_BACKWARD;
+			//printf("forward\t");
+		}
+		else {
+			_state[F1] = ROBOT_HOLD;
+			//printf("hold\t");
+		}
+		_speed[F1] = fabs(rate[F1]);
 	}
 	//printf("robot %d speed %lf state %d accel %lf\n", _id, _speed[0], _state[0], _accel[2]);
+	//printf("robot %d speed %lf state %d\n", _id, _speed[F2], _state[F2]);
+}
+	// ############################
+else if (_id == 2) {
+	if ((int)(_goal_pos[3])) {
+//printf("robot %d setting motion error %lf\n", _id, get_error());
+	int error = this->get_error();
+	if (error == 1) {
+printf("\tmoving forward\n");
+		_state[F2] = ROBOT_FORWARD;
+	}
+	else if (error == -1) {
+printf("\tmoving backward\n");
+		_state[F2] = ROBOT_BACKWARD;
+	}
+	else {
+		_state[F2] = ROBOT_HOLD;
+	}
+	_speed[F2] = DEG2RAD(_max_speed[0]/2);
+	_seek[F2] = 0;
+	}
+}
+}
 	// ############################
 
 	// starting out counter to slowly ramp up speed
@@ -3925,6 +3982,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_angle[i] = 0;
 		_buddy[i] = NULL;
 		_goal[i] = 0;
+		_goal_pos[i] = 0;
 		_max_force[i] = 2;
 		_max_speed[i] = 240;		// deg/sec
 		_offset[i] = 0;
@@ -3939,6 +3997,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_disabled = disabled;
 	_distOffset = 0;
 	_encoder = DEG2RAD(0.25);
+	_goal_pos[3] = 0;
 	_id = -1;
 	_rgb[0] = 0;
 	_rgb[1] = 0;
@@ -3974,6 +4033,28 @@ int CLinkbotT::init_dims(void) {
 
 	// success
 	return 0;
+}
+
+int CLinkbotT::get_error(void) {
+	double error = sqrt(pow(_goal_pos[0] - this->getCenter(0), 2) +
+						pow(_goal_pos[1] - this->getCenter(1), 2) +
+						pow(_goal_pos[2] - this->getCenter(2), 2));
+
+	if ( (error - _goal_pos[4]) > 4*EPSILON ) {
+		_goal_pos[4] = error;
+printf("error1: %lf\n", error - _goal_pos[4]);
+		return 1;
+	}
+	else if ( (error - _goal_pos[4]) < -4*EPSILON ) {
+		_goal_pos[4] = error;
+printf("error2: %lf\n", error - _goal_pos[4]);
+		return -1;
+	}
+	else {
+		_goal_pos[4] = error;
+printf("error3: %lf\n", error - _goal_pos[4]);
+		return 0;
+	}
 }
 
 double CLinkbotT::mod_angle(double past_ang, double cur_ang, double ang_rate) {

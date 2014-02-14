@@ -170,6 +170,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int setColor(char *color);
 		int setColorRGB(int r, int g, int b);
 		int setExitState(robotJointState_t exitState);
+		int setGoal(double x, double y, double z);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointSafetyAngle(double angle);
@@ -260,6 +261,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int get_connector_params(int type, int side, dMatrix3 R, double *p);				// get parameters of connector
 		int init_params(int disabled, int type);											// initialize robot parameters
 		int init_dims(void);																// initialize robot dimensions
+		int get_error(void);																// get position error
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);					// modify angle to count continuously
         //void resetPID(int i = NUM_DOF);													// reset PID controller
 		static void* motionDistanceThread(void *arg);										// thread to run motion distance
