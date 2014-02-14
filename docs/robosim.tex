@@ -383,6 +383,11 @@ angles.
 	\end{center}
 \end{table}
 
+
+
+
+%% APPENDIX
+
 \newpage
 \appendix
 \section{Manual Configuration File Generation}
@@ -697,4 +702,126 @@ Below is a daisy-chained custom wheel with a radius of 0.001 meters.
 </simple>
 \end{verbatim}
 
+\subsection{Examples}
+Some example configuration files.
+
+\subsubsection{One Robot at (0, 0, 0)}
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <version val="1"/>
+    <type val="0"/>
+    <grid units="1" dist="48" major="12" tics="1"/>
+    <tracking val="1"/>
+</config>
+
+<sim>
+    <linkboti id="0">
+        <position x="0" y="0" z="0"/>
+        <rotation psi="0" theta="0" phi="0"/>
+    </linkboti>
+    <simple>
+        <side id="1" robot="0" face="1"/>
+        <side id="2" robot="0" conn="9"/>
+    </simple>
+    <simple>
+        <side id="1" robot="0" face="3"/>
+        <side id="2" robot="0" conn="9"/>
+    </simple>
+    <caster robot="0" face="2"/>
+</sim>
+\end{verbatim}
+
+\subsubsection{Two Robots on X-Axis}
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <version val="1"/>
+    <type val="0"/>
+    <grid units="1" dist="48" major="12" tics="1"/>
+    <tracking val="1"/>
+</config>
+
+<sim>
+    <linkboti id="0">
+        <position x="0" y="0" z="0"/>
+        <rotation psi="0" theta="0" phi="0"/>
+    </linkboti>
+    <simple>
+        <side id="1" robot="0" face="1"/>
+        <side id="2" robot="0" conn="9"/>
+    </simple>
+    <simple>
+        <side id="1" robot="0" face="3"/>
+        <side id="2" robot="0" conn="9"/>
+    </simple>
+    <caster robot="0" face="2"/>
+    <linkboti id="1">
+        <position x="0.1524" y="0" z="0"/>
+        <rotation psi="0" theta="0" phi="0"/>
+    </linkboti>
+    <simple>
+        <side id="1" robot="1" face="1"/>
+        <side id="2" robot="1" conn="9"/>
+    </simple>
+    <simple>
+        <side id="1" robot="1" face="3"/>
+        <side id="2" robot="1" conn="9"/>
+    </simple>
+    <caster robot="1" face="2"/>
+</sim>
+\end{verbatim}
+
+\subsubsection{Explorer}
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <version val="1"/>
+    <type val="1"/>
+    <grid units="1" dist="48" major="12" tics="1"/>
+    <tracking val="1"/>
+</config>
+
+<sim>
+    <linkboti id="0">
+        <position x="0" y="0" z="0"/>
+        <rotation psi="0" theta="0" phi="-90"/>
+    </linkboti>
+    <linkboti id="1"/>
+    <linkboti id="2" orientation="3">
+        <joint f1="-20" f2="0" f3="20"/>
+    </linkboti>
+    <linkboti id="3">
+        <joint f1="-90" f2="0" f3="90"/>
+    </linkboti>
+    <linkbotl id="4" orientation="3"/>
+    <simple>
+        <side id="1" robot="0" face="3"/>
+        <side id="2" robot="0" conn="9"/>
+    </simple>
+    <simple>
+        <side id="1" robot="1" face="1"/>
+        <side id="2" robot="1" conn="9"/>
+    </simple>
+    <cube>
+        <side id="1" robot="0" face="1"/>
+        <side id="2" robot="0" conn="2"/>
+        <side id="3" robot="1" face="3"/>
+        <side id="5" robot="2" face="2"/>
+    </cube>
+    <bridge>
+        <side id="1" robot="2" face="1"/>
+        <side id="2" robot="3" face="1"/>
+    </bridge>
+    <bridge>
+        <side id="1" robot="2" face="3"/>
+        <side id="2" robot="3" face="3"/>
+    </bridge>
+    <simple>
+        <side id="1" robot="3" face="2"/>
+        <side id="2" robot="4" face="2"/>
+    </simple>
+    <gripper robot="4"/>
+</sim>
+\end{verbatim}
 \end{document}
