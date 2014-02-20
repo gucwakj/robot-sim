@@ -2485,69 +2485,69 @@ void CLinkbotT::simPreCollisionThread(void) {
 			}
 		}
 	}*/
-if (_id == 0) {
-	double rate[3] = {0};
-	//printf("robot %d buddy %p state %d\n", _id, _buddy[F1], _state[F1]);
-	if (_buddy[F1]) {
-		rate[F1] = _buddy[F1]->getAngularRate(F1);
-		if (rate[F1] > 0) {
-			_state[F1] = ROBOT_FORWARD;
+		if (_id == 0) {
+			double rate[3] = {0};
+			//printf("robot %d buddy %p state %d\n", _id, _buddy[F1], _state[F1]);
+			if (_buddy[F1]) {
+				rate[F1] = _buddy[F1]->getAngularRate(F1);
+				if (rate[F1] > 0) {
+					_state[F1] = ROBOT_FORWARD;
+				}
+				else if (rate[F1] < 0) {
+					_state[F1] = ROBOT_BACKWARD;
+				}
+				else {
+					_state[F1] = ROBOT_HOLD;
+				}
+				_seek[F1] = 0;
+				_speed[F1] = fabs(rate[F1]);
+			}
+			//printf("robot %d speed %lf state %d accel %lf\n", _id, _speed[0], _state[0], _accel[2]);
+			//printf("robot %d speed %lf state %d\n", _id, _speed[F2], _state[F2]);
 		}
-		else if (rate[F1] < 0) {
-			_state[F1] = ROBOT_BACKWARD;
+		else if (_id == 1) {
+			double rate[3] = {0};
+			//printf("robot %d buddy %p state %d\n", _id, _buddy[F2], _state[F2]);
+			if (_buddy[F2]) {
+				rate[F1] = _buddy[F2]->getAngularRate(F2);
+				if (rate[F1] > 0) {
+					_state[F1] = ROBOT_FORWARD;
+					//printf("backward\t");
+				}
+				else if (rate[F1] < 0) {
+					_state[F1] = ROBOT_BACKWARD;
+					//printf("forward\t");
+				}
+				else {
+					_state[F1] = ROBOT_HOLD;
+					//printf("hold\t");
+				}
+				_seek[F1] = 0;
+				_speed[F1] = fabs(rate[F1]);
+			}
+			//printf("robot %d speed %lf state %d accel %lf\n", _id, _speed[0], _state[0], _accel[2]);
+			//printf("robot %d speed %lf state %d\n", _id, _speed[F2], _state[F2]);
 		}
-		else {
-			_state[F1] = ROBOT_HOLD;
+		// ############################
+		else if (_id == 2) {
+			if ((int)(_goal_pos[3])) {
+				int error = this->get_error();
+				if (error == 1) {
+					printf("\tmoving forward\n");
+					_state[F2] = ROBOT_FORWARD;
+				}
+				else if (error == -1) {
+					printf("\tmoving backward\n");
+					_state[F2] = ROBOT_BACKWARD;
+				}
+				else {
+					_state[F2] = ROBOT_HOLD;
+				}
+				_seek[F2] = 0;
+				_speed[F2] = DEG2RAD(_max_speed[0]/2);
+			}
 		}
-		_seek[F1] = 0;
-		_speed[F1] = fabs(rate[F1]);
 	}
-	//printf("robot %d speed %lf state %d accel %lf\n", _id, _speed[0], _state[0], _accel[2]);
-	//printf("robot %d speed %lf state %d\n", _id, _speed[F2], _state[F2]);
-}
-else if (_id == 1) {
-	double rate[3] = {0};
-	//printf("robot %d buddy %p state %d\n", _id, _buddy[F2], _state[F2]);
-	if (_buddy[F2]) {
-		rate[F1] = _buddy[F2]->getAngularRate(F2);
-		if (rate[F1] > 0) {
-			_state[F1] = ROBOT_FORWARD;
-			//printf("backward\t");
-		}
-		else if (rate[F1] < 0) {
-			_state[F1] = ROBOT_BACKWARD;
-			//printf("forward\t");
-		}
-		else {
-			_state[F1] = ROBOT_HOLD;
-			//printf("hold\t");
-		}
-		_seek[F1] = 0;
-		_speed[F1] = fabs(rate[F1]);
-	}
-	//printf("robot %d speed %lf state %d accel %lf\n", _id, _speed[0], _state[0], _accel[2]);
-	//printf("robot %d speed %lf state %d\n", _id, _speed[F2], _state[F2]);
-}
-	// ############################
-else if (_id == 2) {
-	if ((int)(_goal_pos[3])) {
-		int error = this->get_error();
-		if (error == 1) {
-			printf("\tmoving forward\n");
-			_state[F2] = ROBOT_FORWARD;
-		}
-		else if (error == -1) {
-			printf("\tmoving backward\n");
-			_state[F2] = ROBOT_BACKWARD;
-		}
-		else {
-			_state[F2] = ROBOT_HOLD;
-		}
-		_seek[F2] = 0;
-		_speed[F2] = DEG2RAD(_max_speed[0]/2);
-	}
-}
-}
 	// ############################
 
 	// starting out counter to slowly ramp up speed
