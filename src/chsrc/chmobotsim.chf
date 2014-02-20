@@ -1081,7 +1081,7 @@ int CMobot::moveWait() {
     return retval;
 }
 
-int CMobot::movexy(double x, double y, double radius, double tracklength) {
+int CMobot::movexy(double x, double y, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1090,11 +1090,11 @@ int CMobot::movexy(double x, double y, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, movexy, this, x, y, radius, tracklength);
+    dlrunfun(fptr, &retval, movexy, this, x, y, radius, trackwidth);
     return retval;
 }
 
-int CMobot::movexyNB(double x, double y, double radius, double tracklength) {
+int CMobot::movexyNB(double x, double y, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1103,11 +1103,11 @@ int CMobot::movexyNB(double x, double y, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, movexyNB, this, x, y, radius, tracklength);
+    dlrunfun(fptr, &retval, movexyNB, this, x, y, radius, trackwidth);
     return retval;
 }
 
-int CMobot::movexyTo(double x, double y, double radius, double tracklength) {
+int CMobot::movexyTo(double x, double y, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1116,11 +1116,11 @@ int CMobot::movexyTo(double x, double y, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, movexyTo, this, x, y, radius, tracklength);
+    dlrunfun(fptr, &retval, movexyTo, this, x, y, radius, trackwidth);
     return retval;
 }
 
-int CMobot::movexyToNB(double x, double y, double radius, double tracklength) {
+int CMobot::movexyToNB(double x, double y, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1129,7 +1129,7 @@ int CMobot::movexyToNB(double x, double y, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, movexyToNB, this, x, y, radius, tracklength);
+    dlrunfun(fptr, &retval, movexyToNB, this, x, y, radius, trackwidth);
     return retval;
 }
 
@@ -1698,7 +1698,7 @@ int CMobot::text(double x, double y, double z, char *text) {
     return retval;
 }
 
-int CMobot::turnLeft(double angle, double radius, double tracklength) {
+int CMobot::turnLeft(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1707,11 +1707,11 @@ int CMobot::turnLeft(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnLeft, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnLeft, this, angle, radius, trackwidth);
     return retval;
 }
 
-int CMobot::turnLeftNB(double angle, double radius, double tracklength) {
+int CMobot::turnLeftNB(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1720,11 +1720,11 @@ int CMobot::turnLeftNB(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, trackwidth);
     return retval;
 }
 
-int CMobot::turnRight(double angle, double radius, double tracklength) {
+int CMobot::turnRight(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1733,11 +1733,11 @@ int CMobot::turnRight(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnRight, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnRight, this, angle, radius, trackwidth);
     return retval;
 }
 
-int CMobot::turnRightNB(double angle, double radius, double tracklength) {
+int CMobot::turnRightNB(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1746,7 +1746,7 @@ int CMobot::turnRightNB(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, trackwidth);
     return retval;
 }
 
@@ -2635,7 +2635,7 @@ int CMobotGroup::stopOneJoint(int id) {
     return retval;
 }
 
-int CMobotGroup::turnLeft(double angle, double radius, double tracklength) {
+int CMobotGroup::turnLeft(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -2644,11 +2644,11 @@ int CMobotGroup::turnLeft(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnLeft, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnLeft, this, angle, radius, trackwidth);
     return retval;
 }
 
-int CMobotGroup::turnLeftNB(double angle, double radius, double tracklength) {
+int CMobotGroup::turnLeftNB(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -2657,11 +2657,11 @@ int CMobotGroup::turnLeftNB(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, trackwidth);
     return retval;
 }
 
-int CMobotGroup::turnRight(double angle, double radius, double tracklength) {
+int CMobotGroup::turnRight(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -2670,11 +2670,11 @@ int CMobotGroup::turnRight(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnRight, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnRight, this, angle, radius, trackwidth);
     return retval;
 }
 
-int CMobotGroup::turnRightNB(double angle, double radius, double tracklength) {
+int CMobotGroup::turnRightNB(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -2683,6 +2683,6 @@ int CMobotGroup::turnRightNB(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, trackwidth);
     return retval;
 }

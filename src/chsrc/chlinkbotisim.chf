@@ -985,7 +985,7 @@ int CLinkbotI::moveWait() {
     return retval;
 }
 
-int CLinkbotI::movexy(double x, double y, double radius, double tracklength) {
+int CLinkbotI::movexy(double x, double y, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -994,11 +994,11 @@ int CLinkbotI::movexy(double x, double y, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, movexy, this, x, y, radius, tracklength);
+    dlrunfun(fptr, &retval, movexy, this, x, y, radius, trackwidth);
     return retval;
 }
 
-int CLinkbotI::movexyNB(double x, double y, double radius, double tracklength) {
+int CLinkbotI::movexyNB(double x, double y, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1007,11 +1007,11 @@ int CLinkbotI::movexyNB(double x, double y, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, movexyNB, this, x, y, radius, tracklength);
+    dlrunfun(fptr, &retval, movexyNB, this, x, y, radius, trackwidth);
     return retval;
 }
 
-int CLinkbotI::movexyTo(double x, double y, double radius, double tracklength) {
+int CLinkbotI::movexyTo(double x, double y, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1020,11 +1020,11 @@ int CLinkbotI::movexyTo(double x, double y, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, movexyTo, this, x, y, radius, tracklength);
+    dlrunfun(fptr, &retval, movexyTo, this, x, y, radius, trackwidth);
     return retval;
 }
 
-int CLinkbotI::movexyToNB(double x, double y, double radius, double tracklength) {
+int CLinkbotI::movexyToNB(double x, double y, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1033,7 +1033,7 @@ int CLinkbotI::movexyToNB(double x, double y, double radius, double tracklength)
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, movexyToNB, this, x, y, radius, tracklength);
+    dlrunfun(fptr, &retval, movexyToNB, this, x, y, radius, trackwidth);
     return retval;
 }
 
@@ -1626,7 +1626,7 @@ int CLinkbotI::text(double x, double y, double z, char *text) {
     return retval;
 }
 
-int CLinkbotI::turnLeft(double angle, double radius, double tracklength) {
+int CLinkbotI::turnLeft(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1635,11 +1635,11 @@ int CLinkbotI::turnLeft(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnLeft, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnLeft, this, angle, radius, trackwidth);
     return retval;
 }
 
-int CLinkbotI::turnLeftNB(double angle, double radius, double tracklength) {
+int CLinkbotI::turnLeftNB(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1648,11 +1648,11 @@ int CLinkbotI::turnLeftNB(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, trackwidth);
     return retval;
 }
 
-int CLinkbotI::turnRight(double angle, double radius, double tracklength) {
+int CLinkbotI::turnRight(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1661,11 +1661,11 @@ int CLinkbotI::turnRight(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnRight, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnRight, this, angle, radius, trackwidth);
     return retval;
 }
 
-int CLinkbotI::turnRightNB(double angle, double radius, double tracklength) {
+int CLinkbotI::turnRightNB(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -1674,7 +1674,7 @@ int CLinkbotI::turnRightNB(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, trackwidth);
     return retval;
 }
 
@@ -2524,7 +2524,7 @@ int CLinkbotIGroup::stopOneJoint(int id) {
     return retval;
 }
 
-int CLinkbotIGroup::turnLeft(double angle, double radius, double tracklength) {
+int CLinkbotIGroup::turnLeft(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -2533,11 +2533,11 @@ int CLinkbotIGroup::turnLeft(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnLeft, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnLeft, this, angle, radius, trackwidth);
     return retval;
 }
 
-int CLinkbotIGroup::turnLeftNB(double angle, double radius, double tracklength) {
+int CLinkbotIGroup::turnLeftNB(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -2546,11 +2546,11 @@ int CLinkbotIGroup::turnLeftNB(double angle, double radius, double tracklength) 
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, trackwidth);
     return retval;
 }
 
-int CLinkbotIGroup::turnRight(double angle, double radius, double tracklength) {
+int CLinkbotIGroup::turnRight(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -2559,11 +2559,11 @@ int CLinkbotIGroup::turnRight(double angle, double radius, double tracklength) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnRight, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnRight, this, angle, radius, trackwidth);
     return retval;
 }
 
-int CLinkbotIGroup::turnRightNB(double angle, double radius, double tracklength) {
+int CLinkbotIGroup::turnRightNB(double angle, double radius, double trackwidth) {
     void *fptr;
     int retval;
 
@@ -2572,6 +2572,6 @@ int CLinkbotIGroup::turnRightNB(double angle, double radius, double tracklength)
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, tracklength);
+    dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, trackwidth);
     return retval;
 }

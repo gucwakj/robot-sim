@@ -945,7 +945,7 @@ int CLinkbotT::moveWait(void) {
 	return 0;
 }
 
-int CLinkbotT::movexy(double x, double y, double radius, double tracklength) {
+int CLinkbotT::movexy(double x, double y, double radius, double trackwidth) {
 	// get current position
 	double x0, y0;
 	this->getxy(x0, y0);
@@ -956,9 +956,9 @@ int CLinkbotT::movexy(double x, double y, double radius, double tracklength) {
 
 	// turn in shortest path
 	if ((angle+r0) > EPSILON)
-		this->turnRight(RAD2DEG(angle+r0), radius, tracklength);
+		this->turnRight(RAD2DEG(angle+r0), radius, trackwidth);
 	else
-		this->turnLeft(RAD2DEG(-angle-r0), radius, tracklength);
+		this->turnLeft(RAD2DEG(-angle-r0), radius, trackwidth);
 
 	// move along length of line
 	this->moveDistance(sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0)), radius);
@@ -972,7 +972,7 @@ void* CLinkbotT::movexyThread(void *arg) {
 	moveArg_t *mArg = (moveArg_t *)arg;
 
 	// perform motion
-	mArg->robot->movexy(mArg->x, mArg->y, mArg->radius, mArg->tracklength);
+	mArg->robot->movexy(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
 
 	// signal successful completion
 	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
@@ -984,7 +984,7 @@ void* CLinkbotT::movexyThread(void *arg) {
 	return NULL;
 }
 
-int CLinkbotT::movexyNB(double x, double y, double radius, double tracklength) {
+int CLinkbotT::movexyNB(double x, double y, double radius, double trackwidth) {
 	// create thread
 	THREAD_T move;
 
@@ -994,7 +994,7 @@ int CLinkbotT::movexyNB(double x, double y, double radius, double tracklength) {
 	mArg->x = x;
 	mArg->y = y;
 	mArg->radius = radius;
-	mArg->tracklength = tracklength;
+	mArg->trackwidth = trackwidth;
 
 	// motion in progress
 	_motion = true;
@@ -1006,7 +1006,7 @@ int CLinkbotT::movexyNB(double x, double y, double radius, double tracklength) {
 	return 0;
 }
 
-int CLinkbotT::movexyTo(double x, double y, double radius, double tracklength) {
+int CLinkbotT::movexyTo(double x, double y, double radius, double trackwidth) {
 	// get current position
 	double x0, y0;
 	this->getxy(x0, y0);
@@ -1017,9 +1017,9 @@ int CLinkbotT::movexyTo(double x, double y, double radius, double tracklength) {
 
 	// turn in shortest path
 	if ((angle+r0) > EPSILON)
-		this->turnRight(RAD2DEG(angle+r0), radius, tracklength);
+		this->turnRight(RAD2DEG(angle+r0), radius, trackwidth);
 	else
-		this->turnLeft(RAD2DEG(-angle-r0), radius, tracklength);
+		this->turnLeft(RAD2DEG(-angle-r0), radius, trackwidth);
 
 	// move along length of line
 	this->moveDistance(sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0)), radius);
@@ -1033,7 +1033,7 @@ void* CLinkbotT::movexyToThread(void *arg) {
 	moveArg_t *mArg = (moveArg_t *)arg;
 
 	// perform motion
-	mArg->robot->movexyTo(mArg->x, mArg->y, mArg->radius, mArg->tracklength);
+	mArg->robot->movexyTo(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
 
 	// signal successful completion
 	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
@@ -1045,7 +1045,7 @@ void* CLinkbotT::movexyToThread(void *arg) {
 	return NULL;
 }
 
-int CLinkbotT::movexyToNB(double x, double y, double radius, double tracklength) {
+int CLinkbotT::movexyToNB(double x, double y, double radius, double trackwidth) {
 	// create thread
 	THREAD_T move;
 
@@ -1055,7 +1055,7 @@ int CLinkbotT::movexyToNB(double x, double y, double radius, double tracklength)
 	mArg->x = x;
 	mArg->y = y;
 	mArg->radius = radius;
-	mArg->tracklength = tracklength;
+	mArg->trackwidth = trackwidth;
 
 	// motion in progress
 	_motion = true;
@@ -2154,17 +2154,17 @@ int CLinkbotT::text(double x, double y, double z, char *text) {
 	return 0;
 }
 
-int CLinkbotT::turnLeft(double angle, double radius, double tracklength) {
-	this->turnLeftNB(angle, radius, tracklength);
+int CLinkbotT::turnLeft(double angle, double radius, double trackwidth) {
+	this->turnLeftNB(angle, radius, trackwidth);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int CLinkbotT::turnLeftNB(double angle, double radius, double tracklength) {
+int CLinkbotT::turnLeftNB(double angle, double radius, double trackwidth) {
 	// calculate joint angle from global turn angle
-	angle = (angle*tracklength)/(2*radius);
+	angle = (angle*trackwidth)/(2*radius);
 
 	// move
 	this->moveNB(-angle, 0, -angle);
@@ -2173,17 +2173,17 @@ int CLinkbotT::turnLeftNB(double angle, double radius, double tracklength) {
 	return 0;
 }
 
-int CLinkbotT::turnRight(double angle, double radius, double tracklength) {
-	this->turnRightNB(angle, radius, tracklength);
+int CLinkbotT::turnRight(double angle, double radius, double trackwidth) {
+	this->turnRightNB(angle, radius, trackwidth);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int CLinkbotT::turnRightNB(double angle, double radius, double tracklength) {
+int CLinkbotT::turnRightNB(double angle, double radius, double trackwidth) {
 	// calculate joint angle from global turn angle
-	angle = (angle*tracklength)/(2*radius);
+	angle = (angle*trackwidth)/(2*radius);
 
 	// move
 	this->moveNB(angle, 0, angle);

@@ -680,15 +680,15 @@ int CLinkbotTGroup::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robo
 	return 0;
 }
 
-int CLinkbotTGroup::turnLeft(double angle, double radius, double tracklength) {
-	this->turnLeftNB(angle, radius, tracklength);
+int CLinkbotTGroup::turnLeft(double angle, double radius, double trackwidth) {
+	this->turnLeftNB(angle, radius, trackwidth);
 	return moveWait();
 }
 
-int CLinkbotTGroup::turnLeftNB(double angle, double radius, double tracklength) {
+int CLinkbotTGroup::turnLeftNB(double angle, double radius, double trackwidth) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->turnLeftNB(angle, radius, tracklength);
+		rtmp->robot->turnLeftNB(angle, radius, trackwidth);
 		rtmp = rtmp->next;
 	}
 
@@ -696,15 +696,15 @@ int CLinkbotTGroup::turnLeftNB(double angle, double radius, double tracklength) 
 	return 0;
 }
 
-int CLinkbotTGroup::turnRight(double angle, double radius, double tracklength) {
-	this->turnRightNB(angle, radius, tracklength);
+int CLinkbotTGroup::turnRight(double angle, double radius, double trackwidth) {
+	this->turnRightNB(angle, radius, trackwidth);
 	return moveWait();
 }
 
-int CLinkbotTGroup::turnRightNB(double angle, double radius, double tracklength) {
+int CLinkbotTGroup::turnRightNB(double angle, double radius, double trackwidth) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->turnRightNB(angle, radius, tracklength);
+		rtmp->robot->turnRightNB(angle, radius, trackwidth);
 		rtmp = rtmp->next;
 	}
 

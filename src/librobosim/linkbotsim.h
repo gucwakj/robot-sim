@@ -109,10 +109,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
-		int movexy(double x, double y, double radius, double tracklength);
-		int movexyNB(double x, double y, double radius, double tracklength);
-		int movexyTo(double x, double y, double radius, double tracklength);
-		int movexyToNB(double x, double y, double radius, double tracklength);
+		int movexy(double x, double y, double radius, double trackwidth);
+		int movexyNB(double x, double y, double radius, double trackwidth);
+		int movexyTo(double x, double y, double radius, double trackwidth);
+		int movexyToNB(double x, double y, double radius, double trackwidth);
 		int movexyWait();
 		int point(double x, double y, double z, int pointsize, char *color);
 #ifdef _CH_
@@ -191,10 +191,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int stopAllJoints(void);
 		int systemTime(double &time);
 		int text(double x, double y, double z, char *text);
-		int turnLeft(double angle, double radius, double tracklength);
-		int turnLeftNB(double angle, double radius, double tracklength);
-		int turnRight(double angle, double radius, double tracklength);
-		int turnRightNB(double angle, double radius, double tracklength);
+		int turnLeft(double angle, double radius, double trackwidth);
+		int turnLeftNB(double angle, double radius, double trackwidth);
+		int turnRight(double angle, double radius, double trackwidth);
+		int turnRightNB(double angle, double radius, double trackwidth);
 #ifndef _CH_
     private:
 		enum robot_pieces_e {       // each body part which is built
@@ -372,10 +372,10 @@ class DLLIMPORT CLinkbotTGroup {
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int stopAllJoints(void);
-		int turnLeft(double angle, double radius, double tracklength);
-		int turnLeftNB(double angle, double radius, double tracklength);
-		int turnRight(double angle, double radius, double tracklength);
-		int turnRightNB(double angle, double radius, double tracklength);
+		int turnLeft(double angle, double radius, double trackwidth);
+		int turnLeftNB(double angle, double radius, double trackwidth);
+		int turnRight(double angle, double radius, double trackwidth);
+		int turnRightNB(double angle, double radius, double trackwidth);
 #ifndef _CH_
 	private:
 		typedef struct robots_s {
@@ -478,10 +478,10 @@ class DLLIMPORT CLinkbotI {
 		int moveToZero();
 		int moveToZeroNB();
 		int moveWait();
-		int movexy(double x, double y, double radius, double tracklength);
-		int movexyNB(double x, double y, double radius, double tracklength);
-		int movexyTo(double x, double y, double radius, double tracklength);
-		int movexyToNB(double x, double y, double radius, double tracklength);
+		int movexy(double x, double y, double radius, double trackwidth);
+		int movexyNB(double x, double y, double radius, double trackwidth);
+		int movexyTo(double x, double y, double radius, double trackwidth);
+		int movexyToNB(double x, double y, double radius, double trackwidth);
 		int movexyWait();
 		int point(double x, double y, double z, int pointsize, char *color);
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
@@ -533,10 +533,10 @@ class DLLIMPORT CLinkbotI {
 		int stopAllJoints(void);
 		int systemTime(double &time);
 		int text(double x, double y, double z, char *text);
-		int turnLeft(double angle, double radius, double tracklength);
-		int turnLeftNB(double angle, double radius, double tracklength);
-		int turnRight(double angle, double radius, double tracklength);
-		int turnRightNB(double angle, double radius, double tracklength);
+		int turnLeft(double angle, double radius, double trackwidth);
+		int turnLeftNB(double angle, double radius, double trackwidth);
+		int turnRight(double angle, double radius, double trackwidth);
+		int turnRightNB(double angle, double radius, double trackwidth);
 };
 class DLLIMPORT CLinkbotIGroup {
 	public:
@@ -613,10 +613,10 @@ class DLLIMPORT CLinkbotIGroup {
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int stopAllJoints(void);
-		int turnLeft(double angle, double radius, double tracklength);
-		int turnLeftNB(double angle, double radius, double tracklength);
-		int turnRight(double angle, double radius, double tracklength);
-		int turnRightNB(double angle, double radius, double tracklength);
+		int turnLeft(double angle, double radius, double trackwidth);
+		int turnLeftNB(double angle, double radius, double trackwidth);
+		int turnRight(double angle, double radius, double trackwidth);
+		int turnRightNB(double angle, double radius, double trackwidth);
 };
 
 class DLLIMPORT CLinkbotL {
@@ -696,10 +696,10 @@ class DLLIMPORT CLinkbotL {
 		int moveToZero();
 		int moveToZeroNB();
 		int moveWait();
-		int movexy(double x, double y, double radius, double tracklength);
-		int movexyNB(double x, double y, double radius, double tracklength);
-		int movexyTo(double x, double y, double radius, double tracklength);
-		int movexyToNB(double x, double y, double radius, double tracklength);
+		int movexy(double x, double y, double radius, double trackwidth);
+		int movexyNB(double x, double y, double radius, double trackwidth);
+		int movexyTo(double x, double y, double radius, double trackwidth);
+		int movexyToNB(double x, double y, double radius, double trackwidth);
 		int movexyWait();
 		int point(double x, double y, double z, int pointsize, char *color);
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
@@ -751,10 +751,10 @@ class DLLIMPORT CLinkbotL {
 		int stopAllJoints(void);
 		int systemTime(double &time);
 		int text(double x, double y, double z, char *text);
-		int turnLeft(double angle, double radius, double tracklength);
-		int turnLeftNB(double angle, double radius, double tracklength);
-		int turnRight(double angle, double radius, double tracklength);
-		int turnRightNB(double angle, double radius, double tracklength);
+		int turnLeft(double angle, double radius, double trackwidth);
+		int turnLeftNB(double angle, double radius, double trackwidth);
+		int turnRight(double angle, double radius, double trackwidth);
+		int turnRightNB(double angle, double radius, double trackwidth);
 };
 class DLLIMPORT CLinkbotLGroup {
 	public:
@@ -840,10 +840,10 @@ class DLLIMPORT CLinkbotLGroup {
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int stopAllJoints(void);
-		int turnLeft(double angle, double radius, double tracklength);
-		int turnLeftNB(double angle, double radius, double tracklength);
-		int turnRight(double angle, double radius, double tracklength);
-		int turnRightNB(double angle, double radius, double tracklength);
+		int turnLeft(double angle, double radius, double trackwidth);
+		int turnLeftNB(double angle, double radius, double trackwidth);
+		int turnRight(double angle, double radius, double trackwidth);
+		int turnRightNB(double angle, double radius, double trackwidth);
 };
 void* RoboSim::_dlhandle = NULL;
 int RoboSim::_dlcount = 0;
@@ -857,7 +857,7 @@ typedef struct motionArg_s {
 	CLinkbotT *robot;
 } motionArg_t;
 typedef struct moveArg_s {
-	double x, y, radius, tracklength;
+	double x, y, radius, trackwidth;
 	CLinkbotT *robot;
 } moveArg_t;
 class DLLIMPORT CLinkbotI : public CLinkbotT {
