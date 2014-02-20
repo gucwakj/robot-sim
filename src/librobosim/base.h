@@ -286,6 +286,7 @@ class DLLIMPORT CRobot {
 		int *_rec_num;			// recording data points
 		int _seed;				// seed for random number generation
 		int _shift_data;		// shift recorded data or not
+		int *_starting;			// starting motion
 		int _g_shift_data;		// globally shift data for robot
 		int _g_shift_data_en;	// globally shift data for robot enable/disable flag
 		int *_state;			// joint states

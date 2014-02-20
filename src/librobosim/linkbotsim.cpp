@@ -2550,9 +2550,6 @@ void CLinkbotT::simPreCollisionThread(void) {
 	}
 	// ############################
 
-	// starting out counter to slowly ramp up speed
-	static int starting[NUM_DOF] = {0};
-
 	// update angle values for each degree of freedom
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		int i = _enabled[j];
@@ -2564,12 +2561,12 @@ void CLinkbotT::simPreCollisionThread(void) {
 		if (_seek[i]) {
 			if ((_goal[i] - 6*_encoder - _angle[i]) > EPSILON) {
 				_state[i] = ROBOT_FORWARD;
-				if (starting[i]++ < 25)
-					dJointSetAMotorParam(_motor[i], dParamVel, starting[i]*_speed[i]/50);
-				else if (starting[i]++ < 50)
-					dJointSetAMotorParam(_motor[i], dParamVel, starting[i]*_speed[i]/150 + 0.3*_speed[i]);
-				else if (starting[i]++ < 100)
-					dJointSetAMotorParam(_motor[i], dParamVel, starting[i]*_speed[i]/150 + _speed[i]/3);
+				if (_starting[i]++ < 25)
+					dJointSetAMotorParam(_motor[i], dParamVel, _starting[i]*_speed[i]/50);
+				else if (_starting[i]++ < 50)
+					dJointSetAMotorParam(_motor[i], dParamVel, _starting[i]*_speed[i]/150 + 0.3*_speed[i]);
+				else if (_starting[i]++ < 100)
+					dJointSetAMotorParam(_motor[i], dParamVel, _starting[i]*_speed[i]/150 + _speed[i]/3);
 				else
 					dJointSetAMotorParam(_motor[i], dParamVel, _speed[i]);
 			}
@@ -2583,12 +2580,12 @@ void CLinkbotT::simPreCollisionThread(void) {
 			}
 			else if ((_angle[i] - _goal[i] - 6*_encoder) > EPSILON) {
 				_state[i] = ROBOT_BACKWARD;
-				if (starting[i]++ < 25)
-					dJointSetAMotorParam(_motor[i], dParamVel, -starting[i]*_speed[i]/50);
-				else if (starting[i]++ < 50)
-					dJointSetAMotorParam(_motor[i], dParamVel, -starting[i]*_speed[i]/150 - 0.3*_speed[i]);
-				else if (starting[i]++ < 100)
-					dJointSetAMotorParam(_motor[i], dParamVel, -starting[i]*_speed[i]/150 - _speed[i]/3);
+				if (_starting[i]++ < 25)
+					dJointSetAMotorParam(_motor[i], dParamVel, -_starting[i]*_speed[i]/50);
+				else if (_starting[i]++ < 50)
+					dJointSetAMotorParam(_motor[i], dParamVel, -_starting[i]*_speed[i]/150 - 0.3*_speed[i]);
+				else if (_starting[i]++ < 100)
+					dJointSetAMotorParam(_motor[i], dParamVel, -_starting[i]*_speed[i]/150 - _speed[i]/3);
 				else
 					dJointSetAMotorParam(_motor[i], dParamVel, -_speed[i]);
 			}
@@ -2602,7 +2599,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 			}
 			else {
 				_state[i] = ROBOT_HOLD;
-				starting[i] = 0;
+				_starting[i] = 0;
 				dJointSetAMotorParam(_motor[i], dParamVel, 0);
 			}
 		}
@@ -3993,6 +3990,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_recording = new bool[NUM_DOF];
 	_seek = new bool[NUM_DOF];
 	_speed = new double[NUM_DOF];
+	_starting = new int[NUM_DOF];
 	_state = new int[NUM_DOF];
 	_success = new bool[NUM_DOF];
 
@@ -4006,8 +4004,9 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_max_speed[i] = 240;		// deg/sec
 		_offset[i] = 0;
 		_recording[i] = false;
-		_success[i] = true;
 		_speed[i] = 0.7854;		// 45 deg/sec
+		_starting[i] = 0;
+		_success[i] = true;
 		if (i != disabled)
 			_enabled[j++] = i;
 	}
