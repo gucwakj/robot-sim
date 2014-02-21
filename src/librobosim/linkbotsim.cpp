@@ -367,6 +367,7 @@ int CLinkbotT::isMoving(void) {
 	return 0;
 }
 
+#ifdef ENABLE_GRAPHICS
 int CLinkbotT::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
 	// convert x and y into meters
 	x1 = (_simObject->getUnits()) ? x1/39.37 : x1/100;
@@ -414,6 +415,7 @@ int CLinkbotT::line(double x1, double y1, double z1, double x2, double y2, doubl
 	// success
 	return 0;
 }
+#endif // ENABLE_GRAPHICS
 
 int CLinkbotT::motionDistance(double distance, double radius) {
 	this->motionRollForward(distance/radius);
@@ -1079,6 +1081,7 @@ int CLinkbotT::movexyWait(void) {
 	return 0;
 }
 
+#ifdef ENABLE_GRAPHICS
 int CLinkbotT::point(double x, double y, double z, int pointsize, char *color) {
 	// convert x and y into meters
 	x = (_simObject->getUnits()) ? x/39.37 : x/100;
@@ -1111,6 +1114,7 @@ int CLinkbotT::point(double x, double y, double z, int pointsize, char *color) {
 	// success
 	return htRetval;
 }
+#endif // ENABLE_GRAPHICS
 
 void* CLinkbotT::recordAngleThread(void *arg) {
 	// cast arg struct
@@ -1766,9 +1770,9 @@ int CLinkbotT::setColor(char *color) {
 		_rgb[1] = getRGB[1]/255.0;
 		_rgb[2] = getRGB[2]/255.0;
 
-	#ifdef ENABLE_GRAPHICS
+#ifdef ENABLE_GRAPHICS
 		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
-	#endif // ENABLE_GRAPHICS
+#endif // ENABLE_GRAPHICS
 
 		// success
 		return 0;
@@ -2125,6 +2129,7 @@ int CLinkbotT::systemTime(double &time) {
 	return 0;
 }
 
+#ifdef ENABLE_GRAPHICS
 int CLinkbotT::text(double x, double y, double z, char *text) {
 	// convert xyz positions to meters
 	x = (_simObject->getUnits()) ? x/39.37 : x/100;
@@ -2153,6 +2158,7 @@ int CLinkbotT::text(double x, double y, double z, char *text) {
 	// success
 	return 0;
 }
+#endif // ENABLE_GRAPHICS
 
 int CLinkbotT::turnLeft(double angle, double radius, double trackwidth) {
 	this->turnLeftNB(angle, radius, trackwidth);

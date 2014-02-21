@@ -299,6 +299,7 @@ int CMobot::isMoving(void) {
 	return 0;
 }
 
+#ifdef ENABLE_GRAPHICS
 int CMobot::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
 	// convert x and y into meters
 	x1 = (_simObject->getUnits()) ? x1/39.37 : x1/100;
@@ -346,6 +347,7 @@ int CMobot::line(double x1, double y1, double z1, double x2, double y2, double z
 	// success
 	return 0;
 }
+#endif // ENABLE_GRAPHICS
 
 int CMobot::motionArch(double angle) {
 	this->moveJointToNB(ROBOT_JOINT2, -angle/2.0);
@@ -1433,6 +1435,7 @@ int CMobot::movexyWait(void) {
 	return 0;
 }
 
+#ifdef ENABLE_GRAPHICS
 int CMobot::point(double x, double y, double z, int pointsize, char *color) {
 	// convert x and y into meters
 	x = (_simObject->getUnits()) ? x/39.37 : x/100;
@@ -1465,6 +1468,7 @@ int CMobot::point(double x, double y, double z, int pointsize, char *color) {
 	// success
 	return htRetval;
 }
+#endif // ENABLE_GRAPHICS
 
 void* CMobot::recordAngleThread(void *arg) {
 	// cast arg struct
@@ -2405,6 +2409,7 @@ int CMobot::systemTime(double &time) {
 	return 0;
 }
 
+#ifdef ENABLE_GRAPHICS
 int CMobot::text(double x, double y, double z, char *text) {
 	// convert xyz positions to meters
 	x = (_simObject->getUnits()) ? x/39.37 : x/100;
@@ -2433,6 +2438,7 @@ int CMobot::text(double x, double y, double z, char *text) {
 	// success
 	return 0;
 }
+#endif // ENABLE_GRAPHICS
 
 int CMobot::turnLeft(double angle, double radius, double trackwidth) {
 	this->turnLeftNB(angle, radius, trackwidth);

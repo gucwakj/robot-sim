@@ -124,7 +124,6 @@ add_library( robosim SHARED
 	mobotgroupsim.cpp
 	linkbotsim.cpp
 	linkbotgroupsim.cpp
-	rgbhashtable.c
 	#pid.cpp
 )
 endif (ENABLE_GRAPHICS)

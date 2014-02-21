@@ -59,7 +59,9 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int getxy(double &x, double &y);
 		int isConnected();
 		int isMoving();
+#ifdef ENABLE_GRAPHICS
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
+#endif // ENABLE_GRAPHICS
 		int motionArch(double angle);
 		int motionArchNB(double angle);
 		int motionDistance(double distance, double radius);
@@ -124,7 +126,9 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int movexyTo(double x, double y, double radius, double trackwidth);
 		int movexyToNB(double x, double y, double radius, double trackwidth);
 		int movexyWait();
+#ifdef ENABLE_GRAPHICS
 		int point(double x, double y, double z, int pointsize, char *color);
+#endif // ENABLE_GRAPHICS
 #ifdef _CH_
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id,
@@ -211,7 +215,9 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int stopAllJoints(void);
 		int systemTime(double &time);
+#ifdef ENABLE_GRAPHICS
 		int text(double x, double y, double z, char *text);
+#endif // ENABLE_GRAPHICS
 		int turnLeft(double angle, double radius, double trackwidth);
 		int turnLeftNB(double angle, double radius, double trackwidth);
 		int turnRight(double angle, double radius, double trackwidth);
