@@ -22,7 +22,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 #ifdef _CH_
 		int connect(void);
 #else
-		int connect(char *name = NULL, int pause = 1);
+		int connect(char *name = NULL, int pause = 1, int rt = 1);
 #endif
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);

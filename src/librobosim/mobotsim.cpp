@@ -25,10 +25,10 @@ int CMobot::blinkLED(double delay, int num) {
 	return 0;
 }
 
-int CMobot::connect(char *name, int pause) {
+int CMobot::connect(char *name, int pause, int rt) {
 	// create simulation object if necessary
 	if (!_simObject)
-		_simObject = new RoboSim(name, pause);
+		_simObject = new RoboSim(name, pause, rt);
 
 	// add to simulation
 	_simObject->addRobot(this);

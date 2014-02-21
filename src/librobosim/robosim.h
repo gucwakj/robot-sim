@@ -14,7 +14,7 @@
 
 class DLLIMPORT RoboSim {
 	public:
-		RoboSim(char *name, int pause);
+		RoboSim(char *name, int pause, int rt);
 		virtual ~RoboSim();
 
 #ifndef _CH_
@@ -53,6 +53,7 @@ class DLLIMPORT RoboSim {
 		int _running;				// is the program running
 		int _preconfig;				// preconfigured robot shape or not
 		int _buddy;					// whether to use buddies or not
+		int _rt;					// whether to run at real time speeds
 		COND_T _running_cond;		// condition for actively running program
 		MUTEX_T _pause_mutex;		// mutex for paused simulation
 		MUTEX_T _robot_mutex;		// mutex for ground collisions
@@ -60,9 +61,9 @@ class DLLIMPORT RoboSim {
 		THREAD_T _simulation;		// simulation thread
 
 		// private functions
-		int init_ode(void);			// init function for ode variables
-		int init_sim(int pause);	// init function for simulation variables
-		int init_xml(char *name);	// init function to read xml config file
+		int init_ode(void);					// init function for ode variables
+		int init_sim(int pause, int rt);	// init function for simulation variables
+		int init_xml(char *name);			// init function to read xml config file
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 		static void* simulation_thread(void *arg);					// simulation thread function
 		void print_intermediate_data(void);							// print data out at each time step for analysis

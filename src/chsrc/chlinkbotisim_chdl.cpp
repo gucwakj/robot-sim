@@ -67,7 +67,7 @@ printf("embed: %d\n", embed);*/
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    retval = robot->connect(NULL, !embed);
+    retval = robot->connect(NULL, !embed, 1);
     Ch_VaEnd(interp, ap);
     return retval;
 }

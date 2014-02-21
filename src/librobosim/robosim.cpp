@@ -4,12 +4,12 @@ using namespace std;
 // global robot simulation object
 RoboSim *_simObject = NULL;
 
-RoboSim::RoboSim(char *name, int pause) {
+RoboSim::RoboSim(char *name, int pause, int rt) {
 	// initialize ode
 	init_ode();
 
 	// initialize simulation
-	init_sim(pause);
+	init_sim(pause, rt);
 
 	// initialize xml config file
 	init_xml(name);
@@ -105,7 +105,7 @@ int RoboSim::init_ode(void) {
 	return 0;
 }
 
-int RoboSim::init_sim(int pause) {
+int RoboSim::init_sim(int pause, int rt) {
 	// default collision parameters
 	_mu[0] = 0.9;	_mu[1] = 0.3;
 	_cor[0] = 0.3;	_cor[1] = 0.3;
@@ -125,6 +125,7 @@ int RoboSim::init_sim(int pause) {
 #endif
     _step = 0.004;			// initial time step
 	_clock = 0;				// start clock
+	_rt = rt;				// run in real time
 
 	// success
 	return 0;
@@ -224,6 +225,11 @@ int RoboSim::init_xml(char *name) {
 	if ( (node = doc.FirstChildElement("config")->FirstChildElement("cor")) ) {
 		node->QueryDoubleAttribute("ground", &(_cor[0]));
 		node->QueryDoubleAttribute("body", &(_cor[1]));
+	}
+
+	// check if should run in real time
+	if ( (node = doc.FirstChildElement("config")->FirstChildElement("realtime")) ) {
+		node->QueryIntAttribute("val", &_rt);
 	}
 
 	// check for existence of ground node
@@ -969,6 +975,7 @@ void* RoboSim::simulation_thread(void *arg) {
 		// lock pause variable
 		MUTEX_LOCK(&(sim->_pause_mutex));
 
+if (sim->_rt) {
 		// get starting times
 #ifdef _WIN32
 		start = GetTickCount();
@@ -976,11 +983,13 @@ void* RoboSim::simulation_thread(void *arg) {
 		clock_gettime(CLOCK_REALTIME, &s_time);
 		start = s_time.tv_sec*1000 + s_time.tv_nsec/1000000;
 #endif
+}
 
 		while (!(sim->_pause) && sim->_running) {
 			// unlock pause variable
 			MUTEX_UNLOCK(&(sim->_pause_mutex));
 
+if (sim->_rt) {
 			// get start time of execution in milliseconds
 #ifdef _WIN32
 			start_time = GetTickCount();
@@ -988,6 +997,7 @@ void* RoboSim::simulation_thread(void *arg) {
 			clock_gettime(CLOCK_REALTIME, &s_time);
 			start_time = s_time.tv_sec*1000 + s_time.tv_nsec/1000000;
 #endif
+}
 
 			// perform pre-collision updates
 			MUTEX_LOCK(&(sim->_robot_mutex));
@@ -1016,6 +1026,7 @@ void* RoboSim::simulation_thread(void *arg) {
 			MUTEX_UNLOCK(&(sim->_robot_mutex));
 
 			// get ending time
+		if (sim->_rt) {
 #ifdef _WIN32
 			end = GetTickCount();
 #else
@@ -1054,6 +1065,7 @@ void* RoboSim::simulation_thread(void *arg) {
 
 			// make sure time step is large enough
 			sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
+		}
 
 			// lock pause variable
 			MUTEX_LOCK(&(sim->_pause_mutex));
@@ -1061,10 +1073,12 @@ void* RoboSim::simulation_thread(void *arg) {
 		// unlock pause variable
 		MUTEX_UNLOCK(&(sim->_pause_mutex));
 
+if (sim->_rt) {
 		// reset clock counters on pausing
 		restart = 1;
 		end = start;
 		clock = (unsigned int)(sim->_clock*1000000);
+}
 
 		// lock running mutex
 		MUTEX_LOCK(&(sim->_running_mutex));
