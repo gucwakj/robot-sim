@@ -11,11 +11,9 @@ int main(int argc, char *argv[]) {
 	/* connect to the paired robot and move to the zero position */
 	robot.connect();
 	robot1.connect();
-	//robot.resetToZero();
 
-	/* move the robot to the position (3, 4) */
 	robot.movexyNB(150, 50, radius, trackwidth);
-	robot1.movexyNB(300,50, radius, trackwidth);
+	robot1.movexyNB(250, 50, radius, trackwidth);
 	robot.movexyWait();
 	robot1.movexyWait();
 

@@ -268,6 +268,7 @@ class DLLIMPORT CRobot {
 		double _safety_angle;	// joint safety angle
 		double _safety_timeout;	// joint safety timeout
 		double *_speed;			// speed
+		double _trackwidth;		// trackwidth of robot
 		double	_center_length, _center_width, _center_height, _center_radius, _center_offset,
 				_body_length, _body_width, _body_height, _body_radius,
 				_body_inner_width_left, _body_inner_width_right, _body_end_depth, _body_mount_center,

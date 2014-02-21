@@ -2443,8 +2443,11 @@ int CMobot::turnLeft(double angle, double radius, double trackwidth) {
 }
 
 int CMobot::turnLeftNB(double angle, double radius, double trackwidth) {
+	// use internally calculated track width
+	double width = (_simObject->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
+
 	// calculate joint angle from global turn angle
-	angle = (angle*trackwidth)/(2*radius);
+	angle = (angle*width)/(2*radius);
 
 	// move
 	this->moveNB(-angle, 0, 0, angle);
@@ -2462,8 +2465,11 @@ int CMobot::turnRight(double angle, double radius, double trackwidth) {
 }
 
 int CMobot::turnRightNB(double angle, double radius, double trackwidth) {
+	// use internally calculated track width
+	double width = (_simObject->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
+
 	// calculate joint angle from global turn angle
-	angle = (angle*trackwidth)/(2*radius);
+	angle = (angle*width)/(2*radius);
 
 	// move
 	this->moveNB(angle, 0, 0, -angle);
@@ -2530,6 +2536,28 @@ int CMobot::build(xml_robot_t robot) {
 		}
 		ctmp = ctmp->next;
 	}
+
+	// set trackwidth
+	double wheel[4] = {0};
+	const double *pos;
+	int i = 0;
+	conn_t c2tmp = _conn;
+	while (c2tmp) {
+		switch (c2tmp->type) {
+			case BIGWHEEL:
+			case SMALLWHEEL:
+			case TINYWHEEL:
+			case WHEEL:
+				pos = dBodyGetPosition(c2tmp->body);
+				wheel[i++] = pos[0];
+				wheel[i++] = pos[1];
+				break;
+			default:
+				break;
+		}
+		c2tmp = c2tmp->next;
+	}
+	_trackwidth = sqrt(pow(wheel[0] - wheel[2], 2) + pow(wheel[1] - wheel[3], 2));
 
 	// success
 	return 0;
