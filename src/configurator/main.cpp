@@ -145,22 +145,20 @@ int main(int argc, char *argv[]) {
 	// find _chrc file
 	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, g_chrc))) {
 		strcat(g_chrc, "\\_chrc");
-		MessageBox(NULL, g_chrc, "CHRC Path Method A", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
 	}
 	// try method 2 on failure
 	if ((fp = fopen(g_chrc, "r+")) == NULL) {
 		char *home = getenv("HOME");
 		strcpy(g_chrc, home);
 		strcat(g_chrc, "\\_chrc");
-		MessageBox(NULL, g_chrc, "CHRC Path Method B", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
 	}
-	// copy chrc on repeated failure
+	// copy default chrc on repeated failure
 	if ((fp = fopen(g_chrc, "r+")) == NULL) {
-		system("ch -d");
-		char *home = getenv("HOME");
-		strcpy(g_chrc, home);
-		strcat(g_chrc, "\\_chrc");
-		MessageBox(NULL, g_chrc, "CHRC Path Method C", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
+		char configd[1024];
+		char *home = getenv("CHHOME");
+		strcpy(configd, home);
+		strcat(configd, "\\config\\_chrc");
+		CopyFile(configd, g_chrc, true);
 	}
 #else
 	strcpy(g_xml, getenv("HOME"));
@@ -279,10 +277,8 @@ G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data)
 	char  *chhome = getenv("CHHOME");
 	strcpy(path, chhome);
 	strcat(path, "\\package\\chrobosim\\docs\\robosim.pdf");
-	HINSTANCE retval = ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOWNORMAL);
-	char str[512];
-	sprintf(str, "help exit code: %d\n", (int)retval);
-	MessageBox(NULL, str, "Help retval", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
+	MessageBox(NULL, path, "help path", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
+	ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOWNORMAL);
 #endif
 }
 
