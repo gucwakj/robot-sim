@@ -33,13 +33,13 @@ GtkWidget *g_window;
 robots_t g_robots = NULL;
 tinyxml2::XMLDocument g_doc;
 FILE *fp = NULL;
-char g_xml[512], g_chrc[512], *fpbuf;
-int g_num = 0;
-int g_units = 1;
+char g_xml[512] = "", g_chrc[512] = "", g_chhome[512] = "", *fpbuf;
+int g_num = 0, g_units = 1;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 G_MODULE_EXPORT void on_window_destroy(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_activate(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_activate_link(GtkAboutDialog *label, gchar *uri, gpointer data);
@@ -80,6 +80,7 @@ void printRoboSimPath(void);
 void readXMLConfig(void);
 void refreshRobotList(void);
 void saveRobotList(void);
+
 #ifdef __cplusplus
 }
 #endif
@@ -113,6 +114,16 @@ int main(int argc, char *argv[]) {
 		int rc = gtk_dialog_run(GTK_DIALOG(d));
 		exit(0);
 	}
+
+	// get Ch home path
+	DWORD size;
+	HKEY key;
+#if defined(_WIN64)
+	RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\Wow6432Node\\SoftIntegration"), 0, KEY_QUERY_VALUE, &key);
+#else
+	RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\SoftIntegration"), 0, KEY_QUERY_VALUE, &key);
+#endif
+	RegQueryValueEx(key, "CHHOME", NULL, NULL, (LPBYTE)g_chhome, &size);
 #endif
 
 	// load gtk window
@@ -149,16 +160,19 @@ int main(int argc, char *argv[]) {
 	// try method 2 on failure
 	if ((fp = fopen(g_chrc, "r+")) == NULL) {
 		char *home = getenv("HOME");
-		strcpy(g_chrc, home);
-		strcat(g_chrc, "\\_chrc");
+		if (home != NULL) {
+			strncpy(g_chrc, home, strlen(home));
+			g_chrc[strlen(home)] = '\0';
+			strcat(g_chrc, "\\_chrc");
+		}
 	}
 	// copy default chrc on repeated failure
 	if ((fp = fopen(g_chrc, "r+")) == NULL) {
-		char configd[1024];
-		char *home = getenv("CHHOME");
-		strcpy(configd, home);
-		strcat(configd, "\\config\\_chrc");
-		CopyFile(configd, g_chrc, true);
+		char path[1024];
+		strncpy(path, g_chhome, strlen(g_chhome));
+		path[strlen(g_chhome)] = '\0';
+		strcat(path, "\\config\\_chrc");
+		CopyFile(path, g_chrc, true);
 	}
 #else
 	strcpy(g_xml, getenv("HOME"));
@@ -274,10 +288,9 @@ G_MODULE_EXPORT void on_aboutdialog_response(GtkDialog *dialog, gint response_id
 G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data) {
 #ifdef _WIN32
 	char path[1024];
-	char  *chhome = getenv("CHHOME");
-	strcpy(path, chhome);
+	strncpy(path, g_chhome, strlen(g_chhome));
+	path[strlen(g_chhome)] = '\0';
 	strcat(path, "\\package\\chrobosim\\docs\\robosim.pdf");
-	MessageBox(NULL, path, "help path", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
 	ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOWNORMAL);
 #endif
 }
