@@ -962,10 +962,10 @@ void* RoboSim::simulation_thread(void *arg) {
 	unsigned int sum = 0, clock = 0, restart = 0;
 	unsigned int *dt = new unsigned int[num]();
 #ifdef _WIN32
-	DWORD start_time, start, end;
+	DWORD start_time = 0, start = 0, end = 0;
 #else
 	struct timespec s_time;
-	unsigned int start_time, start, end;
+	unsigned int start_time = 0, start = 0, end = 0;
 #endif
 
 	MUTEX_LOCK(&(sim->_running_mutex));
@@ -975,29 +975,29 @@ void* RoboSim::simulation_thread(void *arg) {
 		// lock pause variable
 		MUTEX_LOCK(&(sim->_pause_mutex));
 
-if (sim->_rt) {
-		// get starting times
+		if (sim->_rt) {
+			// get starting times
 #ifdef _WIN32
-		start = GetTickCount();
+			start = GetTickCount();
 #else
-		clock_gettime(CLOCK_REALTIME, &s_time);
-		start = s_time.tv_sec*1000 + s_time.tv_nsec/1000000;
+			clock_gettime(CLOCK_REALTIME, &s_time);
+			start = s_time.tv_sec*1000 + s_time.tv_nsec/1000000;
 #endif
-}
+		}
 
 		while (!(sim->_pause) && sim->_running) {
 			// unlock pause variable
 			MUTEX_UNLOCK(&(sim->_pause_mutex));
 
-if (sim->_rt) {
-			// get start time of execution in milliseconds
+			if (sim->_rt) {
+				// get start time of execution in milliseconds
 #ifdef _WIN32
-			start_time = GetTickCount();
+				start_time = GetTickCount();
 #else
-			clock_gettime(CLOCK_REALTIME, &s_time);
-			start_time = s_time.tv_sec*1000 + s_time.tv_nsec/1000000;
+				clock_gettime(CLOCK_REALTIME, &s_time);
+				start_time = s_time.tv_sec*1000 + s_time.tv_nsec/1000000;
 #endif
-}
+			}
 
 			// perform pre-collision updates
 			MUTEX_LOCK(&(sim->_robot_mutex));
@@ -1026,46 +1026,46 @@ if (sim->_rt) {
 			MUTEX_UNLOCK(&(sim->_robot_mutex));
 
 			// get ending time
-		if (sim->_rt) {
+			if (sim->_rt) {
 #ifdef _WIN32
-			end = GetTickCount();
+				end = GetTickCount();
 #else
-			clock_gettime(CLOCK_REALTIME, &s_time);
-			end = s_time.tv_sec*1000 + s_time.tv_nsec/1000000;
+				clock_gettime(CLOCK_REALTIME, &s_time);
+				end = s_time.tv_sec*1000 + s_time.tv_nsec/1000000;
 #endif
 
-			// running mean of last four time steps
-			if (!restart) {
-				for (i = num-2; i >= 0; i--) { dt[i+1] = dt[i]; }
-				dt[0] = end - start_time;
-				for (i = 0; i < num; i++) { sum += dt[i]; }
-				sum /= num;
-			}
-			// on restart, reset all time steps
-			else {
-				restart = 0;
-				sum = dt[0];
-				dt[0] = num;
-				for (i = 1; i < num; i++) { dt[i] = 0; }
-			}
+				// running mean of last four time steps
+				if (!restart) {
+					for (i = num-2; i >= 0; i--) { dt[i+1] = dt[i]; }
+					dt[0] = end - start_time;
+					for (i = 0; i < num; i++) { sum += dt[i]; }
+					sum /= num;
+				}
+				// on restart, reset all time steps
+				else {
+					restart = 0;
+					sum = dt[0];
+					dt[0] = num;
+					for (i = 1; i < num; i++) { dt[i] = 0; }
+				}
 
-			// set next time step if calculations took longer than step
-			if ( (end - start) > ((unsigned int)(sim->_clock*1000) - clock/1000) ) {
-				sim->_step = ((end - start - ((unsigned int)(sim->_clock*1000) - clock/1000))/num + sum)/1000.0;
-			}
-			// sleep until clock time equals step time
-			else {
-				sim->_step = sum/1000.0;
+				// set next time step if calculations took longer than step
+				if ( (end - start) > ((unsigned int)(sim->_clock*1000) - clock/1000) ) {
+					sim->_step = ((end - start - ((unsigned int)(sim->_clock*1000) - clock/1000))/num + sum)/1000.0;
+				}
+				// sleep until clock time equals step time
+				else {
+					sim->_step = sum/1000.0;
 #ifdef _WIN32
-				Sleep((unsigned int)(sim->_clock*1000) - (end - start) - clock/1000);
+					Sleep((unsigned int)(sim->_clock*1000) - (end - start) - clock/1000);
 #else
-				usleep(sim->_clock*1000000 - ((end - start)*1000) - clock);
+					usleep(sim->_clock*1000000 - ((end - start)*1000) - clock);
 #endif
-			}
+				}
 
-			// make sure time step is large enough
-			sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
-		}
+				// make sure time step is large enough
+				sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
+			}
 
 			// lock pause variable
 			MUTEX_LOCK(&(sim->_pause_mutex));
@@ -1073,12 +1073,12 @@ if (sim->_rt) {
 		// unlock pause variable
 		MUTEX_UNLOCK(&(sim->_pause_mutex));
 
-if (sim->_rt) {
-		// reset clock counters on pausing
-		restart = 1;
-		end = start;
-		clock = (unsigned int)(sim->_clock*1000000);
-}
+		if (sim->_rt) {
+			// reset clock counters on pausing
+			restart = 1;
+			end = start;
+			clock = (unsigned int)(sim->_clock*1000000);
+		}
 
 		// lock running mutex
 		MUTEX_LOCK(&(sim->_running_mutex));
