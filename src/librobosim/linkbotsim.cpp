@@ -954,17 +954,28 @@ int CLinkbotT::movexy(double x, double y, double radius, double trackwidth) {
 	double r0 = this->getRotation(BODY, 2);
 
 	// get angle to turn
-	double angle = atan2(x-x0, y-y0);
-
+	//double angle = atan2(x-x0, y-y0);
+	double angle = -atan((x-x0)/(y-y0));
+	/*if (angle < -EPSILON) {
+		angle = 2*3.14159265 + angle;
+	}*/
+printf("angle: %lf\n", angle);
+//printf("angle2: %lf\n", angle2);
+printf("r0: %lf\n", r0);
+printf("a+r0: %lf\n", angle-r0);
 	// turn in shortest path
-	if ((angle+r0) > EPSILON)
-		this->turnRight(RAD2DEG(angle+r0), radius, trackwidth);
-	else
-		this->turnLeft(RAD2DEG(-angle-r0), radius, trackwidth);
+	if ((angle-r0) < -EPSILON) {
+printf("right: %lf\n", angle+r0);
+		this->turnRight(-RAD2DEG(angle-r0), radius, trackwidth);
+	}
+	else if ((angle-r0) > EPSILON) {
+printf("left: %lf\n", angle+r0);
+		this->turnLeft(-RAD2DEG(angle-r0), radius, trackwidth);
+	}
 
 	// move along length of line
 	this->moveDistance(sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0)), radius);
-
+printf("\n");
 	// success
 	return 0;
 }
