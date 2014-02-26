@@ -9,19 +9,13 @@ int main(int argc, char *argv[]) {
 
 	robot.connect();
 
-	robot.movexy(0, 5, radius, trackwidth);
 	robot.movexy(5, 5, radius, trackwidth);
 	robot.movexy(5, 0, radius, trackwidth);
 	robot.movexy(0, 0, radius, trackwidth);
 	robot.movexy(-5, 0, radius, trackwidth);
 	robot.movexy(-5, 5, radius, trackwidth);
-	robot.movexy(0, 5, radius, trackwidth);
-	robot.movexy(0, 0, radius, trackwidth);
-	robot.movexy(0, -5, radius, trackwidth);
 	robot.movexy(5, -5, radius, trackwidth);
-	robot.movexy(0, 0, radius, trackwidth);
 	robot.movexy(-5, -5, radius, trackwidth);
-	robot.movexy(0, -5, radius, trackwidth);
 	robot.movexy(0, 0, radius, trackwidth);
 
 	return 0;

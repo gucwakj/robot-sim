@@ -951,31 +951,30 @@ int CLinkbotT::movexy(double x, double y, double radius, double trackwidth) {
 	// get current position
 	double x0, y0;
 	this->getxy(x0, y0);
+
+	// calculate delta movements
+	double dx = x-x0;
+	double dy = y-y0;
+
+	// get current rotation
 	double r0 = this->getRotation(BODY, 2);
 
-	// get angle to turn
-	//double angle = atan2(x-x0, y-y0);
-	double angle = -atan((x-x0)/(y-y0));
-	/*if (angle < -EPSILON) {
-		angle = 2*3.14159265 + angle;
-	}*/
-printf("angle: %lf\n", angle);
-//printf("angle2: %lf\n", angle2);
-printf("r0: %lf\n", r0);
-printf("a+r0: %lf\n", angle-r0);
+	// compute rotation matrix for body frame
+	dMatrix3 R;
+	dRFromAxisAndAngle(R, 0, 0, 1, r0);
+
+	// get angle to turn in body coordinates (transform of R)
+	double angle = atan2(R[0]*dx + R[4]*dy, R[1]*dx + R[5]*dy);
+
 	// turn in shortest path
-	if ((angle-r0) < -EPSILON) {
-printf("right: %lf\n", angle+r0);
-		this->turnRight(-RAD2DEG(angle-r0), radius, trackwidth);
-	}
-	else if ((angle-r0) > EPSILON) {
-printf("left: %lf\n", angle+r0);
-		this->turnLeft(-RAD2DEG(angle-r0), radius, trackwidth);
-	}
+	if (angle > EPSILON)
+		this->turnRight(RAD2DEG(angle), radius, trackwidth);
+	else if (angle < -EPSILON)
+		this->turnLeft(RAD2DEG(angle), radius, trackwidth);
 
 	// move along length of line
-	this->moveDistance(sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0)), radius);
-printf("\n");
+	this->moveDistance(sqrt(dx*dx + dy*dy), radius);
+
 	// success
 	return 0;
 }
@@ -1020,25 +1019,7 @@ int CLinkbotT::movexyNB(double x, double y, double radius, double trackwidth) {
 }
 
 int CLinkbotT::movexyTo(double x, double y, double radius, double trackwidth) {
-	// get current position
-	double x0, y0;
-	this->getxy(x0, y0);
-	double r0 = this->getRotation(BODY, 2);
-
-	// get angle to turn
-	double angle = atan2(x-x0, y-y0);
-
-	// turn in shortest path
-	if ((angle+r0) > EPSILON)
-		this->turnRight(RAD2DEG(angle+r0), radius, trackwidth);
-	else
-		this->turnLeft(RAD2DEG(-angle-r0), radius, trackwidth);
-
-	// move along length of line
-	this->moveDistance(sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0)), radius);
-
-	// success
-	return 0;
+	return movexy(x, y, radius, trackwidth);
 }
 
 void* CLinkbotT::movexyToThread(void *arg) {
