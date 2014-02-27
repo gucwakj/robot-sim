@@ -710,6 +710,89 @@ int CLinkbotT::moveForwardNB(double angle) {
 	return this->moveNB(angle, 0, -angle);
 }
 
+int CLinkbotT::moveFunction(char *fcn, double x1, double x2, double radius) {
+	// init variables
+	double *coeff;
+	int *power, order = 0, num = 0;
+	char str[5];
+	char input[100];
+	std::strcpy(input, fcn);
+
+	// parse 'fcn' into usable format
+	char *var = std::strchr(input, '^');
+	if (var != NULL) {
+		order = atoi(++var);
+		num = 10*order;
+		coeff = new double[order+1]();
+		power = new int[order+1]();
+		for (int i = 0; i < order+1; i++) {
+			coeff[i] = 1;
+			power[i] = order-i;
+		}
+		for (int i = 0; i < order; i++) {
+			sprintf(str, "^%d", power[i]);
+			var = std::strstr(input, str);
+			if (var != NULL) {
+				if (var[-2] == '*')
+					coeff[i] = atof(var-=3);
+				else if (var[-2] == ' ' || var[-2] == '=')
+					coeff[i] = 1;
+				else
+					coeff[i] = atof(var-=2);
+			}
+			else {
+				coeff[i] = 0;
+			}
+		}
+		var = std::strrchr(input, 'x');
+		var = std::strpbrk(input, "+-");
+		if (var != NULL) {
+			if (var[1] == ' ')
+				var[1] = var[0];
+			coeff[order] = atof(++var);
+		}
+		else {
+			coeff[order] = 0;
+		}
+	}
+	else {
+		order = 1;
+		num = 2;
+		coeff = new double[order+1];
+		power = new int[order+1];
+		power[0] = 1;
+		var = std::strchr(input, 'x');
+		if (var != NULL) {
+			if (var[-1] == '*')
+				coeff[0] = atof(var-=2);
+			else
+				coeff[0] = atof(--var);
+		}
+		var = std::strpbrk(input, "+-");
+		if (var != NULL) {
+			if (var[1] == ' ')
+				var[1] = var[0];
+			coeff[1] = atof(++var);
+			power[1] = 0;
+		}
+	}
+
+	// number of steps necessary
+	double step = (x2-x1)/(num-1);
+
+	// movexy to sequence of (x,y) values
+	for (int i = 0; i < num; i++) {
+		double x = x1 + i*step;
+		double y = 0;
+		for (int j = 0; j <= order; j++) {
+			y += coeff[j]*pow(x, power[j]);
+		}
+		this->movexy(x, y, radius, 0);
+	}
+
+	return 0;
+}
+
 int CLinkbotT::moveJoint(robotJointId_t id, double angle) {
 	this->moveJointNB(id, angle);
 	this->moveJointWait(id);
@@ -759,7 +842,6 @@ int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 	}
 	dBodyEnable(_body[BODY]);
 	MUTEX_UNLOCK(&_angle_mutex);
-printf("set joint speed: %lf\n", dJointGetAMotorParam(_motor[id], dParamVel));
 
 	// set success to false
 	MUTEX_LOCK(&_success_mutex);
@@ -970,7 +1052,7 @@ int CLinkbotT::movexy(double x, double y, double radius, double trackwidth) {
 	if (angle > EPSILON)
 		this->turnRight(RAD2DEG(angle), radius, trackwidth);
 	else if (angle < -EPSILON)
-		this->turnLeft(RAD2DEG(angle), radius, trackwidth);
+		this->turnLeft(RAD2DEG(-angle), radius, trackwidth);
 
 	// move along length of line
 	this->moveDistance(sqrt(dx*dx + dy*dy), radius);
