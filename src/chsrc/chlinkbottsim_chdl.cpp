@@ -859,6 +859,63 @@ EXPORTCH int CLinkbotT_moveForwardNB_chdl(void *varg) {
     return retval;
 }
 
+typedef double (*TmoveFunc2DHandle)(double);
+static ChInterp_t interpT2D;
+static double TmoveFunc2D_chdl_funarg(double x);
+static void *TmoveFunc2D_chdl_funptr;
+EXPORTCH int CLinkbotT_moveFunc2D_chdl(void *varg) {
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+	double x0;
+	double xf;
+	int n;
+	TmoveFunc2DHandle handle_ch, handle_c = NULL;
+	double radius;
+    int retval;
+
+    Ch_VaStart(interpT2D, ap, varg);
+    robot = Ch_VaArg(interpT2D, ap, class CLinkbotT *);
+    x0 = Ch_VaArg(interpT2D, ap, double);
+    xf = Ch_VaArg(interpT2D, ap, double);
+    n = Ch_VaArg(interpT2D, ap, int);
+	handle_ch = Ch_VaArg(interpT2D, ap, TmoveFunc2DHandle);
+	TmoveFunc2D_chdl_funptr = (void *)handle_ch;
+	if (handle_ch != NULL) {
+		handle_c = (TmoveFunc2DHandle)TmoveFunc2D_chdl_funarg;
+	}
+    radius = Ch_VaArg(interpT2D, ap, double);
+    retval = robot->moveFunc2D(x0, xf, n, handle_c, radius);
+    Ch_VaEnd(interpT2D, ap);
+    return retval;
+}
+
+static double TmoveFunc2D_chdl_funarg(double x) {
+	double retval;
+	Ch_CallFuncByAddr(interpT2D, TmoveFunc2D_chdl_funptr, &retval, x);
+	return retval;
+}
+
+EXPORTCH int CLinkbotT_moveFunction_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+	char *fcn;
+    double x0;
+    double xf;
+    double radius;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    fcn = Ch_VaArg(interp, ap, char *);
+    x0 = Ch_VaArg(interp, ap, double);
+    xf = Ch_VaArg(interp, ap, double);
+    radius = Ch_VaArg(interp, ap, double);
+    retval = robot->moveFunction(fcn, x0, xf, radius);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotT_moveJointContinuousNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

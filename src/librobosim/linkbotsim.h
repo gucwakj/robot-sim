@@ -470,6 +470,8 @@ class DLLIMPORT CLinkbotI {
 		int moveDistanceNB(double distance, double radius);
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
+		int moveFunc2D(double x0, double xf, int n, double (*func)(double x), double radius);
+		int moveFunction(char *fcn, double x0, double xf, double radius);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
