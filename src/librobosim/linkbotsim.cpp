@@ -725,7 +725,7 @@ int CLinkbotT::moveFunc2D(double x0, double xf, int n, double (*func)(double x),
 	return 0;
 }
 
-int CLinkbotT::moveFunction(char *fcn, double x1, double x2, double radius) {
+int CLinkbotT::moveFunction(char *fcn, double x0, double xf, double radius) {
 	// init variables
 	double *coeff;
 	int *power, order = 0, num = 0;
@@ -793,11 +793,11 @@ int CLinkbotT::moveFunction(char *fcn, double x1, double x2, double radius) {
 	}
 
 	// number of steps necessary
-	double step = (x2-x1)/(num-1);
+	double step = (xf-x0)/(num-1);
 
 	// movexy to sequence of (x,y) values
 	for (int i = 0; i < num; i++) {
-		double x = x1 + i*step;
+		double x = x0 + i*step;
 		double y = 0;
 		for (int j = 0; j <= order; j++) {
 			y += coeff[j]*pow(x, power[j]);
