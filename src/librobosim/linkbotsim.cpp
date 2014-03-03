@@ -710,7 +710,7 @@ int CLinkbotT::moveForwardNB(double angle) {
 	return this->moveNB(angle, 0, -angle);
 }
 
-int CLinkbotT::moveFunc2D(double x0, double xf, int n, double (*func)(double x), double radius) {
+int CLinkbotT::moveFunc(double x0, double xf, int n, double (*func)(double x), double radius) {
 	// number of steps necessary
 	double step = (xf-x0)/(n-1);
 
