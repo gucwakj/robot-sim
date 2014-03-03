@@ -93,6 +93,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int moveDistance(double distance, double radius);
 		int moveDistanceNB(double distance, double radius);
+		int moveExpr(double x0, double xf, int n, char *expr, double radius);
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
 		int moveFunc(double x0, double xf, int n, double (*func)(double x), double radius);
@@ -468,6 +469,7 @@ class DLLIMPORT CLinkbotI {
 		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int moveDistance(double distance, double radius);
 		int moveDistanceNB(double distance, double radius);
+		int moveExpr(double x0, double xf, int n, char *expr, double radius);
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
 		int moveFunc(double x0, double xf, int n, double (*func)(double x), double radius);

@@ -698,6 +698,22 @@ int CLinkbotT::moveDistanceNB(double distance, double radius) {
 	return this->moveForwardNB(RAD2DEG(distance/radius));
 }
 
+int CLinkbotT::moveExpr(double x0, double xf, int n, char *expr, double radius) {
+	// number of steps necessary
+	double step = (xf-x0)/(n-1);
+
+	// movexy to sequence of (x,y) values
+	for (int i = 0; i < n; i++) {
+		double x = x0 + i*step;
+		//double y = streval(expr);
+		double y = x;
+		this->movexy(x, y, radius, 0);
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::moveForward(double angle) {
 	this->moveForwardNB(angle);
 	this->moveWait();

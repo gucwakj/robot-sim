@@ -751,6 +751,19 @@ int CLinkbotI::moveDistanceNB(double distance, double radius) {
     return retval;
 }
 
+int CLinkbotI::moveExpr(double x0, double xf, int n, char *expr, double radius) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveExpr_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveExpr, this, x0, xf, n, expr, radius);
+    return retval;
+}
+
 int CLinkbotI::moveForward(double angle) {
     void *fptr;
     int retval;
