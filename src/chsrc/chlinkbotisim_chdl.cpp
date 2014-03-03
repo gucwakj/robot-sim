@@ -931,27 +931,6 @@ static double ImoveFunc_chdl_funarg(double x) {
 	return retval;
 }
 
-EXPORTCH int CLinkbotI_moveFunction_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotI *robot;
-	char *fcn;
-    double x0;
-    double xf;
-    double radius;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    fcn = Ch_VaArg(interp, ap, char *);
-    x0 = Ch_VaArg(interp, ap, double);
-    xf = Ch_VaArg(interp, ap, double);
-    radius = Ch_VaArg(interp, ap, double);
-    retval = robot->moveFunction(fcn, x0, xf, radius);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLinkbotI_moveJointContinuousNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -1101,6 +1080,29 @@ EXPORTCH int CLinkbotI_moveJointWait_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CLinkbotI *);
     id = Ch_VaArg(interp, ap, robotJointId_t);
     retval = robot->moveJointWait(id);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotI_movePoly_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    double x0;
+    double xf;
+	int n;
+	char *poly;
+    double radius;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    x0 = Ch_VaArg(interp, ap, double);
+    xf = Ch_VaArg(interp, ap, double);
+    n = Ch_VaArg(interp, ap, int);
+    poly = Ch_VaArg(interp, ap, char *);
+    radius = Ch_VaArg(interp, ap, double);
+    retval = robot->movePoly(x0, xf, n, poly, radius);
     Ch_VaEnd(interp, ap);
     return retval;
 }

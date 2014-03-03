@@ -97,7 +97,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
 		int moveFunc(double x0, double xf, int n, double (*func)(double x), double radius);
-		int moveFunction(char *fcn, double x0, double xf, double radius);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
@@ -107,6 +106,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
+		int movePoly(double x0, double xf, int n, char *poly, double radius);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
 		int moveToDirectNB(double angle1, double angle2, double angle3);
@@ -473,7 +473,6 @@ class DLLIMPORT CLinkbotI {
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
 		int moveFunc(double x0, double xf, int n, double (*func)(double x), double radius);
-		int moveFunction(char *fcn, double x0, double xf, double radius);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
@@ -483,6 +482,7 @@ class DLLIMPORT CLinkbotI {
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
+		int movePoly(double x0, double xf, int n, char *poly, double radius);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
 		int moveToDirectNB(double angle1, double angle2, double angle3);
