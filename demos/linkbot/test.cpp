@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
 
 	robot.connect();
 	//robot.moveFunction("y=5x+3", 0, 4, radius);
-	robot.moveFunc2D(0.0, 4.0, 100, func, radius);
+	robot.moveFuncNB(0, 4, 10, func, radius);
+	robot.movexyWait();
 	return 0;
 }

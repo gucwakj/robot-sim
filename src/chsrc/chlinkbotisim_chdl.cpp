@@ -931,6 +931,42 @@ static double ImoveFunc_chdl_funarg(double x) {
 	return retval;
 }
 
+typedef double (*ImoveFuncNBHandle)(double);
+static ChInterp_t interpINB;
+static double ImoveFuncNB_chdl_funarg(double x);
+static void *ImoveFuncNB_chdl_funptr;
+EXPORTCH int CLinkbotI_moveFuncNB_chdl(void *varg) {
+	ChVaList_t ap;
+	class CLinkbotI *robot;
+	double x0;
+	double xf;
+	int n;
+	ImoveFuncNBHandle handle_ch, handle_c = NULL;
+	double radius;
+	int retval;
+
+	Ch_VaStart(interpINB, ap, varg);
+	robot = Ch_VaArg(interpINB, ap, class CLinkbotI *);
+	x0 = Ch_VaArg(interpINB, ap, double);
+	xf = Ch_VaArg(interpINB, ap, double);
+	n = Ch_VaArg(interpINB, ap, int);
+	handle_ch = Ch_VaArg(interpINB, ap, ImoveFuncNBHandle);
+	ImoveFuncNB_chdl_funptr = (void *)handle_ch;
+	if (handle_ch != NULL) {
+		handle_c = (ImoveFuncNBHandle)ImoveFuncNB_chdl_funarg;
+	}
+	radius = Ch_VaArg(interpINB, ap, double);
+	retval = robot->moveFuncNB(x0, xf, n, handle_c, radius);
+	Ch_VaEnd(interpINB, ap);
+	return retval;
+}
+
+static double ImoveFuncNB_chdl_funarg(double x) {
+	double retval;
+	Ch_CallFuncByAddr(interpINB, ImoveFuncNB_chdl_funptr, &retval, x);
+	return retval;
+}
+
 EXPORTCH int CLinkbotI_moveJointContinuousNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
