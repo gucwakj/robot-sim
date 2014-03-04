@@ -94,6 +94,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveDistance(double distance, double radius);
 		int moveDistanceNB(double distance, double radius);
 		int moveExpr(double x0, double xf, int n, char *expr, double radius);
+		int moveExprNB(double x0, double xf, int n, char *expr, double radius);
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
 		int moveFunc(double x0, double xf, int n, double (*func)(double x), double radius);
@@ -279,6 +280,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		static void* motionRollForwardThread(void *arg);									// thread to run motion roll forward
 		static void* motionTurnLeftThread(void *arg);										// thread to run motion turn left
 		static void* motionTurnRightThread(void *arg);										// thread to run motion turn right
+		static void* moveExprThread(void *arg);												// thread to run moveExpr
 		static void* moveFuncThread(void *arg);												// thread to run moveFunc
 		static void* movexyThread(void *arg);												// thread to run movexy
 		static void* movexyToThread(void *arg);												// thread to run movexy
@@ -472,6 +474,7 @@ class DLLIMPORT CLinkbotI {
 		int moveDistance(double distance, double radius);
 		int moveDistanceNB(double distance, double radius);
 		int moveExpr(double x0, double xf, int n, char *expr, double radius);
+		int moveExprNB(double x0, double xf, int n, char *expr, double radius);
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
 		int moveFunc(double x0, double xf, int n, double (*func)(double x), double radius);
@@ -875,6 +878,7 @@ typedef struct moveArg_s {
 	double x, y, radius, trackwidth;
 	int i;
 	double (*func)(double x);
+	char *expr;
 	CLinkbotT *robot;
 } moveArg_t;
 class DLLIMPORT CLinkbotI : public CLinkbotT {

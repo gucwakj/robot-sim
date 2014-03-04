@@ -714,6 +714,46 @@ int CLinkbotT::moveExpr(double x0, double xf, int n, char *expr, double radius) 
 	return 0;
 }
 
+void* CLinkbotT::moveExprThread(void *arg) {
+	// cast arg
+	moveArg_t *mArg = (moveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->moveExpr(mArg->x, mArg->y, mArg->i, mArg->expr, mArg->radius);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::moveExprNB(double x0, double xf, int n, char *expr, double radius) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	moveArg_t *mArg = new moveArg_t;
+	mArg->robot = this;
+	mArg->x = x0;
+	mArg->y = xf;
+	mArg->i = n;
+	mArg->expr = expr;
+	mArg->radius = radius;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, moveExprThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::moveForward(double angle) {
 	this->moveForwardNB(angle);
 	this->moveWait();

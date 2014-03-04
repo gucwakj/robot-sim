@@ -12,8 +12,7 @@ int main(int argc, char *argv[]) {
 	double trackwidth = 9.3726;  // the track width, the distance between two wheels
 
 	robot.connect();
-	//robot.moveFunction("y=5x+3", 0, 4, radius);
-	robot.moveFuncNB(0, 4, 10, func, radius);
+	robot.moveExprNB(0, 4, 10, "x^2", radius);
 	robot.movexyWait();
 	return 0;
 }
