@@ -7,9 +7,13 @@ Copyright (c) 2013-2014
 
 ************************************************************
 
-Version 1.1.0 - February 8, 2014
+Version 1.1.0 - March 5, 2014
 	*) RoboSim GUI allows the user to specify the size of wheels for a robot
-	*)
+	*) Help menu linking to User's Guide PDF
+	*) Correct trackwidth calculation for turning angle computation
+	*) fix bug in movexy() which stopped robot from reaching point
+	*) new functions: 	movexyExpr
+				movexyFunc
 
 Version 1.0.0 - January 8, 2014
 	*) The original release
