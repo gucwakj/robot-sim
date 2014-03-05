@@ -768,7 +768,7 @@ int CLinkbotI::moveExpr(double x0, double xf, int n, char *expr, double radius) 
 }
 
 int CLinkbotI::moveExprNB(double x0, double xf, int n, char *expr, double radius) {
-	fprintf(_stderr, "Error: moveExprNB() is not implemented.  Please use moveFuncNB().\n");
+	fprintf(_stderr, "Error: moveExprNB() is not implemented.  Please use movexyFuncNB().\n");
 
 	// success
 	return 0;
@@ -797,32 +797,6 @@ int CLinkbotI::moveForwardNB(double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveForwardNB, this, angle);
-    return retval;
-}
-
-int CLinkbotI::moveFunc(double x0, double xf, int n, double (*func)(double x), double radius) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveFunc_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveFunc, this, x0, xf, n, func, radius);
-    return retval;
-}
-
-int CLinkbotI::moveFuncNB(double x0, double xf, int n, double (*func)(double x), double radius) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveFuncNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveFuncNB, this, x0, xf, n, func, radius);
     return retval;
 }
 
@@ -1070,6 +1044,32 @@ int CLinkbotI::movexyNB(double x, double y, double radius, double trackwidth) {
         return -1;
     }
     dlrunfun(fptr, &retval, movexyNB, this, x, y, radius, trackwidth);
+    return retval;
+}
+
+int CLinkbotI::movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_movexyFunc_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, movexyFunc, this, x0, xf, n, func, radius);
+    return retval;
+}
+
+int CLinkbotI::movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_movexyFuncNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, movexyFuncNB, this, x0, xf, n, func, radius);
     return retval;
 }
 

@@ -710,61 +710,6 @@ int CLinkbotT::moveForwardNB(double angle) {
 	return this->moveNB(angle, 0, -angle);
 }
 
-int CLinkbotT::moveFunc(double x0, double xf, int n, double (*func)(double x), double radius) {
-	// number of steps necessary
-	double step = (xf-x0)/(n-1);
-
-	// movexy to sequence of (x,y) values
-	for (int i = 0; i < n; i++) {
-		double x = x0 + i*step;
-		double y = func(x);
-		this->movexy(x, y, radius, 0);
-	}
-
-	// success
-	return 0;
-}
-
-void* CLinkbotT::moveFuncThread(void *arg) {
-	// cast arg
-	moveArg_t *mArg = (moveArg_t *)arg;
-
-	// perform motion
-	mArg->robot->moveFunc(mArg->x, mArg->y, mArg->i, mArg->func, mArg->radius);
-
-	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
-
-	// cleanup
-	delete mArg;
-
-	// success
-	return NULL;
-}
-
-int CLinkbotT::moveFuncNB(double x0, double xf, int n, double (*func)(double x), double radius) {
-	// create thread
-	THREAD_T move;
-
-	// store args
-	moveArg_t *mArg = new moveArg_t;
-	mArg->robot = this;
-	mArg->x = x0;
-	mArg->y = xf;
-	mArg->i = n;
-	mArg->func = func;
-	mArg->radius = radius;
-
-	// motion in progress
-	_motion = true;
-
-	// start thread
-	THREAD_CREATE(&move, moveFuncThread, (void *)mArg);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::moveJoint(robotJointId_t id, double angle) {
 	this->moveJointNB(id, angle);
 	this->moveJointWait(id);
@@ -1148,6 +1093,61 @@ int CLinkbotT::movexyNB(double x, double y, double radius, double trackwidth) {
 
 	// start thread
 	THREAD_CREATE(&move, movexyThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius) {
+	// number of steps necessary
+	double step = (xf-x0)/(n-1);
+
+	// movexy to sequence of (x,y) values
+	for (int i = 0; i < n; i++) {
+		double x = x0 + i*step;
+		double y = func(x);
+		this->movexy(x, y, radius, 0);
+	}
+
+	// success
+	return 0;
+}
+
+void* CLinkbotT::movexyFuncThread(void *arg) {
+	// cast arg
+	moveArg_t *mArg = (moveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->movexyFunc(mArg->x, mArg->y, mArg->i, mArg->func, mArg->radius);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	moveArg_t *mArg = new moveArg_t;
+	mArg->robot = this;
+	mArg->x = x0;
+	mArg->y = xf;
+	mArg->i = n;
+	mArg->func = func;
+	mArg->radius = radius;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, movexyFuncThread, (void *)mArg);
 
 	// success
 	return 0;

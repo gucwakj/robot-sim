@@ -99,8 +99,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #endif
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
-		int moveFunc(double x0, double xf, int n, double (*func)(double x), double radius);
-		int moveFuncNB(double x0, double xf, int n, double (*func)(double x), double radius);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
@@ -120,6 +118,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveWait(void);
 		int movexy(double x, double y, double radius, double trackwidth);
 		int movexyNB(double x, double y, double radius, double trackwidth);
+		int movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius);
+		int movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius);
 		int movexyTo(double x, double y, double radius, double trackwidth);
 		int movexyToNB(double x, double y, double radius, double trackwidth);
 		int movexyWait();
@@ -282,8 +282,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		static void* motionRollForwardThread(void *arg);									// thread to run motion roll forward
 		static void* motionTurnLeftThread(void *arg);										// thread to run motion turn left
 		static void* motionTurnRightThread(void *arg);										// thread to run motion turn right
-		static void* moveFuncThread(void *arg);												// thread to run moveFunc
 		static void* movexyThread(void *arg);												// thread to run movexy
+		static void* movexyFuncThread(void *arg);											// thread to run movexyFunc
 		static void* movexyToThread(void *arg);												// thread to run movexy
 		static void* recordAngleThread(void *arg);											// thread to record angle
 		static void* recordAngleBeginThread(void *arg);										// thread to record angle
@@ -478,8 +478,6 @@ class DLLIMPORT CLinkbotI {
 		int moveExprNB(double x0, double xf, int n, char *expr, double radius);
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
-		int moveFunc(double x0, double xf, int n, double (*func)(double x), double radius);
-		int moveFuncNB(double x0, double xf, int n, double (*func)(double x), double radius);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
@@ -499,6 +497,8 @@ class DLLIMPORT CLinkbotI {
 		int moveWait();
 		int movexy(double x, double y, double radius, double trackwidth);
 		int movexyNB(double x, double y, double radius, double trackwidth);
+		int movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius);
+		int movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius);
 		int movexyTo(double x, double y, double radius, double trackwidth);
 		int movexyToNB(double x, double y, double radius, double trackwidth);
 		int movexyWait();
