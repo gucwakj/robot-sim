@@ -93,10 +93,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int moveDistance(double distance, double radius);
 		int moveDistanceNB(double distance, double radius);
-#ifdef _CH_
-		int moveExpr(double x0, double xf, int n, char *expr, double radius);
-		int moveExprNB(double x0, double xf, int n, char *expr, double radius);
-#endif
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
 		int moveJoint(robotJointId_t id, double angle);
@@ -118,6 +114,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveWait(void);
 		int movexy(double x, double y, double radius, double trackwidth);
 		int movexyNB(double x, double y, double radius, double trackwidth);
+#ifdef _CH_
+		int movexyExpr(double x0, double xf, int n, char *expr, double radius);
+		int movexyExprNB(double x0, double xf, int n, char *expr, double radius);
+#endif
 		int movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius);
 		int movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius);
 		int movexyTo(double x, double y, double radius, double trackwidth);
@@ -474,8 +474,6 @@ class DLLIMPORT CLinkbotI {
 		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int moveDistance(double distance, double radius);
 		int moveDistanceNB(double distance, double radius);
-		int moveExpr(double x0, double xf, int n, char *expr, double radius);
-		int moveExprNB(double x0, double xf, int n, char *expr, double radius);
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
 		int moveJoint(robotJointId_t id, double angle);
@@ -497,6 +495,8 @@ class DLLIMPORT CLinkbotI {
 		int moveWait();
 		int movexy(double x, double y, double radius, double trackwidth);
 		int movexyNB(double x, double y, double radius, double trackwidth);
+		int movexyExpr(double x0, double xf, int n, char *expr, double radius);
+		int movexyExprNB(double x0, double xf, int n, char *expr, double radius);
 		int movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius);
 		int movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius);
 		int movexyTo(double x, double y, double radius, double trackwidth);
