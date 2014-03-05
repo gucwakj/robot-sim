@@ -829,52 +829,6 @@ EXPORTCH int CLinkbotT_moveDistanceNB_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotT_moveExpr_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotT *robot;
-    double x0;
-    double xf;
-	int n;
-	char *expr;
-    double radius;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
-    x0 = Ch_VaArg(interp, ap, double);
-    xf = Ch_VaArg(interp, ap, double);
-    n = Ch_VaArg(interp, ap, int);
-    expr = Ch_VaArg(interp, ap, char *);
-    radius = Ch_VaArg(interp, ap, double);
-    retval = robot->moveExpr(x0, xf, n, expr, radius);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotT_moveExprNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotT *robot;
-    double x0;
-    double xf;
-	int n;
-	char *expr;
-    double radius;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
-    x0 = Ch_VaArg(interp, ap, double);
-    xf = Ch_VaArg(interp, ap, double);
-    n = Ch_VaArg(interp, ap, int);
-    expr = Ch_VaArg(interp, ap, char *);
-    radius = Ch_VaArg(interp, ap, double);
-    retval = robot->moveExprNB(x0, xf, n, expr, radius);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLinkbotT_moveForward_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

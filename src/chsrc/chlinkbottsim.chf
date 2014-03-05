@@ -752,29 +752,26 @@ int CLinkbotT::moveDistanceNB(double distance, double radius) {
 }
 
 int CLinkbotT::moveExpr(double x0, double xf, int n, char *expr, double radius) {
-    void *fptr;
-    int retval;
+	// number of steps necessary
+	double step = (xf-x0)/(n-1);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_moveExpr_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveExpr, this, x0, xf, n, expr, radius);
-    return retval;
+	// movexy to sequence of (x,y) values
+	int i = 0;
+	for (i = 0; i < n; i++) {
+		double x = x0 + i*step;
+		double y = streval(expr);
+		movexy(x, y, radius, 0);
+	}
+
+	// success
+	return 0;
 }
 
 int CLinkbotT::moveExprNB(double x0, double xf, int n, char *expr, double radius) {
-    void *fptr;
-    int retval;
+	fprintf(_stderr, "Error: moveExprNB() is not implemented.  Please use moveFuncNB().\n");
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_moveExprNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveExprNB, this, x0, xf, n, expr, radius);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotT::moveForward(double angle) {

@@ -93,8 +93,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int moveDistance(double distance, double radius);
 		int moveDistanceNB(double distance, double radius);
+#ifdef _CH_
 		int moveExpr(double x0, double xf, int n, char *expr, double radius);
 		int moveExprNB(double x0, double xf, int n, char *expr, double radius);
+#endif
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
 		int moveFunc(double x0, double xf, int n, double (*func)(double x), double radius);
@@ -280,7 +282,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		static void* motionRollForwardThread(void *arg);									// thread to run motion roll forward
 		static void* motionTurnLeftThread(void *arg);										// thread to run motion turn left
 		static void* motionTurnRightThread(void *arg);										// thread to run motion turn right
-		static void* moveExprThread(void *arg);												// thread to run moveExpr
 		static void* moveFuncThread(void *arg);												// thread to run moveFunc
 		static void* movexyThread(void *arg);												// thread to run movexy
 		static void* movexyToThread(void *arg);												// thread to run movexy
