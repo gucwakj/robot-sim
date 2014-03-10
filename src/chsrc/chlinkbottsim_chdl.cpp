@@ -1278,6 +1278,7 @@ EXPORTCH int CLinkbotT_movexyFunc_chdl(void *varg) {
 	int n;
 	TmovexyFuncHandle handle_ch, handle_c = NULL;
 	double radius;
+	double trackwidth;
     int retval;
 
     Ch_VaStart(interpT, ap, varg);
@@ -1291,7 +1292,8 @@ EXPORTCH int CLinkbotT_movexyFunc_chdl(void *varg) {
 		handle_c = (TmovexyFuncHandle)TmovexyFunc_chdl_funarg;
 	}
     radius = Ch_VaArg(interpT, ap, double);
-    retval = robot->movexyFunc(x0, xf, n, handle_c, radius);
+    trackwidth = Ch_VaArg(interpT, ap, double);
+    retval = robot->movexyFunc(x0, xf, n, handle_c, radius, trackwidth);
     Ch_VaEnd(interpT, ap);
     return retval;
 }
@@ -1313,6 +1315,7 @@ EXPORTCH int CLinkbotT_movexyFuncNB_chdl(void *varg) {
 	int n;
 	TmovexyFuncNBHandle handle_ch, handle_c = NULL;
 	double radius;
+	double trackwidth;
     int retval;
 
     Ch_VaStart(interpTNB, ap, varg);
@@ -1326,7 +1329,8 @@ EXPORTCH int CLinkbotT_movexyFuncNB_chdl(void *varg) {
 		handle_c = (TmovexyFuncNBHandle)TmovexyFuncNB_chdl_funarg;
 	}
     radius = Ch_VaArg(interpTNB, ap, double);
-    retval = robot->movexyFuncNB(x0, xf, n, handle_c, radius);
+    trackwidth = Ch_VaArg(interpTNB, ap, double);
+    retval = robot->movexyFuncNB(x0, xf, n, handle_c, radius, trackwidth);
     Ch_VaEnd(interpTNB, ap);
     return retval;
 }

@@ -1098,7 +1098,7 @@ int CLinkbotT::movexyNB(double x, double y, double radius, double trackwidth) {
 	return 0;
 }
 
-int CLinkbotT::movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius) {
+int CLinkbotT::movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
 	// number of steps necessary
 	double step = (xf-x0)/(n-1);
 
@@ -1106,7 +1106,7 @@ int CLinkbotT::movexyFunc(double x0, double xf, int n, double (*func)(double x),
 	for (int i = 0; i < n; i++) {
 		double x = x0 + i*step;
 		double y = func(x);
-		this->movexy(x, y, radius, 0);
+		this->movexy(x, y, radius, trackwidth);
 	}
 
 	// success
@@ -1118,7 +1118,7 @@ void* CLinkbotT::movexyFuncThread(void *arg) {
 	moveArg_t *mArg = (moveArg_t *)arg;
 
 	// perform motion
-	mArg->robot->movexyFunc(mArg->x, mArg->y, mArg->i, mArg->func, mArg->radius);
+	mArg->robot->movexyFunc(mArg->x, mArg->y, mArg->i, mArg->func, mArg->radius, mArg->trackwidth);
 
 	// signal successful completion
 	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
@@ -1130,7 +1130,7 @@ void* CLinkbotT::movexyFuncThread(void *arg) {
 	return NULL;
 }
 
-int CLinkbotT::movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius) {
+int CLinkbotT::movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
 	// create thread
 	THREAD_T move;
 
@@ -1142,6 +1142,7 @@ int CLinkbotT::movexyFuncNB(double x0, double xf, int n, double (*func)(double x
 	mArg->i = n;
 	mArg->func = func;
 	mArg->radius = radius;
+	mArg->trackwidth = trackwidth;
 
 	// motion in progress
 	_motion = true;

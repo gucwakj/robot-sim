@@ -115,14 +115,14 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int movexy(double x, double y, double radius, double trackwidth);
 		int movexyNB(double x, double y, double radius, double trackwidth);
 #ifdef _CH_
-		int movexyExpr(double x0, double xf, int n, char *expr, double radius);
-		int movexyExprNB(double x0, double xf, int n, char *expr, double radius);
+		int movexyExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth);
+		int movexyExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth);
 #endif
-		int movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius);
-		int movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius);
+		int movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
+		int movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
 		int movexyTo(double x, double y, double radius, double trackwidth);
 		int movexyToNB(double x, double y, double radius, double trackwidth);
-		int movexyWait();
+		int movexyWait(void);
 #ifdef ENABLE_GRAPHICS
 		int point(double x, double y, double z, int pointsize, char *color);
 #endif // ENABLE_GRAPHICS
@@ -495,10 +495,10 @@ class DLLIMPORT CLinkbotI {
 		int moveWait();
 		int movexy(double x, double y, double radius, double trackwidth);
 		int movexyNB(double x, double y, double radius, double trackwidth);
-		int movexyExpr(double x0, double xf, int n, char *expr, double radius);
-		int movexyExprNB(double x0, double xf, int n, char *expr, double radius);
-		int movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius);
-		int movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius);
+		int movexyExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth);
+		int movexyExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth);
+		int movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
+		int movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
 		int movexyTo(double x, double y, double radius, double trackwidth);
 		int movexyToNB(double x, double y, double radius, double trackwidth);
 		int movexyWait();
