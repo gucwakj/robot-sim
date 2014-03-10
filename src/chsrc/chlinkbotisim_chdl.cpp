@@ -1025,29 +1025,6 @@ EXPORTCH int CLinkbotI_moveJointWait_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotI_movePoly_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotI *robot;
-    double x0;
-    double xf;
-	int n;
-	char *poly;
-    double radius;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    x0 = Ch_VaArg(interp, ap, double);
-    xf = Ch_VaArg(interp, ap, double);
-    n = Ch_VaArg(interp, ap, int);
-    poly = Ch_VaArg(interp, ap, char *);
-    radius = Ch_VaArg(interp, ap, double);
-    retval = robot->movePoly(x0, xf, n, poly, radius);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLinkbotI_moveTo_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -1351,6 +1328,31 @@ static double ImovexyFuncNB_chdl_funarg(double x) {
 	double retval;
 	Ch_CallFuncByAddr(interpINB, ImovexyFuncNB_chdl_funptr, &retval, x);
 	return retval;
+}
+
+EXPORTCH int CLinkbotI_movexyPoly_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    double x0;
+    double xf;
+	int n;
+	char *poly;
+    double radius;
+    double trackwidth;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    x0 = Ch_VaArg(interp, ap, double);
+    xf = Ch_VaArg(interp, ap, double);
+    n = Ch_VaArg(interp, ap, int);
+    poly = Ch_VaArg(interp, ap, char *);
+    radius = Ch_VaArg(interp, ap, double);
+    trackwidth = Ch_VaArg(interp, ap, double);
+    retval = robot->movexyPoly(x0, xf, n, poly, radius, trackwidth);
+    Ch_VaEnd(interp, ap);
+    return retval;
 }
 
 EXPORTCH int CLinkbotI_movexyTo_chdl(void *varg) {

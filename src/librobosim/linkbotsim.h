@@ -104,7 +104,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
-		int movePoly(double x0, double xf, int n, char *poly, double radius);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
 		int moveToDirectNB(double angle1, double angle2, double angle3);
@@ -120,6 +119,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #endif
 		int movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
 		int movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
+		int movexyPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyTo(double x, double y, double radius, double trackwidth);
 		int movexyToNB(double x, double y, double radius, double trackwidth);
 		int movexyWait(void);
@@ -485,7 +485,6 @@ class DLLIMPORT CLinkbotI {
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
-		int movePoly(double x0, double xf, int n, char *poly, double radius);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
 		int moveToDirectNB(double angle1, double angle2, double angle3);
@@ -499,6 +498,7 @@ class DLLIMPORT CLinkbotI {
 		int movexyExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth);
 		int movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
 		int movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
+		int movexyPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyTo(double x, double y, double radius, double trackwidth);
 		int movexyToNB(double x, double y, double radius, double trackwidth);
 		int movexyWait();

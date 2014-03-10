@@ -894,19 +894,6 @@ int CLinkbotT::moveJointWait(int id) {
     return retval;
 }
 
-int CLinkbotT::movePoly(double x0, double xf, int n, char *poly, double radius) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_movePoly_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, movePoly, this, x0, xf, n, poly, radius);
-    return retval;
-}
-
 int CLinkbotT::moveTo(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
@@ -1070,6 +1057,19 @@ int CLinkbotT::movexyFuncNB(double x0, double xf, int n, double (*func)(double x
         return -1;
     }
     dlrunfun(fptr, &retval, movexyFuncNB, this, x0, xf, n, func, radius, trackwidth);
+    return retval;
+}
+
+int CLinkbotT::movexyPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_movexyPoly_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, movexyPoly, this, x0, xf, n, poly, radius, trackwidth);
     return retval;
 }
 

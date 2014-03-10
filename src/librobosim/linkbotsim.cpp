@@ -854,87 +854,6 @@ int CLinkbotT::moveJointWait(robotJointId_t id) {
 	return 0;
 }
 
-int CLinkbotT::movePoly(double x0, double xf, int n, char *poly, double radius) {
-	// init variables
-	double *coeff;
-	int *power, order = 0;
-	char str[5];
-	char input[100];
-	std::strcpy(input, poly);
-
-	// parse 'fcn' into usable format
-	char *var = std::strchr(input, '^');
-	if (var != NULL) {
-		order = atoi(++var);
-		coeff = new double[order+1]();
-		power = new int[order+1]();
-		for (int i = 0; i < order+1; i++) {
-			coeff[i] = 1;
-			power[i] = order-i;
-		}
-		for (int i = 0; i < order; i++) {
-			sprintf(str, "^%d", power[i]);
-			var = std::strstr(input, str);
-			if (var != NULL) {
-				if (var[-2] == '*')
-					coeff[i] = atof(var-=3);
-				else if (var[-2] == ' ' || var[-2] == '=')
-					coeff[i] = 1;
-				else
-					coeff[i] = atof(var-=2);
-			}
-			else {
-				coeff[i] = 0;
-			}
-		}
-		var = std::strrchr(input, 'x');
-		var = std::strpbrk(input, "+-");
-		if (var != NULL) {
-			if (var[1] == ' ')
-				var[1] = var[0];
-			coeff[order] = atof(++var);
-		}
-		else {
-			coeff[order] = 0;
-		}
-	}
-	else {
-		order = 1;
-		coeff = new double[order+1];
-		power = new int[order+1];
-		power[0] = 1;
-		var = std::strchr(input, 'x');
-		if (var != NULL) {
-			if (var[-1] == '*')
-				coeff[0] = atof(var-=2);
-			else
-				coeff[0] = atof(--var);
-		}
-		var = std::strpbrk(input, "+-");
-		if (var != NULL) {
-			if (var[1] == ' ')
-				var[1] = var[0];
-			coeff[1] = atof(++var);
-			power[1] = 0;
-		}
-	}
-
-	// number of steps necessary
-	double step = (xf-x0)/(n-1);
-
-	// movexy to sequence of (x,y) values
-	for (int i = 0; i < n; i++) {
-		double x = x0 + i*step;
-		double y = 0;
-		for (int j = 0; j <= order; j++) {
-			y += coeff[j]*pow(x, power[j]);
-		}
-		this->movexy(x, y, radius, 0);
-	}
-
-	return 0;
-}
-
 int CLinkbotT::moveTo(double angle1, double angle2, double angle3) {
 	this->moveToNB(angle1, angle2, angle3);
 	this->moveWait();
@@ -1151,6 +1070,87 @@ int CLinkbotT::movexyFuncNB(double x0, double xf, int n, double (*func)(double x
 	THREAD_CREATE(&move, movexyFuncThread, (void *)mArg);
 
 	// success
+	return 0;
+}
+
+int CLinkbotT::movexyPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
+	// init variables
+	double *coeff;
+	int *power, order = 0;
+	char str[5];
+	char input[100];
+	std::strcpy(input, poly);
+
+	// parse 'fcn' into usable format
+	char *var = std::strchr(input, '^');
+	if (var != NULL) {
+		order = atoi(++var);
+		coeff = new double[order+1]();
+		power = new int[order+1]();
+		for (int i = 0; i < order+1; i++) {
+			coeff[i] = 1;
+			power[i] = order-i;
+		}
+		for (int i = 0; i < order; i++) {
+			sprintf(str, "^%d", power[i]);
+			var = std::strstr(input, str);
+			if (var != NULL) {
+				if (var[-2] == '*')
+					coeff[i] = atof(var-=3);
+				else if (var[-2] == ' ' || var[-2] == '=')
+					coeff[i] = 1;
+				else
+					coeff[i] = atof(var-=2);
+			}
+			else {
+				coeff[i] = 0;
+			}
+		}
+		var = std::strrchr(input, 'x');
+		var = std::strpbrk(input, "+-");
+		if (var != NULL) {
+			if (var[1] == ' ')
+				var[1] = var[0];
+			coeff[order] = atof(++var);
+		}
+		else {
+			coeff[order] = 0;
+		}
+	}
+	else {
+		order = 1;
+		coeff = new double[order+1];
+		power = new int[order+1];
+		power[0] = 1;
+		var = std::strchr(input, 'x');
+		if (var != NULL) {
+			if (var[-1] == '*')
+				coeff[0] = atof(var-=2);
+			else
+				coeff[0] = atof(--var);
+		}
+		var = std::strpbrk(input, "+-");
+		if (var != NULL) {
+			if (var[1] == ' ')
+				var[1] = var[0];
+			coeff[1] = atof(++var);
+			power[1] = 0;
+		}
+	}
+
+	// number of steps necessary
+	double step = (xf-x0)/(n-1);
+
+	// movexy to sequence of (x,y) values
+	for (int i = 0; i < n; i++) {
+		double x = x0 + i*step;
+		double y = 0;
+		for (int j = 0; j <= order; j++) {
+			y += coeff[j]*pow(x, power[j]);
+		}
+		this->movexy(x, y, radius, 0);
+	}
+
 	return 0;
 }
 
