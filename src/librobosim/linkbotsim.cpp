@@ -1262,7 +1262,7 @@ void* CLinkbotT::recordAngleThread(void *arg) {
 		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angle
-		rArg->angle1[i] = rArg->robot->_angle[rArg->id];
+		rArg->angle1[i] = RAD2DEG(rArg->robot->_angle[rArg->id]);
 
 		// check if joint is moving
 		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
@@ -1380,7 +1380,7 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		(*(rArg->pangle1))[i] = rArg->robot->_angle[rArg->id];
+		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_angle[rArg->id]);
 		moving = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
 
 		// store time of data point
@@ -1499,9 +1499,9 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angles
-		rArg->angle1[i] = rArg->robot->_angle[ROBOT_JOINT1];
-		rArg->angle2[i] = rArg->robot->_angle[ROBOT_JOINT2];
-		rArg->angle3[i] = rArg->robot->_angle[ROBOT_JOINT3];
+		rArg->angle1[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT1]);
+		rArg->angle2[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT2]);
+		rArg->angle3[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT3]);
 
 		// check if joints are moving
 		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(ROBOT_JOINT1), dParamVel)*1000);
@@ -1642,9 +1642,9 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		(*(rArg->pangle1))[i] = rArg->robot->_angle[ROBOT_JOINT1];
-		(*(rArg->pangle2))[i] = rArg->robot->_angle[ROBOT_JOINT2];
-		(*(rArg->pangle3))[i] = rArg->robot->_angle[ROBOT_JOINT3];
+		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT1]);
+		(*(rArg->pangle2))[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT2]);
+		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT3]);
 
 		// store time of data point
 		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
@@ -1761,7 +1761,7 @@ int CLinkbotT::recordDistanceEnd(robotJointId_t id, int &num) {
 
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
-		(*_rec_angles[id])[i] = (*_rec_angles[id])[i] * _radius;
+		(*_rec_angles[id])[i] = DEG2RAD((*_rec_angles[id])[i]) * _radius;
 		(*_rec_angles[id])[i] += _distOffset;
 	}
 
