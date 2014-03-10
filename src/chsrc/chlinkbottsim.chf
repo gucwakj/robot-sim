@@ -1073,6 +1073,19 @@ int CLinkbotT::movexyPoly(double x0, double xf, int n, char *poly, double radius
     return retval;
 }
 
+int CLinkbotT::movexyPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_movexyPolyNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, movexyPolyNB, this, x0, xf, n, poly, radius, trackwidth);
+    return retval;
+}
+
 int CLinkbotT::movexyTo(double x, double y, double radius, double trackwidth) {
     void *fptr;
     int retval;

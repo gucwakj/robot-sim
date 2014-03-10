@@ -1154,6 +1154,47 @@ int CLinkbotT::movexyPoly(double x0, double xf, int n, char *poly, double radius
 	return 0;
 }
 
+void* CLinkbotT::movexyPolyThread(void *arg) {
+	// cast arg
+	moveArg_t *mArg = (moveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->movexyPoly(mArg->x, mArg->y, mArg->i, mArg->expr, mArg->radius, mArg->trackwidth);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::movexyPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	moveArg_t *mArg = new moveArg_t;
+	mArg->robot = this;
+	mArg->x = x0;
+	mArg->y = xf;
+	mArg->i = n;
+	mArg->expr = poly;
+	mArg->radius = radius;
+	mArg->trackwidth = trackwidth;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, movexyPolyThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::movexyTo(double x, double y, double radius, double trackwidth) {
 	return movexy(x, y, radius, trackwidth);
 }

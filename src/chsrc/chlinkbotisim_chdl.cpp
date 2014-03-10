@@ -1355,6 +1355,31 @@ EXPORTCH int CLinkbotI_movexyPoly_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotI_movexyPolyNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    double x0;
+    double xf;
+	int n;
+	char *poly;
+    double radius;
+    double trackwidth;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    x0 = Ch_VaArg(interp, ap, double);
+    xf = Ch_VaArg(interp, ap, double);
+    n = Ch_VaArg(interp, ap, int);
+    poly = Ch_VaArg(interp, ap, char *);
+    radius = Ch_VaArg(interp, ap, double);
+    trackwidth = Ch_VaArg(interp, ap, double);
+    retval = robot->movexyPolyNB(x0, xf, n, poly, radius, trackwidth);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotI_movexyTo_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
