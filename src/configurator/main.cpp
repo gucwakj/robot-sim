@@ -8,7 +8,7 @@
 #include <gtk/gtk.h>
 #include <tinyxml2.h>
 
-#define XML_VERSION 1
+#define XML_VERSION 2
 
 typedef enum wheels_e {
 	NONE,
@@ -61,9 +61,12 @@ G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data);
 
 G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_dist_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_major_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_tics_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_minx_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_maxx_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_miny_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_maxy_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_defaults_clicked(GtkWidget *widget, gpointer data);
 
 G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data);
@@ -607,29 +610,41 @@ G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data) 
 G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "us")))) {
 		// get current values
-		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
 		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
-		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
+		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
+		double minx = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")));
+		double maxx = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")));
+		double miny = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")));
+		double maxy = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")));
 
 		// set to metric defaults if at customary defaults
-		if ( ((int)dist == 400) && ((int)major == 50) && ((int)tics == 5) ) {
-			dist = 96, major = 12, tics = 1;
-			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
+		if ( ((int)major == 50) && ((int)tics == 5) && ((int)minx == -200) && ((int)maxx == 200) && ((int)miny == -200) && ((int)maxy == 200) ) {
+			major = 12, tics = 1, minx = -48, maxx = 48, miny = -48, maxy = 48;
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), minx);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")), maxx);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), miny);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), maxy);
 		}
 			
 		// set configuration options
 		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
 		grid->SetAttribute("units", 1);
-		grid->SetAttribute("tics", tics);
 		grid->SetAttribute("major", major);
-		grid->SetAttribute("dist", dist);
+		grid->SetAttribute("tics", tics);
+		grid->SetAttribute("minx", minx);
+		grid->SetAttribute("maxx", maxx);
+		grid->SetAttribute("miny", miny);
+		grid->SetAttribute("maxy", maxy);
 
 		// change labels
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance of Grid Lines (in): ");
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_minx")), "Min X (in): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxx")), "Max X (in): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_miny")), "Min Y (in): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxy")), "Max Y (in): ");
 
 		// save units
 		g_units = 1;
@@ -646,34 +661,46 @@ G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data) {
 }
 
 /*
- * When metrics units are chosen
+ * When metric units are chosen
  */
 G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "metric")))) {
 		// get current values
-		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
 		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
-		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
+		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
+		double minx = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")));
+		double maxx = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")));
+		double miny = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")));
+		double maxy = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")));
 
 		// set to metric defaults if at customary defaults
-		if ( ((int)dist == 96) && ((int)major == 12) && ((int)tics == 1) ) {
-			dist = 400, major = 50, tics = 5;
-			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
+		if ( ((int)major == 12) && ((int)tics == 1) && ((int)minx == -48) && ((int)maxx == 48) && ((int)miny == -48) && ((int)maxy == 48) ) {
+			major = 50, tics = 5, minx = -200, maxx = 200, miny = -200, maxy = 200;
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), minx);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")), maxx);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), miny);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), maxy);
 		}
 			
 		// set configuration options
 		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
 		grid->SetAttribute("units", 0);
-		grid->SetAttribute("tics", tics);
 		grid->SetAttribute("major", major);
-		grid->SetAttribute("dist", dist);
+		grid->SetAttribute("tics", tics);
+		grid->SetAttribute("minx", minx);
+		grid->SetAttribute("maxx", maxx);
+		grid->SetAttribute("miny", miny);
+		grid->SetAttribute("maxy", maxy);
 
 		// change labels
-		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance of Grid Lines (cm): ");
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (cm): ");
 		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (cm): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_minx")), "Min X (cm): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxx")), "Max X (cm): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_miny")), "Min Y (cm): ");
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxy")), "Max Y (cm): ");
 
 		// save units
 		g_units = 0;
@@ -690,19 +717,7 @@ G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data) {
 }
 
 /*
- * When distance value changed
- */
-G_MODULE_EXPORT void on_dist_value_changed(GtkWidget *widget, gpointer data) {
-	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
-	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
-	grid->SetAttribute("dist", val);
-
-	// save file
-	g_doc.SaveFile(g_xml);
-}
-
-/*
- * When major tics value changed
+ * When major value changed
  */
 G_MODULE_EXPORT void on_major_value_changed(GtkWidget *widget, gpointer data) {
 	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
@@ -756,18 +771,72 @@ G_MODULE_EXPORT void on_tics_value_changed(GtkWidget *widget, gpointer data) {
 }
 
 /*
+ * When minx value changed
+ */
+G_MODULE_EXPORT void on_minx_value_changed(GtkWidget *widget, gpointer data) {
+	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	grid->SetAttribute("minx", val);
+
+	// save file
+	g_doc.SaveFile(g_xml);
+}
+
+/*
+ * When maxx value changed
+ */
+G_MODULE_EXPORT void on_maxx_value_changed(GtkWidget *widget, gpointer data) {
+	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	grid->SetAttribute("maxx", val);
+
+	// save file
+	g_doc.SaveFile(g_xml);
+}
+
+/*
+ * When miny value changed
+ */
+G_MODULE_EXPORT void on_miny_value_changed(GtkWidget *widget, gpointer data) {
+	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	grid->SetAttribute("miny", val);
+
+	// save file
+	g_doc.SaveFile(g_xml);
+}
+
+/*
+ * When maxy value changed
+ */
+G_MODULE_EXPORT void on_maxy_value_changed(GtkWidget *widget, gpointer data) {
+	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	grid->SetAttribute("maxy", val);
+
+	// save file
+	g_doc.SaveFile(g_xml);
+}
+
+/*
  * Restore default grid values
  */
 G_MODULE_EXPORT void on_defaults_clicked(GtkWidget *widget, gpointer data) {
 	if (g_units) {
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), 96);
 		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), 12);
 		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), 1);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), -48);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")), 48);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), -48);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), 48);
 	}
 	else {
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), 400);
 		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), 50);
 		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), 5);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), -200);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")), 200);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), -200);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), 200);
 	}
 
 	// save file
@@ -1679,10 +1748,12 @@ void readXMLConfig(void) {
 		// set grid values
 		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
 		grid->SetAttribute("units", 1);
-		double dist = 96, major = 12, tics = 1;
-		grid->SetAttribute("dist", (int)dist);
-		grid->SetAttribute("major", (int)major);
-		grid->SetAttribute("tics", (int)tics);
+		grid->SetAttribute("major", 12);
+		grid->SetAttribute("tics", 1);
+		grid->SetAttribute("minx", -48);
+		grid->SetAttribute("maxx", 48);
+		grid->SetAttribute("miny", -48);
+		grid->SetAttribute("maxy", 48);
 		config->InsertAfterChild(type, grid);
 
 		// set tracking of robots
@@ -1970,37 +2041,65 @@ void readXMLConfig(void) {
 		node->QueryIntAttribute("units", &g_units);
 
 		// set grid line variables
-		double dist, major, tics;
-		node->QueryDoubleAttribute("dist", &dist);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")), dist);
+		double major, tics, minx, maxx, miny, maxy;
 		node->QueryDoubleAttribute("major", &major);
 		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
 		node->QueryDoubleAttribute("tics", &tics);
 		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
+		if (XML_VERSION == 1) {
+			double dist;
+			node->QueryDoubleAttribute("dist", &dist);
+			minx = -dist/2;
+			maxx = dist/2;
+			miny = -dist/2;
+			maxy = dist/2;
+		}
+		else {
+			node->QueryDoubleAttribute("minx", &minx);
+			node->QueryDoubleAttribute("maxx", &maxx);
+			node->QueryDoubleAttribute("miny", &miny);
+			node->QueryDoubleAttribute("maxy", &maxy);
+		}
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), minx);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")), maxx);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), miny);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), maxy);
 
 		// set labels
 		if (g_units) {
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "us")), 1);
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance of Grid Lines (in): ");
 			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
 			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_minx")), "Min X (in): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxx")), "Max X (in): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_miny")), "Min Y (in): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxy")), "Max Y (in): ");
 		}
 		else {
-			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "metric")), 1);
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_dist")), "Total Distance of Grid Lines (cm): ");
 			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (cm): ");
 			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (cm): ");
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "metric")), 1);
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_minx")), "Min X (cm): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxx")), "Max X (cm): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_miny")), "Min Y (cm): ");
+			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxy")), "Max Y (cm): ");
 		}
 	}
 	else {
 		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
 		grid->SetAttribute("units", 1);
-		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
-		grid->SetAttribute("tics", tics);
 		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
 		grid->SetAttribute("major", major);
-		double dist = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "dist")));
-		grid->SetAttribute("dist", dist);
+		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
+		grid->SetAttribute("tics", tics);
+		double minx = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")));
+		grid->SetAttribute("minx", minx);
+		double maxx = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")));
+		grid->SetAttribute("maxx", maxx);
+		double miny = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")));
+		grid->SetAttribute("miny", miny);
+		double maxy = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")));
+		grid->SetAttribute("maxy", maxy);
 		g_doc.FirstChildElement("config")->InsertFirstChild(grid);
 	}
 
