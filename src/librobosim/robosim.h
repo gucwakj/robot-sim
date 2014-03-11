@@ -70,7 +70,7 @@ class DLLIMPORT RoboSim {
 
 #ifdef ENABLE_GRAPHICS
 		// variables
-		double _grid[3];							// grid spacing (tics, major, total)
+		double _grid[6];							// grid spacing (tics, major, total)
 		int _us;									// us customary units
 		int _graphics;								// flag for graphics
 		int _viewer;								// flag for viewer

@@ -179,24 +179,25 @@ int RoboSim::init_xml(char *name) {
 		node->QueryIntAttribute("units", &_us);
 		node->QueryDoubleAttribute("tics", &_grid[0]);
 		node->QueryDoubleAttribute("major", &_grid[1]);
-		node->QueryDoubleAttribute("dist", &_grid[2]);
-		if (_us) {
-			//_grid[0] *= 3.281/_grid[1];
-			_grid[0] = 39.37/_grid[0];
-			_grid[1] = 39.37/_grid[1];
-			_grid[2] = _grid[2]/39.37/2;
-		}
-		else {
-			_grid[0] = 100/_grid[0];
-			_grid[1] = 100/_grid[1];
-			_grid[2] = _grid[2]/100/2;
-		}
+		node->QueryDoubleAttribute("minx", &_grid[2]);
+		node->QueryDoubleAttribute("maxx", &_grid[3]);
+		node->QueryDoubleAttribute("miny", &_grid[4]);
+		node->QueryDoubleAttribute("maxy", &_grid[5]);
 	}
 	else {
-		_us = 1;				// customary units
-		_grid[0] = 12*3.281;	// 12 tics per foot
-		_grid[1] = 3.281;		// grid lines each foot
-		_grid[2] = 4/3.281;		// total distance
+		_us = 1;			// customary units
+		_grid[0] = 1;		// 1 inch per tic
+		_grid[1] = 12;		// 12 inches per hash
+		_grid[2] = -24;		// min x
+		_grid[3] = 24;		// max x
+		_grid[4] = -24;		// min y
+		_grid[5] = 24;		// max y
+	}
+	for (int i = 0; i < 6; i++) {
+		if (_us)
+			_grid[i] /= 39.37;
+		else
+			_grid[i] /= 100;
 	}
 
 	// check if robot tracking is enabled
@@ -1268,52 +1269,26 @@ void* RoboSim::graphics_thread(void *arg) {
 	t_transform->setNodeMask(~IS_PICKABLE_MASK);
 	shadowedScene->addChild(t_transform);
 
-	// x- and y-axis lines
-	osg::Geode *gridGeode3 = new osg::Geode();
-	osg::Geometry *gridLines3 = new osg::Geometry();
-	osg::Vec3 myCoords3[4];
-	myCoords3[0] = osg::Vec3(-sim->_grid[2],  0, 0.0);
-	myCoords3[1] = osg::Vec3( sim->_grid[2],  0, 0.0);
-	myCoords3[2] = osg::Vec3( 0, -sim->_grid[2], 0.0);
-	myCoords3[3] = osg::Vec3( 0,  sim->_grid[2], 0.0);
-	osg::Vec3Array *vertices3 = new osg::Vec3Array(4, myCoords3);
-	gridLines3->setVertexArray(vertices3);
-	gridLines3->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 4));
-	// set color
-	osg::Vec4Array *colors3 = new osg::Vec4Array;
-	colors3->push_back(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f) );
-	gridLines3->setColorArray(colors3);
-	gridLines3->setColorBinding(osg::Geometry::BIND_OVERALL);
-	// set line width
-	osg::LineWidth *linewidth3 = new osg::LineWidth();
-	linewidth3->setWidth(3.0f);
-	gridGeode3->getOrCreateStateSet()->setAttributeAndModes(linewidth3, osg::StateAttribute::ON);
-	// set rendering properties
-	gridGeode3->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	gridGeode3->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	gridGeode3->getOrCreateStateSet()->setRenderBinDetails(-1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	gridGeode3->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	// enable shadowing
-	//gridGeode3->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
-	// add to scene
-	gridGeode3->addDrawable(gridLines3);
-	shadowedScene->addChild(gridGeode3);
-
 	// grid lines for each sub-foot
-	int numVertices = 8*(2*sim->_grid[2]*sim->_grid[0] - 1);
+	double minx = (int)((sim->_grid[2]*1.01)/sim->_grid[0])*sim->_grid[0];
+	double miny = (int)((sim->_grid[4]*1.01)/sim->_grid[0])*sim->_grid[0];
+	int numx = (int)((sim->_grid[3] - minx)/sim->_grid[0]+1);
+	int numy = (int)((sim->_grid[5] - miny)/sim->_grid[0]+1);
+	int numVertices = 2*numx + 2*numy;
 	osg::Geode *gridGeode = new osg::Geode();
 	osg::Geometry *gridLines = new osg::Geometry();
-	osg::Vec3 *myCoords = new osg::Vec3[numVertices];
-	for (int i = 0; i < (int)(sim->_grid[2]*sim->_grid[0]); i++) {
-		myCoords[8*i+0] = osg::Vec3(-sim->_grid[2],  (i+1)/sim->_grid[0], 0.0);
-		myCoords[8*i+1] = osg::Vec3( sim->_grid[2],  (i+1)/sim->_grid[0], 0.0);
-		myCoords[8*i+2] = osg::Vec3(-sim->_grid[2], -(i+1)/sim->_grid[0], 0.0);
-		myCoords[8*i+3] = osg::Vec3( sim->_grid[2], -(i+1)/sim->_grid[0], 0.0);
-		myCoords[8*i+4] = osg::Vec3( (i+1)/sim->_grid[0], -sim->_grid[2], 0.0);
-		myCoords[8*i+5] = osg::Vec3( (i+1)/sim->_grid[0],  sim->_grid[2], 0.0);
-		myCoords[8*i+6] = osg::Vec3(-(i+1)/sim->_grid[0], -sim->_grid[2], 0.0);
-		myCoords[8*i+7] = osg::Vec3(-(i+1)/sim->_grid[0],  sim->_grid[2], 0.0);
+	osg::Vec3 *myCoords = new osg::Vec3[numVertices]();
+	// draw x lines
+	for (int i = 0, j = 0; i < numx; i++) {
+		myCoords[j++] = osg::Vec3(minx + i*sim->_grid[0], sim->_grid[4], 0.0);
+		myCoords[j++] = osg::Vec3(minx + i*sim->_grid[0], sim->_grid[5], 0.0);
 	}
+	// draw y lines
+	for (int i = 0, j = 2*numx; i < numy; i++) {
+		myCoords[j++] = osg::Vec3(sim->_grid[2], miny + i*sim->_grid[0], 0.0);
+		myCoords[j++] = osg::Vec3(sim->_grid[3], miny + i*sim->_grid[0], 0.0);
+	}
+	// add vertices
 	osg::Vec3Array *vertices = new osg::Vec3Array(numVertices, myCoords);
 	gridLines->setVertexArray(vertices);
 	gridLines->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, numVertices));
@@ -1338,23 +1313,28 @@ void* RoboSim::graphics_thread(void *arg) {
 	shadowedScene->addChild(gridGeode);
 
 	// grid lines for each foot
-	numVertices = 8*(2*sim->_grid[2]*sim->_grid[1] - 1);
+	double minx2 = (int)((sim->_grid[2]*1.01)/sim->_grid[1])*sim->_grid[1];
+	double miny2 = (int)((sim->_grid[4]*1.01)/sim->_grid[1])*sim->_grid[1];
+	int numx2 = (int)((sim->_grid[3] - minx2)/sim->_grid[1]+1);
+	int numy2 = (int)((sim->_grid[5] - miny2)/sim->_grid[1]+1);
+	int numVertices2 = 2*numx2 + 2*numy2;
 	osg::Geode *gridGeode2 = new osg::Geode();
 	osg::Geometry *gridLines2 = new osg::Geometry();
-	osg::Vec3 *myCoords2 = new osg::Vec3[numVertices];
-	for (int i = 0; i < (int)(sim->_grid[2]*sim->_grid[1]); i++) {
-		myCoords2[8*i+0] = osg::Vec3(-sim->_grid[2],  (i+1)/sim->_grid[1], 0.0);
-		myCoords2[8*i+1] = osg::Vec3( sim->_grid[2],  (i+1)/sim->_grid[1], 0.0);
-		myCoords2[8*i+2] = osg::Vec3(-sim->_grid[2], -(i+1)/sim->_grid[1], 0.0);
-		myCoords2[8*i+3] = osg::Vec3( sim->_grid[2], -(i+1)/sim->_grid[1], 0.0);
-		myCoords2[8*i+4] = osg::Vec3( (i+1)/sim->_grid[1], -sim->_grid[2], 0.0);
-		myCoords2[8*i+5] = osg::Vec3( (i+1)/sim->_grid[1],  sim->_grid[2], 0.0);
-		myCoords2[8*i+6] = osg::Vec3(-(i+1)/sim->_grid[1], -sim->_grid[2], 0.0);
-		myCoords2[8*i+7] = osg::Vec3(-(i+1)/sim->_grid[1],  sim->_grid[2], 0.0);
+	osg::Vec3 *myCoords2 = new osg::Vec3[numVertices2]();
+	// draw x lines
+	for (int i = 0, j = 0; i < numx2; i++) {
+		myCoords2[j++] = osg::Vec3(minx2 + i*sim->_grid[1], sim->_grid[4], 0.0);
+		myCoords2[j++] = osg::Vec3(minx2 + i*sim->_grid[1], sim->_grid[5], 0.0);
 	}
-	osg::Vec3Array *vertices2 = new osg::Vec3Array(numVertices, myCoords2);
+	// draw y lines
+	for (int i = 0, j = 2*numx2; i < numy2; i++) {
+		myCoords2[j++] = osg::Vec3(sim->_grid[2], miny2 + i*sim->_grid[1], 0.0);
+		myCoords2[j++] = osg::Vec3(sim->_grid[3], miny2 + i*sim->_grid[1], 0.0);
+	}
+	// add vertices
+	osg::Vec3Array *vertices2 = new osg::Vec3Array(numVertices2, myCoords2);
 	gridLines2->setVertexArray(vertices2);
-	gridLines2->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, numVertices));
+	gridLines2->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, numVertices2));
 	// set color
 	osg::Vec4Array *colors2 = new osg::Vec4Array;
 	colors2->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f) );	// red
@@ -1375,6 +1355,50 @@ void* RoboSim::graphics_thread(void *arg) {
 	gridGeode2->addDrawable(gridLines2);
 	shadowedScene->addChild(gridGeode2);
 
+	// x- and y-axis lines
+	osg::Geode *gridGeode3 = new osg::Geode();
+	osg::Geometry *gridLines3 = new osg::Geometry();
+	osg::Vec3 myCoords3[4];
+	if ( fabs(sim->_grid[3]) > fabs(sim->_grid[2]) ) {
+		myCoords3[0] = osg::Vec3(-sim->_grid[3], 0, 0.0);
+		myCoords3[1] = osg::Vec3( sim->_grid[3], 0, 0.0);
+	}
+	else {
+		myCoords3[0] = osg::Vec3(-sim->_grid[2], 0, 0.0);
+		myCoords3[1] = osg::Vec3( sim->_grid[2], 0, 0.0);
+	}
+	if ( fabs(sim->_grid[5]) > fabs(sim->_grid[4]) ) {
+		myCoords3[2] = osg::Vec3(0, -sim->_grid[5], 0.0);
+		myCoords3[3] = osg::Vec3(0,  sim->_grid[5], 0.0);
+	}
+	else {
+		myCoords3[2] = osg::Vec3(0, -sim->_grid[4], 0.0);
+		myCoords3[3] = osg::Vec3(0,  sim->_grid[4], 0.0);
+	}
+	// add vertices
+	osg::Vec3Array *vertices3 = new osg::Vec3Array(4, myCoords3);
+	gridLines3->setVertexArray(vertices3);
+	gridLines3->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 4));
+	// set color
+	osg::Vec4Array *colors3 = new osg::Vec4Array;
+	colors3->push_back(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f) );
+	gridLines3->setColorArray(colors3);
+	gridLines3->setColorBinding(osg::Geometry::BIND_OVERALL);
+	// set line width
+	osg::LineWidth *linewidth3 = new osg::LineWidth();
+	linewidth3->setWidth(3.0f);
+	gridGeode3->getOrCreateStateSet()->setAttributeAndModes(linewidth3, osg::StateAttribute::ON);
+	// set rendering properties
+	gridGeode3->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+	gridGeode3->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+	gridGeode3->getOrCreateStateSet()->setRenderBinDetails(-1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+	gridGeode3->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
+	// enable shadowing
+	//gridGeode3->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
+	// add to scene
+	gridGeode3->addDrawable(gridLines3);
+	shadowedScene->addChild(gridGeode3);
+
 	// x-axis label
 	osg::ref_ptr<osg::Billboard> xbillboard = new osg::Billboard();
 	osg::ref_ptr<osgText::Text> xtext = new osgText::Text();
@@ -1385,7 +1409,10 @@ void* RoboSim::graphics_thread(void *arg) {
 	xtext->setCharacterSize(50);
 	xtext->setColor(osg::Vec4(0, 0, 0, 1));
 	xtext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[2]+0.03, 0.0, 0.0));
+	if ( fabs(sim->_grid[3]) > fabs(sim->_grid[2]) )
+		xbillboard->addDrawable(xtext, osg::Vec3d(fabs(sim->_grid[3]) + 0.05, 0.0, 0.0));
+	else
+		xbillboard->addDrawable(xtext, osg::Vec3d(fabs(sim->_grid[2]) + 0.05, 0.0, 0.0));
 	xbillboard->setMode(osg::Billboard::AXIAL_ROT);
 	xbillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
 	xbillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
@@ -1401,7 +1428,10 @@ void* RoboSim::graphics_thread(void *arg) {
 	ytext->setCharacterSize(50);
 	ytext->setColor(osg::Vec4(0, 0, 0, 1));
 	ytext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	ybillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[2]+0.03, 0.0));
+	if ( fabs(sim->_grid[5]) > fabs(sim->_grid[4]) )
+		ybillboard->addDrawable(ytext, osg::Vec3d(0.0, fabs(sim->_grid[5]) + 0.05, 0.0));
+	else
+		ybillboard->addDrawable(ytext, osg::Vec3d(0.0, fabs(sim->_grid[4]) + 0.05, 0.0));
 	ybillboard->setMode(osg::Billboard::AXIAL_ROT);
 	ybillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
 	ybillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
@@ -1412,36 +1442,38 @@ void* RoboSim::graphics_thread(void *arg) {
 	osg::ref_ptr<osg::Billboard> xnum_billboard = new osg::Billboard();
 	char text[50];
 	osg::ref_ptr<osgText::Text> xzero_text = new osgText::Text();
-	xzero_text->setText("0   ");
+	xzero_text->setText("0");
 	xzero_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 	xzero_text->setAlignment(osgText::Text::CENTER_CENTER);
 	xzero_text->setCharacterSize(30);
 	xzero_text->setColor(osg::Vec4(0, 0, 0, 1));
 	xzero_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	xnum_billboard->addDrawable(xzero_text, osg::Vec3d(0, -0.5/sim->_grid[0], 0.0));
-	for (int i = 1; i < (int)(sim->_grid[2]*sim->_grid[1]+1); i++) {
-		// positive
+	xnum_billboard->addDrawable(xzero_text, osg::Vec3d(-0.5*sim->_grid[0], -0.5*sim->_grid[0], 0.0));
+	// positive
+	for (int i = 1; i < (int)(sim->_grid[3]/sim->_grid[1]+1); i++) {
 		osg::ref_ptr<osgText::Text> xnumpos_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.0lf   ", 39.37*i/sim->_grid[1]);
-		else sprintf(text, "%.0lf   ", 100*i/sim->_grid[1]);
+		if (sim->_us) sprintf(text, "   %.0lf", 39.37*i*sim->_grid[1]);
+		else sprintf(text, "   %.0lf", 100*i*sim->_grid[1]);
 		xnumpos_text->setText(text);
 		xnumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 		xnumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
 		xnumpos_text->setCharacterSize(30);
 		xnumpos_text->setColor(osg::Vec4(0, 0, 0, 1));
 		xnumpos_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		xnum_billboard->addDrawable(xnumpos_text, osg::Vec3d(i/sim->_grid[1], -0.5/sim->_grid[0], 0.0));
-		// negative
+		xnum_billboard->addDrawable(xnumpos_text, osg::Vec3d(i*sim->_grid[1], -0.5*sim->_grid[0], 0.0));
+	}
+	// negative
+	for (int i = 1; i < (int)(fabs(sim->_grid[2])/sim->_grid[1]+1); i++) {
 		osg::ref_ptr<osgText::Text> xnumneg_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i/sim->_grid[1]);
-		else sprintf(text, "%.0lf   ", -100*i/sim->_grid[1]);
+		if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i*sim->_grid[1]);
+		else sprintf(text, "%.0lf   ", -100*i*sim->_grid[1]);
 		xnumneg_text->setText(text);
 		xnumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 		xnumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
 		xnumneg_text->setCharacterSize(30);
 		xnumneg_text->setColor(osg::Vec4(0, 0, 0, 1));
 		xnumneg_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		xnum_billboard->addDrawable(xnumneg_text, osg::Vec3d(-i/sim->_grid[1], -0.5/sim->_grid[0], 0.0));
+		xnum_billboard->addDrawable(xnumneg_text, osg::Vec3d(-i*sim->_grid[1], -0.5*sim->_grid[0], 0.0));
 	}
 	xnum_billboard->setMode(osg::Billboard::AXIAL_ROT);
 	xnum_billboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
@@ -1455,29 +1487,31 @@ void* RoboSim::graphics_thread(void *arg) {
 
 	// y grid numbering
 	osg::ref_ptr<osg::Billboard> ynum_billboard = new osg::Billboard();
-	for (int i = 1; i < (int)(sim->_grid[2]*sim->_grid[1]+1); i++) {
-		// positive
+	// positive
+	for (int i = 1; i < (int)(sim->_grid[5]/sim->_grid[1]+1); i++) {
 		osg::ref_ptr<osgText::Text> ynumpos_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.0lf   ", 39.37*i/sim->_grid[1]);
-		else sprintf(text, "%.0lf   ", 100*i/sim->_grid[1]);
+		if (sim->_us) sprintf(text, "%.0lf   ", 39.37*i*sim->_grid[1]);
+		else sprintf(text, "%.0lf   ", 100*i*sim->_grid[1]);
 		ynumpos_text->setText(text);
 		ynumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 		ynumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
 		ynumpos_text->setCharacterSize(30);
 		ynumpos_text->setColor(osg::Vec4(0, 0, 0, 1));
 		ynumpos_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		ynum_billboard->addDrawable(ynumpos_text, osg::Vec3d(0, i/sim->_grid[1] - 0.5/sim->_grid[0], 0.0));
-		// negative
+		ynum_billboard->addDrawable(ynumpos_text, osg::Vec3d(0, i*sim->_grid[1] + 0.5*sim->_grid[0], 0.0));
+	}
+	// negative
+	for (int i = 1; i < (int)(fabs(sim->_grid[4])/sim->_grid[1]+1); i++) {
 		osg::ref_ptr<osgText::Text> ynumneg_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i/sim->_grid[1]);
-		else sprintf(text, "%.0lf   ", -100*i/sim->_grid[1]);
+		if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i*sim->_grid[1]);
+		else sprintf(text, "%.0lf   ", -100*i*sim->_grid[1]);
 		ynumneg_text->setText(text);
 		ynumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 		ynumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
 		ynumneg_text->setCharacterSize(30);
 		ynumneg_text->setColor(osg::Vec4(0, 0, 0, 1));
 		ynumneg_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		ynum_billboard->addDrawable(ynumneg_text, osg::Vec3d(0, -i/sim->_grid[1] - 0.5/sim->_grid[0], 0.0));
+		ynum_billboard->addDrawable(ynumneg_text, osg::Vec3d(0, -i*sim->_grid[1] - 0.5*sim->_grid[0], 0.0));
 	}
 	ynum_billboard->setMode(osg::Billboard::AXIAL_ROT);
 	ynum_billboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
