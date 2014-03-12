@@ -137,14 +137,6 @@ int main(int argc, char *argv[]) {
 	RegQueryValueEx(key, TEXT("CHHOME"), NULL, NULL, (LPBYTE)path, &size);
 	path[size] = '\0';
 	strncpy(g_chhome, path, size);
-//retval = RegGetValue(HKEY_LOCAL_MACHINE, TEXT("Software\\Wow6432Node\\SoftIntegration"), TEXT("CHHOME"), RRF_RT_REG_SZ, NULL, (PVOID)test, &size);
-//char str[64];
-//sprintf(str, "%d", size);
-//MessageBox( NULL, str, "str", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
-//sprintf(str, "%c %c %c %c %c %c\n", g_chhome[0], g_chhome[1], g_chhome[2], g_chhome[3], g_chhome[4], g_chhome[5]);
-//sprintf(str, "%c %c %c %c %c %c\n", g_chhome[0], test[1], test[2], test[3], test[4], test[5]);
-//g_chhome[size] = '\0';
-//MessageBox( NULL, g_chhome, "path", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
 #endif
 
 	// load gtk window
@@ -312,7 +304,6 @@ G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data)
 	strncpy(path, g_chhome, strlen(g_chhome));
 	path[strlen(g_chhome)] = '\0';
 	strcat(path, "\\package\\chrobosim\\docs\\robosim.pdf");
-//MessageBox( NULL, path, "path", MB_OK | MB_SYSTEMMODAL | MB_NOFOCUS);
 	ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOWNORMAL);
 #endif
 }
@@ -1732,7 +1723,9 @@ double convert(double value, int tometer) {
 void printRoboSimPath(void) {
 	// print RoboSim config options to file buffer
 #ifdef _WIN32
-	fputs("// RoboSim Begin\n_ipath = stradd(\"C:/Ch/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp);
+	fputs("// RoboSim Begin\n_ipath = stradd(\"", fp);
+	fputs(g_chhome, fp);
+	fputs("/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp);
 #else
 	fputs("// RoboSim Begin\n_ipath = stradd(\"/usr/local/ch/package/chrobosim/include;\", _ipath);\n// RoboSim End\n", fp);
 #endif
