@@ -175,9 +175,10 @@ configuration, just unselect the selected preconfigured robot configuration.
 
 \subsection{Grid Configuration}
 To be able to see how far robots have moved, a grid is enabled under the robots.
-There are three options to alter the layout of the grid lines under the {\bf
-Grid Configuration}.  Total distance is the entire distance between -x and x for
-which grid lines will be displayed.  Hashmarks are the red lines drawn within
+There are six options to alter the layout of the grid lines under the {\bf Grid
+Configuration}.  The minimum and maximum extends of the grid for both the X and
+Y directions can be specified individually.  Rectangular grids of any size can
+be created in any of the quadrants.  Hashmarks are the red lines drawn within
 the configuration images.  By default, the distance between two hashmarks is 12
 inches in US Customary units and 50 centimeters in Metric units.  Tics are the
 most frequent lines drawn in a light gray.  By default, the distance between two
@@ -418,11 +419,13 @@ preconfigured robots within the GUI.
 
 \subsubsection{Grid}
 \begin{verbatim}
-<grid units="1" dist="48" major="12" tics="1"/>
+<grid units="1" major="12" tics="1" minx="-48" maxx="48" miny="-48" maxy="48"/>
 \end{verbatim}
 The grid boxes from the GUI put their information here.  \verb%units%: 1 for US
-Customary and 0 for Metric.  \verb%dist% is the total distance; \verb%major% are
-the red hashmarks; \verb%tics% are the gray tick marks.
+Customary and 0 for Metric.  \verb%major% are the red hashmarks and \verb%tics%
+are the gray tick marks.  \verb%minx% and \verb%maxx% are the minimum and
+maximum distances along the X-axis for the grids, respectively.  \verb%miny% and
+\verb%maxy% are the complements for the Y-axis.
 
 \subsubsection{Tracking}
 \begin{verbatim}
@@ -740,7 +743,7 @@ Some example configuration files.
 <config>
     <version val="1"/>
     <type val="0"/>
-    <grid units="1" dist="48" major="12" tics="1"/>
+	<grid units="1" major="12" tics="1" minx="-48" maxx="48" miny="-48" maxy="48"/>
     <tracking val="1"/>
 </config>
 
@@ -767,7 +770,7 @@ Some example configuration files.
 <config>
     <version val="1"/>
     <type val="0"/>
-    <grid units="1" dist="48" major="12" tics="1"/>
+	<grid units="1" major="12" tics="1" minx="-48" maxx="48" miny="-48" maxy="48"/>
     <tracking val="1"/>
 </config>
 
@@ -807,7 +810,7 @@ Some example configuration files.
 <config>
     <version val="1"/>
     <type val="1"/>
-    <grid units="1" dist="48" major="12" tics="1"/>
+	<grid units="1" major="12" tics="1" minx="-48" maxx="48" miny="-48" maxy="48"/>
     <tracking val="1"/>
 </config>
 
