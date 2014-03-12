@@ -35,6 +35,13 @@ tinyxml2::XMLDocument g_doc;
 FILE *fp = NULL;
 char g_xml[512] = "", g_chrc[512] = "", g_chhome[512] = "", *fpbuf;
 int g_num = 0, g_units = 1;
+double g_grid[6][2] = {	12,		50,		// major
+						1,		5,		// tics
+						-48,	-200,	// minx
+						48,		200,	// maxx
+						-48,	-200,	// miny
+						48,		200		// maxy
+					};
 
 #ifdef __cplusplus
 extern "C" {
@@ -617,9 +624,14 @@ G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data) {
 		double miny = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")));
 		double maxy = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")));
 
-		// set to metric defaults if at customary defaults
-		if ( ((int)major == 50) && ((int)tics == 5) && ((int)minx == -200) && ((int)maxx == 200) && ((int)miny == -200) && ((int)maxy == 200) ) {
-			major = 12, tics = 1, minx = -48, maxx = 48, miny = -48, maxy = 48;
+		// set to customary defaults if at metric defaults
+		if (	((int)major == g_grid[0][1]) &&
+				((int)tics == g_grid[1][1]) &&
+				((int)minx == g_grid[2][1]) &&
+				((int)maxx == g_grid[3][1]) &&
+				((int)miny == g_grid[4][1]) &&
+				((int)maxy == g_grid[5][1])		) {
+			major = g_grid[0][0], tics = g_grid[1][0], minx = g_grid[2][0], maxx = g_grid[3][0], miny = g_grid[4][0], maxy = g_grid[5][0];
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), minx);
@@ -674,8 +686,13 @@ G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data) {
 		double maxy = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")));
 
 		// set to metric defaults if at customary defaults
-		if ( ((int)major == 12) && ((int)tics == 1) && ((int)minx == -48) && ((int)maxx == 48) && ((int)miny == -48) && ((int)maxy == 48) ) {
-			major = 50, tics = 5, minx = -200, maxx = 200, miny = -200, maxy = 200;
+		if (	((int)major == g_grid[0][0]) &&
+				((int)tics == g_grid[1][0]) &&
+				((int)minx == g_grid[2][0]) &&
+				((int)maxx == g_grid[3][0]) &&
+				((int)miny == g_grid[4][0]) &&
+				((int)maxy == g_grid[5][0])		) {
+			major = g_grid[0][1], tics = g_grid[1][1], minx = g_grid[2][1], maxx = g_grid[3][1], miny = g_grid[4][1], maxy = g_grid[5][1];
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), minx);
@@ -823,20 +840,20 @@ G_MODULE_EXPORT void on_maxy_value_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_defaults_clicked(GtkWidget *widget, gpointer data) {
 	if (g_units) {
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), 12);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), 1);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), -48);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")), 48);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), -48);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), 48);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), g_grid[0][0]);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), g_grid[1][0]);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), g_grid[2][0]);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")), g_grid[3][0]);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), g_grid[4][0]);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), g_grid[5][0]);
 	}
 	else {
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), 50);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), 5);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), -200);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")), 200);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), -200);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), 200);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), g_grid[0][1]);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), g_grid[1][1]);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), g_grid[2][1]);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")), g_grid[3][1]);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), g_grid[4][1]);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), g_grid[5][1]);
 	}
 
 	// save file
@@ -1748,12 +1765,12 @@ void readXMLConfig(void) {
 		// set grid values
 		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
 		grid->SetAttribute("units", 1);
-		grid->SetAttribute("major", 12);
-		grid->SetAttribute("tics", 1);
-		grid->SetAttribute("minx", -48);
-		grid->SetAttribute("maxx", 48);
-		grid->SetAttribute("miny", -48);
-		grid->SetAttribute("maxy", 48);
+		grid->SetAttribute("major", g_grid[0][0]);
+		grid->SetAttribute("tics", g_grid[1][0]);
+		grid->SetAttribute("minx", g_grid[2][0]);
+		grid->SetAttribute("maxx", g_grid[3][0]);
+		grid->SetAttribute("miny", g_grid[4][0]);
+		grid->SetAttribute("maxy", g_grid[5][0]);
 		config->InsertAfterChild(type, grid);
 
 		// set tracking of robots
