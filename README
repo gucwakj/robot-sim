@@ -7,6 +7,11 @@ Copyright (c) 2013-2014
 
 ************************************************************
 
+Version 1.2.0 - March 13, 2014
+	*) added trackwidth option to all movexy*() functions
+	*) recordAngle outputs in degrees not radians
+	*) RoboSim GUI allows custom sizing
+
 Version 1.1.0 - March 5, 2014
 	*) RoboSim GUI allows the user to specify the size of wheels for a robot
 	*) Help menu linking to User's Guide PDF
