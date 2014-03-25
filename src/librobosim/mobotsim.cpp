@@ -2247,10 +2247,10 @@ int CMobot::setJointSpeedRatio(robotJointId_t id, double ratio) {
 }
 
 int CMobot::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
-	_speed[0] = DEG2RAD((speed1 > _max_speed[0]) ? _max_speed[0] : speed1);
-	_speed[1] = DEG2RAD((speed2 > _max_speed[1]) ? _max_speed[1] : speed2);
-	_speed[2] = DEG2RAD((speed3 > _max_speed[2]) ? _max_speed[2] : speed3);
-	_speed[3] = DEG2RAD((speed4 > _max_speed[3]) ? _max_speed[3] : speed4);
+	this->setJointSpeed(ROBOT_JOINT1, speed1);
+	this->setJointSpeed(ROBOT_JOINT2, speed2);
+	this->setJointSpeed(ROBOT_JOINT3, speed3);
+	this->setJointSpeed(ROBOT_JOINT4, speed4);
 
 	// success
 	return 0;
