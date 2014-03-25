@@ -1280,43 +1280,6 @@ static double TmovexyFunc_chdl_funarg(double x) {
 	return retval;
 }
 
-typedef double (*TmovexyFuncNBHandle)(double);
-static ChInterp_t interpTNB;
-static double TmovexyFuncNB_chdl_funarg(double x);
-static void *TmovexyFuncNB_chdl_funptr;
-EXPORTCH int CLinkbotT_movexyFuncNB_chdl(void *varg) {
-    ChVaList_t ap;
-    class CLinkbotT *robot;
-	double x0;
-	double xf;
-	int n;
-	TmovexyFuncNBHandle handle_ch, handle_c = NULL;
-	double radius;
-	double trackwidth;
-    int retval;
-
-    Ch_VaStart(interpTNB, ap, varg);
-    robot = Ch_VaArg(interpTNB, ap, class CLinkbotT *);
-    x0 = Ch_VaArg(interpTNB, ap, double);
-    xf = Ch_VaArg(interpTNB, ap, double);
-    n = Ch_VaArg(interpTNB, ap, int);
-	handle_ch = Ch_VaArg(interpTNB, ap, TmovexyFuncNBHandle);
-	TmovexyFuncNB_chdl_funptr = (void *)handle_ch;
-	if (handle_ch != NULL) {
-		handle_c = (TmovexyFuncNBHandle)TmovexyFuncNB_chdl_funarg;
-	}
-    radius = Ch_VaArg(interpTNB, ap, double);
-    trackwidth = Ch_VaArg(interpTNB, ap, double);
-    retval = robot->movexyFuncNB(x0, xf, n, handle_c, radius, trackwidth);
-    Ch_VaEnd(interpTNB, ap);
-    return retval;
-}
-static double TmovexyFuncNB_chdl_funarg(double x) {
-	double retval;
-	Ch_CallFuncByAddr(interpTNB, TmovexyFuncNB_chdl_funptr, &retval, x);
-	return retval;
-}
-
 EXPORTCH int CLinkbotT_movexyPoly_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

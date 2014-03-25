@@ -1028,7 +1028,7 @@ int CLinkbotI::movexyExpr(double x0, double xf, int n, char *expr, double radius
 }
 
 int CLinkbotI::movexyExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth) {
-	fprintf(_stderr, "Error: movexyExprNB() is not implemented.  Please use movexyFuncNB().\n");
+	fprintf(_stderr, "Error: movexyExprNB() is not implemented.\n");
 
 	// success
 	return 0;
@@ -1048,16 +1048,10 @@ int CLinkbotI::movexyFunc(double x0, double xf, int n, double (*func)(double x),
 }
 
 int CLinkbotI::movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
-    void *fptr;
-    int retval;
+	fprintf(_stderr, "Error: movexyFuncNB() is not implemented.\n");
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_movexyFuncNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, movexyFuncNB, this, x0, xf, n, func, radius, trackwidth);
-    return retval;
+	// success
+	return retval;
 }
 
 int CLinkbotI::movexyPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
