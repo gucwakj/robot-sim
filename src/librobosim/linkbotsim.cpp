@@ -4225,6 +4225,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_goal_pos[3] = 0;
 	_goal_pos[4] = 0;
 	_id = -1;
+	_motion = false;
 	_rgb[0] = 0;
 	_rgb[1] = 0;
 	_rgb[2] = 1;

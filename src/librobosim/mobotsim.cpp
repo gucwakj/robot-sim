@@ -4212,6 +4212,7 @@ int CMobot::init_params(void) {
 	_max_force[ROBOT_JOINT2] = 1.059;
 	_max_force[ROBOT_JOINT3] = 1.059;
 	_max_force[ROBOT_JOINT4] = 0.260;
+	_motion = false;
 	_safety_angle = 10;
 	_safety_timeout = 4;
 	_shift_data = 0;
