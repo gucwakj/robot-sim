@@ -636,6 +636,30 @@ one.
 </bridge>
 \end{verbatim}
 
+All robots have faces onto which accessories can connect.  These are the points
+of reference on how the robot will be positioned in space when attaching to
+another robot.  The mobot has eight connection faces, as shown in Figure
+\ref{fig:mobot_connections}.  Faces 3 and 6 span the two body joints and thus
+provide a physical connection which prevents the mobot from bending its body.
+The three linkbot faces, shown in Figure \ref{fig:linkbot_connections}, are on
+each of the three sides of the robot.  Two will be attached to the rotating
+faces of the robot depending upon whether the robot is a Linkbot-I or a
+Linkbot-L.
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width=3in]{images/mobot_connections}
+	\end{center}
+	\caption{Mobot Connection Locations.}
+	\label{fig:mobot_connections}
+\end{figure}
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width=2in]{images/linkbot_connections}
+	\end{center}
+	\caption{Linkbot Connection Locations.}
+	\label{fig:linkbot_connections}
+\end{figure}
+
 \subsubsection{Accessories}
 The accessories of the robots can be added to the scene and attached to the
 robots by the tags.  Most accessories have multiple sides which are each
@@ -646,8 +670,7 @@ attached to that side, and the face of that robot.
 \end{verbatim}
 
 All sides are options which reside under the main accessory tag.  The
-accessories available are shown in Table
-\ref{tab:acc}.
+accessories available are shown in Table \ref{tab:acc}.
 
 \begin{table}[H]
 	\begin{center}
