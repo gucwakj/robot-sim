@@ -3199,9 +3199,6 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 	_geom[FACE2] = new dGeomID[1];
 	_geom[FACE3] = new dGeomID[1];
 
-	// initialize PID class
-	//for ( int i = 0; i < NUM_DOF; i++ ) { _pid[i].init(100, 1, 10, 0.1, 0.004); }
-
 	// adjust input height by body height
 	if (fabs(z) < (_body_radius-EPSILON)) {z += _body_height/2; }
 
@@ -4340,13 +4337,6 @@ double CLinkbotT::mod_angle(double past_ang, double cur_ang, double ang_rate) {
 
     return new_ang;
 }
-
-/*void CLinkbotT::resetPID(int i) {
-    if ( i == NUM_DOF )
-        for ( int j = 0; j < NUM_DOF; j++ ) this->pid[j].restart();
-    else
-        this->pid[i].restart();
-}*/
 
 #ifdef ENABLE_GRAPHICS
 void CLinkbotT::draw_bigwheel(conn_t conn, osg::Group *robot) {

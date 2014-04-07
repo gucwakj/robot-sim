@@ -11,7 +11,6 @@ class DLLIMPORT CLinkbotT {
 #ifdef ENABLE_GRAPHICS
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
-//#include "pid.h"
 class DLLIMPORT CLinkbotT : virtual public CRobot {
 #endif
 	public:
@@ -277,7 +276,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int init_dims(void);																// initialize robot dimensions
 		int get_error(void);																// get position error
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);					// modify angle to count continuously
-        //void resetPID(int i = NUM_DOF);													// reset PID controller
 		static void* motionDistanceThread(void *arg);										// thread to run motion distance
 		static void* motionRollBackwardThread(void *arg);									// thread to run motion roll backward
 		static void* motionRollForwardThread(void *arg);									// thread to run motion roll forward

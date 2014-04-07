@@ -10,7 +10,6 @@ class DLLIMPORT CMobot {
 #include "config.h"
 #ifdef ENABLE_GRAPHICS
 #include "graphics.h"
-//#include "pid.h"
 #endif // ENABLE_GRAPHICS
 class DLLIMPORT CMobot : virtual public CRobot {
 #endif // _CH_
@@ -284,7 +283,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int init_params(void);
 		int init_dims(void);
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);
-		void resetPID(int i = NUM_DOF);
 		static void* motionArchThread(void *arg);
 		static void* motionDistanceThread(void *arg);
 		static void* motionInchwormLeftThread(void *arg);

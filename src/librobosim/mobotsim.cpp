@@ -3164,9 +3164,6 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
     _geom[BODY_R] = new dGeomID[5];
     _geom[ENDCAP_R] = new dGeomID[7];
 
-	// initialize PID class
-	//for ( int i = 0; i < NUM_DOF; i++ ) { _pid[i].init(100, 1, 10, 0.1, 0.004); }
-
     // adjust input height by body height
 	if (z < _end_height/2) {
     	x += R[2]*_end_height/2;
@@ -4310,13 +4307,6 @@ double CMobot::mod_angle(double past_ang, double cur_ang, double ang_rate) {
 
     return new_ang;
 }
-
-/*void CMobot::resetPID(int i) {
-    if ( i == NUM_DOF )
-        for ( int j = 0; j < NUM_DOF; j++ ) this->pid[j].restart();
-    else
-        this->pid[i].restart();
-}*/
 
 #ifdef ENABLE_GRAPHICS
 void CMobot::draw_bigwheel(conn_t conn, osg::Group *robot) {
