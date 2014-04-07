@@ -43,10 +43,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
 #ifdef _CH_
-		int getColor(string_t &color);
+		int getLEDColor(string_t &color);
 #endif
-		int getColorName(char color[]);
-		int getColorRGB(int &r, int &g, int &b);
+		int getLEDColorName(char color[]);
+		int getLEDColorRGB(int &r, int &g, int &b);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getID();
@@ -178,8 +178,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int setBuzzerFrequency(int frequency, double time);
 		int setBuzzerFrequencyOn(int frequency);
 		int setBuzzerFrequencyOff();
-		int setColor(char *color);
-		int setColorRGB(int r, int g, int b);
+		int setLEDColor(char *color);
+		int setLEDColorRGB(int r, int g, int b);
 		int setExitState(robotJointState_t exitState);
 		int setGoal(double x, double y, double z);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
@@ -433,9 +433,9 @@ class DLLIMPORT CLinkbotI {
 		int enableRecordDataShift();
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
-		int getColor(string_t &color);
-		int getColorName(char color[]);
-		int getColorRGB(int &r, int &g, int &b);
+		int getLEDColor(string_t &color);
+		int getLEDColorName(char color[]);
+		int getLEDColorRGB(int &r, int &g, int &b);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getID();
@@ -530,8 +530,8 @@ class DLLIMPORT CLinkbotI {
 		int setBuzzerFrequency(int frequency, double time);
 		int setBuzzerFrequencyOn(int frequency);
 		int setBuzzerFrequencyOff();
-		int setColor(char *color);
-		int setColorRGB(int r, int g, int b);
+		int setLEDColor(char *color);
+		int setLEDColorRGB(int r, int g, int b);
 		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
@@ -661,9 +661,9 @@ class DLLIMPORT CLinkbotL {
 		int enableRecordDataShift();
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
-		int getColor(string_t &color);
-		int getColorName(char color[]);
-		int getColorRGB(int &r, int &g, int &b);
+		int getLEDColor(string_t &color);
+		int getLEDColorName(char color[]);
+		int getLEDColorRGB(int &r, int &g, int &b);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getID();
@@ -748,8 +748,8 @@ class DLLIMPORT CLinkbotL {
 		int setBuzzerFrequency(int frequency, double time);
 		int setBuzzerFrequencyOn(int frequency);
 		int setBuzzerFrequencyOff();
-		int setColor(char *color);
-		int setColorRGB(int r, int g, int b);
+		int setLEDColor(char *color);
+		int setLEDColorRGB(int r, int g, int b);
 		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);

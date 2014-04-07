@@ -173,7 +173,7 @@ EXPORTCH int CLinkbotI_getBatteryVoltage_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotI_getColorName_chdl(void *varg) {
+EXPORTCH int CLinkbotI_getLEDColorName_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CLinkbotI *robot;
@@ -183,12 +183,12 @@ EXPORTCH int CLinkbotI_getColorName_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotI *);
     color = Ch_VaArg(interp, ap, char *);
-    retval = robot->getColorName(color);
+    retval = robot->getLEDColorName(color);
     Ch_VaEnd(interp, ap);
     return retval;
 }
 
-EXPORTCH int CLinkbotI_getColorRGB_chdl(void *varg) {
+EXPORTCH int CLinkbotI_getLEDColorRGB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CLinkbotI *robot;
@@ -200,7 +200,7 @@ EXPORTCH int CLinkbotI_getColorRGB_chdl(void *varg) {
     r = Ch_VaArg(interp, ap, int *);
     g = Ch_VaArg(interp, ap, int *);
     b = Ch_VaArg(interp, ap, int *);
-    retval = robot->getColorRGB(*r, *g, *b);
+    retval = robot->getLEDColorRGB(*r, *g, *b);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -1775,7 +1775,7 @@ EXPORTCH int CLinkbotI_setBuzzerFrequencyOff_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotI_setColor_chdl(void *varg) {
+EXPORTCH int CLinkbotI_setLEDColor_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CLinkbotI *robot;
@@ -1785,12 +1785,12 @@ EXPORTCH int CLinkbotI_setColor_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotI *);
     color = Ch_VaArg(interp, ap, char *);
-    retval = robot->setColor(color);
+    retval = robot->setLEDColor(color);
     Ch_VaEnd(interp, ap);
     return retval;
 }
 
-EXPORTCH int CLinkbotI_setColorRGB_chdl(void *varg) {
+EXPORTCH int CLinkbotI_setLEDColorRGB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CLinkbotI *robot;
@@ -1802,7 +1802,7 @@ EXPORTCH int CLinkbotI_setColorRGB_chdl(void *varg) {
     r = Ch_VaArg(interp, ap, int);
     g = Ch_VaArg(interp, ap, int);
     b = Ch_VaArg(interp, ap, int);
-    retval = robot->setColorRGB(r, g, b);
+    retval = robot->setLEDColorRGB(r, g, b);
     Ch_VaEnd(interp, ap);
     return retval;
 }

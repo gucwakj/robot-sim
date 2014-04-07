@@ -204,20 +204,20 @@ int CLinkbotL::getBatteryVoltage(double &voltage) {
     return retval;
 }
 
-int CLinkbotL::getColor(string_t &color) {
+int CLinkbotL::getLEDColor(string_t &color) {
 	int retval;
 	char color1[25];
 
-	retval = getColorName(color1);
+	retval = getLEDColorName(color1);
 	color = color1;
 	return retval;
 }
 
-int CLinkbotL::getColorName(char color[]) {
+int CLinkbotL::getLEDColorName(char color[]) {
 	void *fptr;
 	int retval;
 
-	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_getColorName_chdl");
+	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_getLEDColorName_chdl");
 	if(fptr == NULL) {
 		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
 		return -1;
@@ -226,11 +226,11 @@ int CLinkbotL::getColorName(char color[]) {
 	return retval;
 }
 
-int CLinkbotL::getColorRGB(int &r, int &g, int &b) {
+int CLinkbotL::getLEDColorRGB(int &r, int &g, int &b) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_getColorRGB_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_getLEDColorRGB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1301,29 +1301,29 @@ int CLinkbotL::setBuzzerFrequencyOff() {
     return retval;
 }
 
-int CLinkbotL::setColor(char *color) {
+int CLinkbotL::setLEDColor(char *color) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_setColor_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_setLEDColor_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, setColor, this, color);
+    dlrunfun(fptr, &retval, setLEDColor, this, color);
     return retval;
 }
 
-int CLinkbotL::setColorRGB(int r, int g, int b) {
+int CLinkbotL::setLEDColorRGB(int r, int g, int b) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_setColorRGB_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_setLEDColorRGB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, setColorRGB, this, r, g, b);
+    dlrunfun(fptr, &retval, setLEDColorRGB, this, r, g, b);
     return retval;
 }
 
