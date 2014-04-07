@@ -1051,7 +1051,7 @@ int CLinkbotI::movexyFuncNB(double x0, double xf, int n, double (*func)(double x
 	fprintf(_stderr, "Error: movexyFuncNB() is not implemented.\n");
 
 	// success
-	return retval;
+	return 0;
 }
 
 int CLinkbotI::movexyPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
