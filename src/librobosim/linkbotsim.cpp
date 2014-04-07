@@ -2410,18 +2410,22 @@ int CLinkbotT::build(xml_robot_t robot) {
 	while (ctmp) {
 		if (ctmp->conn == BIGWHEEL) {
 			robot->z += (_bigwheel_radius - _body_height/2);
+			_radius = _bigwheel_radius;
 			break;
 		}
 		else if (ctmp->conn == SMALLWHEEL) {
 			robot->z += (_smallwheel_radius - _body_height/2);
+			_radius = _smallwheel_radius;
 			break;
 		}
 		else if (ctmp->conn == TINYWHEEL) {
 			robot->z += (_tinywheel_radius - _body_height/2);
+			_radius = _tinywheel_radius;
 			break;
 		}
 		else if (ctmp->conn == WHEEL) {
 			robot->z += (ctmp->size - _body_height/2);
+			_radius = ctmp->size;
 			if (fabs(robot->z) > (_body_radius-EPSILON)) {robot->z += _body_height/2; }
 			break;
 		}
@@ -3586,19 +3590,19 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
     dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
     // set geometry 2 - horizontal support
-	conn->geom[1] = dCreateBox(_space, 0.02, 0.021, 0.0032);
+	conn->geom[1] = dCreateBox(_space, 0.02, 0.022, 0.0032);
 	dGeomSetBody(conn->geom[1], conn->body);
-	dGeomSetOffsetPosition(conn->geom[1], depth/2 + 0.02/2 - m.c[0], -m.c[1], -height/2 + 0.0016 - m.c[2]);
+	dGeomSetOffsetPosition(conn->geom[1], depth/2 + 0.01 - m.c[0], -m.c[1], -height/2 + 0.0016 - m.c[2]);
 
     // set geometry 3 - ball support
-    conn->geom[2] = dCreateCylinder(_space, 0.0105, 0.003);
+    conn->geom[2] = dCreateCylinder(_space, 0.011, _radius -_face_radius - 0.006 + 0.0032);
     dGeomSetBody(conn->geom[2], conn->body);
-    dGeomSetOffsetPosition(conn->geom[2], depth/2 + 0.02 - m.c[0], -m.c[1], -height/2 + 0.0001 - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[2], depth/2 + 0.02 - m.c[0], -m.c[1], -height/2 - (_radius -_face_radius - 0.006)/2 + 0.0016 - m.c[2]);
 
     // set geometry 10 - sphere
-    conn->geom[3] = dCreateSphere(_space, 0.0105);
+    conn->geom[3] = dCreateSphere(_space, 0.006);
     dGeomSetBody(conn->geom[3], conn->body);
-    dGeomSetOffsetPosition(conn->geom[3], depth/2 + 0.02 - m.c[0], -m.c[1], -height/2 - 0.003 - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[3], depth/2 + 0.02 - m.c[0], -m.c[1], -height/2 + _face_radius - _radius + 0.006 - m.c[2]);
 
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -4442,12 +4446,12 @@ void CLinkbotT::draw_caster(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 	pos = dGeomGetOffsetPosition(conn->geom[1]);
 	dGeomGetOffsetQuaternion(conn->geom[1], quat);
-	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), 0.02, 0.022, 0.003);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), 0.02, 0.022, 0.0032);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(box));
 	pos = dGeomGetOffsetPosition(conn->geom[2]);
 	dGeomGetOffsetQuaternion(conn->geom[2], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), 0.011, 0.008);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), 0.011, _radius -_face_radius - 0.006 + 0.0032);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 	pos = dGeomGetOffsetPosition(conn->geom[3]);
