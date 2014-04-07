@@ -1788,7 +1788,7 @@ int CLinkbotT::recordAnglesEnd(int &num) {
 
 int CLinkbotT::recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData) {
 	// set radius of robot
-	_radius = radius;
+	//_radius = radius;
 
 	// record angle of desired joint
 	this->recordAngleBegin(id, time, distance, seconds, shiftData);
@@ -1820,7 +1820,7 @@ int CLinkbotT::recordDistanceOffset(double distance) {
 
 int CLinkbotT::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, double radius, double seconds, int shiftData) {
 	// set radius of robot
-	_radius = radius;
+	//_radius = radius;
 
 	// record angles
 	this->recordAnglesBegin(time, distance1, distance2, distance3, seconds, shiftData);
@@ -2248,7 +2248,7 @@ int CLinkbotT::setTwoWheelRobotSpeed(double speed, double radius) {
 	}
 	this->setJointSpeed(ROBOT_JOINT1, RAD2DEG(speed/radius));
 	this->setJointSpeed(ROBOT_JOINT3, RAD2DEG(speed/radius));
-	_radius = radius;
+	//_radius = radius;
 
 	// success
 	return 0;
