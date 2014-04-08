@@ -2850,12 +2850,14 @@ void CLinkbotT::simPostCollisionThread(void) {
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		int i = _enabled[j];
 		stopped[i] += (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
-		// once motor has been stopped for 5 steps
-		if (stopped[i] == 5) {
+		// once motor has been stopped for 10 steps
+		if (stopped[i] == 50) {
 			stopped[i] = 0;
 			_success[i] = 1;
 		}
 	}
+
+	// signal completion of step
 	if (_success[0] && _success[1] && _success[2]) {
 		COND_SIGNAL(&_success_cond);
 	}
@@ -3364,9 +3366,7 @@ int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta
 	dMassSetBox(&m1, 1000, _body_width, _body_length, _body_height);
 	dMassTranslate(&m1, 0, -_body_length/2, 0);
 	dMassAdd(&m, &m1);
-	dMassSetCylinder(&m2, 1000, 1, _body_radius, _body_width);
-	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
-	dMassRotate(&m2, R1);
+	dMassSetCylinder(&m2, 400, 1, _body_radius, _body_width);
 	dMassAdd(&m, &m2);
 
 	// adjsut x,y,z to position center of mass correctly
@@ -3378,20 +3378,21 @@ int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta
 	dBodySetPosition(_body[BODY], x, y, z);
 	dBodySetRotation(_body[BODY], R);
 
-	// rotation matrix for curves of d-shapes
+	// rotation matrix for curves
 	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 	dRFromAxisAndAngle(R3, 0, 0, 1, -theta);
 	dMultiply0(R2, R1, R3, 3, 3, 3);
 
 	// set geometry 1 - square
 	_geom[BODY][0] = dCreateBox(_space, _body_width, _body_length, _body_height);
-	dGeomSetBody( _geom[BODY][0], _body[BODY]);
+	dGeomSetBody(_geom[BODY][0], _body[BODY]);
 	dGeomSetOffsetPosition(_geom[BODY][0], -m.c[0], -_body_length/2 - m.c[1], -m.c[2]);
-	// set geometry 2 - curve
+
+	// set geometry 2 - cylinder
 	_geom[BODY][1] = dCreateCylinder(_space, _body_radius, _body_width);
-	dGeomSetBody( _geom[BODY][1], _body[BODY]);
+	dGeomSetBody(_geom[BODY][1], _body[BODY]);
 	dGeomSetOffsetPosition(_geom[BODY][1], -m.c[0], -m.c[1], -m.c[2]);
-	dGeomSetOffsetRotation( _geom[BODY][1], R2);
+	dGeomSetOffsetRotation(_geom[BODY][1], R2);
 
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3407,7 +3408,10 @@ int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, doub
 	dMatrix3 R1, R2, R3;
 
 	// set mass of body
-	dMassSetCylinder(&m, 2000, 1, 2*_face_radius, _face_depth);
+	if (id == 2)
+		dMassSetCylinder(&m, 100, 2, 2*_face_radius, _face_depth);
+	else
+		dMassSetCylinder(&m, 100, 1, 2*_face_radius, _face_depth);
 
 	// adjsut x,y,z to position center of mass correctly
 	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3418,19 +3422,19 @@ int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, doub
 	dBodySetPosition(_body[id], x, y, z);
 	dBodySetRotation(_body[id], R);
 
-	// rotation matrix for curves of d-shapes
-	if ( id == 2)
+	// rotation matrix
+	if (id == 2)
 	    dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);		// SWITCHED X AND Y AXIS
 	else
 	    dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);		// SWITCHED X AND Y AXIS
 	dRFromAxisAndAngle(R3, 0, 0, 1, -theta);
 	dMultiply0(R2, R1, R3, 3, 3, 3);
 
-	// set geometry 2 - curve
+	// set geometry 1 - cylinder
 	_geom[id][0] = dCreateCylinder(_space, _face_radius, _face_depth);
-	dGeomSetBody( _geom[id][0], _body[id]);
+	dGeomSetBody(_geom[id][0], _body[id]);
 	dGeomSetOffsetPosition(_geom[id][0], -m.c[0], -m.c[1], -m.c[2]);
-	dGeomSetOffsetRotation( _geom[id][0], R2);
+	dGeomSetOffsetRotation(_geom[id][0], R2);
 
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3459,7 +3463,6 @@ int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
 
     // set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_bigwheel_radius, _wheel_depth);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3513,7 +3516,6 @@ int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
 
 	// set mass of body
 	dMassSetBox(&m, 270, _connector_depth, _bridge_length, _connector_height);
-	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
 	// adjust x,y,z to position center of mass correctly
 	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3527,7 +3529,6 @@ int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
 	// set geometry 1 - center box
 	conn->geom[0] = dCreateBox(_space, _connector_depth, _bridge_length, _connector_height);
 	dGeomSetBody(conn->geom[0], conn->body);
-	//dGeomSetOffsetPosition(conn->geom[0], -m.c[0], _bridge_length/2 - _face_radius - m.c[1], -m.c[2]);
 	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
 	// set mass center to (0,0,0) of _bodyID
@@ -3566,8 +3567,8 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0];
 
 	// set mass of body
-	dMassSetBox(&m, 1000, 10*depth, width, height);
-	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
+	dMassSetBox(&m, 1000, 5*depth, width, height);
+	dMassTranslate(&m, 5*depth, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
 	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3634,7 +3635,6 @@ int CLinkbotT::build_cube(conn_t conn, int face, int side, int type) {
 
 	// set mass of body
 	dMassSetBox(&m, 270, _cubic_length, _cubic_length, _cubic_length);
-	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
 	// adjust x,y,z to position center of mass correctly
 	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3683,7 +3683,6 @@ int CLinkbotT::build_faceplate(conn_t conn, int face, int side, int type) {
 
     // set mass of body
     dMassSetBox(&m, 270, _connector_depth, _body_height, _body_height);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3732,7 +3731,6 @@ int CLinkbotT::build_gripper(conn_t conn, int face) {
 
 	// set mass of body
 	dMassSetBox(&m, 270, _connector_depth, 2*_face_radius, _connector_height);
-	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
 	// adjust x,y,z to position center of mass correctly
 	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3792,7 +3790,6 @@ int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
 
     // set mass of body
     dMassSetBox(&m, 270, _omni_length, _omni_length, _connector_depth);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3841,7 +3838,6 @@ int CLinkbotT::build_simple(conn_t conn, int face, int side, int type) {
 
     // set mass of body
     dMassSetBox(&m, 270, _connector_depth, 2*_face_radius, _connector_height);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3890,7 +3886,6 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
 
     // set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_smallwheel_radius, _wheel_depth/2);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3943,7 +3938,6 @@ int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
 
     // set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_tinywheel_radius, _wheel_depth);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3999,7 +3993,6 @@ int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int typ
 
     // set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_wheel_radius, _wheel_depth);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];

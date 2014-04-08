@@ -2,18 +2,20 @@
 #include "linkbotsim.h"
 using namespace std;
 
-double func(double x) {
-	return x*x;
-}
-
 int main(int argc, char *argv[]) {
 	CLinkbotI robot;
-	double radius = 4.445;      // radius of 1.75 inches
-	double trackwidth = 9.3726;  // the track width, the distance between two wheels
+	double radius=1.75; // the radius of the two wheels of the robot in inches
+	double speed=7;   // the speed in 2.5 inches per second for a two-wheel robot
+	double distance=5;  // the distance in 3 inches to move forward
 
 	robot.connect();
-	//robot.movexyFunc(0, 4, 10, func, radius, trackwidth);
-	robot.moveForward(45);
-	robot.movexyWait();
+	robot.resetToZero();
+	robot.setTwoWheelRobotSpeed(speed, radius);
+	//robot.moveForward(360);
+	//robot.moveBackward(360);
+	robot.moveDistance(12, radius);
+	robot.moveDistance(-12, radius);
+	//robot.moveDistance(distance, radius);
+
 	return 0;
 }
