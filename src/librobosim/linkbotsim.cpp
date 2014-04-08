@@ -951,10 +951,6 @@ int CLinkbotT::movexy(double x, double y, double radius, double trackwidth) {
 	double x0, y0;
 	this->getxy(x0, y0);
 
-	// calculate delta movements
-	double dx = x-x0;
-	double dy = y-y0;
-
 	// get current rotation
 	double r0 = this->getRotation(BODY, 2);
 
@@ -963,16 +959,26 @@ int CLinkbotT::movexy(double x, double y, double radius, double trackwidth) {
 	dRFromAxisAndAngle(R, 0, 0, 1, r0);
 
 	// get angle to turn in body coordinates (transform of R)
-	double angle = atan2(R[0]*dx + R[4]*dy, R[1]*dx + R[5]*dy);
+	double angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
 
-	// turn in shortest path
-	if (angle > EPSILON)
-		this->turnRight(RAD2DEG(angle), radius, trackwidth);
-	else if (angle < -EPSILON)
-		this->turnLeft(RAD2DEG(-angle), radius, trackwidth);
+	// turn toward new postition until pointing correctly
+	while (fabs(angle) > 0.001) {
+		// turn in shortest path
+		if (angle > EPSILON)
+			this->turnRight(RAD2DEG(angle), radius, trackwidth);
+		else if (angle < -EPSILON)
+			this->turnLeft(RAD2DEG(-angle), radius, trackwidth);
+
+		// calculate new rotation from error
+		this->getxy(x0, y0);
+		r0 = this->getRotation(BODY, 2);
+		dRFromAxisAndAngle(R, 0, 0, 1, r0);
+		angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
+	}
 
 	// move along length of line
-	this->moveDistance(sqrt(dx*dx + dy*dy), radius);
+	this->getxy(x0, y0);
+	this->moveDistance(sqrt(x*x - 2*x*x0 + x0*x0 + y*y - 2*y*y0 + y0*y0), radius);
 
 	// success
 	return 0;
