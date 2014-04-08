@@ -43,18 +43,6 @@ else (MSVC)
 endif (MSVC)
 set(EXTRA_LIBS ${EXTRA_LIBS} optimized robosim debug robosimd)
 
-# Add cmobotik library subdirectory
-#include_directories("../../src/CMobotIK")
-#link_directories("../../src/CMobotIK")
-
 # crobotsim mobot demos
 add_executable(test test.cpp)
 target_link_libraries(test ${EXTRA_LIBS})
-add_executable(dataacquisition dataacquisition.cpp)
-target_link_libraries(dataacquisition ${EXTRA_LIBS})
-add_executable(liftrecorded liftrecorded.cpp)
-target_link_libraries(liftrecorded ${EXTRA_LIBS})
-add_executable(recorddistances recorddistances.cpp)
-target_link_libraries(recorddistances ${EXTRA_LIBS})
-add_executable(group group.cpp)
-target_link_libraries(group ${EXTRA_LIBS})
