@@ -1270,7 +1270,7 @@ int CLinkbotT::point(double x, double y, double z, int pointsize, char *color) {
 	HT_Destroy(rgbTable);
 
 	// create sphere
-	osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(x, y, z), pointsize/100.0);
+	osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(x, y, z), pointsize/500.0);
 	osg::Geode *point = new osg::Geode;
 	osg::ShapeDrawable *pointDrawable = new osg::ShapeDrawable(sphere);
 	point->addDrawable(pointDrawable);
