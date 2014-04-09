@@ -2071,10 +2071,9 @@ int CLinkbotT::setJointSafetyAngleTimeout(double seconds) {
 
 int CLinkbotT::setJointSpeed(robotJointId_t id, double speed) {
 	if (speed > _max_speed[id]) {
-		fprintf(stderr, "Warning: Cannot set speed for joint %d to %.2lf degrees/second which is "
-			"beyond the maximum limit of %.2lf degrees/second.\n",
+		fprintf(stderr, "Warning: Setting the speed for joint %d to %.2lf degrees per second is "
+			"beyond the hardware limit of %.2lf degrees per second.\n",
 			id+1, speed, _max_speed[id]);
-		_speed[id] = DEG2RAD(_max_speed[id]);
 	}
 	else {
 		_speed[id] = DEG2RAD(speed);
@@ -2254,7 +2253,6 @@ int CLinkbotT::setTwoWheelRobotSpeed(double speed, double radius) {
 	}
 	this->setJointSpeed(ROBOT_JOINT1, RAD2DEG(speed/radius));
 	this->setJointSpeed(ROBOT_JOINT3, RAD2DEG(speed/radius));
-	//_radius = radius;
 
 	// success
 	return 0;
