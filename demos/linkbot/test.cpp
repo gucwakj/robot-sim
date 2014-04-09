@@ -3,17 +3,25 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CLinkbotL robot1, robot2;
+CLinkbotI robot1, robot2;
 
-	robot1.connect();
-	robot2.connect();
-	robot1.resetToZeroNB();
-	robot2.resetToZero();
-	robot1.moveTo(0, 45, 0);
-	robot2.moveToNB(90, 0, 0);
-	robot1.moveTo(-45, 45, 0);
-	robot1.resetToZeroNB();
-	robot2.resetToZero();
+robot1.connect();
+robot2.connect();
+
+robot1.resetToZero();
+robot2.resetToZero();
+
+/* move forward */
+robot1.moveForwardNB(360);
+robot2.moveBackwardNB(360);
+robot1.moveWait();
+robot2.moveWait();
+
+/* move backward */
+robot1.moveBackwardNB(360);
+robot2.moveForwardNB(360);
+robot1.moveWait();
+robot2.moveWait();
 
 	return 0;
 }
