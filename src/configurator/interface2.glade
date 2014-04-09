@@ -450,6 +450,19 @@ Harry H. Cheng</property>
                                 <property name="visible">True</property>
                                 <property name="orientation">vertical</property>
                                 <child>
+                                  <object class="GtkCheckButton" id="bow">
+                                    <property name="label" translatable="yes">bow.ch</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="on_bow_toggled"/>
+                                  </object>
+                                  <packing>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
                                   <object class="GtkCheckButton" id="explorer">
                                     <property name="label" translatable="yes">explorer.ch</property>
                                     <property name="visible">True</property>
@@ -461,7 +474,34 @@ Harry H. Cheng</property>
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">0</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="fourwheeldrive">
+                                    <property name="label" translatable="yes">fourwheeldrive.ch</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="on_fourwheeldrive_toggled"/>
+                                  </object>
+                                  <packing>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="groupbow">
+                                    <property name="label" translatable="yes">groupbow.ch</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="relief">none</property>
+                                    <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="on_groupbow_toggled"/>
+                                  </object>
+                                  <packing>
+                                    <property name="position">3</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -476,7 +516,7 @@ Harry H. Cheng</property>
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">1</property>
+                                    <property name="position">4</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -491,7 +531,7 @@ Harry H. Cheng</property>
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">2</property>
+                                    <property name="position">5</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -507,7 +547,7 @@ Harry H. Cheng</property>
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">3</property>
+                                    <property name="position">6</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -522,7 +562,7 @@ Harry H. Cheng</property>
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">4</property>
+                                    <property name="position">7</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -537,7 +577,7 @@ Harry H. Cheng</property>
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">5</property>
+                                    <property name="position">8</property>
                                   </packing>
                                 </child>
                               </object>
