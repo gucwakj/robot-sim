@@ -944,6 +944,10 @@ G_MODULE_EXPORT void on_bow_toggled(GtkWidget *widget, gpointer data) {
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
 
+		// reset to individual config
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 0);
+
 		// save robot list
 		saveRobotList();
 	}
@@ -1132,6 +1136,10 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
 
+		// reset to individual config
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 0);
+
 		// save robot list
 		saveRobotList();
 	}
@@ -1266,6 +1274,10 @@ G_MODULE_EXPORT void on_fourwheeldrive_toggled(GtkWidget *widget, gpointer data)
 		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
+
+		// reset to individual config
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 0);
 
 		// save robot list
 		saveRobotList();
@@ -1418,6 +1430,10 @@ G_MODULE_EXPORT void on_groupbow_toggled(GtkWidget *widget, gpointer data) {
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
 
+		// reset to individual config
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 0);
+
 		// save robot list
 		saveRobotList();
 	}
@@ -1512,6 +1528,10 @@ G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data) {
 		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
+
+		// reset to individual config
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 0);
 
 		// save robot list
 		saveRobotList();
@@ -1658,6 +1678,10 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
+
+		// reset to individual config
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 0);
 
 		// save robot list
 		saveRobotList();
@@ -1813,6 +1837,10 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
+
+		// reset to individual config
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 0);
 
 		// save robot list
 		saveRobotList();
@@ -1989,6 +2017,10 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
 
+		// reset to individual config
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 0);
+
 		// save robot list
 		saveRobotList();
 	}
@@ -2083,6 +2115,10 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
 		// clear image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		gtk_image_clear(image);
+
+		// reset to individual config
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		type->SetAttribute("val", 0);
 
 		// save robot list
 		saveRobotList();
