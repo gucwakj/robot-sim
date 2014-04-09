@@ -122,6 +122,7 @@ createpkg: librobosim.dl
 	cp ../configurator/images/robosim.ico $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/linkbot.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/mobot.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/bow.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/explorer.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/inchworm.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/lift.jpg $(PKGDIR)/bin/gui/images
