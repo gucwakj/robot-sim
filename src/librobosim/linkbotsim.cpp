@@ -2862,16 +2862,13 @@ void CLinkbotT::simPostCollisionThread(void) {
 	MUTEX_LOCK(&_angle_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
-	// how long has the motor been stopped
-	static int stopped[NUM_DOF] = {0};
-
 	// check if joint speed is zero -> joint has completed step
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		int i = _enabled[j];
-		stopped[i] += (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
+		_stopping[i] += (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
 		// once motor has been stopped for 10 steps
-		if (stopped[i] == 50) {
-			stopped[i] = 0;
+		if (_stopping[i] == 50) {
+			_stopping[i] = 0;
 			_success[i] = 1;
 		}
 	}
@@ -4211,6 +4208,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_seek = new bool[NUM_DOF];
 	_speed = new double[NUM_DOF];
 	_starting = new int[NUM_DOF];
+	_stopping = new int[NUM_DOF];
 	_state = new int[NUM_DOF];
 	_success = new bool[NUM_DOF];
 
@@ -4226,6 +4224,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_recording[i] = false;
 		_speed[i] = 0.7854;		// 45 deg/sec
 		_starting[i] = 0;
+		_stopping[i] = 0;
 		_success[i] = true;
 		if (i != disabled)
 			_enabled[j++] = i;
