@@ -197,6 +197,14 @@ int CLinkbotT::getBatteryVoltage(double &voltage) {
 	return 0;
 }
 
+int CLinkbotT::getColorName(char color[]) {
+	return this->getLEDColorName(color);
+}
+
+int CLinkbotT::getColorRGB(int &r, int &g, int &b) {
+	return this->getLEDColorRGB(r, g, b);
+}
+
 int CLinkbotT::getLEDColorName(char color[]) {
 	rgbHashTable *rgbTable = HT_Create();
 	int getRGB[3] = {(int)(255*_rgb[0]), (int)(255*_rgb[1]), (int)(255*_rgb[2])};
@@ -1922,16 +1930,12 @@ int CLinkbotT::setBuzzerFrequencyOff() {
 	return 0;
 }
 
-int CLinkbotT::setLEDColorRGB(int r, int g, int b) {
-	_rgb[0] = r/255.0;
-	_rgb[1] = g/255.0;
-	_rgb[2] = b/255.0;
-#ifdef ENABLE_GRAPHICS
-	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
-#endif // ENABLE_GRAPHICS
+int CLinkbotT::setColor(char *color) {
+	return this->setLEDColor(color);
+}
 
-	// success
-	return 0;
+int CLinkbotT::setColorRGB(int r, int g, int b) {
+	return this->setLEDColorRGB(r, g, b);
 }
 
 int CLinkbotT::setLEDColor(char *color) {
@@ -1955,7 +1959,18 @@ int CLinkbotT::setLEDColor(char *color) {
 	else {
 		return htRetval;
 	}
+}
 
+int CLinkbotT::setLEDColorRGB(int r, int g, int b) {
+	_rgb[0] = r/255.0;
+	_rgb[1] = g/255.0;
+	_rgb[2] = b/255.0;
+#ifdef ENABLE_GRAPHICS
+	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
+#endif // ENABLE_GRAPHICS
+
+	// success
+	return 0;
 }
 
 int CLinkbotT::setExitState(robotJointState_t exitState) {

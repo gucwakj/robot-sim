@@ -204,6 +204,18 @@ int CLinkbotL::getBatteryVoltage(double &voltage) {
     return retval;
 }
 
+int CLinkbotL::getColor(string_t &color) {
+	return getLEDColor(color);
+}
+
+int CLinkbotL::getColorName(char color[]) {
+	return getLEDColorName(color);
+}
+
+int CLinkbotL::getColorRGB(int &r, int &g, int &b) {
+	return getLEDColorRGB(r, g, b);
+}
+
 int CLinkbotL::getLEDColor(string_t &color) {
 	int retval;
 	char color1[25];
@@ -1299,6 +1311,14 @@ int CLinkbotL::setBuzzerFrequencyOff() {
     }
     dlrunfun(fptr, &retval, setBuzzerFrequencyOff, this);
     return retval;
+}
+
+int CLinkbotL::setColor(char *color) {
+	return setLEDColor(color);
+}
+
+int CLinkbotL::setColorRGB(int r, int g, int b) {
+	return setLEDColorRGB(r, g, b);
 }
 
 int CLinkbotL::setLEDColor(char *color) {
