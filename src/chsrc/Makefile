@@ -98,6 +98,7 @@ createpkg: librobosim.dl
 	cp ../configurator/images/mobot.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/bow.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/explorer.jpg $(PKGDIR)/bin/gui/images
+	cp ../configurator/images/fourbotdrive.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/fourwheeldrive.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/groupbow.jpg $(PKGDIR)/bin/gui/images
 	cp ../configurator/images/inchworm.jpg $(PKGDIR)/bin/gui/images
