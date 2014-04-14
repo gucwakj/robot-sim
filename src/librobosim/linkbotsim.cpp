@@ -2090,9 +2090,7 @@ int CLinkbotT::setJointSpeed(robotJointId_t id, double speed) {
 			"beyond the hardware limit of %.2lf degrees per second.\n",
 			id+1, speed, _max_speed[id]);
 	}
-	else {
-		_speed[id] = DEG2RAD(speed);
-	}
+	_speed[id] = DEG2RAD(speed);
 
 	// success
 	return 0;
