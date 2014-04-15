@@ -7,6 +7,12 @@ Copyright (c) 2013-2014
 
 ************************************************************
 
+Version 1.3.0 - April 15, 2014
+	*) added new preconfig options
+	*) fixed movexy turning bug
+	*) fixed tipping during high speed motion
+	*) removed limit of 240 deg/sec
+
 Version 1.2.0 - March 13, 2014
 	*) added trackwidth option to all movexy*() functions
 	*) recordAngle outputs in degrees not radians

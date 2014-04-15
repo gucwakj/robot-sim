@@ -1,8 +1,5 @@
 TODO File for RoboSim
 
-General:
-	AUTHORS, README
-
 Forward Dynamics:
 	Weight distribution
 		Values are currently guessed.  Need a more accurate distribution of
