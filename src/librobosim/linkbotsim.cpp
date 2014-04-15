@@ -3227,6 +3227,11 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
     _angle[F2] = DEG2RAD(r_f2);	// face 2
     _angle[F3] = DEG2RAD(r_f3);	// face 3
 
+	// set goal to current angle
+	_goal[F1] = _angle[F1];
+	_goal[F2] = _angle[F2];
+	_goal[F3] = _angle[F3];
+
 	// offset values for each body part[0-2] and joint[3-5] from center
 	double b[3] = {0, 0, 0};
 	double f1[6] = {-_body_width/2 - _face_depth/2, 0, 0, -_body_width/2, 0, 0};
