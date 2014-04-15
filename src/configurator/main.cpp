@@ -1182,7 +1182,7 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *robot1, *robot2, *robot3, *robot4;
 
 		// create first robot
-		robot1 = g_doc.NewElement("linkbotl");
+		robot1 = g_doc.NewElement("linkboti");
 		// set id
 		robot1->SetAttribute("id", 0);
 		// set position
@@ -1201,14 +1201,14 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		sim->InsertFirstChild(robot1);
 
 		// add remaining robots
-		robot2 = g_doc.NewElement("linkbotl");
+		robot2 = g_doc.NewElement("linkboti");
 		robot2->SetAttribute("id", 1);
 		sim->InsertAfterChild(robot1, robot2);
-		robot3 = g_doc.NewElement("linkbotl");
+		robot3 = g_doc.NewElement("linkboti");
 		robot3->SetAttribute("id", 2);
 		robot3->SetAttribute("orientation", 3);
 		sim->InsertAfterChild(robot2, robot3);
-		robot4 = g_doc.NewElement("linkbotl");
+		robot4 = g_doc.NewElement("linkboti");
 		robot4->SetAttribute("id", 3);
 		robot4->SetAttribute("orientation", 3);
 		sim->InsertAfterChild(robot3, robot4);
