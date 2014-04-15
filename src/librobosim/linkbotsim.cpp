@@ -3578,7 +3578,7 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
     dMatrix3 R, R1;
 	double	depth = _connector_depth,
 			width = 1.5*_face_radius,
-			height = 2*_face_radius,
+			height = _body_height,
 			p[3] = {0},
 			offset[3] = {depth/2, 0, 0};
 
@@ -4446,7 +4446,7 @@ void CLinkbotT::draw_caster(conn_t conn, osg::Group *robot) {
 	osg::Sphere *sph;
 	double	depth = _connector_depth,
 			width = 1.5*_face_radius,
-			height = 2*_face_radius;
+			height = _body_height;
 
 	pos = dGeomGetOffsetPosition(conn->geom[0]);
 	dGeomGetOffsetQuaternion(conn->geom[0], quat);
