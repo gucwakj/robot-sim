@@ -78,9 +78,9 @@ int CLinkbotT::delay(double milliseconds) {
 	// while clock hasn't reached ending time
 	while ((end - *_clock) > EPSILON) {
 #ifdef _WIN32
-		Sleep(50);
+		Sleep(5);
 #else
-		usleep(500000);
+		usleep(5000);
 #endif
 	}
 
@@ -1815,10 +1815,12 @@ int CLinkbotT::recordDistanceEnd(robotJointId_t id, int &num) {
 	// end recording of angles
 	this->recordAngleEnd(id, num);
 
+	// convert radius to output units
+	double radius = (_simObject->getUnits()) ? _radius*39.37 : _radius*100;
+
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
-		(*_rec_angles[id])[i] = DEG2RAD((*_rec_angles[id])[i]) * _radius;
-		(*_rec_angles[id])[i] += _distOffset;
+		(*_rec_angles[id])[i] = DEG2RAD((*_rec_angles[id])[i]) * radius + _distOffset;
 	}
 
 	// success
@@ -1847,11 +1849,13 @@ int CLinkbotT::recordDistancesEnd(int &num) {
 	// end recording of angles
 	this->recordAnglesEnd(num);
 
+	// convert radius to output units
+	double radius = (_simObject->getUnits()) ? _radius*39.37 : _radius*100;
+
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
 		for (int j = 0; j < NUM_DOF; j++) {
-			(*_rec_angles[j])[i] = DEG2RAD((*_rec_angles[j])[i]) * _radius;
-			(*_rec_angles[j])[i] += _distOffset;
+			(*_rec_angles[j])[i] = DEG2RAD((*_rec_angles[j])[i]) * radius + _distOffset;
 		}
 	}
 
