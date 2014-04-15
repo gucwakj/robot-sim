@@ -1553,12 +1553,12 @@ G_MODULE_EXPORT void on_groupbow_toggled(GtkWidget *widget, gpointer data) {
 		rot1->SetAttribute("phi", 0);
 		robot3->InsertAfterChild(pos1, rot1);
 		// insert robot1
-		sim->InsertAfterChild(robot2, robot3);
+		sim->InsertAfterChild(robot1, robot3);
 
 		// add remaining robots
 		robot4 = g_doc.NewElement("linkbotl");
 		robot4->SetAttribute("id", 3);
-		sim->InsertAfterChild(robot3, robot4);
+		sim->InsertAfterChild(robot2, robot4);
 
 		// insert bridge
 		tinyxml2::XMLElement *bridge2 = g_doc.NewElement("bridge");
