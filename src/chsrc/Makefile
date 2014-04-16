@@ -2,7 +2,7 @@
 # chrobosim
 #
 PACKAGE=chrobosim
-VERSION=linux-1.3.0
+VERSION=linux-1.3.70
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 
 SRC=../librobosim

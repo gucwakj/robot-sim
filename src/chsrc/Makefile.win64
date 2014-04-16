@@ -2,7 +2,7 @@
 # chrobosim
 #
 PACKAGE=chrobosim
-VERSION=win64-1.3.0
+VERSION=win64-1.3.70
 PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
 ARCH=x64
 
