@@ -21,7 +21,6 @@ class DLLIMPORT RoboSim {
 		int addRobot(CRobot *robot);
 		int deleteRobot(CRobot *robot);
 		int getUnits(void);
-		int getBuddy(void);
 		int runSimulation(void);
 		int setExitState(void);
 	private:
@@ -52,7 +51,6 @@ class DLLIMPORT RoboSim {
 		int _pause;					// is the simulation paused
 		int _running;				// is the program running
 		int _preconfig;				// preconfigured robot shape or not
-		int _buddy;					// whether to use buddies or not
 		int _rt;					// whether to run at real time speeds
 		COND_T _running_cond;		// condition for actively running program
 		MUTEX_T _pause_mutex;		// mutex for paused simulation

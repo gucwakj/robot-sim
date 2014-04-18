@@ -2401,13 +2401,6 @@ int CLinkbotT::turnRightNB(double angle, double radius, double trackwidth) {
 /**********************************************************
 	inherited functions
  **********************************************************/
-int CLinkbotT::addBuddy(int i, CRobot *robot) {
-	_buddy[i-1] = robot;
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space, double *clock) {
 	_world = world;
     _space = dHashSpaceCreate(space);
@@ -2680,107 +2673,6 @@ void CLinkbotT::simPreCollisionThread(void) {
 	_accel[2] = R[10];
 	// add gaussian noise to accel
 	this->noisy(_accel, 3, 0.005);
-
-	// ############################
-	if (_simObject->getBuddy()) {
-	//printf("robot %d ", _id);
-	/*for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
-		double rate[3] = {0};
-		int i = _enabled[j];
-		if (_buddy[i]) {
-			rate[i] = _buddy[i]->getAngularRate(i);
-			_seek[i] = 0;
-			//printf("joint %d rate %lf ", i, rate[i]);
-			if (rate[i] > 0) {
-				_state[i] = ROBOT_BACKWARD;
-				//printf("backward\t");
-			}
-			else if (rate[i] < 0) {
-				_state[i] = ROBOT_FORWARD;
-				//printf("forward\t");
-			}
-			else {
-				_state[i] = ROBOT_HOLD;
-				//printf("hold\t");
-			}
-			_speed[i] = fabs(rate[i]);
-
-			if (i == 0 && -0.90 < _accel[2] && _accel[2] < 0.90) {
-				//printf("accel %lf ", _accel[2]);
-				_speed[i] = 0.25*DEG2RAD(_max_speed[i]);
-				_state[i] = (_state[i] == ROBOT_FORWARD) ? ROBOT_BACKWARD : ROBOT_FORWARD;
-			}
-			else if (i == 0 && _accel[2] < 0.90 && _accel[2] > 0) {
-				//printf("accel %lf ", _accel[2]);
-				_speed[i] = 0.25*DEG2RAD(_max_speed[i]);
-				_state[i] = (_state[i] == ROBOT_FORWARD) ? ROBOT_BACKWARD : ROBOT_FORWARD;
-			}
-		}
-	}*/
-		if (_id == 0) {
-			double rate[3] = {0};
-			//printf("robot %d buddy %p state %d\n", _id, _buddy[F1], _state[F1]);
-			if (_buddy[F1]) {
-				rate[F1] = _buddy[F1]->getAngularRate(F1);
-				if (rate[F1] > 0) {
-					_state[F1] = ROBOT_FORWARD;
-				}
-				else if (rate[F1] < 0) {
-					_state[F1] = ROBOT_BACKWARD;
-				}
-				else {
-					_state[F1] = ROBOT_HOLD;
-				}
-				_seek[F1] = 0;
-				_speed[F1] = fabs(rate[F1]);
-			}
-			//printf("robot %d speed %lf state %d accel %lf\n", _id, _speed[0], _state[0], _accel[2]);
-			//printf("robot %d speed %lf state %d\n", _id, _speed[F2], _state[F2]);
-		}
-		else if (_id == 1) {
-			double rate[3] = {0};
-			//printf("robot %d buddy %p state %d\n", _id, _buddy[F2], _state[F2]);
-			if (_buddy[F2]) {
-				rate[F1] = _buddy[F2]->getAngularRate(F2);
-				if (rate[F1] > 0) {
-					_state[F1] = ROBOT_FORWARD;
-					//printf("backward\t");
-				}
-				else if (rate[F1] < 0) {
-					_state[F1] = ROBOT_BACKWARD;
-					//printf("forward\t");
-				}
-				else {
-					_state[F1] = ROBOT_HOLD;
-					//printf("hold\t");
-				}
-				_seek[F1] = 0;
-				_speed[F1] = fabs(rate[F1]);
-			}
-			//printf("robot %d speed %lf state %d accel %lf\n", _id, _speed[0], _state[0], _accel[2]);
-			//printf("robot %d speed %lf state %d\n", _id, _speed[F2], _state[F2]);
-		}
-		// ############################
-		else if (_id == 2) {
-			if ((int)(_goal_pos[3])) {
-				int error = this->get_error();
-				if (error == 1) {
-					printf("\tmoving forward\n");
-					_state[F2] = ROBOT_FORWARD;
-				}
-				else if (error == -1) {
-					printf("\tmoving backward\n");
-					_state[F2] = ROBOT_BACKWARD;
-				}
-				else {
-					_state[F2] = ROBOT_HOLD;
-				}
-				_seek[F2] = 0;
-				_speed[F2] = DEG2RAD(_max_speed[0]/2);
-			}
-		}
-	}
-	// ############################
 
 	// update angle values for each degree of freedom
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
@@ -4199,7 +4091,6 @@ int CLinkbotT::init_params(int disabled, int type) {
 	// create arrays for linkbots
 	_angle = new double[NUM_DOF];
 	_body = new dBodyID[NUM_PARTS];
-	_buddy = new CRobot * [NUM_DOF];
 	_enabled = new int[(disabled == -1) ? 3 : 2];
 	_geom = new dGeomID * [NUM_PARTS];
 	_goal = new double[NUM_DOF];
@@ -4222,7 +4113,6 @@ int CLinkbotT::init_params(int disabled, int type) {
 	// fill with default data
 	for (int i = 0, j = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
-		_buddy[i] = NULL;
 		_goal[i] = 0;
 		_goal_pos[i] = 0;
 		_max_force[i] = 2;

@@ -139,7 +139,6 @@ int RoboSim::init_xml(char *name) {
 	_bot = NULL;
 	_robots = NULL;
 	_preconfig = 0;
-	_buddy = 0;
 	tinyxml2::XMLElement *node = NULL;
 	tinyxml2::XMLElement *ele = NULL;
 	tinyxml2::XMLElement *side = NULL;
@@ -209,11 +208,6 @@ int RoboSim::init_xml(char *name) {
 	// check if individual vs preconfig
 	if ( (node = doc.FirstChildElement("config")->FirstChildElement("type")) ) {
 		node->QueryIntAttribute("val", &_preconfig);
-	}
-
-	// check if should use buddies
-	if ( (node = doc.FirstChildElement("config")->FirstChildElement("buddy")) ) {
-		node->QueryIntAttribute("val", &_buddy);
 	}
 
 	// check for custom mu params
@@ -837,25 +831,6 @@ int RoboSim::addRobot(CRobot *robot) {
 	nr->node = robot->draw(_shadowed, btmp->tracking);
 #endif // ENABLE_GRAPHICS
 
-	// find buddies
-	if (_buddy) {
-		ctmp = btmp->conn;
-		while (ctmp) {
-			if (ctmp->robot != btmp->id) {
-				rtmp = _robots;
-				while (rtmp) {
-					if (rtmp->robot->getRobotID() == ctmp->robot) {
-						robot->addBuddy(ctmp->face2, rtmp->robot);
-						rtmp->robot->addBuddy(ctmp->face1, robot);
-						break;
-					}
-					rtmp = rtmp->next;
-				}
-			}
-			ctmp = ctmp->next;
-		}
-	}
-
 	// unlock robot data
 	MUTEX_UNLOCK(&_robot_mutex);
 
@@ -930,10 +905,6 @@ int RoboSim::deleteRobot(CRobot *robot) {
 
 int RoboSim::getUnits(void) {
 	return _us;
-}
-
-int RoboSim::getBuddy(void) {
-	return _buddy;
 }
 
 int RoboSim::runSimulation(void) {
