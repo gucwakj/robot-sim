@@ -115,9 +115,6 @@ createpkg: librobosim.dl
 	cp -R ../resources/ground $(PKGDIR)/data
 	cp -R ../resources/mobot $(PKGDIR)/data
 	cp -R ../resources/linkbot $(PKGDIR)/data
-	mkdir $(PKGDIR)/demos
-	cp -R ../../demos/chdemos/mobot $(PKGDIR)/demos
-	cp -R ../../demos/chdemos/linkbot $(PKGDIR)/demos
 	mkdir $(PKGDIR)/dl
 	cp librobosim.dl $(PKGDIR)/dl
 	mkdir $(PKGDIR)/docs
