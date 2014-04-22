@@ -256,7 +256,6 @@ class DLLIMPORT CRobot {
 		double _distOffset;		// offset for recorded distance
 		double _encoder;		// motor encoder resolution
 		double *_goal;			// goals
-		double _goal_pos[5];	// goal position
 		double *_max_force;		// maximum joint forces
 		double *_max_speed;		// maximum joint speeds
 		double *_offset;		// offset from zero for resetting

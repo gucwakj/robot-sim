@@ -2023,19 +2023,6 @@ int CLinkbotT::setExitState(robotJointState_t exitState) {
 	return 0;
 }
 
-int CLinkbotT::setGoal(double x, double y, double z) {
-	_goal_pos[0] = x;
-	_goal_pos[1] = y;
-	_goal_pos[2] = z;
-	_goal_pos[3] = 1;
-	_goal_pos[4] = sqrt(pow(x-this->getCenter(0),2) +
-						pow(y-this->getCenter(1),2) +
-						pow(z-this->getCenter(2),2));
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
 	// lock mutexes
 	MUTEX_LOCK(&_success_mutex);
@@ -4152,7 +4139,6 @@ int CLinkbotT::init_params(int disabled, int type) {
 	for (int i = 0, j = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
 		_goal[i] = 0;
-		_goal_pos[i] = 0;
 		_max_force[i] = 2;
 		_max_speed[i] = 240;		// deg/sec
 		_offset[i] = 0;
@@ -4170,8 +4156,6 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_disabled = disabled;
 	_distOffset = 0;
 	_encoder = DEG2RAD(0.25);
-	_goal_pos[3] = 0;
-	_goal_pos[4] = 0;
 	_id = -1;
 	_motion = false;
 	_rgb[0] = 0;
@@ -4209,25 +4193,6 @@ int CLinkbotT::init_dims(void) {
 
 	// success
 	return 0;
-}
-
-int CLinkbotT::get_error(void) {
-	double error = sqrt(pow(_goal_pos[0] - this->getCenter(0), 2) +
-						pow(_goal_pos[1] - this->getCenter(1), 2) +
-						pow(_goal_pos[2] - this->getCenter(2), 2));
-	int retval = 0;
-printf("error: %.15lf\n", error-_goal_pos[4]);
-	if ( error - _goal_pos[4] > EPSILON ) {
-//printf("error1: %.15lf %.15lf %.15lf\n", error,_goal_pos[4], error-_goal_pos[4]);
-		retval = 1;
-	}
-	else if ( error - _goal_pos[4] < -EPSILON ) {
-//printf("error2: %.15lf %.15lf %.15lf\n", error,_goal_pos[4], error-_goal_pos[4]);
-		retval = -1;
-	}
-printf("error %d\n", retval);
-	_goal_pos[4] = error;
-	return retval;
 }
 
 double CLinkbotT::mod_angle(double past_ang, double cur_ang, double ang_rate) {
