@@ -18,6 +18,19 @@ RoboSim::RoboSim(char *name, int pause, int rt) {
 	// initialize graphics
 	init_viz();
 #endif
+
+	// wait until user is ready
+	MUTEX_LOCK(&(_pause_mutex));
+	while (_pause) {
+		MUTEX_UNLOCK(&(_pause_mutex));
+#ifdef _WIN32
+		Sleep(1);
+#else
+		usleep(1000);
+#endif
+		MUTEX_LOCK(&(_pause_mutex));
+	}
+	MUTEX_UNLOCK(&(_pause_mutex));
 }
 
 RoboSim::~RoboSim(void) {
