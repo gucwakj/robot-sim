@@ -4126,6 +4126,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_speed[i] = 0.7854;		// 45 deg/sec
 		_starting[i] = 0;
 		_stopping[i] = 0;
+		_state[i] = ROBOT_NEUTRAL;
 		_success[i] = true;
 		if (i != disabled)
 			_enabled[j++] = i;
