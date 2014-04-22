@@ -4138,18 +4138,20 @@ int CLinkbotT::init_params(int disabled, int type) {
 	// fill with default data
 	for (int i = 0, j = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
+		if (i != disabled) { _enabled[j++] = i; }
 		_goal[i] = 0;
 		_max_force[i] = 2;
 		_max_speed[i] = 240;		// deg/sec
 		_offset[i] = 0;
+		_rec_active[i] = false;
+		_rec_num[i] = 0;
 		_recording[i] = false;
-		_speed[i] = 0.7854;		// 45 deg/sec
+		_seek[i] = false;
+		_speed[i] = 0.7854;			// 45 deg/sec
 		_starting[i] = 0;
 		_stopping[i] = 0;
 		_state[i] = ROBOT_NEUTRAL;
 		_success[i] = true;
-		if (i != disabled)
-			_enabled[j++] = i;
 	}
 	_conn = NULL;
 	_connected = 0;

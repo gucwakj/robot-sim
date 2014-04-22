@@ -4190,10 +4190,13 @@ int CMobot::init_params(void) {
 	for (int i = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
 		_goal[i] = 0;
-		_max_speed[i] = 120;	// deg/sec
+		_max_speed[i] = 120;		// deg/sec
+		_offset[i] = 0;
+		_rec_active[i] = false;
+		_rec_num[i] = 0;
 		_recording[i] = false;
 		_seek[i] = false;
-		_speed[i] = 0.7854;		// 45 deg/sec
+		_speed[i] = 0.7854;			// 45 deg/sec
 		_state[i] = ROBOT_NEUTRAL;
 		_success[i] = true;
 	}
