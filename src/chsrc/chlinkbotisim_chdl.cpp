@@ -513,6 +513,19 @@ EXPORTCH int CLinkbotI_isMoving_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotI_isNotMoving_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    retval = robot->isNotMoving();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotI_line_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2411,6 +2424,19 @@ EXPORTCH int CLIG_isMoving_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
     retval = robot->isMoving();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLIG_isNotMoving_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotIGroup *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
+    retval = robot->isNotMoving();
     Ch_VaEnd(interp, ap);
     return retval;
 }

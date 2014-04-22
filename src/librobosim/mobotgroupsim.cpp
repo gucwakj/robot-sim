@@ -148,6 +148,10 @@ int CMobotGroup::isMoving(void) {
 	return 0;
 }
 
+int CMobotGroup::isNotMoving(void) {
+	return !(this->isMoving());
+}
+
 int CMobotGroup::motionArch(double angle) {
 	_d = angle;
 	_motion++;

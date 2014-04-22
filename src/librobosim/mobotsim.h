@@ -57,7 +57,8 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int getJointState(robotJointId_t id, robotJointState_t &state);
 		int getxy(double &x, double &y);
 		int isConnected();
-		int isMoving();
+		int isMoving(void);
+		int isNotMoving(void);
 #ifdef ENABLE_GRAPHICS
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 #endif // ENABLE_GRAPHICS
@@ -338,6 +339,7 @@ class CMobotGroup {
 		int driveToDirectNB(double angle1, double angle2, double angle3, double angle4);
 		int driveToNB(double angle1, double angle2, double angle3, double angle4);
 		int isMoving(void);
+		int isNotMoving(void);
 		int motionArch(double angle);
 		int motionArchNB(double angle);
 		int motionDistance(double distance, double radius);

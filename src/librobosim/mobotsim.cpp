@@ -299,6 +299,10 @@ int CMobot::isMoving(void) {
 	return 0;
 }
 
+int CMobot::isNotMoving(void) {
+	return !(this->isMoving());
+}
+
 #ifdef ENABLE_GRAPHICS
 int CMobot::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
 	// convert x and y into meters

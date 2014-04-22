@@ -148,6 +148,10 @@ int CLinkbotTGroup::isMoving(void) {
 	return 0;
 }
 
+int CLinkbotTGroup::isNotMoving(void) {
+	return !(this->isMoving());
+}
+
 int CLinkbotTGroup::motionDistance(double distance, double radius) {
 	_d = distance / radius;
 	_motion++;

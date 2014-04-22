@@ -503,6 +503,19 @@ int CLinkbotL::isMoving() {
     return retval;
 }
 
+int CLinkbotL::isNotMoving() {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_isNotMoving_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, isNotMoving, this);
+    return retval;
+}
+
 int CLinkbotL::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
     void *fptr;
     int retval;
@@ -1826,6 +1839,19 @@ int CLinkbotLGroup::isMoving() {
         return -1;
     }
     dlrunfun(fptr, &retval, isMoving, this);
+    return retval;
+}
+
+int CLinkbotLGroup::isNotMoving() {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLLG_isNotMoving_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, isNotMoving, this);
     return retval;
 }
 

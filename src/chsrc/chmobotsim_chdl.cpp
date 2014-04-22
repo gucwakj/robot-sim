@@ -514,6 +514,19 @@ EXPORTCH int CMobot_isMoving_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_isNotMoving_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    retval = robot->isNotMoving();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_line_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2477,6 +2490,19 @@ EXPORTCH int CMG_isMoving_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     group = Ch_VaArg(interp, ap, class CMobotGroup *);
     retval = group->isMoving();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CMG_isNotMoving_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobotGroup *group;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    group = Ch_VaArg(interp, ap, class CMobotGroup *);
+    retval = group->isNotMoving();
     Ch_VaEnd(interp, ap);
     return retval;
 }
