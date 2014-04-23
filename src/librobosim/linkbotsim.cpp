@@ -51,10 +51,10 @@ int CLinkbotT::blinkLED(double delay, int num) {
 	return 0;
 }
 
-int CLinkbotT::connect(char *name, int pause, int rt) {
+int CLinkbotT::connect(char *name, int pause) {
 	// create simulation object if necessary
 	if (!_simObject)
-		_simObject = new RoboSim(name, pause, rt);
+		_simObject = new RoboSim(name, pause);
 
 	// set initial 'led' color
 	_rgb[0] = 0;

@@ -23,9 +23,9 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 
 		int blinkLED(double delay, int num);
 #ifdef _CH_
-		int connect();
+		int connect(...);
 #else
-		int connect(char *name = NULL, int pause = 1, int rt = 1);
+		int connect(char *name = NULL, int pause = 3);
 #endif
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
@@ -421,7 +421,7 @@ class DLLIMPORT CLinkbotI {
 		virtual ~CLinkbotI();
 
 		int blinkLED(double delay, int num);
-		int connect();
+		int connect(...);
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
 		int disableRecordDataShift();
@@ -656,7 +656,7 @@ class DLLIMPORT CLinkbotL {
 		virtual ~CLinkbotL();
 
 		int blinkLED(double delay, int num);
-		int connect();
+		int connect(...);
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
 		int disableRecordDataShift();

@@ -19,9 +19,9 @@ class DLLIMPORT CMobot : virtual public CRobot {
 
 		int blinkLED(double delay, int num);
 #ifdef _CH_
-		int connect(void);
+		int connect(...);
 #else
-		int connect(char *name = NULL, int pause = 1, int rt = 1);
+		int connect(char *name = NULL, int pause = 3);
 #endif
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);

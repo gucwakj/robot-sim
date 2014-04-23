@@ -4,15 +4,15 @@ using namespace std;
 // global robot simulation object
 RoboSim *_simObject = NULL;
 
-RoboSim::RoboSim(char *name, int pause, int rt) {
+RoboSim::RoboSim(char *name, int pause) {
+	// initialize xml config file
+	init_xml(name);
+
 	// initialize ode
 	init_ode();
 
 	// initialize simulation
-	init_sim(pause, rt);
-
-	// initialize xml config file
-	init_xml(name);
+	init_sim(pause);
 
 #ifdef ENABLE_GRAPHICS
 	// initialize graphics
@@ -118,7 +118,7 @@ int RoboSim::init_ode(void) {
 	return 0;
 }
 
-int RoboSim::init_sim(int pause, int rt) {
+int RoboSim::init_sim(int pause) {
 	// default collision parameters
 	_mu[0] = 0.9;	_mu[1] = 0.3;
 	_cor[0] = 0.3;	_cor[1] = 0.3;
@@ -132,13 +132,15 @@ int RoboSim::init_sim(int pause, int rt) {
 
 	// variables to keep track of progress of simulation
 	_running = 1;			// is simulation running
-	_pause = 0;				// do not start paused w/o graphics
 #ifdef ENABLE_GRAPHICS
-	_pause = pause;			// pause on graphics start
+	if (pause == 0) { _pause = 0; }
+	else if (pause == 1) { _pause = 1; }
+	else if (_pause == 3 && pause == 2) { _pause = 0; }
+#else
+	_pause = 0;				// do not start paused w/o graphics
 #endif
     _step = 0.004;			// initial time step
 	_clock = 0;				// start clock
-	_rt = rt;				// run in real time
 
 	// success
 	return 0;
@@ -152,6 +154,8 @@ int RoboSim::init_xml(char *name) {
 	_bot = NULL;
 	_robots = NULL;
 	_preconfig = 0;
+	_pause = 3;
+	_rt = 1;
 	tinyxml2::XMLElement *node = NULL;
 	tinyxml2::XMLElement *ele = NULL;
 	tinyxml2::XMLElement *side = NULL;
@@ -233,6 +237,11 @@ int RoboSim::init_xml(char *name) {
 	if ( (node = doc.FirstChildElement("config")->FirstChildElement("cor")) ) {
 		node->QueryDoubleAttribute("ground", &(_cor[0]));
 		node->QueryDoubleAttribute("body", &(_cor[1]));
+	}
+
+	// check if should start paused
+	if ( (node = doc.FirstChildElement("config")->FirstChildElement("pause")) ) {
+		node->QueryIntAttribute("val", &_pause);
 	}
 
 	// check if should run in real time

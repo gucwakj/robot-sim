@@ -48,17 +48,29 @@ int CLinkbotI::blinkLED(double delay, int numBlinks) {
     return retval;
 }
 
-int CLinkbotI::connect() {
-    void *fptr;
-    int retval;
+int CLinkbotI::connect(...) {
+	void *fptr;
+	int retval;
+	va_list ap;
+	char *name;
+	va_start(ap, VA_NOARG);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_connect_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, NULL, this);
-    return retval;
+	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_connect_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+
+	if (va_count(ap) == 1) {
+		name = va_arg(ap, char *);
+		dlrunfun(fptr, &retval, NULL, this, name);
+	}
+	else {
+		dlrunfun(fptr, &retval, NULL, this);
+	}
+
+	va_end(ap);
+	return retval;
 }
 
 int CLinkbotI::delay(double milliseconds) {

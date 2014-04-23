@@ -14,7 +14,7 @@
 
 class DLLIMPORT RoboSim {
 	public:
-		RoboSim(char *name, int pause, int rt);
+		RoboSim(char *name, int pause);
 		virtual ~RoboSim();
 
 #ifndef _CH_
@@ -60,7 +60,7 @@ class DLLIMPORT RoboSim {
 
 		// private functions
 		int init_ode(void);					// init function for ode variables
-		int init_sim(int pause, int rt);	// init function for simulation variables
+		int init_sim(int pause);			// init function for simulation variables
 		int init_xml(char *name);			// init function to read xml config file
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 		static void* simulation_thread(void *arg);					// simulation thread function

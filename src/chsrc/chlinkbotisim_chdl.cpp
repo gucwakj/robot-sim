@@ -51,25 +51,28 @@ EXPORTCH int CLinkbotI_blinkLED_chdl(void *varg) {
 }
 
 EXPORTCH int CLinkbotI_connect_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotI *robot;
-    int retval;
+	ChInterp_t interp;
+	ChVaList_t ap;
+	class CLinkbotI *robot;
+	char *name;
+	int retval;
 
-	int embed = 0;
+	Ch_VaStart(interp, ap, varg);
+	robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+	name = Ch_VaArg(interp, ap, char *);
+
+	// pause if not debugging
 	/*if (e_lang != NULL) {
-		embed = 0;
+		pause = 0;	// no pause
 	}
 	else {
-		embed = 1;
-	}
-printf("embed: %d\n", embed);*/
+		pause = 3;	// pause
+	}*/
+	int pause = 3;
 
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    retval = robot->connect(NULL, !embed, 1);
-    Ch_VaEnd(interp, ap);
-    return retval;
+	retval = robot->connect(name, pause);
+	Ch_VaEnd(interp, ap);
+	return retval;
 }
 
 EXPORTCH int CLinkbotI_delay_chdl(void *varg) {

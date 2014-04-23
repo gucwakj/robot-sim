@@ -384,6 +384,23 @@ angles.
 	\end{center}
 \end{table}
 
+\section{Differences to Hardware}
+RoboSim has some different options which affect the performance of the
+simulation.  These are options which are passed into the connect function of the
+robots that are not available within hardware.  The RoboSim GUI writes all of
+the options into a user configuration file that has to be changed each time a
+new code is to be run.  However, users can manually write configuration files
+specific to each code.  To tell RoboSim to use a custom configuration file over
+the global one, pass the name of the file into the first connect function call
+in the file.  RoboSim will look in the same folder to find the configuration
+file, if it is not found, then it will use the default one.
+\begin{verbatim}
+#include <linkbot.h>
+CLinkbotI robot;
+
+robot.connect("testrc");
+\end{verbatim}
+
 
 
 
@@ -445,6 +462,14 @@ maximum distances along the X-axis for the grids, respectively.  \verb%miny% and
 <tracking val="1"/>
 \end{verbatim}
 Setting to track robot location with lines on the ground.  1 for on; 0 for off.
+
+\subsubsection{Pause}
+\begin{verbatim}
+<pause val="1"/>
+\end{verbatim}
+The simulation can either start paused waiting for a user to press a key to
+start or it will start as soon as it is ready.  Passing 0 to this option starts
+the simulation; while 1 pauses it at the beginning.
 
 \subsubsection{Real Time}
 \begin{verbatim}
