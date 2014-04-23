@@ -1309,22 +1309,9 @@ int CMobot::movexy(double x, double y, double radius, double trackwidth) {
 	// get current position
 	double x0, y0;
 	this->getxy(x0, y0);
-	double r0 = this->getRotation(CENTER, 2);
 
-	// get angle to turn
-	double angle = atan2(x-x0, y-y0);
-
-	// turn in shortest path
-	if ((angle+r0) > EPSILON)
-		this->turnRight(RAD2DEG(angle+r0), radius, trackwidth);
-	else
-		this->turnLeft(RAD2DEG(-angle-r0), radius, trackwidth);
-
-	// move along length of line
-	this->moveDistance(sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0)), radius);
-
-	// success
-	return 0;
+	// move to new global coordinates
+	return this->movexyTo(x + x0, y + y0, radius, trackwidth);
 }
 
 void* CMobot::movexyThread(void *arg) {
@@ -1367,22 +1354,38 @@ int CMobot::movexyNB(double x, double y, double radius, double trackwidth) {
 }
 
 int CMobot::movexyTo(double x, double y, double radius, double trackwidth) {
-	// get current position and convert to in or cm
+	// get current position
 	double x0, y0;
 	this->getxy(x0, y0);
+
+	// get current rotation
 	double r0 = this->getRotation(CENTER, 2);
 
-	// get angle to turn
-	double angle = atan2(x-x0, y-y0);
+	// compute rotation matrix for body frame
+	dMatrix3 R;
+	dRFromAxisAndAngle(R, 0, 0, 1, r0);
 
-	// turn in shortest path
-	if ((angle+r0) > EPSILON)
-		this->turnRight(RAD2DEG(angle+r0), radius, trackwidth);
-	else
-		this->turnLeft(RAD2DEG(-angle-r0), radius, trackwidth);
+	// get angle to turn in body coordinates (transform of R)
+	double angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
+
+	// turn toward new postition until pointing correctly
+	while (fabs(angle) > 0.001) {
+		// turn in shortest path
+		if (angle > EPSILON)
+			this->turnRight(RAD2DEG(angle), radius, trackwidth);
+		else if (angle < -EPSILON)
+			this->turnLeft(RAD2DEG(-angle), radius, trackwidth);
+
+		// calculate new rotation from error
+		this->getxy(x0, y0);
+		r0 = this->getRotation(CENTER, 2);
+		dRFromAxisAndAngle(R, 0, 0, 1, r0);
+		angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
+	}
 
 	// move along length of line
-	this->moveDistance(sqrt((x-x0)*(x-x0) + (y-y0)*(y-y0)), radius);
+	this->getxy(x0, y0);
+	this->moveDistance(sqrt(x*x - 2*x*x0 + x0*x0 + y*y - 2*y*y0 + y0*y0), radius);
 
 	// success
 	return 0;

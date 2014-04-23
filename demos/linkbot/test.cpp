@@ -6,11 +6,8 @@ int main(int argc, char *argv[]) {
 	CLinkbotI robot;
 
 	robot.connect();
-	robot.moveNB(180, 0, -180);
-	while (robot.isMoving()) {
-		printf("moving\n");
-	}
-	printf("done moving\n");
+	robot.movexy(1, 1, 1.75, 3);
+	robot.movexy(0, 1, 1.75, 3);
 
 	return 0;
 }
