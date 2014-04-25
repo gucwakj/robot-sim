@@ -6,8 +6,7 @@ int main(int argc, char *argv[]) {
 	CLinkbotI robot;
 
 	robot.connect();
-	robot.movexy(1, 1, 1.75, 3);
-	robot.movexy(0, 1, 1.75, 3);
+	robot.recordDistanceOffset(6);
 
 	return 0;
 }

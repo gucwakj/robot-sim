@@ -1837,6 +1837,25 @@ int CLinkbotT::recordDistanceEnd(robotJointId_t id, int &num) {
 }
 
 int CLinkbotT::recordDistanceOffset(double distance) {
+	// get current position
+	double x0, y0;
+	this->getxy(x0, y0);
+
+	// get current rotation
+	dMatrix3 R;
+	double r0 = this->getRotation(BODY, 2);
+	dRFromAxisAndAngle(R, 0, 0, 1, r0);
+
+	// calculate y offset from zero in body coordinates
+	//double x = R[0]*x0 + R[4]*y0;
+	double y = R[1]*x0 + R[5]*y0;
+
+	// print warning if different from given offset
+	if (fabs(y-distance) > 0.01) {
+		printf("Warning: Robot position different than value given in recordDistanceOffset.\n");
+	}
+
+	// set offset distance
 	_distOffset = distance;
 
 	// success
@@ -3133,10 +3152,9 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 	this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R, 0);
 
 	// get center of robot offset from body position
-	const double *pos = dBodyGetPosition(_body[BODY]);
-	_center[0] = R[0]*(x-pos[0]) + R[1]*(y-pos[1]) + R[2]*(z-pos[2]);
-	_center[1] = R[4]*(x-pos[0]) + R[5]*(y-pos[1]) + R[6]*(z-pos[2]);
-	_center[2] = R[8]*(x-pos[0]) + R[9]*(y-pos[1]) + R[10]*(z-pos[2]);
+	_center[0] = 0;
+	_center[1] = 0.012462;
+	_center[2] = 0;
 
     // joint for body to face 1
     _joint[0] = dJointCreateHinge(_world, 0);
