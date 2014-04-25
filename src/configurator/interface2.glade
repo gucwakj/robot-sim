@@ -869,7 +869,7 @@ Harry H. Cheng</property>
                     <property name="left_padding">12</property>
                     <child>
                       <object class="GtkCheckButton" id="tracking">
-                        <property name="label" translatable="yes">Enable Robot Position Tracking</property>
+                        <property name="label" translatable="yes">Enable Robot Position Tracing</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -882,7 +882,7 @@ Harry H. Cheng</property>
                 <child type="label">
                   <object class="GtkLabel" id="label_tracking">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">&lt;b&gt;Tracking&lt;/b&gt;</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Tracing&lt;/b&gt;</property>
                     <property name="use_markup">True</property>
                   </object>
                 </child>
