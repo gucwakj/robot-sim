@@ -212,6 +212,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #ifdef ENABLE_GRAPHICS
 		int text(double x, double y, double z, char *text);
 #endif // ENABLE_GRAPHICS
+		int traceOff(void);
+		int traceOn(void);
 		int turnLeft(double angle, double radius, double trackwidth);
 		int turnLeftNB(double angle, double radius, double trackwidth);
 		int turnRight(double angle, double radius, double trackwidth);
@@ -569,6 +571,8 @@ class DLLIMPORT CLinkbotI {
 		int stopAllJoints(void);
 		int systemTime(double &time);
 		int text(double x, double y, double z, char *text);
+		int traceOff(void);
+		int traceOn(void);
 		int turnLeft(double angle, double radius, double trackwidth);
 		int turnLeftNB(double angle, double radius, double trackwidth);
 		int turnRight(double angle, double radius, double trackwidth);
@@ -796,6 +800,8 @@ class DLLIMPORT CLinkbotL {
 		int stopAllJoints(void);
 		int systemTime(double &time);
 		int text(double x, double y, double z, char *text);
+		int traceOff(void);
+		int traceOn(void);
 		int turnLeft(double angle, double radius, double trackwidth);
 		int turnLeftNB(double angle, double radius, double trackwidth);
 		int turnRight(double angle, double radius, double trackwidth);

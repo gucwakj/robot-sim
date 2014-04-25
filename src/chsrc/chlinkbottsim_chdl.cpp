@@ -2183,6 +2183,32 @@ EXPORTCH int CLinkbotT_text_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotT_traceOff_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    retval = robot->traceOff();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotT_traceOn_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    retval = robot->traceOn();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotT_turnLeft_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

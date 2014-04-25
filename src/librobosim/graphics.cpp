@@ -250,15 +250,17 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		double z = _robot->getCenter(2) + (_robot->getRobotID() % 2 ? 0.08 : 0) + 0.08;
 		label->setPosition(osg::Vec3(x, y, z));
 		// draw tracking line
-		osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
-		osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode2->getDrawable(0)->asGeometry());
-		osg::Vec4Array *colors = dynamic_cast<osg::Vec4Array *>(draw->getColorArray());
-		colors->pop_back();
-		colors->push_back(osg::Vec4(_robot->_rgb[0], _robot->_rgb[1], _robot->_rgb[2], 1.0f) );
-		osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
-		vertices->push_back(osg::Vec3(x, y, 0));
-		osg::DrawArrays *array = dynamic_cast<osg::DrawArrays *>(draw->getPrimitiveSet(0));
-		array->setCount(_count++);
+		if (_robot->_trace) {
+			osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
+			osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode2->getDrawable(0)->asGeometry());
+			osg::Vec4Array *colors = dynamic_cast<osg::Vec4Array *>(draw->getColorArray());
+			colors->pop_back();
+			colors->push_back(osg::Vec4(_robot->_rgb[0], _robot->_rgb[1], _robot->_rgb[2], 1.0f) );
+			osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
+			vertices->push_back(osg::Vec3(x, y, 0));
+			osg::DrawArrays *array = dynamic_cast<osg::DrawArrays *>(draw->getPrimitiveSet(0));
+			array->setCount(_count++);
+		}
 	}
 	traverse(node, nv);
 }
@@ -312,12 +314,14 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		double z = _robot->getCenter(2) + (_robot->getRobotID() % 2 ? 0.08 : 0) + 0.08;
 		label->setPosition(osg::Vec3(x, y, z));
 		// draw tracking line
-		osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
-		osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode2->getDrawable(0)->asGeometry());
-		osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
-		vertices->push_back(osg::Vec3(x, y, 0));
-		osg::DrawArrays *array = dynamic_cast<osg::DrawArrays *>(draw->getPrimitiveSet(0));
-		array->setCount(_count++);
+		if (_robot->_trace) {
+			osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
+			osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode2->getDrawable(0)->asGeometry());
+			osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
+			vertices->push_back(osg::Vec3(x, y, 0));
+			osg::DrawArrays *array = dynamic_cast<osg::DrawArrays *>(draw->getPrimitiveSet(0));
+			array->setCount(_count++);
+		}
 	}
 	traverse(node, nv);
 }

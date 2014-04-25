@@ -2591,6 +2591,20 @@ int CMobot::text(double x, double y, double z, char *text) {
 }
 #endif // ENABLE_GRAPHICS
 
+int CMobot::traceOff(void) {
+	_trace = 0;
+
+	// success
+	return 0;
+}
+
+int CMobot::traceOn(void) {
+	_trace = 1;
+
+	// success
+	return 0;
+}
+
 int CMobot::turnLeft(double angle, double radius, double trackwidth) {
 	this->turnLeftNB(angle, radius, trackwidth);
 	this->moveWait();
@@ -3214,6 +3228,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	robot->insertChild(0, label_geode);
 
 	// draw tracking node
+	_trace = tracking;
 	osg::Geode *trackingGeode = new osg::Geode();
 	osg::Geometry *trackingLine = new osg::Geometry();
 	osg::Vec3Array *trackingVertices = new osg::Vec3Array();
@@ -4361,6 +4376,7 @@ int CMobot::init_params(void) {
 	_shift_data = 0;
 	_g_shift_data = 0;
 	_g_shift_data_en = 0;
+	_trace = 1;
 	_type = MOBOT;
 
 	// success
