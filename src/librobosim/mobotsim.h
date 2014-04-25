@@ -152,6 +152,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 								 robotRecordData_t &distance2,
 								 robotRecordData_t &distance3,
 								 robotRecordData_t &distance4, double radius, double seconds, ...);
+		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, ...);
 #else
 		int recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData = 1);
 		int recordAngleBegin(robotJointId_t id,
@@ -175,6 +176,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 								 robotRecordData_t &distance2,
 								 robotRecordData_t &distance3,
 								 robotRecordData_t &distance4, double radius, double seconds, int shiftData = 1);
+		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData = 1);
 #endif
 		int recordAngleEnd(robotJointId_t id, int &num);
 		int recordAnglesEnd(int &num);
@@ -182,6 +184,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int recordDistanceOffset(double distance);
 		int recordDistancesEnd(int &num);
 		int recordWait();
+		int recordxyEnd(int &num);
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
@@ -302,6 +305,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		static void* recordAngleBeginThread(void *arg);
 		static void* recordAnglesThread(void *arg);
 		static void* recordAnglesBeginThread(void *arg);
+		static void* recordxyBeginThread(void *arg);
 		static void* setJointMovementStateTimeNBThread(void *arg);
 		static void* setMovementStateTimeNBThread(void *arg);
 #ifdef ENABLE_GRAPHICS

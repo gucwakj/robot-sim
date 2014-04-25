@@ -1398,6 +1398,44 @@ int CMobot::recordWait() {
     return retval;
 }
 
+int CMobot::recordxyBegin(double* &x, double* &y, double seconds, ...) {
+	void *fptr;
+	int retval;
+	va_list ap;
+	int shiftData = 1;
+	va_start(ap, seconds);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CMobot_recordxyBegin_chdl");
+	if (fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+
+	if (va_count(ap) == 1) {
+		shiftData = va_arg(ap, int);
+		dlrunfun(fptr, &retval, NULL, this, &x, &y, seconds, shiftData);
+	}
+	else {
+		dlrunfun(fptr, &retval, NULL, this, &x, &y, seconds);
+	}
+
+	va_end(ap);
+	return retval;
+}
+
+int CMobot::recordxyEnd(int &num) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CMobot_recordxyEnd_chdl");
+	if (fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &num);
+	return retval;
+}
+
 int CMobot::reset() {
     void *fptr;
     int retval;

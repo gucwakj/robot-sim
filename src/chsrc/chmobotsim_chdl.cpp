@@ -1784,6 +1784,47 @@ EXPORTCH int CMobot_recordWait_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_recordxyBegin_chdl(void *varg) {
+	ChInterp_t interp;
+	ChVaList_t ap;
+	class CMobot *robot;
+	double** x;
+	double** y;
+	double seconds;
+	int shiftData;
+	int retval;
+
+	Ch_VaStart(interp, ap, varg);
+	robot = Ch_VaArg(interp, ap, class CMobot *);
+	x = Ch_VaArg(interp, ap, double**);
+	y = Ch_VaArg(interp, ap, double**);
+	seconds = Ch_VaArg(interp, ap, double);
+	if (Ch_VaCount(interp, ap) == 1) {
+		shiftData = Ch_VaArg(interp, ap, int);
+		retval = robot->recordxyBegin(*x, *y, seconds, shiftData);
+	}
+	else {
+		retval = robot->recordxyBegin(*x, *y, seconds);
+	}
+	Ch_VaEnd(interp, ap);
+	return retval;
+}
+
+EXPORTCH int CMobot_recordxyEnd_chdl(void *varg) {
+	ChInterp_t interp;
+	ChVaList_t ap;
+	class CMobot *robot;
+	int retval;
+	int *num;
+
+	Ch_VaStart(interp, ap, varg);
+	robot = Ch_VaArg(interp, ap, class CMobot *);
+	num = Ch_VaArg(interp, ap, int *);
+	retval = robot->recordxyEnd(*num);
+	Ch_VaEnd(interp, ap);
+	return retval;
+}
+
 EXPORTCH int CMobot_reset_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

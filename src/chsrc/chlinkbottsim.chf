@@ -66,7 +66,7 @@ int CLinkbotT::connect(...) {
 		dlrunfun(fptr, &retval, NULL, this, name);
 	}
 	else {
-		dlrunfun(fptr, &retval, NULL, this);
+		dlrunfun(fptr, &retval, NULL, this, NULL);
 	}
 
 	va_end(ap);
@@ -1379,6 +1379,44 @@ int CLinkbotT::recordWait() {
     }
     dlrunfun(fptr, &retval, recordWait, this);
     return retval;
+}
+
+int CLinkbotT::recordxyBegin(double* &x, double* &y, double seconds, ...) {
+	void *fptr;
+	int retval;
+	va_list ap;
+	int shiftData = 1;
+	va_start(ap, seconds);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_recordxyBegin_chdl");
+	if (fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+
+	if (va_count(ap) == 1) {
+		shiftData = va_arg(ap, int);
+		dlrunfun(fptr, &retval, NULL, this, &x, &y, seconds, shiftData);
+	}
+	else {
+		dlrunfun(fptr, &retval, NULL, this, &x, &y, seconds);
+	}
+
+	va_end(ap);
+	return retval;
+}
+
+int CLinkbotT::recordxyEnd(int &num) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_recordxyEnd_chdl");
+	if (fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &num);
+	return retval;
 }
 
 int CLinkbotT::reset() {

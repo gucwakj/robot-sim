@@ -1903,6 +1903,147 @@ int CLinkbotT::recordWait(void) {
 	return 0;
 }
 
+void* CLinkbotT::recordxyBeginThread(void *arg) {
+	// cast arg struct
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// create initial time points
+	int time = (int)((*(rArg->robot->_clock))*1000);
+
+	// actively taking a new data point
+	MUTEX_LOCK(&rArg->robot->_active_mutex);
+	rArg->robot->_rec_active[ROBOT_JOINT1] = true;
+	rArg->robot->_rec_active[ROBOT_JOINT2] = true;
+	rArg->robot->_rec_active[ROBOT_JOINT3] = true;
+	COND_SIGNAL(&rArg->robot->_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
+
+	// loop until recording is no longer needed
+	for (int i = 0; rArg->robot->_recording[ROBOT_JOINT1]; i++) {
+		// store locally num of data points taken
+		rArg->robot->_rec_num[ROBOT_JOINT1] = i;
+
+		// resize array if filled current one
+		if (i >= rArg->num) {
+			rArg->num += RECORD_ANGLE_ALLOC_SIZE;
+			// create larger array for time
+			double *newBuf = (double *)malloc(sizeof(double) * rArg->num);
+			memcpy(newBuf, *rArg->ptime, sizeof(double)*i);
+			free(*(rArg->ptime));
+			*(rArg->ptime) = newBuf;
+			// create larger array for angle
+			newBuf = (double *)malloc(sizeof(double) * rArg->num);
+			memcpy(newBuf, *(rArg->pangle1), sizeof(double)*i);
+			free(*(rArg->pangle1));
+			*(rArg->pangle1) = newBuf;
+		}
+
+		// store joint angles
+		(*(rArg->ptime))[i] = rArg->robot->getCenter(0);
+		(*(rArg->pangle1))[i] = rArg->robot->getCenter(1);
+
+		// increment time step
+		time += rArg->msecs;
+
+		// pause until next step
+		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
+#ifdef _WIN32
+			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
+#else
+			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
+#endif
+		}
+	}
+
+	// signal completion of recording
+	MUTEX_LOCK(&rArg->robot->_active_mutex);
+	rArg->robot->_rec_active[ROBOT_JOINT1] = false;
+	rArg->robot->_rec_active[ROBOT_JOINT2] = false;
+	rArg->robot->_rec_active[ROBOT_JOINT3] = false;
+	COND_SIGNAL(&rArg->robot->_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData) {
+	// check if recording already
+	for (int i = 0; i < NUM_DOF; i++) {
+		if (_recording[i]) { return -1; }
+	}
+
+	// set up recording thread
+	THREAD_T recording;
+
+	// set up recording args struct
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
+	rArg->msecs = seconds * 1000;
+	x = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	y = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	rArg->ptime = &x;
+	rArg->pangle1 = &y;
+
+	// store pointer to recorded angles locally
+	_rec_angles[ROBOT_JOINT1] = &x;
+	_rec_angles[ROBOT_JOINT2] = &y;
+
+	// lock recording for joint id
+	for (int i = 0; i < NUM_DOF; i++) {
+		_recording[i] = true;
+	}
+
+	// set shift data
+	_shift_data = shiftData;
+
+	// create thread
+	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordxyBeginThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::recordxyEnd(int &num) {
+	// sleep to capture last data point on ending time
+#ifdef _WIN32
+	Sleep(150);
+#else
+	usleep(150000);
+#endif
+
+	// turn off recording
+	MUTEX_LOCK(&_recording_mutex);
+	_recording[ROBOT_JOINT1] = 0;
+	_recording[ROBOT_JOINT2] = 0;
+	_recording[ROBOT_JOINT3] = 0;
+	MUTEX_UNLOCK(&_recording_mutex);
+
+	// wait for last recording point to finish
+	MUTEX_LOCK(&_active_mutex);
+	while (_rec_active[ROBOT_JOINT1] && _rec_active[ROBOT_JOINT2] && _rec_active[ROBOT_JOINT3]) {
+		COND_WAIT(&_active_cond, &_active_mutex);
+	}
+	MUTEX_UNLOCK(&_active_mutex);
+
+	// report number of data points recorded
+	num = _rec_num[ROBOT_JOINT1];
+
+	// convert recorded values into in/cm
+	double m2x = (_simObject->getUnits()) ? 39.37 : 100;
+	for (int i = 0; i < num; i++) {
+		(*_rec_angles[ROBOT_JOINT1])[i] = ((*_rec_angles[ROBOT_JOINT1])[i]) * m2x;
+		(*_rec_angles[ROBOT_JOINT2])[i] = ((*_rec_angles[ROBOT_JOINT2])[i]) * m2x;
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::reset(void) {
 	MUTEX_LOCK(&_angle_mutex);
 	for (int i = 0; i < NUM_DOF; i++) {
