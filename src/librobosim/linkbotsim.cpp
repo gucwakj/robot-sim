@@ -1938,9 +1938,14 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 			*(rArg->pangle1) = newBuf;
 		}
 
-		// store joint angles
-		(*(rArg->ptime))[i] = rArg->robot->getCenter(0);
-		(*(rArg->pangle1))[i] = rArg->robot->getCenter(1);
+		// store positions
+		if (!(rArg->robot->_trace_r) || ((rArg->robot->_trace_r) && (rArg->robot->_trace)) ) {
+			(*(rArg->ptime))[i] = rArg->robot->getCenter(0);
+			(*(rArg->pangle1))[i] = rArg->robot->getCenter(1);
+		}
+		else {
+			i--;
+		}
 
 		// increment time step
 		time += rArg->msecs;
@@ -1970,7 +1975,7 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 	return NULL;
 }
 
-int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData) {
+int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int recordTrace, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < NUM_DOF; i++) {
 		if (_recording[i]) { return -1; }
@@ -2000,6 +2005,9 @@ int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double 
 
 	// set shift data
 	_shift_data = shiftData;
+
+	// set record trace
+	_trace_r = recordTrace;
 
 	// create thread
 	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordxyBeginThread, (void *)rArg);
@@ -4313,7 +4321,8 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_shift_data = 0;
 	_g_shift_data = 0;
 	_g_shift_data_en = 0;
-	_trace = true;
+	_trace = 1;
+	_trace_r = 0;
 	_type = type;
 
 	// success

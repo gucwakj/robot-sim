@@ -176,7 +176,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 								 robotRecordData_t &distance2,
 								 robotRecordData_t &distance3,
 								 robotRecordData_t &distance4, double radius, double seconds, int shiftData = 1);
-		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData = 1);
+		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int recordTrace = 0, int shiftData = 1);
 #endif
 		int recordAngleEnd(robotJointId_t id, int &num);
 		int recordAnglesEnd(int &num);

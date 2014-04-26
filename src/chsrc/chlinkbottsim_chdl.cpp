@@ -1707,6 +1707,7 @@ EXPORTCH int CLinkbotT_recordxyBegin_chdl(void *varg) {
 	double** x;
 	double** y;
 	double seconds;
+	int recordTrace;
 	int shiftData;
 	int retval;
 
@@ -1715,6 +1716,15 @@ EXPORTCH int CLinkbotT_recordxyBegin_chdl(void *varg) {
 	x = Ch_VaArg(interp, ap, double**);
 	y = Ch_VaArg(interp, ap, double**);
 	seconds = Ch_VaArg(interp, ap, double);
+	if (Ch_VaCount(interp, ap) == 1) {
+		recordTrace = Ch_VaArg(interp, ap, int);
+		retval = robot->recordxyBegin(*x, *y, seconds, recordTrace);
+	}
+	else if (Ch_VaCount(interp, ap) == 2) {
+		recordTrace = Ch_VaArg(interp, ap, int);
+		shiftData = Ch_VaArg(interp, ap, int);
+		retval = robot->recordxyBegin(*x, *y, seconds, recordTrace, shiftData);
+	}
 	if (Ch_VaCount(interp, ap) == 1) {
 		shiftData = Ch_VaArg(interp, ap, int);
 		retval = robot->recordxyBegin(*x, *y, seconds, shiftData);

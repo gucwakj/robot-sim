@@ -1264,6 +1264,7 @@ int CLinkbotL::recordxyBegin(double* &x, double* &y, double seconds, ...) {
 	void *fptr;
 	int retval;
 	va_list ap;
+	int recordTrace = 0;
 	int shiftData = 1;
 	va_start(ap, seconds);
 
@@ -1274,8 +1275,13 @@ int CLinkbotL::recordxyBegin(double* &x, double* &y, double seconds, ...) {
 	}
 
 	if (va_count(ap) == 1) {
+		recordTrace = va_arg(ap, int);
+		dlrunfun(fptr, &retval, NULL, this, &x, &y, seconds, recordTrace);
+	}
+	else if (va_count(ap) == 2) {
+		recordTrace = va_arg(ap, int);
 		shiftData = va_arg(ap, int);
-		dlrunfun(fptr, &retval, NULL, this, &x, &y, seconds, shiftData);
+		dlrunfun(fptr, &retval, NULL, this, &x, &y, seconds, recordTrace, shiftData);
 	}
 	else {
 		dlrunfun(fptr, &retval, NULL, this, &x, &y, seconds);
