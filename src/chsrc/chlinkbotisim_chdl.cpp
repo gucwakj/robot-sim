@@ -3,12 +3,13 @@
 #include <windows.h>
 #endif
 #include <ch.h>
-/*struct langflags {
+
+struct langflags {
 	int tmp1;
 	char *tmp2;
 	int embedch;
 };
-extern struct langflags *e_lang;*/
+extern struct langflags *e_lang;
 
 EXPORTCH void CLinkbotI_CLinkbotI_chdl(void *varg) {
 	ChInterp_t interp;
@@ -62,13 +63,13 @@ EXPORTCH int CLinkbotI_connect_chdl(void *varg) {
 	name = Ch_VaArg(interp, ap, char *);
 
 	// pause if not debugging
-	/*if (e_lang != NULL) {
-		pause = 0;	// no pause
+	int pause = 3;
+	if (e_lang != NULL) {
+		pause = 3;	// no pause
 	}
 	else {
-		pause = 3;	// pause
-	}*/
-	int pause = 3;
+		pause = 0;	// pause
+	}
 
 	retval = robot->connect(name, pause);
 	Ch_VaEnd(interp, ap);
