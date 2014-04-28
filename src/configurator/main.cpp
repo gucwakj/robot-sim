@@ -874,7 +874,7 @@ G_MODULE_EXPORT void on_bow_toggled(GtkWidget *widget, gpointer data) {
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/bow.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 300, 200, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
 		// set configuration options
@@ -974,7 +974,7 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/explorer.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 300, 200, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
 		// set configuration options
@@ -1167,7 +1167,7 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/fourbotdrive.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 300, 200, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
 		// set configuration options
@@ -1326,7 +1326,7 @@ G_MODULE_EXPORT void on_fourwheeldrive_toggled(GtkWidget *widget, gpointer data)
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/fourwheeldrive.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 300, 200, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
 		// set configuration options
@@ -1466,7 +1466,7 @@ G_MODULE_EXPORT void on_groupbow_toggled(GtkWidget *widget, gpointer data) {
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/groupbow.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 300, 200, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
 		// set configuration options
@@ -1622,7 +1622,7 @@ G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data) {
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/inchworm.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 300, 200, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
 		// set configuration options
@@ -1722,7 +1722,7 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/lift.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 300, 200, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
 		// set configuration options
@@ -1873,7 +1873,7 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/omnidrive.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 300, 200, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
 		// set configuration options
@@ -2033,7 +2033,7 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/snake.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 300, 200, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
 		// set configuration options
@@ -2213,7 +2213,7 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/stand.jpg", NULL);
-		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 225, 150, GDK_INTERP_HYPER);
+		GdkPixbuf *scaled = gdk_pixbuf_scale_simple(original, 300, 200, GDK_INTERP_HYPER);
 		gtk_image_set_from_pixbuf(image, scaled);
 
 		// set configuration options
