@@ -155,13 +155,13 @@ int main(int argc, char *argv[]) {
 	// load linkbot coordinates picture
 	GtkImage *image_l = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_linkbot"));
 	GdkPixbuf *original_l = gdk_pixbuf_new_from_file("images/linkbot.jpg", NULL);
-	GdkPixbuf *scaled_l = gdk_pixbuf_scale_simple(original_l, 300, 175, GDK_INTERP_HYPER);
+	GdkPixbuf *scaled_l = gdk_pixbuf_scale_simple(original_l, 264, 154, GDK_INTERP_HYPER);
 	gtk_image_set_from_pixbuf(image_l, scaled_l);
 
 	// load mobot coordinates picture
 	GtkImage *image_m = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_mobot"));
 	GdkPixbuf *original_m = gdk_pixbuf_new_from_file("images/mobot.jpg", NULL);
-	GdkPixbuf *scaled_m = gdk_pixbuf_scale_simple(original_m, 300, 175, GDK_INTERP_HYPER);
+	GdkPixbuf *scaled_m = gdk_pixbuf_scale_simple(original_m, 264, 154, GDK_INTERP_HYPER);
 	gtk_image_set_from_pixbuf(image_m, scaled_m);
 
 	// get config file paths
