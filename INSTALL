@@ -1,15 +1,15 @@
-IEL Robot Simulator
+RoboSim Install Guide
 
-Install Guide
 -----------------------------------------------------------
 The robot simulator has four libraries:
-	1) crobosim library
+	1) robosim library
 	2) opende library
 	3) tinyxml2 library
 	4) openscenegraph library
 2, 3, and 4 must be compiled before 1.
 
 See below for instructions on how to build each one.
+
 
 Linux
 -----------------------------------------------------------
@@ -37,14 +37,13 @@ openscenegraph
 	cd src/openscenegraph/
 	mkdir build/
 	cd build/
-	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD"/../sys" ..
+	cmake -DCMAKE_BUILD_TYPE=Release ..
 	make
-	make install
-	cd ../../
+	cd ../../../
 
-crobotsim
+librobosim
 -----------------------------
-	cd src/crobotsim/
+	cd src/librobosim/
 	mkdir build/
 	cd build/
 	cmake ..
@@ -59,6 +58,7 @@ configurator
 	cmake ..
 	make
 	cd ../../../
+
 demos
 -----------------------------
 Each demo can be compiled separately by invoking
@@ -70,14 +70,16 @@ make <name>
 	make <program name>
 	cd ../../../
 
-chrobotsim
+chrobosim
 -----------------------------
-	cd src/chrobotsim/
+	cd src/chrobosim/
 	make
 	make createpkg
 	cd chrobosim*/
 	sudo make install
 	cd ../../../
+
+
 
 
 Windows
@@ -115,12 +117,12 @@ openscenegraph
 			png
 	cd ../../
 
-crobotsim
+librobosim
 -----------------------------
-	cd src/crobotsim/
+	cd src/librobosim/
 	mkdir build/
 	use cmake-gui to configure with visual studio 9 and generate
-	open build/CRobotSim.sln in visual studio
+	open build/robosim.sln in visual studio
 	build Release solution
 	cd ../../
 
@@ -129,7 +131,7 @@ configurator
 	cd src/configurator/
 	mkdir build/
 	use cmake-gui to configure with visual studio 9 32bit and generate
-	open build/robotsimgui.sln in visual studio
+	open build/robotsim.sln in visual studio
 	build Release solution
 	cd ../../
 
@@ -140,15 +142,16 @@ make <name>
 	cd demos/{mobot/linkbot}/
 	mkdir build/
 	use cmake-gui to configure with visual studio 9 and generate
-	open build/CRobotSim_{Mobot/Linkboti/Linkbot}_Demos.sln in visual studio
+	open build/*.sln in visual studio
 	build Release solution
 	cd ../../
 
-chrobotsim
+chrobosim
 -----------------------------
-	cd src/chrobotsim/
+	cd src/chrobosim/
 	make -f Makefile.win{32/64}
 	make -f Makefile.win{32/64} createpkg
-	cd chrobotsim*/
+	cd chrobosim*/
 	sudo make install
 	cd ../../../
+
