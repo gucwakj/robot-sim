@@ -2463,6 +2463,9 @@ void readXMLConfig(void) {
 	// check invidivual vs preconfigured
 	if ( (node = g_doc.FirstChildElement("config")->FirstChildElement("type")) ) {
 		node->QueryIntAttribute("val", &type);
+		if (type) {
+			gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_builder_get_object(g_builder, "notebook2")), 1);
+		}
 		switch (type) {
 			case 1:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "bow")), 1);
