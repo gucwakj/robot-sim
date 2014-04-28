@@ -116,16 +116,16 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveWait(void);
 		int movexy(double x, double y, double radius, double trackwidth);
 		int movexyNB(double x, double y, double radius, double trackwidth);
-#ifdef _CH_
-		int movexyExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth);
-		int movexyExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth);
-#endif
-		int movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
-		int movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
-		int movexyPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
-		int movexyPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyTo(double x, double y, double radius, double trackwidth);
 		int movexyToNB(double x, double y, double radius, double trackwidth);
+#ifdef _CH_
+		int movexyToExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth);
+		int movexyToExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth);
+#endif
+		int movexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
+		int movexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
+		int movexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
+		int movexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyWait(void);
 #ifdef ENABLE_GRAPHICS
 		int point(double x, double y, double z, int pointsize, char *color);
@@ -290,9 +290,9 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		static void* motionTurnLeftThread(void *arg);										// thread to run motion turn left
 		static void* motionTurnRightThread(void *arg);										// thread to run motion turn right
 		static void* movexyThread(void *arg);												// thread to run movexy
-		static void* movexyFuncThread(void *arg);											// thread to run movexyFunc
-		static void* movexyPolyThread(void *arg);											// thread to run movexyPoly
 		static void* movexyToThread(void *arg);												// thread to run movexy
+		static void* movexyToFuncThread(void *arg);											// thread to run movexyFunc
+		static void* movexyToPolyThread(void *arg);											// thread to run movexyPoly
 		static void* recordAngleThread(void *arg);											// thread to record angle
 		static void* recordAngleBeginThread(void *arg);										// thread to record angle
 		static void* recordAnglesThread(void *arg);											// thread to record angles
@@ -508,14 +508,14 @@ class DLLIMPORT CLinkbotI {
 		int moveWait();
 		int movexy(double x, double y, double radius, double trackwidth);
 		int movexyNB(double x, double y, double radius, double trackwidth);
-		int movexyExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth);
-		int movexyExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth);
-		int movexyFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
-		int movexyFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
-		int movexyPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
-		int movexyPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyTo(double x, double y, double radius, double trackwidth);
 		int movexyToNB(double x, double y, double radius, double trackwidth);
+		int movexyToExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth);
+		int movexyToExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth);
+		int movexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
+		int movexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
+		int movexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
+		int movexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyWait();
 		int point(double x, double y, double z, int pointsize, char *color);
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
