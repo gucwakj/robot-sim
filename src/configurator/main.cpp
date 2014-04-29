@@ -34,7 +34,7 @@ robots_t g_robots = NULL;
 tinyxml2::XMLDocument g_doc;
 FILE *fp = NULL;
 char g_xml[512] = "", g_chrc[512] = "", g_chhome[512] = "", *fpbuf;
-int g_num = 0, g_units = 1;
+int g_num = 0, g_type = 0, g_units = 1;
 double g_grid[6][2] = {	12,		50,		// major
 						1,		5,		// tics
 						-48,	-200,	// minx
@@ -53,6 +53,7 @@ G_MODULE_EXPORT void on_aboutdialog_activate_link(GtkAboutDialog *label, gchar *
 G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data);
 G_MODULE_EXPORT void on_aboutdialog_response(GtkDialog *dialog, gint response_id, gpointer user_data);
 G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_notebook_switch_page(GtkWidget *widget, gpointer data);
 
 G_MODULE_EXPORT void on_real_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_simulated_toggled(GtkWidget *widget, gpointer data);
@@ -93,7 +94,7 @@ double convert(double value, int tometer);
 void printRoboSimPath(void);
 void readXMLConfig(void);
 void refreshRobotList(void);
-void saveRobotList(void);
+void saveRobotList(int force = 0);
 
 #ifdef __cplusplus
 }
@@ -310,6 +311,61 @@ G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data)
 	strcat(path, "\\package\\chrobosim\\docs\\robosim.pdf");
 	ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOWNORMAL);
 #endif
+}
+
+/*
+ * When switching tabs of notebook
+ */
+G_MODULE_EXPORT void on_notebook_switch_page(GtkWidget *widget, gpointer data) {
+	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(gtk_builder_get_object(g_builder, "notebook")));
+
+	if (page == 1) {
+		saveRobotList(1);
+	}
+	else if (page == 0) {
+		switch (g_type) {
+			case 1:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "bow")), 0);
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "bow")), 1);
+				break;
+			case 2:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 0);
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 1);
+				break;
+			case 3:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourbotdrive")), 0);
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourbotdrive")), 1);
+				break;
+			case 4:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheeldrive")), 0);
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheeldrive")), 1);
+				break;
+			case 5:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "groupbow")), 0);
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "groupbow")), 1);
+				break;
+			case 6:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 0);
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 1);
+				break;
+			case 7:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 1);
+				break;
+			case 8:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 1);
+				break;
+			case 9:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 1);
+				break;
+			case 10:
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 1);
+				break;
+		}
+	}
 }
 
 /*
@@ -880,6 +936,7 @@ G_MODULE_EXPORT void on_bow_toggled(GtkWidget *widget, gpointer data) {
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
 		type->SetAttribute("val", 1);
+		g_type = 1;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -980,6 +1037,7 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
 		type->SetAttribute("val", 2);
+		g_type = 2;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1173,6 +1231,7 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
 		type->SetAttribute("val", 3);
+		g_type = 3;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1332,6 +1391,7 @@ G_MODULE_EXPORT void on_fourwheeldrive_toggled(GtkWidget *widget, gpointer data)
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
 		type->SetAttribute("val", 4);
+		g_type = 4;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1472,6 +1532,7 @@ G_MODULE_EXPORT void on_groupbow_toggled(GtkWidget *widget, gpointer data) {
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
 		type->SetAttribute("val", 5);
+		g_type = 5;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1628,6 +1689,7 @@ G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data) {
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
 		type->SetAttribute("val", 6);
+		g_type = 6;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1728,6 +1790,7 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
 		type->SetAttribute("val", 7);
+		g_type = 7;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1879,6 +1942,7 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
 		type->SetAttribute("val", 8);
+		g_type = 8;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -2039,6 +2103,7 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
 		type->SetAttribute("val", 9);
+		g_type = 9;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -2219,6 +2284,7 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
 		type->SetAttribute("val", 10);
+		g_type = 10;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -2442,7 +2508,7 @@ void readXMLConfig(void) {
 
 	tinyxml2::XMLElement *node;
 	tinyxml2::XMLElement *ele;
-	int version = 0, type = 0;
+	int version = 0;
 
 	// create config node if it doesn't exist
 	if ( (node = g_doc.FirstChildElement("config")) == NULL) {
@@ -2462,11 +2528,11 @@ void readXMLConfig(void) {
 
 	// check invidivual vs preconfigured
 	if ( (node = g_doc.FirstChildElement("config")->FirstChildElement("type")) ) {
-		node->QueryIntAttribute("val", &type);
-		if (type) {
-			gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_builder_get_object(g_builder, "notebook2")), 1);
+		node->QueryIntAttribute("val", &g_type);
+		if (g_type) {
+			gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_builder_get_object(g_builder, "notebook")), 1);
 		}
-		switch (type) {
+		switch (g_type) {
 			case 1:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "bow")), 1);
 				break;
@@ -2506,7 +2572,7 @@ void readXMLConfig(void) {
 	}
 
 	// read individual robot configuration
-	if (!type) {
+	if (!g_type) {
 		if ( (node = g_doc.FirstChildElement("sim")) == NULL) {
 			node = g_doc.NewElement("sim");
 			g_doc.InsertAfterChild(g_doc.FirstChildElement("config"), node);
@@ -2912,14 +2978,14 @@ void refreshRobotList(void) {
 /*
  * When the save button is clicked
  */
-void saveRobotList(void) {
+void saveRobotList(int force) {
 	tinyxml2::XMLElement *node;
 	int type = 0;
 	if ( (node = g_doc.FirstChildElement("config")->FirstChildElement("type")) ) {
 		node->QueryIntAttribute("val", &type);
 	}
 
-	if (!type) {
+	if (!type || force) {
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
 		type->SetAttribute("val", 0);
