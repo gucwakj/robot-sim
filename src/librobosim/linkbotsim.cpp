@@ -365,7 +365,7 @@ int CLinkbotT::isConnected(void) {
 int CLinkbotT::isMoving(void) {
 	robotJointState_t state;
 
-	for (int i = 1; i <= NUM_DOF; i++) {
+	for (int i = 0; i < NUM_DOF; i++) {
 		this->getJointState((robotJointId_t)i, state);
 		if (state == ROBOT_FORWARD || state == ROBOT_BACKWARD) {
 			return 1;
