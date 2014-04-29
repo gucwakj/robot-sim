@@ -252,6 +252,7 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		// draw tracking line
 		if (_robot->_trace) {
 			osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
+			geode2->setNodeMask(VISIBLE_MASK);
 			osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode2->getDrawable(0)->asGeometry());
 			osg::Vec4Array *colors = dynamic_cast<osg::Vec4Array *>(draw->getColorArray());
 			colors->pop_back();
@@ -316,6 +317,7 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		// draw tracking line
 		if (_robot->_trace) {
 			osg::Geode *geode2 = dynamic_cast<osg::Geode *>(group->getChild(1));
+			geode2->setNodeMask(VISIBLE_MASK);
 			osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode2->getDrawable(0)->asGeometry());
 			osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
 			vertices->push_back(osg::Vec3(x, y, 0));
