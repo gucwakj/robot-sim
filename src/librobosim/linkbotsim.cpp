@@ -1975,7 +1975,7 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 	return NULL;
 }
 
-int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int recordTrace, int shiftData) {
+int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < NUM_DOF; i++) {
 		if (_recording[i]) { return -1; }
@@ -2005,9 +2005,6 @@ int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double 
 
 	// set shift data
 	_shift_data = shiftData;
-
-	// set record trace
-	_trace_r = recordTrace;
 
 	// create thread
 	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordxyBeginThread, (void *)rArg);
