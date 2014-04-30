@@ -1847,12 +1847,11 @@ int CLinkbotT::recordDistanceOffset(double distance) {
 	dRFromAxisAndAngle(R, 0, 0, 1, r0);
 
 	// calculate y offset from zero in body coordinates
-	//double x = R[0]*x0 + R[4]*y0;
 	double y = R[1]*x0 + R[5]*y0;
 
 	// print warning if different from given offset
 	if (fabs(y-distance) > 0.01) {
-		printf("Warning: Robot position different than value given in recordDistanceOffset.\n");
+		printf("Warning: Robot position different from the offset specified in recordDistanceOffset(%lf)\n", distance);
 	}
 
 	// set offset distance

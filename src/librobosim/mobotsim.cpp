@@ -2022,6 +2022,24 @@ int CMobot::recordDistanceEnd(robotJointId_t id, int &num) {
 }
 
 int CMobot::recordDistanceOffset(double distance) {
+	// get current position
+	double x0, y0;
+	this->getxy(x0, y0);
+
+	// get current rotation
+	dMatrix3 R;
+	double r0 = this->getRotation(CENTER, 2);
+	dRFromAxisAndAngle(R, 0, 0, 1, r0);
+
+	// calculate y offset from zero in body coordinates
+	double y = R[1]*x0 + R[5]*y0;
+
+	// print warning if different from given offset
+	if (fabs(y-distance) > 0.01) {
+		printf("Warning: Robot position different from the offset specified in recordDistanceOffset(%lf)\n", distance);
+	}
+
+	// set offset distance
 	_distOffset = distance;
 
 	// success
