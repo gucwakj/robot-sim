@@ -409,7 +409,7 @@ Harry H. Cheng</property>
                         <child>
                           <object class="GtkLabel" id="label_major">
                             <property name="visible">True</property>
-                            <property name="xalign">1</property>
+                            <property name="xalign">0</property>
                             <property name="label" translatable="yes">Distance Between Hashmarks: </property>
                           </object>
                           <packing>
@@ -437,14 +437,14 @@ Harry H. Cheng</property>
                             <property name="right_attach">2</property>
                             <property name="top_attach">2</property>
                             <property name="bottom_attach">3</property>
-                            <property name="x_options">GTK_EXPAND</property>
+                            <property name="x_options"></property>
                             <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
                           <object class="GtkLabel" id="label_tics">
                             <property name="visible">True</property>
-                            <property name="xalign">1</property>
+                            <property name="xalign">0</property>
                             <property name="label" translatable="yes">Distance Between Tics: </property>
                           </object>
                           <packing>
@@ -482,13 +482,14 @@ Harry H. Cheng</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="xalign">0</property>
                             <signal name="clicked" handler="on_defaults_clicked"/>
                           </object>
                           <packing>
                             <property name="right_attach">2</property>
                             <property name="top_attach">4</property>
                             <property name="bottom_attach">5</property>
-                            <property name="x_options">GTK_EXPAND</property>
+                            <property name="x_options"></property>
                             <property name="y_options"></property>
                             <property name="y_padding">4</property>
                           </packing>
@@ -499,10 +500,12 @@ Harry H. Cheng</property>
                             <child>
                               <object class="GtkLabel" id="label_minx">
                                 <property name="visible">True</property>
-                                <property name="xalign">1</property>
+                                <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Min X: </property>
                               </object>
                               <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
@@ -515,11 +518,13 @@ Harry H. Cheng</property>
                                 <signal name="value_changed" handler="on_minx_value_changed"/>
                               </object>
                               <packing>
+                                <property name="expand">False</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
                           </object>
                           <packing>
+                            <property name="x_options">GTK_FILL</property>
                             <property name="y_options">GTK_EXPAND</property>
                           </packing>
                         </child>
@@ -529,10 +534,12 @@ Harry H. Cheng</property>
                             <child>
                               <object class="GtkLabel" id="label_maxx">
                                 <property name="visible">True</property>
-                                <property name="xalign">1</property>
+                                <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Max X: </property>
                               </object>
                               <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
@@ -545,6 +552,7 @@ Harry H. Cheng</property>
                                 <signal name="value_changed" handler="on_maxx_value_changed"/>
                               </object>
                               <packing>
+                                <property name="expand">False</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
@@ -561,10 +569,12 @@ Harry H. Cheng</property>
                             <child>
                               <object class="GtkLabel" id="label_miny">
                                 <property name="visible">True</property>
-                                <property name="xalign">1</property>
+                                <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Min Y: </property>
                               </object>
                               <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
@@ -577,6 +587,7 @@ Harry H. Cheng</property>
                                 <signal name="value_changed" handler="on_miny_value_changed"/>
                               </object>
                               <packing>
+                                <property name="expand">False</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
@@ -584,6 +595,7 @@ Harry H. Cheng</property>
                           <packing>
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
+                            <property name="x_options">GTK_FILL</property>
                             <property name="y_options">GTK_EXPAND</property>
                           </packing>
                         </child>
@@ -593,10 +605,12 @@ Harry H. Cheng</property>
                             <child>
                               <object class="GtkLabel" id="label_maxy">
                                 <property name="visible">True</property>
-                                <property name="xalign">1</property>
+                                <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Max Y: </property>
                               </object>
                               <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
@@ -609,6 +623,7 @@ Harry H. Cheng</property>
                                 <signal name="value_changed" handler="on_maxy_value_changed"/>
                               </object>
                               <packing>
+                                <property name="expand">False</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
@@ -618,6 +633,7 @@ Harry H. Cheng</property>
                             <property name="right_attach">2</property>
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
+                            <property name="x_options">GTK_FILL</property>
                             <property name="y_options">GTK_EXPAND</property>
                           </packing>
                         </child>
@@ -647,7 +663,7 @@ Harry H. Cheng</property>
               <object class="GtkNotebook" id="notebook">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <signal name="switch-page" handler="on_notebook_switch_page" swapped="no"/>
+                <signal name="switch_page" handler="on_notebook_switch_page"/>
                 <child>
                   <object class="GtkAlignment" id="alignment_robots">
                     <property name="visible">True</property>
@@ -656,6 +672,18 @@ Harry H. Cheng</property>
                       <object class="GtkVBox" id="box_robots">
                         <property name="visible">True</property>
                         <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkButton" id="button_add_robot">
+                            <property name="label" translatable="yes">Add Robot</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <signal name="clicked" handler="on_button_add_clicked"/>
+                          </object>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
                         <child>
                           <object class="GtkScrolledWindow" id="scrolledwindow">
                             <property name="width_request">875</property>
@@ -672,18 +700,6 @@ Harry H. Cheng</property>
                                 <property name="height">0</property>
                               </object>
                             </child>
-                          </object>
-                          <packing>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkButton" id="button_add_robot">
-                            <property name="label" translatable="yes">Add Robot</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                            <signal name="clicked" handler="on_button_add_clicked"/>
                           </object>
                           <packing>
                             <property name="position">1</property>
