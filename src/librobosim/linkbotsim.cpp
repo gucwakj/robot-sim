@@ -4289,7 +4289,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_angle[i] = 0;
 		if (i != disabled) { _enabled[j++] = i; }
 		_goal[i] = 0;
-		_max_force[i] = 2;
+		_max_force[i] = 2.5;
 		_max_speed[i] = 240;		// deg/sec
 		_offset[i] = 0;
 		_rec_active[i] = false;
