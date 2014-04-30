@@ -1369,7 +1369,7 @@ int CMobot::movexyTo(double x, double y, double radius, double trackwidth) {
 	double angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
 
 	// turn toward new postition until pointing correctly
-	while (fabs(angle) > 0.001) {
+	while (fabs(angle) > 0.01) {
 		// turn in shortest path
 		if (angle > EPSILON)
 			this->turnRight(RAD2DEG(angle), radius, trackwidth);
