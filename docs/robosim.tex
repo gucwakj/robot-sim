@@ -78,10 +78,49 @@ drawn beneath the robots and the spacing between robots.  Changing between these
 two options will change the labels within the GUI to indicate the units being
 used.
 
+\subsection{Tracing}
+{\bf Tracing} where robots have been can be enabled by selecting the check box
+'Enable Robot Position Tracing', as shown in Figure \ref{fig:gui}.  When the
+tracing is enabled, lines following the robot trajectories will be drawn for
+each robot.  Mobot tracking lines will be in a green color and Linkbot tracking
+lines will be in the color matching the Linkbot LED.
+
+\subsection{Grid Configuration}
+To be able to see how far robots have moved, a grid is enabled under the robots.
+There are six options to alter the layout of the grid lines under the {\bf Grid
+Configuration}.  The minimum and maximum extends of the grid for both the X and
+Y directions can be specified individually.  Rectangular grids of any size can
+be created in any of the quadrants.  Hashmarks are the red lines drawn within
+the configuration images.  By default, the distance between two hashmarks is 12
+inches in US Customary units and 50 centimeters in Metric units.  Tics are the
+most frequent lines drawn in a light gray.  By default, the distance between two
+tics is 1 inch in US Customary units and 5 centimeters in Metric units.
+
+Switching between US Customary and Metric units will change these default values
+to logical starting points for the metric system.  The 'Reset to Defaults' button
+will allow the default values for both US Customary and Metric to be reinstated
+after they have been changed.  Depending upon which units are currently selected
+from Section \ref{sec:units}, either the US Customary defaults, shown in Figure
+\ref{fig:grid_us}, or the Metric defaults, as shown in Figure
+\ref{fig:grid_metric}, will be set.
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width=4in]{images/gui_grid_us}
+	\end{center}
+	\caption{Default US Customary Grid Spacing.}
+	\label{fig:grid_us}
+\end{figure}
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width=4in]{images/gui_grid_si}
+	\end{center}
+	\caption{Default Metric Grid Spacing.}
+	\label{fig:grid_metric}
+\end{figure}
 
 \subsection{Individual Robot Configuration}
 Initial robot configurations can either be done through the {\bf Individual
-Robot Configuration} or {\bf Preconfigured Robot Configuration} section.  The
+Robot Configuration} or {\bf Preconfigured Robot Configuration} tabs.  The
 {\bf Individual Robot Configuration} section, as shown in Figure
 \ref{fig:config}, has options to allow robots to be positioned within the
 RoboSim scene either with or without wheels but not attached to each other.
@@ -100,11 +139,11 @@ screenshots of the virtual robots positioned at one foot in both the X and Y
 coordinates with the orientation angle of 30 degrees from the X-axis.
 
 Initially, the individual robot list contains one Linkbot-I at (0, 0) with 1.75
-inch wheels.  More robots can be added by the 'Add Robot' button below the
-configuration images.  Clicking this button will add a robot into RoboSim, each
-offset from the previous one in the x-direction by 6 inches or 15 centimeters
-depending upon the units selected.  The order within the robot list will be the
-order in which the robots will be read into the simulation program.
+inch wheels.  More robots can be added by the 'Add Robot' button.  Clicking this
+button will add a robot into RoboSim, each offset from the previous one in the
+x-direction by 6 inches or 15 centimeters depending upon the units selected.
+The order within the robot list will be the order in which the robots will be
+read into the simulation program.
 
 \subsubsection{Robot Type}
 There are three options for robot type available.  Linkbot-I, Linkbot-L,
@@ -172,46 +211,6 @@ configuration, just unselect the selected preconfigured robot configuration.
 	\caption{Preconfigured Linkbots.}
 	\label{fig:preconfig}
 \end{figure}
-
-\subsection{Grid Configuration}
-To be able to see how far robots have moved, a grid is enabled under the robots.
-There are six options to alter the layout of the grid lines under the {\bf Grid
-Configuration}.  The minimum and maximum extends of the grid for both the X and
-Y directions can be specified individually.  Rectangular grids of any size can
-be created in any of the quadrants.  Hashmarks are the red lines drawn within
-the configuration images.  By default, the distance between two hashmarks is 12
-inches in US Customary units and 50 centimeters in Metric units.  Tics are the
-most frequent lines drawn in a light gray.  By default, the distance between two
-tics is 1 inch in US Customary units and 5 centimeters in Metric units.
-
-Switching between US Customary and Metric units will change these default values
-to logical starting points for the metric system.  The 'Reset to Defaults' button
-will allow the default values for both US Customary and Metric to be reinstated
-after they have been changed.  Depending upon which units are currently selected
-from Section \ref{sec:units}, either the US Customary defaults, shown in Figure
-\ref{fig:grid_us}, or the Metric defaults, as shown in Figure
-\ref{fig:grid_metric}, will be set.
-\begin{figure}[H]
-	\begin{center}
-		\includegraphics[width=4in]{images/gui_grid_us}
-	\end{center}
-	\caption{Default US Customary Grid Spacing.}
-	\label{fig:grid_us}
-\end{figure}
-\begin{figure}[H]
-	\begin{center}
-		\includegraphics[width=4in]{images/gui_grid_si}
-	\end{center}
-	\caption{Default Metric Grid Spacing.}
-	\label{fig:grid_metric}
-\end{figure}
-
-\subsection{Tracking}
-{\bf Tracking} where robots have been can be enabled by selecting the check box
-'Enable Robot Position Tracking', as shown in Figure \ref{fig:gui}.  When the
-tracking is enabled, lines following the robot trajectories will be drawn for
-each robot.  Mobot tracking lines will be in a green color and Linkbot tracking
-lines will be in the color matching the Linkbot LED.
 
 \section{Running a Ch Program with RoboSim}
 Once the simulation environment has been configured with the RoboSim GUI in
