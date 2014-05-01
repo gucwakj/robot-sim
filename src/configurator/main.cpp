@@ -144,8 +144,10 @@ int main(int argc, char *argv[]) {
 	if (path[0] == '\0') {
 		strncpy(g_chhome, "C:/Ch", 5);
 		path[5] = '\0';
-	else
+	}
+	else {
 		strncpy(g_chhome, path, size);
+	}
 #endif
 
 	// load gtk window
