@@ -141,7 +141,11 @@ int main(int argc, char *argv[]) {
 	char path[1024];
 	RegQueryValueEx(key, TEXT("CHHOME"), NULL, NULL, (LPBYTE)path, &size);
 	path[size] = '\0';
-	strncpy(g_chhome, path, size);
+	if (path[0] == '\0') {
+		strncpy(g_chhome, "C:/Ch", 5);
+		path[5] = '\0';
+	else
+		strncpy(g_chhome, path, size);
 #endif
 
 	// load gtk window
