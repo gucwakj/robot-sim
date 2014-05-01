@@ -1938,7 +1938,7 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 		}
 
 		// store positions
-		if (!(rArg->robot->_trace_r) || ((rArg->robot->_trace_r) && (rArg->robot->_trace)) ) {
+		if (rArg->robot->_trace) {
 			(*(rArg->ptime))[i] = rArg->robot->getCenter(0);
 			(*(rArg->pangle1))[i] = rArg->robot->getCenter(1);
 		}
@@ -4323,7 +4323,6 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_g_shift_data = 0;
 	_g_shift_data_en = 0;
 	_trace = 1;
-	_trace_r = 0;
 	_type = type;
 
 	// success

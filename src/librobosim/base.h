@@ -290,7 +290,6 @@ class DLLIMPORT CRobot {
 		int _g_shift_data_en;	// globally shift data for robot enable/disable flag
 		int *_state;			// joint states
 		int _trace;				// tracing on or off
-		int _trace_r;			// tracing on or off
 		int _type;				// type of robot
 
 		// threading locks for each robot

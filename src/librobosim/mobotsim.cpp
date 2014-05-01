@@ -2122,7 +2122,7 @@ void* CMobot::recordxyBeginThread(void *arg) {
 		}
 
 		// store positions
-		if (!(rArg->robot->_trace_r) || ((rArg->robot->_trace_r) && (rArg->robot->_trace)) ) {
+		if (rArg->robot->_trace) {
 			(*(rArg->ptime))[i] = rArg->robot->getCenter(0);
 			(*(rArg->pangle1))[i] = rArg->robot->getCenter(1);
 		}
@@ -2189,9 +2189,6 @@ int CMobot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double sec
 
 	// set shift data
 	_shift_data = shiftData;
-
-	// set record trace
-	_trace_r = recordTrace;
 
 	// create thread
 	THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordxyBeginThread, (void *)rArg);
@@ -4408,7 +4405,6 @@ int CMobot::init_params(void) {
 	_g_shift_data = 0;
 	_g_shift_data_en = 0;
 	_trace = 1;
-	_trace_r = 0;
 	_type = MOBOT;
 
 	// success
