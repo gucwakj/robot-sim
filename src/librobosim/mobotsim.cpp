@@ -2625,6 +2625,11 @@ int CMobot::traceOff(void) {
 }
 
 int CMobot::traceOn(void) {
+	// show trace
+	osg::Geode *trace = dynamic_cast<osg::Geode *>(_robot->getChild(1));
+	trace->setNodeMask(VISIBLE_MASK);
+
+	// set trace on
 	_trace = 1;
 
 	// success
@@ -3023,7 +3028,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	_root = root;
 
 	// initialize variables
-	osg::ref_ptr<osg::Group> robot = new osg::Group();
+	_robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[5];
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat[5];
 	const double *pos;
@@ -3185,7 +3190,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-    robot->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+    _robot->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 
 	// set rendering properties
 	for (int i = 0; i < 5; i++) {
@@ -3197,7 +3202,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	for (int i = 0; i < NUM_PARTS; i++) {
 		pat[i] = new osg::PositionAttitudeTransform;
 		pat[i]->addChild(body[i].get());
-		robot->addChild(pat[i].get());
+		_robot->addChild(pat[i].get());
 	}
 
 	// add connectors
@@ -3205,35 +3210,35 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	while (ctmp) {
 		switch (ctmp->type) {
 			case BIGWHEEL:
-				this->draw_bigwheel(ctmp, robot);
+				this->draw_bigwheel(ctmp, _robot);
 				break;
 			case CASTER:
-				this->draw_caster(ctmp, robot);
+				this->draw_caster(ctmp, _robot);
 				break;
 			case SIMPLE:
-				this->draw_simple(ctmp, robot);
+				this->draw_simple(ctmp, _robot);
 				break;
 			case SMALLWHEEL:
-				this->draw_smallwheel(ctmp, robot);
+				this->draw_smallwheel(ctmp, _robot);
 				break;
 			case SQUARE:
-				this->draw_square(ctmp, robot);
+				this->draw_square(ctmp, _robot);
 				break;
 			case TANK:
-				this->draw_tank(ctmp, robot);
+				this->draw_tank(ctmp, _robot);
 				break;
 			case WHEEL:
-				this->draw_wheel(ctmp, robot);
+				this->draw_wheel(ctmp, _robot);
 				break;
 		}
 		ctmp = ctmp->next;
 	}
 
 	// set update callback for robot
-	robot->setUpdateCallback(new mobotNodeCallback(this, _simObject->getUnits()));
+	_robot->setUpdateCallback(new mobotNodeCallback(this, _simObject->getUnits()));
 
 	// set shadow mask
-	robot->setNodeMask(CASTS_SHADOW_MASK);
+	_robot->setNodeMask(CASTS_SHADOW_MASK);
 
 	// draw HUD
 	osgText::Text *label = new osgText::Text();
@@ -3251,7 +3256,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	label->setColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
 	label->setDrawMode(osgText::Text::TEXT | osgText::Text::ALIGNMENT | osgText::Text::BOUNDINGBOX);
-	robot->insertChild(0, label_geode);
+	_robot->insertChild(0, label_geode);
 
 	// draw tracking node
 	_trace = tracking;
@@ -3276,18 +3281,18 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	trackingGeode->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
 	trackingGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
 	trackingGeode->addDrawable(trackingLine);
-	robot->insertChild(1, trackingGeode);
+	_robot->insertChild(1, trackingGeode);
 
 	// set user properties of node
-	robot->setName("robot");
+	_robot->setName("robot");
 
 	// optimize robot
 	osgUtil::Optimizer optimizer;
-	optimizer.optimize(robot);
+	optimizer.optimize(_robot);
 
 	// add to scenegraph
-	root->addChild(robot);
-	return (root->getChildIndex(robot));
+	root->addChild(_robot);
+	return (root->getChildIndex(_robot));
 }
 #endif // ENABLE_GRAPHICS
 

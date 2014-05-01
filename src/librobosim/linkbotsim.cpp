@@ -2522,6 +2522,11 @@ int CLinkbotT::traceOff(void) {
 }
 
 int CLinkbotT::traceOn(void) {
+	// show trace
+	osg::Geode *trace = dynamic_cast<osg::Geode *>(_robot->getChild(1));
+	trace->setNodeMask(VISIBLE_MASK);
+
+	// set trace on
 	_trace = 1;
 
 	// success
@@ -2958,7 +2963,7 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	_root = root;
 
 	// initialize variables
-	osg::ref_ptr<osg::Group> robot = new osg::Group();
+	_robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[NUM_PARTS+1];
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat[NUM_PARTS+1];
 	osg::ref_ptr<osg::Texture2D> tex[2];
@@ -3038,7 +3043,7 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	for (int i = 0; i < NUM_PARTS+1; i++) {
 		pat[i] = new osg::PositionAttitudeTransform;
 		pat[i]->addChild(body[i].get());
-		robot->addChild(pat[i].get());
+		_robot->addChild(pat[i].get());
 	}
 
 	// add connectors
@@ -3046,44 +3051,44 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	while (ctmp) {
 		switch (ctmp->type) {
 			case BIGWHEEL:
-				this->draw_bigwheel(ctmp, robot);
+				this->draw_bigwheel(ctmp, _robot);
 				break;
 			case BRIDGE:
-				this->draw_bridge(ctmp, robot);
+				this->draw_bridge(ctmp, _robot);
 				break;
 			case CASTER:
-				this->draw_caster(ctmp, robot);
+				this->draw_caster(ctmp, _robot);
 				break;
 			case CUBE:
-				this->draw_cube(ctmp, robot);
+				this->draw_cube(ctmp, _robot);
 				break;
 			case FACEPLATE:
-				this->draw_faceplate(ctmp, robot);
+				this->draw_faceplate(ctmp, _robot);
 				break;
 			case GRIPPER:
-				this->draw_gripper(ctmp, robot);
+				this->draw_gripper(ctmp, _robot);
 				break;
 			case OMNIDRIVE:
-				this->draw_omnidrive(ctmp, robot);
+				this->draw_omnidrive(ctmp, _robot);
 				break;
 			case SIMPLE:
-				this->draw_simple(ctmp, robot);
+				this->draw_simple(ctmp, _robot);
 				break;
 			case SMALLWHEEL:
-				this->draw_smallwheel(ctmp, robot);
+				this->draw_smallwheel(ctmp, _robot);
 				break;
 			case TINYWHEEL:
-				this->draw_tinywheel(ctmp, robot);
+				this->draw_tinywheel(ctmp, _robot);
 				break;
 			case WHEEL:
-				this->draw_wheel(ctmp, robot);
+				this->draw_wheel(ctmp, _robot);
 				break;
 		}
 		ctmp = ctmp->next;
 	}
 
 	// set update callback for robot
-	robot->setUpdateCallback(new linkbotNodeCallback(this, _simObject->getUnits()));
+	_robot->setUpdateCallback(new linkbotNodeCallback(this, _simObject->getUnits()));
 
 	// set masks
 	//robot->setNodeMask(CASTS_SHADOW_MASK);
@@ -3105,7 +3110,7 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	label->setColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
 	label->setDrawMode(osgText::Text::TEXT | osgText::Text::ALIGNMENT | osgText::Text::BOUNDINGBOX);
-	robot->insertChild(0, label_geode);
+	_robot->insertChild(0, label_geode);
 
 	// draw tracking node
 	_trace = tracking;
@@ -3130,18 +3135,18 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	trackingGeode->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
 	trackingGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
 	trackingGeode->addDrawable(trackingLine);
-	robot->insertChild(1, trackingGeode);
+	_robot->insertChild(1, trackingGeode);
 
 	// set user properties of node
-	robot->setName("robot");
+	_robot->setName("robot");
 
 	// optimize robot
 	osgUtil::Optimizer optimizer;
-	optimizer.optimize(robot);
+	optimizer.optimize(_robot);
 
 	// add to scenegraph
-	root->addChild(robot);
-	return (root->getChildIndex(robot));
+	root->addChild(_robot);
+	return (root->getChildIndex(_robot));
 }
 #endif // ENABLE_GRAPHICS
 
