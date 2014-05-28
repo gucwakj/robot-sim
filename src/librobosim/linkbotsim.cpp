@@ -1021,20 +1021,35 @@ int CLinkbotT::movexyTo(double x, double y, double radius, double trackwidth) {
 	// get angle to turn in body coordinates (transform of R)
 	double angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
 
+	// get speed of robot
+	double speed[NUM_DOF] = {0};
+	this->getJointSpeeds(speed[0], speed[1], speed[2]);
+
+	if (fabs(speed[0]) > 120) {
+		this->setJointSpeeds(45, 45, 45);
+	}
+
 	// turn toward new postition until pointing correctly
-	while (fabs(angle) > 0.01) {
+	while (fabs(angle) > 0.005) {
 		// turn in shortest path
-		if (angle > EPSILON)
+		if (angle > 0.005)
 			this->turnRight(RAD2DEG(angle), radius, trackwidth);
-		else if (angle < -EPSILON)
+		else if (angle < -0.005)
 			this->turnLeft(RAD2DEG(-angle), radius, trackwidth);
 
 		// calculate new rotation from error
 		this->getxy(x0, y0);
 		r0 = this->getRotation(BODY, 2);
+		dRSetIdentity(R);
 		dRFromAxisAndAngle(R, 0, 0, 1, r0);
 		angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
+
+		// move slowly
+		this->setJointSpeeds(45, 45, 45);
 	}
+
+	// reset to original speed after turning
+	this->setJointSpeeds(speed[0], speed[1], speed[2]);
 
 	// move along length of line
 	this->getxy(x0, y0);
