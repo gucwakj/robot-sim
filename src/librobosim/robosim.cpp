@@ -28,7 +28,11 @@ RoboSim::~RoboSim(void) {
 		_viewer = 0;
 		MUTEX_UNLOCK(&_viewer_mutex);
 		THREAD_JOIN(_osgThread);
+		COND_DESTROY(&_graphics_cond);
+		COND_DESTROY(&_viewer2_cond);
+		MUTEX_DESTROY(&_graphics_mutex);
 		MUTEX_DESTROY(&_viewer_mutex);
+		MUTEX_DESTROY(&_viewer2_mutex);
 	}
 #endif
 
@@ -726,6 +730,11 @@ int RoboSim::init_viz(void) {
 	MUTEX_INIT(&_viewer_mutex);
 	_viewer = 1;
 
+	// separate viewer and inserting into scenegraph
+	COND_INIT(&_viewer2_cond);
+	MUTEX_INIT(&_viewer2_mutex);
+	_viewer2 = 0;
+
 	// graphics haven't started yet
 	COND_INIT(&_graphics_cond);
 	MUTEX_INIT(&_graphics_mutex);
@@ -837,7 +846,13 @@ int RoboSim::addRobot(CRobot *robot) {
 
 #ifdef ENABLE_GRAPHICS
 	// draw robot
+	MUTEX_LOCK(&_viewer2_mutex);
+	while (!_viewer2) {
+		COND_WAIT(&_viewer2_cond, &_viewer2_mutex);
+	}
 	nr->node = robot->draw(_shadowed, btmp->tracking);
+	_viewer2 = 0;
+	MUTEX_UNLOCK(&_viewer2_mutex);
 #endif // ENABLE_GRAPHICS
 
 	// unlock robot data
@@ -1176,6 +1191,9 @@ void* RoboSim::graphics_thread(void *arg) {
 
     // creating the viewer
 	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer;
+
+	// set threading model
+	viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
 	// camera properties
 	osg::ref_ptr<osg::Camera> camera = new osg::Camera;
@@ -1590,9 +1608,6 @@ void* RoboSim::graphics_thread(void *arg) {
 	osgUtil::Optimizer optimizer;
 	optimizer.optimize(root);
 
-	// set threading model
-	viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
-
 	// viewer event handlers
 	viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause), textHUD));
 	viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
@@ -1609,14 +1624,15 @@ void* RoboSim::graphics_thread(void *arg) {
 	MUTEX_LOCK(&(sim->_viewer_mutex));
 	while (sim->_viewer && !viewer->done()) {
 		MUTEX_UNLOCK(&(sim->_viewer_mutex));
+
 		viewer->frame();
+		SIGNAL(&(sim->_viewer2_cond), &(sim->_viewer2_mutex), sim->_viewer2 = 1);
+
 		MUTEX_LOCK(&(sim->_viewer_mutex));
 	}
 	MUTEX_UNLOCK(&(sim->_viewer_mutex));
 
 	// clean up viewer & root
-	//printf("root   ref count: %d\n", root->referenceCount());
-	//printf("viewer ref count: %d\n", viewer->referenceCount());
 	viewer->setSceneData(NULL);
 #ifdef _WIN32_
 	delete viewer;

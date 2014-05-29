@@ -72,10 +72,13 @@ class DLLIMPORT RoboSim {
 		int _us;									// us customary units
 		int _graphics;								// flag for graphics
 		int _viewer;								// flag for viewer
+		int _viewer2;								// flag for viewer
 		osgShadow::ShadowedScene *_shadowed;		// root node to hold graphics
 		COND_T _graphics_cond;						// condition for graphics
 		MUTEX_T _graphics_mutex;					// mutex for graphics existence
 		MUTEX_T _viewer_mutex;						// mutex for viewer running state
+		COND_T _viewer2_cond;						// condition for viewer running state
+		MUTEX_T _viewer2_mutex;						// mutex for viewer running state
 		THREAD_T _osgThread;						// thread to hold graphics
 		// functions
 		int init_viz(void);							// visualization initialization function

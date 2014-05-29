@@ -3160,6 +3160,8 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 
 	// add to scenegraph
 	root->addChild(_robot);
+
+	// return position of robot in root node
 	return (root->getChildIndex(_robot));
 }
 #endif // ENABLE_GRAPHICS
