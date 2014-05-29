@@ -910,8 +910,13 @@ int RoboSim::deleteRobot(CRobot *robot) {
 	}
 
 #ifdef ENABLE_GRAPHICS
-	// remove node callback
-	//_shadowed->removeChild(_shadowed->getChild(tmp->node));
+	MUTEX_LOCK(&_viewer2_mutex);
+	while (!_viewer2) {
+		COND_WAIT(&_viewer2_cond, &_viewer2_mutex);
+	}
+	_shadowed->removeChild(_shadowed->getChild(tmp->node));
+	_viewer2 = 0;
+	MUTEX_UNLOCK(&_viewer2_mutex);
 #endif
 
 	// delete struct
