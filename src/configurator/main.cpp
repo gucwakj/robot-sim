@@ -1107,7 +1107,7 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s1side2 = g_doc.NewElement("side");
 		s1side2->SetAttribute("id", 2);
 		s1side2->SetAttribute("robot", 0);
-		s1side2->SetAttribute("conn", 9);
+		s1side2->SetAttribute("conn", 0);
 		simple1->InsertAfterChild(s1side1, s1side2);
 		sim->InsertAfterChild(robot5, simple1);
 
@@ -1120,7 +1120,7 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s2side2 = g_doc.NewElement("side");
 		s2side2->SetAttribute("id", 2);
 		s2side2->SetAttribute("robot", 1);
-		s2side2->SetAttribute("conn", 9);
+		s2side2->SetAttribute("conn", 0);
 		simple2->InsertAfterChild(s2side1, s2side2);
 		sim->InsertAfterChild(simple1, simple2);
 
