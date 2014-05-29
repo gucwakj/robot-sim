@@ -1078,9 +1078,9 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		robot3->SetAttribute("id", 2);
 		robot3->SetAttribute("orientation", 3);
 		tinyxml2::XMLElement *r3j = g_doc.NewElement("joint");
-		r3j->SetAttribute("f1", -20);
+		r3j->SetAttribute("f1", -12);
 		r3j->SetAttribute("f2", 0);
-		r3j->SetAttribute("f3", 20);
+		r3j->SetAttribute("f3", 12);
 		robot3->InsertFirstChild(r3j);
 		robot4 = g_doc.NewElement("linkboti");
 		robot4->SetAttribute("id", 3);
