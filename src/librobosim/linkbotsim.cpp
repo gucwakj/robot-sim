@@ -381,51 +381,7 @@ int CLinkbotT::isNotMoving(void) {
 
 #ifdef ENABLE_GRAPHICS
 int CLinkbotT::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
-	// convert x and y into meters
-	x1 = (_simObject->getUnits()) ? x1/39.37 : x1/100;
-	y1 = (_simObject->getUnits()) ? y1/39.37 : y1/100;
-	z1 = (_simObject->getUnits()) ? z1/39.37 : z1/100;
-	x2 = (_simObject->getUnits()) ? x2/39.37 : x2/100;
-	y2 = (_simObject->getUnits()) ? y2/39.37 : y2/100;
-	z2 = (_simObject->getUnits()) ? z2/39.37 : z2/100;
-
-	// get color
-	int getRGB[3] = {0};
-	rgbHashTable *rgbTable = HT_Create();
-	int htRetval = HT_Get(rgbTable, color, getRGB);
-	HT_Destroy(rgbTable);
-
-	// draw line
-	osg::Geode *line = new osg::Geode();
-	osg::Geometry *geom = new osg::Geometry();
-	osg::Vec3Array *vert = new osg::Vec3Array();
-	vert->push_back(osg::Vec3(x1, y1, z1));
-	vert->push_back(osg::Vec3(x2, y2, z2));
-	geom->setVertexArray(vert);
-	geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 2));
-	osg::Vec4Array *colors = new osg::Vec4Array;
-	if (htRetval)
-		colors->push_back(osg::Vec4(getRGB[0]/255.0, getRGB[1]/255.0, getRGB[2]/255.0, 1.0f));
-	else
-		colors->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	geom->setColorArray(colors);
-	geom->setColorBinding(osg::Geometry::BIND_OVERALL);
-	line->addDrawable(geom);
-
-	// set line width
-	osg::LineWidth *width = new osg::LineWidth();
-	width->setWidth(linewidth*3.0f);
-	line->getOrCreateStateSet()->setAttributeAndModes(width, osg::StateAttribute::ON);
-
-	// set rendering properties
-	line->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	line->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add to root
-	_root->addChild(line);
-
-	// success
-	return 0;
+	return _simObject->line(x1, y1, z1, x2, y2, z2, linewidth, color);
 }
 #endif // ENABLE_GRAPHICS
 
@@ -1290,36 +1246,7 @@ int CLinkbotT::movexyWait(void) {
 
 #ifdef ENABLE_GRAPHICS
 int CLinkbotT::point(double x, double y, double z, int pointsize, char *color) {
-	// convert x and y into meters
-	x = (_simObject->getUnits()) ? x/39.37 : x/100;
-	y = (_simObject->getUnits()) ? y/39.37 : y/100;
-	z = (_simObject->getUnits()) ? z/39.37 : z/100;
-
-	// get color
-	int getRGB[3] = {0};
-	rgbHashTable *rgbTable = HT_Create();
-	int htRetval = HT_Get(rgbTable, color, getRGB);
-	HT_Destroy(rgbTable);
-
-	// create sphere
-	osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(x, y, z), pointsize/500.0);
-	osg::Geode *point = new osg::Geode;
-	osg::ShapeDrawable *pointDrawable = new osg::ShapeDrawable(sphere);
-	point->addDrawable(pointDrawable);
-	if (htRetval)
-		pointDrawable->setColor(osg::Vec4(getRGB[0]/255.0, getRGB[1]/255.0, getRGB[2]/255.0, 1));
-	else
-		pointDrawable->setColor(osg::Vec4(1, 1, 1, 1));
-
-	// set rendering properties
-	point->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	point->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add to root
-	_root->addChild(point);
-
-	// success
-	return htRetval;
+	return _simObject->point(x, y, z, pointsize, color);
 }
 #endif // ENABLE_GRAPHICS
 
@@ -2500,32 +2427,7 @@ int CLinkbotT::systemTime(double &time) {
 
 #ifdef ENABLE_GRAPHICS
 int CLinkbotT::text(double x, double y, double z, char *text) {
-	// convert xyz positions to meters
-	x = (_simObject->getUnits()) ? x/39.37 : x/100;
-	y = (_simObject->getUnits()) ? y/39.37 : y/100;
-	z = (_simObject->getUnits()) ? z/39.37 : z/100;
-
-	// generate text node
-	osgText::Text *label = new osgText::Text();
-	osg::Geode *label_geode = new osg::Geode();
-	label_geode->addDrawable(label);
-	label_geode->getOrCreateStateSet()->setRenderBinDetails(22, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	label->setAlignment(osgText::Text::CENTER_CENTER);
-	label->setAxisAlignment(osgText::Text::SCREEN);
-	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	label->setCharacterSize(25);
-	label->setColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	label->setDrawMode(osgText::Text::TEXT);
-	label->setPosition(osg::Vec3(x, y, z));
-	label->setText(text);
-
-	// add to root
-	_root->addChild(label_geode);
-
-	// success
-	return 0;
+	return _simObject->text(x, y, z, text);
 }
 #endif // ENABLE_GRAPHICS
 
@@ -2974,9 +2876,6 @@ void CLinkbotT::simPostCollisionThread(void) {
 
 #ifdef ENABLE_GRAPHICS
 int CLinkbotT::draw(osg::Group *root, int tracking) {
-	// save root graphics node
-	_root = root;
-
 	// initialize variables
 	_robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[NUM_PARTS+1];

@@ -306,7 +306,6 @@ class DLLIMPORT CRobot {
 
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group *root, int tracking) = 0;
-		osg::Group *_root;
 		osg::Group *_robot;
 		osg::ShapeDrawable *_led;
 #endif // ENABLE_GRAPHICS
