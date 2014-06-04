@@ -23,6 +23,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 
 		int blinkLED(double delay, int num);
 #ifdef _CH_
+		int closeGripper(void);
 		int connect(...);
 #else
 		int connect(char *name = NULL, int pause = 3);
@@ -127,6 +128,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int movexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyWait(void);
+#ifdef _CH_
+		int openGripper(double angle);
+		int openGripperNB(double angle);
+#endif
 #ifdef ENABLE_GRAPHICS
 		int point(double x, double y, double z, int pointsize, char *color);
 #endif // ENABLE_GRAPHICS
@@ -427,6 +432,7 @@ class DLLIMPORT CLinkbotI {
 		virtual ~CLinkbotI();
 
 		int blinkLED(double delay, int num);
+		int closeGripper(void);
 		int connect(...);
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
@@ -517,6 +523,8 @@ class DLLIMPORT CLinkbotI {
 		int movexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyWait();
+		int openGripper(double angle);
+		int openGripperNB(double angle);
 		int point(double x, double y, double z, int pointsize, char *color);
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
