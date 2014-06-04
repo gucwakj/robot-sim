@@ -64,9 +64,9 @@ class DLLIMPORT RoboSim {
 		THREAD_T _simulation;		// simulation thread
 
 		// private functions
-		int init_ode(void);					// init function for ode variables
-		int init_sim(int pause);			// init function for simulation variables
-		int init_xml(char *name);			// init function to read xml config file
+		int init_ode(void);											// init function for ode variables
+		int init_sim(int pause);									// init function for simulation variables
+		int init_xml(char *name);									// init function to read xml config file
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 		static void* simulation_thread(void *arg);					// simulation thread function
 		void print_intermediate_data(void);							// print data out at each time step for analysis
@@ -74,17 +74,17 @@ class DLLIMPORT RoboSim {
 #ifdef ENABLE_GRAPHICS
 		// variables
 		double _grid[6];							// grid spacing (tics, major, total)
+		int _ending;								// temp variable for deleting robots
 		int _us;									// us customary units
 		int _graphics;								// flag for graphics
 		int _viewer;								// flag for viewer
-		int _viewer2;								// flag for viewer
 		osgShadow::ShadowedScene *_shadowed;		// root node to hold graphics
+		osg::Group *_staging;						// temp variable for adding robots
 		COND_T _graphics_cond;						// condition for graphics
 		MUTEX_T _graphics_mutex;					// mutex for graphics existence
 		MUTEX_T _viewer_mutex;						// mutex for viewer running state
-		COND_T _viewer2_cond;						// condition for viewer running state
-		MUTEX_T _viewer2_mutex;						// mutex for viewer running state
 		THREAD_T _osgThread;						// thread to hold graphics
+
 		// functions
 		int init_viz(void);							// visualization initialization function
 		static void* graphics_thread(void *arg);	// thread for graphics objects

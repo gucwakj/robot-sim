@@ -29,10 +29,8 @@ RoboSim::~RoboSim(void) {
 		MUTEX_UNLOCK(&_viewer_mutex);
 		THREAD_JOIN(_osgThread);
 		COND_DESTROY(&_graphics_cond);
-		COND_DESTROY(&_viewer2_cond);
 		MUTEX_DESTROY(&_graphics_mutex);
 		MUTEX_DESTROY(&_viewer_mutex);
-		MUTEX_DESTROY(&_viewer2_mutex);
 	}
 #endif
 
@@ -731,9 +729,8 @@ int RoboSim::init_viz(void) {
 	_viewer = 1;
 
 	// separate viewer and inserting into scenegraph
-	COND_INIT(&_viewer2_cond);
-	MUTEX_INIT(&_viewer2_mutex);
-	_viewer2 = 0;
+	_staging = new osg::Group;
+	_ending = 0;
 
 	// graphics haven't started yet
 	COND_INIT(&_graphics_cond);
@@ -846,13 +843,7 @@ int RoboSim::addRobot(CRobot *robot) {
 
 #ifdef ENABLE_GRAPHICS
 	// draw robot
-	MUTEX_LOCK(&_viewer2_mutex);
-	while (!_viewer2) {
-		COND_WAIT(&_viewer2_cond, &_viewer2_mutex);
-	}
-	nr->node = robot->draw(_shadowed, btmp->tracking);
-	_viewer2 = 0;
-	MUTEX_UNLOCK(&_viewer2_mutex);
+	nr->node = robot->draw(_staging, btmp->tracking);
 #endif // ENABLE_GRAPHICS
 
 	// unlock robot data
@@ -910,13 +901,8 @@ int RoboSim::deleteRobot(CRobot *robot) {
 	}
 
 #ifdef ENABLE_GRAPHICS
-	MUTEX_LOCK(&_viewer2_mutex);
-	while (!_viewer2) {
-		COND_WAIT(&_viewer2_cond, &_viewer2_mutex);
-	}
-	_shadowed->removeChild(_shadowed->getChild(tmp->node));
-	_viewer2 = 0;
-	MUTEX_UNLOCK(&_viewer2_mutex);
+	// save node location to delete later
+	_ending = tmp->node;
 #endif
 
 	// delete struct
@@ -994,13 +980,7 @@ int RoboSim::line(double x1, double y1, double z1, double x2, double y2, double 
 	line->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 
 	// add to root
-	MUTEX_LOCK(&_viewer2_mutex);
-	while (!_viewer2) {
-		COND_WAIT(&_viewer2_cond, &_viewer2_mutex);
-	}
-	_shadowed->addChild(line);
-	_viewer2 = 0;
-	MUTEX_UNLOCK(&_viewer2_mutex);
+	_staging->addChild(line);
 
 	// success
 	return 0;
@@ -1033,13 +1013,7 @@ int RoboSim::point(double x, double y, double z, int pointsize, char *color) {
 	point->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 
 	// add to root
-	MUTEX_LOCK(&_viewer2_mutex);
-	while (!_viewer2) {
-		COND_WAIT(&_viewer2_cond, &_viewer2_mutex);
-	}
-	_shadowed->addChild(point);
-	_viewer2 = 0;
-	MUTEX_UNLOCK(&_viewer2_mutex);
+	_staging->addChild(point);
 
 	// success
 	return htRetval;
@@ -1068,13 +1042,7 @@ int RoboSim::text(double x, double y, double z, char *text) {
 	label->setText(text);
 
 	// add to root
-	MUTEX_LOCK(&_viewer2_mutex);
-	while (!_viewer2) {
-		COND_WAIT(&_viewer2_cond, &_viewer2_mutex);
-	}
-	_shadowed->addChild(label_geode);
-	_viewer2 = 0;
-	MUTEX_UNLOCK(&_viewer2_mutex);
+	_staging->addChild(label_geode);
 
 	// success
 	return 0;
@@ -1135,6 +1103,10 @@ void* RoboSim::simulation_thread(void *arg) {
 			robots_t rtmp = sim->_robots;
 			while (rtmp) {
 				THREAD_CREATE(&(rtmp->thread), (void* (*)(void *))&CRobot::simPreCollisionThreadEntry, (void *)rtmp->robot);
+				rtmp = rtmp->next;
+			}
+			rtmp = sim->_robots;
+			while (rtmp) {
 				THREAD_JOIN(rtmp->thread);
 				rtmp = rtmp->next;
 			}
@@ -1151,6 +1123,10 @@ void* RoboSim::simulation_thread(void *arg) {
 			rtmp = sim->_robots;
 			while (rtmp) {
 				THREAD_CREATE(&(rtmp->thread), (void* (*)(void *))&CRobot::simPostCollisionThreadEntry, (void *)rtmp->robot);
+				rtmp = rtmp->next;
+			}
+			rtmp = sim->_robots;
+			while (rtmp) {
 				THREAD_JOIN(rtmp->thread);
 				rtmp = rtmp->next;
 			}
@@ -1761,7 +1737,14 @@ void* RoboSim::graphics_thread(void *arg) {
 		MUTEX_UNLOCK(&(sim->_viewer_mutex));
 
 		viewer->frame();
-		SIGNAL(&(sim->_viewer2_cond), &(sim->_viewer2_mutex), sim->_viewer2 = 1);
+		if (sim->_staging) {
+			sim->_shadowed->addChild(sim->_staging->getChild(0));
+			sim->_staging->removeChild(0, 1);
+		}
+		if (sim->_ending) {
+			sim->_shadowed->removeChild(sim->_shadowed->getChild(sim->_ending));
+			sim->_ending = 0;
+		}
 
 		MUTEX_LOCK(&(sim->_viewer_mutex));
 	}

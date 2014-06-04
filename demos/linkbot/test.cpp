@@ -3,12 +3,14 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	CLinkbotI robot;
+	int i;
+	CLinkbotI robot[32];
 
-	robot.connect();
-	robot.resetToZero();
-	robot.setTwoWheelRobotSpeed(7, 1.75);
-	robot.movexyTo(3, 12, 1.75, 0);
+	for (i = 0; i < 32; i++) {
+		robot[i].connect();
+		robot[i].resetToZero();
+	}
+	robot[0].moveDistance(3, 1.75);
 
 	return 0;
 }
