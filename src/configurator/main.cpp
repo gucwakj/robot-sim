@@ -18,6 +18,19 @@ typedef enum wheels_e {
 	CUSTOM,
 	NUM_WHEELS
 } wheels_t;
+typedef enum preconfig_e {
+	BOW = 1,
+	EXPLORER,
+	FOURBOTDRIVE,
+	FOURWHEELDRIVE,
+	FOURWHEELEXPLORER,
+	GROUPBOW,
+	INCHWORM,
+	LIFT,
+	OMNIDRIVE,
+	SNAKE,
+	STAND
+} preconfig_t;
 typedef struct robots_s {
 	int id;
 	int type;
@@ -331,47 +344,47 @@ G_MODULE_EXPORT void on_notebook_switch_page(GtkWidget *widget, gpointer data) {
 	}
 	else if (page == 0) {
 		switch (g_type) {
-			case 1:
+			case BOW:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "bow")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "bow")), 1);
 				break;
-			case 2:
+			case EXPLORER:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 1);
 				break;
-			case 3:
+			case FOURBOTDRIVE:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourbotdrive")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourbotdrive")), 1);
 				break;
-			case 4:
+			case FOURWHEELDRIVE:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheeldrive")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheeldrive")), 1);
 				break;
-			case 5:
+			case FOURWHEELEXPLORER:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheelexplorer")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheelexplorer")), 1);
 				break;
-			case 6:
+			case GROUPBOW:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "groupbow")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "groupbow")), 1);
 				break;
-			case 7:
+			case INCHWORM:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 1);
 				break;
-			case 8:
+			case LIFT:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 1);
 				break;
-			case 9:
+			case OMNIDRIVE:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 1);
 				break;
-			case 10:
+			case SNAKE:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 1);
 				break;
-			case 11:
+			case STAND:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 1);
 				break;
@@ -953,8 +966,8 @@ G_MODULE_EXPORT void on_bow_toggled(GtkWidget *widget, gpointer data) {
 
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
-		type->SetAttribute("val", 1);
-		g_type = 1;
+		type->SetAttribute("val", BOW);
+		g_type = BOW;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1055,8 +1068,8 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
-		type->SetAttribute("val", 2);
-		g_type = 2;
+		type->SetAttribute("val", EXPLORER);
+		g_type = EXPLORER;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1250,8 +1263,8 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
-		type->SetAttribute("val", 3);
-		g_type = 3;
+		type->SetAttribute("val", FOURBOTDRIVE);
+		g_type = FOURBOTDRIVE;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1411,8 +1424,8 @@ G_MODULE_EXPORT void on_fourwheeldrive_toggled(GtkWidget *widget, gpointer data)
 
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
-		type->SetAttribute("val", 4);
-		g_type = 4;
+		type->SetAttribute("val", FOURWHEELDRIVE);
+		g_type = FOURWHEELDRIVE;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1552,8 +1565,8 @@ G_MODULE_EXPORT void on_fourwheelexplorer_toggled(GtkWidget *widget, gpointer da
 
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
-		type->SetAttribute("val", 5);
-		g_type = 5;
+		type->SetAttribute("val", FOURWHEELEXPLORER);
+		g_type = FOURWHEELEXPLORER;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1773,8 +1786,8 @@ G_MODULE_EXPORT void on_groupbow_toggled(GtkWidget *widget, gpointer data) {
 
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
-		type->SetAttribute("val", 6);
-		g_type = 6;
+		type->SetAttribute("val", GROUPBOW);
+		g_type = GROUPBOW;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -1931,8 +1944,8 @@ G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data) {
 
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
-		type->SetAttribute("val", 7);
-		g_type = 7;
+		type->SetAttribute("val", INCHWORM);
+		g_type = INCHWORM;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -2033,8 +2046,8 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
-		type->SetAttribute("val", 8);
-		g_type = 8;
+		type->SetAttribute("val", LIFT);
+		g_type = LIFT;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -2186,8 +2199,8 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
-		type->SetAttribute("val", 9);
-		g_type = 9;
+		type->SetAttribute("val", OMNIDRIVE);
+		g_type = OMNIDRIVE;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -2348,8 +2361,8 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
 
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
-		type->SetAttribute("val", 10);
-		g_type = 10;
+		type->SetAttribute("val", SNAKE);
+		g_type = SNAKE;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -2530,8 +2543,8 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
 
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
-		type->SetAttribute("val", 11);
-		g_type = 11;
+		type->SetAttribute("val", STAND);
+		g_type = STAND;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -2780,37 +2793,37 @@ void readXMLConfig(void) {
 			gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_builder_get_object(g_builder, "notebook")), 1);
 		}
 		switch (g_type) {
-			case 1:
+			case BOW:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "bow")), 1);
 				break;
-			case 2:
+			case EXPLORER:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 1);
 				break;
-			case 3:
+			case FOURBOTDRIVE:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourbotdrive")), 1);
 				break;
-			case 4:
+			case FOURWHEELDRIVE:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheeldrive")), 1);
 				break;
-			case 5:
+			case FOURWHEELEXPLORER:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheelexplorer")), 1);
 				break;
-			case 6:
+			case GROUPBOW:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "groupbow")), 1);
 				break;
-			case 7:
+			case INCHWORM:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 1);
 				break;
-			case 8:
+			case LIFT:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 1);
 				break;
-			case 9:
+			case OMNIDRIVE:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 1);
 				break;
-			case 10:
+			case SNAKE:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 1);
 				break;
-			case 11:
+			case STAND:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 1);
 				break;
 		}
