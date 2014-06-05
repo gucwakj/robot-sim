@@ -1582,14 +1582,14 @@ G_MODULE_EXPORT void on_fourwheelexplorer_toggled(GtkWidget *widget, gpointer da
 		// set position
 		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
 		pos->SetAttribute("x", 0);
-		pos->SetAttribute("y", 0);
+		pos->SetAttribute("y", 0.074925);
 		pos->SetAttribute("z", 0);
 		robot1->InsertFirstChild(pos);
 		// set rotation
 		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
 		rot->SetAttribute("psi", 0);
 		rot->SetAttribute("theta", 0);
-		rot->SetAttribute("phi", 90);
+		rot->SetAttribute("phi", 0);
 		robot1->InsertAfterChild(pos, rot);
 		// insert robot1
 		sim->InsertFirstChild(robot1);
