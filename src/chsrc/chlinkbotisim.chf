@@ -48,7 +48,7 @@ int CLinkbotI::blinkLED(double delay, int numBlinks) {
     return retval;
 }
 
-int CLinkbotI::close(void) {
+int CLinkbotI::closeGripper(void) {
 	double gripperAngleOld = 0;
 	double gripperAngleNew = 0;
 	int retval;
@@ -1178,11 +1178,11 @@ int CLinkbotI::movexyWait() {
     return retval;
 }
 
-int CLinkbotI::open(double angle) {
+int CLinkbotI::openGripper(double angle) {
 	return moveTo(-angle/2, NaN, -angle/2);
 }
 
-int CLinkbotI::openNB(double angle) {
+int CLinkbotI::openGripperNB(double angle) {
 	return moveToNB(-angle/2, NaN, -angle/2);
 }
 
