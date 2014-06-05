@@ -967,6 +967,11 @@ int CLinkbotT::movexyTo(double x, double y, double radius, double trackwidth) {
 	double x0, y0;
 	this->getxy(x0, y0);
 
+	// if movement is too small, just call it good
+	if (fabs(x-x0) < 0.1 && fabs(y-y0) < 0.1) {
+		return 1;
+	}
+
 	// get current rotation
 	double r0 = this->getRotation(BODY, 2);
 
