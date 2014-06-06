@@ -3225,13 +3225,12 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 	_goal[F3] = _angle[F3];
 
 	// offset values for each body part[0-2] and joint[3-5] from center
-	double b[3] = {0, 0, 0};
 	double f1[6] = {-_body_width/2 - _face_depth/2, 0, 0, -_body_width/2, 0, 0};
 	double f2[6] = {0, -_body_length - _face_depth/2, 0, 0, -_body_length, 0};
 	double f3[6] = {_body_width/2 + _face_depth/2, 0, 0, _body_width/2, 0, 0};
 
 	// build robot bodies
-	this->build_body(R[1]*b[1] + x, R[5]*b[1] + y, R[9]*b[1] + z, R, 0);
+	this->build_body(x, y, z, R, 0);
 	this->build_face(FACE1, R[0]*f1[0] + x, R[4]*f1[0] + y, R[8]*f1[0] + z, R, 0);
 	this->build_face(FACE2, R[1]*f2[1] + x, R[5]*f2[1] + y, R[9]*f2[1] + z, R, 0);
 	this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R, 0);
@@ -3244,10 +3243,14 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
     // joint for body to face 1
     _joint[0] = dJointCreateHinge(_world, 0);
     dJointAttach(_joint[0], _body[BODY], _body[FACE1]);
-    dJointSetHingeAnchor(_joint[0], R[0]*f1[3] + R[1]*f1[4] + R[2]*f1[5] + x, 
+    dJointSetHingeAnchor(_joint[0], R[0]*f1[3] + R[1]*f1[4] + R[2]*f1[5] + x,
 									R[4]*f1[3] + R[5]*f1[4] + R[6]*f1[5] + y,
 									R[8]*f1[3] + R[9]*f1[4] + R[10]*f1[5] + z);
-    dJointSetHingeAxis(_joint[0], R[0], R[4], R[8]);
+	dJointSetHingeAxis(_joint[0], R[0], R[4], R[8]);
+	dBodySetFiniteRotationMode(_body[FACE1], 1);
+	dBodySetFiniteRotationAxis(_body[FACE1], R[0]*f1[3] + R[1]*f1[4] + R[2]*f1[5] + x,
+											 R[4]*f1[3] + R[5]*f1[4] + R[6]*f1[5] + y,
+											 R[8]*f1[3] + R[9]*f1[4] + R[10]*f1[5] + z);
 
     // joint for body to face 2
 	if (_disabled == 1) {
@@ -3262,6 +3265,10 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 										R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y,
 										R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
     	dJointSetHingeAxis(_joint[1], R[1], R[5], R[9]);
+		dBodySetFiniteRotationMode(_body[FACE2], 1);
+		dBodySetFiniteRotationAxis(_body[FACE2], R[0]*f2[3] + R[1]*f2[4] + R[2]*f2[5] + x,
+												 R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y,
+												 R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
 	}
 
     // joint for body to face 3
@@ -3277,6 +3284,10 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 										R[4]*f3[3] + R[5]*f3[4] + R[6]*f3[5] + y,
 										R[8]*f3[3] + R[9]*f3[4] + R[10]*f3[5] + z);
     	dJointSetHingeAxis(_joint[2], -R[0], -R[4], -R[8]);
+		dBodySetFiniteRotationMode(_body[FACE3], 1);
+		dBodySetFiniteRotationAxis(_body[FACE3], R[0]*f3[3] + R[1]*f3[4] + R[2]*f3[5] + x,
+												 R[4]*f3[3] + R[5]*f3[4] + R[6]*f3[5] + y,
+												 R[8]*f3[3] + R[9]*f3[4] + R[10]*f3[5] + z);
 	}
 
     // create rotation matrices for each body part
