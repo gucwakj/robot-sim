@@ -3277,10 +3277,9 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
     this->build_endcap(ENDCAP_R, R[0]*re[0] + x, R[4]*re[0] + y, R[8]*re[0] + z, R);
 
 	// get center of robot offset from body position
-	const double *pos = dBodyGetPosition(_body[CENTER]);
-	_center[0] = R[0]*(x-pos[0]) + R[1]*(y-pos[1]) + R[2]*(z-pos[2]);
-	_center[1] = R[4]*(x-pos[0]) + R[5]*(y-pos[1]) + R[6]*(z-pos[2]);
-	_center[2] = R[8]*(x-pos[0]) + R[9]*(y-pos[1]) + R[10]*(z-pos[2]);
+	_center[0] = 0;
+	_center[1] = -0.0149;
+	_center[2] = 0;
 
     // joint for left endcap to body
     _joint[0] = dJointCreateHinge(_world, 0);
