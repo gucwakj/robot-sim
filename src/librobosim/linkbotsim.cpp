@@ -409,7 +409,7 @@ int CLinkbotT::motionRollBackward(double angle) {
 
 void* CLinkbotT::motionRollBackwardThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	linkbotMotionArg_t *mArg = (linkbotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionRollBackward(mArg->d);
@@ -429,7 +429,7 @@ int CLinkbotT::motionRollBackwardNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	linkbotMotionArg_t *mArg = new linkbotMotionArg_t;
 	mArg->robot = this;
 	mArg->d = angle;
 
@@ -453,7 +453,7 @@ int CLinkbotT::motionRollForward(double angle) {
 
 void* CLinkbotT::motionRollForwardThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	linkbotMotionArg_t *mArg = (linkbotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionRollForward(mArg->d);
@@ -473,7 +473,7 @@ int CLinkbotT::motionRollForwardNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	linkbotMotionArg_t *mArg = new linkbotMotionArg_t;
 	mArg->robot = this;
 	mArg->d = angle;
 
@@ -497,7 +497,7 @@ int CLinkbotT::motionTurnLeft(double angle) {
 
 void* CLinkbotT::motionTurnLeftThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	linkbotMotionArg_t *mArg = (linkbotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionTurnLeft(mArg->d);
@@ -517,7 +517,7 @@ int CLinkbotT::motionTurnLeftNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	linkbotMotionArg_t *mArg = new linkbotMotionArg_t;
 	mArg->robot = this;
 	mArg->d = angle;
 
@@ -541,7 +541,7 @@ int CLinkbotT::motionTurnRight(double angle) {
 
 void* CLinkbotT::motionTurnRightThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	linkbotMotionArg_t *mArg = (linkbotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionTurnRight(mArg->d);
@@ -561,7 +561,7 @@ int CLinkbotT::motionTurnRightNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	linkbotMotionArg_t *mArg = new linkbotMotionArg_t;
 	mArg->robot = this;
 	mArg->d = angle;
 
@@ -925,7 +925,7 @@ int CLinkbotT::movexy(double x, double y, double radius, double trackwidth) {
 
 void* CLinkbotT::movexyThread(void *arg) {
 	// cast arg
-	moveArg_t *mArg = (moveArg_t *)arg;
+	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
 
 	// perform motion
 	mArg->robot->movexy(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
@@ -945,7 +945,7 @@ int CLinkbotT::movexyNB(double x, double y, double radius, double trackwidth) {
 	THREAD_T move;
 
 	// store args
-	moveArg_t *mArg = new moveArg_t;
+	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
 	mArg->robot = this;
 	mArg->x = x;
 	mArg->y = y;
@@ -1022,7 +1022,7 @@ int CLinkbotT::movexyTo(double x, double y, double radius, double trackwidth) {
 
 void* CLinkbotT::movexyToThread(void *arg) {
 	// cast arg
-	moveArg_t *mArg = (moveArg_t *)arg;
+	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
 
 	// perform motion
 	mArg->robot->movexyTo(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
@@ -1042,7 +1042,7 @@ int CLinkbotT::movexyToNB(double x, double y, double radius, double trackwidth) 
 	THREAD_T move;
 
 	// store args
-	moveArg_t *mArg = new moveArg_t;
+	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
 	mArg->robot = this;
 	mArg->x = x;
 	mArg->y = y;
@@ -1076,7 +1076,7 @@ int CLinkbotT::movexyToFunc(double x0, double xf, int n, double (*func)(double x
 
 void* CLinkbotT::movexyToFuncThread(void *arg) {
 	// cast arg
-	moveArg_t *mArg = (moveArg_t *)arg;
+	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
 
 	// perform motion
 	mArg->robot->movexyToFunc(mArg->x, mArg->y, mArg->i, mArg->func, mArg->radius, mArg->trackwidth);
@@ -1096,7 +1096,7 @@ int CLinkbotT::movexyToFuncNB(double x0, double xf, int n, double (*func)(double
 	THREAD_T move;
 
 	// store args
-	moveArg_t *mArg = new moveArg_t;
+	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
 	mArg->robot = this;
 	mArg->x = x0;
 	mArg->y = xf;
@@ -1198,7 +1198,7 @@ int CLinkbotT::movexyToPoly(double x0, double xf, int n, char *poly, double radi
 
 void* CLinkbotT::movexyToPolyThread(void *arg) {
 	// cast arg
-	moveArg_t *mArg = (moveArg_t *)arg;
+	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
 
 	// perform motion
 	mArg->robot->movexyToPoly(mArg->x, mArg->y, mArg->i, mArg->expr, mArg->radius, mArg->trackwidth);
@@ -1218,7 +1218,7 @@ int CLinkbotT::movexyToPolyNB(double x0, double xf, int n, char *poly, double ra
 	THREAD_T move;
 
 	// store args
-	moveArg_t *mArg = new moveArg_t;
+	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
 	mArg->robot = this;
 	mArg->x = x0;
 	mArg->y = xf;

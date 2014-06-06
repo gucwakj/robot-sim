@@ -455,15 +455,15 @@ class CMobotGroup {
 #endif // not _CH_
 };
 
-typedef struct motionArg_s {
+typedef struct mobotMotionArg_s {
 	int i;
 	double d;
 	CMobot *robot;
-} motionArg_t;
-typedef struct moveArg_s {
+} mobotMotionArg_t;
+typedef struct mobotMoveArg_s {
 	double x, y, radius, trackwidth;
 	CMobot *robot;
-} moveArg_t;
+} mobotMoveArg_t;
 
 #ifdef _CH_
 void* RoboSim::_dlhandle = NULL;

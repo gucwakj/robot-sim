@@ -321,7 +321,7 @@ int CMobot::motionArch(double angle) {
 
 void* CMobot::motionArchThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionArch(mArg->d);
@@ -338,7 +338,7 @@ int CMobot::motionArchNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	mobotMotionArg_t *mArg = new mobotMotionArg_t;
 	mArg->robot = this;
 	mArg->d = angle;
 
@@ -387,7 +387,7 @@ int CMobot::motionInchwormLeft(int num) {
 
 void* CMobot::motionInchwormLeftThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionInchwormLeft(mArg->i);
@@ -404,7 +404,7 @@ int CMobot::motionInchwormLeftNB(int num) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	mobotMotionArg_t *mArg = new mobotMotionArg_t;
 	mArg->robot = this;
 	mArg->i = num;
 
@@ -439,7 +439,7 @@ int CMobot::motionInchwormRight(int num) {
 
 void* CMobot::motionInchwormRightThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionInchwormRight(mArg->i);
@@ -456,7 +456,7 @@ int CMobot::motionInchwormRightNB(int num) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	mobotMotionArg_t *mArg = new mobotMotionArg_t;
 	mArg->robot = this;
 	mArg->i = num;
 
@@ -483,7 +483,7 @@ int CMobot::motionRollBackward(double angle) {
 
 void* CMobot::motionRollBackwardThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionRollBackward(mArg->d);
@@ -500,7 +500,7 @@ int CMobot::motionRollBackwardNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	mobotMotionArg_t *mArg = new mobotMotionArg_t;
 	mArg->robot = this;
 	mArg->d = angle;
 
@@ -531,7 +531,7 @@ int CMobot::motionRollForward(double angle) {
 
 void* CMobot::motionRollForwardThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionRollForward(mArg->d);
@@ -548,7 +548,7 @@ int CMobot::motionRollForwardNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	mobotMotionArg_t *mArg = new mobotMotionArg_t;
 	mArg->robot = this;
 	mArg->d = angle;
 
@@ -576,7 +576,7 @@ int CMobot::motionSkinny(double angle) {
 
 void* CMobot::motionSkinnyThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionSkinny(mArg->d);
@@ -593,7 +593,7 @@ int CMobot::motionSkinnyNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	mobotMotionArg_t *mArg = new mobotMotionArg_t;
 	mArg->robot = this;
 	mArg->d = angle;
 
@@ -629,7 +629,7 @@ int CMobot::motionStand(void) {
 
 void* CMobot::motionStandThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionStand();
@@ -646,7 +646,7 @@ int CMobot::motionStandNB(void) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	mobotMotionArg_t *mArg = new mobotMotionArg_t;
 	mArg->robot = this;
 
 	// motion in progress
@@ -696,7 +696,7 @@ int CMobot::motionTumbleLeft(int num) {
 
 void* CMobot::motionTumbleLeftThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionTumbleLeft(mArg->i);
@@ -713,7 +713,7 @@ int CMobot::motionTumbleLeftNB(int num) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	mobotMotionArg_t *mArg = new mobotMotionArg_t;
 	mArg->robot = this;
 	mArg->i = num;
 
@@ -764,7 +764,7 @@ int CMobot::motionTumbleRight(int num) {
 
 void* CMobot::motionTumbleRightThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionTumbleRight(mArg->i);
@@ -781,7 +781,7 @@ int CMobot::motionTumbleRightNB(int num) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	mobotMotionArg_t *mArg = new mobotMotionArg_t;
 	mArg->robot = this;
 	mArg->i = num;
 
@@ -808,7 +808,7 @@ int CMobot::motionTurnLeft(double angle) {
 
 void* CMobot::motionTurnLeftThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionTurnLeft(mArg->d);
@@ -825,7 +825,7 @@ int CMobot::motionTurnLeftNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	mobotMotionArg_t *mArg = new mobotMotionArg_t;
 	mArg->robot = this;
 	mArg->d = angle;
 
@@ -852,7 +852,7 @@ int CMobot::motionTurnRight(double angle) {
 
 void* CMobot::motionTurnRightThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionTurnRight(mArg->d);
@@ -869,7 +869,7 @@ int CMobot::motionTurnRightNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	mobotMotionArg_t *mArg = new mobotMotionArg_t;
 	mArg->robot = this;
 	mArg->d = angle;
 
@@ -899,7 +899,7 @@ int CMobot::motionUnstand(void) {
 
 void* CMobot::motionUnstandThread(void *arg) {
 	// cast arg
-	motionArg_t *mArg = (motionArg_t *)arg;
+	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
 
 	// perform motion
 	mArg->robot->motionUnstand();
@@ -916,7 +916,7 @@ int CMobot::motionUnstandNB(void) {
 	THREAD_T motion;
 
 	// store args
-	motionArg_t *mArg = new motionArg_t;
+	mobotMotionArg_t *mArg = new mobotMotionArg_t;
 	mArg->robot = this;
 
 	// motion in progress
@@ -1272,7 +1272,7 @@ int CMobot::movexy(double x, double y, double radius, double trackwidth) {
 
 void* CMobot::movexyThread(void *arg) {
 	// cast arg
-	moveArg_t *mArg = (moveArg_t *)arg;
+	mobotMoveArg_t *mArg = (mobotMoveArg_t *)arg;
 
 	// perform motion
 	mArg->robot->movexy(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
@@ -1292,7 +1292,7 @@ int CMobot::movexyNB(double x, double y, double radius, double trackwidth) {
 	THREAD_T move;
 
 	// store args
-	moveArg_t *mArg = new moveArg_t;
+	mobotMoveArg_t *mArg = new mobotMoveArg_t;
 	mArg->robot = this;
 	mArg->x = x;
 	mArg->y = y;
@@ -1349,7 +1349,7 @@ int CMobot::movexyTo(double x, double y, double radius, double trackwidth) {
 
 void* CMobot::movexyToThread(void *arg) {
 	// cast arg
-	moveArg_t *mArg = (moveArg_t *)arg;
+	mobotMoveArg_t *mArg = (mobotMoveArg_t *)arg;
 
 	// perform motion
 	mArg->robot->movexyTo(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
@@ -1369,7 +1369,7 @@ int CMobot::movexyToNB(double x, double y, double radius, double trackwidth) {
 	THREAD_T move;
 
 	// store args
-	moveArg_t *mArg = new moveArg_t;
+	mobotMoveArg_t *mArg = new mobotMoveArg_t;
 	mArg->robot = this;
 	mArg->x = x;
 	mArg->y = y;
