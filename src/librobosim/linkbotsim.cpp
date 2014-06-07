@@ -3249,7 +3249,7 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 
 	// get center of robot offset from body position
 	_center[0] = 0;
-	_center[1] = 0.012462;
+	_center[1] = 0;
 	_center[2] = 0;
 
     // joint for body to face 1
@@ -3390,17 +3390,10 @@ int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta
 	dMatrix3 R1, R2, R3;
 
 	// set mass of body
-	dMassSetZero(&m);
-	dMassSetBox(&m1, 1000, _body_width, _body_length, _body_height);
-	dMassTranslate(&m1, 0, -_body_length/2, 0);
-	dMassAdd(&m, &m1);
+	dMassSetBox(&m, 4000, _body_width, _body_length, _body_height);
+	dMassTranslate(&m, 0, -_body_length/2, 0);
 	dMassSetCylinder(&m2, 400, 1, _body_radius, _body_width);
 	dMassAdd(&m, &m2);
-
-	// adjsut x,y,z to position center of mass correctly
-	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
 
 	// set body parameters
 	dBodySetPosition(_body[BODY], x, y, z);
@@ -3415,12 +3408,11 @@ int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta
 	// set geometry 1 - square
 	_geom[BODY][0] = dCreateBox(_space, _body_width, _body_length, _body_height);
 	dGeomSetBody(_geom[BODY][0], _body[BODY]);
-	dGeomSetOffsetPosition(_geom[BODY][0], -m.c[0], -_body_length/2 - m.c[1], -m.c[2]);
+	dGeomSetOffsetPosition(_geom[BODY][0], 0, -_body_length/2, 0);
 
 	// set geometry 2 - cylinder
 	_geom[BODY][1] = dCreateCylinder(_space, _body_radius, _body_width);
 	dGeomSetBody(_geom[BODY][1], _body[BODY]);
-	dGeomSetOffsetPosition(_geom[BODY][1], -m.c[0], -m.c[1], -m.c[2]);
 	dGeomSetOffsetRotation(_geom[BODY][1], R2);
 
 	// set mass center to (0,0,0) of _bodyID
@@ -3442,11 +3434,6 @@ int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, doub
 	else
 		dMassSetCylinder(&m, 100, 1, 2*_face_radius, _face_depth);
 
-	// adjsut x,y,z to position center of mass correctly
-	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	y += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	z += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
 	// set body parameters
 	dBodySetPosition(_body[id], x, y, z);
 	dBodySetRotation(_body[id], R);
@@ -3463,7 +3450,6 @@ int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, doub
 	// set geometry 1 - cylinder
 	_geom[id][0] = dCreateCylinder(_space, _face_radius, _face_depth);
 	dGeomSetBody(_geom[id][0], _body[id]);
-	dGeomSetOffsetPosition(_geom[id][0], -m.c[0], -m.c[1], -m.c[2]);
 	dGeomSetOffsetRotation(_geom[id][0], R2);
 
 	// set mass center to (0,0,0) of _bodyID
@@ -3494,11 +3480,6 @@ int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
     // set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_bigwheel_radius, _wheel_depth);
 
-    // adjust x,y,z to position center of mass correctly
-    p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-    p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-    p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
@@ -3510,7 +3491,6 @@ int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
     // set geometry
     conn->geom[0] = dCreateCylinder(_space, _bigwheel_radius, _wheel_depth);
     dGeomSetBody(conn->geom[0], conn->body);
-    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
     dGeomSetOffsetRotation(conn->geom[0], R1);
 
     // set mass center to (0,0,0) of _bodyID
@@ -3548,11 +3528,6 @@ int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
 	// set mass of body
 	dMassSetBox(&m, 270, _connector_depth, _bridge_length, _connector_height);
 
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
 	// set body parameters
 	dBodySetPosition(conn->body, p[0], p[1], p[2]);
 	dBodySetRotation(conn->body, R);
@@ -3561,7 +3536,6 @@ int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
 	// set geometry 1 - center box
 	conn->geom[0] = dCreateBox(_space, _connector_depth, _bridge_length, _connector_height);
 	dGeomSetBody(conn->geom[0], conn->body);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3600,12 +3574,7 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
 
 	// set mass of body
 	dMassSetBox(&m, 1000, 5*depth, width, height);
-	dMassTranslate(&m, 5*depth, 0, 0);
-
-    // adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-    p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-    p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+	dMassTranslate(&m, 40*depth, 0, 0);
 
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
@@ -3618,22 +3587,21 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
     // set geometry 1 - box
     conn->geom[0] = dCreateBox(_space, depth, width, height);
     dGeomSetBody(conn->geom[0], conn->body);
-    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
     // set geometry 2 - horizontal support
 	conn->geom[1] = dCreateBox(_space, 0.02, 0.022, 0.0032);
 	dGeomSetBody(conn->geom[1], conn->body);
-	dGeomSetOffsetPosition(conn->geom[1], depth/2 + 0.01 - m.c[0], -m.c[1], -height/2 + 0.0016 - m.c[2]);
+	dGeomSetOffsetPosition(conn->geom[1], depth/2 + 0.01, 0, -height/2 + 0.0016);
 
     // set geometry 3 - ball support
     conn->geom[2] = dCreateCylinder(_space, 0.011, _radius -_face_radius - 0.006 + 0.0032);
     dGeomSetBody(conn->geom[2], conn->body);
-    dGeomSetOffsetPosition(conn->geom[2], depth/2 + 0.02 - m.c[0], -m.c[1], -height/2 - (_radius -_face_radius - 0.006)/2 + 0.0016 - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[2], depth/2 + 0.02, 0, -height/2 - (_radius -_face_radius - 0.006)/2 + 0.0016);
 
     // set geometry 10 - sphere
     conn->geom[3] = dCreateSphere(_space, 0.006);
     dGeomSetBody(conn->geom[3], conn->body);
-    dGeomSetOffsetPosition(conn->geom[3], depth/2 + 0.02 - m.c[0], -m.c[1], -height/2 + _face_radius - _radius + 0.006 - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[3], depth/2 + 0.02, 0, -height/2 + _face_radius - _radius + 0.006);
 
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3669,11 +3637,6 @@ int CLinkbotT::build_cube(conn_t conn, int face, int side, int type) {
 	// set mass of body
 	dMassSetBox(&m, 270, _cubic_length, _cubic_length, _cubic_length);
 
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
 	// set body parameters
 	dBodySetPosition(conn->body, p[0], p[1], p[2]);
 	dBodySetRotation(conn->body, R);
@@ -3682,7 +3645,6 @@ int CLinkbotT::build_cube(conn_t conn, int face, int side, int type) {
 	// set geometry 1 - center box
 	conn->geom[0] = dCreateBox(_space, _cubic_length, _cubic_length, _cubic_length);
     dGeomSetBody(conn->geom[0], conn->body);
-    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3718,11 +3680,6 @@ int CLinkbotT::build_faceplate(conn_t conn, int face, int side, int type) {
     // set mass of body
     dMassSetBox(&m, 270, _connector_depth, _body_height, _body_height);
 
-    // adjust x,y,z to position center of mass correctly
-    p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-    p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-    p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
@@ -3731,7 +3688,6 @@ int CLinkbotT::build_faceplate(conn_t conn, int face, int side, int type) {
     // set geometry 1 - box
     conn->geom[0] = dCreateBox(_space, _connector_depth, _body_height, _body_height);
     dGeomSetBody(conn->geom[0], conn->body);
-    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3767,11 +3723,6 @@ int CLinkbotT::build_gripper(conn_t conn, int face) {
 	// set mass of body
 	dMassSetBox(&m, 270, _connector_depth, 2*_face_radius, _connector_height);
 
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
 	// set body parameters
 	dBodySetPosition(conn->body, p[0], p[1], p[2]);
 	dBodySetRotation(conn->body, R);
@@ -3780,21 +3731,21 @@ int CLinkbotT::build_gripper(conn_t conn, int face) {
 	// set geometry 1 - center box
     conn->geom[0] = dCreateBox(_space, _connector_depth, 4*_face_radius, _connector_height/2);
     dGeomSetBody(conn->geom[0], conn->body);
-    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -i*_face_radius - m.c[1], -m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[0], 0, -i*_face_radius, 0);
 
 	// set geometry 2 - center box
 	conn->geom[1] = dCreateBox(_space, 0.062, 0.04, _connector_depth);
 	dGeomSetBody(conn->geom[1], conn->body);
-	dGeomSetOffsetPosition(conn->geom[1], _connector_depth/2 - 0.062/2 - m.c[0],
-						   -i*3*_face_radius + i*0.02 - m.c[1],
-							i*_connector_height/4 - i*_connector_depth/2 - m.c[2]);
+	dGeomSetOffsetPosition(conn->geom[1], _connector_depth/2 - 0.062/2,
+						   -i*3*_face_radius + i*0.02,
+							i*_connector_height/4 - i*_connector_depth/2);
 
 	// set geometry 3 - center box
 	conn->geom[2] = dCreateBox(_space, 0.0344, 0.04, 0.007);
 	dGeomSetBody(conn->geom[2], conn->body);
-	dGeomSetOffsetPosition(conn->geom[2], _connector_depth/2 - 0.062 + 0.0344/2 - m.c[0],
-						   -i*3*_face_radius + i*0.02 - m.c[1],
-							i*_connector_height/4 - i*_connector_depth/2 - i*0.007/2 - m.c[2]);
+	dGeomSetOffsetPosition(conn->geom[2], _connector_depth/2 - 0.062 + 0.0344/2,
+						   -i*3*_face_radius + i*0.02,
+							i*_connector_height/4 - i*_connector_depth/2 - i*0.007/2);
 
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3827,11 +3778,6 @@ int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
     // set mass of body
     dMassSetBox(&m, 270, _omni_length, _omni_length, _connector_depth);
 
-    // adjust x,y,z to position center of mass correctly
-    p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-    p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-    p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
@@ -3840,7 +3786,6 @@ int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
     // set geometry 1 - box
     conn->geom[0] = dCreateBox(_space, _connector_depth, _omni_length, _omni_length);
     dGeomSetBody(conn->geom[0], conn->body);
-    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3874,12 +3819,7 @@ int CLinkbotT::build_simple(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0];
 
     // set mass of body
-    dMassSetBox(&m, 270, _connector_depth, 2*_face_radius, _connector_height);
-
-    // adjust x,y,z to position center of mass correctly
-    p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-    p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-    p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+	dMassSetBox(&m, 270, _connector_depth, 2*_face_radius, _connector_height);
 
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
@@ -3889,7 +3829,6 @@ int CLinkbotT::build_simple(conn_t conn, int face, int side, int type) {
     // set geometry 1 - box
     conn->geom[0] = dCreateBox(_space, _connector_depth, 2*_face_radius, _connector_height);
     dGeomSetBody(conn->geom[0], conn->body);
-    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3925,11 +3864,6 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
     // set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_smallwheel_radius, _wheel_depth/2);
 
-    // adjust x,y,z to position center of mass correctly
-    p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-    p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-    p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
@@ -3941,7 +3875,6 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
     // set geometry
     conn->geom[0] = dCreateCylinder(_space, _smallwheel_radius, _wheel_depth);
     dGeomSetBody(conn->geom[0], conn->body);
-    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
     dGeomSetOffsetRotation(conn->geom[0], R1);
 
     // set mass center to (0,0,0) of _bodyID
@@ -3978,11 +3911,6 @@ int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
     // set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_tinywheel_radius, _wheel_depth);
 
-    // adjust x,y,z to position center of mass correctly
-    p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-    p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-    p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
@@ -3994,7 +3922,6 @@ int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
     // set geometry
     conn->geom[0] = dCreateCylinder(_space, _tinywheel_radius, _wheel_depth);
     dGeomSetBody(conn->geom[0], conn->body);
-    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
     dGeomSetOffsetRotation(conn->geom[0], R1);
 
     // set mass center to (0,0,0) of _bodyID
@@ -4034,11 +3961,6 @@ int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int typ
     // set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_wheel_radius, _wheel_depth);
 
-    // adjust x,y,z to position center of mass correctly
-    p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-    p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-    p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
@@ -4050,7 +3972,6 @@ int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int typ
     // set geometry
     conn->geom[0] = dCreateCylinder(_space, _wheel_radius, _wheel_depth);
     dGeomSetBody(conn->geom[0], conn->body);
-    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
     dGeomSetOffsetRotation(conn->geom[0], R1);
 
     // set mass center to (0,0,0) of _bodyID
@@ -4241,7 +4162,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_angle[i] = 0;
 		if (i != disabled) { _enabled[j++] = i; }
 		_goal[i] = 0;
-		_max_force[i] = 2.5;
+		_max_force[i] = 0.2;
 		_max_speed[i] = 240;		// deg/sec
 		_offset[i] = 0;
 		_rec_active[i] = false;
