@@ -2782,6 +2782,16 @@ void CLinkbotT::simPreCollisionThread(void) {
 		int i = _enabled[j];
 		// store current angle
 		_angle[i] = getAngle(i);
+		// set rotation axis
+		dVector3 axis;
+		conn_t ctmp = _conn;
+		dJointGetHingeAxis(_joint[i], axis);
+		dBodySetFiniteRotationAxis(_body[i+1], axis[0], axis[1], axis[2]);
+		while (ctmp) {
+			if (ctmp->face == i+1)
+				dBodySetFiniteRotationAxis(ctmp->body, axis[0], axis[1], axis[2]);
+			ctmp = ctmp->next;
+		}
 		// set motor angle to current angle
 		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
 		// drive motor to get current angle to match future angle
@@ -3243,16 +3253,13 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 	_center[2] = 0;
 
     // joint for body to face 1
-    _joint[0] = dJointCreateHinge(_world, 0);
-    dJointAttach(_joint[0], _body[BODY], _body[FACE1]);
-    dJointSetHingeAnchor(_joint[0], R[0]*f1[3] + R[1]*f1[4] + R[2]*f1[5] + x,
+	_joint[0] = dJointCreateHinge(_world, 0);
+	dJointAttach(_joint[0], _body[BODY], _body[FACE1]);
+	dJointSetHingeAnchor(_joint[0], R[0]*f1[3] + R[1]*f1[4] + R[2]*f1[5] + x,
 									R[4]*f1[3] + R[5]*f1[4] + R[6]*f1[5] + y,
 									R[8]*f1[3] + R[9]*f1[4] + R[10]*f1[5] + z);
 	dJointSetHingeAxis(_joint[0], R[0], R[4], R[8]);
-	dBodySetFiniteRotationMode(_body[FACE1], 1);
-	dBodySetFiniteRotationAxis(_body[FACE1], R[0]*f1[3] + R[1]*f1[4] + R[2]*f1[5] + x,
-											 R[4]*f1[3] + R[5]*f1[4] + R[6]*f1[5] + y,
-											 R[8]*f1[3] + R[9]*f1[4] + R[10]*f1[5] + z);
+	dBodySetFiniteRotationAxis(_body[FACE1], R[0], R[4], R[8]);
 
     // joint for body to face 2
 	if (_disabled == 1) {
@@ -3261,16 +3268,13 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 		dJointSetFixed(joint);
 	}
 	else {
-    	_joint[1] = dJointCreateHinge(_world, 0);
-    	dJointAttach(_joint[1], _body[BODY], _body[FACE2]);
-    	dJointSetHingeAnchor(_joint[1], R[0]*f2[3] + R[1]*f2[4] + R[2]*f2[5] + x,
+		_joint[1] = dJointCreateHinge(_world, 0);
+		dJointAttach(_joint[1], _body[BODY], _body[FACE2]);
+		dJointSetHingeAnchor(_joint[1], R[0]*f2[3] + R[1]*f2[4] + R[2]*f2[5] + x,
 										R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y,
 										R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
-    	dJointSetHingeAxis(_joint[1], R[1], R[5], R[9]);
-		dBodySetFiniteRotationMode(_body[FACE2], 1);
-		dBodySetFiniteRotationAxis(_body[FACE2], R[0]*f2[3] + R[1]*f2[4] + R[2]*f2[5] + x,
-												 R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y,
-												 R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
+		dJointSetHingeAxis(_joint[1], R[1], R[5], R[9]);
+		dBodySetFiniteRotationAxis(_body[FACE2], R[1], R[5], R[9]);
 	}
 
     // joint for body to face 3
@@ -3280,16 +3284,13 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 		dJointSetFixed(joint);
 	}
 	else {
-    	_joint[2] = dJointCreateHinge(_world, 0);
-    	dJointAttach(_joint[2], _body[BODY], _body[FACE3]);
-    	dJointSetHingeAnchor(_joint[2], R[0]*f3[3] + R[1]*f3[4] + R[2]*f3[5] + x,
+		_joint[2] = dJointCreateHinge(_world, 0);
+		dJointAttach(_joint[2], _body[BODY], _body[FACE3]);
+		dJointSetHingeAnchor(_joint[2], R[0]*f3[3] + R[1]*f3[4] + R[2]*f3[5] + x,
 										R[4]*f3[3] + R[5]*f3[4] + R[6]*f3[5] + y,
 										R[8]*f3[3] + R[9]*f3[4] + R[10]*f3[5] + z);
-    	dJointSetHingeAxis(_joint[2], -R[0], -R[4], -R[8]);
-		dBodySetFiniteRotationMode(_body[FACE3], 1);
-		dBodySetFiniteRotationAxis(_body[FACE3], R[0]*f3[3] + R[1]*f3[4] + R[2]*f3[5] + x,
-												 R[4]*f3[3] + R[5]*f3[4] + R[6]*f3[5] + y,
-												 R[8]*f3[3] + R[9]*f3[4] + R[10]*f3[5] + z);
+		dJointSetHingeAxis(_joint[2], -R[0], -R[4], -R[8]);
+		dBodySetFiniteRotationAxis(_body[FACE3], -R[0], -R[4], -R[8]);
 	}
 
     // create rotation matrices for each body part
@@ -3404,6 +3405,7 @@ int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta
 	// set body parameters
 	dBodySetPosition(_body[BODY], x, y, z);
 	dBodySetRotation(_body[BODY], R);
+	dBodySetFiniteRotationMode(_body[BODY], 1);
 
 	// rotation matrix for curves
 	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
@@ -3448,6 +3450,7 @@ int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, doub
 	// set body parameters
 	dBodySetPosition(_body[id], x, y, z);
 	dBodySetRotation(_body[id], R);
+	dBodySetFiniteRotationMode(_body[id], 1);
 
 	// rotation matrix
 	if (id == 2)
@@ -3499,6 +3502,7 @@ int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
 
     // rotation matrix for curves
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
@@ -3552,6 +3556,7 @@ int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
 	// set body parameters
 	dBodySetPosition(conn->body, p[0], p[1], p[2]);
 	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
 
 	// set geometry 1 - center box
 	conn->geom[0] = dCreateBox(_space, _connector_depth, _bridge_length, _connector_height);
@@ -3605,6 +3610,7 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
 
     // rotation matrix for curves
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
@@ -3671,6 +3677,7 @@ int CLinkbotT::build_cube(conn_t conn, int face, int side, int type) {
 	// set body parameters
 	dBodySetPosition(conn->body, p[0], p[1], p[2]);
 	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
 
 	// set geometry 1 - center box
 	conn->geom[0] = dCreateBox(_space, _cubic_length, _cubic_length, _cubic_length);
@@ -3719,6 +3726,7 @@ int CLinkbotT::build_faceplate(conn_t conn, int face, int side, int type) {
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
 
     // set geometry 1 - box
     conn->geom[0] = dCreateBox(_space, _connector_depth, _body_height, _body_height);
@@ -3767,6 +3775,7 @@ int CLinkbotT::build_gripper(conn_t conn, int face) {
 	// set body parameters
 	dBodySetPosition(conn->body, p[0], p[1], p[2]);
 	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
 
 	// set geometry 1 - center box
     conn->geom[0] = dCreateBox(_space, _connector_depth, 4*_face_radius, _connector_height/2);
@@ -3826,6 +3835,7 @@ int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
 
     // set geometry 1 - box
     conn->geom[0] = dCreateBox(_space, _connector_depth, _omni_length, _omni_length);
@@ -3874,6 +3884,7 @@ int CLinkbotT::build_simple(conn_t conn, int face, int side, int type) {
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
 
     // set geometry 1 - box
     conn->geom[0] = dCreateBox(_space, _connector_depth, 2*_face_radius, _connector_height);
@@ -3922,6 +3933,7 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
 
     // rotation matrix for curves
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
@@ -3974,6 +3986,7 @@ int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
 
     // rotation matrix for curves
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
@@ -4029,6 +4042,7 @@ int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int typ
     // set body parameters
     dBodySetPosition(conn->body, p[0], p[1], p[2]);
     dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
 
     // rotation matrix for curves
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
