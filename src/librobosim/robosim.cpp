@@ -1119,8 +1119,6 @@ void* RoboSim::simulation_thread(void *arg) {
 			sim->_clock += sim->_step;
 			dJointGroupEmpty(sim->_group);
 
-			//sim->print_intermediate_data();
-
 			// perform post-collision updates
 			rtmp = sim->_robots;
 			while (rtmp) {
@@ -1230,38 +1228,6 @@ void RoboSim::collision(void *data, dGeomID o1, dGeomID o2) {
 			dJointAttach( dJointCreateContact(ptr->_world, ptr->_group, contact + i), b1, b2);
 		}
 	}
-}
-
-void RoboSim::print_intermediate_data(void) {
-    cout.width(10);
-    cout.setf(ios::fixed, ios::floatfield);
-	cout << _clock << "\t\t";
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		if (rtmp->robot->getType() == MOBOT) {
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT1)) << " ";
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT2)) << " ";
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT3)) << " ";
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT4)) << "\t\t";
-		}
-		else if (rtmp->robot->getType() == LINKBOTI) {
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT1)) << " ";
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT2)) << " ";
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT3)) << "\t";
-		}
-		else if (rtmp->robot->getType() == LINKBOTL) {
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT1)) << " ";
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT2)) << " ";
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT3)) << " ";
-		}
-		else if (rtmp->robot->getType() == LINKBOTT) {
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT1)) << " ";
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT2)) << " ";
-			//cout << RAD2DEG(rtmp->robot->getAngle(ROBOT_JOINT3)) << " ";
-		}
-		rtmp = rtmp->next;
-	}
-	cout << endl;
 }
 
 #ifdef ENABLE_GRAPHICS

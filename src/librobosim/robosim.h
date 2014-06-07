@@ -70,7 +70,6 @@ class DLLIMPORT RoboSim {
 		int init_xml(char *name);									// init function to read xml config file
 		static void collision(void *data, dGeomID o1, dGeomID o2);	// wrapper function for nearCallback to work in class
 		static void* simulation_thread(void *arg);					// simulation thread function
-		void print_intermediate_data(void);							// print data out at each time step for analysis
 
 #ifdef ENABLE_GRAPHICS
 		// variables
