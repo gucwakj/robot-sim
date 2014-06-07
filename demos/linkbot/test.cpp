@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
 
 	//robot.setTwoWheelRobotSpeed(5, 1.75);
 	robot.setJointSpeeds(240, 0, 240);
-	robot.moveTo(179, 0, -179);
+	robot.moveDistance(6, 1.75);
 
 	return 0;
 }
