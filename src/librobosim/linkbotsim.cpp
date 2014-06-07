@@ -2444,9 +2444,11 @@ int CLinkbotT::traceOff(void) {
 }
 
 int CLinkbotT::traceOn(void) {
+#ifdef ENABLE_GRAPHICS
 	// show trace
 	osg::Geode *trace = dynamic_cast<osg::Geode *>(_robot->getChild(1));
 	trace->setNodeMask(VISIBLE_MASK);
+#endif // ENABLE_GRAPHICS
 
 	// set trace on
 	_trace = 1;

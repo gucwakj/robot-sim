@@ -854,6 +854,7 @@ int RoboSim::addRobot(CRobot *robot) {
 }
 
 int RoboSim::deleteRobot(CRobot *robot) {
+#ifdef ENABLE_GRAPHICS
 	// pause simulation to view results only on first delete
 	MUTEX_LOCK(&(_pause_mutex));
 	static int paused = 0;
@@ -879,6 +880,7 @@ int RoboSim::deleteRobot(CRobot *robot) {
 		MUTEX_UNLOCK(&(_pause_mutex));
 	}
 	MUTEX_UNLOCK(&(_pause_mutex));
+#endif // ENABLE_GRAPHICS
 
 	// lock robot data to delete
 	MUTEX_LOCK(&_robot_mutex);
@@ -1737,7 +1739,7 @@ void* RoboSim::graphics_thread(void *arg) {
 		MUTEX_UNLOCK(&(sim->_viewer_mutex));
 
 		viewer->frame();
-		if (sim->_staging) {
+		if (sim->_staging->getNumChildren()) {
 			sim->_shadowed->addChild(sim->_staging->getChild(0));
 			sim->_staging->removeChild(0, 1);
 		}

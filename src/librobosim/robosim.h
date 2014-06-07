@@ -54,9 +54,10 @@ class DLLIMPORT RoboSim {
 		double _mu[2];				// coefficient of friction [body/ground, body/body]
 		double _step;				// time of each step of simulation
 		int _pause;					// is the simulation paused
-		int _running;				// is the program running
 		int _preconfig;				// preconfigured robot shape or not
 		int _rt;					// whether to run at real time speeds
+		int _running;				// is the program running
+		int _us;					// us customary units
 		COND_T _running_cond;		// condition for actively running program
 		MUTEX_T _pause_mutex;		// mutex for paused simulation
 		MUTEX_T _robot_mutex;		// mutex for ground collisions
@@ -75,7 +76,6 @@ class DLLIMPORT RoboSim {
 		// variables
 		double _grid[6];							// grid spacing (tics, major, total)
 		int _ending;								// temp variable for deleting robots
-		int _us;									// us customary units
 		int _graphics;								// flag for graphics
 		int _viewer;								// flag for viewer
 		osgShadow::ShadowedScene *_shadowed;		// root node to hold graphics

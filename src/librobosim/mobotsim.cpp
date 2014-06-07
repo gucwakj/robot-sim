@@ -2524,9 +2524,11 @@ int CMobot::traceOff(void) {
 }
 
 int CMobot::traceOn(void) {
+#ifdef ENABLE_GRAPHICS
 	// show trace
 	osg::Geode *trace = dynamic_cast<osg::Geode *>(_robot->getChild(1));
 	trace->setNodeMask(VISIBLE_MASK);
+#endif // ENABLE_GRAPHICS
 
 	// set trace on
 	_trace = 1;
@@ -2931,7 +2933,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	dQuaternion quat;
 	osg::Box *box;
 	osg::Cylinder *cyl;
-	for ( int i = 0; i < 5; i++) {
+	for (int i = 0; i < 5; i++) {
 		body[i] = new osg::Geode;
 	}
 
@@ -3134,7 +3136,8 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	_robot->setUpdateCallback(new mobotNodeCallback(this, _simObject->getUnits()));
 
 	// set shadow mask
-	_robot->setNodeMask(CASTS_SHADOW_MASK);
+	//robot->setNodeMask(CASTS_SHADOW_MASK);
+	//robot->setNodeMask(IS_PICKABLE_MASK);
 
 	// draw HUD
 	osgText::Text *label = new osgText::Text();
@@ -3187,6 +3190,8 @@ int CMobot::draw(osg::Group *root, int tracking) {
 
 	// add to scenegraph
 	root->addChild(_robot);
+
+	// return position of robot in root node
 	return (root->getChildIndex(_robot));
 }
 #endif // ENABLE_GRAPHICS
@@ -4257,6 +4262,7 @@ int CMobot::init_params(void) {
 	// create arrays for mobots
 	_angle = new double[NUM_DOF];
 	_body = new dBodyID[NUM_PARTS];
+	_enabled = new int[2];
 	_geom = new dGeomID * [NUM_PARTS];
 	_goal = new double[NUM_DOF];
 	_joint = new dJointID[6];
@@ -4296,6 +4302,9 @@ int CMobot::init_params(void) {
 	_max_force[ROBOT_JOINT3] = 1.059;
 	_max_force[ROBOT_JOINT4] = 0.260;
 	_motion = false;
+	_rgb[0] = 0;
+	_rgb[1] = 0;
+	_rgb[2] = 1;
 	_safety_angle = 10;
 	_safety_timeout = 4;
 	_shift_data = 0;

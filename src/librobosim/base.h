@@ -23,8 +23,8 @@
 #include <cstring>
 #include <cstdarg>
 #include <ctime>
-#ifdef ENABLE_GRAPHICS
 #include "rgbhashtable.h"
+#ifdef ENABLE_GRAPHICS
 #include <osg/Group>
 #include <osg/ShapeDrawable>
 #include "graphics.h"
