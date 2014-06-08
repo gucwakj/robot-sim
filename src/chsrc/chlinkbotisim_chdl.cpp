@@ -637,7 +637,7 @@ EXPORTCH int CLinkbotI_motionRollForwardNB_chdl(void *varg) {
     class CLinkbotI *robot;
     double angle;
     int retval;
-    
+
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotI *);
     angle = Ch_VaArg(interp, ap, double);
@@ -3335,7 +3335,7 @@ EXPORTCH int CLIG_motionRollForwardNB_chdl(void *varg) {
     class CLinkbotIGroup *robot;
     double angle;
     int retval;
-    
+
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
     angle = Ch_VaArg(interp, ap, double);

@@ -744,7 +744,7 @@ EXPORTCH int CMobot_motionRollForwardNB_chdl(void *varg) {
     class CMobot *robot;
     double angle;
     int retval;
-    
+
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CMobot *);
     angle = Ch_VaArg(interp, ap, double);
@@ -3497,7 +3497,7 @@ EXPORTCH int CMG_motionRollForwardNB_chdl(void *varg) {
     class CMobotGroup *group;
     double angle;
     int retval;
-    
+
     Ch_VaStart(interp, ap, varg);
     group = Ch_VaArg(interp, ap, class CMobotGroup *);
     angle = Ch_VaArg(interp, ap, double);
@@ -3526,7 +3526,7 @@ EXPORTCH int CMG_motionSkinnyNB_chdl(void *varg) {
     class CMobotGroup *group;
     double angle;
     int retval;
-    
+
     Ch_VaStart(interp, ap, varg);
     group = Ch_VaArg(interp, ap, class CMobotGroup *);
     angle = Ch_VaArg(interp, ap, double);

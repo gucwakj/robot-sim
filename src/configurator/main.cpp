@@ -41,7 +41,7 @@ typedef struct robots_s {
 	struct robots_s *next;
 } *robots_t;
 
-GtkBuilder *g_builder; 
+GtkBuilder *g_builder;
 GtkWidget *g_window;
 robots_t g_robots = NULL;
 tinyxml2::XMLDocument g_doc;
@@ -720,7 +720,7 @@ G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data) {
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), miny);
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), maxy);
 		}
-			
+
 		// set configuration options
 		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
 		grid->SetAttribute("units", 1);
@@ -781,7 +781,7 @@ G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data) {
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), miny);
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), maxy);
 		}
-			
+
 		// set configuration options
 		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
 		grid->SetAttribute("units", 0);
@@ -957,7 +957,7 @@ G_MODULE_EXPORT void on_bow_toggled(GtkWidget *widget, gpointer data) {
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
-		
+
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/bow.jpg", NULL);
@@ -1059,7 +1059,7 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
-		
+
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/explorer.jpg", NULL);
@@ -1254,7 +1254,7 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
-		
+
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/fourbotdrive.jpg", NULL);
@@ -1415,7 +1415,7 @@ G_MODULE_EXPORT void on_fourwheeldrive_toggled(GtkWidget *widget, gpointer data)
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
-		
+
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/fourwheeldrive.jpg", NULL);
@@ -1556,7 +1556,7 @@ G_MODULE_EXPORT void on_fourwheelexplorer_toggled(GtkWidget *widget, gpointer da
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
-		
+
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/fourwheelexplorer.jpg", NULL);
@@ -1777,7 +1777,7 @@ G_MODULE_EXPORT void on_groupbow_toggled(GtkWidget *widget, gpointer data) {
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
-		
+
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/groupbow.jpg", NULL);
@@ -1935,7 +1935,7 @@ G_MODULE_EXPORT void on_inchworm_toggled(GtkWidget *widget, gpointer data) {
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
-		
+
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/inchworm.jpg", NULL);
@@ -2037,7 +2037,7 @@ G_MODULE_EXPORT void on_lift_toggled(GtkWidget *widget, gpointer data) {
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
-		
+
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/lift.jpg", NULL);
@@ -2190,7 +2190,7 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
-		
+
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/omnidrive.jpg", NULL);
@@ -2352,7 +2352,7 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
-		
+
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/snake.jpg", NULL);
@@ -2534,7 +2534,7 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
-		
+
 		// change image
 		GtkImage *image = GTK_IMAGE(gtk_builder_get_object(g_builder, "image_shapes"));
 		GdkPixbuf *original = gdk_pixbuf_new_from_file("images/stand.jpg", NULL);
@@ -2591,13 +2591,13 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
 		b1side2->SetAttribute("face", 1);
 		bridge1->InsertAfterChild(b1side1, b1side2);
 
-		// insert faceplate 
+		// insert faceplate
 		tinyxml2::XMLElement *faceplate1 = g_doc.NewElement("faceplate");
 		sim->InsertAfterChild(bridge1, faceplate1);
 		faceplate1->SetAttribute("robot", 0);
 		faceplate1->SetAttribute("face", 2);
 
-		// insert faceplate 
+		// insert faceplate
 		tinyxml2::XMLElement *faceplate2 = g_doc.NewElement("faceplate");
 		sim->InsertAfterChild(faceplate1, faceplate2);
 		faceplate2->SetAttribute("robot", 1);
@@ -3359,7 +3359,7 @@ void saveRobotList(int force) {
 				sim->InsertAfterChild(simple2, caster);
 			}
 			else if (tmp->type == 3 && tmp->wheel) {
-				tinyxml2::XMLElement 	*wheel1 = g_doc.NewElement("smallwheel"),
+				tinyxml2::XMLElement	*wheel1 = g_doc.NewElement("smallwheel"),
 										*wheel2 = g_doc.NewElement("smallwheel"),
 										*caster = g_doc.NewElement("caster");
 				wheel1->SetAttribute("robot", tmp->id);

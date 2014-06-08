@@ -39,22 +39,22 @@ chlinkbotlsim_chdl.o: chlinkbotlsim_chdl.cpp $(HEADERS)
 chlinkbottsim_chdl.o: chlinkbottsim_chdl.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus chlinkbottsim_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-robosim.o: $(SRC)/robosim.cpp $(HEADERS) 
+robosim.o: $(SRC)/robosim.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/robosim.cpp $(CPPFLAGS) $(INCLUDES)
 
 base.o: $(SRC)/base.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/base.cpp $(CPPFLAGS) $(INCLUDES)
 
-mobotsim.o: $(SRC)/mobotsim.cpp $(HEADERS) 
+mobotsim.o: $(SRC)/mobotsim.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
-mobotgroupsim.o: $(SRC)/mobotgroupsim.cpp $(HEADERS) 
+mobotgroupsim.o: $(SRC)/mobotgroupsim.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotgroupsim.cpp $(CPPFLAGS) $(INCLUDES)
 
-linkbotsim.o: $(SRC)/linkbotsim.cpp $(HEADERS) 
+linkbotsim.o: $(SRC)/linkbotsim.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbotsim.cpp $(CPPFLAGS) $(INCLUDES)
 
-linkbotgroupsim.o: $(SRC)/linkbotgroupsim.cpp $(HEADERS) 
+linkbotgroupsim.o: $(SRC)/linkbotgroupsim.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbotgroupsim.cpp $(CPPFLAGS) $(INCLUDES)
 
 graphics.o: $(SRC)/graphics.cpp $(HEADERS)
