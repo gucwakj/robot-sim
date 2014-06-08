@@ -18,7 +18,7 @@ set(CMAKE_VERBOSE_MAKEFILE off)
 set(CMAKE_BUILD_TYPE "Release")
 
 # Set developer warnings
-set(CMAKE_CXX_FLAGS "-Wall")
+set(CMAKE_CXX_FLAGS "-Wall -fstack-protector-all")
 
 # Set up a configure file
 configure_file (

@@ -3139,7 +3139,7 @@ int CLinkbotT::add_connector(int type, int face, double size) {
 	}
 
 	if (type == GRIPPER) {
-		conn_t nc2 = (conn_t)malloc(sizeof(struct conn_s));
+		conn_t nc2 = new struct conn_s;
 		nc2->face = 3;
 		nc2->type = GRIPPER;
 		nc2->next = NULL;

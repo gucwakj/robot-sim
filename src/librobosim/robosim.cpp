@@ -1193,6 +1193,10 @@ void* RoboSim::simulation_thread(void *arg) {
 	// unlock running variable
 	MUTEX_UNLOCK(&(sim->_running_mutex));
 
+	// cleanup
+	delete [] dt;
+
+	// end
 	return NULL;
 }
 

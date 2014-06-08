@@ -3,6 +3,7 @@
 CMobot::CMobot(void) {
 	// initialize parameters
 	init_params();
+
 	// initialize dimensions
 	init_dims();
 }
@@ -29,6 +30,11 @@ int CMobot::connect(char *name, int pause) {
 	// create simulation object if necessary
 	if (!_simObject)
 		_simObject = new RoboSim(name, pause);
+
+	// set initial 'led' color
+	_rgb[0] = 0;
+	_rgb[1] = 1;
+	_rgb[2] = 0;
 
 	// add to simulation
 	_simObject->addRobot(this);
@@ -2859,6 +2865,15 @@ void CMobot::simPreCollisionThread(void) {
 	MUTEX_LOCK(&_goal_mutex);
 	MUTEX_LOCK(&_angle_mutex);
 
+	// get body rotation from world
+	const double *R = dBodyGetRotation(_body[CENTER]);
+	// put into accel array
+	_accel[0] = R[8];
+	_accel[1] = R[9];
+	_accel[2] = R[10];
+	// add gaussian noise to accel
+	this->noisy(_accel, 3, 0.005);
+
 	// update angle values for each degree of freedom
 	for (int i = 0; i < NUM_DOF; i++) {
 		// store current angle
@@ -2934,38 +2949,38 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	}
 
 	// left endcap
-	pos = dGeomGetOffsetPosition(_geom[0][0]);
-	dGeomGetOffsetQuaternion(_geom[0][0], quat);
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][0]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][0], quat);
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_depth, _end_width - 2*_end_radius, _end_height);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[0]->addDrawable(new osg::ShapeDrawable(box));
-	pos = dGeomGetOffsetPosition(_geom[0][1]);
-	dGeomGetOffsetQuaternion(_geom[0][1], quat);
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][1]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][1], quat);
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_depth, _end_radius, _end_height - 2*_end_radius);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[0]->addDrawable(new osg::ShapeDrawable(box));
-	pos = dGeomGetOffsetPosition(_geom[0][2]);
-	dGeomGetOffsetQuaternion(_geom[0][2], quat);
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][2]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][2], quat);
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_depth, _end_radius, _end_height - 2*_end_radius);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[0]->addDrawable(new osg::ShapeDrawable(box));
-	pos = dGeomGetOffsetPosition(_geom[0][3]);
-	dGeomGetOffsetQuaternion(_geom[0][3], quat);
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][3]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][3], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
-	pos = dGeomGetOffsetPosition(_geom[0][4]);
-	dGeomGetOffsetQuaternion(_geom[0][4], quat);
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][4]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][4], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
-	pos = dGeomGetOffsetPosition(_geom[0][5]);
-	dGeomGetOffsetQuaternion(_geom[0][5], quat);
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][5]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][5], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
-	pos = dGeomGetOffsetPosition(_geom[0][6]);
-	dGeomGetOffsetQuaternion(_geom[0][6], quat);
+	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][6]);
+	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][6], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
@@ -3020,6 +3035,13 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_end_depth, _body_width, _body_height);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[BODY_R]->addDrawable(new osg::ShapeDrawable(box));
+	{ // 'led'
+		cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]+0.0001), 0.01, _body_height);
+		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+		_led = new osg::ShapeDrawable(cyl);
+		body[BODY_R]->addDrawable(_led);
+		_led->setColor(osg::Vec4(0, 1, 0, 1));
+	}
 	pos = dGeomGetOffsetPosition(_geom[BODY_R][1]);
 	dGeomGetOffsetQuaternion(_geom[BODY_R][1], quat);
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_length, _body_inner_width_left, _body_height);
@@ -3197,7 +3219,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
  **********************************************************/
 int CMobot::add_connector(int type, int face, double size) {
 	// create new connector
-	conn_t nc = (conn_t)malloc(sizeof(struct conn_s));
+	conn_t nc = new struct conn_s;
 	nc->face = face;
 	nc->type = type;
 	nc->next = NULL;
