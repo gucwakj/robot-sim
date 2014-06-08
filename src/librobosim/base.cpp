@@ -103,7 +103,7 @@ int CRobot::noisy(double *a, int length, double sigma) {
 			sum += (a[i] + rand[i]) * (a[i] + rand[i]);
 		}
 		double mag = sqrt(sum);
-	
+
 		// normalize vector
 		for (int i = 0; i < length; i++) {
 			a[i] = (a[i] + rand[i])/mag;

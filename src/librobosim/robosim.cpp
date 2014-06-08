@@ -1055,7 +1055,7 @@ int RoboSim::text(double x, double y, double z, char *text) {
 	Private functions
  **********************************************************/
 void* RoboSim::simulation_thread(void *arg) {
-	// cast to type sim 
+	// cast to type sim
 	RoboSim *sim = (RoboSim *)arg;
 
 	// initialize local variables

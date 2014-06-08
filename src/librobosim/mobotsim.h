@@ -135,9 +135,9 @@ class DLLIMPORT CMobot : virtual public CRobot {
 							 robotRecordData_t &time,
 							 robotRecordData_t &angle, double seconds, ...);
 		int recordAngles(double time[:],
-						 double angle1[:],				
+						 double angle1[:],
 						 double angle2[:],
-						 double angle3[:], 
+						 double angle3[:],
 						 double angle4[:], int num, double seconds, ...);
 		int recordAnglesBegin(robotRecordData_t &time,
 							  robotRecordData_t &angle1,

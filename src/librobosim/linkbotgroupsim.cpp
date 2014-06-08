@@ -269,7 +269,7 @@ int CLinkbotTGroup::moveNB(double angle1, double angle2, double angle3) {
 
 	// success
 	return 0;
-} 
+}
 
 int CLinkbotTGroup::moveBackward(double angle) {
 	moveBackwardNB(angle);

@@ -176,7 +176,7 @@ int CMobot::getJointAngleAverage(robotJointId_t id, double &angle, int numReadin
 	//initialize variables
 	double d;
 	angle = 0;
-	
+
 	// get joint angle numReadings times
 	for (int i = 0; i < numReadings; i++) {
 		if(this->getJointAngle(id, d)) {
@@ -2718,7 +2718,7 @@ int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
 			p[0] = pos[0] + R1[0]*offset[0];
 			p[1] = pos[1] + R1[4]*offset[0];
 			p[2] = pos[2] + R1[8]*offset[0];
-    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI);
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI);
 			dMultiply0(R, R2, R1, 3, 3, 3);
 			break;
 		case 2: case 5:
@@ -2730,7 +2730,7 @@ int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
 			p[0] = pos[0] + R1[0]*offset[0] + R1[1]*offset[1];
 			p[1] = pos[1] + R1[4]*offset[0] + R1[5]*offset[1];
 			p[2] = pos[2] + R1[8]*offset[0] + R1[9]*offset[1];
-    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
 			dMultiply0(R, R2, R1, 3, 3, 3);
 			break;
 		case 3: case 6:
@@ -2741,7 +2741,7 @@ int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
 			p[0] = pos[0] + R1[1]*offset[1];
 			p[1] = pos[1] + R1[5]*offset[1];
 			p[2] = pos[2] + R1[9]*offset[1];
-    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
 			dMultiply0(R, R2, R1, 3, 3, 3);
 			break;
 		case 4: case 7:
@@ -2753,7 +2753,7 @@ int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
 			p[0] = pos[0] + R1[0]*offset[0] + R1[1]*offset[1];
 			p[1] = pos[1] + R1[4]*offset[0] + R1[5]*offset[1];
 			p[2] = pos[2] + R1[8]*offset[0] + R1[9]*offset[1];
-    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
 			dMultiply0(R, R2, R1, 3, 3, 3);
 			break;
 		case 8:
@@ -2763,7 +2763,7 @@ int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
 			p[0] = pos[0] + R1[0]*offset[0];
 			p[1] = pos[1] + R1[4]*offset[0];
 			p[2] = pos[2] + R1[8]*offset[0];
-    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], 0);
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], 0);
 			dMultiply0(R, R2, R1, 3, 3, 3);
 			break;
 	}
@@ -2793,10 +2793,6 @@ dBodyID CMobot::getConnectorBodyIDs(int num) {
 	}
 	return NULL;
 }
-
-/*int CMobot::getEnc(int id) {
-	
-}*/
 
 int CMobot::getRobotID(void) {
 	return _id;
@@ -2973,8 +2969,8 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
-    
-    // left body 
+
+	// left body
 	pos = dGeomGetOffsetPosition(_geom[BODY_L][0]);
 	dGeomGetOffsetQuaternion(_geom[BODY_L][0], quat);
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_end_depth, _body_width, _body_height);
@@ -3018,7 +3014,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[CENTER]->addDrawable(new osg::ShapeDrawable(cyl));
 
-    // right body 
+    // right body
 	pos = dGeomGetOffsetPosition(_geom[BODY_R][0]);
 	dGeomGetOffsetQuaternion(_geom[BODY_R][0], quat);
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_end_depth, _body_width, _body_height);
@@ -3256,9 +3252,9 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 
     // adjust input height by body height
 	if (z < _end_height/2) {
-    	x += R[2]*_end_height/2;
-    	y += R[6]*_end_height/2;
-    	z += R[10]*_end_height/2;
+		x += R[2]*_end_height/2;
+		y += R[6]*_end_height/2;
+		z += R[10]*_end_height/2;
 	}
 
     // convert input angles to radians
@@ -3297,7 +3293,7 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
     // joint for center to left body 1
     _joint[1] = dJointCreateHinge(_world, 0);
     dJointAttach(_joint[1], _body[CENTER], _body[BODY_L]);
-    dJointSetHingeAnchor(_joint[1], R[0]*lb[3] + R[1]*(_center_offset+lb[4]) + R[2]*lb[5] + x, 
+    dJointSetHingeAnchor(_joint[1], R[0]*lb[3] + R[1]*(_center_offset+lb[4]) + R[2]*lb[5] + x,
 									R[4]*lb[3] + R[5]*(_center_offset+lb[4]) + R[6]*lb[5] + y,
 									R[8]*lb[3] + R[9]*(_center_offset+lb[4]) + R[10]*lb[5] + z);
     dJointSetHingeAxis(_joint[1], -R[1], -R[5], -R[9]);
@@ -3347,17 +3343,16 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 
 	// if bodies are rotated, then redraw
 	if (_angle[LE] != 0 || _angle[LB] != 0 ||_angle[RB] != 0 || _angle[RE] != 0 ) {
-    	// offset values from center of robot
-    	double le_r[3] = {-_body_radius - (_body_length + _body_end_depth + _end_depth/2)*cos(_angle[LB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_angle[LB])};
-    	double lb_r[3] = {-_body_radius - (_body_length + _body_end_depth/2)*cos(_angle[LB]), 0, (_body_length + _body_end_depth/2)*sin(_angle[LB])};
-    	double rb_r[3] = {_body_radius + (_body_length + _body_end_depth/2)*cos(_angle[RB]), 0, (_body_length + _body_end_depth/2)*sin(_angle[RB])};
-    	double re_r[3] = {_body_radius + (_body_length + _body_end_depth + _end_depth/2)*cos(_angle[RB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_angle[RB])};
-
-    	// re-build pieces of module
-    	this->build_endcap(ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le);
-    	this->build_body(BODY_L, R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb);
-    	this->build_body(BODY_R, R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb);
-    	this->build_endcap(ENDCAP_R, R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re);
+		// offset values from center of robot
+		double le_r[3] = {-_body_radius - (_body_length + _body_end_depth + _end_depth/2)*cos(_angle[LB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_angle[LB])};
+		double lb_r[3] = {-_body_radius - (_body_length + _body_end_depth/2)*cos(_angle[LB]), 0, (_body_length + _body_end_depth/2)*sin(_angle[LB])};
+		double rb_r[3] = {_body_radius + (_body_length + _body_end_depth/2)*cos(_angle[RB]), 0, (_body_length + _body_end_depth/2)*sin(_angle[RB])};
+		double re_r[3] = {_body_radius + (_body_length + _body_end_depth + _end_depth/2)*cos(_angle[RB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_angle[RB])};
+		// re-build pieces of module
+		this->build_endcap(ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le);
+		this->build_body(BODY_L, R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb);
+		this->build_body(BODY_R, R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb);
+		this->build_endcap(ENDCAP_R, R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re);
 	}
 
     // motor for left endcap to body
@@ -3456,8 +3451,8 @@ int CMobot::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 		case 3: case 6:
 			i = (conn->face2 == 3) ? -1 : 1;
 			// rotation matrix
-    		dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI/2);
-        	dMultiply0(R6, R1, R, 3, 3, 3);
+			dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI/2);
+			dMultiply0(R6, R1, R, 3, 3, 3);
 			// center offset
 			offset[0] = _body_width/2;
 			break;
@@ -4504,7 +4499,7 @@ void CMobot::draw_caster(conn_t conn, osg::Group *robot) {
 	dGeomGetOffsetQuaternion(conn->geom[9], quat);
 	sph = new osg::Sphere(osg::Vec3d(pos[0], pos[1], pos[2]), 0.0095);
 	body->addDrawable(new osg::ShapeDrawable(sph));
-    
+
 	// apply texture
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(mobot/conn.png)));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);

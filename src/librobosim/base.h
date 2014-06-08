@@ -277,7 +277,7 @@ class DLLIMPORT CRobot {
 				_tank_height, _tank_depth,
 				// linkbot
 				_bridge_length, _cubic_length, _omni_length, _tinywheel_radius;
-		int _connected; 		// connected to controller
+		int _connected;			// connected to controller
 		int _disabled;			// which joint is disabled
 		int *_enabled;			// list of enabled motors
 		int _id;				// robot id

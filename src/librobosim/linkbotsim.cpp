@@ -45,7 +45,6 @@ int CLinkbotT::blinkLED(double delay, int num) {
 	usleep(delay*1000);
 #endif
 	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
-		
 #endif // ENABLE_GRAPHICS
 	// success
 	return 0;
@@ -255,7 +254,7 @@ int CLinkbotT::getJointAngleAverage(robotJointId_t id, double &angle, int numRea
 	//initialize variables
 	double d;
 	angle = 0;
-	
+
 	// get joint angle numReadings times
 	for (int i = 0; i < numReadings; i++) {
 		if (this->getJointAngle(id, d)) {
@@ -2658,11 +2657,11 @@ int CLinkbotT::getConnectionParams(int face, dMatrix3 R, double *p) {
 	switch (face) {
 		case 1:
 			offset[0] = -_face_depth/2;
-    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], M_PI);
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], M_PI);
 			break;
 		case 2:
 			offset[1] = -_face_depth/2;
-    		dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], -M_PI/2);
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], -M_PI/2);
 			break;
 		case 3:
 			offset[0] = _face_depth/2;
@@ -2961,7 +2960,7 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
     body[3]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
     body[4]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
 	if (_disabled > 0) {
-    	body[_disabled+1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
+		body[_disabled+1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
 	}
 
 	// set rendering properties
@@ -3141,8 +3140,8 @@ int CLinkbotT::add_connector(int type, int face, double size) {
 
 	if (type == GRIPPER) {
 		conn_t nc2 = (conn_t)malloc(sizeof(struct conn_s));
-		nc2->face = 3; 
-		nc2->type = GRIPPER; 
+		nc2->face = 3;
+		nc2->type = GRIPPER;
 		nc2->next = NULL;
 
 		// add to list of connectors
@@ -4464,7 +4463,7 @@ void CLinkbotT::draw_caster(conn_t conn, osg::Group *robot) {
 	dGeomGetOffsetQuaternion(conn->geom[3], quat);
 	sph = new osg::Sphere(osg::Vec3d(pos[0], pos[1], pos[2]), 0.006);
 	body->addDrawable(new osg::ShapeDrawable(sph));
-    
+
 	// apply texture
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);

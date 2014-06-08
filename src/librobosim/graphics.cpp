@@ -22,7 +22,7 @@ bool MoveEarthySkyWithEyePointTransform::computeLocalToWorldMatrix(osg::Matrix &
 bool MoveEarthySkyWithEyePointTransform::computeWorldToLocalMatrix(osg::Matrix &matrix,osg::NodeVisitor *nv) const {
 	osgUtil::CullVisitor *cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
 	if (cv) {
-  		osg::Vec3 eyePointLocal = cv->getEyeLocal();
+		osg::Vec3 eyePointLocal = cv->getEyeLocal();
 		matrix.postMultTranslate(-eyePointLocal);
 	}
 	return true;
@@ -119,7 +119,7 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 					else
 						_text->setText("");
 					return true;
-			} 
+			}
 		default:
 			return false;
 	}

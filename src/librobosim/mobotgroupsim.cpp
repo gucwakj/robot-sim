@@ -409,7 +409,7 @@ int CMobotGroup::moveNB(double angle1, double angle2, double angle3, double angl
 
 	// success
 	return 0;
-} 
+}
 
 int CMobotGroup::moveBackward(double angle) {
 	moveBackwardNB(angle);
