@@ -109,7 +109,7 @@ int RoboSim::init_ode(void) {
 
 int RoboSim::init_sim(int pause) {
 	// default collision parameters
-	_mu[0] = 0.9;	_mu[1] = 0.3;
+	_mu[0] = 0.9;	_mu[1] = 0.6;
 	_cor[0] = 0.3;	_cor[1] = 0.3;
 
 	// thread variables
