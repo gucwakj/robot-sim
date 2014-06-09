@@ -798,6 +798,19 @@ Harry H. Cheng</property>
                               </packing>
                             </child>
                             <child>
+                              <object class="GtkCheckButton" id="fourwheelexplorer">
+                                <property name="label" translatable="yes">fourwheelexplorer.ch</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="draw_indicator">True</property>
+                                <signal name="toggled" handler="on_fourwheelexplorer_toggled"/>
+                              </object>
+                              <packing>
+                                <property name="position">4</property>
+                              </packing>
+                            </child>
+                            <child>
                               <object class="GtkCheckButton" id="groupbow">
                                 <property name="label" translatable="yes">groupbow.ch</property>
                                 <property name="visible">True</property>
@@ -808,7 +821,7 @@ Harry H. Cheng</property>
                                 <signal name="toggled" handler="on_groupbow_toggled"/>
                               </object>
                               <packing>
-                                <property name="position">4</property>
+                                <property name="position">5</property>
                               </packing>
                             </child>
                           </object>
