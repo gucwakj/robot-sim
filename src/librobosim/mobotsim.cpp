@@ -2613,14 +2613,17 @@ int CMobot::build(xml_robot_t robot) {
 	while (ctmp) {
 		if (ctmp->type == BIGWHEEL) {
 			robot->z += (_bigwheel_radius - _end_height/2);
+			_radius = _bigwheel_radius;
 			break;
 		}
 		else if (ctmp->type == SMALLWHEEL) {
 			robot->z += (_smallwheel_radius - _end_height/2);
+			_radius = _smallwheel_radius;
 			break;
 		}
 		else if (ctmp->conn == WHEEL) {
 			robot->z += (ctmp->size - _body_height/2);
+			_radius = ctmp->size;
 			if (fabs(robot->z) > (_body_radius-EPSILON)) {robot->z += _body_height/2; }
 			break;
 		}
@@ -2633,9 +2636,8 @@ int CMobot::build(xml_robot_t robot) {
 	// add connectors
 	ctmp = robot->conn;
 	while (ctmp) {
-		if ( ctmp->robot == _id ) {
+		if ( ctmp->robot == _id )
 			this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
-		}
 		ctmp = ctmp->next;
 	}
 
@@ -2937,14 +2939,14 @@ void CMobot::simPostCollisionThread(void) {
 #ifdef ENABLE_GRAPHICS
 int CMobot::draw(osg::Group *root, int tracking) {
 	// initialize variables
-	_robot = new osg::Group();
-	osg::ref_ptr<osg::Geode> body[5];
-	osg::ref_ptr<osg::PositionAttitudeTransform> pat[5];
+	osg::Group *_robot = new osg::Group();
+	osg::ref_ptr<osg::Geode> body[NUM_PARTS];
+	osg::ref_ptr<osg::PositionAttitudeTransform> pat[NUM_PARTS];
 	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 	osg::Cylinder *cyl;
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < NUM_PARTS; i++) {
 		body[i] = new osg::Geode;
 	}
 
@@ -2953,37 +2955,37 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][0], quat);
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_depth, _end_width - 2*_end_radius, _end_height);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[0]->addDrawable(new osg::ShapeDrawable(box));
+	body[ENDCAP_L]->addDrawable(new osg::ShapeDrawable(box));
 	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][1]);
 	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][1], quat);
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_depth, _end_radius, _end_height - 2*_end_radius);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[0]->addDrawable(new osg::ShapeDrawable(box));
+	body[ENDCAP_L]->addDrawable(new osg::ShapeDrawable(box));
 	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][2]);
 	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][2], quat);
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_depth, _end_radius, _end_height - 2*_end_radius);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[0]->addDrawable(new osg::ShapeDrawable(box));
+	body[ENDCAP_L]->addDrawable(new osg::ShapeDrawable(box));
 	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][3]);
 	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][3], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
+	body[ENDCAP_L]->addDrawable(new osg::ShapeDrawable(cyl));
 	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][4]);
 	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][4], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
+	body[ENDCAP_L]->addDrawable(new osg::ShapeDrawable(cyl));
 	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][5]);
 	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][5], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
+	body[ENDCAP_L]->addDrawable(new osg::ShapeDrawable(cyl));
 	pos = dGeomGetOffsetPosition(_geom[ENDCAP_L][6]);
 	dGeomGetOffsetQuaternion(_geom[ENDCAP_L][6], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _end_radius, _end_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
+	body[ENDCAP_L]->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// left body
 	pos = dGeomGetOffsetPosition(_geom[BODY_L][0]);
@@ -3040,7 +3042,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		_led = new osg::ShapeDrawable(cyl);
 		body[BODY_R]->addDrawable(_led);
-		_led->setColor(osg::Vec4(0, 1, 0, 1));
+		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1));
 	}
 	pos = dGeomGetOffsetPosition(_geom[BODY_R][1]);
 	dGeomGetOffsetQuaternion(_geom[BODY_R][1], quat);
@@ -3106,10 +3108,14 @@ int CMobot::draw(osg::Group *root, int tracking) {
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
     tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-    _robot->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+    body[ENDCAP_L]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+    body[BODY_L]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+    body[CENTER]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+    body[BODY_R]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+    body[ENDCAP_R]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 
 	// set rendering properties
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < NUM_PARTS; i++) {
 		body[i]->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
 		body[i]->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 	}

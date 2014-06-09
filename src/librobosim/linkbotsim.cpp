@@ -2901,49 +2901,49 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	dQuaternion quat;
 	osg::Box *box;
 	osg::Cylinder *cyl;
-	for ( int i = 0; i < NUM_PARTS+1; i++) {
+	for (int i = 0; i < NUM_PARTS+1; i++) {
 		body[i] = new osg::Geode;
 	}
 
 	// body
-	pos = dGeomGetOffsetPosition(_geom[0][0]);
-	dGeomGetOffsetQuaternion(_geom[0][0], quat);
+	pos = dGeomGetOffsetPosition(_geom[BODY][0]);
+	dGeomGetOffsetQuaternion(_geom[BODY][0], quat);
 	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_width, _body_length, _body_height);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[0]->addDrawable(new osg::ShapeDrawable(box));
+	body[BODY]->addDrawable(new osg::ShapeDrawable(box));
 	{ // 'led'
 		cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]+0.0001), 0.01, _body_height);
 		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		_led = new osg::ShapeDrawable(cyl);
 		body[4]->addDrawable(_led);
-		_led->setColor(osg::Vec4(0, 1, 0, 1));
+		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1));
 	}
-	pos = dGeomGetOffsetPosition(_geom[0][1]);
-	dGeomGetOffsetQuaternion(_geom[0][1], quat);
+	pos = dGeomGetOffsetPosition(_geom[BODY][1]);
+	dGeomGetOffsetQuaternion(_geom[BODY][1], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _body_radius, _body_width);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[0]->addDrawable(new osg::ShapeDrawable(cyl));
+	body[BODY]->addDrawable(new osg::ShapeDrawable(cyl));
 
     // face1
-	pos = dGeomGetOffsetPosition(_geom[1][0]);
-	dGeomGetOffsetQuaternion(_geom[1][0], quat);
+	pos = dGeomGetOffsetPosition(_geom[FACE1][0]);
+	dGeomGetOffsetQuaternion(_geom[FACE1][0], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _face_radius, _face_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[1]->addDrawable(new osg::ShapeDrawable(cyl));
+	body[FACE1]->addDrawable(new osg::ShapeDrawable(cyl));
 
     // face 2
-	pos = dGeomGetOffsetPosition(_geom[2][0]);
-	dGeomGetOffsetQuaternion(_geom[2][0], quat);
+	pos = dGeomGetOffsetPosition(_geom[FACE2][0]);
+	dGeomGetOffsetQuaternion(_geom[FACE2][0], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _face_radius, _face_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[2]->addDrawable(new osg::ShapeDrawable(cyl));
+	body[FACE2]->addDrawable(new osg::ShapeDrawable(cyl));
 
     // face 3
-	pos = dGeomGetOffsetPosition(_geom[3][0]);
-	dGeomGetOffsetQuaternion(_geom[3][0], quat);
+	pos = dGeomGetOffsetPosition(_geom[FACE3][0]);
+	dGeomGetOffsetQuaternion(_geom[FACE3][0], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _face_radius, _face_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[3]->addDrawable(new osg::ShapeDrawable(cyl));
+	body[FACE3]->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture to robot
 	tex[0] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/body.png)));
@@ -2964,7 +2964,7 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	}
 
 	// set rendering properties
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < NUM_PARTS+1; i++) {
 		body[i]->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
 		body[i]->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 	}
