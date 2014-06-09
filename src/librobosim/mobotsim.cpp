@@ -10,7 +10,7 @@ CMobot::CMobot(void) {
 
 CMobot::~CMobot(void) {
 	// remove robot from simulation
-	if ( !(_simObject->deleteRobot(this)) )
+	if ( _simObject != NULL && !(_simObject->deleteRobot(this)) )
 		delete _simObject;
 
 	// remove geoms

@@ -10,7 +10,7 @@ CLinkbotT::CLinkbotT(int disabled, int type) {
 
 CLinkbotT::~CLinkbotT(void) {
 	// remove robot from simulation
-	if ( !(_simObject->deleteRobot(this)) )
+	if ( _simObject != NULL && !(_simObject->deleteRobot(this)) )
 		delete _simObject;
 
 	// destroy geoms
