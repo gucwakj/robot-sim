@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <iostream>
+#include <fstream>
 #ifdef _WIN32
 #include <windows.h>
 #include <Shlobj.h>
@@ -65,6 +67,7 @@ G_MODULE_EXPORT void on_aboutdialog_activate(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_activate_link(GtkAboutDialog *label, gchar *uri, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data);
 G_MODULE_EXPORT void on_aboutdialog_response(GtkDialog *dialog, gint response_id, gpointer user_data);
+G_MODULE_EXPORT void on_changelog_activate(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_notebook_switch_page(GtkWidget *widget, gpointer data);
 
@@ -273,7 +276,7 @@ int main(int argc, char *argv[]) {
 extern "C" {
 #endif
 /*
- * When windows is closed
+ * When window is closed
  */
 G_MODULE_EXPORT void on_window_destroy(GtkWidget *widget, gpointer data) {
 	// save configuration file
@@ -289,7 +292,7 @@ G_MODULE_EXPORT void on_window_destroy(GtkWidget *widget, gpointer data) {
 }
 
 /*
- * About dialog open
+ * Aboutdialog open
  */
 G_MODULE_EXPORT void on_aboutdialog_activate(GtkWidget *widget, gpointer data) {
 	GtkWidget *w;
@@ -307,17 +310,63 @@ G_MODULE_EXPORT void on_aboutdialog_activate_link(GtkAboutDialog *label, gchar *
 }
 
 /*
- * About dialog x button
+ * Aboutdialog X button
  */
 G_MODULE_EXPORT void on_aboutdialog_close(GtkDialog *dialog, gpointer user_data) {
 	gtk_widget_hide(GTK_WIDGET(dialog));
 }
 
 /*
- * About dialog close button
+ * Aboutdialog close button
  */
 G_MODULE_EXPORT void on_aboutdialog_response(GtkDialog *dialog, gint response_id, gpointer user_data) {
 	gtk_widget_hide(GTK_WIDGET(dialog));
+}
+
+/*
+ * Changelog dialog open
+ */
+G_MODULE_EXPORT void on_changelog_activate(GtkWidget *widget, gpointer data) {
+	GtkWidget *dialog = gtk_dialog_new_with_buttons("RoboSim ChangeLog",
+		GTK_WINDOW(gtk_builder_get_object(g_builder, "window1")),
+		GTK_DIALOG_DESTROY_WITH_PARENT,
+		("_OK"),
+		GTK_RESPONSE_NONE,
+		NULL);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), -1, 500);
+	GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+	// scrolled area for text display
+	GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+
+	// open changelog and read contents
+	std::ifstream t;
+	t.open("CHANGELOG");
+	char *buffer;
+	if (t.is_open()) {
+		t.seekg(0, std::ios::end);
+		int length = t.tellg();
+		t.seekg(0, std::ios::beg);
+		buffer = new char[length];
+		t.read(buffer, length);
+	}
+	else {
+		buffer = new char[2];
+		buffer = "";
+	}
+	t.close();
+	GtkWidget *label = gtk_label_new(buffer);
+
+	// connect signal to close button
+	g_signal_connect_swapped(dialog, "response", G_CALLBACK(gtk_widget_destroy), dialog);
+
+	// add content to widget
+	gtk_container_add(GTK_CONTAINER(scrolled_window), label);
+	gtk_box_pack_start(GTK_BOX(content_area), scrolled_window, TRUE, TRUE, 0);
+
+	// show widget
+	gtk_widget_show_all(dialog);
 }
 
 /*
