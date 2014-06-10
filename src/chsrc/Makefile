@@ -77,7 +77,8 @@ createpkg: librobosim.dl
 	rm -rf $(PACKAGE)-$(VERSION)
 	rm -rf $(PACKAGE)-$(VERSION).zip
 	mkdir -p $(PKGDIR)
-	cp ../../README $(PKGDIR)
+	cp ../../COPYRIGHT $(PKGDIR)
+	cp ../../CHANGELOG $(PKGDIR)
 	mkdir $(PKGDIR)/bin
 	cp ../opende/sys/lib/libode.so $(PKGDIR)/bin
 	cp ../openscenegraph/build/lib/libosg.so $(PKGDIR)/bin
@@ -92,6 +93,7 @@ createpkg: librobosim.dl
 	mkdir $(PKGDIR)/bin/gui
 	cp ../configurator/build/robosim $(PKGDIR)/bin/gui
 	cp ../configurator/interface3.glade $(PKGDIR)/bin/gui/interface.glade
+	cp ../../CHANGELOG $(PKGDIR)/bin/gui
 	cp -R ../configurator/images $(PKGDIR)/bin/gui
 	mkdir $(PKGDIR)/bin/osgPlugins-3.0.1
 	cp ../openscenegraph/build/lib/osgPlugins-3.0.1/osgdb_png.so $(PKGDIR)/bin/osgPlugins-3.0.1

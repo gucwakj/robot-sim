@@ -78,7 +78,8 @@ createpkg: librobosim.dl
 	rm -rf $(PACKAGE)-$(VERSION)
 	rm -rf $(PACKAGE)-$(VERSION).zip
 	mkdir -p $(PKGDIR)
-	cp ../../README $(PKGDIR)
+	cp ../../COPYRIGHT $(PKGDIR)
+	cp ../../CHANGELOG $(PKGDIR)
 	mkdir $(PKGDIR)/bin
 	cp ../opende/lib/Release/ode.dll $(PKGDIR)/bin
 	cp ../openscenegraph/build/bin/osg80-osg.dll $(PKGDIR)/bin
@@ -97,6 +98,7 @@ createpkg: librobosim.dl
 	mkdir $(PKGDIR)/bin/gui
 	cp ../configurator/build/Release/robosim.exe $(PKGDIR)/bin/gui
 	cp ../configurator/interface2.glade $(PKGDIR)/bin/gui/interface.glade
+	cp ../../CHANGELOG $(PKGDIR)/bin/gui
 	cp ../configurator/dll/freetype6.dll $(PKGDIR)/bin/gui
 	cp ../configurator/dll/intl.dll $(PKGDIR)/bin/gui
 	cp ../configurator/dll/libatk-1.0-0.dll $(PKGDIR)/bin/gui
