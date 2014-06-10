@@ -3550,7 +3550,6 @@ int CMobot::build_body(int id, double x, double y, double z, dMatrix3 R, double 
     dMassSetBox(&m3, 2700, _body_inner_width_right, _end_depth, _body_width );
     dMassTranslate(&m3, 0.01524*i, 0.0346, 0 );
     dMassAdd(&m, &m3);
-    //dMassSetParameters( &m, 500, 1, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjsut x,y,z to position center of mass correctly
     x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3606,7 +3605,6 @@ int CMobot::build_center(double x, double y, double z, dMatrix3 R) {
     dMassSetZero(&m);
     dMassSetCapsule(&m, 2700, 1, _center_radius, _center_length );
     dMassAdjust(&m, 0.24);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjsut x,y,z to position center of mass correctly
     x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3652,7 +3650,6 @@ int CMobot::build_endcap(int id, double x, double y, double z, dMatrix3 R) {
 
     // set mass of body
     dMassSetBox(&m, 2700, _end_depth, _end_width, _end_height );
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3731,7 +3728,6 @@ int CMobot::build_bigwheel(conn_t conn, int face) {
 
     // set mass of body
     dMassSetBox(&m, 270, _connector_depth/2, _end_width, _connector_height);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3785,7 +3781,6 @@ int CMobot::build_caster(conn_t conn, int face) {
 
 	// set mass of body
 	dMassSetBox(&m, 500, 0.0667, width, height/2);
-	//dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
 	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3887,7 +3882,6 @@ int CMobot::build_simple(conn_t conn, int face) {
 
     // set mass of body
     dMassSetBox(&m, 270, depth, width, height);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3969,7 +3963,6 @@ int CMobot::build_smallwheel(conn_t conn, int face) {
 
     // set mass of body
     dMassSetBox(&m, 270, _connector_depth/2, _end_width, _connector_height);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -4018,7 +4011,6 @@ int CMobot::build_square(conn_t conn, int face) {
 
     // set mass of body
     dMassSetBox(&m, 270, _end_width, _end_width, _connector_height);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -4082,7 +4074,6 @@ int CMobot::build_tank(conn_t conn, int face) {
 
     // set mass of body
     dMassSetBox(&m, 270, depth, width, height);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -4130,7 +4121,6 @@ int CMobot::build_wheel(conn_t conn, int face, double size) {
 
     // set mass of body
     dMassSetBox(&m, 270, _connector_depth/2, _end_width, _connector_height);
-    //dMassSetParameters( &m, 500, 0.45, 0, 0, 0.5, 0.5, 0.5, 0, 0, 0);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];

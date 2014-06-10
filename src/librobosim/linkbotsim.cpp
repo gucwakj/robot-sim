@@ -3561,8 +3561,8 @@ int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
 
 	// set geometry
 	conn->geom[0] = dCreateBox(_space, _connector_depth, _bridge_length, _connector_height);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3678,8 +3678,8 @@ int CLinkbotT::build_cube(conn_t conn, int face, int side, int type) {
 
 	// set geometry
 	conn->geom[0] = dCreateBox(_space, _cubic_length, _cubic_length, _cubic_length);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3727,8 +3727,8 @@ int CLinkbotT::build_faceplate(conn_t conn, int face, int side, int type) {
 
 	// set geometry
 	conn->geom[0] = dCreateBox(_space, _connector_depth, _body_height, _body_height);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3837,8 +3837,8 @@ int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
 
 	// set geometry
 	conn->geom[0] = dCreateBox(_space, _connector_depth, _omni_length, _omni_length);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
