@@ -3247,10 +3247,9 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 	this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R, 0);
 
 	// get center of robot offset from body position
-	const double *pos = dBodyGetPosition(_body[BODY]);
-	_center[0] = -pos[0];
-	_center[1] = -pos[1];
-	_center[2] = -pos[2];
+	_center[0] = 0;
+	_center[1] = 0.012462;
+	_center[2] = 0;
 
     // joint for body to face 1
 	_joint[0] = dJointCreateHinge(_world, 0);
