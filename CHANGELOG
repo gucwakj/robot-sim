@@ -1,12 +1,3 @@
-UC Davis Center for Integrated Computing and SETM Education (C-STEM)
-Copyright (c) 2013-2014
-
-
-                  Release Notes for RoboSim
-        --------------------------------------------
-
-************************************************************
-
 Version 1.4.0 - May 1, 2014
 	*) reorganized GUI for easier configuration
 	*) movexyTo to absolute; movexy to relative
