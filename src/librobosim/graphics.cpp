@@ -93,7 +93,9 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 					for (int i = 0; i < (int)(shadow->getNumChildren()); i++) {
 						if (shadow->getChild(i)->getName() == "robot") {
 							osg::Geode *geode = dynamic_cast<osg::Geode *>(shadow->getChild(i)->asGroup()->getChild(1));
-							geode->setNodeMask(VISIBLE_MASK);
+							osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode->getDrawable(0)->asGeometry());
+							osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
+							if (vertices->getNumElements()) { geode->setNodeMask(VISIBLE_MASK); }
 							for (int j = 2; j < (int)(shadow->getChild(i)->asGroup()->getNumChildren()); j++) {
 								osg::PositionAttitudeTransform *pat;
 								pat = dynamic_cast<osg::PositionAttitudeTransform *>(shadow->getChild(i)->asGroup()->getChild(j));
@@ -107,7 +109,11 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 					for (int i = 0; i < (int)(shadow->getNumChildren()); i++) {
 						if (shadow->getChild(i)->getName() == "robot") {
 							osg::Geode *geode = dynamic_cast<osg::Geode *>(shadow->getChild(i)->asGroup()->getChild(1));
-							geode->setNodeMask((geode->getNodeMask() ? NOT_VISIBLE_MASK : VISIBLE_MASK));
+							osg::Geometry *draw = dynamic_cast<osg::Geometry *>(geode->getDrawable(0)->asGeometry());
+							osg::Vec3Array *vertices = dynamic_cast<osg::Vec3Array *>(draw->getVertexArray());
+							if (vertices->getNumElements()) {
+								geode->setNodeMask((geode->getNodeMask() ? NOT_VISIBLE_MASK : VISIBLE_MASK));
+							}
 						}
 					}
 					return true;
