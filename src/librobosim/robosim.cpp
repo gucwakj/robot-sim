@@ -1445,7 +1445,7 @@ void* RoboSim::graphics_thread(void *arg) {
 			myCoords3[0] = osg::Vec3(-sim->_grid[3], 0, 0);
 		else
 			myCoords3[0] = osg::Vec3(0, 0, 0);
-		myCoords3[1] = osg::Vec3( sim->_grid[3], 0, 0.0);
+		myCoords3[1] = osg::Vec3(sim->_grid[3], 0, 0);
 	}
 	else {
 		if (sim->_grid[3] < -EPSILON)
@@ -1459,7 +1459,7 @@ void* RoboSim::graphics_thread(void *arg) {
 			myCoords3[2] = osg::Vec3(-sim->_grid[5], 0, 0);
 		else
 			myCoords3[2] = osg::Vec3(0, 0, 0);
-		myCoords3[3] = osg::Vec3(0,  sim->_grid[5], 0.0);
+		myCoords3[3] = osg::Vec3(0, sim->_grid[5], 0);
 	}
 	else {
 		if (sim->_grid[5] < -EPSILON)
@@ -1502,10 +1502,18 @@ void* RoboSim::graphics_thread(void *arg) {
 	xtext->setCharacterSize(50);
 	xtext->setColor(osg::Vec4(0, 0, 0, 1));
 	xtext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	if ( fabs(sim->_grid[3]) > fabs(sim->_grid[2]) )
-		xbillboard->addDrawable(xtext, osg::Vec3d(fabs(sim->_grid[3]) + 0.05, 0.0, 0.0));
-	else
-		xbillboard->addDrawable(xtext, osg::Vec3d(fabs(sim->_grid[2]) + 0.05, 0.0, 0.0));
+	if ( fabs(sim->_grid[3]) > fabs(sim->_grid[2]) ) {
+		if (sim->_grid[3] < EPSILON)
+			xbillboard->addDrawable(xtext, osg::Vec3d(0.05, 0.0, 0.0));
+		else
+			xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[3] + 0.05, 0.0, 0.0));
+	}
+	else {
+		if (sim->_grid[2] < -EPSILON)
+			xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[3] + 0.05, 0.0, 0.0));
+		else
+			xbillboard->addDrawable(xtext, osg::Vec3d(0.05, 0.0, 0.0));
+	}
 	xbillboard->setMode(osg::Billboard::AXIAL_ROT);
 	xbillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
 	xbillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
@@ -1521,10 +1529,18 @@ void* RoboSim::graphics_thread(void *arg) {
 	ytext->setCharacterSize(50);
 	ytext->setColor(osg::Vec4(0, 0, 0, 1));
 	ytext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	if ( fabs(sim->_grid[5]) > fabs(sim->_grid[4]) )
-		ybillboard->addDrawable(ytext, osg::Vec3d(0.0, fabs(sim->_grid[5]) + 0.05, 0.0));
-	else
-		ybillboard->addDrawable(ytext, osg::Vec3d(0.0, fabs(sim->_grid[4]) + 0.05, 0.0));
+	if ( fabs(sim->_grid[5]) > fabs(sim->_grid[4]) ) {
+		if (sim->_grid[5] < EPSILON)
+			xbillboard->addDrawable(ytext, osg::Vec3d(0.0, 0.05, 0.0));
+		else
+			xbillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[5] + 0.05, 0.0));
+	}
+	else {
+		if (sim->_grid[4] < -EPSILON)
+			xbillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[5] + 0.05, 0.0));
+		else
+			xbillboard->addDrawable(ytext, osg::Vec3d(0.0, 0.05, 0.0));
+	}
 	ybillboard->setMode(osg::Billboard::AXIAL_ROT);
 	ybillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
 	ybillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
