@@ -2021,7 +2021,10 @@ int CLinkbotT::resetToZeroNB(void) {
 	MUTEX_LOCK(&_angle_mutex);
 	for (int i = 0; i < 3; i++) {
 		int rev = (int)(_angle[i]/2/M_PI);
-		if (rev) _angle[i] -= 2*rev*M_PI;
+		if (rev) {
+			_angle[i] -= 2*rev*M_PI;
+			_goal[i] -= 2*rev*M_PI;
+		}
 	}
 	MUTEX_UNLOCK(&_angle_mutex);
 
@@ -4238,7 +4241,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_angle[i] = 0;
 		if (i != disabled) { _enabled[j++] = i; }
 		_goal[i] = 0;
-		_max_force[i] = 0.2;
+		_max_force[i] = 2;
 		_max_speed[i] = 240;		// deg/sec
 		_offset[i] = 0;
 		_rec_active[i] = false;
