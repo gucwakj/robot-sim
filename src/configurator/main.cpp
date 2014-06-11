@@ -364,7 +364,13 @@ G_MODULE_EXPORT void on_changelog_activate(GtkWidget *widget, gpointer data) {
 	g_signal_connect_swapped(dialog, "response", G_CALLBACK(gtk_widget_destroy), dialog);
 
 	// add content to widget
+#ifdef _WIN32
+	// gtk2
+	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), label);
+#else
+	// gtk3 - above function deprecated
 	gtk_container_add(GTK_CONTAINER(scrolled_window), label);
+#endif
 	gtk_box_pack_start(GTK_BOX(content_area), scrolled_window, TRUE, TRUE, 0);
 
 	// show widget
