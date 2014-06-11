@@ -2751,7 +2751,7 @@ void readXMLConfig(void) {
 
 		// set tracking of robots
 		tinyxml2::XMLElement *tracking = g_doc.NewElement("tracking");
-		tracking->SetAttribute("val", 0);
+		tracking->SetAttribute("val", 1);
 		config->InsertAfterChild(grid, tracking);
 
 		// create empty simulation
@@ -3116,13 +3116,13 @@ void readXMLConfig(void) {
 
 	// check if tracking is enabled
 	if ( (node = g_doc.FirstChildElement("config")->FirstChildElement("tracking")) ) {
-		int tracking = 0;
+		int tracking = 1;
 		node->QueryIntAttribute("val", &tracking);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "tracking")), tracking);
 	}
 	else {
 		tinyxml2::XMLElement *tracking = g_doc.NewElement("tracking");
-		tracking->SetAttribute("val", 0);
+		tracking->SetAttribute("val", 1);
 		g_doc.FirstChildElement("config")->InsertFirstChild(tracking);
 	}
 
