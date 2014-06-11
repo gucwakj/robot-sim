@@ -1058,11 +1058,11 @@ int CLinkbotL::movexyWait() {
 }
 
 int CLinkbotL::openGripper(double angle) {
-	return moveTo(-angle/2, NaN, -angle/2);
+	return moveJointTo(ROBOT_JOINT1, -angle);
 }
 
 int CLinkbotL::openGripperNB(double angle) {
-	return moveToNB(-angle/2, NaN, -angle/2);
+	return moveJointTo(ROBOT_JOINT1, -angle);
 }
 
 int CLinkbotL::point(double x, double y, double z, int pointsize, char *color) {
