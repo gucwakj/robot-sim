@@ -1,3 +1,9 @@
+Version 1.5.0 - June 11, 2014
+	*) more accurate movexy functions
+	*) corrected linkbot weight distribution to prevent veering
+	*) fixed crashes when adding robots to scenegraph
+	*) improved accuracy of high speed dynamics motion
+
 Version 1.4.0 - May 1, 2014
 	*) reorganized GUI for easier configuration
 	*) movexyTo() to absolute angle and movexy() to relative angle
