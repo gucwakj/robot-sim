@@ -1441,20 +1441,32 @@ void* RoboSim::graphics_thread(void *arg) {
 	osg::Geometry *gridLines3 = new osg::Geometry();
 	osg::Vec3 myCoords3[4];
 	if ( fabs(sim->_grid[3]) > fabs(sim->_grid[2]) ) {
-		myCoords3[0] = osg::Vec3(-sim->_grid[3], 0, 0.0);
+		if (sim->_grid[2] < -EPSILON)
+			myCoords3[0] = osg::Vec3(-sim->_grid[3], 0, 0);
+		else
+			myCoords3[0] = osg::Vec3(0, 0, 0);
 		myCoords3[1] = osg::Vec3( sim->_grid[3], 0, 0.0);
 	}
 	else {
-		myCoords3[0] = osg::Vec3(-sim->_grid[2], 0, 0.0);
-		myCoords3[1] = osg::Vec3( sim->_grid[2], 0, 0.0);
+		if (sim->_grid[3] < -EPSILON)
+			myCoords3[1] = osg::Vec3(0, 0, 0);
+		else
+			myCoords3[1] = osg::Vec3(sim->_grid[3], 0, 0);
+		myCoords3[0] = osg::Vec3(sim->_grid[2], 0, 0);
 	}
 	if ( fabs(sim->_grid[5]) > fabs(sim->_grid[4]) ) {
-		myCoords3[2] = osg::Vec3(0, -sim->_grid[5], 0.0);
+		if (sim->_grid[4] < -EPSILON)
+			myCoords3[2] = osg::Vec3(-sim->_grid[5], 0, 0);
+		else
+			myCoords3[2] = osg::Vec3(0, 0, 0);
 		myCoords3[3] = osg::Vec3(0,  sim->_grid[5], 0.0);
 	}
 	else {
-		myCoords3[2] = osg::Vec3(0, -sim->_grid[4], 0.0);
-		myCoords3[3] = osg::Vec3(0,  sim->_grid[4], 0.0);
+		if (sim->_grid[5] < -EPSILON)
+			myCoords3[3] = osg::Vec3(0, 0, 0);
+		else
+			myCoords3[3] = osg::Vec3(0, sim->_grid[5], 0);
+		myCoords3[2] = osg::Vec3(0, sim->_grid[4], 0);
 	}
 	// add vertices
 	osg::Vec3Array *vertices3 = new osg::Vec3Array(4, myCoords3);
