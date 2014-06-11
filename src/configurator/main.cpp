@@ -341,23 +341,24 @@ G_MODULE_EXPORT void on_changelog_activate(GtkWidget *widget, gpointer data) {
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
 
 	// open changelog and read contents
-	std::ifstream t;
-	t.open("CHANGELOG");
-	char *buffer;
-	if (t.is_open()) {
-		t.seekg(0, std::ios::end);
-		int length = t.tellg();
-		t.seekg(0, std::ios::beg);
-		buffer = new char[length];
-		t.read(buffer, length);
-		buffer[length] = '\0';
+	FILE *fp2 = fopen("CHANGELOG", "r");
+	char *fp2buf;
+	struct stat stbuf;
+	if (!stat("CHANGELOG", &stbuf)) {
+		fp2buf = new char[stbuf.st_size+1];
 	}
 	else {
-		buffer = new char[2];
-		buffer = "";
+		fp2buf = new char;
 	}
-	t.close();
-	GtkWidget *label = gtk_label_new(buffer);
+	fp2buf[0] = '\0';
+	if (fp2 != NULL) {
+		char line[1024];
+		while (fgets(line, 1024, fp2)) {
+			strcat(fp2buf, line);
+		}
+		fclose(fp2);
+	}
+	GtkWidget *label = gtk_label_new(fp2buf);
 
 	// connect signal to close button
 	g_signal_connect_swapped(dialog, "response", G_CALLBACK(gtk_widget_destroy), dialog);
