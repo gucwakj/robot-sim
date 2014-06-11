@@ -350,6 +350,7 @@ G_MODULE_EXPORT void on_changelog_activate(GtkWidget *widget, gpointer data) {
 		t.seekg(0, std::ios::beg);
 		buffer = new char[length];
 		t.read(buffer, length);
+		buffer[length] = '\0';
 	}
 	else {
 		buffer = new char[2];

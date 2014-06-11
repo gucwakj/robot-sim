@@ -132,10 +132,9 @@ Harry H. Cheng</property>
                     <property name="visible">True</property>
                     <child>
                       <object class="GtkImageMenuItem" id="help ">
-                        <property name="label">Help</property>
+                        <property name="label">gtk-help</property>
                         <property name="visible">True</property>
-                        <property name="image">image1</property>
-                        <property name="use_stock">False</property>
+                        <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
                         <signal name="activate" handler="on_menuitem_help_activate"/>
                       </object>
@@ -147,6 +146,15 @@ Harry H. Cheng</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <signal name="activate" handler="on_aboutdialog_activate"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="changelog">
+                        <property name="label">Changelog</property>
+                        <property name="visible">True</property>
+                        <property name="image">image1</property>
+                        <property name="use_stock">False</property>
+                        <signal name="activate" handler="on_changelog_activate"/>
                       </object>
                     </child>
                   </object>
@@ -961,6 +969,6 @@ Harry H. Cheng</property>
   </object>
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
-    <property name="stock">gtk-help</property>
+    <property name="stock">gtk-info</property>
   </object>
 </interface>
