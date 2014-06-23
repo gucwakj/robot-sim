@@ -134,6 +134,17 @@ int CLinkbotTGroup::driveToNB(double angle1, double angle2, double angle3) {
 	return 0;
 }
 
+int CLinkbotTGroup::holdJointsAtExit(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->holdJointsAtExit();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotTGroup::isMoving(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -474,17 +485,6 @@ int CLinkbotTGroup::resetToZeroNB(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->resetToZeroNB();
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::setExitState(robotJointState_t exitState) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setExitState(exitState);
 		rtmp = rtmp->next;
 	}
 

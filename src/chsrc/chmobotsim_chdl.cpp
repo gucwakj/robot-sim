@@ -505,6 +505,19 @@ EXPORTCH int CMobot_getxy_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_holdJointsAtExit_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    retval = robot->holdJointsAtExit();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_isConnected_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -1884,21 +1897,6 @@ EXPORTCH int CMobot_resetToZeroNB_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CMobot_setExitState_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobot *robot;
-    robotJointState_t state;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CMobot *);
-    state = Ch_VaArg(interp, ap, robotJointState_t);
-    retval = robot->setExitState(state);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CMobot_setJointMovementStateNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2565,6 +2563,19 @@ EXPORTCH int CMG_driveJointToDirectNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMG_holdJointsAtExit_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobotGroup *group;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    group = Ch_VaArg(interp, ap, class CMobotGroup *);
+    retval = group->holdJointsAtExit();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMG_isMoving_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2947,21 +2958,6 @@ EXPORTCH int CMG_resetToZeroNB_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     group = Ch_VaArg(interp, ap, class CMobotGroup *);
     retval = group->resetToZeroNB();
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CMG_setExitState_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobotGroup *group;
-    robotJointState_t exitState;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    group = Ch_VaArg(interp, ap, class CMobotGroup *);
-    exitState = Ch_VaArg(interp, ap, robotJointState_t);
-    retval = group->setExitState(exitState);
     Ch_VaEnd(interp, ap);
     return retval;
 }

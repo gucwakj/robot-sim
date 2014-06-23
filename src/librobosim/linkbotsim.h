@@ -72,6 +72,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
 		int getxy(double &x, double &y);
+		int holdJointsAtExit(void);
 		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
@@ -195,7 +196,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int setColorRGB(int r, int g, int b);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
-		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointSafetyAngle(double angle);
@@ -342,6 +342,7 @@ class DLLIMPORT CLinkbotTGroup {
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
 		int driveToNB(double angle1, double angle2, double angle3);
+		int holdJointsAtExit(void);
 		int isMoving();
 		int isNotMoving();
 		int motionDistance(double distance, double radius);
@@ -383,7 +384,6 @@ class DLLIMPORT CLinkbotTGroup {
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
-		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds);
@@ -471,6 +471,7 @@ class DLLIMPORT CLinkbotI {
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
 		int getxy(double &x, double &y);
+		int holdJointsAtExit(void);
 		int isConnected();
 		int isMoving();
 		int isNotMoving();
@@ -559,7 +560,6 @@ class DLLIMPORT CLinkbotI {
 		int setColorRGB(int r, int g, int b);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
-		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointSafetyAngle(double angle);
@@ -603,6 +603,7 @@ class DLLIMPORT CLinkbotIGroup {
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
 		int driveToNB(double angle1, double angle2, double angle3);
+		int holdJointsAtExit(void);
 		int isMoving();
 		int isNotMoving();
 		int motionDistance(double distance, double radius);
@@ -644,7 +645,6 @@ class DLLIMPORT CLinkbotIGroup {
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
-		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds);
@@ -713,6 +713,7 @@ class DLLIMPORT CLinkbotL {
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
 		int getxy(double &x, double &y);
+		int holdJointsAtExit(void);
 		int isConnected();
 		int isMoving();
 		int isNotMoving();
@@ -791,7 +792,6 @@ class DLLIMPORT CLinkbotL {
 		int setColorRGB(int r, int g, int b);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
-		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointSafetyAngle(double angle);
@@ -847,6 +847,7 @@ class DLLIMPORT CLinkbotLGroup {
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3);
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
+		int holdJointsAtExit(void);
 		int isMoving();
 		int isNotMoving();
 		int motionDistance(double distance, double radius);
@@ -884,7 +885,6 @@ class DLLIMPORT CLinkbotLGroup {
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
-		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds);

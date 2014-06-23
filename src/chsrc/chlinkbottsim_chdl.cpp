@@ -491,6 +491,19 @@ EXPORTCH int CLinkbotT_getxy_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotT_holdJointsAtExit_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    retval = robot->holdJointsAtExit();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotT_isConnected_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -1878,21 +1891,6 @@ EXPORTCH int CLinkbotT_setLEDColorRGB_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotT_setExitState_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotT *robot;
-    robotJointState_t dir;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
-    dir = Ch_VaArg(interp, ap, robotJointState_t);
-    retval = robot->setExitState(dir);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLinkbotT_setJointMovementStateNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2486,6 +2484,19 @@ EXPORTCH int CLTG_driveJointToDirectNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLTG_holdJointsAtExit_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotTGroup *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
+    retval = robot->holdJointsAtExit();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLTG_isMoving_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2930,21 +2941,6 @@ EXPORTCH int CLTG_resetToZeroNB_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
     retval = robot->resetToZeroNB();
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLTG_setExitState_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotTGroup *robot;
-    robotJointState_t exitState;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
-    exitState = Ch_VaArg(interp, ap, robotJointState_t);
-    retval = robot->setExitState(exitState);
     Ch_VaEnd(interp, ap);
     return retval;
 }

@@ -288,6 +288,14 @@ int CMobot::getxy(double &x, double &y) {
 	return 0;
 }
 
+int CMobot::holdJointsAtExit(void) {
+	// set exit state of joints
+	this->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
+
+	// success
+	return 0;
+}
+
 int CMobot::isConnected(void) {
 	return _connected;
 }
@@ -2218,14 +2226,6 @@ int CMobot::resetToZeroNB(void) {
 
 	// move to zero position
 	this->moveToZeroNB();
-
-	// success
-	return 0;
-}
-
-int CMobot::setExitState(robotJointState_t exitState) {
-	// set exit state of joints
-	this->setMovementStateNB(exitState, exitState, exitState, exitState);
 
 	// success
 	return 0;

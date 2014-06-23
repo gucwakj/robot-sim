@@ -134,6 +134,17 @@ int CMobotGroup::driveToNB(double angle1, double angle2, double angle3, double a
 	return 0;
 }
 
+int CMobotGroup::holdJointsAtExit(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->holdJointsAtExit();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobotGroup::isMoving(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -592,17 +603,6 @@ int CMobotGroup::resetToZeroNB(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->resetToZeroNB();
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::setExitState(robotJointState_t exitState) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setExitState(exitState);
 		rtmp = rtmp->next;
 	}
 

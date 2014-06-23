@@ -56,6 +56,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, double &ratio4);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
 		int getxy(double &x, double &y);
+		int holdJointsAtExit(void);
 		int isConnected();
 		int isMoving(void);
 		int isNotMoving(void);
@@ -189,7 +190,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
-		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds);
@@ -344,6 +344,7 @@ class CMobotGroup {
 		int driveTo(double angle1, double angle2, double angle3, double angle4);
 		int driveToDirectNB(double angle1, double angle2, double angle3, double angle4);
 		int driveToNB(double angle1, double angle2, double angle3, double angle4);
+		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
 		int motionArch(double angle);
@@ -397,7 +398,6 @@ class CMobotGroup {
 		int reset(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
-		int setExitState(robotJointState_t exitState);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds);

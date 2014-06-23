@@ -511,6 +511,19 @@ int CLinkbotL::getxy(double &x, double &y) {
     return retval;
 }
 
+int CLinkbotL::holdJointsAtExit(void) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_holdJointsAtExit_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, holdJointsAtExit, this);
+    return retval;
+}
+
 int CLinkbotL::isConnected() {
     void *fptr;
     int retval;
@@ -1453,19 +1466,6 @@ int CLinkbotL::setLEDColorRGB(int r, int g, int b) {
     return retval;
 }
 
-int CLinkbotL::setExitState(int exitState) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_setExitState_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setExitState, this, exitState);
-    return retval;
-}
-
 int CLinkbotL::setJointMovementStateNB(int id, int dir) {
     void *fptr;
     int retval;
@@ -1935,6 +1935,19 @@ int CLinkbotLGroup::driveToNB(double angle1, double angle2, double angle3) {
     return retval;
 }
 
+int CLinkbotLGroup::holdJointsAtExit(void) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLLG_holdJointsAtExit_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, holdJointsAtExit, this);
+    return retval;
+}
+
 int CLinkbotLGroup::isMoving() {
     void *fptr;
     int retval;
@@ -2387,19 +2400,6 @@ int CLinkbotLGroup::resetToZeroNB() {
         return -1;
     }
     dlrunfun(fptr, &retval, resetToZeroNB, this);
-    return retval;
-}
-
-int CLinkbotLGroup::setExitState(int exitState) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLLG_setExitState_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setExitState, this, exitState);
     return retval;
 }
 

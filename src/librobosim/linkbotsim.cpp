@@ -357,6 +357,14 @@ int CLinkbotT::getxy(double &x, double &y) {
 	return 0;
 }
 
+int CLinkbotT::holdJointsAtExit(void) {
+	// set exit state of joints
+	this->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::isConnected(void) {
 	return _connected;
 }
@@ -2103,14 +2111,6 @@ int CLinkbotT::setLEDColorRGB(int r, int g, int b) {
 #ifdef ENABLE_GRAPHICS
 	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
 #endif // ENABLE_GRAPHICS
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::setExitState(robotJointState_t exitState) {
-	// set exit state of joints
-	this->setMovementStateNB(exitState, exitState, exitState);
 
 	// success
 	return 0;
