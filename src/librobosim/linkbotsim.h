@@ -184,6 +184,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int recordDistancesEnd(int &num);
 		int recordxyEnd(int &num);
 		int recordWait();
+		int relaxJoints(void);
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
@@ -212,7 +213,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
-		int stopAllJoints(void);
 		int systemTime(double &time);
 #ifdef ENABLE_GRAPHICS
 		int text(double x, double y, double z, char *text);
@@ -379,6 +379,7 @@ class DLLIMPORT CLinkbotTGroup {
 		int moveToZero();
 		int moveToZeroNB();
 		int moveWait();
+		int relaxJoints(void);
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
@@ -400,7 +401,6 @@ class DLLIMPORT CLinkbotTGroup {
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
-		int stopAllJoints(void);
 		int turnLeft(double angle, double radius, double trackwidth);
 		int turnLeftNB(double angle, double radius, double trackwidth);
 		int turnRight(double angle, double radius, double trackwidth);
@@ -548,6 +548,7 @@ class DLLIMPORT CLinkbotI {
 		int recordWait();
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, ...);
 		int recordxyEnd(int &num);
+		int relaxJoints(void);
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
@@ -576,7 +577,6 @@ class DLLIMPORT CLinkbotI {
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
-		int stopAllJoints(void);
 		int systemTime(double &time);
 		int text(double x, double y, double z, char *text);
 		int traceOff(void);
@@ -640,6 +640,7 @@ class DLLIMPORT CLinkbotIGroup {
 		int moveToZero();
 		int moveToZeroNB();
 		int moveWait();
+		int relaxJoints(void);
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
@@ -661,7 +662,6 @@ class DLLIMPORT CLinkbotIGroup {
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
-		int stopAllJoints(void);
 		int turnLeft(double angle, double radius, double trackwidth);
 		int turnLeftNB(double angle, double radius, double trackwidth);
 		int turnRight(double angle, double radius, double trackwidth);
@@ -780,6 +780,7 @@ class DLLIMPORT CLinkbotL {
 		int recordWait();
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, ...);
 		int recordxyEnd(int &num);
+		int relaxJoints(void);
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
@@ -808,7 +809,6 @@ class DLLIMPORT CLinkbotL {
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
-		int stopAllJoints(void);
 		int systemTime(double &time);
 		int text(double x, double y, double z, char *text);
 		int traceOff(void);
@@ -880,6 +880,7 @@ class DLLIMPORT CLinkbotLGroup {
 		int moveToZero();
 		int moveToZeroNB();
 		int moveWait();
+		int relaxJoints(void);
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
@@ -902,7 +903,6 @@ class DLLIMPORT CLinkbotLGroup {
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
-		int stopAllJoints(void);
 		int turnLeft(double angle, double radius, double trackwidth);
 		int turnLeftNB(double angle, double radius, double trackwidth);
 		int turnRight(double angle, double radius, double trackwidth);

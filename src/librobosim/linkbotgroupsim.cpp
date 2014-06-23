@@ -443,6 +443,17 @@ int CLinkbotTGroup::moveWait(void) {
 	return 0;
 }
 
+int CLinkbotTGroup::relaxJoints(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->relaxJoints();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotTGroup::reset(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -633,17 +644,6 @@ int CLinkbotTGroup::setSpeed(double speed, double radius) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setSpeed(speed, radius);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::stopAllJoints(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->stopAllJoints();
 		rtmp = rtmp->next;
 	}
 

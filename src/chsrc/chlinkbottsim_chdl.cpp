@@ -1749,6 +1749,19 @@ EXPORTCH int CLinkbotT_recordxyEnd_chdl(void *varg) {
 	return retval;
 }
 
+EXPORTCH int CLinkbotT_relaxJoints_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    retval = robot->relaxJoints();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotT_reset_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2125,19 +2138,6 @@ EXPORTCH int CLinkbotT_stopOneJoint_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CLinkbotT *);
     id = Ch_VaArg(interp, ap, robotJointId_t);
     retval = robot->stopOneJoint(id);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotT_stopAllJoints_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotT *robot;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
-    retval = robot->stopAllJoints();
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2882,6 +2882,19 @@ EXPORTCH int CLTG_moveToZeroNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLTG_relaxJoints_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotTGroup *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
+    retval = robot->relaxJoints();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLTG_reset_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3151,18 +3164,6 @@ EXPORTCH int CLTG_setSpeed_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLTG_stopAllJoints_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotTGroup *robot;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
-    retval = robot->stopAllJoints();
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
 EXPORTCH int CLTG_stopOneJoint_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

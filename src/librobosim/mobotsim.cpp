@@ -2167,6 +2167,16 @@ int CMobot::recordxyEnd(int &num) {
 	return 0;
 }
 
+int CMobot::relaxJoints(void) {
+	this->setJointSpeed(JOINT1, 0);
+	this->setJointSpeed(JOINT2, 0);
+	this->setJointSpeed(JOINT3, 0);
+	this->setJointSpeed(JOINT4, 0);
+
+	// success
+	return 0;
+}
+
 int CMobot::reset(void) {
 	MUTEX_LOCK(&_angle_mutex);
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -2468,7 +2478,7 @@ int CMobot::setSpeed(double speed, double radius) {
 }
 
 int CMobot::stop(void) {
-	this->stopAllJoints();
+	this->relaxJoints();
 
 	// success
 	return 0;
@@ -2493,16 +2503,6 @@ int CMobot::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId
 	this->setJointSpeed(id1, 0);
 	this->setJointSpeed(id2, 0);
 	this->setJointSpeed(id3, 0);
-
-	// success
-	return 0;
-}
-
-int CMobot::stopAllJoints(void) {
-	this->setJointSpeed(JOINT1, 0);
-	this->setJointSpeed(JOINT2, 0);
-	this->setJointSpeed(JOINT3, 0);
-	this->setJointSpeed(JOINT4, 0);
 
 	// success
 	return 0;

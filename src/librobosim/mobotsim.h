@@ -185,6 +185,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int recordDistancesEnd(int &num);
 		int recordWait();
 		int recordxyEnd(int &num);
+		int relaxJoints(void);
 		int reset();
 		int resetToZero();
 		int resetToZeroNB();
@@ -216,7 +217,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
-		int stopAllJoints(void);
 		int systemTime(double &time);
 #ifdef ENABLE_GRAPHICS
 		int text(double x, double y, double z, char *text);
@@ -393,6 +393,7 @@ class CMobotGroup {
 		int moveWait(void);
 		int moveToZero(void);
 		int moveToZeroNB(void);
+		int relaxJoints(void);
 		int reset(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
@@ -419,7 +420,6 @@ class CMobotGroup {
 								   robotJointState_t dir3,
 								   robotJointState_t dir4, double seconds);
 		int setSpeed(double speed, double radius);
-		int stopAllJoints(void);
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);

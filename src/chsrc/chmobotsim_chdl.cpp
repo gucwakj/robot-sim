@@ -1832,6 +1832,19 @@ EXPORTCH int CMobot_recordxyEnd_chdl(void *varg) {
 	return retval;
 }
 
+EXPORTCH int CMobot_relaxJoints_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    retval = robot->relaxJoints();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_reset_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2209,19 +2222,6 @@ EXPORTCH int CMobot_stopThreeJoints_chdl(void *varg) {
     id2 = Ch_VaArg(interp, ap, robotJointId_t);
     id3 = Ch_VaArg(interp, ap, robotJointId_t);
     retval = robot->stopThreeJoints(id1, id2, id3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CMobot_stopAllJoints_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobot *robot;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CMobot *);
-    retval = robot->stopAllJoints();
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2899,6 +2899,19 @@ EXPORTCH int CMG_moveToZeroNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMG_relaxJoints_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobotGroup *group;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    group = Ch_VaArg(interp, ap, class CMobotGroup *);
+    retval = group->relaxJoints();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMG_reset_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3196,18 +3209,6 @@ EXPORTCH int CMG_setSpeed_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CMG_stopAllJoints_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobotGroup *group;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    group = Ch_VaArg(interp, ap, class CMobotGroup *);
-    retval = group->stopAllJoints();
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
 EXPORTCH int CMG_stopOneJoint_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3222,6 +3223,7 @@ EXPORTCH int CMG_stopOneJoint_chdl(void *varg) {
     Ch_VaEnd(interp, ap);
     return retval;
 }
+
 EXPORTCH int CMG_stopTwoJoints_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3237,6 +3239,7 @@ EXPORTCH int CMG_stopTwoJoints_chdl(void *varg) {
     Ch_VaEnd(interp, ap);
     return retval;
 }
+
 EXPORTCH int CMG_stopThreeJoints_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

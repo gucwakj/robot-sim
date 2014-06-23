@@ -1436,6 +1436,19 @@ int CMobot::recordxyEnd(int &num) {
 	return retval;
 }
 
+int CMobot::relaxJoints() {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_relaxJoints_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, relaxJoints, this);
+    return retval;
+}
+
 int CMobot::reset() {
     void *fptr;
     int retval;
@@ -1675,19 +1688,6 @@ int CMobot::stop() {
     int retval;
 
     fptr = dlsym(RoboSim::_dlhandle, "CMobot_stop_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stop, this);
-    return retval;
-}
-
-int CMobot::stopAllJoints() {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_stopAllJoints_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2490,6 +2490,19 @@ int CMobotGroup::moveWait() {
     return retval;
 }
 
+int CMobotGroup::relaxJoints() {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMG_relaxJoints_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, relaxJoints, this);
+    return retval;
+}
+
 int CMobotGroup::reset() {
     void *fptr;
     int retval;
@@ -2708,19 +2721,6 @@ int CMobotGroup::setSpeed(double speed, double radius) {
         return -1;
     }
     dlrunfun(fptr, &retval, setSpeed, this, speed, radius);
-    return retval;
-}
-
-int CMobotGroup::stopAllJoints() {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CMG_stopAllJoints_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopAllJoints, this);
     return retval;
 }
 

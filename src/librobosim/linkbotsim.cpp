@@ -1994,6 +1994,15 @@ int CLinkbotT::recordxyEnd(int &num) {
 	return 0;
 }
 
+int CLinkbotT::relaxJoints(void) {
+	this->setJointSpeed(JOINT1, 0);
+	this->setJointSpeed(JOINT2, 0);
+	this->setJointSpeed(JOINT3, 0);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::reset(void) {
 	MUTEX_LOCK(&_angle_mutex);
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -2385,7 +2394,7 @@ int CLinkbotT::setSpeed(double speed, double radius) {
 }
 
 int CLinkbotT::stop(void) {
-	this->stopAllJoints();
+	this->relaxJoints();
 
 	// success
 	return 0;
@@ -2410,15 +2419,6 @@ int CLinkbotT::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJoin
 	this->setJointSpeed(id1, 0);
 	this->setJointSpeed(id2, 0);
 	this->setJointSpeed(id3, 0);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::stopAllJoints(void) {
-	this->setJointSpeed(JOINT1, 0);
-	this->setJointSpeed(JOINT2, 0);
-	this->setJointSpeed(JOINT3, 0);
 
 	// success
 	return 0;

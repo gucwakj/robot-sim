@@ -1328,6 +1328,19 @@ int CLinkbotL::recordxyEnd(int &num) {
 	return retval;
 }
 
+int CLinkbotL::relaxJoints(void) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_relaxJoints_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, relaxJoints, this);
+    return retval;
+}
+
 int CLinkbotL::reset() {
     void *fptr;
     int retval;
@@ -1627,19 +1640,6 @@ int CLinkbotL::stop() {
     int retval;
 
     fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_stop_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stop, this);
-    return retval;
-}
-
-int CLinkbotL::stopAllJoints() {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_stopAllJoints_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -2338,6 +2338,19 @@ int CLinkbotLGroup::moveWait() {
     return retval;
 }
 
+int CLinkbotLGroup::relaxJoints() {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLLG_relaxJoints_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, relaxJoints, this);
+    return retval;
+}
+
 int CLinkbotLGroup::reset() {
     void *fptr;
     int retval;
@@ -2543,19 +2556,6 @@ int CLinkbotLGroup::setSpeed(double speed, double radius) {
         return -1;
     }
     dlrunfun(fptr, &retval, setSpeed, this, speed, radius);
-    return retval;
-}
-
-int CLinkbotLGroup::stopAllJoints() {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLLG_stopAllJoints_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopAllJoints, this);
     return retval;
 }
 

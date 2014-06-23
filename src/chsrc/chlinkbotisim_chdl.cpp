@@ -1749,6 +1749,19 @@ EXPORTCH int CLinkbotI_recordxyEnd_chdl(void *varg) {
 	return retval;
 }
 
+EXPORTCH int CLinkbotI_relaxJoints_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    retval = robot->relaxJoints();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotI_reset_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2125,19 +2138,6 @@ EXPORTCH int CLinkbotI_stopOneJoint_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CLinkbotI *);
     id = Ch_VaArg(interp, ap, robotJointId_t);
     retval = robot->stopOneJoint(id);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotI_stopAllJoints_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotI *robot;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    retval = robot->stopAllJoints();
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2882,6 +2882,19 @@ EXPORTCH int CLIG_moveToZeroNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLIG_relaxJoints_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotIGroup *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
+    retval = robot->relaxJoints();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLIG_reset_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3147,19 +3160,6 @@ EXPORTCH int CLIG_setSpeed_chdl(void *varg) {
     speed = Ch_VaArg(interp, ap, double);
     radius = Ch_VaArg(interp, ap, double);
     retval = robot->setSpeed(speed, radius);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLIG_stopAllJoints_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotIGroup *robot;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
-    retval = robot->stopAllJoints();
     Ch_VaEnd(interp, ap);
     return retval;
 }

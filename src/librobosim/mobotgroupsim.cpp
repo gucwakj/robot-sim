@@ -561,6 +561,17 @@ int CMobotGroup::moveWait(void) {
 	return 0;
 }
 
+int CMobotGroup::relaxJoints(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->relaxJoints();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobotGroup::reset(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -765,17 +776,6 @@ int CMobotGroup::setSpeed(double speed, double radius) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setSpeed(speed, radius);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::stopAllJoints(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->stopAllJoints();
 		rtmp = rtmp->next;
 	}
 
