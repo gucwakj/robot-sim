@@ -196,14 +196,6 @@ int CLinkbotT::getBatteryVoltage(double &voltage) {
 	return 0;
 }
 
-int CLinkbotT::getColorName(char color[]) {
-	return this->getLEDColorName(color);
-}
-
-int CLinkbotT::getColorRGB(int &r, int &g, int &b) {
-	return this->getLEDColorRGB(r, g, b);
-}
-
 int CLinkbotT::getLEDColorName(char color[]) {
 	rgbHashTable *rgbTable = HT_Create();
 	int getRGB[3] = {(int)(255*_rgb[0]), (int)(255*_rgb[1]), (int)(255*_rgb[2])};
@@ -2071,14 +2063,6 @@ int CLinkbotT::setBuzzerFrequencyOff() {
 
 	// success
 	return 0;
-}
-
-int CLinkbotT::setColor(char *color) {
-	return this->setLEDColor(color);
-}
-
-int CLinkbotT::setColorRGB(int r, int g, int b) {
-	return this->setLEDColorRGB(r, g, b);
 }
 
 int CLinkbotT::setLEDColor(char *color) {
