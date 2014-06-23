@@ -211,7 +211,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 								   robotJointState_t dir2,
 								   robotJointState_t dir3,
 								   robotJointState_t dir4, double seconds);
-		int setTwoWheelRobotSpeed(double speed, double radius);
+		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
@@ -418,7 +418,7 @@ class CMobotGroup {
 								   robotJointState_t dir2,
 								   robotJointState_t dir3,
 								   robotJointState_t dir4, double seconds);
-		int setTwoWheelRobotSpeed(double speed, double radius);
+		int setSpeed(double speed, double radius);
 		int stopAllJoints(void);
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);

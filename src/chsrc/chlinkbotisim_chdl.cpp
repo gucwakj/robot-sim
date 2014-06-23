@@ -2097,7 +2097,7 @@ EXPORTCH int CLinkbotI_setMovementStateTimeNB_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotI_setTwoWheelRobotSpeed_chdl(void *varg) {
+EXPORTCH int CLinkbotI_setSpeed_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CLinkbotI *robot;
@@ -2109,7 +2109,7 @@ EXPORTCH int CLinkbotI_setTwoWheelRobotSpeed_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CLinkbotI *);
     speed = Ch_VaArg(interp, ap, double);
     radius = Ch_VaArg(interp, ap, double);
-    retval = robot->setTwoWheelRobotSpeed(speed, radius);
+    retval = robot->setSpeed(speed, radius);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -3134,7 +3134,7 @@ EXPORTCH int CLIG_setMovementStateTimeNB_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLIG_setTwoWheelRobotSpeed_chdl(void *varg) {
+EXPORTCH int CLIG_setSpeed_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CLinkbotIGroup *robot;
@@ -3146,7 +3146,7 @@ EXPORTCH int CLIG_setTwoWheelRobotSpeed_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
     speed = Ch_VaArg(interp, ap, double);
     radius = Ch_VaArg(interp, ap, double);
-    retval = robot->setTwoWheelRobotSpeed(speed, radius);
+    retval = robot->setSpeed(speed, radius);
     Ch_VaEnd(interp, ap);
     return retval;
 }

@@ -207,7 +207,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
 		int setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
-		int setTwoWheelRobotSpeed(double speed, double radius);
+		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
@@ -395,7 +395,7 @@ class DLLIMPORT CLinkbotTGroup {
 		int setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
 		int setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
-		int setTwoWheelRobotSpeed(double speed, double radius);
+		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
@@ -571,7 +571,7 @@ class DLLIMPORT CLinkbotI {
 		int setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
 		int setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
-		int setTwoWheelRobotSpeed(double speed, double radius);
+		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
@@ -656,7 +656,7 @@ class DLLIMPORT CLinkbotIGroup {
 		int setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
 		int setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
-		int setTwoWheelRobotSpeed(double speed, double radius);
+		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
@@ -803,7 +803,7 @@ class DLLIMPORT CLinkbotL {
 		int setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
 		int setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
-		int setTwoWheelRobotSpeed(double speed, double radius);
+		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
@@ -897,7 +897,7 @@ class DLLIMPORT CLinkbotLGroup {
 		int setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
 		int setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
-		int setTwoWheelRobotSpeed(double speed, double radius);
+		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);

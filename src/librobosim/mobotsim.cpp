@@ -2459,7 +2459,7 @@ int CMobot::setMovementStateTimeNB(robotJointState_t dir1,
 	return 0;
 }
 
-int CMobot::setTwoWheelRobotSpeed(double speed, double radius) {
+int CMobot::setSpeed(double speed, double radius) {
 	this->setJointSpeed(JOINT1, RAD2DEG(speed/radius));
 	this->setJointSpeed(JOINT4, RAD2DEG(speed/radius));
 

@@ -2372,7 +2372,7 @@ int CLinkbotT::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t 
 	return 0;
 }
 
-int CLinkbotT::setTwoWheelRobotSpeed(double speed, double radius) {
+int CLinkbotT::setSpeed(double speed, double radius) {
 	if (RAD2DEG(speed/radius) > _max_speed[JOINT1]) {
 		fprintf(stderr, "Warning: Speed %.2lf corresponds to joint speeds of %.2lf degrees/second.\n",
 			speed, RAD2DEG(speed/radius));

@@ -1657,16 +1657,16 @@ int CMobot::setMovementStateTimeNB(int dir1, int dir2, int dir3, int dir4, doubl
     return retval;
 }
 
-int CMobot::setTwoWheelRobotSpeed(double speed, double radius) {
+int CMobot::setSpeed(double speed, double radius) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_setTwoWheelRobotSpeed_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_setSpeed_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, setTwoWheelRobotSpeed, this, speed, radius);
+    dlrunfun(fptr, &retval, setSpeed, this, speed, radius);
     return retval;
 }
 
@@ -2698,16 +2698,16 @@ int CMobotGroup::setMovementStateTimeNB(int dir1, int dir2, int dir3, int dir4, 
     return retval;
 }
 
-int CMobotGroup::setTwoWheelRobotSpeed(double speed, double radius) {
+int CMobotGroup::setSpeed(double speed, double radius) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMG_setTwoWheelRobotSpeed_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CMG_setSpeed_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, setTwoWheelRobotSpeed, this, speed, radius);
+    dlrunfun(fptr, &retval, setSpeed, this, speed, radius);
     return retval;
 }
 

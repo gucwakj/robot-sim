@@ -761,10 +761,10 @@ int CMobotGroup::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_
 	return 0;
 }
 
-int CMobotGroup::setTwoWheelRobotSpeed(double speed, double radius) {
+int CMobotGroup::setSpeed(double speed, double radius) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->setTwoWheelRobotSpeed(speed, radius);
+		rtmp->robot->setSpeed(speed, radius);
 		rtmp = rtmp->next;
 	}
 

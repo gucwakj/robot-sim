@@ -629,10 +629,10 @@ int CLinkbotTGroup::setMovementStateTimeNB(robotJointState_t dir1, robotJointSta
 	return 0;
 }
 
-int CLinkbotTGroup::setTwoWheelRobotSpeed(double speed, double radius) {
+int CLinkbotTGroup::setSpeed(double speed, double radius) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->setTwoWheelRobotSpeed(speed, radius);
+		rtmp->robot->setSpeed(speed, radius);
 		rtmp = rtmp->next;
 	}
 
