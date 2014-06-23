@@ -157,7 +157,7 @@ int CMobot::enableRecordDataShift() {
 
 int CMobot::getDistance(double &distance, double radius) {
 	double angle;
-	this->getJointAngleAverage(ROBOT_JOINT1, angle, 2);
+	this->getJointAngleAverage(JOINT1, angle, 2);
 	distance = DEG2RAD(angle) * radius;
 
 	// success
@@ -199,20 +199,20 @@ int CMobot::getJointAngleAverage(robotJointId_t id, double &angle, int numReadin
 }
 
 int CMobot::getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4) {
-	this->getJointAngle(ROBOT_JOINT1, angle1);
-	this->getJointAngle(ROBOT_JOINT2, angle2);
-	this->getJointAngle(ROBOT_JOINT3, angle3);
-	this->getJointAngle(ROBOT_JOINT4, angle4);
+	this->getJointAngle(JOINT1, angle1);
+	this->getJointAngle(JOINT2, angle2);
+	this->getJointAngle(JOINT3, angle3);
+	this->getJointAngle(JOINT4, angle4);
 
 	// success
 	return 0;
 }
 
 int CMobot::getJointAnglesAverage(double &angle1, double &angle2, double &angle3, double &angle4, int numReadings) {
-	this->getJointAngleAverage(ROBOT_JOINT1, angle1, numReadings);
-	this->getJointAngleAverage(ROBOT_JOINT2, angle2, numReadings);
-	this->getJointAngleAverage(ROBOT_JOINT3, angle3, numReadings);
-	this->getJointAngleAverage(ROBOT_JOINT4, angle4, numReadings);
+	this->getJointAngleAverage(JOINT1, angle1, numReadings);
+	this->getJointAngleAverage(JOINT2, angle2, numReadings);
+	this->getJointAngleAverage(JOINT3, angle3, numReadings);
+	this->getJointAngleAverage(JOINT4, angle4, numReadings);
 
 	// success
 	return 0;
@@ -316,10 +316,10 @@ int CMobot::line(double x1, double y1, double z1, double x2, double y2, double z
 #endif // ENABLE_GRAPHICS
 
 int CMobot::motionArch(double angle) {
-	this->moveJointToNB(ROBOT_JOINT2, -angle/2.0);
-	this->moveJointToNB(ROBOT_JOINT3, angle/2.0);
-	this->moveJointWait(ROBOT_JOINT2);
-	this->moveJointWait(ROBOT_JOINT3);
+	this->moveJointToNB(JOINT2, -angle/2.0);
+	this->moveJointToNB(JOINT3, angle/2.0);
+	this->moveJointWait(JOINT2);
+	this->moveJointWait(JOINT3);
 
 	// success
 	return 0;
@@ -376,15 +376,15 @@ int CMobot::motionDistanceNB(double distance, double radius) {
 }
 
 int CMobot::motionInchwormLeft(int num) {
-	this->moveJointToNB(ROBOT_JOINT2, 0);
-	this->moveJointToNB(ROBOT_JOINT3, 0);
+	this->moveJointToNB(JOINT2, 0);
+	this->moveJointToNB(JOINT3, 0);
 	this->moveWait();
 
 	for (int i = 0; i < num; i++) {
-		this->moveJointTo(ROBOT_JOINT2, -50);
-		this->moveJointTo(ROBOT_JOINT3, 50);
-		this->moveJointTo(ROBOT_JOINT2, 0);
-		this->moveJointTo(ROBOT_JOINT3, 0);
+		this->moveJointTo(JOINT2, -50);
+		this->moveJointTo(JOINT3, 50);
+		this->moveJointTo(JOINT2, 0);
+		this->moveJointTo(JOINT3, 0);
 	}
 
 	// success
@@ -428,15 +428,15 @@ int CMobot::motionInchwormLeftNB(int num) {
 }
 
 int CMobot::motionInchwormRight(int num) {
-	this->moveJointToNB(ROBOT_JOINT2, 0);
-	this->moveJointToNB(ROBOT_JOINT3, 0);
+	this->moveJointToNB(JOINT2, 0);
+	this->moveJointToNB(JOINT3, 0);
 	this->moveWait();
 
 	for (int i = 0; i < num; i++) {
-		this->moveJointTo(ROBOT_JOINT3, 50);
-		this->moveJointTo(ROBOT_JOINT2, -50);
-		this->moveJointTo(ROBOT_JOINT3, 0);
-		this->moveJointTo(ROBOT_JOINT2, 0);
+		this->moveJointTo(JOINT3, 50);
+		this->moveJointTo(JOINT2, -50);
+		this->moveJointTo(JOINT3, 0);
+		this->moveJointTo(JOINT2, 0);
 	}
 
 	// success
@@ -525,10 +525,10 @@ int CMobot::motionRollBackwardNB(double angle) {
 
 int CMobot::motionRollForward(double angle) {
 	double motorPosition[2];
-	this->getJointAngle(ROBOT_JOINT1, motorPosition[0]);
-	this->getJointAngle(ROBOT_JOINT4, motorPosition[1]);
-	this->moveJointToNB(ROBOT_JOINT1, motorPosition[0] + angle);
-	this->moveJointToNB(ROBOT_JOINT4, motorPosition[1] + angle);
+	this->getJointAngle(JOINT1, motorPosition[0]);
+	this->getJointAngle(JOINT4, motorPosition[1]);
+	this->moveJointToNB(JOINT1, motorPosition[0] + angle);
+	this->moveJointToNB(JOINT4, motorPosition[1] + angle);
 	this->moveWait();
 
 	// success
@@ -572,8 +572,8 @@ int CMobot::motionRollForwardNB(double angle) {
 }
 
 int CMobot::motionSkinny(double angle) {
-	this->moveJointToNB(ROBOT_JOINT2, angle);
-	this->moveJointToNB(ROBOT_JOINT3, angle);
+	this->moveJointToNB(JOINT2, angle);
+	this->moveJointToNB(JOINT3, angle);
 	this->moveWait();
 
 	// success
@@ -618,16 +618,16 @@ int CMobot::motionSkinnyNB(double angle) {
 
 int CMobot::motionStand(void) {
 	this->resetToZero();
-	this->moveJointTo(ROBOT_JOINT2, -85);
-	this->moveJointTo(ROBOT_JOINT3, 70);
+	this->moveJointTo(JOINT2, -85);
+	this->moveJointTo(JOINT3, 70);
 	this->moveWait();
-	this->moveJointTo(ROBOT_JOINT1, 45);
+	this->moveJointTo(JOINT1, 45);
 #ifndef _WIN32
 	usleep(1000000);
 #else
 	Sleep(1000);
 #endif
-	this->moveJointTo(ROBOT_JOINT2, 20);
+	this->moveJointTo(JOINT2, 20);
 
 	// success
 	return 0;
@@ -677,23 +677,23 @@ int CMobot::motionTumbleLeft(int num) {
 #endif
 
 	for (int i = 0; i < num; i++) {
-		this->moveJointTo(ROBOT_JOINT2, -85);
-		this->moveJointTo(ROBOT_JOINT3, 75);
-		this->moveJointTo(ROBOT_JOINT2, 0);
-		this->moveJointTo(ROBOT_JOINT3, 0);
-		this->moveJointTo(ROBOT_JOINT2, 80);
-		this->moveJointTo(ROBOT_JOINT2, 45);
-		this->moveJointTo(ROBOT_JOINT3, -85);
-		this->moveJointTo(ROBOT_JOINT2, 75);
-		this->moveJointTo(ROBOT_JOINT3, 0);
-		this->moveJointTo(ROBOT_JOINT2, 0);
-		this->moveJointTo(ROBOT_JOINT3, 75);
+		this->moveJointTo(JOINT2, -85);
+		this->moveJointTo(JOINT3, 75);
+		this->moveJointTo(JOINT2, 0);
+		this->moveJointTo(JOINT3, 0);
+		this->moveJointTo(JOINT2, 80);
+		this->moveJointTo(JOINT2, 45);
+		this->moveJointTo(JOINT3, -85);
+		this->moveJointTo(JOINT2, 75);
+		this->moveJointTo(JOINT3, 0);
+		this->moveJointTo(JOINT2, 0);
+		this->moveJointTo(JOINT3, 75);
 		if (i != (num-1)) {
-			this->moveJointTo(ROBOT_JOINT3, 45);
+			this->moveJointTo(JOINT3, 45);
 		}
 	}
-	this->moveJointToNB(ROBOT_JOINT2, 0);
-	this->moveJointToNB(ROBOT_JOINT3, 0);
+	this->moveJointToNB(JOINT2, 0);
+	this->moveJointToNB(JOINT3, 0);
 	this->moveWait();
 
 	// success
@@ -745,23 +745,23 @@ int CMobot::motionTumbleRight(int num) {
 #endif
 
 	for (int i = 0; i < num; i++) {
-		this->moveJointTo(ROBOT_JOINT3, 85);
-		this->moveJointTo(ROBOT_JOINT2, -80);
-		this->moveJointTo(ROBOT_JOINT3, 0);
-		this->moveJointTo(ROBOT_JOINT2, 0);
-		this->moveJointTo(ROBOT_JOINT3, -80);
-		this->moveJointTo(ROBOT_JOINT3, -45);
-		this->moveJointTo(ROBOT_JOINT2, 85);
-		this->moveJointTo(ROBOT_JOINT3, -80);
-		this->moveJointTo(ROBOT_JOINT2, 0);
-		this->moveJointTo(ROBOT_JOINT3, 0);
-		this->moveJointTo(ROBOT_JOINT2, -80);
+		this->moveJointTo(JOINT3, 85);
+		this->moveJointTo(JOINT2, -80);
+		this->moveJointTo(JOINT3, 0);
+		this->moveJointTo(JOINT2, 0);
+		this->moveJointTo(JOINT3, -80);
+		this->moveJointTo(JOINT3, -45);
+		this->moveJointTo(JOINT2, 85);
+		this->moveJointTo(JOINT3, -80);
+		this->moveJointTo(JOINT2, 0);
+		this->moveJointTo(JOINT3, 0);
+		this->moveJointTo(JOINT2, -80);
 		if (i != (num-1)) {
-			this->moveJointTo(ROBOT_JOINT2, -45);
+			this->moveJointTo(JOINT2, -45);
 		}
 	}
-	this->moveJointToNB(ROBOT_JOINT3, 0);
-	this->moveJointToNB(ROBOT_JOINT2, 0);
+	this->moveJointToNB(JOINT3, 0);
+	this->moveJointToNB(JOINT2, 0);
 	this->moveWait();
 
 	// success
@@ -894,8 +894,8 @@ int CMobot::motionTurnRightNB(double angle) {
 
 int CMobot::motionUnstand(void) {
 	this->resetToZero();
-	this->moveJointToNB(ROBOT_JOINT3, 45);
-	this->moveJointToNB(ROBOT_JOINT2, -85);
+	this->moveJointToNB(JOINT3, 45);
+	this->moveJointToNB(JOINT2, -85);
 	this->moveWait();
 	this->resetToZero();
 
@@ -1674,16 +1674,16 @@ void* CMobot::recordAnglesThread(void *arg) {
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angles
-		rArg->angle1[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT1]);
-		rArg->angle2[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT2]);
-		rArg->angle3[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT3]);
-		rArg->angle4[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT4]);
+		rArg->angle1[i] = RAD2DEG(rArg->robot->_angle[JOINT1]);
+		rArg->angle2[i] = RAD2DEG(rArg->robot->_angle[JOINT2]);
+		rArg->angle3[i] = RAD2DEG(rArg->robot->_angle[JOINT3]);
+		rArg->angle4[i] = RAD2DEG(rArg->robot->_angle[JOINT4]);
 
 		// check if joints are moving
-		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(ROBOT_JOINT1), dParamVel)*1000);
-		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(ROBOT_JOINT2), dParamVel)*1000);
-		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(ROBOT_JOINT3), dParamVel)*1000);
-		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(ROBOT_JOINT4), dParamVel)*1000);
+		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT1), dParamVel)*1000);
+		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT2), dParamVel)*1000);
+		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT3), dParamVel)*1000);
+		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT4), dParamVel)*1000);
 
 		// increment time step
 		time += rArg->msecs;
@@ -1780,17 +1780,17 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_rec_active[ROBOT_JOINT1] = true;
-	rArg->robot->_rec_active[ROBOT_JOINT2] = true;
-	rArg->robot->_rec_active[ROBOT_JOINT3] = true;
-	rArg->robot->_rec_active[ROBOT_JOINT4] = true;
+	rArg->robot->_rec_active[JOINT1] = true;
+	rArg->robot->_rec_active[JOINT2] = true;
+	rArg->robot->_rec_active[JOINT3] = true;
+	rArg->robot->_rec_active[JOINT4] = true;
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// loop until recording is no longer needed
 	for (int i = 0; rArg->robot->_recording[rArg->id]; i++) {
 		// store locally num of data points taken
-		rArg->robot->_rec_num[ROBOT_JOINT1] = i;
+		rArg->robot->_rec_num[JOINT1] = i;
 
 		// resize array if filled current one
 		if(i >= rArg->num) {
@@ -1824,10 +1824,10 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT1]);
-		(*(rArg->pangle2))[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT2]);
-		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT3]);
-		(*(rArg->pangle4))[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT4]);
+		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_angle[JOINT1]);
+		(*(rArg->pangle2))[i] = RAD2DEG(rArg->robot->_angle[JOINT2]);
+		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_angle[JOINT3]);
+		(*(rArg->pangle4))[i] = RAD2DEG(rArg->robot->_angle[JOINT4]);
 
 		// store time of data point
 		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
@@ -1849,10 +1849,10 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 
 	// signal completion of recording
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_rec_active[ROBOT_JOINT1] = false;
-	rArg->robot->_rec_active[ROBOT_JOINT2] = false;
-	rArg->robot->_rec_active[ROBOT_JOINT3] = false;
-	rArg->robot->_rec_active[ROBOT_JOINT4] = false;
+	rArg->robot->_rec_active[JOINT1] = false;
+	rArg->robot->_rec_active[JOINT2] = false;
+	rArg->robot->_rec_active[JOINT3] = false;
+	rArg->robot->_rec_active[JOINT4] = false;
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
@@ -1889,10 +1889,10 @@ int CMobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1
 	rArg->pangle4 = &angle4;
 
 	// store pointer to recorded angles locally
-	_rec_angles[ROBOT_JOINT1] = &angle1;
-	_rec_angles[ROBOT_JOINT2] = &angle2;
-	_rec_angles[ROBOT_JOINT3] = &angle3;
-	_rec_angles[ROBOT_JOINT4] = &angle4;
+	_rec_angles[JOINT1] = &angle1;
+	_rec_angles[JOINT2] = &angle2;
+	_rec_angles[JOINT3] = &angle3;
+	_rec_angles[JOINT4] = &angle4;
 
 	// lock recording for joint id
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -1909,21 +1909,21 @@ int CMobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1
 int CMobot::recordAnglesEnd(int &num) {
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
-	_recording[ROBOT_JOINT1] = 0;
-	_recording[ROBOT_JOINT2] = 0;
-	_recording[ROBOT_JOINT3] = 0;
-	_recording[ROBOT_JOINT4] = 0;
+	_recording[JOINT1] = 0;
+	_recording[JOINT2] = 0;
+	_recording[JOINT3] = 0;
+	_recording[JOINT4] = 0;
 	MUTEX_UNLOCK(&_recording_mutex);
 
 	// wait for last recording point to finish
 	MUTEX_LOCK(&_active_mutex);
-	while (_rec_active[ROBOT_JOINT1] && _rec_active[ROBOT_JOINT2] && _rec_active[ROBOT_JOINT3] && _rec_active[ROBOT_JOINT4]) {
+	while (_rec_active[JOINT1] && _rec_active[JOINT2] && _rec_active[JOINT3] && _rec_active[JOINT4]) {
 		COND_WAIT(&_active_cond, &_active_mutex);
 	}
 	MUTEX_UNLOCK(&_active_mutex);
 
 	// report number of data points recorded
-	num = _rec_num[ROBOT_JOINT1];
+	num = _rec_num[JOINT1];
 
 	// success
 	return 0;
@@ -2027,17 +2027,17 @@ void* CMobot::recordxyBeginThread(void *arg) {
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_rec_active[ROBOT_JOINT1] = true;
-	rArg->robot->_rec_active[ROBOT_JOINT2] = true;
-	rArg->robot->_rec_active[ROBOT_JOINT3] = true;
-	rArg->robot->_rec_active[ROBOT_JOINT4] = true;
+	rArg->robot->_rec_active[JOINT1] = true;
+	rArg->robot->_rec_active[JOINT2] = true;
+	rArg->robot->_rec_active[JOINT3] = true;
+	rArg->robot->_rec_active[JOINT4] = true;
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// loop until recording is no longer needed
-	for (int i = 0; rArg->robot->_recording[ROBOT_JOINT1]; i++) {
+	for (int i = 0; rArg->robot->_recording[JOINT1]; i++) {
 		// store locally num of data points taken
-		rArg->robot->_rec_num[ROBOT_JOINT1] = i;
+		rArg->robot->_rec_num[JOINT1] = i;
 
 		// resize array if filled current one
 		if (i >= rArg->num) {
@@ -2078,10 +2078,10 @@ void* CMobot::recordxyBeginThread(void *arg) {
 
 	// signal completion of recording
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_rec_active[ROBOT_JOINT1] = false;
-	rArg->robot->_rec_active[ROBOT_JOINT2] = false;
-	rArg->robot->_rec_active[ROBOT_JOINT3] = false;
-	rArg->robot->_rec_active[ROBOT_JOINT4] = false;
+	rArg->robot->_rec_active[JOINT1] = false;
+	rArg->robot->_rec_active[JOINT2] = false;
+	rArg->robot->_rec_active[JOINT3] = false;
+	rArg->robot->_rec_active[JOINT4] = false;
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
@@ -2112,8 +2112,8 @@ int CMobot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double sec
 	rArg->pangle1 = &y;
 
 	// store pointer to recorded angles locally
-	_rec_angles[ROBOT_JOINT1] = &x;
-	_rec_angles[ROBOT_JOINT2] = &y;
+	_rec_angles[JOINT1] = &x;
+	_rec_angles[JOINT2] = &y;
 
 	// lock recording for joint id
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -2140,27 +2140,27 @@ int CMobot::recordxyEnd(int &num) {
 
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
-	_recording[ROBOT_JOINT1] = 0;
-	_recording[ROBOT_JOINT2] = 0;
-	_recording[ROBOT_JOINT3] = 0;
-	_recording[ROBOT_JOINT4] = 0;
+	_recording[JOINT1] = 0;
+	_recording[JOINT2] = 0;
+	_recording[JOINT3] = 0;
+	_recording[JOINT4] = 0;
 	MUTEX_UNLOCK(&_recording_mutex);
 
 	// wait for last recording point to finish
 	MUTEX_LOCK(&_active_mutex);
-	while (_rec_active[ROBOT_JOINT1] && _rec_active[ROBOT_JOINT2] && _rec_active[ROBOT_JOINT3]) {
+	while (_rec_active[JOINT1] && _rec_active[JOINT2] && _rec_active[JOINT3]) {
 		COND_WAIT(&_active_cond, &_active_mutex);
 	}
 	MUTEX_UNLOCK(&_active_mutex);
 
 	// report number of data points recorded
-	num = _rec_num[ROBOT_JOINT1];
+	num = _rec_num[JOINT1];
 
 	// convert recorded values into in/cm
 	double m2x = (_simObject->getUnits()) ? 39.37 : 100;
 	for (int i = 0; i < num; i++) {
-		(*_rec_angles[ROBOT_JOINT1])[i] = ((*_rec_angles[ROBOT_JOINT1])[i]) * m2x;
-		(*_rec_angles[ROBOT_JOINT2])[i] = ((*_rec_angles[ROBOT_JOINT2])[i]) * m2x;
+		(*_rec_angles[JOINT1])[i] = ((*_rec_angles[JOINT1])[i]) * m2x;
+		(*_rec_angles[JOINT2])[i] = ((*_rec_angles[JOINT2])[i]) * m2x;
 	}
 
 	// success
@@ -2354,20 +2354,20 @@ int CMobot::setJointSpeedRatio(robotJointId_t id, double ratio) {
 }
 
 int CMobot::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
-	this->setJointSpeed(ROBOT_JOINT1, speed1);
-	this->setJointSpeed(ROBOT_JOINT2, speed2);
-	this->setJointSpeed(ROBOT_JOINT3, speed3);
-	this->setJointSpeed(ROBOT_JOINT4, speed4);
+	this->setJointSpeed(JOINT1, speed1);
+	this->setJointSpeed(JOINT2, speed2);
+	this->setJointSpeed(JOINT3, speed3);
+	this->setJointSpeed(JOINT4, speed4);
 
 	// success
 	return 0;
 }
 
 int CMobot::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4) {
-	this->setJointSpeedRatio(ROBOT_JOINT1, ratio1);
-	this->setJointSpeedRatio(ROBOT_JOINT2, ratio2);
-	this->setJointSpeedRatio(ROBOT_JOINT3, ratio3);
-	this->setJointSpeedRatio(ROBOT_JOINT4, ratio4);
+	this->setJointSpeedRatio(JOINT1, ratio1);
+	this->setJointSpeedRatio(JOINT2, ratio2);
+	this->setJointSpeedRatio(JOINT3, ratio3);
+	this->setJointSpeedRatio(JOINT4, ratio4);
 
 	// success
 	return 0;
@@ -2381,10 +2381,10 @@ int CMobot::setMotorPower(robotJointId_t id, int power) {
 }
 
 int CMobot::setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4) {
-	this->setJointMovementStateNB(ROBOT_JOINT1, dir1);
-	this->setJointMovementStateNB(ROBOT_JOINT2, dir2);
-	this->setJointMovementStateNB(ROBOT_JOINT3, dir3);
-	this->setJointMovementStateNB(ROBOT_JOINT4, dir4);
+	this->setJointMovementStateNB(JOINT1, dir1);
+	this->setJointMovementStateNB(JOINT2, dir2);
+	this->setJointMovementStateNB(JOINT3, dir3);
+	this->setJointMovementStateNB(JOINT4, dir4);
 
 	// success
 	return 0;
@@ -2395,10 +2395,10 @@ int CMobot::setMovementStateTime(robotJointState_t dir1,
 								 robotJointState_t dir3,
 								 robotJointState_t dir4, double seconds) {
 	// set joint movements
-	this->setJointMovementStateNB(ROBOT_JOINT1, dir1);
-	this->setJointMovementStateNB(ROBOT_JOINT2, dir2);
-	this->setJointMovementStateNB(ROBOT_JOINT3, dir3);
-	this->setJointMovementStateNB(ROBOT_JOINT4, dir4);
+	this->setJointMovementStateNB(JOINT1, dir1);
+	this->setJointMovementStateNB(JOINT2, dir2);
+	this->setJointMovementStateNB(JOINT3, dir3);
+	this->setJointMovementStateNB(JOINT4, dir4);
 
 	// sleep
 #ifdef _WIN32
@@ -2447,10 +2447,10 @@ int CMobot::setMovementStateTimeNB(robotJointState_t dir1,
 	rArg->msecs = 1000*seconds;
 
 	// set joint movements
-	this->setJointMovementStateNB(ROBOT_JOINT1, dir1);
-	this->setJointMovementStateNB(ROBOT_JOINT2, dir2);
-	this->setJointMovementStateNB(ROBOT_JOINT3, dir3);
-	this->setJointMovementStateNB(ROBOT_JOINT4, dir4);
+	this->setJointMovementStateNB(JOINT1, dir1);
+	this->setJointMovementStateNB(JOINT2, dir2);
+	this->setJointMovementStateNB(JOINT3, dir3);
+	this->setJointMovementStateNB(JOINT4, dir4);
 
 	// create thread to wait
 	THREAD_CREATE(&moving, (void* (*)(void *))&CMobot::setMovementStateTimeNBThread, (void *)rArg);
@@ -2460,8 +2460,8 @@ int CMobot::setMovementStateTimeNB(robotJointState_t dir1,
 }
 
 int CMobot::setTwoWheelRobotSpeed(double speed, double radius) {
-	this->setJointSpeed(ROBOT_JOINT1, RAD2DEG(speed/radius));
-	this->setJointSpeed(ROBOT_JOINT4, RAD2DEG(speed/radius));
+	this->setJointSpeed(JOINT1, RAD2DEG(speed/radius));
+	this->setJointSpeed(JOINT4, RAD2DEG(speed/radius));
 
 	// success
 	return 0;
@@ -2499,10 +2499,10 @@ int CMobot::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId
 }
 
 int CMobot::stopAllJoints(void) {
-	this->setJointSpeed(ROBOT_JOINT1, 0);
-	this->setJointSpeed(ROBOT_JOINT2, 0);
-	this->setJointSpeed(ROBOT_JOINT3, 0);
-	this->setJointSpeed(ROBOT_JOINT4, 0);
+	this->setJointSpeed(JOINT1, 0);
+	this->setJointSpeed(JOINT2, 0);
+	this->setJointSpeed(JOINT3, 0);
+	this->setJointSpeed(JOINT4, 0);
 
 	// success
 	return 0;
@@ -4310,10 +4310,10 @@ int CMobot::init_params(void) {
 	_distOffset = 0;
 	_encoder = DEG2RAD(0.1);
 	_id = -1;
-	_max_force[ROBOT_JOINT1] = 0.260;
-	_max_force[ROBOT_JOINT2] = 1.059;
-	_max_force[ROBOT_JOINT3] = 1.059;
-	_max_force[ROBOT_JOINT4] = 0.260;
+	_max_force[JOINT1] = 0.260;
+	_max_force[JOINT2] = 1.059;
+	_max_force[JOINT3] = 1.059;
+	_max_force[JOINT4] = 0.260;
 	_motion = false;
 	_rgb[0] = 0;
 	_rgb[1] = 0;

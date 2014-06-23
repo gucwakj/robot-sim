@@ -53,14 +53,14 @@ int CLinkbotL::closeGripper(void) {
 	double gripperAngleNew = 0;
 	int retval;
 
-	retval = getJointAngle(ROBOT_JOINT1, gripperAngleNew);
+	retval = getJointAngle(JOINT1, gripperAngleNew);
 
 	while ( fabs(gripperAngleNew - gripperAngleOld) > 0.1 ) {
 		gripperAngleOld = gripperAngleNew;
-		retval = retval || getJointAngle(ROBOT_JOINT1, gripperAngleNew);
+		retval = retval || getJointAngle(JOINT1, gripperAngleNew);
 		retval = retval || moveNB(8, NaN, 8);
 		delaySeconds(1);
-		retval = retval || getJointAngle(ROBOT_JOINT1, gripperAngleNew);
+		retval = retval || getJointAngle(JOINT1, gripperAngleNew);
 	}
 
 	retval = retval || moveNB(8, NaN, 8);
@@ -1058,11 +1058,11 @@ int CLinkbotL::movexyWait() {
 }
 
 int CLinkbotL::openGripper(double angle) {
-	return moveJointTo(ROBOT_JOINT1, -angle);
+	return moveJointTo(JOINT1, -angle);
 }
 
 int CLinkbotL::openGripperNB(double angle) {
-	return moveJointTo(ROBOT_JOINT1, -angle);
+	return moveJointTo(JOINT1, -angle);
 }
 
 int CLinkbotL::point(double x, double y, double z, int pointsize, char *color) {

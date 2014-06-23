@@ -53,14 +53,14 @@ int CLinkbotT::closeGripper(void) {
 	double gripperAngleNew = 0;
 	int retval;
 
-	retval = getJointAngle(ROBOT_JOINT1, gripperAngleNew);
+	retval = getJointAngle(JOINT1, gripperAngleNew);
 
 	while ( fabs(gripperAngleNew - gripperAngleOld) > 0.1 ) {
 		gripperAngleOld = gripperAngleNew;
-		retval = retval || getJointAngle(ROBOT_JOINT1, gripperAngleNew);
+		retval = retval || getJointAngle(JOINT1, gripperAngleNew);
 		retval = retval || moveNB(8, NaN, 8);
 		delaySeconds(1);
-		retval = retval || getJointAngle(ROBOT_JOINT1, gripperAngleNew);
+		retval = retval || getJointAngle(JOINT1, gripperAngleNew);
 	}
 
 	retval = retval || moveNB(8, NaN, 8);

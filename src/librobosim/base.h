@@ -118,10 +118,10 @@ typedef enum robot_type_e {
 	NUM_TYPES
 } robotType_t;
 typedef enum robot_joint_id_e {
-	ROBOT_JOINT1,
-	ROBOT_JOINT2,
-	ROBOT_JOINT3,
-	ROBOT_JOINT4
+	JOINT1,
+	JOINT2,
+	JOINT3,
+	JOINT4
 } robotJointId_t;
 typedef enum robot_joint_state_e {
 	ROBOT_NEUTRAL = 0,

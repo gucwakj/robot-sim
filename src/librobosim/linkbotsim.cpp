@@ -225,7 +225,7 @@ int CLinkbotT::getLEDColorRGB(int &r, int &g, int &b) {
 
 int CLinkbotT::getDistance(double &distance, double radius) {
 	double angle;
-	this->getJointAngleAverage(ROBOT_JOINT1, angle, 2);
+	this->getJointAngleAverage(JOINT1, angle, 2);
 	distance = DEG2RAD(angle) * radius;
 
 	// success
@@ -271,18 +271,18 @@ int CLinkbotT::getJointAngleAverage(robotJointId_t id, double &angle, int numRea
 }
 
 int CLinkbotT::getJointAngles(double &angle1, double &angle2, double &angle3) {
-	this->getJointAngle(ROBOT_JOINT1, angle1);
-	this->getJointAngle(ROBOT_JOINT2, angle2);
-	this->getJointAngle(ROBOT_JOINT3, angle3);
+	this->getJointAngle(JOINT1, angle1);
+	this->getJointAngle(JOINT2, angle2);
+	this->getJointAngle(JOINT3, angle3);
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::getJointAnglesAverage(double &angle1, double &angle2, double &angle3, int numReadings) {
-	this->getJointAngleAverage(ROBOT_JOINT1, angle1, numReadings);
-	this->getJointAngleAverage(ROBOT_JOINT2, angle2, numReadings);
-	this->getJointAngleAverage(ROBOT_JOINT3, angle3, numReadings);
+	this->getJointAngleAverage(JOINT1, angle1, numReadings);
+	this->getJointAngleAverage(JOINT2, angle2, numReadings);
+	this->getJointAngleAverage(JOINT3, angle3, numReadings);
 
 	// success
 	return 0;
@@ -1510,14 +1510,14 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angles
-		rArg->angle1[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT1]);
-		rArg->angle2[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT2]);
-		rArg->angle3[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT3]);
+		rArg->angle1[i] = RAD2DEG(rArg->robot->_angle[JOINT1]);
+		rArg->angle2[i] = RAD2DEG(rArg->robot->_angle[JOINT2]);
+		rArg->angle3[i] = RAD2DEG(rArg->robot->_angle[JOINT3]);
 
 		// check if joints are moving
-		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(ROBOT_JOINT1), dParamVel)*1000);
-		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(ROBOT_JOINT2), dParamVel)*1000);
-		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(ROBOT_JOINT3), dParamVel)*1000);
+		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT1), dParamVel)*1000);
+		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT2), dParamVel)*1000);
+		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT3), dParamVel)*1000);
 
 		// increment time step
 		time += rArg->msecs;
@@ -1616,16 +1616,16 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_rec_active[ROBOT_JOINT1] = true;
-	rArg->robot->_rec_active[ROBOT_JOINT2] = true;
-	rArg->robot->_rec_active[ROBOT_JOINT3] = true;
+	rArg->robot->_rec_active[JOINT1] = true;
+	rArg->robot->_rec_active[JOINT2] = true;
+	rArg->robot->_rec_active[JOINT3] = true;
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// loop until recording is no longer needed
 	for (int i = 0; rArg->robot->_recording[rArg->id]; i++) {
 		// store locally num of data points taken
-		rArg->robot->_rec_num[ROBOT_JOINT1] = i;
+		rArg->robot->_rec_num[JOINT1] = i;
 
 		// resize array if filled current one
 		if(i >= rArg->num) {
@@ -1653,9 +1653,9 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT1]);
-		(*(rArg->pangle2))[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT2]);
-		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_angle[ROBOT_JOINT3]);
+		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_angle[JOINT1]);
+		(*(rArg->pangle2))[i] = RAD2DEG(rArg->robot->_angle[JOINT2]);
+		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_angle[JOINT3]);
 
 		// store time of data point
 		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
@@ -1677,9 +1677,9 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 
 	// signal completion of recording
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_rec_active[ROBOT_JOINT1] = false;
-	rArg->robot->_rec_active[ROBOT_JOINT2] = false;
-	rArg->robot->_rec_active[ROBOT_JOINT3] = false;
+	rArg->robot->_rec_active[JOINT1] = false;
+	rArg->robot->_rec_active[JOINT2] = false;
+	rArg->robot->_rec_active[JOINT3] = false;
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
@@ -1714,9 +1714,9 @@ int CLinkbotT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &ang
 	rArg->pangle3 = &angle3;
 
 	// store pointer to recorded angles locally
-	_rec_angles[ROBOT_JOINT1] = &angle1;
-	_rec_angles[ROBOT_JOINT2] = &angle2;
-	_rec_angles[ROBOT_JOINT3] = &angle3;
+	_rec_angles[JOINT1] = &angle1;
+	_rec_angles[JOINT2] = &angle2;
+	_rec_angles[JOINT3] = &angle3;
 
 	// lock recording for joint id
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -1736,20 +1736,20 @@ int CLinkbotT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &ang
 int CLinkbotT::recordAnglesEnd(int &num) {
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
-	_recording[ROBOT_JOINT1] = 0;
-	_recording[ROBOT_JOINT2] = 0;
-	_recording[ROBOT_JOINT3] = 0;
+	_recording[JOINT1] = 0;
+	_recording[JOINT2] = 0;
+	_recording[JOINT3] = 0;
 	MUTEX_UNLOCK(&_recording_mutex);
 
 	// wait for last recording point to finish
 	MUTEX_LOCK(&_active_mutex);
-	while (_rec_active[ROBOT_JOINT1] && _rec_active[ROBOT_JOINT2] && _rec_active[ROBOT_JOINT3]) {
+	while (_rec_active[JOINT1] && _rec_active[JOINT2] && _rec_active[JOINT3]) {
 		COND_WAIT(&_active_cond, &_active_mutex);
 	}
 	MUTEX_UNLOCK(&_active_mutex);
 
 	// report number of data points recorded
-	num = _rec_num[ROBOT_JOINT1];
+	num = _rec_num[JOINT1];
 
 	// success
 	return 0;
@@ -1857,16 +1857,16 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_rec_active[ROBOT_JOINT1] = true;
-	rArg->robot->_rec_active[ROBOT_JOINT2] = true;
-	rArg->robot->_rec_active[ROBOT_JOINT3] = true;
+	rArg->robot->_rec_active[JOINT1] = true;
+	rArg->robot->_rec_active[JOINT2] = true;
+	rArg->robot->_rec_active[JOINT3] = true;
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// loop until recording is no longer needed
-	for (int i = 0; rArg->robot->_recording[ROBOT_JOINT1]; i++) {
+	for (int i = 0; rArg->robot->_recording[JOINT1]; i++) {
 		// store locally num of data points taken
-		rArg->robot->_rec_num[ROBOT_JOINT1] = i;
+		rArg->robot->_rec_num[JOINT1] = i;
 
 		// resize array if filled current one
 		if (i >= rArg->num) {
@@ -1907,9 +1907,9 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 
 	// signal completion of recording
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_rec_active[ROBOT_JOINT1] = false;
-	rArg->robot->_rec_active[ROBOT_JOINT2] = false;
-	rArg->robot->_rec_active[ROBOT_JOINT3] = false;
+	rArg->robot->_rec_active[JOINT1] = false;
+	rArg->robot->_rec_active[JOINT2] = false;
+	rArg->robot->_rec_active[JOINT3] = false;
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
@@ -1940,8 +1940,8 @@ int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double 
 	rArg->pangle1 = &y;
 
 	// store pointer to recorded angles locally
-	_rec_angles[ROBOT_JOINT1] = &x;
-	_rec_angles[ROBOT_JOINT2] = &y;
+	_rec_angles[JOINT1] = &x;
+	_rec_angles[JOINT2] = &y;
 
 	// lock recording for joint id
 	for (int i = 0; i < NUM_DOF; i++) {
@@ -1968,26 +1968,26 @@ int CLinkbotT::recordxyEnd(int &num) {
 
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
-	_recording[ROBOT_JOINT1] = 0;
-	_recording[ROBOT_JOINT2] = 0;
-	_recording[ROBOT_JOINT3] = 0;
+	_recording[JOINT1] = 0;
+	_recording[JOINT2] = 0;
+	_recording[JOINT3] = 0;
 	MUTEX_UNLOCK(&_recording_mutex);
 
 	// wait for last recording point to finish
 	MUTEX_LOCK(&_active_mutex);
-	while (_rec_active[ROBOT_JOINT1] && _rec_active[ROBOT_JOINT2] && _rec_active[ROBOT_JOINT3]) {
+	while (_rec_active[JOINT1] && _rec_active[JOINT2] && _rec_active[JOINT3]) {
 		COND_WAIT(&_active_cond, &_active_mutex);
 	}
 	MUTEX_UNLOCK(&_active_mutex);
 
 	// report number of data points recorded
-	num = _rec_num[ROBOT_JOINT1];
+	num = _rec_num[JOINT1];
 
 	// convert recorded values into in/cm
 	double m2x = (_simObject->getUnits()) ? 39.37 : 100;
 	for (int i = 0; i < num; i++) {
-		(*_rec_angles[ROBOT_JOINT1])[i] = ((*_rec_angles[ROBOT_JOINT1])[i]) * m2x;
-		(*_rec_angles[ROBOT_JOINT2])[i] = ((*_rec_angles[ROBOT_JOINT2])[i]) * m2x;
+		(*_rec_angles[JOINT1])[i] = ((*_rec_angles[JOINT1])[i]) * m2x;
+		(*_rec_angles[JOINT2])[i] = ((*_rec_angles[JOINT2])[i]) * m2x;
 	}
 
 	// success
@@ -2147,7 +2147,7 @@ int CLinkbotT::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir)
 
 int CLinkbotT::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds) {
 	// switch direction for linkbot i to get forward movement
-	if (_type == LINKBOTI && id == ROBOT_JOINT3) {
+	if (_type == LINKBOTI && id == JOINT3) {
 		switch (dir) {
 			case ROBOT_FORWARD:
 				dir = ROBOT_BACKWARD;
@@ -2217,18 +2217,18 @@ int CLinkbotT::setJointSpeedRatio(robotJointId_t id, double ratio) {
 }
 
 int CLinkbotT::setJointSpeeds(double speed1, double speed2, double speed3) {
-	this->setJointSpeed(ROBOT_JOINT1, speed1);
-	this->setJointSpeed(ROBOT_JOINT2, speed2);
-	this->setJointSpeed(ROBOT_JOINT3, speed3);
+	this->setJointSpeed(JOINT1, speed1);
+	this->setJointSpeed(JOINT2, speed2);
+	this->setJointSpeed(JOINT3, speed3);
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::setJointSpeedRatios(double ratio1, double ratio2, double ratio3) {
-	this->setJointSpeedRatio(ROBOT_JOINT1, ratio1);
-	this->setJointSpeedRatio(ROBOT_JOINT2, ratio2);
-	this->setJointSpeedRatio(ROBOT_JOINT3, ratio3);
+	this->setJointSpeedRatio(JOINT1, ratio1);
+	this->setJointSpeedRatio(JOINT2, ratio2);
+	this->setJointSpeedRatio(JOINT3, ratio3);
 
 	// success
 	return 0;
@@ -2263,9 +2263,9 @@ int CLinkbotT::setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2
 	}
 
 	// set joint movements
-	this->setJointMovementStateNB(ROBOT_JOINT1, dir1);
-	this->setJointMovementStateNB(ROBOT_JOINT2, dir2);
-	this->setJointMovementStateNB(ROBOT_JOINT3, dir3);
+	this->setJointMovementStateNB(JOINT1, dir1);
+	this->setJointMovementStateNB(JOINT2, dir2);
+	this->setJointMovementStateNB(JOINT3, dir3);
 
 	// success
 	return 0;
@@ -2293,9 +2293,9 @@ int CLinkbotT::setMovementStateTime(robotJointState_t dir1, robotJointState_t di
 	}
 
 	// set joint movements
-	this->setJointMovementStateNB(ROBOT_JOINT1, dir1);
-	this->setJointMovementStateNB(ROBOT_JOINT2, dir2);
-	this->setJointMovementStateNB(ROBOT_JOINT3, dir3);
+	this->setJointMovementStateNB(JOINT1, dir1);
+	this->setJointMovementStateNB(JOINT2, dir2);
+	this->setJointMovementStateNB(JOINT3, dir3);
 
 	// sleep
 #ifdef _WIN32
@@ -2361,9 +2361,9 @@ int CLinkbotT::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t 
 	rArg->msecs = 1000*seconds;
 
 	// set joint movements
-	this->setJointMovementStateNB(ROBOT_JOINT1, dir1);
-	this->setJointMovementStateNB(ROBOT_JOINT2, dir2);
-	this->setJointMovementStateNB(ROBOT_JOINT3, dir3);
+	this->setJointMovementStateNB(JOINT1, dir1);
+	this->setJointMovementStateNB(JOINT2, dir2);
+	this->setJointMovementStateNB(JOINT3, dir3);
 
 	// create thread to wait
 	THREAD_CREATE(&moving, (void* (*)(void *))&CLinkbotT::setMovementStateTimeNBThread, (void *)rArg);
@@ -2373,12 +2373,12 @@ int CLinkbotT::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t 
 }
 
 int CLinkbotT::setTwoWheelRobotSpeed(double speed, double radius) {
-	if (RAD2DEG(speed/radius) > _max_speed[ROBOT_JOINT1]) {
+	if (RAD2DEG(speed/radius) > _max_speed[JOINT1]) {
 		fprintf(stderr, "Warning: Speed %.2lf corresponds to joint speeds of %.2lf degrees/second.\n",
 			speed, RAD2DEG(speed/radius));
 	}
-	this->setJointSpeed(ROBOT_JOINT1, RAD2DEG(speed/radius));
-	this->setJointSpeed(ROBOT_JOINT3, RAD2DEG(speed/radius));
+	this->setJointSpeed(JOINT1, RAD2DEG(speed/radius));
+	this->setJointSpeed(JOINT3, RAD2DEG(speed/radius));
 
 	// success
 	return 0;
@@ -2416,9 +2416,9 @@ int CLinkbotT::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJoin
 }
 
 int CLinkbotT::stopAllJoints(void) {
-	this->setJointSpeed(ROBOT_JOINT1, 0);
-	this->setJointSpeed(ROBOT_JOINT2, 0);
-	this->setJointSpeed(ROBOT_JOINT3, 0);
+	this->setJointSpeed(JOINT1, 0);
+	this->setJointSpeed(JOINT2, 0);
+	this->setJointSpeed(JOINT3, 0);
 
 	// success
 	return 0;
