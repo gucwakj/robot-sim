@@ -349,6 +349,22 @@ int CLinkbotT::getxy(double &x, double &y) {
 	return 0;
 }
 
+int CLinkbotT::holdJoint(robotJointId_t id) {
+	this->setJointSpeed(id, 0);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::holdJoints(void) {
+	this->setJointSpeed(JOINT1, 0);
+	this->setJointSpeed(JOINT2, 0);
+	this->setJointSpeed(JOINT3, 0);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::holdJointsAtExit(void) {
 	// set exit state of joints
 	this->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
@@ -1994,10 +2010,17 @@ int CLinkbotT::recordxyEnd(int &num) {
 	return 0;
 }
 
+int CLinkbotT::relaxJoint(robotJointId_t id) {
+	dJointDisable(_motor[id]);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::relaxJoints(void) {
-	this->setJointSpeed(JOINT1, 0);
-	this->setJointSpeed(JOINT2, 0);
-	this->setJointSpeed(JOINT3, 0);
+	dJointDisable(_motor[JOINT1]);
+	dJointDisable(_motor[JOINT2]);
+	dJointDisable(_motor[JOINT3]);
 
 	// success
 	return 0;
@@ -2378,7 +2401,9 @@ int CLinkbotT::setSpeed(double speed, double radius) {
 }
 
 int CLinkbotT::stop(void) {
-	this->relaxJoints();
+	this->setJointSpeed(JOINT1, 0);
+	this->setJointSpeed(JOINT2, 0);
+	this->setJointSpeed(JOINT3, 0);
 
 	// success
 	return 0;

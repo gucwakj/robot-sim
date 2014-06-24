@@ -499,6 +499,32 @@ int CLinkbotI::getxy(double &x, double &y) {
     return retval;
 }
 
+int CLinkbotI::holdJoint(robotJointId_t id) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_holdJoint_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, holdJoint, this, id);
+    return retval;
+}
+
+int CLinkbotI::holdJoints(void) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_holdJoints_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, holdJoints, this);
+    return retval;
+}
+
 int CLinkbotI::holdJointsAtExit(void) {
     void *fptr;
     int retval;
@@ -1450,7 +1476,20 @@ int CLinkbotI::recordxyEnd(int &num) {
 	return retval;
 }
 
-int CLinkbotI::relaxJoints() {
+int CLinkbotI::relaxJoint(robotJointId_t id) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_relaxJoint_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, relaxJoint, this, id);
+    return retval;
+}
+
+int CLinkbotI::relaxJoints(void) {
     void *fptr;
     int retval;
 
@@ -2036,6 +2075,32 @@ int CLinkbotIGroup::driveToNB(double angle1, double angle2, double angle3) {
     return retval;
 }
 
+int CLinkbotIGroup::holdJoint(robotJointId_t id) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_holdJoint_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, holdJoint, this, id);
+    return retval;
+}
+
+int CLinkbotIGroup::holdJoints(void) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_holdJoints_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, holdJoints, this);
+    return retval;
+}
+
 int CLinkbotIGroup::holdJointsAtExit(void) {
     void *fptr;
     int retval;
@@ -2504,7 +2569,20 @@ int CLinkbotIGroup::moveWait() {
     return retval;
 }
 
-int CLinkbotIGroup::relaxJoints() {
+int CLinkbotIGroup::relaxJoint(robotJointId_t id) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_relaxJoint_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, relaxJoint, this, id);
+    return retval;
+}
+
+int CLinkbotIGroup::relaxJoints(void) {
     void *fptr;
     int retval;
 

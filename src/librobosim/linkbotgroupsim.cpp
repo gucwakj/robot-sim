@@ -134,6 +134,28 @@ int CLinkbotTGroup::driveToNB(double angle1, double angle2, double angle3) {
 	return 0;
 }
 
+int CLinkbotTGroup::holdJoint(robotJointId_t id) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->holdJoint(id);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotTGroup::holdJoints(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->holdJoints();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotTGroup::holdJointsAtExit(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -447,6 +469,17 @@ int CLinkbotTGroup::moveWait(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveWait();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotTGroup::relaxJoint(robotJointId_t id) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->relaxJoint(id);
 		rtmp = rtmp->next;
 	}
 

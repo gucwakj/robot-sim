@@ -491,6 +491,34 @@ EXPORTCH int CLinkbotL_getxy_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotL_holdJoint_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+	robotJointId_t id;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    retval = robot->holdJoint(id);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotL_holdJoints_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    retval = robot->holdJoints();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotL_holdJointsAtExit_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -1611,6 +1639,21 @@ EXPORTCH int CLinkbotL_recordxyEnd_chdl(void *varg) {
 	return retval;
 }
 
+EXPORTCH int CLinkbotL_relaxJoint_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+	robotJointId_t id;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    retval = robot->relaxJoint(id);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotL_relaxJoints_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2333,6 +2376,34 @@ EXPORTCH int CLLG_driveJointToDirectNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLLG_holdJoint_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotLGroup *robot;
+	robotJointId_t id;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    retval = robot->holdJoint(id);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLLG_holdJoints_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotLGroup *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
+    retval = robot->holdJoints();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLLG_holdJointsAtExit_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2674,6 +2745,21 @@ EXPORTCH int CLLG_moveToZeroNB_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
     retval = robot->moveToZeroNB();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLLG_relaxJoint_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotLGroup *robot;
+	robotJointId_t id;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    retval = robot->relaxJoint(id);
     Ch_VaEnd(interp, ap);
     return retval;
 }

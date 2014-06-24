@@ -69,6 +69,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
 		int getxy(double &x, double &y);
+		int holdJoint(robotJointId_t id);
+		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isConnected(void);
 		int isMoving(void);
@@ -182,6 +184,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int recordDistancesEnd(int &num);
 		int recordxyEnd(int &num);
 		int recordWait();
+		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
 		int reset();
 		int resetToZero();
@@ -337,6 +340,8 @@ class DLLIMPORT CLinkbotTGroup {
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
 		int driveToNB(double angle1, double angle2, double angle3);
+		int holdJoint(robotJointId_t id);
+		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isMoving();
 		int isNotMoving();
@@ -375,6 +380,7 @@ class DLLIMPORT CLinkbotTGroup {
 		int moveToZero();
 		int moveToZeroNB();
 		int moveWait();
+		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
 		int reset();
 		int resetToZero();
@@ -463,6 +469,8 @@ class DLLIMPORT CLinkbotI {
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
 		int getxy(double &x, double &y);
+		int holdJoint(robotJointId_t id);
+		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isConnected();
 		int isMoving();
@@ -541,6 +549,7 @@ class DLLIMPORT CLinkbotI {
 		int recordWait();
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, ...);
 		int recordxyEnd(int &num);
+		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
 		int reset();
 		int resetToZero();
@@ -593,6 +602,8 @@ class DLLIMPORT CLinkbotIGroup {
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
 		int driveToNB(double angle1, double angle2, double angle3);
+		int holdJoint(robotJointId_t id);
+		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isMoving();
 		int isNotMoving();
@@ -631,6 +642,7 @@ class DLLIMPORT CLinkbotIGroup {
 		int moveToZero();
 		int moveToZeroNB();
 		int moveWait();
+		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
 		int reset();
 		int resetToZero();
@@ -700,6 +712,8 @@ class DLLIMPORT CLinkbotL {
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
 		int getxy(double &x, double &y);
+		int holdJoint(robotJointId_t id);
+		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isConnected();
 		int isMoving();
@@ -768,6 +782,7 @@ class DLLIMPORT CLinkbotL {
 		int recordWait();
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, ...);
 		int recordxyEnd(int &num);
+		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
 		int reset();
 		int resetToZero();
@@ -832,6 +847,8 @@ class DLLIMPORT CLinkbotLGroup {
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3);
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
+		int holdJoint(robotJointId_t id);
+		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isMoving();
 		int isNotMoving();
@@ -866,6 +883,7 @@ class DLLIMPORT CLinkbotLGroup {
 		int moveToZero();
 		int moveToZeroNB();
 		int moveWait();
+		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
 		int reset();
 		int resetToZero();

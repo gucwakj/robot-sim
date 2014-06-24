@@ -56,6 +56,8 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, double &ratio4);
 		int getJointState(robotJointId_t id, robotJointState_t &state);
 		int getxy(double &x, double &y);
+		int holdJoint(robotJointId_t id);
+		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isConnected();
 		int isMoving(void);
@@ -186,6 +188,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int recordDistancesEnd(int &num);
 		int recordWait();
 		int recordxyEnd(int &num);
+		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
 		int reset();
 		int resetToZero();
@@ -344,6 +347,8 @@ class CMobotGroup {
 		int driveTo(double angle1, double angle2, double angle3, double angle4);
 		int driveToDirectNB(double angle1, double angle2, double angle3, double angle4);
 		int driveToNB(double angle1, double angle2, double angle3, double angle4);
+		int holdJoint(robotJointId_t id);
+		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
@@ -391,9 +396,10 @@ class CMobotGroup {
 		int moveToDirect(double angle1, double angle2, double angle3, double angle4);
 		int moveToNB(double angle1, double angle2, double angle3, double angle4);
 		int moveToDirectNB(double angle1, double angle2, double angle3, double angle4);
-		int moveWait(void);
 		int moveToZero(void);
 		int moveToZeroNB(void);
+		int moveWait(void);
+		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
 		int reset(void);
 		int resetToZero(void);

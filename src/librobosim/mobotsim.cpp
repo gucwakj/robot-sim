@@ -288,6 +288,23 @@ int CMobot::getxy(double &x, double &y) {
 	return 0;
 }
 
+int CMobot::holdJoint(robotJointId_t id) {
+	this->setJointSpeed(id, 0);
+
+	// success
+	return 0;
+}
+
+int CMobot::holdJoints(void) {
+	this->setJointSpeed(JOINT1, 0);
+	this->setJointSpeed(JOINT2, 0);
+	this->setJointSpeed(JOINT3, 0);
+	this->setJointSpeed(JOINT4, 0);
+
+	// success
+	return 0;
+}
+
 int CMobot::holdJointsAtExit(void) {
 	// set exit state of joints
 	this->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
@@ -2175,11 +2192,18 @@ int CMobot::recordxyEnd(int &num) {
 	return 0;
 }
 
+int CMobot::relaxJoint(robotJointId_t id) {
+	dJointDisable(_motor[id]);
+
+	// success
+	return 0;
+}
+
 int CMobot::relaxJoints(void) {
-	this->setJointSpeed(JOINT1, 0);
-	this->setJointSpeed(JOINT2, 0);
-	this->setJointSpeed(JOINT3, 0);
-	this->setJointSpeed(JOINT4, 0);
+	dJointDisable(_motor[JOINT1]);
+	dJointDisable(_motor[JOINT2]);
+	dJointDisable(_motor[JOINT3]);
+	dJointDisable(_motor[JOINT4]);
 
 	// success
 	return 0;
@@ -2478,7 +2502,10 @@ int CMobot::setSpeed(double speed, double radius) {
 }
 
 int CMobot::stop(void) {
-	this->relaxJoints();
+	this->setJointSpeed(JOINT1, 0);
+	this->setJointSpeed(JOINT2, 0);
+	this->setJointSpeed(JOINT3, 0);
+	this->setJointSpeed(JOINT4, 0);
 
 	// success
 	return 0;
