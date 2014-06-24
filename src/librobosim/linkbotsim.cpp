@@ -119,6 +119,13 @@ int CLinkbotT::driveJointTo(robotJointId_t id, double angle) {
 	return 0;
 }
 
+int CLinkbotT::driveJointToNB(robotJointId_t id, double angle) {
+	this->moveJointToNB(id, angle);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::driveJointToDirect(robotJointId_t id, double angle) {
 	this->driveJointToDirectNB(id, angle);
 	this->moveJointWait(id);
@@ -134,16 +141,16 @@ int CLinkbotT::driveJointToDirectNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CLinkbotT::driveJointToNB(robotJointId_t id, double angle) {
-	this->moveJointToNB(id, angle);
+int CLinkbotT::driveTo(double angle1, double angle2, double angle3) {
+	this->driveToNB(angle1, angle2, angle3);
+	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int CLinkbotT::driveTo(double angle1, double angle2, double angle3) {
-	this->driveToNB(angle1, angle2, angle3);
-	this->moveWait();
+int CLinkbotT::driveToNB(double angle1, double angle2, double angle3) {
+	this->moveToNB(angle1, angle2, angle3);
 
 	// success
 	return 0;
@@ -159,13 +166,6 @@ int CLinkbotT::driveToDirect(double angle1, double angle2, double angle3) {
 
 int CLinkbotT::driveToDirectNB(double angle1, double angle2, double angle3) {
 	this->moveToDirectNB(angle1, angle2, angle3);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::driveToNB(double angle1, double angle2, double angle3) {
-	this->moveToNB(angle1, angle2, angle3);
 
 	// success
 	return 0;
@@ -701,14 +701,6 @@ int CLinkbotT::moveJoint(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CLinkbotT::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
-	return this->setJointMovementStateNB(id, dir);
-}
-
-int CLinkbotT::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
-	return this->setJointMovementStateTime(id, dir, seconds);
-}
-
 int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 	// check if disabled joint
 	if (_disabled == id) return 0;
@@ -755,24 +747,17 @@ int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
+int CLinkbotT::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
+	return this->setJointMovementStateNB(id, dir);
+}
+
+int CLinkbotT::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
+	return this->setJointMovementStateTime(id, dir, seconds);
+}
+
 int CLinkbotT::moveJointTo(robotJointId_t id, double angle) {
 	this->moveJointToNB(id, angle);
 	this->moveJointWait(id);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveJointToDirect(robotJointId_t id, double angle) {
-	this->moveJointToDirectNB(id, angle);
-	this->moveJointWait(id);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveJointToDirectNB(robotJointId_t id, double angle) {
-	this->moveJointToNB(id, angle);
 
 	// success
 	return 0;
@@ -827,6 +812,21 @@ int CLinkbotT::moveJointToNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
+int CLinkbotT::moveJointToDirect(robotJointId_t id, double angle) {
+	this->moveJointToDirectNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::moveJointToDirectNB(robotJointId_t id, double angle) {
+	this->moveJointToNB(id, angle);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::moveJointWait(robotJointId_t id) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_success_mutex);
@@ -840,21 +840,6 @@ int CLinkbotT::moveJointWait(robotJointId_t id) {
 int CLinkbotT::moveTo(double angle1, double angle2, double angle3) {
 	this->moveToNB(angle1, angle2, angle3);
 	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveToDirect(double angle1, double angle2, double angle3) {
-	this->moveToDirectNB(angle1, angle2, angle3);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveToDirectNB(double angle1, double angle2, double angle3) {
-	this->moveToNB(angle1, angle2, angle3);
 
 	// success
 	return 0;
@@ -898,6 +883,21 @@ int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::moveToDirect(double angle1, double angle2, double angle3) {
+	this->moveToDirectNB(angle1, angle2, angle3);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::moveToDirectNB(double angle1, double angle2, double angle3) {
+	this->moveToNB(angle1, angle2, angle3);
 
 	// success
 	return 0;
@@ -2074,15 +2074,15 @@ int CLinkbotT::setBuzzerFrequency(int frequency, double time) {
 	return 0;
 }
 
-int CLinkbotT::setBuzzerFrequencyOn(int frequency) {
-	printf("CLinkbot::setBuzzerFrequencyOn not implemented.\n");
+int CLinkbotT::setBuzzerFrequencyOff() {
+	printf("CLinkbot::setBuzzerFrequencyOff not implemented.\n");
 
 	// success
 	return 0;
 }
 
-int CLinkbotT::setBuzzerFrequencyOff() {
-	printf("CLinkbot::setBuzzerFrequencyOff not implemented.\n");
+int CLinkbotT::setBuzzerFrequencyOn(int frequency) {
+	printf("CLinkbot::setBuzzerFrequencyOn not implemented.\n");
 
 	// success
 	return 0;

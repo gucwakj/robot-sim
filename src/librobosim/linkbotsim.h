@@ -33,13 +33,13 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int disableRecordDataShift();
 		int disconnect();
 		int driveJointTo(robotJointId_t id, double angle);
+		int driveJointToNB(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
 		int driveJointToDirectNB(robotJointId_t id, double angle);
-		int driveJointToNB(robotJointId_t id, double angle);
 		int driveTo(double angle1, double angle2, double angle3);
+		int driveToNB(double angle1, double angle2, double angle3);
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
-		int driveToNB(double angle1, double angle2, double angle3);
 		int enableRecordDataShift();
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
@@ -100,18 +100,18 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
 		int moveJoint(robotJointId_t id, double angle);
+		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
-		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointTo(robotJointId_t id, double angle);
+		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointToDirect(robotJointId_t id, double angle);
 		int moveJointToDirectNB(robotJointId_t id, double angle);
-		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTo(double angle1, double angle2, double angle3);
+		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
 		int moveToDirectNB(double angle1, double angle2, double angle3);
-		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
@@ -137,44 +137,19 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #endif // ENABLE_GRAPHICS
 #ifdef _CH_
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
-		int recordAngleBegin(robotJointId_t id,
-							 robotRecordData_t &time,
-							 robotRecordData_t &angle, double seconds, ...);
-		int recordAngles(double time[:],
-						 double angle1[:],
-						 double angle2[:],
-						 double angle3[:], int num, double seconds, ...);
-		int recordAnglesBegin(robotRecordData_t &time,
-							  robotRecordData_t &angle1,
-							  robotRecordData_t &angle2,
-							  robotRecordData_t &angle3, double seconds, ...);
-		int recordDistanceBegin(robotJointId_t id,
-								robotRecordData_t &time,
-								robotRecordData_t &distance, double radius, double seconds, ...);
-		int recordDistancesBegin(robotRecordData_t &time,
-								 robotRecordData_t &distance1,
-								 robotRecordData_t &distance2,
-								 robotRecordData_t &distance3, double radius, double seconds, ...);
+		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
+		int recordAngles(double time[:], double angle1[:], double angle2[:], double angle3[:], int num, double seconds, ...);
+		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, double seconds, ...);
+		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, ...);
+		int recordDistancesBegin(robotRecordData_t &t, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, double radius, double seconds, ...);
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, ...);
 #else
 		int recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData = 1);
-		int recordAngleBegin(robotJointId_t id,
-							 robotRecordData_t &time,
-							 robotRecordData_t &angle, double seconds, int shiftData = 1);
-		int recordAngles(double time[], double angle1[],
-										double angle2[],
-										double angle3[], int num, double seconds, int shiftData = 1);
-		int recordAnglesBegin(robotRecordData_t &time,
-							  robotRecordData_t &angle1,
-							  robotRecordData_t &angle2,
-							  robotRecordData_t &angle3, double seconds, int shiftData = 1);
-		int recordDistanceBegin(robotJointId_t id,
-								robotRecordData_t &time,
-								robotRecordData_t &distance, double radius, double seconds, int shiftData = 1);
-		int recordDistancesBegin(robotRecordData_t &time,
-								 robotRecordData_t &distance1,
-								 robotRecordData_t &distance2,
-								 robotRecordData_t &distance3, double radius, double seconds, int shiftData = 1);
+		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData = 1);
+		int recordAngles(double time[], double angle1[], double angle2[], double angle3[], int num, double seconds, int shiftData = 1);
+		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &a1, robotRecordData_t &a2, robotRecordData_t &a3, double seconds, int shiftData = 1);
+		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData = 1);
+		int recordDistancesBegin(robotRecordData_t &t, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, double radius, double seconds, int shiftData = 1);
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData = 1);
 #endif
 		int recordAngleEnd(robotJointId_t id, int &num);
@@ -440,13 +415,13 @@ class DLLIMPORT CLinkbotI {
 		int disableRecordDataShift();
 		int disconnect();
 		int driveJointTo(robotJointId_t id, double angle);
+		int driveJointToNB(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
 		int driveJointToDirectNB(robotJointId_t id, double angle);
-		int driveJointToNB(robotJointId_t id, double angle);
 		int driveTo(double angle1, double angle2, double angle3);
+		int driveToNB(double angle1, double angle2, double angle3);
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
-		int driveToNB(double angle1, double angle2, double angle3);
 		int enableRecordDataShift();
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
@@ -498,18 +473,18 @@ class DLLIMPORT CLinkbotI {
 		int moveForward(double angle);
 		int moveForwardNB(double angle);
 		int moveJoint(robotJointId_t id, double angle);
+		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
-		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointTo(robotJointId_t id, double angle);
+		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointToDirect(robotJointId_t id, double angle);
 		int moveJointToDirectNB(robotJointId_t id, double angle);
-		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTo(double angle1, double angle2, double angle3);
+		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
 		int moveToDirectNB(double angle1, double angle2, double angle3);
-		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToZero();
 		int moveToZeroNB();
 		int moveWait();
@@ -531,20 +506,12 @@ class DLLIMPORT CLinkbotI {
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
 		int recordAngleEnd(robotJointId_t id, int &num);
 		int recordAngles(double time[:], double angle1[:], double angle2[:], double angle3[:], int num, double seconds, ...);
-		int recordAnglesBegin(robotRecordData_t &time,
-							  robotRecordData_t &angle1,
-							  robotRecordData_t &angle2,
-							  robotRecordData_t &angle3, double seconds, ...);
+		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &a1, robotRecordData_t &a2, robotRecordData_t &a3, double seconds, ...);
 		int recordAnglesEnd(int &num);
-		int recordDistanceBegin(robotJointId_t id,
-								robotRecordData_t &time,
-								robotRecordData_t &distance, double radius, double seconds, ...);
+		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, ...);
 		int recordDistanceEnd(robotJointId_t id, int &num);
 		int recordDistanceOffset(double distance);
-		int recordDistancesBegin(robotRecordData_t &time,
-								 robotRecordData_t &distance1,
-								 robotRecordData_t &distance2,
-								 robotRecordData_t &distance3, double radius, double seconds, ...);
+		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, double radius, double seconds, ...);
 		int recordDistancesEnd(int &num);
 		int recordWait();
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, ...);
@@ -595,13 +562,13 @@ class DLLIMPORT CLinkbotIGroup {
 		int blinkLED(double delay, int num);
 		int connect(void);
 		int driveJointTo(robotJointId_t id, double angle);
+		int driveJointToNB(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
 		int driveJointToDirectNB(robotJointId_t id, double angle);
-		int driveJointToNB(robotJointId_t id, double angle);
 		int driveTo(double angle1, double angle2, double angle3);
+		int driveToNB(double angle1, double angle2, double angle3);
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
-		int driveToNB(double angle1, double angle2, double angle3);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
@@ -683,13 +650,13 @@ class DLLIMPORT CLinkbotL {
 		int disableRecordDataShift();
 		int disconnect();
 		int driveJointTo(robotJointId_t id, double angle);
+		int driveJointToNB(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
 		int driveJointToDirectNB(robotJointId_t id, double angle);
-		int driveJointToNB(robotJointId_t id, double angle);
 		int driveTo(double angle1, double angle2, double angle3);
+		int driveToNB(double angle1, double angle2, double angle3);
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
-		int driveToNB(double angle1, double angle2, double angle3);
 		int enableRecordDataShift();
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
@@ -737,18 +704,18 @@ class DLLIMPORT CLinkbotL {
 		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
 		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int moveJoint(robotJointId_t id, double angle);
+		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
-		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointTo(robotJointId_t id, double angle);
+		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointToDirect(robotJointId_t id, double angle);
 		int moveJointToDirectNB(robotJointId_t id, double angle);
-		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTo(double angle1, double angle2, double angle3);
+		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
 		int moveToDirectNB(double angle1, double angle2, double angle3);
-		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToZero();
 		int moveToZeroNB();
 		int moveWait();
@@ -764,20 +731,12 @@ class DLLIMPORT CLinkbotL {
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
 		int recordAngleEnd(robotJointId_t id, int &num);
 		int recordAngles(double time[:], double angle1[:], double angle2[:], double angle3[:], int num, double seconds, ...);
-		int recordAnglesBegin(robotRecordData_t &time,
-							  robotRecordData_t &angle1,
-							  robotRecordData_t &angle2,
-							  robotRecordData_t &angle3, double seconds, ...);
+		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &a1, robotRecordData_t &a2, robotRecordData_t &a3, double seconds, ...);
 		int recordAnglesEnd(int &num);
-		int recordDistanceBegin(robotJointId_t id,
-								robotRecordData_t &time,
-								robotRecordData_t &distance, double radius, double seconds, ...);
+		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, ...);
 		int recordDistanceEnd(robotJointId_t id, int &num);
 		int recordDistanceOffset(double distance);
-		int recordDistancesBegin(robotRecordData_t &time,
-								 robotRecordData_t &distance1,
-								 robotRecordData_t &distance2,
-								 robotRecordData_t &distance3, double radius, double seconds, ...);
+		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, double radius, double seconds, ...);
 		int recordDistancesEnd(int &num);
 		int recordWait();
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, ...);
@@ -788,8 +747,8 @@ class DLLIMPORT CLinkbotL {
 		int resetToZero();
 		int resetToZeroNB();
 		int setBuzzerFrequency(int frequency, double time);
-		int setBuzzerFrequencyOn(int frequency);
 		int setBuzzerFrequencyOff();
+		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
@@ -828,13 +787,13 @@ class DLLIMPORT CLinkbotLGroup {
 		int blinkLED(double delay, int num);
 		int connect(void);
 		int driveJointTo(robotJointId_t id, double angle);
+		int driveJointToNB(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
 		int driveJointToDirectNB(robotJointId_t id, double angle);
-		int driveJointToNB(robotJointId_t id, double angle);
 		int driveTo(double angle1, double angle2, double angle3);
+		int driveToNB(double angle1, double angle2, double angle3);
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
-		int driveToNB(double angle1, double angle2, double angle3);
 		int getJointAngle(robotJointId_t id, double &angle);
 		int getJointAngleAverage(robotJointId_t id, double &angle, ... );
 		int getJointAngles(double &angle1, double &angle2, double &angle3);
