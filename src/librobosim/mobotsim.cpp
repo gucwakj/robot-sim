@@ -71,7 +71,7 @@ int CMobot::delaySeconds(double seconds) {
 	return 0;
 }
 
-int CMobot::disableRecordDataShift() {
+int CMobot::disableRecordDataShift(void) {
 	_g_shift_data = 0;
 	_g_shift_data_en = 1;
 
@@ -147,7 +147,7 @@ int CMobot::driveToNB(double angle1, double angle2, double angle3, double angle4
 	return 0;
 }
 
-int CMobot::enableRecordDataShift() {
+int CMobot::enableRecordDataShift(void) {
 	_g_shift_data = 1;
 	_g_shift_data_en = 1;
 

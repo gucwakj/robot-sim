@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <array.h>
 
-CMobot::CMobot() {
+CMobot::CMobot(void) {
 	if (RoboSim::_dlhandle == NULL || RoboSim::_dlcount == 0) {
 		RoboSim::_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
 		if (RoboSim::_dlhandle == NULL) {
@@ -21,7 +21,7 @@ CMobot::CMobot() {
 	RoboSim::_dlcount++;
 }
 
-CMobot::~CMobot() {
+CMobot::~CMobot(void) {
 	void *fptr = dlsym(RoboSim::_dlhandle, "CMobot_dCMobot_chdl");
 	if(fptr == NULL) {
 		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
@@ -99,7 +99,7 @@ int CMobot::delaySeconds(double seconds) {
     return retval;
 }
 
-int CMobot::disableRecordDataShift() {
+int CMobot::disableRecordDataShift(void) {
 	void *fptr;
 	int retval;
 
@@ -112,7 +112,7 @@ int CMobot::disableRecordDataShift() {
 	return retval;
 }
 
-int CMobot::disconnect() {
+int CMobot::disconnect(void) {
     void *fptr;
     int retval;
 
@@ -177,7 +177,7 @@ int CMobot::driveToNB(double angle1, double angle2, double angle3, double angle4
 	return retval;
 }
 
-int CMobot::enableRecordDataShift() {
+int CMobot::enableRecordDataShift(void) {
 	void *fptr;
 	int retval;
 
@@ -444,7 +444,7 @@ int CMobot::holdJointsAtExit(void) {
     return retval;
 }
 
-int CMobot::isConnected() {
+int CMobot::isConnected(void) {
     void *fptr;
     int retval;
 
@@ -457,7 +457,7 @@ int CMobot::isConnected() {
     return retval;
 }
 
-int CMobot::isMoving() {
+int CMobot::isMoving(void) {
     void *fptr;
     int retval;
 
@@ -470,7 +470,7 @@ int CMobot::isMoving() {
     return retval;
 }
 
-int CMobot::isNotMoving() {
+int CMobot::isNotMoving(void) {
     void *fptr;
     int retval;
 
@@ -652,7 +652,7 @@ int CMobot::motionRollForwardNB(double angle) {
     return retval;
 }
 
-int CMobot::motionStand() {
+int CMobot::motionStand(void) {
     void *fptr;
     int retval;
 
@@ -665,7 +665,7 @@ int CMobot::motionStand() {
     return retval;
 }
 
-int CMobot::motionStandNB() {
+int CMobot::motionStandNB(void) {
     void *fptr;
     int retval;
 
@@ -782,7 +782,7 @@ int CMobot::motionTurnRightNB(double angle) {
     return retval;
 }
 
-int CMobot::motionUnstand() {
+int CMobot::motionUnstand(void) {
     void *fptr;
     int retval;
 
@@ -795,7 +795,7 @@ int CMobot::motionUnstand() {
     return retval;
 }
 
-int CMobot::motionUnstandNB() {
+int CMobot::motionUnstandNB(void) {
     void *fptr;
     int retval;
 
@@ -808,7 +808,7 @@ int CMobot::motionUnstandNB() {
     return retval;
 }
 
-int CMobot::motionWait() {
+int CMobot::motionWait(void) {
     void *fptr;
     int retval;
 
@@ -1119,7 +1119,7 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
     return retval;
 }
 
-int CMobot::moveToZeroNB() {
+int CMobot::moveToZeroNB(void) {
     void *fptr;
     int retval;
 
@@ -1132,7 +1132,7 @@ int CMobot::moveToZeroNB() {
     return retval;
 }
 
-int CMobot::moveWait() {
+int CMobot::moveWait(void) {
     void *fptr;
     int retval;
 
@@ -1197,7 +1197,7 @@ int CMobot::movexyToNB(double x, double y, double radius, double trackwidth) {
     return retval;
 }
 
-int CMobot::movexyWait() {
+int CMobot::movexyWait(void) {
     void *fptr;
     int retval;
 
@@ -1424,7 +1424,7 @@ int CMobot::recordDistancesEnd(int &num) {
     return retval;
 }
 
-int CMobot::recordWait() {
+int CMobot::recordWait(void) {
     void *fptr;
     int retval;
 
@@ -1501,7 +1501,7 @@ int CMobot::relaxJoints(void) {
     return retval;
 }
 
-int CMobot::reset() {
+int CMobot::reset(void) {
     void *fptr;
     int retval;
 
@@ -1514,7 +1514,7 @@ int CMobot::reset() {
     return retval;
 }
 
-int CMobot::resetToZero() {
+int CMobot::resetToZero(void) {
     void *fptr;
     int retval;
 
@@ -1527,7 +1527,7 @@ int CMobot::resetToZero() {
     return retval;
 }
 
-int CMobot::resetToZeroNB() {
+int CMobot::resetToZeroNB(void) {
     void *fptr;
     int retval;
 
@@ -1722,7 +1722,7 @@ int CMobot::setSpeed(double speed, double radius) {
     return retval;
 }
 
-int CMobot::stop() {
+int CMobot::stop(void) {
     void *fptr;
     int retval;
 
@@ -1800,7 +1800,7 @@ int CMobot::text(double x, double y, double z, char *text) {
     return retval;
 }
 
-int CMobot::traceOff() {
+int CMobot::traceOff(void) {
     void *fptr;
     int retval;
 
@@ -1813,7 +1813,7 @@ int CMobot::traceOff() {
     return retval;
 }
 
-int CLinkbotI::traceOn() {
+int CLinkbotI::traceOn(void) {
     void *fptr;
     int retval;
 
@@ -1878,7 +1878,7 @@ int CMobot::turnRightNB(double angle, double radius, double trackwidth) {
     return retval;
 }
 
-CMobotGroup::CMobotGroup() {
+CMobotGroup::CMobotGroup(void) {
 	if (RoboSim::_dlhandle == NULL || RoboSim::_dlcount == 0) {
 		RoboSim::_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
 		if (RoboSim::_dlhandle == NULL) {
@@ -1895,7 +1895,7 @@ CMobotGroup::CMobotGroup() {
 	RoboSim::_dlcount++;
 }
 
-CMobotGroup::~CMobotGroup() {
+CMobotGroup::~CMobotGroup(void) {
 	void *fptr = dlsym(RoboSim::_dlhandle, "CMG_dCMobotGroup_chdl");
 	if(fptr == NULL) {
 		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
@@ -1957,7 +1957,7 @@ int CMobotGroup::blinkLED(double delay, int numBlinks) {
     return retval;
 }
 
-int CMobotGroup::connect() {
+int CMobotGroup::connect(void) {
     void *fptr;
     int retval;
 
@@ -2087,7 +2087,7 @@ int CMobotGroup::holdJointsAtExit(void) {
     return retval;
 }
 
-int CMobotGroup::isMoving() {
+int CMobotGroup::isMoving(void) {
     void *fptr;
     int retval;
 
@@ -2100,7 +2100,7 @@ int CMobotGroup::isMoving() {
     return retval;
 }
 
-int CMobotGroup::isNotMoving() {
+int CMobotGroup::isNotMoving(void) {
     void *fptr;
     int retval;
 
@@ -2191,7 +2191,7 @@ int CMobotGroup::motionRollForwardNB(double angle) {
     return retval;
 }
 
-int CMobotGroup::motionStand() {
+int CMobotGroup::motionStand(void) {
     void *fptr;
     int retval;
 
@@ -2204,7 +2204,7 @@ int CMobotGroup::motionStand() {
     return retval;
 }
 
-int CMobotGroup::motionStandNB() {
+int CMobotGroup::motionStandNB(void) {
     void *fptr;
     int retval;
 
@@ -2269,7 +2269,7 @@ int CMobotGroup::motionTurnRightNB(double angle) {
     return retval;
 }
 
-int CMobotGroup::motionUnstand() {
+int CMobotGroup::motionUnstand(void) {
     void *fptr;
     int retval;
 
@@ -2282,7 +2282,7 @@ int CMobotGroup::motionUnstand() {
     return retval;
 }
 
-int CMobotGroup::motionUnstandNB() {
+int CMobotGroup::motionUnstandNB(void) {
     void *fptr;
     int retval;
 
@@ -2295,7 +2295,7 @@ int CMobotGroup::motionUnstandNB() {
     return retval;
 }
 
-int CMobotGroup::motionWait() {
+int CMobotGroup::motionWait(void) {
     void *fptr;
     int retval;
 
@@ -2529,7 +2529,7 @@ int CMobotGroup::moveToDirectNB(double angle1, double angle2, double angle3, dou
     return retval;
 }
 
-int CMobotGroup::moveToZero() {
+int CMobotGroup::moveToZero(void) {
     void *fptr;
     int retval;
 
@@ -2542,7 +2542,7 @@ int CMobotGroup::moveToZero() {
     return retval;
 }
 
-int CMobotGroup::moveToZeroNB() {
+int CMobotGroup::moveToZeroNB(void) {
     void *fptr;
     int retval;
 
@@ -2555,7 +2555,7 @@ int CMobotGroup::moveToZeroNB() {
     return retval;
 }
 
-int CMobotGroup::moveWait() {
+int CMobotGroup::moveWait(void) {
     void *fptr;
     int retval;
 
@@ -2594,7 +2594,7 @@ int CMobotGroup::relaxJoints(void) {
     return retval;
 }
 
-int CMobotGroup::reset() {
+int CMobotGroup::reset(void) {
     void *fptr;
     int retval;
 
@@ -2607,7 +2607,7 @@ int CMobotGroup::reset() {
     return retval;
 }
 
-int CMobotGroup::resetToZero() {
+int CMobotGroup::resetToZero(void) {
     void *fptr;
     int retval;
 
@@ -2620,7 +2620,7 @@ int CMobotGroup::resetToZero() {
     return retval;
 }
 
-int CMobotGroup::resetToZeroNB() {
+int CMobotGroup::resetToZeroNB(void) {
     void *fptr;
     int retval;
 

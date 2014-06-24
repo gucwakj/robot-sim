@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <array.h>
 
-CLinkbotT::CLinkbotT() {
+CLinkbotT::CLinkbotT(void) {
 	if (RoboSim::_dlhandle == NULL || RoboSim::_dlcount == 0) {
 		RoboSim::_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
 		if (RoboSim::_dlhandle == NULL) {
@@ -21,7 +21,7 @@ CLinkbotT::CLinkbotT() {
 	RoboSim::_dlcount++;
 }
 
-CLinkbotT::~CLinkbotT() {
+CLinkbotT::~CLinkbotT(void) {
 	void *fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_dCLinkbotT_chdl");
 	if(fptr == NULL) {
 		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
@@ -121,7 +121,7 @@ int CLinkbotT::delaySeconds(double seconds) {
     return retval;
 }
 
-int CLinkbotT::disableRecordDataShift() {
+int CLinkbotT::disableRecordDataShift(void) {
 	void *fptr;
 	int retval;
 
@@ -134,7 +134,7 @@ int CLinkbotT::disableRecordDataShift() {
 	return retval;
 }
 
-int CLinkbotT::disconnect() {
+int CLinkbotT::disconnect(void) {
     void *fptr;
     int retval;
 
@@ -251,7 +251,7 @@ int CLinkbotT::driveToNB(double angle1, double angle2, double angle3) {
     return retval;
 }
 
-int CLinkbotT::enableRecordDataShift() {
+int CLinkbotT::enableRecordDataShift(void) {
 	void *fptr;
 	int retval;
 
@@ -351,7 +351,7 @@ int CLinkbotT::getFormFactor(int & formFactor) {
     return retval;
 }
 
-int CLinkbotT::getID() {
+int CLinkbotT::getID(void) {
     void *fptr;
     int retval;
 
@@ -590,7 +590,7 @@ int CLinkbotT::holdJointsAtExit(void) {
     return retval;
 }
 
-int CLinkbotT::isConnected() {
+int CLinkbotT::isConnected(void) {
     void *fptr;
     int retval;
 
@@ -603,7 +603,7 @@ int CLinkbotT::isConnected() {
     return retval;
 }
 
-int CLinkbotT::isMoving() {
+int CLinkbotT::isMoving(void) {
     void *fptr;
     int retval;
 
@@ -616,7 +616,7 @@ int CLinkbotT::isMoving() {
     return retval;
 }
 
-int CLinkbotT::isNotMoving() {
+int CLinkbotT::isNotMoving(void) {
     void *fptr;
     int retval;
 
@@ -772,7 +772,7 @@ int CLinkbotT::motionTurnRightNB(double angle) {
     return retval;
 }
 
-int CLinkbotT::motionWait() {
+int CLinkbotT::motionWait(void) {
     void *fptr;
     int retval;
 
@@ -1084,7 +1084,7 @@ int CLinkbotT::moveToDirectNB(double angle1, double angle2, double angle3) {
     return retval;
 }
 
-int CLinkbotT::moveToZero() {
+int CLinkbotT::moveToZero(void) {
     void *fptr;
     int retval;
 
@@ -1097,7 +1097,7 @@ int CLinkbotT::moveToZero() {
     return retval;
 }
 
-int CLinkbotT::moveToZeroNB() {
+int CLinkbotT::moveToZeroNB(void) {
     void *fptr;
     int retval;
 
@@ -1110,7 +1110,7 @@ int CLinkbotT::moveToZeroNB() {
     return retval;
 }
 
-int CLinkbotT::moveWait() {
+int CLinkbotT::moveWait(void) {
     void *fptr;
     int retval;
 
@@ -1244,7 +1244,7 @@ int CLinkbotT::movexyToPolyNB(double x0, double xf, int n, char *poly, double ra
     return retval;
 }
 
-int CLinkbotT::movexyWait() {
+int CLinkbotT::movexyWait(void) {
     void *fptr;
     int retval;
 
@@ -1477,7 +1477,7 @@ int CLinkbotT::recordDistancesEnd(int &num) {
     return retval;
 }
 
-int CLinkbotT::recordWait() {
+int CLinkbotT::recordWait(void) {
     void *fptr;
     int retval;
 
@@ -1554,7 +1554,7 @@ int CLinkbotT::relaxJoints(void) {
     return retval;
 }
 
-int CLinkbotT::reset() {
+int CLinkbotT::reset(void) {
     void *fptr;
     int retval;
 
@@ -1567,7 +1567,7 @@ int CLinkbotT::reset() {
     return retval;
 }
 
-int CLinkbotT::resetToZero() {
+int CLinkbotT::resetToZero(void) {
     void *fptr;
     int retval;
 
@@ -1580,7 +1580,7 @@ int CLinkbotT::resetToZero() {
     return retval;
 }
 
-int CLinkbotT::resetToZeroNB() {
+int CLinkbotT::resetToZeroNB(void) {
     void *fptr;
     int retval;
 
@@ -1606,7 +1606,7 @@ int CLinkbotT::setBuzzerFrequency(int frequency, double time) {
     return retval;
 }
 
-int CLinkbotT::setBuzzerFrequencyOff() {
+int CLinkbotT::setBuzzerFrequencyOff(void) {
     void *fptr;
     int retval;
 
@@ -1827,7 +1827,7 @@ int CLinkbotT::setSpeed(double speed, double radius) {
     return retval;
 }
 
-int CLinkbotT::stop() {
+int CLinkbotT::stop(void) {
     void *fptr;
     int retval;
 
@@ -1905,7 +1905,7 @@ int CLinkbotT::text(double x, double y, double z, char *text) {
     return retval;
 }
 
-int CLinkbotT::traceOff() {
+int CLinkbotT::traceOff(void) {
     void *fptr;
     int retval;
 
@@ -1918,7 +1918,7 @@ int CLinkbotT::traceOff() {
     return retval;
 }
 
-int CLinkbotT::traceOn() {
+int CLinkbotT::traceOn(void) {
     void *fptr;
     int retval;
 
@@ -1983,7 +1983,7 @@ int CLinkbotT::turnRightNB(double angle, double radius, double trackwidth) {
     return retval;
 }
 
-CLinkbotTGroup::CLinkbotTGroup() {
+CLinkbotTGroup::CLinkbotTGroup(void) {
 	if (RoboSim::_dlhandle == NULL || RoboSim::_dlcount == 0) {
 		RoboSim::_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
 		if (RoboSim::_dlhandle == NULL) {
@@ -2000,7 +2000,7 @@ CLinkbotTGroup::CLinkbotTGroup() {
 	RoboSim::_dlcount++;
 }
 
-CLinkbotTGroup::~CLinkbotTGroup() {
+CLinkbotTGroup::~CLinkbotTGroup(void) {
 	void *fptr = dlsym(RoboSim::_dlhandle, "CLTG_dCLinkbotTGroup_chdl");
 	if(fptr == NULL) {
 		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
@@ -2062,7 +2062,7 @@ int CLinkbotTGroup::blinkLED(double delay, int numBlinks) {
     return retval;
 }
 
-int CLinkbotTGroup::connect() {
+int CLinkbotTGroup::connect(void) {
     void *fptr;
     int retval;
 
@@ -2218,7 +2218,7 @@ int CLinkbotTGroup::holdJointsAtExit(void) {
     return retval;
 }
 
-int CLinkbotTGroup::isMoving() {
+int CLinkbotTGroup::isMoving(void) {
     void *fptr;
     int retval;
 
@@ -2231,7 +2231,7 @@ int CLinkbotTGroup::isMoving() {
     return retval;
 }
 
-int CLinkbotTGroup::isNotMoving() {
+int CLinkbotTGroup::isNotMoving(void) {
     void *fptr;
     int retval;
 
@@ -2374,7 +2374,7 @@ int CLinkbotTGroup::motionTurnRightNB(double angle) {
     return retval;
 }
 
-int CLinkbotTGroup::motionWait() {
+int CLinkbotTGroup::motionWait(void) {
     void *fptr;
     int retval;
 
@@ -2686,7 +2686,7 @@ int CLinkbotTGroup::moveToDirectNB(double angle1, double angle2, double angle3) 
     return retval;
 }
 
-int CLinkbotTGroup::moveToZero() {
+int CLinkbotTGroup::moveToZero(void) {
     void *fptr;
     int retval;
 
@@ -2699,7 +2699,7 @@ int CLinkbotTGroup::moveToZero() {
     return retval;
 }
 
-int CLinkbotTGroup::moveToZeroNB() {
+int CLinkbotTGroup::moveToZeroNB(void) {
     void *fptr;
     int retval;
 
@@ -2712,7 +2712,7 @@ int CLinkbotTGroup::moveToZeroNB() {
     return retval;
 }
 
-int CLinkbotTGroup::moveWait() {
+int CLinkbotTGroup::moveWait(void) {
     void *fptr;
     int retval;
 
@@ -2751,7 +2751,7 @@ int CLinkbotTGroup::relaxJoints(void) {
     return retval;
 }
 
-int CLinkbotTGroup::reset() {
+int CLinkbotTGroup::reset(void) {
     void *fptr;
     int retval;
 
@@ -2764,7 +2764,7 @@ int CLinkbotTGroup::reset() {
     return retval;
 }
 
-int CLinkbotTGroup::resetToZero() {
+int CLinkbotTGroup::resetToZero(void) {
     void *fptr;
     int retval;
 
@@ -2777,7 +2777,7 @@ int CLinkbotTGroup::resetToZero() {
     return retval;
 }
 
-int CLinkbotTGroup::resetToZeroNB() {
+int CLinkbotTGroup::resetToZeroNB(void) {
     void *fptr;
     int retval;
 
@@ -2803,7 +2803,7 @@ int CLinkbotTGroup::setBuzzerFrequency(int frequency, double time) {
     return retval;
 }
 
-int CLinkbotTGroup::setBuzzerFrequencyOff() {
+int CLinkbotTGroup::setBuzzerFrequencyOff(void) {
     void *fptr;
     int retval;
 

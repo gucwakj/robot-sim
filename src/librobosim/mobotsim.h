@@ -14,8 +14,8 @@ class DLLIMPORT CMobot {
 class DLLIMPORT CMobot : virtual public CRobot {
 #endif // _CH_
 	public:
-		CMobot();
-		~CMobot();
+		CMobot(void);
+		~CMobot(void);
 
 		int blinkLED(double delay, int num);
 #ifdef _CH_
@@ -25,7 +25,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 #endif
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
-		int disableRecordDataShift();
+		int disableRecordDataShift(void);
 		int disconnect(void);
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
@@ -35,7 +35,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int driveToDirect(double angle1, double angle2, double angle3, double angle4);
 		int driveToDirectNB(double angle1, double angle2, double angle3, double angle4);
 		int driveToNB(double angle1, double angle2, double angle3, double angle4);
-		int enableRecordDataShift();
+		int enableRecordDataShift(void);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getJointAngle(robotJointId_t id, double &angle);
@@ -59,7 +59,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
-		int isConnected();
+		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
 #ifdef ENABLE_GRAPHICS
@@ -121,14 +121,14 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int moveToDirect(double angle1, double angle2, double angle3, double angle4);
 		int moveToDirectNB(double angle1, double angle2, double angle3, double angle4);
 		int moveToNB(double angle1, double angle2, double angle3, double angle4);
-		int moveToZero();
-		int moveToZeroNB();
-		int moveWait();
+		int moveToZero(void);
+		int moveToZeroNB(void);
+		int moveWait(void);
 		int movexy(double x, double y, double radius, double trackwidth);
 		int movexyNB(double x, double y, double radius, double trackwidth);
 		int movexyTo(double x, double y, double radius, double trackwidth);
 		int movexyToNB(double x, double y, double radius, double trackwidth);
-		int movexyWait();
+		int movexyWait(void);
 #ifdef ENABLE_GRAPHICS
 		int point(double x, double y, double z, int pointsize, char *color);
 #endif // ENABLE_GRAPHICS
@@ -186,13 +186,13 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int recordDistanceEnd(robotJointId_t id, int &num);
 		int recordDistanceOffset(double distance);
 		int recordDistancesEnd(int &num);
-		int recordWait();
+		int recordWait(void);
 		int recordxyEnd(int &num);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset();
-		int resetToZero();
-		int resetToZeroNB();
+		int reset(void);
+		int resetToZero(void);
+		int resetToZeroNB(void);
 		int setJointMovementStateNB(robotJointId_t id, robotJointState_t dir);
 		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds);
@@ -328,8 +328,8 @@ class DLLIMPORT CMobot : virtual public CRobot {
 
 class CMobotGroup {
 	public:
-		CMobotGroup();
-		virtual ~CMobotGroup();
+		CMobotGroup(void);
+		virtual ~CMobotGroup(void);
 
 		int addRobot(CMobot& robot);
 #ifdef _CH_

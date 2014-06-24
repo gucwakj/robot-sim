@@ -95,7 +95,7 @@ int CLinkbotT::delaySeconds(double seconds) {
 	return 0;
 }
 
-int CLinkbotT::disableRecordDataShift() {
+int CLinkbotT::disableRecordDataShift(void) {
 	_g_shift_data = 0;
 	_g_shift_data_en = 1;
 
@@ -171,7 +171,7 @@ int CLinkbotT::driveToDirectNB(double angle1, double angle2, double angle3) {
 	return 0;
 }
 
-int CLinkbotT::enableRecordDataShift() {
+int CLinkbotT::enableRecordDataShift(void) {
 	_g_shift_data = 1;
 	_g_shift_data_en = 1;
 
@@ -2074,7 +2074,7 @@ int CLinkbotT::setBuzzerFrequency(int frequency, double time) {
 	return 0;
 }
 
-int CLinkbotT::setBuzzerFrequencyOff() {
+int CLinkbotT::setBuzzerFrequencyOff(void) {
 	printf("CLinkbot::setBuzzerFrequencyOff not implemented.\n");
 
 	// success

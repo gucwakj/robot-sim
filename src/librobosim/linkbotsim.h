@@ -15,11 +15,11 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #endif
 	public:
 #ifdef _CH_
-		CLinkbotT();
+		CLinkbotT(void);
 #else
 		CLinkbotT(int disabled = -1, int type = LINKBOTT);
 #endif
-		virtual ~CLinkbotT();
+		virtual ~CLinkbotT(void);
 
 		int blinkLED(double delay, int num);
 #ifdef _CH_
@@ -30,8 +30,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #endif
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
-		int disableRecordDataShift();
-		int disconnect();
+		int disableRecordDataShift(void);
+		int disconnect(void);
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToNB(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
@@ -40,7 +40,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int driveToNB(double angle1, double angle2, double angle3);
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
-		int enableRecordDataShift();
+		int enableRecordDataShift(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
 #ifdef _CH_
@@ -50,7 +50,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int getLEDColorRGB(int &r, int &g, int &b);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
-		int getID();
+		int getID(void);
 		int getJointAngle(robotJointId_t id, double &angle);
 		int getJointAngles(double &angle1, double &angle2, double &angle3);
 #ifdef _CH_
@@ -88,7 +88,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int motionTurnLeftNB(double angle);
 		int motionTurnRight(double angle);
 		int motionTurnRightNB(double angle);
-		int motionWait();
+		int motionWait(void);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -158,14 +158,14 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int recordDistanceOffset(double distance);
 		int recordDistancesEnd(int &num);
 		int recordxyEnd(int &num);
-		int recordWait();
+		int recordWait(void);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset();
-		int resetToZero();
-		int resetToZeroNB();
+		int reset(void);
+		int resetToZero(void);
+		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);
-		int setBuzzerFrequencyOff();
+		int setBuzzerFrequencyOff(void);
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
@@ -296,8 +296,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 
 class DLLIMPORT CLinkbotTGroup {
 	public:
-		CLinkbotTGroup();
-		virtual ~CLinkbotTGroup();
+		CLinkbotTGroup(void);
+		virtual ~CLinkbotTGroup(void);
 
 		int blinkLED(double delay, int num);
 		int addRobot(CLinkbotT& robot);
@@ -318,8 +318,8 @@ class DLLIMPORT CLinkbotTGroup {
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
-		int isMoving();
-		int isNotMoving();
+		int isMoving(void);
+		int isNotMoving(void);
 		int motionDistance(double distance, double radius);
 		int motionDistanceNB(double distance, double radius);
 		int motionRollBackward(double angle);
@@ -330,7 +330,7 @@ class DLLIMPORT CLinkbotTGroup {
 		int motionTurnLeftNB(double angle);
 		int motionTurnRight(double angle);
 		int motionTurnRightNB(double angle);
-		int motionWait();
+		int motionWait(void);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -354,16 +354,16 @@ class DLLIMPORT CLinkbotTGroup {
 		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
 		int moveToDirectNB(double angle1, double angle2, double angle3);
-		int moveToZero();
-		int moveToZeroNB();
-		int moveWait();
+		int moveToZero(void);
+		int moveToZeroNB(void);
+		int moveWait(void);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset();
-		int resetToZero();
-		int resetToZeroNB();
+		int reset(void);
+		int resetToZero(void);
+		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);
-		int setBuzzerFrequencyOff();
+		int setBuzzerFrequencyOff(void);
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
@@ -414,16 +414,16 @@ class DLLIMPORT CLinkbotTGroup {
 #ifdef _CH_
 class DLLIMPORT CLinkbotI {
 	public:
-		CLinkbotI();
-		virtual ~CLinkbotI();
+		CLinkbotI(void);
+		virtual ~CLinkbotI(void);
 
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
 		int connect(...);
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
-		int disableRecordDataShift();
-		int disconnect();
+		int disableRecordDataShift(void);
+		int disconnect(void);
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToNB(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
@@ -432,7 +432,7 @@ class DLLIMPORT CLinkbotI {
 		int driveToNB(double angle1, double angle2, double angle3);
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
-		int enableRecordDataShift();
+		int enableRecordDataShift(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
 		int getLEDColor(string_t &color);
@@ -440,7 +440,7 @@ class DLLIMPORT CLinkbotI {
 		int getLEDColorRGB(int &r, int &g, int &b);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
-		int getID();
+		int getID(void);
 		int getJointAngle(robotJointId_t id, double &angle);
 		int getJointAngleAverage(robotJointId_t id, double &angle, ... );
 		int getJointAngles(double &angle1, double &angle2, double &angle3);
@@ -457,9 +457,9 @@ class DLLIMPORT CLinkbotI {
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
-		int isConnected();
-		int isMoving();
-		int isNotMoving();
+		int isConnected(void);
+		int isMoving(void);
+		int isNotMoving(void);
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int motionDistance(double distance, double radius);
 		int motionDistanceNB(double distance, double radius);
@@ -471,7 +471,7 @@ class DLLIMPORT CLinkbotI {
 		int motionTurnLeftNB(double angle);
 		int motionTurnRight(double angle);
 		int motionTurnRightNB(double angle);
-		int motionWait();
+		int motionWait(void);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -495,9 +495,9 @@ class DLLIMPORT CLinkbotI {
 		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
 		int moveToDirectNB(double angle1, double angle2, double angle3);
-		int moveToZero();
-		int moveToZeroNB();
-		int moveWait();
+		int moveToZero(void);
+		int moveToZeroNB(void);
+		int moveWait(void);
 		int movexy(double x, double y, double radius, double trackwidth);
 		int movexyNB(double x, double y, double radius, double trackwidth);
 		int movexyTo(double x, double y, double radius, double trackwidth);
@@ -508,7 +508,7 @@ class DLLIMPORT CLinkbotI {
 		int movexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
 		int movexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
-		int movexyWait();
+		int movexyWait(void);
 		int openGripper(double angle);
 		int openGripperNB(double angle);
 		int point(double x, double y, double z, int pointsize, char *color);
@@ -523,16 +523,16 @@ class DLLIMPORT CLinkbotI {
 		int recordDistanceOffset(double distance);
 		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, double radius, double seconds, ...);
 		int recordDistancesEnd(int &num);
-		int recordWait();
+		int recordWait(void);
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, ...);
 		int recordxyEnd(int &num);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset();
-		int resetToZero();
-		int resetToZeroNB();
+		int reset(void);
+		int resetToZero(void);
+		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);
-		int setBuzzerFrequencyOff();
+		int setBuzzerFrequencyOff(void);
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
@@ -564,8 +564,8 @@ class DLLIMPORT CLinkbotI {
 };
 class DLLIMPORT CLinkbotIGroup {
 	public:
-		CLinkbotIGroup();
-		virtual ~CLinkbotIGroup();
+		CLinkbotIGroup(void);
+		virtual ~CLinkbotIGroup(void);
 
 		int addRobot(CLinkbotI& robot);
 		int addRobots(array CLinkbotI robots[], ...);
@@ -582,8 +582,8 @@ class DLLIMPORT CLinkbotIGroup {
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
-		int isMoving();
-		int isNotMoving();
+		int isMoving(void);
+		int isNotMoving(void);
 		int motionDistance(double distance, double radius);
 		int motionDistanceNB(double distance, double radius);
 		int motionRollBackward(double angle);
@@ -594,7 +594,7 @@ class DLLIMPORT CLinkbotIGroup {
 		int motionTurnLeftNB(double angle);
 		int motionTurnRight(double angle);
 		int motionTurnRightNB(double angle);
-		int motionWait();
+		int motionWait(void);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -618,16 +618,16 @@ class DLLIMPORT CLinkbotIGroup {
 		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
 		int moveToDirectNB(double angle1, double angle2, double angle3);
-		int moveToZero();
-		int moveToZeroNB();
-		int moveWait();
+		int moveToZero(void);
+		int moveToZeroNB(void);
+		int moveWait(void);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset();
-		int resetToZero();
-		int resetToZeroNB();
+		int reset(void);
+		int resetToZero(void);
+		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);
-		int setBuzzerFrequencyOff();
+		int setBuzzerFrequencyOff(void);
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
@@ -659,16 +659,16 @@ class DLLIMPORT CLinkbotIGroup {
 
 class DLLIMPORT CLinkbotL {
 	public:
-		CLinkbotL();
-		virtual ~CLinkbotL();
+		CLinkbotL(void);
+		virtual ~CLinkbotL(void);
 
 		int blinkLED(double delay, int num);
 		int connect(...);
 		int closeGripper(void);
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
-		int disableRecordDataShift();
-		int disconnect();
+		int disableRecordDataShift(void);
+		int disconnect(void);
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToNB(robotJointId_t id, double angle);
 		int driveJointToDirect(robotJointId_t id, double angle);
@@ -677,7 +677,7 @@ class DLLIMPORT CLinkbotL {
 		int driveToNB(double angle1, double angle2, double angle3);
 		int driveToDirect(double angle1, double angle2, double angle3);
 		int driveToDirectNB(double angle1, double angle2, double angle3);
-		int enableRecordDataShift();
+		int enableRecordDataShift(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
 		int getLEDColor(string_t &color);
@@ -685,7 +685,7 @@ class DLLIMPORT CLinkbotL {
 		int getLEDColorRGB(int &r, int &g, int &b);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
-		int getID();
+		int getID(void);
 		int getJointAngle(robotJointId_t id, double &angle);
 		int getJointAngleAverage(robotJointId_t id, double &angle, ... );
 		int getJointAngles(double &angle1, double &angle2, double &angle3);
@@ -702,9 +702,9 @@ class DLLIMPORT CLinkbotL {
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
-		int isConnected();
-		int isMoving();
-		int isNotMoving();
+		int isConnected(void);
+		int isMoving(void);
+		int isNotMoving(void);
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int motionDistance(double distance, double radius);
 		int motionDistanceNB(double distance, double radius);
@@ -716,7 +716,7 @@ class DLLIMPORT CLinkbotL {
 		int motionTurnLeftNB(double angle);
 		int motionTurnRight(double angle);
 		int motionTurnRightNB(double angle);
-		int motionWait();
+		int motionWait(void);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -736,14 +736,14 @@ class DLLIMPORT CLinkbotL {
 		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
 		int moveToDirectNB(double angle1, double angle2, double angle3);
-		int moveToZero();
-		int moveToZeroNB();
-		int moveWait();
+		int moveToZero(void);
+		int moveToZeroNB(void);
+		int moveWait(void);
 		int movexy(double x, double y, double radius, double trackwidth);
 		int movexyNB(double x, double y, double radius, double trackwidth);
 		int movexyTo(double x, double y, double radius, double trackwidth);
 		int movexyToNB(double x, double y, double radius, double trackwidth);
-		int movexyWait();
+		int movexyWait(void);
 		int openGripper(double angle);
 		int openGripperNB(double angle);
 		int point(double x, double y, double z, int pointsize, char *color);
@@ -758,16 +758,16 @@ class DLLIMPORT CLinkbotL {
 		int recordDistanceOffset(double distance);
 		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, double radius, double seconds, ...);
 		int recordDistancesEnd(int &num);
-		int recordWait();
+		int recordWait(void);
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, ...);
 		int recordxyEnd(int &num);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset();
-		int resetToZero();
-		int resetToZeroNB();
+		int reset(void);
+		int resetToZero(void);
+		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);
-		int setBuzzerFrequencyOff();
+		int setBuzzerFrequencyOff(void);
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
@@ -799,8 +799,8 @@ class DLLIMPORT CLinkbotL {
 };
 class DLLIMPORT CLinkbotLGroup {
 	public:
-		CLinkbotLGroup();
-		virtual ~CLinkbotLGroup();
+		CLinkbotLGroup(void);
+		virtual ~CLinkbotLGroup(void);
 
 		int addRobot(CLinkbotL& robot);
 		int addRobots(array CLinkbotL robots[], ...);
@@ -817,8 +817,8 @@ class DLLIMPORT CLinkbotLGroup {
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
-		int isMoving();
-		int isNotMoving();
+		int isMoving(void);
+		int isNotMoving(void);
 		int motionDistance(double distance, double radius);
 		int motionDistanceNB(double distance, double radius);
 		int motionRollBackward(double angle);
@@ -829,7 +829,7 @@ class DLLIMPORT CLinkbotLGroup {
 		int motionTurnLeftNB(double angle);
 		int motionTurnRight(double angle);
 		int motionTurnRightNB(double angle);
-		int motionWait();
+		int motionWait(void);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -849,16 +849,16 @@ class DLLIMPORT CLinkbotLGroup {
 		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
 		int moveToDirectNB(double angle1, double angle2, double angle3);
-		int moveToZero();
-		int moveToZeroNB();
-		int moveWait();
+		int moveToZero(void);
+		int moveToZeroNB(void);
+		int moveWait(void);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset();
-		int resetToZero();
-		int resetToZeroNB();
+		int reset(void);
+		int resetToZero(void);
+		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);
-		int setBuzzerFrequencyOff();
+		int setBuzzerFrequencyOff(void);
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);

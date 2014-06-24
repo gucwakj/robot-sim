@@ -952,7 +952,7 @@ void* CLinkbotTGroup::motionTurnRightThread(void* arg) {
 }
 
 #ifdef _CH_
-CLinkbotIGroup::~CLinkbotIGroup() {
+CLinkbotIGroup::~CLinkbotIGroup(void) {
 	// remove robots from group
 	while (_robots != NULL) {
 		robots_t tmp = _robots->next;
@@ -967,7 +967,7 @@ CLinkbotIGroup::~CLinkbotIGroup() {
 	return 0;
 }
 
-CLinkbotLGroup::~CLinkbotLGroup() {
+CLinkbotLGroup::~CLinkbotLGroup(void) {
 	// remove robots from group
 	while (_robots != NULL) {
 		robots_t tmp = _robots->next;
