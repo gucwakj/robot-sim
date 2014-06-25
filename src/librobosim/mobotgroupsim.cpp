@@ -476,6 +476,17 @@ int CMobotGroup::moveDistanceNB(double distance, double radius) {
 	return 0;
 }
 
+int CMobotGroup::moveForeverNB(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->moveForeverNB();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobotGroup::moveForward(double angle) {
 	moveForwardNB(angle);
 	return moveWait();
@@ -774,23 +785,12 @@ int CMobotGroup::setJointSpeedRatios(double ratio1, double ratio2, double ratio3
 	return 0;
 }
 
-int CMobotGroup::setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setMovementStateNB(dir1, dir2, dir3, dir4);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CMobotGroup::setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds) {
 	int msecs = seconds * 1000.0;
 
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->setMovementStateNB(dir1, dir2, dir3, dir4);
+		rtmp->robot->moveForeverNB();
 		rtmp = rtmp->next;
 	}
 
@@ -802,7 +802,7 @@ int CMobotGroup::setMovementStateTime(robotJointState_t dir1, robotJointState_t 
 
 	rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
+		rtmp->robot->holdJoints();
 		rtmp = rtmp->next;
 	}
 

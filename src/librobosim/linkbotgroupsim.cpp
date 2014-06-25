@@ -358,6 +358,17 @@ int CLinkbotTGroup::moveDistanceNB(double distance, double radius) {
 	return 0;
 }
 
+int CLinkbotTGroup::moveForeverNB(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->moveForeverNB();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotTGroup::moveForward(double angle) {
 	moveForwardNB(angle);
 	return moveWait();
@@ -730,23 +741,12 @@ int CLinkbotTGroup::setMotorPower(robotJointId_t id, int power) {
 	return 0;
 }
 
-int CLinkbotTGroup::setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setMovementStateNB(dir1, dir2, dir3);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CLinkbotTGroup::setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
 	int msecs = seconds * 1000.0;
 
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->setMovementStateNB(dir1, dir2, dir3);
+		rtmp->robot->moveForeverNB();
 		rtmp = rtmp->next;
 	}
 
@@ -758,7 +758,7 @@ int CLinkbotTGroup::setMovementStateTime(robotJointState_t dir1, robotJointState
 
 	rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
+		rtmp->robot->holdJoints();
 		rtmp = rtmp->next;
 	}
 

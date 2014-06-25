@@ -306,8 +306,11 @@ int CMobot::holdJoints(void) {
 }
 
 int CMobot::holdJointsAtExit(void) {
-	// set exit state of joints
-	this->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
+	// set joint speeds to zero
+	this->holdJoints();
+
+	// hold joints still
+	this->moveForeverNB();
 
 	// success
 	return 0;
@@ -1036,7 +1039,7 @@ int CMobot::moveBackwardNB(double angle) {
 }
 
 int CMobot::moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4) {
-	return this->setMovementStateNB(dir1, dir2, dir3, dir4);
+	return this->moveForeverNB();
 }
 
 int CMobot::moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds) {
@@ -1053,6 +1056,16 @@ int CMobot::moveDistance(double distance, double radius) {
 
 int CMobot::moveDistanceNB(double distance, double radius) {
 	return this->moveForwardNB(RAD2DEG(distance/radius));
+}
+
+int CMobot::moveForeverNB(void) {
+	this->setJointMovementStateNB(JOINT1, ROBOT_FORWARD);
+	this->setJointMovementStateNB(JOINT2, ROBOT_FORWARD);
+	this->setJointMovementStateNB(JOINT3, ROBOT_FORWARD);
+	this->setJointMovementStateNB(JOINT4, ROBOT_FORWARD);
+
+	// success
+	return 0;
 }
 
 int CMobot::moveForward(double angle) {
@@ -2414,16 +2427,6 @@ int CMobot::setMotorPower(robotJointId_t id, int power) {
 	return 0;
 }
 
-int CMobot::setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4) {
-	this->setJointMovementStateNB(JOINT1, dir1);
-	this->setJointMovementStateNB(JOINT2, dir2);
-	this->setJointMovementStateNB(JOINT3, dir3);
-	this->setJointMovementStateNB(JOINT4, dir4);
-
-	// success
-	return 0;
-}
-
 int CMobot::setMovementStateTime(robotJointState_t dir1,
 								 robotJointState_t dir2,
 								 robotJointState_t dir3,
@@ -2442,7 +2445,7 @@ int CMobot::setMovementStateTime(robotJointState_t dir1,
 #endif
 
 	// stop motion
-	this->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
+	this->holdJoints();
 
 	// success
 	return 0;
@@ -2461,7 +2464,7 @@ void* CMobot::setMovementStateTimeNBThread(void *arg) {
 
 	// hold all robot motion
 	CMobot *ptr = dynamic_cast<CMobot *>(rArg->robot);
-	ptr->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
+	ptr->holdJoints();
 
 	// cleanup
 	delete rArg;

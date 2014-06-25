@@ -1049,6 +1049,19 @@ EXPORTCH int CLinkbotT_moveDistanceNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotT_moveForeverNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    retval = robot->moveForeverNB();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotT_moveForward_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2165,25 +2178,6 @@ EXPORTCH int CLinkbotT_setMotorPower_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotT_setMovementStateNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotT *robot;
-    robotJointState_t dir1;
-    robotJointState_t dir2;
-    robotJointState_t dir3;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
-    dir1 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    dir2 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    dir3 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    retval = robot->setMovementStateNB(dir1, dir2, dir3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLinkbotT_setMovementStateTime_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3048,6 +3042,19 @@ EXPORTCH int CLTG_moveDistanceNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLTG_moveForeverNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotTGroup *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
+    retval = robot->moveForeverNB();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLTG_moveForward_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3659,25 +3666,6 @@ EXPORTCH int CLTG_setMotorPower_chdl(void *varg) {
     id = Ch_VaArg(interp, ap, robotJointId_t);
     power = Ch_VaArg(interp, ap, int);
     retval = robot->setMotorPower(id, power);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLTG_setMovementStateNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotTGroup *robot;
-    robotJointState_t dir1;
-    robotJointState_t dir2;
-    robotJointState_t dir3;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
-    dir1 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    dir2 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    dir3 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    retval = robot->setMovementStateNB(dir1, dir2, dir3);
     Ch_VaEnd(interp, ap);
     return retval;
 }

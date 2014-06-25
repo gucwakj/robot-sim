@@ -1130,6 +1130,19 @@ EXPORTCH int CMobot_moveDistanceNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_moveForeverNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    retval = robot->moveForeverNB();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_moveForward_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2115,27 +2128,6 @@ EXPORTCH int CMobot_setMotorPower_chdl(void *varg) {
     id = Ch_VaArg(interp, ap, robotJointId_t);
     power = Ch_VaArg(interp, ap, int);
     retval = robot->setMotorPower(id, power);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CMobot_setMovementStateNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobot *robot;
-    robotJointState_t dir1;
-    robotJointState_t dir2;
-    robotJointState_t dir3;
-    robotJointState_t dir4;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CMobot *);
-    dir1 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    dir2 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    dir3 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    dir4 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    retval = robot->setMovementStateNB(dir1, dir2, dir3, dir4);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -3178,6 +3170,19 @@ EXPORTCH int CMG_moveBackwardNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMG_moveForeverNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobotGroup *group;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    group = Ch_VaArg(interp, ap, class CMobotGroup *);
+    retval = group->moveForeverNB();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMG_moveForward_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3670,27 +3675,6 @@ EXPORTCH int CMG_setJointSpeedRatios_chdl(void *varg) {
     ratio3 = Ch_VaArg(interp, ap, double);
     ratio4 = Ch_VaArg(interp, ap, double);
     retval = group->setJointSpeedRatios(ratio1, ratio2, ratio3, ratio4);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CMG_setMovementStateNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobotGroup *group;
-    robotJointState_t dir1;
-    robotJointState_t dir2;
-    robotJointState_t dir3;
-    robotJointState_t dir4;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    group = Ch_VaArg(interp, ap, class CMobotGroup *);
-    dir1 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    dir2 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    dir3 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    dir4 = (robotJointState_t)Ch_VaArg(interp, ap, int);
-    retval = group->setMovementStateNB(dir1, dir2, dir3, dir4);
     Ch_VaEnd(interp, ap);
     return retval;
 }

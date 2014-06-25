@@ -65,7 +65,7 @@ int CLinkbotL::closeGripper(void) {
 
 	retval = retval || moveNB(8, NaN, 8);
 	delaySeconds(1);
-	retval = retval || setMovementStateNB(ROBOT_HOLD, NaN, ROBOT_HOLD);
+	retval = retval || moveForeverNB();
 
 	return retval;
 }
@@ -863,6 +863,19 @@ int CLinkbotL::moveContinuousTime(int dir1, int dir2, int dir3, double seconds) 
     return retval;
 }
 
+int CLinkbotL::moveForeverNB(void) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_moveForeverNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveForeverNB, this);
+    return retval;
+}
+
 int CLinkbotL::moveJoint(int id, double angle) {
     void *fptr;
     int retval;
@@ -1654,19 +1667,6 @@ int CLinkbotL::setMotorPower(int id, int power) {
     return retval;
 }
 
-int CLinkbotL::setMovementStateNB(int dir1, int dir2, int dir3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_setMovementStateNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setMovementStateNB, this, dir1, dir2, dir3);
-    return retval;
-}
-
 int CLinkbotL::setMovementStateTime(int dir1, int dir2, int dir3, double seconds) {
     void *fptr;
     int retval;
@@ -2344,6 +2344,19 @@ int CLinkbotLGroup::moveContinuousTime(int dir1, int dir2, int dir3, double seco
     return retval;
 }
 
+int CLinkbotLGroup::moveForeverNB(void) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLLG_moveForeverNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveForeverNB, this);
+    return retval;
+}
+
 int CLinkbotLGroup::moveJoint(int id, double angle) {
     void *fptr;
     int retval;
@@ -2809,19 +2822,6 @@ int CLinkbotLGroup::setMotorPower(int id, int power) {
         return -1;
     }
     dlrunfun(fptr, &retval, setMotorPower, this, id, power);
-    return retval;
-}
-
-int CLinkbotLGroup::setMovementStateNB(int dir1, int dir2, int dir3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLLG_setMovementStateNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setMovementStateNB, this, dir1, dir2, dir3);
     return retval;
 }
 

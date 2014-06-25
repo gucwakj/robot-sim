@@ -366,8 +366,11 @@ int CLinkbotT::holdJoints(void) {
 }
 
 int CLinkbotT::holdJointsAtExit(void) {
-	// set exit state of joints
-	this->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
+	// set joint speeds to zero
+	this->holdJoints();
+
+	// hold joints still
+	this->moveForeverNB();
 
 	// success
 	return 0;
@@ -666,7 +669,7 @@ int CLinkbotT::moveBackwardNB(double angle) {
 }
 
 int CLinkbotT::moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3) {
-	return this->setMovementStateNB(dir1, dir2, dir3);
+	return this->moveForeverNB();
 }
 
 int CLinkbotT::moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
@@ -679,6 +682,16 @@ int CLinkbotT::moveDistance(double distance, double radius) {
 
 int CLinkbotT::moveDistanceNB(double distance, double radius) {
 	return this->moveForwardNB(RAD2DEG(distance/radius));
+}
+
+int CLinkbotT::moveForeverNB(void) {
+	// set joint movements
+	this->setJointMovementStateNB(JOINT1, ROBOT_FORWARD);
+	this->setJointMovementStateNB(JOINT2, ROBOT_FORWARD);
+	this->setJointMovementStateNB(JOINT3, ROBOT_FORWARD);
+
+	// success
+	return 0;
 }
 
 int CLinkbotT::moveForward(double angle) {
@@ -2257,36 +2270,6 @@ int CLinkbotT::setMotorPower(robotJointId_t id, int power) {
 	return 0;
 }
 
-int CLinkbotT::setMovementStateNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3) {
-	// switch direction for linkbot i to get forward movement
-	if (_type == LINKBOTI) {
-		switch (dir3) {
-			case ROBOT_FORWARD:
-				dir3 = ROBOT_BACKWARD;
-				break;
-			case ROBOT_BACKWARD:
-				dir3 = ROBOT_FORWARD;
-				break;
-			case ROBOT_POSITIVE:
-				dir3 = ROBOT_FORWARD;
-				break;
-			case ROBOT_NEGATIVE:
-				dir3 = ROBOT_BACKWARD;
-				break;
-			default:
-				break;
-		}
-	}
-
-	// set joint movements
-	this->setJointMovementStateNB(JOINT1, dir1);
-	this->setJointMovementStateNB(JOINT2, dir2);
-	this->setJointMovementStateNB(JOINT3, dir3);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
 	// switch direction for linkbot i to get forward movement
 	if (_type == LINKBOTI) {
@@ -2321,7 +2304,7 @@ int CLinkbotT::setMovementStateTime(robotJointState_t dir1, robotJointState_t di
 #endif
 
 	// stop motion
-	this->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
+	this->holdJoints();
 
 	// success
 	return 0;
@@ -2340,7 +2323,7 @@ void* CLinkbotT::setMovementStateTimeNBThread(void *arg) {
 
 	// hold all robot motion
 	CLinkbotT *ptr = dynamic_cast<CLinkbotT *>(rArg->robot);
-	ptr->setMovementStateNB(ROBOT_HOLD, ROBOT_HOLD, ROBOT_HOLD);
+	ptr->holdJoints();
 
 	// cleanup
 	delete rArg;
