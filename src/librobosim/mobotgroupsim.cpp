@@ -70,12 +70,23 @@ int CMobotGroup::connect(void) {
 	return 0;
 }
 
-int CMobotGroup::driveJointToDirect(robotJointId_t id, double angle) {
+int CMobotGroup::driveJointTo(robotJointId_t id, double angle) {
 	driveJointToDirectNB(id, angle);
 	return moveWait();
 }
 
-int CMobotGroup::driveJointTo(robotJointId_t id, double angle) {
+int CMobotGroup::driveJointToNB(robotJointId_t id, double angle) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveJointToNB(id, angle);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CMobotGroup::driveJointToDirect(robotJointId_t id, double angle) {
 	driveJointToDirectNB(id, angle);
 	return moveWait();
 }
@@ -91,10 +102,15 @@ int CMobotGroup::driveJointToDirectNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CMobotGroup::driveJointToNB(robotJointId_t id, double angle) {
+int CMobotGroup::driveTo(double angle1, double angle2, double angle3, double angle4) {
+	driveToDirectNB(angle1, angle2, angle3, angle4);
+	return moveWait();
+}
+
+int CMobotGroup::driveToNB(double angle1, double angle2, double angle3, double angle4) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->driveJointToNB(id, angle);
+		rtmp->robot->driveToNB(angle1, angle2, angle3, angle4);
 		rtmp = rtmp->next;
 	}
 
@@ -107,26 +123,10 @@ int CMobotGroup::driveToDirect(double angle1, double angle2, double angle3, doub
 	return moveWait();
 }
 
-int CMobotGroup::driveTo(double angle1, double angle2, double angle3, double angle4) {
-	driveToDirectNB(angle1, angle2, angle3, angle4);
-	return moveWait();
-}
-
 int CMobotGroup::driveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->driveToDirectNB(angle1, angle2, angle3, angle4);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::driveToNB(double angle1, double angle2, double angle3, double angle4) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->driveToNB(angle1, angle2, angle3, angle4);
 		rtmp = rtmp->next;
 	}
 
@@ -492,13 +492,24 @@ int CMobotGroup::moveForwardNB(double angle) {
 	return 0;
 }
 
-int CMobotGroup::moveJointTo(robotJointId_t id, double angle) {
-	moveJointToNB(id, angle);
+int CMobotGroup::moveJoint(robotJointId_t id, double angle) {
+	moveJointNB(id, angle);
 	return moveWait();
 }
 
-int CMobotGroup::moveJointToDirect(robotJointId_t id, double angle) {
-	moveJointToDirectNB(id, angle);
+int CMobotGroup::moveJointNB(robotJointId_t id, double angle) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->moveJointNB(id, angle);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CMobotGroup::moveJointTo(robotJointId_t id, double angle) {
+	moveJointToNB(id, angle);
 	return moveWait();
 }
 
@@ -511,6 +522,11 @@ int CMobotGroup::moveJointToNB(robotJointId_t id, double angle) {
 
 	// success
 	return 0;
+}
+
+int CMobotGroup::moveJointToDirect(robotJointId_t id, double angle) {
+	moveJointToDirectNB(id, angle);
+	return moveWait();
 }
 
 int CMobotGroup::moveJointToDirectNB(robotJointId_t id, double angle) {
@@ -540,11 +556,6 @@ int CMobotGroup::moveTo(double angle1, double angle2, double angle3, double angl
 	return moveWait();
 }
 
-int CMobotGroup::moveToDirect(double angle1, double angle2, double angle3, double angle4) {
-	moveToDirectNB(angle1, angle2, angle3, angle4);
-	return moveWait();
-}
-
 int CMobotGroup::moveToNB(double angle1, double angle2, double angle3, double angle4) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -554,6 +565,11 @@ int CMobotGroup::moveToNB(double angle1, double angle2, double angle3, double an
 
 	// success
 	return 0;
+}
+
+int CMobotGroup::moveToDirect(double angle1, double angle2, double angle3, double angle4) {
+	moveToDirectNB(angle1, angle2, angle3, angle4);
+	return moveWait();
 }
 
 int CMobotGroup::moveToDirectNB(double angle1, double angle2, double angle3, double angle4) {

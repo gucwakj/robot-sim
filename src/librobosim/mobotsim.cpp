@@ -95,6 +95,13 @@ int CMobot::driveJointTo(robotJointId_t id, double angle) {
 	return 0;
 }
 
+int CMobot::driveJointToNB(robotJointId_t id, double angle) {
+	this->moveJointToNB(id, angle);
+
+	// success
+	return 0;
+}
+
 int CMobot::driveJointToDirect(robotJointId_t id, double angle) {
 	this->driveJointToDirectNB(id, angle);
 	this->moveJointWait(id);
@@ -110,16 +117,16 @@ int CMobot::driveJointToDirectNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CMobot::driveJointToNB(robotJointId_t id, double angle) {
-	this->moveJointToNB(id, angle);
+int CMobot::driveTo(double angle1, double angle2, double angle3, double angle4) {
+	this->driveToNB(angle1, angle2, angle3, angle4);
+	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int CMobot::driveTo(double angle1, double angle2, double angle3, double angle4) {
-	this->driveToNB(angle1, angle2, angle3, angle4);
-	this->moveWait();
+int CMobot::driveToNB(double angle1, double angle2, double angle3, double angle4) {
+	this->moveToNB(angle1, angle2, angle3, angle4);
 
 	// success
 	return 0;
@@ -135,13 +142,6 @@ int CMobot::driveToDirect(double angle1, double angle2, double angle3, double an
 
 int CMobot::driveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
 	this->moveToDirectNB(angle1, angle2, angle3, angle4);
-
-	// success
-	return 0;
-}
-
-int CMobot::driveToNB(double angle1, double angle2, double angle3, double angle4) {
-	this->moveToNB(angle1, angle2, angle3, angle4);
 
 	// success
 	return 0;
@@ -1075,14 +1075,6 @@ int CMobot::moveJoint(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CMobot::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
-	return this->setJointMovementStateNB(id, dir);
-}
-
-int CMobot::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
-	return this->setJointMovementStateTime(id, dir, seconds);
-}
-
 int CMobot::moveJointNB(robotJointId_t id, double angle) {
 	// lock goal
 	MUTEX_LOCK(&_goal_mutex);
@@ -1126,24 +1118,17 @@ int CMobot::moveJointNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
+int CMobot::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
+	return this->setJointMovementStateNB(id, dir);
+}
+
+int CMobot::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
+	return this->setJointMovementStateTime(id, dir, seconds);
+}
+
 int CMobot::moveJointTo(robotJointId_t id, double angle) {
 	this->moveJointToNB(id, angle);
 	this->moveJointWait(id);
-
-	// success
-	return 0;
-}
-
-int CMobot::moveJointToDirect(robotJointId_t id, double angle) {
-	this->moveJointToDirectNB(id, angle);
-	this->moveJointWait(id);
-
-	// success
-	return 0;
-}
-
-int CMobot::moveJointToDirectNB(robotJointId_t id, double angle) {
-	this->moveJointToNB(id, angle);
 
 	// success
 	return 0;
@@ -1195,6 +1180,21 @@ int CMobot::moveJointToNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
+int CMobot::moveJointToDirect(robotJointId_t id, double angle) {
+	this->moveJointToDirectNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CMobot::moveJointToDirectNB(robotJointId_t id, double angle) {
+	this->moveJointToNB(id, angle);
+
+	// success
+	return 0;
+}
+
 int CMobot::moveJointWait(robotJointId_t id) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_success_mutex);
@@ -1208,21 +1208,6 @@ int CMobot::moveJointWait(robotJointId_t id) {
 int CMobot::moveTo(double angle1, double angle2, double angle3, double angle4) {
 	this->moveToNB(angle1, angle2, angle3, angle4);
 	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CMobot::moveToDirect(double angle1, double angle2, double angle3, double angle4) {
-	this->moveToDirectNB(angle1, angle2, angle3, angle4);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CMobot::moveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
-	this->moveToNB(angle1, angle2, angle3, angle4);
 
 	// success
 	return 0;
@@ -1264,6 +1249,21 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
 	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_angle_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
+
+	// success
+	return 0;
+}
+
+int CMobot::moveToDirect(double angle1, double angle2, double angle3, double angle4) {
+	this->moveToDirectNB(angle1, angle2, angle3, angle4);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::moveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
+	this->moveToNB(angle1, angle2, angle3, angle4);
 
 	// success
 	return 0;
