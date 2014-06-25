@@ -941,6 +941,32 @@ int CLinkbotL::moveJointForeverNB(int id) {
     return retval;
 }
 
+int CLinkbotL::moveJointTime(int id, double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_moveJointTime_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointTime, this, id, seconds);
+    return retval;
+}
+
+int CLinkbotL::moveJointTimeNB(int id, double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_moveJointTimeNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointTimeNB, this, id, seconds);
+    return retval;
+}
+
 int CLinkbotL::moveJointTo(int id, double angle) {
     void *fptr;
     int retval;
@@ -1586,19 +1612,6 @@ int CLinkbotL::setLEDColorRGB(int r, int g, int b) {
         return -1;
     }
     dlrunfun(fptr, &retval, setLEDColorRGB, this, r, g, b);
-    return retval;
-}
-
-int CLinkbotL::setJointMovementStateTime(int id, int dir, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_setJointMovementStateTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setJointMovementStateTime, this, id, dir, seconds);
     return retval;
 }
 
@@ -2422,6 +2435,32 @@ int CLinkbotLGroup::moveJointForeverNB(int id) {
     return retval;
 }
 
+int CLinkbotLGroup::moveJointTime(int id, double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLLG_moveJointTime_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointTime, this, id, seconds);
+    return retval;
+}
+
+int CLinkbotLGroup::moveJointTimeNB(int id, double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLLG_moveJointTimeNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointTimeNB, this, id, seconds);
+    return retval;
+}
+
 int CLinkbotLGroup::moveJointTo(int id, double angle) {
     void *fptr;
     int retval;
@@ -2731,32 +2770,6 @@ int CLinkbotLGroup::setLEDColorRGB(int r, int g, int b) {
         return -1;
     }
     dlrunfun(fptr, &retval, setLEDColorRGB, this, r, g, b);
-    return retval;
-}
-
-int CLinkbotLGroup::setJointMovementStateTime(int id, int dir, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLLG_setJointMovementStateTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setJointMovementStateTime, this, id, dir, seconds);
-    return retval;
-}
-
-int CLinkbotLGroup::setJointMovementStateTimeNB(int id, int dir, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLLG_setJointMovementStateTimeNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setJointMovementStateTimeNB, this, id, dir, seconds);
     return retval;
 }
 

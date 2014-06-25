@@ -105,6 +105,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int moveJointForeverNB(robotJointId_t id);
+		int moveJointTime(robotJointId_t id, double seconds);
+		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointToDirect(robotJointId_t id, double angle);
@@ -173,7 +175,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
-		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -276,6 +277,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		static void* recordAnglesThread(void *arg);											// thread to record angles
 		static void* recordAnglesBeginThread(void *arg);									// thread to record angles
 		static void* recordxyBeginThread(void *arg);										// thread to record positions
+		static void* moveJointTimeNBThread(void *arg);										// thread to set movement state
 		static void* moveTimeNBThread(void *arg);											// thread to set movement state
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group *root, int tracking);
@@ -347,6 +349,8 @@ class DLLIMPORT CLinkbotTGroup {
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int moveJointForeverNB(robotJointId_t id);
+		int moveJointTime(robotJointId_t id, double seconds);
+		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointToDirect(robotJointId_t id, double angle);
@@ -371,8 +375,6 @@ class DLLIMPORT CLinkbotTGroup {
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
-		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
-		int setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -488,6 +490,8 @@ class DLLIMPORT CLinkbotI {
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int moveJointForeverNB(robotJointId_t id);
+		int moveJointTime(robotJointId_t id, double seconds);
+		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointToDirect(robotJointId_t id, double angle);
@@ -540,7 +544,6 @@ class DLLIMPORT CLinkbotI {
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
-		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -611,6 +614,8 @@ class DLLIMPORT CLinkbotIGroup {
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int moveJointForeverNB(robotJointId_t id);
+		int moveJointTime(robotJointId_t id, double seconds);
+		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointToDirect(robotJointId_t id, double angle);
@@ -635,8 +640,6 @@ class DLLIMPORT CLinkbotIGroup {
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
-		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
-		int setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -729,6 +732,8 @@ class DLLIMPORT CLinkbotL {
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int moveJointForeverNB(robotJointId_t id);
+		int moveJointTime(robotJointId_t id, double seconds);
+		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointToDirect(robotJointId_t id, double angle);
@@ -775,7 +780,6 @@ class DLLIMPORT CLinkbotL {
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
-		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -842,6 +846,8 @@ class DLLIMPORT CLinkbotLGroup {
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int moveJointForeverNB(robotJointId_t id);
+		int moveJointTime(robotJointId_t id, double seconds);
+		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointToDirect(robotJointId_t id, double angle);
@@ -866,8 +872,6 @@ class DLLIMPORT CLinkbotLGroup {
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
-		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
-		int setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);

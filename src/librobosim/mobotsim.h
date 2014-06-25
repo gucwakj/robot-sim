@@ -114,6 +114,8 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
 		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int moveJointForeverNB(robotJointId_t id);
+		int moveJointTime(robotJointId_t id, double seconds);
+		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointToDirect(robotJointId_t id, double angle);
@@ -197,8 +199,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int reset(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
-		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
-		int setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -302,7 +302,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		static void* recordAnglesThread(void *arg);
 		static void* recordAnglesBeginThread(void *arg);
 		static void* recordxyBeginThread(void *arg);
-		static void* setJointMovementStateTimeNBThread(void *arg);
+		static void* moveJointTimeNBThread(void *arg);
 		static void* moveTimeNBThread(void *arg);
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group *root, int tracking);
@@ -382,6 +382,8 @@ class CMobotGroup {
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointForeverNB(robotJointId_t id);
+		int moveJointTime(robotJointId_t id, double seconds);
+		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointToDirect(robotJointId_t id, double angle);
@@ -401,8 +403,6 @@ class CMobotGroup {
 		int reset(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
-		int setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds);
-		int setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double angle);
 		int setJointSpeed(robotJointId_t id, double speed);

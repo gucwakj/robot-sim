@@ -530,6 +530,30 @@ int CMobotGroup::moveJointForeverNB(robotJointId_t id) {
 	return 0;
 }
 
+int CMobotGroup::moveJointTime(robotJointId_t id, double seconds) {
+	this->moveJointTimeNB(id, seconds);
+
+#ifdef _WIN32
+	Sleep(seconds * 1000);
+#else
+	usleep(seconds * 1000000);
+#endif
+
+	// success
+	return 0;
+}
+
+int CMobotGroup::moveJointTimeNB(robotJointId_t id, double seconds) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->moveJointTimeNB(id, seconds);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobotGroup::moveJointTo(robotJointId_t id, double angle) {
 	moveJointToNB(id, angle);
 	return moveWait();
@@ -712,44 +736,6 @@ int CMobotGroup::resetToZeroNB(void) {
 		rtmp->robot->resetToZeroNB();
 		rtmp = rtmp->next;
 	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds) {
-	int msecs = seconds * 1000.0;
-
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->resetToZeroNB();
-		rtmp = rtmp->next;
-	}
-
-#ifdef _WIN32
-	Sleep(msecs);
-#else
-	usleep(msecs * 1000);
-#endif
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds) {
-	int msecs = seconds * 1000.0;
-
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setJointMovementStateTimeNB(id, dir, seconds);
-		rtmp = rtmp->next;
-	}
-
-#ifdef _WIN32
-	Sleep(msecs);
-#else
-	usleep(msecs * 1000);
-#endif
 
 	// success
 	return 0;

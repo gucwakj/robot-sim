@@ -1177,6 +1177,40 @@ EXPORTCH int CLinkbotI_moveJointForeverNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotI_moveJointTime_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    robotJointId_t id;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->moveJointTime(id, seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotI_moveJointTimeNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    robotJointId_t id;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->moveJointTimeNB(id, seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotI_moveJointTo_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2063,25 +2097,6 @@ EXPORTCH int CLinkbotI_setLEDColorRGB_chdl(void *varg) {
     g = Ch_VaArg(interp, ap, int);
     b = Ch_VaArg(interp, ap, int);
     retval = robot->setLEDColorRGB(r, g, b);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotI_setJointMovementStateTime_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotI *robot;
-    robotJointId_t id;
-    robotJointState_t dir;
-    double seconds;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    dir = Ch_VaArg(interp, ap, robotJointState_t);
-    seconds = Ch_VaArg(interp, ap, double);
-    retval = robot->setJointMovementStateTime(id, dir, seconds);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -3156,6 +3171,40 @@ EXPORTCH int CLIG_moveJointForeverNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLIG_moveJointTime_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotIGroup *robot;
+    robotJointId_t id;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->moveJointTime(id, seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLIG_moveJointTimeNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotIGroup *robot;
+    robotJointId_t id;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->moveJointTimeNB(id, seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLIG_moveJointTo_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3524,44 +3573,6 @@ EXPORTCH int CLIG_setLEDColorRGB_chdl(void *varg) {
     g = Ch_VaArg(interp, ap, int);
     b = Ch_VaArg(interp, ap, int);
     retval = robot->setLEDColorRGB(r, g, b);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLIG_setJointMovementStateTime_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotIGroup *robot;
-    robotJointId_t id;
-    robotJointState_t dir;
-    double seconds;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    dir = Ch_VaArg(interp, ap, robotJointState_t);
-    seconds = Ch_VaArg(interp, ap, double);
-    retval = robot->setJointMovementStateTime(id, dir, seconds);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLIG_setJointMovementStateTimeNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotIGroup *robot;
-    robotJointId_t id;
-    robotJointState_t dir;
-    double seconds;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    dir = Ch_VaArg(interp, ap, robotJointState_t);
-    seconds = Ch_VaArg(interp, ap, double);
-    retval = robot->setJointMovementStateTimeNB(id, dir, seconds);
     Ch_VaEnd(interp, ap);
     return retval;
 }

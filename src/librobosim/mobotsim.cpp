@@ -1136,7 +1136,95 @@ int CMobot::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
 }
 
 int CMobot::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
-	return this->setJointMovementStateTime(id, dir, seconds);
+	return this->moveJointTime(id, seconds);
+}
+
+int CMobot::moveJointForeverNB(robotJointId_t id) {
+	// lock mutexes
+	MUTEX_LOCK(&_success_mutex);
+
+	// enable motor
+	dJointEnable(_motor[id]);
+	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
+	_seek[id] = false;
+	if (_speed[id] > EPSILON) {
+		_state[id] = ROBOT_FORWARD;
+		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
+	}
+	else if (_speed[id] < EPSILON) {
+		_state[id] = ROBOT_BACKWARD;
+		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
+	}
+	else {
+		_state[id] = ROBOT_HOLD;
+		dJointSetAMotorParam(_motor[id], dParamVel, 0);
+	}
+	_success[id] = true;
+    dBodyEnable(_body[CENTER]);
+
+	// unlock mutexes
+	MUTEX_UNLOCK(&_success_mutex);
+
+	// success
+	return 0;
+}
+
+int CMobot::moveJointTime(robotJointId_t id, double seconds) {
+	// move joint
+	this->moveJointForeverNB(id);
+
+	// sleep
+#ifdef _WIN32
+	Sleep(seconds * 1000);
+#else
+	usleep(seconds * 1000000);
+#endif
+
+	// sleep
+	this->holdJoint(id);
+
+	// success
+	return 0;
+}
+
+void* CMobot::moveJointTimeNBThread(void *arg) {
+	// cast argument
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// sleep
+#ifdef _WIN32
+	Sleep(rArg->msecs);
+#else
+	usleep(rArg->msecs * 1000);
+#endif
+
+	// hold all robot motion
+	CMobot *ptr = dynamic_cast<CMobot *>(rArg->robot);
+	ptr->holdJoint(rArg->id);
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+int CMobot::moveJointTimeNB(robotJointId_t id, double seconds) {
+	// set up threading
+	THREAD_T moving;
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->id = id;
+	rArg->msecs = 1000*seconds;
+
+	// set joint movements
+	this->moveJointForeverNB(id);
+
+	// create thread to wait
+	THREAD_CREATE(&moving, (void* (*)(void *))&CMobot::moveJointTimeNBThread, (void *)rArg);
+
+	// success
+	return 0;
 }
 
 int CMobot::moveJointTo(robotJointId_t id, double angle) {
@@ -2326,94 +2414,6 @@ int CMobot::resetToZeroNB(void) {
 
 	// move to zero position
 	this->moveToZeroNB();
-
-	// success
-	return 0;
-}
-
-int CMobot::moveJointForeverNB(robotJointId_t id) {
-	// lock mutexes
-	MUTEX_LOCK(&_success_mutex);
-
-	// enable motor
-	dJointEnable(_motor[id]);
-	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
-	_seek[id] = false;
-	if (_speed[id] > EPSILON) {
-		_state[id] = ROBOT_FORWARD;
-		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
-	}
-	else if (_speed[id] < EPSILON) {
-		_state[id] = ROBOT_BACKWARD;
-		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
-	}
-	else {
-		_state[id] = ROBOT_HOLD;
-		dJointSetAMotorParam(_motor[id], dParamVel, 0);
-	}
-	_success[id] = true;
-    dBodyEnable(_body[CENTER]);
-
-	// unlock mutexes
-	MUTEX_UNLOCK(&_success_mutex);
-
-	// success
-	return 0;
-}
-
-int CMobot::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds) {
-	// move joint
-	this->moveJointForeverNB(id);
-
-	// sleep
-#ifdef _WIN32
-	Sleep(seconds * 1000);
-#else
-	usleep(seconds * 1000000);
-#endif
-
-	// sleep
-	this->holdJoint(id);
-
-	// success
-	return 0;
-}
-
-void* CMobot::setJointMovementStateTimeNBThread(void *arg) {
-	// cast argument
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-
-	// sleep
-#ifdef _WIN32
-	Sleep(rArg->msecs);
-#else
-	usleep(rArg->msecs * 1000);
-#endif
-
-	// hold all robot motion
-	CMobot *ptr = dynamic_cast<CMobot *>(rArg->robot);
-	ptr->holdJoint(rArg->id);
-
-	// cleanup
-	delete rArg;
-
-	// success
-	return NULL;
-}
-
-int CMobot::setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds) {
-	// set up threading
-	THREAD_T moving;
-	recordAngleArg_t *rArg = new recordAngleArg_t;
-	rArg->robot = this;
-	rArg->id = id;
-	rArg->msecs = 1000*seconds;
-
-	// set joint movements
-	this->moveJointForeverNB(id);
-
-	// create thread to wait
-	THREAD_CREATE(&moving, (void* (*)(void *))&CMobot::setJointMovementStateTimeNBThread, (void *)rArg);
 
 	// success
 	return 0;

@@ -765,7 +765,7 @@ int CLinkbotT::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
 }
 
 int CLinkbotT::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
-	return this->setJointMovementStateTime(id, dir, seconds);
+	return this->moveJointTime(id, seconds);
 }
 
 int CLinkbotT::moveJointForeverNB(robotJointId_t id) {
@@ -793,6 +793,64 @@ int CLinkbotT::moveJointForeverNB(robotJointId_t id) {
 
 	// unlock mutexes
 	MUTEX_UNLOCK(&_success_mutex);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::moveJointTime(robotJointId_t id, double seconds) {
+	// move joint
+	this->moveJointForeverNB(id);
+
+	// sleep
+#ifdef _WIN32
+	Sleep(seconds * 1000);
+#else
+	usleep(seconds * 1000000);
+#endif
+
+	// stop joint
+	this->holdJoint(id);
+
+	// success
+	return 0;
+}
+
+void* CLinkbotT::moveJointTimeNBThread(void *arg) {
+	// cast argument
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// sleep
+#ifdef _WIN32
+	Sleep(rArg->msecs);
+#else
+	usleep(rArg->msecs * 1000);
+#endif
+
+	// hold all robot motion
+	CLinkbotT *ptr = dynamic_cast<CLinkbotT *>(rArg->robot);
+	ptr->holdJoint(rArg->id);
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::moveJointTimeNB(robotJointId_t id, double seconds) {
+	// set up threading
+	THREAD_T moving;
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->msecs = 1000*seconds;
+	rArg->id = id;
+
+	// set joint movements
+	this->moveJointForeverNB(id);
+
+	// create thread to wait
+	THREAD_CREATE(&moving, (void* (*)(void *))&CLinkbotT::moveJointTimeNBThread, (void *)rArg);
 
 	// success
 	return 0;
@@ -2222,44 +2280,6 @@ int CLinkbotT::setLEDColorRGB(int r, int g, int b) {
 #ifdef ENABLE_GRAPHICS
 	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
 #endif // ENABLE_GRAPHICS
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds) {
-	// switch direction for linkbot i to get forward movement
-	if (_type == LINKBOTI && id == JOINT3) {
-		switch (dir) {
-			case ROBOT_FORWARD:
-				dir = ROBOT_BACKWARD;
-				break;
-			case ROBOT_BACKWARD:
-				dir = ROBOT_FORWARD;
-				break;
-			case ROBOT_POSITIVE:
-				dir = ROBOT_FORWARD;
-				break;
-			case ROBOT_NEGATIVE:
-				dir = ROBOT_BACKWARD;
-				break;
-			default:
-				break;
-		}
-	}
-
-	// move joint
-	this->moveJointForeverNB(id);
-
-	// sleep
-#ifdef _WIN32
-	Sleep(seconds * 1000);
-#else
-	usleep(seconds * 1000000);
-#endif
-
-	// stop joint
-	this->holdJoint(id);
 
 	// success
 	return 0;
