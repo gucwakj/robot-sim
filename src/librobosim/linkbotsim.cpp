@@ -673,7 +673,7 @@ int CLinkbotT::moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, 
 }
 
 int CLinkbotT::moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
-	return this->setMovementStateTime(dir1, dir2, dir3, seconds);
+	return this->moveTime(seconds);
 }
 
 int CLinkbotT::moveDistance(double distance, double radius) {
@@ -875,6 +875,26 @@ int CLinkbotT::moveJointWait(robotJointId_t id) {
 	MUTEX_LOCK(&_success_mutex);
 	while ( !_success[id] ) { COND_WAIT(&_success_cond, &_success_mutex); }
 	MUTEX_UNLOCK(&_success_mutex);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::moveTime(double seconds) {
+	// set joint movements
+	this->moveJointForeverNB(JOINT1);
+	this->moveJointForeverNB(JOINT2);
+	this->moveJointForeverNB(JOINT3);
+
+	// sleep
+#ifdef _WIN32
+	Sleep(seconds * 1000);
+#else
+	usleep(seconds * 1000000);
+#endif
+
+	// stop motion
+	this->holdJoints();
 
 	// success
 	return 0;
@@ -2257,46 +2277,6 @@ int CLinkbotT::setJointSpeedRatios(double ratio1, double ratio2, double ratio3) 
 
 int CLinkbotT::setMotorPower(robotJointId_t id, int power) {
 	printf("CLinkbot::setMotorPower not implemented.\n");
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::setMovementStateTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
-	// switch direction for linkbot i to get forward movement
-	if (_type == LINKBOTI) {
-		switch (dir3) {
-			case ROBOT_FORWARD:
-				dir3 = ROBOT_BACKWARD;
-				break;
-			case ROBOT_BACKWARD:
-				dir3 = ROBOT_FORWARD;
-				break;
-			case ROBOT_POSITIVE:
-				dir3 = ROBOT_FORWARD;
-				break;
-			case ROBOT_NEGATIVE:
-				dir3 = ROBOT_BACKWARD;
-				break;
-			default:
-				break;
-		}
-	}
-
-	// set joint movements
-	this->moveJointForeverNB(JOINT1);
-	this->moveJointForeverNB(JOINT2);
-	this->moveJointForeverNB(JOINT3);
-
-	// sleep
-#ifdef _WIN32
-	Sleep(seconds * 1000);
-#else
-	usleep(seconds * 1000000);
-#endif
-
-	// stop motion
-	this->holdJoints();
 
 	// success
 	return 0;

@@ -119,6 +119,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int moveJointToDirect(robotJointId_t id, double angle);
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
+		int moveTime(double seconds);
 		int moveTo(double angle1, double angle2, double angle3, double angle4);
 		int moveToNB(double angle1, double angle2, double angle3, double angle4);
 		int moveToDirect(double angle1, double angle2, double angle3, double angle4);
@@ -204,10 +205,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
 		int setMotorPower(robotJointId_t id, int power);
-		int setMovementStateTime(robotJointState_t dir1,
-								 robotJointState_t dir2,
-								 robotJointState_t dir3,
-								 robotJointState_t dir4, double seconds);
 		int setMovementStateTimeNB(robotJointState_t dir1,
 								   robotJointState_t dir2,
 								   robotJointState_t dir3,
@@ -393,6 +390,7 @@ class CMobotGroup {
 		int moveJointToDirect(robotJointId_t id, double angle);
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
+		int moveTime(double seconds);
 		int moveTo(double angle1, double angle2, double angle3, double angle4);
 		int moveToNB(double angle1, double angle2, double angle3, double angle4);
 		int moveToDirect(double angle1, double angle2, double angle3, double angle4);
@@ -413,10 +411,6 @@ class CMobotGroup {
 		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
-		int setMovementStateTime(robotJointState_t dir1,
-								 robotJointState_t dir2,
-								 robotJointState_t dir3,
-								 robotJointState_t dir4, double seconds);
 		int setMovementStateTimeNB(robotJointState_t dir1,
 								   robotJointState_t dir2,
 								   robotJointState_t dir3,

@@ -1058,6 +1058,19 @@ int CLinkbotI::moveJointWait(int id) {
     return retval;
 }
 
+int CLinkbotI::moveTime(double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveTime_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveTime, this, seconds);
+    return retval;
+}
+
 int CLinkbotI::moveTo(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
@@ -1785,19 +1798,6 @@ int CLinkbotI::setMotorPower(int id, int power) {
         return -1;
     }
     dlrunfun(fptr, &retval, setMotorPower, this, id, power);
-    return retval;
-}
-
-int CLinkbotI::setMovementStateTime(int dir1, int dir2, int dir3, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_setMovementStateTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setMovementStateTime, this, dir1, dir2, dir3, seconds);
     return retval;
 }
 
@@ -2660,6 +2660,19 @@ int CLinkbotIGroup::moveJointWait(int id) {
     return retval;
 }
 
+int CLinkbotIGroup::moveTime(double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_moveTime_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveTime, this, seconds);
+    return retval;
+}
+
 int CLinkbotIGroup::moveTo(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
@@ -2995,19 +3008,6 @@ int CLinkbotIGroup::setMotorPower(int id, int power) {
         return -1;
     }
     dlrunfun(fptr, &retval, setMotorPower, this, id, power);
-    return retval;
-}
-
-int CLinkbotIGroup::setMovementStateTime(int dir1, int dir2, int dir3, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_setMovementStateTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setMovementStateTime, this, dir1, dir2, dir3, seconds);
     return retval;
 }
 

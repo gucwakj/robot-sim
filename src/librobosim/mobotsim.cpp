@@ -1043,7 +1043,7 @@ int CMobot::moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, rob
 }
 
 int CMobot::moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds) {
-	return this->setMovementStateTime(dir1, dir2, dir3, dir4, seconds);
+	return this->moveTime(seconds);
 }
 
 int CMobot::moveDistance(double distance, double radius) {
@@ -1213,6 +1213,27 @@ int CMobot::moveJointWait(robotJointId_t id) {
 	MUTEX_LOCK(&_success_mutex);
 	while ( !_success[id] ) { COND_WAIT(&_success_cond, &_success_mutex); }
 	MUTEX_UNLOCK(&_success_mutex);
+
+	// success
+	return 0;
+}
+
+int CMobot::moveTime(double seconds) {
+	// set joint movements
+	this->moveJointForeverNB(JOINT1);
+	this->moveJointForeverNB(JOINT2);
+	this->moveJointForeverNB(JOINT3);
+	this->moveJointForeverNB(JOINT4);
+
+	// sleep
+#ifdef _WIN32
+	Sleep(seconds * 1000);
+#else
+	usleep(seconds * 1000000);
+#endif
+
+	// stop motion
+	this->holdJoints();
 
 	// success
 	return 0;
@@ -2414,30 +2435,6 @@ int CMobot::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, dou
 
 int CMobot::setMotorPower(robotJointId_t id, int power) {
 	printf("CMobot::setMotorPower not implemented.\n");
-
-	// success
-	return 0;
-}
-
-int CMobot::setMovementStateTime(robotJointState_t dir1,
-								 robotJointState_t dir2,
-								 robotJointState_t dir3,
-								 robotJointState_t dir4, double seconds) {
-	// set joint movements
-	this->moveJointForeverNB(JOINT1);
-	this->moveJointForeverNB(JOINT2);
-	this->moveJointForeverNB(JOINT3);
-	this->moveJointForeverNB(JOINT4);
-
-	// sleep
-#ifdef _WIN32
-	Sleep(seconds * 1000);
-#else
-	usleep(seconds * 1000000);
-#endif
-
-	// stop motion
-	this->holdJoints();
 
 	// success
 	return 0;
