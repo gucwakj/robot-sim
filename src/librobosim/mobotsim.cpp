@@ -1123,14 +1123,6 @@ int CMobot::moveJointNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CMobot::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
-	return this->moveJointForeverNB(id);
-}
-
-int CMobot::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
-	return this->moveJointTime(id, seconds);
-}
-
 int CMobot::moveJointForeverNB(robotJointId_t id) {
 	// lock mutexes
 	MUTEX_LOCK(&_success_mutex);

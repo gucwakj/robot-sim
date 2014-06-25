@@ -951,32 +951,6 @@ int CMobot::moveJoint(int id, double angle) {
     return retval;
 }
 
-int CMobot::moveJointContinuousNB(int id, int dir) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_moveJointContinuousNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousNB, this, id, dir);
-    return retval;
-}
-
-int CMobot::moveJointContinuousTime(int id, int dir, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_moveJointContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousTime, this, id, dir, seconds);
-    return retval;
-}
-
 int CMobot::moveJointForeverNB(int id) {
     void *fptr;
     int retval;

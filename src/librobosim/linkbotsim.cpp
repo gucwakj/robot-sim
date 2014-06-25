@@ -752,14 +752,6 @@ int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CLinkbotT::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
-	return this->moveJointForeverNB(id);
-}
-
-int CLinkbotT::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
-	return this->moveJointTime(id, seconds);
-}
-
 int CLinkbotT::moveJointForeverNB(robotJointId_t id) {
 	// lock mutexes
 	MUTEX_LOCK(&_success_mutex);

@@ -103,8 +103,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int moveForwardNB(double angle);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
-		int moveJointContinuousNB(robotJointId_t id, robotJointState_t dir);
-		int moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds);
 		int moveJointForeverNB(robotJointId_t id);
 		int moveJointTime(robotJointId_t id, double seconds);
 		int moveJointTimeNB(robotJointId_t id, double seconds);

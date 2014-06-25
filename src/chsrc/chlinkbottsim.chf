@@ -928,32 +928,6 @@ int CLinkbotT::moveJointNB(int id, double angle) {
     return retval;
 }
 
-int CLinkbotT::moveJointContinuousNB(int id, int dir) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_moveJointContinuousNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousNB, this, id, dir);
-    return retval;
-}
-
-int CLinkbotT::moveJointContinuousTime(int id, int dir, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_moveJointContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousTime, this, id, dir, seconds);
-    return retval;
-}
-
 int CLinkbotT::moveJointForeverNB(int id) {
     void *fptr;
     int retval;
@@ -2514,32 +2488,6 @@ int CLinkbotTGroup::moveJointNB(int id, double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveJointNB, this, id, angle);
-    return retval;
-}
-
-int CLinkbotTGroup::moveJointContinuousNB(int id, int dir) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_moveJointContinuousNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousNB, this, id, dir);
-    return retval;
-}
-
-int CLinkbotTGroup::moveJointContinuousTime(int id, int dir, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_moveJointContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveJointContinuousTime, this, id, dir, seconds);
     return retval;
 }
 

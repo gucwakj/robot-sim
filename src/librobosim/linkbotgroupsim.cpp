@@ -379,28 +379,6 @@ int CLinkbotTGroup::moveJointNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CLinkbotTGroup::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveJointContinuousNB(id, dir);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveJointContinuousTime(id, dir, seconds);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CLinkbotTGroup::moveJointForeverNB(robotJointId_t id) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
