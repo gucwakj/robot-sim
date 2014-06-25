@@ -130,51 +130,19 @@ class DLLIMPORT CMobot : virtual public CRobot {
 #endif // ENABLE_GRAPHICS
 #ifdef _CH_
 		int recordAngle(robotJointId_t id, double time[:], double angle[:], int num, double seconds, ...);
-		int recordAngleBegin(robotJointId_t id,
-							 robotRecordData_t &time,
-							 robotRecordData_t &angle, double seconds, ...);
-		int recordAngles(double time[:],
-						 double angle1[:],
-						 double angle2[:],
-						 double angle3[:],
-						 double angle4[:], int num, double seconds, ...);
-		int recordAnglesBegin(robotRecordData_t &time,
-							  robotRecordData_t &angle1,
-							  robotRecordData_t &angle2,
-							  robotRecordData_t &angle3,
-							  robotRecordData_t &angle4, double seconds, ...);
-		int recordDistanceBegin(robotJointId_t id,
-								robotRecordData_t &time,
-								robotRecordData_t &distance, double radius, double seconds, ...);
-		int recordDistancesBegin(robotRecordData_t &time,
-								 robotRecordData_t &distance1,
-								 robotRecordData_t &distance2,
-								 robotRecordData_t &distance3,
-								 robotRecordData_t &distance4, double radius, double seconds, ...);
+		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, ...);
+		int recordAngles(double time[:], double angle1[:], double angle2[:], double angle3[:], double angle4[:], int num, double seconds, ...);
+		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &a1, robotRecordData_t &a2, robotRecordData_t &a3, robotRecordData_t &a4, double seconds, ...);
+		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, ...);
+		int recordDistancesBegin(robotRecordData_t &t, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, robotRecordData_t &d4, double radius, double seconds, ...);
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, ...);
 #else
 		int recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData = 1);
-		int recordAngleBegin(robotJointId_t id,
-							 robotRecordData_t &time,
-							 robotRecordData_t &angle, double seconds, int shiftData = 1);
-		int recordAngles(double time[],
-						 double angle1[],
-						 double angle2[],
-						 double angle3[],
-						 double angle4[], int num, double seconds, int shiftData = 1);
-		int recordAnglesBegin(robotRecordData_t &time,
-							  robotRecordData_t &angle1,
-							  robotRecordData_t &angle2,
-							  robotRecordData_t &angle3,
-							  robotRecordData_t &angle4, double seconds, int shiftData = 1);
-		int recordDistanceBegin(robotJointId_t id,
-								robotRecordData_t &time,
-								robotRecordData_t &distance, double radius, double seconds, int shiftData = 1);
-		int recordDistancesBegin(robotRecordData_t &time,
-								 robotRecordData_t &distance1,
-								 robotRecordData_t &distance2,
-								 robotRecordData_t &distance3,
-								 robotRecordData_t &distance4, double radius, double seconds, int shiftData = 1);
+		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData = 1);
+		int recordAngles(double time[], double angle1[], double angle2[], double angle3[], double angle4[], int num, double seconds, int shiftData = 1);
+		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, int shiftData = 1);
+		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData = 1);
+		int recordDistancesBegin(robotRecordData_t &t, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, robotRecordData_t &d4, double radius, double seconds, int shiftData = 1);
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int recordTrace = 0, int shiftData = 1);
 #endif
 		int recordAngleEnd(robotJointId_t id, int &num);
