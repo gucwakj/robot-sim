@@ -668,14 +668,6 @@ int CLinkbotT::moveBackwardNB(double angle) {
 	return this->moveNB(-angle, 0, angle);
 }
 
-int CLinkbotT::moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3) {
-	return this->moveForeverNB();
-}
-
-int CLinkbotT::moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
-	return this->moveTime(seconds);
-}
-
 int CLinkbotT::moveDistance(double distance, double radius) {
 	return this->moveForward(RAD2DEG(distance/radius));
 }

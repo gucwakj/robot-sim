@@ -93,8 +93,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
 		int moveBackwardNB(double angle);
-		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
-		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int moveDistance(double distance, double radius);
 		int moveDistanceNB(double distance, double radius);
 		int moveForeverNB(void);
@@ -337,8 +335,6 @@ class DLLIMPORT CLinkbotTGroup {
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
 		int moveBackwardNB(double angle);
-		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
-		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int moveDistance(double distance, double radius);
 		int moveDistanceNB(double distance, double radius);
 		int moveForeverNB(void);
@@ -478,8 +474,6 @@ class DLLIMPORT CLinkbotI {
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
 		int moveBackwardNB(double angle);
-		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
-		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int moveDistance(double distance, double radius);
 		int moveDistanceNB(double distance, double radius);
 		int moveForeverNB(void);
@@ -602,8 +596,6 @@ class DLLIMPORT CLinkbotIGroup {
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
 		int moveBackwardNB(double angle);
-		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
-		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int moveDistance(double distance, double radius);
 		int moveDistanceNB(double distance, double radius);
 		int moveForeverNB(void);
@@ -724,8 +716,6 @@ class DLLIMPORT CLinkbotL {
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
 		int moveBackwardNB(double angle);
-		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
-		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
@@ -838,8 +828,6 @@ class DLLIMPORT CLinkbotLGroup {
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
 		int moveBackwardNB(double angle);
-		int moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3);
-		int moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);

@@ -1038,14 +1038,6 @@ int CMobot::moveBackwardNB(double angle) {
 	return this->moveNB(-angle, 0, 0, -angle);
 }
 
-int CMobot::moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4) {
-	return this->moveForeverNB();
-}
-
-int CMobot::moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds) {
-	return this->moveTime(seconds);
-}
-
 int CMobot::moveDistance(double distance, double radius) {
 	this->moveForwardNB(RAD2DEG(distance/radius));
 	this->moveWait();

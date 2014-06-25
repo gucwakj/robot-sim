@@ -320,28 +320,6 @@ int CLinkbotTGroup::moveBackwardNB(double angle) {
 	return 0;
 }
 
-int CLinkbotTGroup::moveContinuousNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveContinuousNB(dir1, dir2, dir3);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::moveContinuousTime(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveContinuousTime(dir1, dir2, dir3, seconds);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CLinkbotTGroup::moveDistance(double distance, double radius) {
 	moveDistanceNB(distance, radius);
 	return moveWait();

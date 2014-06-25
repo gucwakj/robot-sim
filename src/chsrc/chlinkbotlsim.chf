@@ -837,32 +837,6 @@ int CLinkbotL::moveBackwardNB(double angle) {
     return retval;
 }
 
-int CLinkbotL::moveContinuousNB(int dir1, int dir2, int dir3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_moveContinuousNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveContinuousNB, this, dir1, dir2, dir3);
-    return retval;
-}
-
-int CLinkbotL::moveContinuousTime(int dir1, int dir2, int dir3, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_moveContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveContinuousTime, this, dir1, dir2, dir3, seconds);
-    return retval;
-}
-
 int CLinkbotL::moveForeverNB(void) {
     void *fptr;
     int retval;
@@ -2328,32 +2302,6 @@ int CLinkbotLGroup::moveBackwardNB(double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveBackwardNB, this, angle);
-    return retval;
-}
-
-int CLinkbotLGroup::moveContinuousNB(int dir1, int dir2, int dir3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLLG_moveContinuousNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveContinuousNB, this, dir1, dir2, dir3);
-    return retval;
-}
-
-int CLinkbotLGroup::moveContinuousTime(int dir1, int dir2, int dir3, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLLG_moveContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveContinuousTime, this, dir1, dir2, dir3, seconds);
     return retval;
 }
 

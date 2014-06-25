@@ -873,32 +873,6 @@ int CMobot::moveBackwardNB(double angle) {
     return retval;
 }
 
-int CMobot::moveContinuousNB(int dir1, int dir2, int dir3, int dir4) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_moveContinuousNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveContinuousNB, this, dir1, dir2, dir3, dir4);
-    return retval;
-}
-
-int CMobot::moveContinuousTime(int dir1, int dir2, int dir3, int dir4, double seconds) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_moveContinuousTime_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveContinuousTime, this, dir1, dir2, dir3, dir4, seconds);
-    return retval;
-}
-
 int CMobot::moveDistance(double distance, double radius) {
     void *fptr;
     int retval;
