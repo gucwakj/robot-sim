@@ -686,9 +686,9 @@ int CLinkbotT::moveDistanceNB(double distance, double radius) {
 
 int CLinkbotT::moveForeverNB(void) {
 	// set joint movements
-	this->setJointMovementStateNB(JOINT1, ROBOT_FORWARD);
-	this->setJointMovementStateNB(JOINT2, ROBOT_FORWARD);
-	this->setJointMovementStateNB(JOINT3, ROBOT_FORWARD);
+	this->moveJointForeverNB(JOINT1);
+	this->moveJointForeverNB(JOINT2);
+	this->moveJointForeverNB(JOINT3);
 
 	// success
 	return 0;
@@ -761,11 +761,41 @@ int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 }
 
 int CLinkbotT::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
-	return this->setJointMovementStateNB(id, dir);
+	return this->moveJointForeverNB(id);
 }
 
 int CLinkbotT::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
 	return this->setJointMovementStateTime(id, dir, seconds);
+}
+
+int CLinkbotT::moveJointForeverNB(robotJointId_t id) {
+	// lock mutexes
+	MUTEX_LOCK(&_success_mutex);
+
+	// enable motor
+	dJointEnable(_motor[id]);
+	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
+	_seek[id] = false;
+	if (_speed[id] > EPSILON) {
+		_state[id] = ROBOT_FORWARD;
+		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
+	}
+	else if (_speed[id] < EPSILON) {
+		_state[id] = ROBOT_BACKWARD;
+		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
+	}
+	else {
+		_state[id] = ROBOT_HOLD;
+		dJointSetAMotorParam(_motor[id], dParamVel, 0);
+	}
+	_success[id] = true;
+    dBodyEnable(_body[BODY]);
+
+	// unlock mutexes
+	MUTEX_UNLOCK(&_success_mutex);
+
+	// success
+	return 0;
 }
 
 int CLinkbotT::moveJointTo(robotJointId_t id, double angle) {
@@ -2136,44 +2166,6 @@ int CLinkbotT::setLEDColorRGB(int r, int g, int b) {
 	return 0;
 }
 
-int CLinkbotT::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
-	// lock mutexes
-	MUTEX_LOCK(&_success_mutex);
-
-	// enable motor
-	dJointEnable(_motor[id]);
-	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
-	_seek[id] = false;
-	switch (dir) {
-		case ROBOT_FORWARD:
-			_state[id] = ROBOT_FORWARD;
-			dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
-			break;
-		case ROBOT_BACKWARD:
-			_state[id] = ROBOT_BACKWARD;
-			dJointSetAMotorParam(_motor[id], dParamVel, -_speed[id]);
-			break;
-		case ROBOT_HOLD:
-			_state[id] = ROBOT_HOLD;
-			dJointSetAMotorParam(_motor[id], dParamVel, 0);
-			break;
-		case ROBOT_NEUTRAL:
-			_state[id] = ROBOT_NEUTRAL;
-			dJointDisable(_motor[id]);
-			break;
-		default:
-			break;
-	}
-	_success[id] = true;
-    dBodyEnable(_body[BODY]);
-
-	// unlock mutexes
-	MUTEX_UNLOCK(&_success_mutex);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds) {
 	// switch direction for linkbot i to get forward movement
 	if (_type == LINKBOTI && id == JOINT3) {
@@ -2196,7 +2188,7 @@ int CLinkbotT::setJointMovementStateTime(robotJointId_t id, robotJointState_t di
 	}
 
 	// move joint
-	this->setJointMovementStateNB(id, dir);
+	this->moveJointForeverNB(id);
 
 	// sleep
 #ifdef _WIN32
@@ -2206,7 +2198,7 @@ int CLinkbotT::setJointMovementStateTime(robotJointId_t id, robotJointState_t di
 #endif
 
 	// stop joint
-	this->setJointMovementStateNB(id, ROBOT_HOLD);
+	this->holdJoint(id);
 
 	// success
 	return 0;
@@ -2292,9 +2284,9 @@ int CLinkbotT::setMovementStateTime(robotJointState_t dir1, robotJointState_t di
 	}
 
 	// set joint movements
-	this->setJointMovementStateNB(JOINT1, dir1);
-	this->setJointMovementStateNB(JOINT2, dir2);
-	this->setJointMovementStateNB(JOINT3, dir3);
+	this->moveJointForeverNB(JOINT1);
+	this->moveJointForeverNB(JOINT2);
+	this->moveJointForeverNB(JOINT3);
 
 	// sleep
 #ifdef _WIN32
@@ -2360,9 +2352,9 @@ int CLinkbotT::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t 
 	rArg->msecs = 1000*seconds;
 
 	// set joint movements
-	this->setJointMovementStateNB(JOINT1, dir1);
-	this->setJointMovementStateNB(JOINT2, dir2);
-	this->setJointMovementStateNB(JOINT3, dir3);
+	this->moveJointForeverNB(JOINT1);
+	this->moveJointForeverNB(JOINT2);
+	this->moveJointForeverNB(JOINT3);
 
 	// create thread to wait
 	THREAD_CREATE(&moving, (void* (*)(void *))&CLinkbotT::setMovementStateTimeNBThread, (void *)rArg);

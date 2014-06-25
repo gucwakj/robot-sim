@@ -423,6 +423,17 @@ int CLinkbotTGroup::moveJointContinuousTime(robotJointId_t id, robotJointState_t
 	return 0;
 }
 
+int CLinkbotTGroup::moveJointForeverNB(robotJointId_t id) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->moveJointForeverNB(id);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotTGroup::moveJointTo(robotJointId_t id, double angle) {
 	moveJointToNB(id, angle);
 	return moveWait();
@@ -629,17 +640,6 @@ int CLinkbotTGroup::setLEDColorRGB(int r, int g, int b) {
 	return 0;
 }
 
-int CLinkbotTGroup::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setJointMovementStateNB(id, dir);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CLinkbotTGroup::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds) {
 	this->setJointMovementStateTimeNB(id, dir, seconds);
 
@@ -656,7 +656,7 @@ int CLinkbotTGroup::setJointMovementStateTime(robotJointId_t id, robotJointState
 int CLinkbotTGroup::setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir, double seconds) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->setJointMovementStateNB(id, dir);
+		rtmp->robot->moveJointForeverNB(id);
 		rtmp = rtmp->next;
 	}
 

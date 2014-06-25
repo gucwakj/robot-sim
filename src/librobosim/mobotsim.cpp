@@ -1059,10 +1059,10 @@ int CMobot::moveDistanceNB(double distance, double radius) {
 }
 
 int CMobot::moveForeverNB(void) {
-	this->setJointMovementStateNB(JOINT1, ROBOT_FORWARD);
-	this->setJointMovementStateNB(JOINT2, ROBOT_FORWARD);
-	this->setJointMovementStateNB(JOINT3, ROBOT_FORWARD);
-	this->setJointMovementStateNB(JOINT4, ROBOT_FORWARD);
+	this->moveJointForeverNB(JOINT1);
+	this->moveJointForeverNB(JOINT2);
+	this->moveJointForeverNB(JOINT3);
+	this->moveJointForeverNB(JOINT4);
 
 	// success
 	return 0;
@@ -1132,7 +1132,7 @@ int CMobot::moveJointNB(robotJointId_t id, double angle) {
 }
 
 int CMobot::moveJointContinuousNB(robotJointId_t id, robotJointState_t dir) {
-	return this->setJointMovementStateNB(id, dir);
+	return this->moveJointForeverNB(id);
 }
 
 int CMobot::moveJointContinuousTime(robotJointId_t id, robotJointState_t dir, double seconds) {
@@ -2268,7 +2268,7 @@ int CMobot::resetToZeroNB(void) {
 	return 0;
 }
 
-int CMobot::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
+int CMobot::moveJointForeverNB(robotJointId_t id) {
 	// lock mutexes
 	MUTEX_LOCK(&_success_mutex);
 
@@ -2276,25 +2276,17 @@ int CMobot::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
 	dJointEnable(_motor[id]);
 	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
 	_seek[id] = false;
-	switch (dir) {
-		case ROBOT_FORWARD:
-			_state[id] = ROBOT_FORWARD;
-			dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
-			break;
-		case ROBOT_BACKWARD:
-			_state[id] = ROBOT_BACKWARD;
-			dJointSetAMotorParam(_motor[id], dParamVel, -_speed[id]);
-			break;
-		case ROBOT_HOLD:
-			_state[id] = ROBOT_HOLD;
-			dJointSetAMotorParam(_motor[id], dParamVel, 0);
-			break;
-		case ROBOT_NEUTRAL:
-			_state[id] = ROBOT_NEUTRAL;
-			dJointDisable(_motor[id]);
-			break;
-		default:
-			break;
+	if (_speed[id] > EPSILON) {
+		_state[id] = ROBOT_FORWARD;
+		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
+	}
+	else if (_speed[id] < EPSILON) {
+		_state[id] = ROBOT_BACKWARD;
+		dJointSetAMotorParam(_motor[id], dParamVel, _speed[id]);
+	}
+	else {
+		_state[id] = ROBOT_HOLD;
+		dJointSetAMotorParam(_motor[id], dParamVel, 0);
 	}
 	_success[id] = true;
     dBodyEnable(_body[CENTER]);
@@ -2308,7 +2300,7 @@ int CMobot::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
 
 int CMobot::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, double seconds) {
 	// move joint
-	this->setJointMovementStateNB(id, dir);
+	this->moveJointForeverNB(id);
 
 	// sleep
 #ifdef _WIN32
@@ -2318,7 +2310,7 @@ int CMobot::setJointMovementStateTime(robotJointId_t id, robotJointState_t dir, 
 #endif
 
 	// sleep
-	this->setJointMovementStateNB(id, ROBOT_HOLD);
+	this->holdJoint(id);
 
 	// success
 	return 0;
@@ -2337,7 +2329,7 @@ void* CMobot::setJointMovementStateTimeNBThread(void *arg) {
 
 	// hold all robot motion
 	CMobot *ptr = dynamic_cast<CMobot *>(rArg->robot);
-	ptr->setJointMovementStateNB(rArg->id, ROBOT_HOLD);
+	ptr->holdJoint(rArg->id);
 
 	// cleanup
 	delete rArg;
@@ -2355,7 +2347,7 @@ int CMobot::setJointMovementStateTimeNB(robotJointId_t id, robotJointState_t dir
 	rArg->msecs = 1000*seconds;
 
 	// set joint movements
-	this->setJointMovementStateNB(id, dir);
+	this->moveJointForeverNB(id);
 
 	// create thread to wait
 	THREAD_CREATE(&moving, (void* (*)(void *))&CMobot::setJointMovementStateTimeNBThread, (void *)rArg);
@@ -2432,10 +2424,10 @@ int CMobot::setMovementStateTime(robotJointState_t dir1,
 								 robotJointState_t dir3,
 								 robotJointState_t dir4, double seconds) {
 	// set joint movements
-	this->setJointMovementStateNB(JOINT1, dir1);
-	this->setJointMovementStateNB(JOINT2, dir2);
-	this->setJointMovementStateNB(JOINT3, dir3);
-	this->setJointMovementStateNB(JOINT4, dir4);
+	this->moveJointForeverNB(JOINT1);
+	this->moveJointForeverNB(JOINT2);
+	this->moveJointForeverNB(JOINT3);
+	this->moveJointForeverNB(JOINT4);
 
 	// sleep
 #ifdef _WIN32
@@ -2484,10 +2476,10 @@ int CMobot::setMovementStateTimeNB(robotJointState_t dir1,
 	rArg->msecs = 1000*seconds;
 
 	// set joint movements
-	this->setJointMovementStateNB(JOINT1, dir1);
-	this->setJointMovementStateNB(JOINT2, dir2);
-	this->setJointMovementStateNB(JOINT3, dir3);
-	this->setJointMovementStateNB(JOINT4, dir4);
+	this->moveJointForeverNB(JOINT1);
+	this->moveJointForeverNB(JOINT2);
+	this->moveJointForeverNB(JOINT3);
+	this->moveJointForeverNB(JOINT4);
 
 	// create thread to wait
 	THREAD_CREATE(&moving, (void* (*)(void *))&CMobot::setMovementStateTimeNBThread, (void *)rArg);

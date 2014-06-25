@@ -980,6 +980,19 @@ int CLinkbotT::moveJointContinuousTime(int id, int dir, double seconds) {
     return retval;
 }
 
+int CLinkbotT::moveJointForeverNB(int id) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_moveJointForeverNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointForeverNB, this, id);
+    return retval;
+}
+
 int CLinkbotT::moveJointTo(int id, double angle) {
     void *fptr;
     int retval;
@@ -1668,19 +1681,6 @@ int CLinkbotT::setLEDColorRGB(int r, int g, int b) {
         return -1;
     }
     dlrunfun(fptr, &retval, setLEDColorRGB, this, r, g, b);
-    return retval;
-}
-
-int CLinkbotT::setJointMovementStateNB(int id, int dir) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_setJointMovementStateNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setJointMovementStateNB, this, id, dir);
     return retval;
 }
 
@@ -2582,6 +2582,19 @@ int CLinkbotTGroup::moveJointContinuousTime(int id, int dir, double seconds) {
     return retval;
 }
 
+int CLinkbotTGroup::moveJointForeverNB(int id) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLTG_moveJointForeverNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointForeverNB, this, id);
+    return retval;
+}
+
 int CLinkbotTGroup::moveJointTo(int id, double angle) {
     void *fptr;
     int retval;
@@ -2865,19 +2878,6 @@ int CLinkbotTGroup::setLEDColorRGB(int r, int g, int b) {
         return -1;
     }
     dlrunfun(fptr, &retval, setLEDColorRGB, this, r, g, b);
-    return retval;
-}
-
-int CLinkbotTGroup::setJointMovementStateNB(int id, int dir) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_setJointMovementStateNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setJointMovementStateNB, this, id, dir);
     return retval;
 }
 

@@ -519,6 +519,17 @@ int CMobotGroup::moveJointNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
+int CMobotGroup::moveJointForeverNB(robotJointId_t id) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->moveJointForeverNB(id);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobotGroup::moveJointTo(robotJointId_t id, double angle) {
 	moveJointToNB(id, angle);
 	return moveWait();
@@ -663,17 +674,6 @@ int CMobotGroup::resetToZeroNB(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->resetToZeroNB();
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::setJointMovementStateNB(robotJointId_t id, robotJointState_t dir) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setJointMovementStateNB(id, dir);
 		rtmp = rtmp->next;
 	}
 
