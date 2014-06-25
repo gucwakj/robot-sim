@@ -900,6 +900,47 @@ int CLinkbotT::moveTime(double seconds) {
 	return 0;
 }
 
+void* CLinkbotT::moveTimeNBThread(void *arg) {
+	// cast argument
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// sleep
+#ifdef _WIN32
+	Sleep(rArg->msecs);
+#else
+	usleep(rArg->msecs * 1000);
+#endif
+
+	// hold all robot motion
+	CLinkbotT *ptr = dynamic_cast<CLinkbotT *>(rArg->robot);
+	ptr->holdJoints();
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::moveTimeNB(double seconds) {
+	// set up threading
+	THREAD_T moving;
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->msecs = 1000*seconds;
+
+	// set joint movements
+	this->moveJointForeverNB(JOINT1);
+	this->moveJointForeverNB(JOINT2);
+	this->moveJointForeverNB(JOINT3);
+
+	// create thread to wait
+	THREAD_CREATE(&moving, (void* (*)(void *))&CLinkbotT::moveTimeNBThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::moveTo(double angle1, double angle2, double angle3) {
 	this->moveToNB(angle1, angle2, angle3);
 	this->moveWait();
@@ -2277,67 +2318,6 @@ int CLinkbotT::setJointSpeedRatios(double ratio1, double ratio2, double ratio3) 
 
 int CLinkbotT::setMotorPower(robotJointId_t id, int power) {
 	printf("CLinkbot::setMotorPower not implemented.\n");
-
-	// success
-	return 0;
-}
-
-void* CLinkbotT::setMovementStateTimeNBThread(void *arg) {
-	// cast argument
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-
-	// sleep
-#ifdef _WIN32
-	Sleep(rArg->msecs);
-#else
-	usleep(rArg->msecs * 1000);
-#endif
-
-	// hold all robot motion
-	CLinkbotT *ptr = dynamic_cast<CLinkbotT *>(rArg->robot);
-	ptr->holdJoints();
-
-	// cleanup
-	delete rArg;
-
-	// success
-	return NULL;
-}
-
-int CLinkbotT::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds) {
-	// switch direction for linkbot i to get forward movement
-	if (_type == LINKBOTI) {
-		switch (dir3) {
-			case ROBOT_FORWARD:
-				dir3 = ROBOT_BACKWARD;
-				break;
-			case ROBOT_BACKWARD:
-				dir3 = ROBOT_FORWARD;
-				break;
-			case ROBOT_POSITIVE:
-				dir3 = ROBOT_FORWARD;
-				break;
-			case ROBOT_NEGATIVE:
-				dir3 = ROBOT_BACKWARD;
-				break;
-			default:
-				break;
-		}
-	}
-
-	// set up threading
-	THREAD_T moving;
-	recordAngleArg_t *rArg = new recordAngleArg_t;
-	rArg->robot = this;
-	rArg->msecs = 1000*seconds;
-
-	// set joint movements
-	this->moveJointForeverNB(JOINT1);
-	this->moveJointForeverNB(JOINT2);
-	this->moveJointForeverNB(JOINT3);
-
-	// create thread to wait
-	THREAD_CREATE(&moving, (void* (*)(void *))&CLinkbotT::setMovementStateTimeNBThread, (void *)rArg);
 
 	// success
 	return 0;

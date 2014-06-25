@@ -111,6 +111,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
+		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
@@ -180,7 +181,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int setJointSpeeds(double speed1, double speed2, double speed3);
 		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
 		int setMotorPower(robotJointId_t id, int power);
-		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
@@ -276,7 +276,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		static void* recordAnglesThread(void *arg);											// thread to record angles
 		static void* recordAnglesBeginThread(void *arg);									// thread to record angles
 		static void* recordxyBeginThread(void *arg);										// thread to record positions
-		static void* setMovementStateTimeNBThread(void *arg);								// thread to set movement state
+		static void* moveTimeNBThread(void *arg);											// thread to set movement state
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group *root, int tracking);
 		void draw_bigwheel(conn_t conn, osg::Group *robot);
@@ -353,6 +353,7 @@ class DLLIMPORT CLinkbotTGroup {
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
+		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
@@ -379,7 +380,6 @@ class DLLIMPORT CLinkbotTGroup {
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
 		int setMotorPower(robotJointId_t id, int power);
-		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
@@ -494,6 +494,7 @@ class DLLIMPORT CLinkbotI {
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
+		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
@@ -547,7 +548,6 @@ class DLLIMPORT CLinkbotI {
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
 		int setMotorPower(robotJointId_t id, int power);
-		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
@@ -617,6 +617,7 @@ class DLLIMPORT CLinkbotIGroup {
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
+		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
@@ -643,7 +644,6 @@ class DLLIMPORT CLinkbotIGroup {
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
 		int setMotorPower(robotJointId_t id, int power);
-		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
@@ -735,6 +735,7 @@ class DLLIMPORT CLinkbotL {
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
+		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
@@ -782,7 +783,6 @@ class DLLIMPORT CLinkbotL {
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
 		int setMotorPower(robotJointId_t id, int power);
-		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
@@ -848,6 +848,7 @@ class DLLIMPORT CLinkbotLGroup {
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
+		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToDirect(double angle1, double angle2, double angle3);
@@ -874,7 +875,6 @@ class DLLIMPORT CLinkbotLGroup {
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
 		int setMotorPower(robotJointId_t id, int power);
-		int setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, double seconds);
 		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);

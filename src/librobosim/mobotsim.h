@@ -120,6 +120,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
+		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3, double angle4);
 		int moveToNB(double angle1, double angle2, double angle3, double angle4);
 		int moveToDirect(double angle1, double angle2, double angle3, double angle4);
@@ -205,10 +206,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
 		int setMotorPower(robotJointId_t id, int power);
-		int setMovementStateTimeNB(robotJointState_t dir1,
-								   robotJointState_t dir2,
-								   robotJointState_t dir3,
-								   robotJointState_t dir4, double seconds);
 		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
@@ -306,7 +303,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		static void* recordAnglesBeginThread(void *arg);
 		static void* recordxyBeginThread(void *arg);
 		static void* setJointMovementStateTimeNBThread(void *arg);
-		static void* setMovementStateTimeNBThread(void *arg);
+		static void* moveTimeNBThread(void *arg);
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group *root, int tracking);
 		void draw_bigwheel(conn_t conn, osg::Group *robot);
@@ -391,6 +388,7 @@ class CMobotGroup {
 		int moveJointToDirectNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
+		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3, double angle4);
 		int moveToNB(double angle1, double angle2, double angle3, double angle4);
 		int moveToDirect(double angle1, double angle2, double angle3, double angle4);
@@ -411,10 +409,6 @@ class CMobotGroup {
 		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
-		int setMovementStateTimeNB(robotJointState_t dir1,
-								   robotJointState_t dir2,
-								   robotJointState_t dir3,
-								   robotJointState_t dir4, double seconds);
 		int setSpeed(double speed, double radius);
 		int stopOneJoint(robotJointId_t id);
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);

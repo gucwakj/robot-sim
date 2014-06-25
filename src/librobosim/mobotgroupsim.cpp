@@ -598,6 +598,17 @@ int CMobotGroup::moveTime(double seconds) {
 	return 0;
 }
 
+int CMobotGroup::moveTimeNB(double seconds) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->moveTimeNB(seconds);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobotGroup::moveTo(double angle1, double angle2, double angle3, double angle4) {
 	moveToNB(angle1, angle2, angle3, angle4);
 	return moveWait();
@@ -803,17 +814,6 @@ int CMobotGroup::setJointSpeedRatios(double ratio1, double ratio2, double ratio3
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setJointSpeedRatios(ratio1, ratio2, ratio3, ratio4);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::setMovementStateTimeNB(robotJointState_t dir1, robotJointState_t dir2, robotJointState_t dir3, robotJointState_t dir4, double seconds) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setMovementStateTimeNB(dir1, dir2, dir3, dir4, seconds);
 		rtmp = rtmp->next;
 	}
 
