@@ -1090,6 +1090,12 @@ int CMobot::moveJointForeverNB(robotJointId_t id) {
 	dJointEnable(_motor[id]);
 	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
 	_seek[id] = false;
+	if ( _speed[id] > EPSILON )
+		_state[id] = ROBOT_FORWARD;
+	else if ( _speed[id] < EPSILON )
+		_state[id] = ROBOT_BACKWARD;
+	else
+		_state[id] = ROBOT_HOLD;
 	_success[id] = true;
     dBodyEnable(_body[CENTER]);
 
