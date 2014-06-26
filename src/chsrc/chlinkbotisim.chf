@@ -1481,10 +1481,10 @@ int CLinkbotI::recordDistancesBegin(double* &time, double* &d1, double* &d2, dou
     }
     if(va_count(ap) == 1) {
 		shiftData = va_arg(ap, int);
-		dlrunfun(fptr, &retval, NULL, this, &time, &distance1, &distance2, &distance3, radius, seconds, shiftData);
+		dlrunfun(fptr, &retval, NULL, this, &time, &d1, &d2, &d3, radius, seconds, shiftData);
     }
 	else {
-		dlrunfun(fptr, &retval, NULL, this, &time, &distance1, &distance2, &distance3, radius, seconds);
+		dlrunfun(fptr, &retval, NULL, this, &time, &d1, &d2, &d3, radius, seconds);
     }
     va_end(ap);
     return retval;
@@ -1823,7 +1823,7 @@ int CLinkbotI::stopTwoJoints(int id1, int id2) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, stopTwoJoint, this, id1, id2);
+    dlrunfun(fptr, &retval, stopTwoJoints, this, id1, id2);
     return retval;
 }
 

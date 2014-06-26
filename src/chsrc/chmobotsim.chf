@@ -66,7 +66,7 @@ int CMobot::connect(...) {
 		dlrunfun(fptr, &retval, NULL, this, name);
 	}
 	else {
-		dlrunfun(fptr, &retval, NULL, this);
+		dlrunfun(fptr, &retval, NULL, this, NULL);
 	}
 
 	va_end(ap);
@@ -1763,11 +1763,11 @@ int CMobot::traceOff(void) {
     return retval;
 }
 
-int CLinkbotI::traceOn(void) {
+int CMobot::traceOn(void) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_traceOn_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_traceOn_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;

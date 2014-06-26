@@ -14,8 +14,8 @@ class DLLIMPORT CMobot {
 class DLLIMPORT CMobot : virtual public CRobot {
 #endif // _CH_
 	public:
-		CMobot(void);
-		~CMobot(void);
+		CMobot();
+		~CMobot();
 
 		int blinkLED(double delay, int num);
 #ifdef _CH_
@@ -277,8 +277,8 @@ class DLLIMPORT CMobot : virtual public CRobot {
 
 class CMobotGroup {
 	public:
-		CMobotGroup(void);
-		virtual ~CMobotGroup(void);
+		CMobotGroup();
+		virtual ~CMobotGroup();
 
 		int addRobot(CMobot& robot);
 #ifdef _CH_

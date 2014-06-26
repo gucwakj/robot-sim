@@ -1702,7 +1702,7 @@ int CLinkbotL::stopTwoJoints(int id1, int id2) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, stopTwoJoint, this, id1, id2);
+    dlrunfun(fptr, &retval, stopTwoJoints, this, id1, id2);
     return retval;
 }
 

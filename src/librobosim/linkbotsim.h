@@ -15,11 +15,11 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #endif
 	public:
 #ifdef _CH_
-		CLinkbotT(void);
+		CLinkbotT();
 #else
 		CLinkbotT(int disabled = -1, int type = LINKBOTT);
 #endif
-		virtual ~CLinkbotT(void);
+		virtual ~CLinkbotT();
 
 		int blinkLED(double delay, int num);
 #ifdef _CH_
@@ -294,8 +294,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 
 class DLLIMPORT CLinkbotTGroup {
 	public:
-		CLinkbotTGroup(void);
-		virtual ~CLinkbotTGroup(void);
+		CLinkbotTGroup();
+		virtual ~CLinkbotTGroup();
 
 		int blinkLED(double delay, int num);
 		int addRobot(CLinkbotT& robot);
@@ -408,8 +408,8 @@ class DLLIMPORT CLinkbotTGroup {
 #ifdef _CH_
 class DLLIMPORT CLinkbotI {
 	public:
-		CLinkbotI(void);
-		virtual ~CLinkbotI(void);
+		CLinkbotI();
+		virtual ~CLinkbotI();
 
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
@@ -555,8 +555,8 @@ class DLLIMPORT CLinkbotI {
 };
 class DLLIMPORT CLinkbotIGroup {
 	public:
-		CLinkbotIGroup(void);
-		virtual ~CLinkbotIGroup(void);
+		CLinkbotIGroup();
+		virtual ~CLinkbotIGroup();
 
 		int addRobot(CLinkbotI& robot);
 		int addRobots(array CLinkbotI robots[], ...);
@@ -646,8 +646,8 @@ class DLLIMPORT CLinkbotIGroup {
 
 class DLLIMPORT CLinkbotL {
 	public:
-		CLinkbotL(void);
-		virtual ~CLinkbotL(void);
+		CLinkbotL();
+		virtual ~CLinkbotL();
 
 		int blinkLED(double delay, int num);
 		int connect(...);
@@ -783,8 +783,8 @@ class DLLIMPORT CLinkbotL {
 };
 class DLLIMPORT CLinkbotLGroup {
 	public:
-		CLinkbotLGroup(void);
-		virtual ~CLinkbotLGroup(void);
+		CLinkbotLGroup();
+		virtual ~CLinkbotLGroup();
 
 		int addRobot(CLinkbotL& robot);
 		int addRobots(array CLinkbotL robots[], ...);
