@@ -70,15 +70,6 @@ void* CRobot::simPostCollisionThreadEntry(void *arg) {
 	return arg;
 }
 
-// generate uniform random numbers
-double CRobot::uniform(void) {
-	int k = _seed/127773;
-	_seed = 16807 * (_seed - k*127773) - k*2836;
-	if (_seed < 0)
-		_seed = _seed + 2147483647;
-	return ((double)(_seed) * 4.656612875E-10);
-}
-
 // generate gaussian random number
 double CRobot::normal(double sigma) {
 	// compute pair of random uniform data
@@ -87,6 +78,15 @@ double CRobot::normal(double sigma) {
 
 	// box-muller transform to gaussian
 	return sigma*(sqrt(-2.0*log(u1))*cos(2*M_PI*u2));
+}
+
+// generate uniform random numbers
+double CRobot::uniform(void) {
+	int k = _seed/127773;
+	_seed = 16807 * (_seed - k*127773) - k*2836;
+	if (_seed < 0)
+		_seed = _seed + 2147483647;
+	return ((double)(_seed) * 4.656612875E-10);
 }
 
 int CRobot::noisy(double *a, int length, double sigma) {
@@ -117,3 +117,10 @@ int CRobot::noisy(double *a, int length, double sigma) {
 	return 0;
 }
 
+void CRobot::doze(double ms) {
+#ifdef _WIN32
+	Sleep(ms);
+#else
+	usleep(ms*1000);
+#endif
+}

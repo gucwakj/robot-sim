@@ -51,13 +51,8 @@ int CMobot::delay(double milliseconds) {
 	double end = *_clock + milliseconds/1000;
 
 	// while clock hasn't reached ending time
-	while ((end - *_clock) >= EPSILON) {
-#ifdef _WIN32
-		Sleep(50);
-#else
-		usleep(50000);
-#endif
-	}
+	while ((end - *_clock) >= EPSILON)
+		this->doze(50);
 
 	// success
 	return 0;
@@ -650,11 +645,7 @@ int CMobot::motionStand(void) {
 	this->moveJointTo(JOINT3, 70);
 	this->moveWait();
 	this->moveJointTo(JOINT1, 45);
-#ifndef _WIN32
-	usleep(1000000);
-#else
-	Sleep(1000);
-#endif
+	this->doze(1000);
 	this->moveJointTo(JOINT2, 20);
 
 	// success
@@ -698,11 +689,7 @@ int CMobot::motionStandNB(void) {
 
 int CMobot::motionTumbleLeft(int num) {
 	this->resetToZero();
-#ifndef _WIN32
-	usleep(1000000);
-#else
-	Sleep(1000);
-#endif
+	this->doze(1000);
 
 	for (int i = 0; i < num; i++) {
 		this->moveJointTo(JOINT2, -85);
@@ -766,11 +753,7 @@ int CMobot::motionTumbleLeftNB(int num) {
 
 int CMobot::motionTumbleRight(int num) {
 	this->resetToZero();
-#ifndef _WIN32
-	usleep(1000000);
-#else
-	Sleep(1000);
-#endif
+	this->doze(1000);
 
 	for (int i = 0; i < num; i++) {
 		this->moveJointTo(JOINT3, 85);
@@ -1122,11 +1105,7 @@ int CMobot::moveJointTime(robotJointId_t id, double seconds) {
 	this->moveJointForeverNB(id);
 
 	// sleep
-#ifdef _WIN32
-	Sleep(seconds * 1000);
-#else
-	usleep(seconds * 1000000);
-#endif
+	this->doze(seconds * 1000);
 
 	// sleep
 	this->holdJoint(id);
@@ -1139,16 +1118,12 @@ void* CMobot::moveJointTimeNBThread(void *arg) {
 	// cast argument
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
+	// get robot
+	CMobot *robot = dynamic_cast<CMobot *>(rArg->robot);
 	// sleep
-#ifdef _WIN32
-	Sleep(rArg->msecs);
-#else
-	usleep(rArg->msecs * 1000);
-#endif
-
+	robot->doze(rArg->msecs);
 	// hold all robot motion
-	CMobot *ptr = dynamic_cast<CMobot *>(rArg->robot);
-	ptr->holdJoint(rArg->id);
+	robot->holdJoint(rArg->id);
 
 	// cleanup
 	delete rArg;
@@ -1245,11 +1220,7 @@ int CMobot::moveTime(double seconds) {
 	this->moveJointForeverNB(JOINT4);
 
 	// sleep
-#ifdef _WIN32
-	Sleep(seconds * 1000);
-#else
-	usleep(seconds * 1000000);
-#endif
+	this->doze(seconds * 1000);
 
 	// stop motion
 	this->holdJoints();
@@ -1262,16 +1233,12 @@ void* CMobot::moveTimeNBThread(void *arg) {
 	// cast argument
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
+	// get robot
+	CMobot *robot = dynamic_cast<CMobot *>(rArg->robot);
 	// sleep
-#ifdef _WIN32
-	Sleep(rArg->msecs);
-#else
-	usleep(rArg->msecs * 1000);
-#endif
-
+	robot->doze(rArg->msecs);
 	// hold all robot motion
-	CMobot *ptr = dynamic_cast<CMobot *>(rArg->robot);
-	ptr->holdJoints();
+	robot->holdJoints();
 
 	// cleanup
 	delete rArg;
@@ -1546,13 +1513,8 @@ void* CMobot::recordAngleThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
-#ifdef _WIN32
-			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
-#else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
-#endif
-		}
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
 	}
 
 	// shift time to start of movement
@@ -1672,13 +1634,8 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
-#ifdef _WIN32
-			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
-#else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
-#endif
-		}
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
 
 		// wait until movement to start recording
 		if( !moving && rArg->robot->isShiftEnabled() ) {
@@ -1738,11 +1695,7 @@ int CMobot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRe
 
 int CMobot::recordAngleEnd(robotJointId_t id, int &num) {
 	// sleep to capture last data point on ending time
-#ifdef _WIN32
-	Sleep(150);
-#else
-	usleep(150000);
-#endif
+	this->doze(150);
 
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
@@ -1797,13 +1750,8 @@ void* CMobot::recordAnglesThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
-#ifdef _WIN32
-			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
-#else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
-#endif
-		}
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
     }
 
 	// shift time to start of movement
@@ -1946,13 +1894,8 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
-#ifdef _WIN32
-			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
-#else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
-#endif
-		}
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
 	}
 
 	// signal completion of recording
@@ -2175,13 +2118,8 @@ void* CMobot::recordxyBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
-#ifdef _WIN32
-			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
-#else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
-#endif
-		}
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
 	}
 
 	// signal completion of recording
@@ -2240,11 +2178,7 @@ int CMobot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double sec
 
 int CMobot::recordxyEnd(int &num) {
 	// sleep to capture last data point on ending time
-#ifdef _WIN32
-	Sleep(150);
-#else
-	usleep(150000);
-#endif
+	this->doze(150);
 
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);

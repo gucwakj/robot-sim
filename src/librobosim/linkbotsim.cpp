@@ -24,28 +24,17 @@ int CLinkbotT::blinkLED(double delay, int num) {
 	// blink num-1 full times
 	for (int i = 0; i < num-1; i++) {
 		_led->setColor(osg::Vec4(1, 1, 1, 1));
-#ifdef _WIN32
-		Sleep(delay);
-#else
-		usleep(delay*1000);
-#endif
+		this->doze(delay);
 		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
-#ifdef _WIN32
-		Sleep(delay);
-#else
-		usleep(delay*1000);
-#endif
+		this->doze(delay);
 	}
 
 	// one last off before resetting to original color
 	_led->setColor(osg::Vec4(1, 1, 1, 1));
-#ifdef _WIN32
-	Sleep(delay);
-#else
-	usleep(delay*1000);
-#endif
+	this->doze(delay);
 	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
 #endif // ENABLE_GRAPHICS
+
 	// success
 	return 0;
 }
@@ -76,11 +65,7 @@ int CLinkbotT::delay(double milliseconds) {
 
 	// while clock hasn't reached ending time
 	while ((end - *_clock) > EPSILON) {
-#ifdef _WIN32
-		Sleep(5);
-#else
-		usleep(5000);
-#endif
+		this->doze(5);
 	}
 
 	// success
@@ -751,11 +736,7 @@ int CLinkbotT::moveJointTime(robotJointId_t id, double seconds) {
 	this->moveJointForeverNB(id);
 
 	// sleep
-#ifdef _WIN32
-	Sleep(seconds * 1000);
-#else
-	usleep(seconds * 1000000);
-#endif
+	this->doze(seconds*1000);
 
 	// stop joint
 	this->holdJoint(id);
@@ -768,16 +749,12 @@ void* CLinkbotT::moveJointTimeNBThread(void *arg) {
 	// cast argument
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
+	// get robot
+	CLinkbotT *robot = dynamic_cast<CLinkbotT *>(rArg->robot);
 	// sleep
-#ifdef _WIN32
-	Sleep(rArg->msecs);
-#else
-	usleep(rArg->msecs * 1000);
-#endif
-
+	robot->doze(rArg->msecs);
 	// hold all robot motion
-	CLinkbotT *ptr = dynamic_cast<CLinkbotT *>(rArg->robot);
-	ptr->holdJoint(rArg->id);
+	robot->holdJoint(rArg->id);
 
 	// cleanup
 	delete rArg;
@@ -876,11 +853,7 @@ int CLinkbotT::moveTime(double seconds) {
 	this->moveJointForeverNB(JOINT3);
 
 	// sleep
-#ifdef _WIN32
-	Sleep(seconds * 1000);
-#else
-	usleep(seconds * 1000000);
-#endif
+	this->doze(seconds*1000);
 
 	// stop motion
 	this->holdJoints();
@@ -893,16 +866,12 @@ void* CLinkbotT::moveTimeNBThread(void *arg) {
 	// cast argument
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
+	// get robot
+	CLinkbotT *robot = dynamic_cast<CLinkbotT *>(rArg->robot);
 	// sleep
-#ifdef _WIN32
-	Sleep(rArg->msecs);
-#else
-	usleep(rArg->msecs * 1000);
-#endif
-
+	robot->doze(rArg->msecs);
 	// hold all robot motion
-	CLinkbotT *ptr = dynamic_cast<CLinkbotT *>(rArg->robot);
-	ptr->holdJoints();
+	robot->holdJoints();
 
 	// cleanup
 	delete rArg;
@@ -1379,13 +1348,8 @@ void* CLinkbotT::recordAngleThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
-#ifdef _WIN32
-			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
-#else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
-#endif
-		}
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
 	}
 
 	// shift time to start of movement
@@ -1500,13 +1464,8 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
-#ifdef _WIN32
-			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
-#else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
-#endif
-		}
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
 
 		// wait until movement to start recording
 		if( !moving && rArg->robot->isShiftEnabled() ) {
@@ -1563,11 +1522,7 @@ int CLinkbotT::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robo
 
 int CLinkbotT::recordAngleEnd(robotJointId_t id, int &num) {
 	// sleep to capture last data point on ending time
-#ifdef _WIN32
-	Sleep(150);
-#else
-	usleep(150000);
-#endif
+	this->doze(150);
 
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
@@ -1620,13 +1575,8 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
-#ifdef _WIN32
-			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
-#else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
-#endif
-		}
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
     }
 
 	// shift time to start of movement
@@ -1763,13 +1713,8 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
-#ifdef _WIN32
-			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
-#else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
-#endif
-		}
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
 	}
 
 	// signal completion of recording
@@ -1993,13 +1938,8 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time ) {
-#ifdef _WIN32
-			Sleep(time - (int)(*(rArg->robot->_clock)*1000));
-#else
-			usleep((time - (int)(*(rArg->robot->_clock)*1000))*1000);
-#endif
-		}
+		if ( (int)(*(rArg->robot->_clock)*1000) < time )
+			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
 	}
 
 	// signal completion of recording
@@ -2057,11 +1997,7 @@ int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double 
 
 int CLinkbotT::recordxyEnd(int &num) {
 	// sleep to capture last data point on ending time
-#ifdef _WIN32
-	Sleep(150);
-#else
-	usleep(150000);
-#endif
+	this->doze(150);
 
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
@@ -3098,7 +3034,6 @@ int CLinkbotT::add_daisy_chain(int conn, int face, double size, int side, int ty
 	// success
 	return 0;
 }
-
 
 int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double r_f1, double r_f2, double r_f3) {
 	// init body parts

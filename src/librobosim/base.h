@@ -185,9 +185,11 @@ class DLLIMPORT CRobot {
 		static void* simPreCollisionThreadEntry(void *arg);
 		static void* simPostCollisionThreadEntry(void *arg);
 
-		double uniform(void);
+		// public functions
 		double normal(double sigma);
+		double uniform(void);
 		int noisy(double *a, int length, double sigma);
+		void doze(double ms);
 
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int addToSim(dWorldID &world, dSpaceID &space, double *clock) = 0;
