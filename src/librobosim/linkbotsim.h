@@ -67,7 +67,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int getJointSpeedRatio(robotJointId_t id, double &ratio);
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3);
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
-		int getJointState(robotJointId_t id, robotJointState_t &state);
 		int getxy(double &x, double &y);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
@@ -446,7 +445,6 @@ class DLLIMPORT CLinkbotI {
 		int getJointSpeedRatio(robotJointId_t id, double &ratio);
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3);
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
-		int getJointState(robotJointId_t id, robotJointState_t &state);
 		int getxy(double &x, double &y);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
@@ -684,7 +682,6 @@ class DLLIMPORT CLinkbotL {
 		int getJointSpeedRatio(robotJointId_t id, double &ratio);
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3);
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
-		int getJointState(robotJointId_t id, robotJointState_t &state);
 		int getxy(double &x, double &y);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);

@@ -267,13 +267,6 @@ int CMobot::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, 
 	return 0;
 }
 
-int CMobot::getJointState(robotJointId_t id, robotJointState_t &state) {
-	state = (robotJointState_t)(_state[id]);
-
-	// success
-	return 0;
-}
-
 int CMobot::getxy(double &x, double &y) {
 	// retrn x and y positions
 	x = (_simObject->getUnits()) ? 39.37*this->getCenter(0) : 100*this->getCenter(0);
@@ -316,15 +309,13 @@ int CMobot::isConnected(void) {
 }
 
 int CMobot::isMoving(void) {
-	robotJointState_t state;
-
 	for (int i = 0; i < NUM_DOF; i++) {
-		this->getJointState((robotJointId_t)i, state);
-		if (state == ROBOT_FORWARD || state == ROBOT_BACKWARD) {
+		if (_state[i] == ROBOT_POSITIVE || _state[i] == ROBOT_NEGATIVE) {
 			return 1;
 		}
 	}
 
+	// success
 	return 0;
 }
 
@@ -1091,9 +1082,9 @@ int CMobot::moveJointForeverNB(robotJointId_t id) {
 	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
 	_seek[id] = false;
 	if ( _speed[id] > EPSILON )
-		_state[id] = ROBOT_FORWARD;
+		_state[id] = ROBOT_POSITIVE;
 	else if ( _speed[id] < EPSILON )
-		_state[id] = ROBOT_BACKWARD;
+		_state[id] = ROBOT_NEGATIVE;
 	else
 		_state[id] = ROBOT_HOLD;
 	_success[id] = true;
@@ -2760,11 +2751,11 @@ void CMobot::simPreCollisionThread(void) {
 		// drive motor to get current angle to match future angle
 		if (_seek[i]) {
 			if (_angle[i] < _goal[i] - _encoder) {
-				_state[i] = ROBOT_FORWARD;
+				_state[i] = ROBOT_POSITIVE;
 				dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i]));
 			}
 			else if (_angle[i] > _goal[i] + _encoder) {
-				_state[i] = ROBOT_BACKWARD;
+				_state[i] = ROBOT_NEGATIVE;
 				dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i]));
 			}
 			else {
@@ -2774,10 +2765,10 @@ void CMobot::simPreCollisionThread(void) {
 		}
 		else {
 			switch (_state[i]) {
-				case ROBOT_FORWARD:
+				case ROBOT_POSITIVE:
 					dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i]));
 					break;
-				case ROBOT_BACKWARD:
+				case ROBOT_NEGATIVE:
 					dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i]));
 					break;
 				case ROBOT_HOLD:

@@ -472,23 +472,6 @@ EXPORTCH int CMobot_getJointSpeedRatios_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CMobot_getJointState_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobot *robot;
-    int id;
-    int * state;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CMobot *);
-    id = Ch_VaArg(interp, ap, int);
-    state = Ch_VaArg(interp, ap, int *);
-    retval = robot->getJointState((robotJointId_t)id, (robotJointState_t&)(*state));
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CMobot_getxy_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;

@@ -123,19 +123,6 @@ typedef enum robot_joint_id_e {
 	JOINT3,
 	JOINT4
 } robotJointId_t;
-typedef enum robot_joint_state_e {
-	ROBOT_NEUTRAL = 0,
-	ROBOT_FORWARD,
-	ROBOT_BACKWARD,
-	ROBOT_HOLD,
-	ROBOT_POSITIVE,
-#ifndef _CH_
-	ROBOT_NEGATIVE,
-	NaN = 0
-#else
-	ROBOT_NEGATIVE
-#endif
-} robotJointState_t;
 typedef enum robot_connector_e {
 	BIGWHEEL,
 	BRIDGE,
@@ -213,6 +200,13 @@ class DLLIMPORT CRobot {
 		virtual int setID(int id) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;
+
+		typedef enum robot_joint_state_e {
+			ROBOT_NEUTRAL = 0,
+			ROBOT_HOLD,
+			ROBOT_POSITIVE,
+			ROBOT_NEGATIVE,
+		} robotJointState_t;
 
 		// recording angles struct
 		typedef struct recordAngleArg_s {

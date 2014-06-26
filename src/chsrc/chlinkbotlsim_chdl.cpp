@@ -601,23 +601,6 @@ EXPORTCH int CLinkbotL_getJointSpeedRatios_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotL_getJointState_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotL *robot;
-    int id;
-    int * state;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
-    id = Ch_VaArg(interp, ap, int);
-    state = Ch_VaArg(interp, ap, int *);
-    retval = robot->getJointState((robotJointId_t)id, (robotJointState_t&)(*state));
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLinkbotL_getxy_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
