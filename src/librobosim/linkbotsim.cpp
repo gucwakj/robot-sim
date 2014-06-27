@@ -630,18 +630,31 @@ int CLinkbotT::moveBackward(double angle) {
 }
 
 int CLinkbotT::moveBackwardNB(double angle) {
-	return this->moveNB(-angle, 0, angle);
+	this->moveNB(-angle, 0, angle);
+
+	// success
+	return 0;
 }
 
 int CLinkbotT::moveDistance(double distance, double radius) {
-	return this->moveForward(RAD2DEG(distance/radius));
+	this->moveForwardNB(RAD2DEG(distance/radius));
+	this->moveWait();
+
+	// success
+	return 0;
 }
 
 int CLinkbotT::moveDistanceNB(double distance, double radius) {
-	return this->moveForwardNB(RAD2DEG(distance/radius));
+	this->moveForwardNB(RAD2DEG(distance/radius));
+
+	// success
+	return 0;
 }
 
 int CLinkbotT::moveForeverNB(void) {
+	// negate speed to act as a car
+	_speed[JOINT3] = -_speed[JOINT3];
+
 	// set joint movements
 	this->moveJointForeverNB(JOINT1);
 	this->moveJointForeverNB(JOINT2);
@@ -660,7 +673,10 @@ int CLinkbotT::moveForward(double angle) {
 }
 
 int CLinkbotT::moveForwardNB(double angle) {
-	return this->moveNB(angle, 0, -angle);
+	this->moveNB(angle, 0, -angle);
+
+	// success
+	return 0;
 }
 
 int CLinkbotT::moveJoint(robotJointId_t id, double angle) {
@@ -844,6 +860,9 @@ int CLinkbotT::moveJointWait(robotJointId_t id) {
 }
 
 int CLinkbotT::moveTime(double seconds) {
+	// negate speed to act as a car
+	_speed[JOINT3] = -_speed[JOINT3];
+
 	// set joint movements
 	this->moveJointForeverNB(JOINT1);
 	this->moveJointForeverNB(JOINT2);
@@ -2201,7 +2220,7 @@ int CLinkbotT::setSpeed(double speed, double radius) {
 			speed, RAD2DEG(speed/radius));
 	}
 	this->setJointSpeed(JOINT1, RAD2DEG(speed/radius));
-	this->setJointSpeed(JOINT3, -RAD2DEG(speed/radius));
+	this->setJointSpeed(JOINT3, RAD2DEG(speed/radius));
 
 	// success
 	return 0;

@@ -998,7 +998,10 @@ int CMobot::moveBackward(double angle) {
 }
 
 int CMobot::moveBackwardNB(double angle) {
-	return this->moveNB(-angle, 0, 0, -angle);
+	this->moveNB(-angle, 0, 0, -angle);
+
+	// success
+	return 0;
 }
 
 int CMobot::moveDistance(double distance, double radius) {
@@ -1010,7 +1013,10 @@ int CMobot::moveDistance(double distance, double radius) {
 }
 
 int CMobot::moveDistanceNB(double distance, double radius) {
-	return this->moveForwardNB(RAD2DEG(distance/radius));
+	this->moveForwardNB(RAD2DEG(distance/radius));
+
+	// success
+	return 0;
 }
 
 int CMobot::moveForeverNB(void) {
@@ -1032,7 +1038,10 @@ int CMobot::moveForward(double angle) {
 }
 
 int CMobot::moveForwardNB(double angle) {
-	return this->moveNB(angle, 0, 0, angle);
+	this->moveNB(angle, 0, 0, angle);
+
+	// success
+	return 0;
 }
 
 int CMobot::moveJoint(robotJointId_t id, double angle) {
