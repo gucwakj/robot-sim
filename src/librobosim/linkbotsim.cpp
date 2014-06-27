@@ -2201,7 +2201,7 @@ int CLinkbotT::setSpeed(double speed, double radius) {
 			speed, RAD2DEG(speed/radius));
 	}
 	this->setJointSpeed(JOINT1, RAD2DEG(speed/radius));
-	this->setJointSpeed(JOINT3, RAD2DEG(speed/radius));
+	this->setJointSpeed(JOINT3, -RAD2DEG(speed/radius));
 
 	// success
 	return 0;
