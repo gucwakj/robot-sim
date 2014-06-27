@@ -259,8 +259,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		static void* recordAnglesThread(void *arg);
 		static void* recordAnglesBeginThread(void *arg);
 		static void* recordxyBeginThread(void *arg);
-		static void* moveJointTimeNBThread(void *arg);
-		static void* moveTimeNBThread(void *arg);
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group *root, int tracking);
 		void draw_bigwheel(conn_t conn, osg::Group *robot);

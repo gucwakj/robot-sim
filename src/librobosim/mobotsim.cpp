@@ -1107,6 +1107,14 @@ int CMobot::moveJointForeverNB(robotJointId_t id) {
 }
 
 int CMobot::moveJointTime(robotJointId_t id, double seconds) {
+	this->moveJointTimeNB(id, seconds);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CMobot::moveJointTimeNB(robotJointId_t id, double seconds) {
 	// move joint
 	this->moveJointForeverNB(id);
 
@@ -1115,42 +1123,6 @@ int CMobot::moveJointTime(robotJointId_t id, double seconds) {
 
 	// sleep
 	this->holdJoint(id);
-
-	// success
-	return 0;
-}
-
-void* CMobot::moveJointTimeNBThread(void *arg) {
-	// cast argument
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-
-	// get robot
-	CMobot *robot = dynamic_cast<CMobot *>(rArg->robot);
-	// sleep
-	robot->doze(rArg->msecs);
-	// hold all robot motion
-	robot->holdJoint(rArg->id);
-
-	// cleanup
-	delete rArg;
-
-	// success
-	return NULL;
-}
-
-int CMobot::moveJointTimeNB(robotJointId_t id, double seconds) {
-	// set up threading
-	THREAD_T moving;
-	recordAngleArg_t *rArg = new recordAngleArg_t;
-	rArg->robot = this;
-	rArg->id = id;
-	rArg->msecs = 1000*seconds;
-
-	// set joint movements
-	this->moveJointForeverNB(id);
-
-	// create thread to wait
-	THREAD_CREATE(&moving, (void* (*)(void *))&CMobot::moveJointTimeNBThread, (void *)rArg);
 
 	// success
 	return 0;
@@ -1219,6 +1191,14 @@ int CMobot::moveJointWait(robotJointId_t id) {
 }
 
 int CMobot::moveTime(double seconds) {
+	this->moveTimeNB(seconds);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::moveTimeNB(double seconds) {
 	// set joint movements
 	this->moveJointForeverNB(JOINT1);
 	this->moveJointForeverNB(JOINT2);
@@ -1230,44 +1210,6 @@ int CMobot::moveTime(double seconds) {
 
 	// stop motion
 	this->holdJoints();
-
-	// success
-	return 0;
-}
-
-void* CMobot::moveTimeNBThread(void *arg) {
-	// cast argument
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-
-	// get robot
-	CMobot *robot = dynamic_cast<CMobot *>(rArg->robot);
-	// sleep
-	robot->doze(rArg->msecs);
-	// hold all robot motion
-	robot->holdJoints();
-
-	// cleanup
-	delete rArg;
-
-	// success
-	return NULL;
-}
-
-int CMobot::moveTimeNB(double seconds) {
-	// set up threading
-	THREAD_T moving;
-	recordAngleArg_t *rArg = new recordAngleArg_t;
-	rArg->robot = this;
-	rArg->msecs = 1000*seconds;
-
-	// set joint movements
-	this->moveJointForeverNB(JOINT1);
-	this->moveJointForeverNB(JOINT2);
-	this->moveJointForeverNB(JOINT3);
-	this->moveJointForeverNB(JOINT4);
-
-	// create thread to wait
-	THREAD_CREATE(&moving, (void* (*)(void *))&CMobot::moveTimeNBThread, (void *)rArg);
 
 	// success
 	return 0;

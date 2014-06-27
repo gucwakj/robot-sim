@@ -272,8 +272,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		static void* recordAnglesThread(void *arg);											// thread to record angles
 		static void* recordAnglesBeginThread(void *arg);									// thread to record angles
 		static void* recordxyBeginThread(void *arg);										// thread to record positions
-		static void* moveJointTimeNBThread(void *arg);										// thread to set movement state
-		static void* moveTimeNBThread(void *arg);											// thread to set movement state
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group *root, int tracking);
 		void draw_bigwheel(conn_t conn, osg::Group *robot);
