@@ -77,17 +77,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #ifdef ENABLE_GRAPHICS
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 #endif // ENABLE_GRAPHICS
-		int motionDistance(double distance, double radius);
-		int motionDistanceNB(double distance, double radius);
-		int motionRollBackward(double angle);
-		int motionRollBackwardNB(double angle);
-		int motionRollForward(double angle);
-		int motionRollForwardNB(double angle);
-		int motionTurnLeft(double angle);
-		int motionTurnLeftNB(double angle);
-		int motionTurnRight(double angle);
-		int motionTurnRightNB(double angle);
-		int motionWait(void);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -258,11 +247,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int init_params(int disabled, int type);											// initialize robot parameters
 		int init_dims(void);																// initialize robot dimensions
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);					// modify angle to count continuously
-		static void* motionDistanceThread(void *arg);										// thread to run motion distance
-		static void* motionRollBackwardThread(void *arg);									// thread to run motion roll backward
-		static void* motionRollForwardThread(void *arg);									// thread to run motion roll forward
-		static void* motionTurnLeftThread(void *arg);										// thread to run motion turn left
-		static void* motionTurnRightThread(void *arg);										// thread to run motion turn right
 		static void* movexyThread(void *arg);												// thread to run movexy
 		static void* movexyToThread(void *arg);												// thread to run movexy
 		static void* movexyToFuncThread(void *arg);											// thread to run movexyFunc
@@ -315,17 +299,6 @@ class DLLIMPORT CLinkbotTGroup {
 		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int motionDistance(double distance, double radius);
-		int motionDistanceNB(double distance, double radius);
-		int motionRollBackward(double angle);
-		int motionRollBackwardNB(double angle);
-		int motionRollForward(double angle);
-		int motionRollForwardNB(double angle);
-		int motionTurnLeft(double angle);
-		int motionTurnLeftNB(double angle);
-		int motionTurnRight(double angle);
-		int motionTurnRightNB(double angle);
-		int motionWait(void);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -390,15 +363,8 @@ class DLLIMPORT CLinkbotTGroup {
 		} *robots_t;
 		double _d;
 		int _i;
-		int _motion;
 		robots_t _robots;
 		THREAD_T *_thread;
-
-		static void* motionDistanceThread(void*);
-		static void* motionRollBackwardThread(void*);
-		static void* motionRollForwardThread(void*);
-		static void* motionTurnLeftThread(void*);
-		static void* motionTurnRightThread(void*);
 #endif // not _CH_
 };
 
@@ -451,17 +417,6 @@ class DLLIMPORT CLinkbotI {
 		int isMoving(void);
 		int isNotMoving(void);
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
-		int motionDistance(double distance, double radius);
-		int motionDistanceNB(double distance, double radius);
-		int motionRollBackward(double angle);
-		int motionRollBackwardNB(double angle);
-		int motionRollForward(double angle);
-		int motionRollForwardNB(double angle);
-		int motionTurnLeft(double angle);
-		int motionTurnLeftNB(double angle);
-		int motionTurnRight(double angle);
-		int motionTurnRightNB(double angle);
-		int motionWait(void);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -571,17 +526,6 @@ class DLLIMPORT CLinkbotIGroup {
 		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int motionDistance(double distance, double radius);
-		int motionDistanceNB(double distance, double radius);
-		int motionRollBackward(double angle);
-		int motionRollBackwardNB(double angle);
-		int motionRollForward(double angle);
-		int motionRollForwardNB(double angle);
-		int motionTurnLeft(double angle);
-		int motionTurnLeftNB(double angle);
-		int motionTurnRight(double angle);
-		int motionTurnRightNB(double angle);
-		int motionWait(void);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -688,17 +632,6 @@ class DLLIMPORT CLinkbotL {
 		int isMoving(void);
 		int isNotMoving(void);
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
-		int motionDistance(double distance, double radius);
-		int motionDistanceNB(double distance, double radius);
-		int motionRollBackward(double angle);
-		int motionRollBackwardNB(double angle);
-		int motionRollForward(double angle);
-		int motionRollForwardNB(double angle);
-		int motionTurnLeft(double angle);
-		int motionTurnLeftNB(double angle);
-		int motionTurnRight(double angle);
-		int motionTurnRightNB(double angle);
-		int motionWait(void);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -798,17 +731,6 @@ class DLLIMPORT CLinkbotLGroup {
 		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int motionDistance(double distance, double radius);
-		int motionDistanceNB(double distance, double radius);
-		int motionRollBackward(double angle);
-		int motionRollBackwardNB(double angle);
-		int motionRollForward(double angle);
-		int motionRollForwardNB(double angle);
-		int motionTurnLeft(double angle);
-		int motionTurnLeftNB(double angle);
-		int motionTurnRight(double angle);
-		int motionTurnRightNB(double angle);
-		int motionWait(void);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);

@@ -2,7 +2,6 @@
 #include "linkbotsim.h"
 
 CLinkbotTGroup::CLinkbotTGroup(void) {
-	_motion = 0;
 	_thread = (THREAD_T *)malloc(sizeof(THREAD_T));
 	_robots = NULL;
 }
@@ -183,109 +182,6 @@ int CLinkbotTGroup::isMoving(void) {
 
 int CLinkbotTGroup::isNotMoving(void) {
 	return !(this->isMoving());
-}
-
-int CLinkbotTGroup::motionDistance(double distance, double radius) {
-	_d = distance / radius;
-	_motion++;
-	this->motionDistanceThread(this);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::motionDistanceNB(double distance, double radius) {
-	_d = distance / radius;
-	_motion++;
-	THREAD_CREATE(_thread, motionDistanceThread, (void *)this);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::motionRollBackward(double angle) {
-	_d = angle;
-	_motion++;
-	this->motionRollBackwardThread(this);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::motionRollBackwardNB(double angle) {
-	_d = angle;
-	_motion++;
-	THREAD_CREATE(_thread, motionRollBackwardThread, (void *)this);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::motionRollForward(double angle) {
-	_d = angle;
-	_motion++;
-	this->motionRollForwardThread(this);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::motionRollForwardNB(double angle) {
-	_d = angle;
-	_motion++;
-	THREAD_CREATE(_thread, motionRollForwardThread, (void *)this);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::motionTurnLeft(double angle) {
-	_d = angle;
-	_motion++;
-	this->motionTurnLeftThread(this);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::motionTurnLeftNB(double angle) {
-	_d = angle;
-	_motion++;
-	THREAD_CREATE(_thread, motionTurnLeftThread, (void *)this);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::motionTurnRight(double angle) {
-	_d = angle;
-	_motion++;
-	this->motionTurnRightThread(this);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::motionTurnRightNB(double angle) {
-	_d = angle;
-	_motion++;
-	THREAD_CREATE(_thread, motionTurnRightThread, (void *)this);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::motionWait(void) {
-	while (_motion > 0) {
-#ifdef _WIN32
-		Sleep(200);
-#else
-		usleep(200000);
-#endif
-	}
-
-	// success
-	return 0;
 }
 
 int CLinkbotTGroup::move(double angle1, double angle2, double angle3) {
@@ -840,71 +736,6 @@ int CLinkbotTGroup::turnRightNB(double angle, double radius, double trackwidth) 
 
 	// success
 	return 0;
-}
-
-void* CLinkbotTGroup::motionDistanceThread(void* arg) {
-	CLinkbotTGroup *clg = (CLinkbotTGroup *)arg;
-
-	// move
-	clg->move(RAD2DEG(clg->_d), 0, RAD2DEG(clg->_d));
-
-	// motion is complete
-	clg->_motion--;
-
-	// success
-	return NULL;
-}
-
-void* CLinkbotTGroup::motionRollBackwardThread(void* arg) {
-	CLinkbotTGroup *clg = (CLinkbotTGroup *)arg;
-
-	// move
-	clg->move(-clg->_d, 0, -clg->_d);
-
-	// motion is complete
-	clg->_motion--;
-
-	// success
-	return NULL;
-}
-
-void* CLinkbotTGroup::motionRollForwardThread(void* arg) {
-	CLinkbotTGroup *clg = (CLinkbotTGroup *)arg;
-
-	// move
-	clg->move(clg->_d, 0, clg->_d);
-
-	// motion is complete
-	clg->_motion--;
-
-	// success
-	return NULL;
-}
-
-void* CLinkbotTGroup::motionTurnLeftThread(void* arg) {
-	CLinkbotTGroup *clg = (CLinkbotTGroup *)arg;
-
-	// move
-	clg->move(-clg->_d, 0, clg->_d);
-
-	// motion is complete
-	clg->_motion--;
-
-	// success
-	return NULL;
-}
-
-void* CLinkbotTGroup::motionTurnRightThread(void* arg) {
-	CLinkbotTGroup *clg = (CLinkbotTGroup *)arg;
-
-	// move
-	clg->move(clg->_d, 0, -clg->_d);
-
-	// motion is complete
-	clg->_motion--;
-
-	// success
-	return NULL;
 }
 
 #ifdef _CH_
