@@ -290,6 +290,22 @@ int CLinkbotL::getBatteryVoltage(double &voltage) {
     return retval;
 }
 
+int CLinkbotL::getColor(string_t &color) {
+	DEPRECATED("getColor", "getLEDColor");
+	getLEDColor(color);
+
+	// success
+	return 0;
+}
+
+int CLinkbotL::getColorRGB(int &r, int &g, int &b) {
+	DEPRECATED("getColorRGB", "getLEDColorRGB");
+	getLEDColorRGB(r, g, b);
+
+	// success
+	return 0;
+}
+
 int CLinkbotL::getLEDColor(string_t &color) {
 	int retval;
 	char color1[25];
@@ -1381,6 +1397,30 @@ int CLinkbotL::setBuzzerFrequencyOn(int frequency) {
     return retval;
 }
 
+int CLinkbotL::setColor(char *color) {
+	DEPRECATED("setColor", "setLEDColor");
+	setLEDColor(color);
+
+	// success
+	return 0;
+}
+
+int CLinkbotL::setColorRGB(int r, int g, int b) {
+	DEPRECATED("setColorRGB", "setLEDColorRGB");
+	setLEDColorRGB(r, g, b);
+
+	// success
+	return 0;
+}
+
+int CLinkbotL::setExitState(int exitState) {
+	DEPRECATED("setExitState", "holdJointsAtExit");
+	holdJointsAtExit();
+
+	// success
+	return 0;
+}
+
 int CLinkbotL::setLEDColor(char *color) {
     void *fptr;
     int retval;
@@ -1405,6 +1445,92 @@ int CLinkbotL::setLEDColorRGB(int r, int g, int b) {
     }
     dlrunfun(fptr, &retval, setLEDColorRGB, this, r, g, b);
     return retval;
+}
+
+int CLinkbotL::setJointMovementStateNB(int id, int dir) {
+	DEPRECATED("setJointMovementStateNB", "moveJointForeverNB");
+
+	double speed;
+	// move correctly
+	switch (dir) {
+		case ROBOT_HOLD:
+			holdJoint(id);
+			break;
+		case ROBOT_NEUTRAL:
+			relaxJoint(id);
+			break;
+		case ROBOT_FORWARD:
+			this->getJointSpeed(id, speed);
+			this->setJointSpeed(id, abs(speed));
+			moveJointForeverNB(id);
+			break;
+		case ROBOT_BACKWARD:
+			this->getJointSpeed(id, speed);
+			this->setJointSpeed(id, -abs(speed));
+			moveJointForeverNB(id);
+			break;
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotL::setJointMovementStateTime(int id, int dir, double seconds) {
+	DEPRECATED("setJointMovementStateTime", "moveJointTime");
+
+	double speed;
+	// move correctly
+	switch (dir) {
+		case ROBOT_HOLD:
+			holdJoint(id);
+			delay(seconds);
+			break;
+		case ROBOT_NEUTRAL:
+			relaxJoint(id);
+			delay(seconds);
+			break;
+		case ROBOT_FORWARD:
+			this->getJointSpeed(id, speed);
+			this->setJointSpeed(id, abs(speed));
+			moveJointTime(id, seconds);
+			break;
+		case ROBOT_BACKWARD:
+			this->getJointSpeed(id, speed);
+			this->setJointSpeed(id, -abs(speed));
+			moveJointTime(id, seconds);
+			break;
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotL::setJointMovementStateTimeNB(int id, int dir, double seconds) {
+	DEPRECATED("setJointMovementStateTimeNB", "moveJointTimeNB");
+
+	double speed;
+	// move correctly
+	switch (dir) {
+		case ROBOT_HOLD:
+			holdJoint(id);
+			break;
+		case ROBOT_NEUTRAL:
+			relaxJoint(id);
+			break;
+		case ROBOT_FORWARD:
+			this->getJointSpeed(id, speed);
+			this->setJointSpeed(id, abs(speed));
+			moveJointTimeNB(id, seconds);
+			break;
+		case ROBOT_BACKWARD:
+			this->getJointSpeed(id, speed);
+			this->setJointSpeed(id, -abs(speed));
+			moveJointTimeNB(id, seconds);
+			break;
+	}
+
+	// success
+	return 0;
 }
 
 int CLinkbotL::setJointSafetyAngle(double angle) {
@@ -1498,6 +1624,39 @@ int CLinkbotL::setMotorPower(int id, int power) {
     return retval;
 }
 
+int CLinkbotL::setMovementStateNB(int dir1, int dir2, int dir3) {
+	DEPRECATED("setMovementStateNB", "moveForeverNB");
+
+	setJointMovementStateNB(0, dir1);
+	setJointMovementStateNB(1, dir2);
+	setJointMovementStateNB(2, dir3);
+
+	// success
+	return 0;
+}
+
+int CLinkbotL::setMovementStateTime(int dir1, int dir2, int dir3, double seconds) {
+	DEPRECATED("setMovementStateTime", "moveTime");
+
+	setJointMovementStateTimeNB(0, dir1, seconds);
+	setJointMovementStateTimeNB(1, dir2, seconds);
+	setJointMovementStateTime(2, dir3, seconds);
+
+	// success
+	return 0;
+}
+
+int CLinkbotL::setMovementStateTimeNB(int dir1, int dir2, int dir3, double seconds) {
+	DEPRECATED("setMovementStateTimeNB", "moveTimeNB");
+
+	setJointMovementStateTimeNB(0, dir1, seconds);
+	setJointMovementStateTimeNB(1, dir2, seconds);
+	setJointMovementStateTimeNB(2, dir3, seconds);
+
+	// success
+	return 0;
+}
+
 int CLinkbotL::setSpeed(double speed, double radius) {
     void *fptr;
     int retval;
@@ -1522,6 +1681,14 @@ int CLinkbotL::stop(void) {
     }
     dlrunfun(fptr, &retval, stop, this);
     return retval;
+}
+
+int CLinkbotL::stopAllJoints(void) {
+	DEPRECATED("stopAllJoints", "relaxJoints");
+	relaxJoints();
+
+	// success
+	return 0;
 }
 
 int CLinkbotL::stopOneJoint(int id) {
@@ -2344,6 +2511,14 @@ int CLinkbotLGroup::setBuzzerFrequencyOn(int frequency) {
     return retval;
 }
 
+int CLinkbotLGroup::setExitState(int exitState) {
+	DEPRECATED("setExitState", "holdJointsAtExit");
+	holdJointsAtExit();
+
+	// success
+	return 0;
+}
+
 int CLinkbotLGroup::setLEDColor(char *color) {
     void *fptr;
     int retval;
@@ -2368,6 +2543,92 @@ int CLinkbotLGroup::setLEDColorRGB(int r, int g, int b) {
     }
     dlrunfun(fptr, &retval, setLEDColorRGB, this, r, g, b);
     return retval;
+}
+
+int CLinkbotLGroup::setJointMovementStateNB(int id, int dir) {
+	DEPRECATED("setJointMovementStateNB", "moveJointForeverNB");
+
+	double speed;
+	// move correctly
+	switch (dir) {
+		case ROBOT_HOLD:
+			holdJoint(id);
+			break;
+		case ROBOT_NEUTRAL:
+			relaxJoint(id);
+			break;
+		case ROBOT_FORWARD:
+			this->getJointSpeed(id, speed);
+			this->setJointSpeed(id, abs(speed));
+			moveJointForeverNB(id);
+			break;
+		case ROBOT_BACKWARD:
+			this->getJointSpeed(id, speed);
+			this->setJointSpeed(id, -abs(speed));
+			moveJointForeverNB(id);
+			break;
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotLGroup::setJointMovementStateTime(int id, int dir, double seconds) {
+	DEPRECATED("setJointMovementStateTime", "moveJointTime");
+
+	double speed;
+	// move correctly
+	switch (dir) {
+		case ROBOT_HOLD:
+			holdJoint(id);
+			delay(seconds);
+			break;
+		case ROBOT_NEUTRAL:
+			relaxJoint(id);
+			delay(seconds);
+			break;
+		case ROBOT_FORWARD:
+			this->getJointSpeed(id, speed);
+			this->setJointSpeed(id, abs(speed));
+			moveJointTime(id, seconds);
+			break;
+		case ROBOT_BACKWARD:
+			this->getJointSpeed(id, speed);
+			this->setJointSpeed(id, -abs(speed));
+			moveJointTime(id, seconds);
+			break;
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotLGroup::setJointMovementStateTimeNB(int id, int dir, double seconds) {
+	DEPRECATED("setJointMovementStateTimeNB", "moveJointTimeNB");
+
+	double speed;
+	// move correctly
+	switch (dir) {
+		case ROBOT_HOLD:
+			holdJoint(id);
+			break;
+		case ROBOT_NEUTRAL:
+			relaxJoint(id);
+			break;
+		case ROBOT_FORWARD:
+			this->getJointSpeed(id, speed);
+			this->setJointSpeed(id, abs(speed));
+			moveJointTimeNB(id, seconds);
+			break;
+		case ROBOT_BACKWARD:
+			this->getJointSpeed(id, speed);
+			this->setJointSpeed(id, -abs(speed));
+			moveJointTimeNB(id, seconds);
+			break;
+	}
+
+	// success
+	return 0;
 }
 
 int CLinkbotLGroup::setJointSafetyAngle(double angle) {
@@ -2461,6 +2722,39 @@ int CLinkbotLGroup::setMotorPower(int id, int power) {
     return retval;
 }
 
+int CLinkbotLGroup::setMovementStateNB(int dir1, int dir2, int dir3) {
+	DEPRECATED("setMovementStateNB", "moveForeverNB");
+
+	setJointMovementStateNB(0, dir1);
+	setJointMovementStateNB(1, dir2);
+	setJointMovementStateNB(2, dir3);
+
+	// success
+	return 0;
+}
+
+int CLinkbotLGroup::setMovementStateTime(int dir1, int dir2, int dir3, double seconds) {
+	DEPRECATED("setMovementStateTime", "moveTime");
+
+	setJointMovementStateTimeNB(0, dir1, seconds);
+	setJointMovementStateTimeNB(1, dir2, seconds);
+	setJointMovementStateTime(2, dir3, seconds);
+
+	// success
+	return 0;
+}
+
+int CLinkbotLGroup::setMovementStateTimeNB(int dir1, int dir2, int dir3, double seconds) {
+	DEPRECATED("setMovementStateTimeNB", "moveTimeNB");
+
+	setJointMovementStateTimeNB(0, dir1, seconds);
+	setJointMovementStateTimeNB(1, dir2, seconds);
+	setJointMovementStateTimeNB(2, dir3, seconds);
+
+	// success
+	return 0;
+}
+
 int CLinkbotLGroup::setSpeed(double speed, double radius) {
     void *fptr;
     int retval;
@@ -2485,6 +2779,14 @@ int CLinkbotLGroup::stop(void) {
     }
     dlrunfun(fptr, &retval, stop, this);
     return retval;
+}
+
+int CLinkbotLGroup::stopAllJoints(void) {
+	DEPRECATED("stopAllJoints", "relaxJoints");
+	relaxJoints();
+
+	// success
+	return 0;
 }
 
 int CLinkbotLGroup::stopOneJoint(int id) {

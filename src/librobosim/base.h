@@ -34,6 +34,15 @@
 #pragma package <chrobosim>
 #define dDOUBLE
 #define ENABLE_GRAPHICS
+#define ROBOT_NEUTRAL 0
+#define ROBOT_HOLD 1
+#define ROBOT_POSITIVE 2
+#define ROBOT_NEGATIVE 3
+#define ROBOT_FORWARD 2
+#define ROBOT_BACKWARD 3
+#define ROBOT_JOINT1 0
+#define ROBOT_JOINT2 1
+#define ROBOT_JOINT3 2
 #endif // no _CH_
 
 #define EPSILON DBL_EPSILON
@@ -42,6 +51,7 @@
 #define RAD2DEG(x) ((x) * 180.0 / M_PI)
 #define angle2distance(radius, angle) ((radius) * (angle * 0.01745329251994329547))
 #define distance2angle(radius, distance) (((distance)/(radius))*57.29577951308232286465)
+#define DEPRECATED(from, to) fprintf(_stderr, "Warning: The function \"%s()\" is deprecated. Please use \"%s()\"\n" , from, to)
 
 #ifdef _WIN32
 //   THREADS

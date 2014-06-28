@@ -543,14 +543,6 @@ int CLinkbotT::moveJointForeverNB(robotJointId_t id) {
 }
 
 int CLinkbotT::moveJointTime(robotJointId_t id, double seconds) {
-	this->moveJointTimeNB(id, seconds);
-	this->moveJointWait(id);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveJointTimeNB(robotJointId_t id, double seconds) {
 	// move joint
 	this->moveJointForeverNB(id);
 
@@ -559,6 +551,42 @@ int CLinkbotT::moveJointTimeNB(robotJointId_t id, double seconds) {
 
 	// stop joint
 	this->holdJoint(id);
+
+	// success
+	return 0;
+}
+
+void* CLinkbotT::moveJointTimeNBThread(void *arg) {
+	// cast argument
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// get robot
+	CLinkbotT *robot = dynamic_cast<CLinkbotT *>(rArg->robot);
+	// sleep
+	robot->doze(rArg->msecs);
+	// hold all robot motion
+	robot->holdJoint(rArg->id);
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::moveJointTimeNB(robotJointId_t id, double seconds) {
+	// set up threading
+	THREAD_T moving;
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->msecs = 1000*seconds;
+	rArg->id = id;
+
+	// set joint movements
+	this->moveJointForeverNB(id);
+
+	// create thread to wait
+	THREAD_CREATE(&moving, (void* (*)(void *))&CLinkbotT::moveJointTimeNBThread, (void *)rArg);
 
 	// success
 	return 0;
@@ -630,27 +658,49 @@ int CLinkbotT::moveJointWait(robotJointId_t id) {
 }
 
 int CLinkbotT::moveTime(double seconds) {
-	this->moveTimeNB(seconds);
-	this->moveWait();
+	// move joint
+	this->moveForeverNB();
+
+	// sleep
+	this->doze(seconds*1000);
+
+	// stop joint
+	this->holdJoints();
 
 	// success
 	return 0;
 }
 
+void* CLinkbotT::moveTimeNBThread(void *arg) {
+	// cast argument
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// get robot
+	CLinkbotT *robot = dynamic_cast<CLinkbotT *>(rArg->robot);
+	// sleep
+	robot->doze(rArg->msecs);
+	// hold all robot motion
+	robot->holdJoints();
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
 int CLinkbotT::moveTimeNB(double seconds) {
-	// negate speed to act as a car
-	_speed[JOINT3] = -_speed[JOINT3];
+	// set up threading
+	THREAD_T moving;
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->msecs = 1000*seconds;
 
 	// set joint movements
-	this->moveJointForeverNB(JOINT1);
-	this->moveJointForeverNB(JOINT2);
-	this->moveJointForeverNB(JOINT3);
+	this->moveForeverNB();
 
-	// sleep
-	this->doze(seconds*1000);
-
-	// stop motion
-	this->holdJoints();
+	// create thread to wait
+	THREAD_CREATE(&moving, (void* (*)(void *))&CLinkbotT::moveTimeNBThread, (void *)rArg);
 
 	// success
 	return 0;
