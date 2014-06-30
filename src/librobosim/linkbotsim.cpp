@@ -3021,7 +3021,7 @@ int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta
 
 	// set mass of body
 	dMassSetBox(&m, 1000, _body_width, _body_length, _body_height);
-	dMassTranslate(&m, 0, -_body_length/2, -_body_height/2);
+	dMassTranslate(&m, 0, -_body_length/2, 0);
 	dMassSetCylinder(&m2, 400, 1, _body_radius, _body_width);
 	dMassAdd(&m, &m2);
 
@@ -3223,8 +3223,8 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
 	p[2] += R[8]*offset[0];
 
 	// set mass of body
-	dMassSetBox(&m, 270, _connector_depth, 1.5*_face_radius, _body_height);
-	dMassTranslate(&m, 2*_connector_depth, 0, -_body_height/2);
+	dMassSetBox(&m, 1000, 2*_connector_depth, 1.5*_face_radius, _body_height);
+	dMassTranslate(&m, 8*_connector_depth, 0, -_body_height/2);
 
 	// adjsut x,y,z to position center of mass correctly
 	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3911,7 +3911,7 @@ int CLinkbotT::init_dims(void) {
 	_connector_depth = 0.00380;
 	_connector_height = 0.03715;
 	_bigwheel_radius = 0.05080;
-	_bridge_length = 0.14025;
+	_bridge_length = 0.13750;
 	_cubic_length = 0.07115;
 	_omni_length = 0.17360;
 	_radius = _body_height/2;
