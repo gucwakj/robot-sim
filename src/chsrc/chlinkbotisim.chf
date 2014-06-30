@@ -1581,13 +1581,13 @@ int CLinkbotI::setJointMovementStateNB(int id, int dir) {
 			relaxJoint(id);
 			break;
 		case ROBOT_FORWARD:
-			this->getJointSpeed(id, speed);
-			this->setJointSpeed(id, abs(speed));
+			getJointSpeed(id, speed);
+			setJointSpeed(id, abs(speed));
 			moveJointForeverNB(id);
 			break;
 		case ROBOT_BACKWARD:
-			this->getJointSpeed(id, speed);
-			this->setJointSpeed(id, -abs(speed));
+			getJointSpeed(id, speed);
+			setJointSpeed(id, -abs(speed));
 			moveJointForeverNB(id);
 			break;
 	}
@@ -1611,13 +1611,13 @@ int CLinkbotI::setJointMovementStateTime(int id, int dir, double seconds) {
 			delay(seconds);
 			break;
 		case ROBOT_FORWARD:
-			this->getJointSpeed(id, speed);
-			this->setJointSpeed(id, abs(speed));
+			getJointSpeed(id, speed);
+			setJointSpeed(id, abs(speed));
 			moveJointTime(id, seconds);
 			break;
 		case ROBOT_BACKWARD:
-			this->getJointSpeed(id, speed);
-			this->setJointSpeed(id, -abs(speed));
+			getJointSpeed(id, speed);
+			setJointSpeed(id, -abs(speed));
 			moveJointTime(id, seconds);
 			break;
 	}
@@ -1639,13 +1639,13 @@ int CLinkbotI::setJointMovementStateTimeNB(int id, int dir, double seconds) {
 			relaxJoint(id);
 			break;
 		case ROBOT_FORWARD:
-			this->getJointSpeed(id, speed);
-			this->setJointSpeed(id, abs(speed));
+			getJointSpeed(id, speed);
+			setJointSpeed(id, abs(speed));
 			moveJointTimeNB(id, seconds);
 			break;
 		case ROBOT_BACKWARD:
-			this->getJointSpeed(id, speed);
-			this->setJointSpeed(id, -abs(speed));
+			getJointSpeed(id, speed);
+			setJointSpeed(id, -abs(speed));
 			moveJointTimeNB(id, seconds);
 			break;
 	}
@@ -2772,13 +2772,9 @@ int CLinkbotIGroup::setJointMovementStateNB(int id, int dir) {
 			relaxJoint(id);
 			break;
 		case ROBOT_FORWARD:
-			this->getJointSpeed(id, speed);
-			this->setJointSpeed(id, abs(speed));
 			moveJointForeverNB(id);
 			break;
 		case ROBOT_BACKWARD:
-			this->getJointSpeed(id, speed);
-			this->setJointSpeed(id, -abs(speed));
 			moveJointForeverNB(id);
 			break;
 	}
@@ -2802,13 +2798,9 @@ int CLinkbotIGroup::setJointMovementStateTime(int id, int dir, double seconds) {
 			delay(seconds);
 			break;
 		case ROBOT_FORWARD:
-			this->getJointSpeed(id, speed);
-			this->setJointSpeed(id, abs(speed));
 			moveJointTime(id, seconds);
 			break;
 		case ROBOT_BACKWARD:
-			this->getJointSpeed(id, speed);
-			this->setJointSpeed(id, -abs(speed));
 			moveJointTime(id, seconds);
 			break;
 	}
@@ -2830,13 +2822,9 @@ int CLinkbotIGroup::setJointMovementStateTimeNB(int id, int dir, double seconds)
 			relaxJoint(id);
 			break;
 		case ROBOT_FORWARD:
-			this->getJointSpeed(id, speed);
-			this->setJointSpeed(id, abs(speed));
 			moveJointTimeNB(id, seconds);
 			break;
 		case ROBOT_BACKWARD:
-			this->getJointSpeed(id, speed);
-			this->setJointSpeed(id, -abs(speed));
 			moveJointTimeNB(id, seconds);
 			break;
 	}
