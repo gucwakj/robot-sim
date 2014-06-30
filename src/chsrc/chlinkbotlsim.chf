@@ -65,7 +65,7 @@ int CLinkbotL::closeGripper(void) {
 
 	retval = retval || moveNB(8, NaN, 8);
 	delaySeconds(1);
-	retval = retval || moveForeverNB();
+	retval = retval || holdJoints();
 
 	return retval;
 }
