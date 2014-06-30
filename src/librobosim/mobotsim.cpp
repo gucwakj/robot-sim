@@ -310,7 +310,7 @@ int CMobot::isConnected(void) {
 
 int CMobot::isMoving(void) {
 	for (int i = 0; i < NUM_DOF; i++) {
-		if (_state[i] == ROBOT_POSITIVE || _state[i] == ROBOT_NEGATIVE) {
+		if (_state[i] == POSITIVE || _state[i] == NEGATIVE) {
 			return 1;
 		}
 	}
@@ -1091,11 +1091,11 @@ int CMobot::moveJointForeverNB(robotJointId_t id) {
 	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
 	_seek[id] = false;
 	if ( _speed[id] > EPSILON )
-		_state[id] = ROBOT_POSITIVE;
+		_state[id] = POSITIVE;
 	else if ( _speed[id] < EPSILON )
-		_state[id] = ROBOT_NEGATIVE;
+		_state[id] = NEGATIVE;
 	else
-		_state[id] = ROBOT_HOLD;
+		_state[id] = HOLD;
 	_success[id] = true;
     dBodyEnable(_body[CENTER]);
 
@@ -2702,30 +2702,30 @@ void CMobot::simPreCollisionThread(void) {
 		// drive motor to get current angle to match future angle
 		if (_seek[i]) {
 			if (_angle[i] < _goal[i] - _encoder) {
-				_state[i] = ROBOT_POSITIVE;
+				_state[i] = POSITIVE;
 				dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i]));
 			}
 			else if (_angle[i] > _goal[i] + _encoder) {
-				_state[i] = ROBOT_NEGATIVE;
+				_state[i] = NEGATIVE;
 				dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i]));
 			}
 			else {
-				_state[i] = ROBOT_HOLD;
+				_state[i] = HOLD;
 				dJointSetAMotorParam(_motor[i], dParamVel, 0);
 			}
 		}
 		else {
 			switch (_state[i]) {
-				case ROBOT_POSITIVE:
+				case POSITIVE:
 					dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i]));
 					break;
-				case ROBOT_NEGATIVE:
+				case NEGATIVE:
 					dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i]));
 					break;
-				case ROBOT_HOLD:
+				case HOLD:
 					dJointSetAMotorParam(_motor[i], dParamVel, 0);
 					break;
-				case ROBOT_NEUTRAL:
+				case NEUTRAL:
 					dJointDisable(_motor[i]);
 					break;
 			}
@@ -4120,7 +4120,7 @@ int CMobot::init_params(void) {
 		_recording[i] = false;
 		_seek[i] = false;
 		_speed[i] = 0.7854;			// 45 deg/sec
-		_state[i] = ROBOT_NEUTRAL;
+		_state[i] = NEUTRAL;
 		_success[i] = true;
 	}
 	_conn = NULL;

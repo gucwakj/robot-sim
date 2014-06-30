@@ -360,7 +360,7 @@ int CLinkbotT::isConnected(void) {
 
 int CLinkbotT::isMoving(void) {
 	for (int i = 0; i < NUM_DOF; i++) {
-		if (_state[i] == ROBOT_POSITIVE || _state[i] == ROBOT_NEGATIVE) {
+		if (_state[i] == POSITIVE || _state[i] == NEGATIVE) {
 			return 1;
 		}
 	}
@@ -527,11 +527,11 @@ int CLinkbotT::moveJointForeverNB(robotJointId_t id) {
 	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
 	_seek[id] = false;
 	if ( _speed[id] > EPSILON )
-		_state[id] = ROBOT_POSITIVE;
+		_state[id] = POSITIVE;
 	else if ( _speed[id] < EPSILON )
-		_state[id] = ROBOT_NEGATIVE;
+		_state[id] = NEGATIVE;
 	else
-		_state[id] = ROBOT_HOLD;
+		_state[id] = HOLD;
 	_success[id] = true;
     dBodyEnable(_body[BODY]);
 
@@ -2425,7 +2425,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 		// drive motor to get current angle to match future angle
 		if (_seek[i]) {
 			if ((_goal[i] - 6*_encoder - _angle[i]) > EPSILON) {
-				_state[i] = ROBOT_POSITIVE;
+				_state[i] = POSITIVE;
 				if (_starting[i]++ < 25)
 					dJointSetAMotorParam(_motor[i], dParamVel, _starting[i]*fabs(_speed[i])/50);
 				else if (_starting[i]++ < 50)
@@ -2436,15 +2436,15 @@ void CLinkbotT::simPreCollisionThread(void) {
 					dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i]));
 			}
 			else if ((_goal[i] - 3*_encoder - _angle[i]) > EPSILON) {
-				_state[i] = ROBOT_POSITIVE;
+				_state[i] = POSITIVE;
 				dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i])/2);
 			}
 			else if ((_goal[i] - _encoder - _angle[i]) > EPSILON) {
-				_state[i] = ROBOT_POSITIVE;
+				_state[i] = POSITIVE;
 				dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i])/4);
 			}
 			else if ((_angle[i] - _goal[i] - 6*_encoder) > EPSILON) {
-				_state[i] = ROBOT_NEGATIVE;
+				_state[i] = NEGATIVE;
 				if (_starting[i]++ < 25)
 					dJointSetAMotorParam(_motor[i], dParamVel, -_starting[i]*fabs(_speed[i])/50);
 				else if (_starting[i]++ < 50)
@@ -2455,31 +2455,31 @@ void CLinkbotT::simPreCollisionThread(void) {
 					dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i]));
 			}
 			else if ((_angle[i] - _goal[i] - 3*_encoder) > EPSILON) {
-				_state[i] = ROBOT_NEGATIVE;
+				_state[i] = NEGATIVE;
 				dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i])/2);
 			}
 			else if ((_angle[i] - _goal[i] - _encoder) > EPSILON) {
-				_state[i] = ROBOT_NEGATIVE;
+				_state[i] = NEGATIVE;
 				dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i])/4);
 			}
 			else {
-				_state[i] = ROBOT_HOLD;
+				_state[i] = HOLD;
 				_starting[i] = 0;
 				dJointSetAMotorParam(_motor[i], dParamVel, 0);
 			}
 		}
 		else {
 			switch (_state[i]) {
-				case ROBOT_POSITIVE:
+				case POSITIVE:
 					dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i]));
 					break;
-				case ROBOT_NEGATIVE:
+				case NEGATIVE:
 					dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i]));
 					break;
-				case ROBOT_HOLD:
+				case HOLD:
 					dJointSetAMotorParam(_motor[i], dParamVel, 0);
 					break;
-				case ROBOT_NEUTRAL:
+				case NEUTRAL:
 					dJointDisable(_motor[i]);
 					break;
 			}
@@ -3876,7 +3876,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_speed[i] = 0.7854;			// 45 deg/sec
 		_starting[i] = 0;
 		_stopping[i] = 0;
-		_state[i] = ROBOT_NEUTRAL;
+		_state[i] = NEUTRAL;
 		_success[i] = true;
 	}
 	_conn = NULL;

@@ -212,10 +212,10 @@ class DLLIMPORT CRobot {
 		virtual void simPostCollisionThread(void) = 0;
 
 		typedef enum robot_joint_state_e {
-			ROBOT_NEUTRAL = 0,
-			ROBOT_HOLD,
-			ROBOT_POSITIVE,
-			ROBOT_NEGATIVE,
+			NEUTRAL = 0,
+			HOLD,
+			POSITIVE,
+			NEGATIVE,
 		} robotJointState_t;
 
 		// recording angles struct
