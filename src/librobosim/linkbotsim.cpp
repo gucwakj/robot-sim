@@ -3911,7 +3911,7 @@ int CLinkbotT::init_dims(void) {
 	_connector_depth = 0.00380;
 	_connector_height = 0.03715;
 	_bigwheel_radius = 0.05080;
-	_bridge_length = 0.13750;
+	_bridge_length = 0.14025;
 	_cubic_length = 0.07115;
 	_omni_length = 0.17360;
 	_radius = _body_height/2;
