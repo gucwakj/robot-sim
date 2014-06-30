@@ -1344,7 +1344,7 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
 		rot->SetAttribute("psi", 90);
 		rot->SetAttribute("theta", 180);
-		rot->SetAttribute("phi", -90);
+		rot->SetAttribute("phi", 180);
 		robot1->InsertAfterChild(pos, rot);
 		// insert robot1
 		sim->InsertFirstChild(robot1);
@@ -1355,11 +1355,9 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		sim->InsertAfterChild(robot1, robot2);
 		robot3 = g_doc.NewElement("linkboti");
 		robot3->SetAttribute("id", 2);
-		robot3->SetAttribute("orientation", 3);
 		sim->InsertAfterChild(robot2, robot3);
 		robot4 = g_doc.NewElement("linkboti");
 		robot4->SetAttribute("id", 3);
-		robot4->SetAttribute("orientation", 3);
 		sim->InsertAfterChild(robot3, robot4);
 
 		// insert omnidrive plate
@@ -1417,7 +1415,7 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s3side1 = g_doc.NewElement("side");
 		s3side1->SetAttribute("id", 1);
 		s3side1->SetAttribute("robot", 2);
-		s3side1->SetAttribute("face", 1);
+		s3side1->SetAttribute("face", 3);
 		simple3->InsertFirstChild(s3side1);
 		tinyxml2::XMLElement *s3side2 = g_doc.NewElement("side");
 		s3side2->SetAttribute("id", 2);
@@ -1430,7 +1428,7 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s4side1 = g_doc.NewElement("side");
 		s4side1->SetAttribute("id", 1);
 		s4side1->SetAttribute("robot", 3);
-		s4side1->SetAttribute("face", 1);
+		s4side1->SetAttribute("face", 3);
 		simple4->InsertFirstChild(s4side1);
 		tinyxml2::XMLElement *s4side2 = g_doc.NewElement("side");
 		s4side2->SetAttribute("id", 2);
