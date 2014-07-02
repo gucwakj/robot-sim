@@ -865,3 +865,4 @@ class DLLIMPORT CLinkbotLGroup : public CLinkbotTGroup {};
 extern RoboSim *_simObject;
 #endif // _CH_
 #endif // LINKBOT_H_
+
