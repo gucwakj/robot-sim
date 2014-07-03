@@ -138,71 +138,6 @@ int CLinkbotL::disconnect(void) {
     return retval;
 }
 
-int CLinkbotL::drivexy(double x, double y, double radius, double trackwidth) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_drivexy_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, drivexy, this, x, y, radius, trackwidth);
-    return retval;
-}
-
-int CLinkbotL::drivexyNB(double x, double y, double radius, double trackwidth) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_drivexyNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, drivexyNB, this, x, y, radius, trackwidth);
-    return retval;
-}
-
-int CLinkbotL::drivexyTo(double x, double y, double radius, double trackwidth) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_drivexyTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, drivexyTo, this, x, y, radius, trackwidth);
-    return retval;
-}
-
-int CLinkbotL::drivexyToNB(double x, double y, double radius, double trackwidth) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_drivexyToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, drivexyToNB, this, x, y, radius, trackwidth);
-    return retval;
-}
-
-int CLinkbotL::drivexyWait(void) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_drivexyWait_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, drivexyWait, this);
-    return retval;
-}
-
 int CLinkbotL::enableRecordDataShift(void) {
 	void *fptr;
 	int retval;
@@ -949,46 +884,6 @@ int CLinkbotL::moveWait(void) {
     }
     dlrunfun(fptr, &retval, moveWait, this);
     return retval;
-}
-
-int CLinkbotL::movexy(double x, double y, double radius, double trackwidth) {
-	DEPRECATED("movexy", "drivexy");
-	drivexy(x, y, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotL::movexyNB(double x, double y, double radius, double trackwidth) {
-	DEPRECATED("movexyNB", "drivexyNB");
-	drivexyNB(x, y, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotL::movexyTo(double x, double y, double radius, double trackwidth) {
-	DEPRECATED("movexyTo", "drivexyTo");
-	drivexyTo(x, y, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotL::movexyToNB(double x, double y, double radius, double trackwidth) {
-	DEPRECATED("movexyToNB", "drivexyToNB");
-	drivexyToNB(x, y, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotL::movexyWait(void) {
-	DEPRECATED("movexyWait", "drivexyWait");
-	drivexyWait();
-
-	// success
-	return 0;
 }
 
 int CLinkbotL::openGripper(double angle) {

@@ -252,6 +252,36 @@ EXPORTCH int CLinkbotI_driveForwardNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotI_driveTime_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->driveTime(seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotI_driveTimeNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->driveTimeNB(seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotI_drivexy_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2365,6 +2395,36 @@ EXPORTCH int CLIG_driveForwardNB_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
     angle = Ch_VaArg(interp, ap, double);
     retval = robot->driveForwardNB(angle);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLIG_driveTime_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotIGroup *robot;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
+    seconds = Ch_VaArg(interp, ap, double );
+    retval = robot->driveTime(seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLIG_driveTimeNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotIGroup *robot;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
+    seconds = Ch_VaArg(interp, ap, double );
+    retval = robot->driveTimeNB(seconds);
     Ch_VaEnd(interp, ap);
     return retval;
 }
