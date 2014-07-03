@@ -21,6 +21,13 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #endif
 		virtual ~CLinkbotT();
 
+		int accelJointAngleNB(robotJointId_t id, double a, double angle);
+		int accelJointCycloidNB(robotJointId_t id, double angle, double t);
+		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
+		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
+		int accelJointTimeNB(robotJointId_t id, double a, double t);
+		int accelJointToMaxSpeedNB(robotJointId_t id, double a);
+		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
 #ifdef _CH_
@@ -32,6 +39,13 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
+		int driveAccelCycloidNB(double radius, double d, double t);
+		int driveAccelDistanceNB(double radius, double a, double d);
+		int driveAccelHarmonicNB(double radius, double d, double t);
+		int driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d);
+		int driveAccelTimeNB(double radius, double a, double t);
+		int driveAccelToMaxSpeedNB(double radius, double a);
+		int driveAccelToVelocityNB(double radius, double a, double v);
 		int driveBackward(double angle);
 		int driveBackwardNB(double angle);
 		int driveDistance(double distance, double radius);
@@ -278,15 +292,29 @@ class DLLIMPORT CLinkbotTGroup {
 		CLinkbotTGroup();
 		virtual ~CLinkbotTGroup();
 
-		int blinkLED(double delay, int num);
+		int accelJointAngleNB(robotJointId_t id, double a, double angle);
+		int accelJointCycloidNB(robotJointId_t id, double angle, double t);
+		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
+		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
+		int accelJointTimeNB(robotJointId_t id, double a, double t);
+		int accelJointToMaxSpeedNB(robotJointId_t id, double a);
+		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
 		int addRobot(CLinkbotT& robot);
 #ifdef _CH_
 		int addRobots(array CLinkbotT robots[], ...);
 #else
 		int addRobots(CLinkbotT robots[], int num);
 #endif
+		int blinkLED(double delay, int num);
 		int closeGripper(void);
 		int connect(void);
+		int driveAccelCycloidNB(double radius, double d, double t);
+		int driveAccelDistanceNB(double radius, double a, double d);
+		int driveAccelHarmonicNB(double radius, double d, double t);
+		int driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d);
+		int driveAccelTimeNB(double radius, double a, double t);
+		int driveAccelToMaxSpeedNB(double radius, double a);
+		int driveAccelToVelocityNB(double radius, double a, double v);
 		int driveBackward(double angle);
 		int driveBackwardNB(double angle);
 		int driveDistance(double distance, double radius);
@@ -372,6 +400,13 @@ class DLLIMPORT CLinkbotI {
 		CLinkbotI();
 		virtual ~CLinkbotI();
 
+		int accelJointAngleNB(robotJointId_t id, double a, double angle);
+		int accelJointCycloidNB(robotJointId_t id, double angle, double t);
+		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
+		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
+		int accelJointTimeNB(robotJointId_t id, double a, double t);
+		int accelJointToMaxSpeedNB(robotJointId_t id, double a);
+		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
 		int connect(...);
@@ -379,6 +414,13 @@ class DLLIMPORT CLinkbotI {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
+		int driveAccelCycloidNB(double radius, double d, double t);
+		int driveAccelDistanceNB(double radius, double a, double d);
+		int driveAccelHarmonicNB(double radius, double d, double t);
+		int driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d);
+		int driveAccelTimeNB(double radius, double a, double t);
+		int driveAccelToMaxSpeedNB(double radius, double a);
+		int driveAccelToVelocityNB(double radius, double a, double v);
 		int driveBackward(double angle);
 		int driveBackwardNB(double angle);
 		int driveDistance(double distance, double radius);
@@ -524,11 +566,25 @@ class DLLIMPORT CLinkbotIGroup {
 		CLinkbotIGroup();
 		virtual ~CLinkbotIGroup();
 
+		int accelJointAngleNB(robotJointId_t id, double a, double angle);
+		int accelJointCycloidNB(robotJointId_t id, double angle, double t);
+		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
+		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
+		int accelJointTimeNB(robotJointId_t id, double a, double t);
+		int accelJointToMaxSpeedNB(robotJointId_t id, double a);
+		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
 		int addRobot(CLinkbotI& robot);
 		int addRobots(array CLinkbotI robots[], ...);
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
 		int connect(void);
+		int driveAccelCycloidNB(double radius, double d, double t);
+		int driveAccelDistanceNB(double radius, double a, double d);
+		int driveAccelHarmonicNB(double radius, double d, double t);
+		int driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d);
+		int driveAccelTimeNB(double radius, double a, double t);
+		int driveAccelToMaxSpeedNB(double radius, double a);
+		int driveAccelToVelocityNB(double radius, double a, double v);
 		int driveBackward(double angle);
 		int driveBackwardNB(double angle);
 		int driveDistance(double distance, double radius);
@@ -619,6 +675,13 @@ class DLLIMPORT CLinkbotL {
 		CLinkbotL();
 		virtual ~CLinkbotL();
 
+		int accelJointAngleNB(robotJointId_t id, double a, double angle);
+		int accelJointCycloidNB(robotJointId_t id, double angle, double t);
+		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
+		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
+		int accelJointTimeNB(robotJointId_t id, double a, double t);
+		int accelJointToMaxSpeedNB(robotJointId_t id, double a);
+		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
 		int connect(...);
@@ -626,11 +689,6 @@ class DLLIMPORT CLinkbotL {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
-		int drivexy(double x, double y, double radius, double trackwidth);
-		int drivexyNB(double x, double y, double radius, double trackwidth);
-		int drivexyTo(double x, double y, double radius, double trackwidth);
-		int drivexyToNB(double x, double y, double radius, double trackwidth);
-		int drivexyWait(void);
 		int enableRecordDataShift(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
@@ -749,6 +807,13 @@ class DLLIMPORT CLinkbotLGroup {
 		CLinkbotLGroup();
 		virtual ~CLinkbotLGroup();
 
+		int accelJointAngleNB(robotJointId_t id, double a, double angle);
+		int accelJointCycloidNB(robotJointId_t id, double angle, double t);
+		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
+		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
+		int accelJointTimeNB(robotJointId_t id, double a, double t);
+		int accelJointToMaxSpeedNB(robotJointId_t id, double a);
+		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
 		int addRobot(CLinkbotL& robot);
 		int addRobots(array CLinkbotL robots[], ...);
 		int blinkLED(double delay, int num);

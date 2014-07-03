@@ -19,6 +19,41 @@ CLinkbotT::~CLinkbotT(void) {
 	}
 }
 
+int CLinkbotT::accelJointAngleNB(robotJointId_t id, double a, double angle) {
+	// success
+	return 0;
+}
+
+int CLinkbotT::accelJointCycloidNB(robotJointId_t id, double angle, double t) {
+	// success
+	return 0;
+}
+
+int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double t) {
+	// success
+	return 0;
+}
+
+int CLinkbotT::accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle) {
+	// success
+	return 0;
+}
+
+int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
+	// success
+	return 0;
+}
+
+int CLinkbotT::accelJointToMaxSpeedNB(robotJointId_t id, double a) {
+	// success
+	return 0;
+}
+
+int CLinkbotT::accelJointToVelocityNB(robotJointId_t id, double a, double v) {
+	// success
+	return 0;
+}
+
 int CLinkbotT::blinkLED(double delay, int num) {
 #ifdef ENABLE_GRAPHICS
 	// blink num-1 full times
@@ -109,6 +144,41 @@ int CLinkbotT::disconnect(void) {
 	// and we are not connected
 	_connected = 0;
 
+	// success
+	return 0;
+}
+
+int CLinkbotT::driveAccelCycloidNB(double radius, double d, double t) {
+	// success
+	return 0;
+}
+
+int CLinkbotT::driveAccelDistanceNB(double radius, double a, double d) {
+	// success
+	return 0;
+}
+
+int CLinkbotT::driveAccelHarmonicNB(double radius, double d, double t) {
+	// success
+	return 0;
+}
+
+int CLinkbotT::driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d) {
+	// success
+	return 0;
+}
+
+int CLinkbotT::driveAccelTimeNB(double radius, double a, double t) {
+	// success
+	return 0;
+}
+
+int CLinkbotT::driveAccelToMaxSpeedNB(double radius, double a) {
+	// success
+	return 0;
+}
+
+int CLinkbotT::driveAccelToVelocityNB(double radius, double a, double v) {
 	// success
 	return 0;
 }
