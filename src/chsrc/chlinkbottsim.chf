@@ -138,58 +138,6 @@ int CLinkbotT::disconnect(void) {
     return retval;
 }
 
-int CLinkbotT::driveJointTo(robotJointId_t id, double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_driveJointTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveJointTo, this, id, angle);
-    return retval;
-}
-
-int CLinkbotT::driveJointToNB(robotJointId_t id, double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_driveJointToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveJointToNB, this, id, angle);
-    return retval;
-}
-
-int CLinkbotT::driveTo(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_driveTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveTo, this, angle1, angle2, angle3);
-    return retval;
-}
-
-int CLinkbotT::driveToNB(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_driveToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveToNB, this, angle1, angle2, angle3);
-    return retval;
-}
-
 int CLinkbotT::enableRecordDataShift(void) {
 	void *fptr;
 	int retval;
@@ -552,6 +500,58 @@ int CLinkbotT::isNotMoving(void) {
         return -1;
     }
     dlrunfun(fptr, &retval, isNotMoving, this);
+    return retval;
+}
+
+int CLinkbotT::jumpJointTo(robotJointId_t id, double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_jumpJointTo_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, jumpJointTo, this, id, angle);
+    return retval;
+}
+
+int CLinkbotT::jumpJointToNB(robotJointId_t id, double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_jumpJointToNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, jumpJointToNB, this, id, angle);
+    return retval;
+}
+
+int CLinkbotT::jumpTo(double angle1, double angle2, double angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_jumpTo_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, jumpTo, this, angle1, angle2, angle3);
+    return retval;
+}
+
+int CLinkbotT::jumpToNB(double angle1, double angle2, double angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_jumpToNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, jumpToNB, this, angle1, angle2, angle3);
     return retval;
 }
 
@@ -1850,58 +1850,6 @@ int CLinkbotTGroup::connect(void) {
     return retval;
 }
 
-int CLinkbotTGroup::driveJointTo(int id, double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_driveJointTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveJointTo, this, id, angle);
-    return retval;
-}
-
-int CLinkbotTGroup::driveJointToNB(int id, double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_driveJointToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveJointToNB, this, id, angle);
-    return retval;
-}
-
-int CLinkbotTGroup::driveTo(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_driveTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveTo, this, angle1, angle2, angle3);
-    return retval;
-}
-
-int CLinkbotTGroup::driveToNB(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_driveToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveToNB, this, angle1, angle2, angle3);
-    return retval;
-}
-
 int CLinkbotTGroup::holdJoint(robotJointId_t id) {
     void *fptr;
     int retval;
@@ -1964,6 +1912,58 @@ int CLinkbotTGroup::isNotMoving(void) {
         return -1;
     }
     dlrunfun(fptr, &retval, isNotMoving, this);
+    return retval;
+}
+
+int CLinkbotTGroup::jumpJointTo(int id, double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLTG_jumpJointTo_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, jumpJointTo, this, id, angle);
+    return retval;
+}
+
+int CLinkbotTGroup::jumpJointToNB(int id, double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLTG_jumpJointToNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, jumpJointToNB, this, id, angle);
+    return retval;
+}
+
+int CLinkbotTGroup::jumpTo(double angle1, double angle2, double angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLTG_jumpTo_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, jumpTo, this, angle1, angle2, angle3);
+    return retval;
+}
+
+int CLinkbotTGroup::jumpToNB(double angle1, double angle2, double angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLTG_jumpToNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, jumpToNB, this, angle1, angle2, angle3);
     return retval;
 }
 

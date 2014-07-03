@@ -32,10 +32,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
-		int driveJointTo(robotJointId_t id, double angle);
-		int driveJointToNB(robotJointId_t id, double angle);
-		int driveTo(double angle1, double angle2, double angle3);
-		int driveToNB(double angle1, double angle2, double angle3);
 		int enableRecordDataShift(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
@@ -70,6 +66,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
+		int jumpJointTo(robotJointId_t id, double angle);
+		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpTo(double angle1, double angle2, double angle3);
+		int jumpToNB(double angle1, double angle2, double angle3);
 #ifdef ENABLE_GRAPHICS
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 #endif // ENABLE_GRAPHICS
@@ -283,15 +283,15 @@ class DLLIMPORT CLinkbotTGroup {
 #endif
 		int closeGripper(void);
 		int connect(void);
-		int driveJointTo(robotJointId_t id, double angle);
-		int driveJointToNB(robotJointId_t id, double angle);
-		int driveTo(double angle1, double angle2, double angle3);
-		int driveToNB(double angle1, double angle2, double angle3);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
+		int jumpJointTo(robotJointId_t id, double angle);
+		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpTo(double angle1, double angle2, double angle3);
+		int jumpToNB(double angle1, double angle2, double angle3);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -376,10 +376,6 @@ class DLLIMPORT CLinkbotI {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
-		int driveJointTo(robotJointId_t id, double angle);
-		int driveJointToNB(robotJointId_t id, double angle);
-		int driveTo(double angle1, double angle2, double angle3);
-		int driveToNB(double angle1, double angle2, double angle3);
 		int enableRecordDataShift(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
@@ -410,6 +406,10 @@ class DLLIMPORT CLinkbotI {
 		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
+		int jumpJointTo(robotJointId_t id, double angle);
+		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpTo(double angle1, double angle2, double angle3);
+		int jumpToNB(double angle1, double angle2, double angle3);
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
@@ -519,15 +519,15 @@ class DLLIMPORT CLinkbotIGroup {
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
 		int connect(void);
-		int driveJointTo(robotJointId_t id, double angle);
-		int driveJointToNB(robotJointId_t id, double angle);
-		int driveTo(double angle1, double angle2, double angle3);
-		int driveToNB(double angle1, double angle2, double angle3);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
+		int jumpJointTo(robotJointId_t id, double angle);
+		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpTo(double angle1, double angle2, double angle3);
+		int jumpToNB(double angle1, double angle2, double angle3);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);
@@ -611,10 +611,6 @@ class DLLIMPORT CLinkbotL {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
-		int driveJointTo(robotJointId_t id, double angle);
-		int driveJointToNB(robotJointId_t id, double angle);
-		int driveTo(double angle1, double angle2, double angle3);
-		int driveToNB(double angle1, double angle2, double angle3);
 		int enableRecordDataShift(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
@@ -645,6 +641,10 @@ class DLLIMPORT CLinkbotL {
 		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
+		int jumpJointTo(robotJointId_t id, double angle);
+		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpTo(double angle1, double angle2, double angle3);
+		int jumpToNB(double angle1, double angle2, double angle3);
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
@@ -743,15 +743,15 @@ class DLLIMPORT CLinkbotLGroup {
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
 		int connect(void);
-		int driveJointTo(robotJointId_t id, double angle);
-		int driveJointToNB(robotJointId_t id, double angle);
-		int driveTo(double angle1, double angle2, double angle3);
-		int driveToNB(double angle1, double angle2, double angle3);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
+		int jumpJointTo(robotJointId_t id, double angle);
+		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpTo(double angle1, double angle2, double angle3);
+		int jumpToNB(double angle1, double angle2, double angle3);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);

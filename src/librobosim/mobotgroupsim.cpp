@@ -70,15 +70,15 @@ int CMobotGroup::connect(void) {
 	return 0;
 }
 
-int CMobotGroup::driveJointTo(robotJointId_t id, double angle) {
-	driveJointToDirectNB(id, angle);
+int CMobotGroup::jumpJointTo(robotJointId_t id, double angle) {
+	jumpJointToNB(id, angle);
 	return moveWait();
 }
 
-int CMobotGroup::driveJointToNB(robotJointId_t id, double angle) {
+int CMobotGroup::jumpJointToNB(robotJointId_t id, double angle) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->driveJointToNB(id, angle);
+		rtmp->robot->jumpJointToNB(id, angle);
 		rtmp = rtmp->next;
 	}
 
@@ -86,47 +86,15 @@ int CMobotGroup::driveJointToNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CMobotGroup::driveJointToDirect(robotJointId_t id, double angle) {
-	driveJointToDirectNB(id, angle);
+int CMobotGroup::jumpTo(double angle1, double angle2, double angle3, double angle4) {
+	jumpToNB(angle1, angle2, angle3, angle4);
 	return moveWait();
 }
 
-int CMobotGroup::driveJointToDirectNB(robotJointId_t id, double angle) {
+int CMobotGroup::jumpToNB(double angle1, double angle2, double angle3, double angle4) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->driveJointToDirectNB(id, angle);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::driveTo(double angle1, double angle2, double angle3, double angle4) {
-	driveToDirectNB(angle1, angle2, angle3, angle4);
-	return moveWait();
-}
-
-int CMobotGroup::driveToNB(double angle1, double angle2, double angle3, double angle4) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->driveToNB(angle1, angle2, angle3, angle4);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::driveToDirect(double angle1, double angle2, double angle3, double angle4) {
-	driveToDirectNB(angle1, angle2, angle3, angle4);
-	return moveWait();
-}
-
-int CMobotGroup::driveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->driveToDirectNB(angle1, angle2, angle3, angle4);
+		rtmp->robot->jumpToNB(angle1, angle2, angle3, angle4);
 		rtmp = rtmp->next;
 	}
 

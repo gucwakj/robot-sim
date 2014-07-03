@@ -82,66 +82,6 @@ int CMobot::disconnect(void) {
 	return 0;
 }
 
-int CMobot::driveJointTo(robotJointId_t id, double angle) {
-	this->driveJointToNB(id, angle);
-	this->moveJointWait(id);
-
-	// success
-	return 0;
-}
-
-int CMobot::driveJointToNB(robotJointId_t id, double angle) {
-	this->moveJointToNB(id, angle);
-
-	// success
-	return 0;
-}
-
-int CMobot::driveJointToDirect(robotJointId_t id, double angle) {
-	this->driveJointToDirectNB(id, angle);
-	this->moveJointWait(id);
-
-	// success
-	return 0;
-}
-
-int CMobot::driveJointToDirectNB(robotJointId_t id, double angle) {
-	this->moveJointToNB(id, angle);
-
-	// success
-	return 0;
-}
-
-int CMobot::driveTo(double angle1, double angle2, double angle3, double angle4) {
-	this->driveToNB(angle1, angle2, angle3, angle4);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CMobot::driveToNB(double angle1, double angle2, double angle3, double angle4) {
-	this->moveToNB(angle1, angle2, angle3, angle4);
-
-	// success
-	return 0;
-}
-
-int CMobot::driveToDirect(double angle1, double angle2, double angle3, double angle4) {
-	this->driveToDirectNB(angle1, angle2, angle3, angle4);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CMobot::driveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
-	this->moveToDirectNB(angle1, angle2, angle3, angle4);
-
-	// success
-	return 0;
-}
-
 int CMobot::enableRecordDataShift(void) {
 	_g_shift_data = 1;
 	_g_shift_data_en = 1;
@@ -321,6 +261,36 @@ int CMobot::isMoving(void) {
 
 int CMobot::isNotMoving(void) {
 	return !(this->isMoving());
+}
+
+int CMobot::jumpJointTo(robotJointId_t id, double angle) {
+	this->jumpJointToNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CMobot::jumpJointToNB(robotJointId_t id, double angle) {
+	this->moveJointToNB(id, angle);
+
+	// success
+	return 0;
+}
+
+int CMobot::jumpTo(double angle1, double angle2, double angle3, double angle4) {
+	this->jumpToNB(angle1, angle2, angle3, angle4);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::jumpToNB(double angle1, double angle2, double angle3, double angle4) {
+	this->moveToNB(angle1, angle2, angle3, angle4);
+
+	// success
+	return 0;
 }
 
 #ifdef ENABLE_GRAPHICS

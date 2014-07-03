@@ -113,36 +113,6 @@ int CLinkbotT::disconnect(void) {
 	return 0;
 }
 
-int CLinkbotT::driveJointTo(robotJointId_t id, double angle) {
-	this->driveJointToNB(id, angle);
-	this->moveJointWait(id);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::driveJointToNB(robotJointId_t id, double angle) {
-	this->moveJointToNB(id, angle);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::driveTo(double angle1, double angle2, double angle3) {
-	this->driveToNB(angle1, angle2, angle3);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::driveToNB(double angle1, double angle2, double angle3) {
-	this->moveToNB(angle1, angle2, angle3);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::enableRecordDataShift(void) {
 	_g_shift_data = 1;
 	_g_shift_data_en = 1;
@@ -358,6 +328,36 @@ int CLinkbotT::isMoving(void) {
 
 int CLinkbotT::isNotMoving(void) {
 	return !(this->isMoving());
+}
+
+int CLinkbotT::jumpJointTo(robotJointId_t id, double angle) {
+	this->jumpJointToNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::jumpJointToNB(robotJointId_t id, double angle) {
+	this->moveJointToNB(id, angle);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::jumpTo(double angle1, double angle2, double angle3) {
+	this->jumpToNB(angle1, angle2, angle3);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::jumpToNB(double angle1, double angle2, double angle3) {
+	this->moveToNB(angle1, angle2, angle3);
+
+	// success
+	return 0;
 }
 
 #ifdef ENABLE_GRAPHICS

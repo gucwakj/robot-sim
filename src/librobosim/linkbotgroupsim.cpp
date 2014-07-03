@@ -80,38 +80,6 @@ int CLinkbotTGroup::connect(void) {
 	return 0;
 }
 
-int CLinkbotTGroup::driveJointTo(robotJointId_t id, double angle) {
-	moveJointToNB(id, angle);
-	return moveJointWait(id);
-}
-
-int CLinkbotTGroup::driveJointToNB(robotJointId_t id, double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->driveJointToNB(id, angle);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::driveTo(double angle1, double angle2, double angle3) {
-	moveToNB(angle1, angle2, angle3);
-	return moveWait();
-}
-
-int CLinkbotTGroup::driveToNB(double angle1, double angle2, double angle3) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->driveToNB(angle1, angle2, angle3);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CLinkbotTGroup::holdJoint(robotJointId_t id) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -161,6 +129,38 @@ int CLinkbotTGroup::isMoving(void) {
 
 int CLinkbotTGroup::isNotMoving(void) {
 	return !(this->isMoving());
+}
+
+int CLinkbotTGroup::jumpJointTo(robotJointId_t id, double angle) {
+	moveJointToNB(id, angle);
+	return moveJointWait(id);
+}
+
+int CLinkbotTGroup::jumpJointToNB(robotJointId_t id, double angle) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->jumpJointToNB(id, angle);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotTGroup::jumpTo(double angle1, double angle2, double angle3) {
+	moveToNB(angle1, angle2, angle3);
+	return moveWait();
+}
+
+int CLinkbotTGroup::jumpToNB(double angle1, double angle2, double angle3) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->jumpToNB(angle1, angle2, angle3);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
 }
 
 int CLinkbotTGroup::move(double angle1, double angle2, double angle3) {
