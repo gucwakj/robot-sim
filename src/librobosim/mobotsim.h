@@ -27,6 +27,11 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
+		int drivexy(double x, double y, double radius, double trackwidth);
+		int drivexyNB(double x, double y, double radius, double trackwidth);
+		int drivexyTo(double x, double y, double radius, double trackwidth);
+		int drivexyToNB(double x, double y, double radius, double trackwidth);
+		int drivexyWait(void);
 		int enableRecordDataShift(void);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
@@ -119,11 +124,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
-		int movexy(double x, double y, double radius, double trackwidth);
-		int movexyNB(double x, double y, double radius, double trackwidth);
-		int movexyTo(double x, double y, double radius, double trackwidth);
-		int movexyToNB(double x, double y, double radius, double trackwidth);
-		int movexyWait(void);
 #ifdef ENABLE_GRAPHICS
 		int point(double x, double y, double z, int pointsize, char *color);
 #endif // ENABLE_GRAPHICS
@@ -239,6 +239,8 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int init_params(void);
 		int init_dims(void);
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);
+		static void* drivexyThread(void *arg);
+		static void* drivexyToThread(void *arg);
 		static void* motionArchThread(void *arg);
 		static void* motionDistanceThread(void *arg);
 		static void* motionInchwormLeftThread(void *arg);
@@ -252,8 +254,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		static void* motionTumbleRightThread(void *arg);
 		static void* motionTumbleLeftThread(void *arg);
 		static void* motionUnstandThread(void *arg);
-		static void* movexyThread(void *arg);
-		static void* movexyToThread(void *arg);
 		static void* recordAngleThread(void *arg);
 		static void* recordAngleBeginThread(void *arg);
 		static void* recordAnglesThread(void *arg);

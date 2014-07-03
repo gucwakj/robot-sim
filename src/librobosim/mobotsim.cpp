@@ -82,6 +82,143 @@ int CMobot::disconnect(void) {
 	return 0;
 }
 
+int CMobot::drivexy(double x, double y, double radius, double trackwidth) {
+	// get current position
+	double x0, y0;
+	this->getxy(x0, y0);
+
+	// move to new global coordinates
+	return this->drivexyTo(x + x0, y + y0, radius, trackwidth);
+}
+
+void* CMobot::drivexyThread(void *arg) {
+	// cast arg
+	mobotMoveArg_t *mArg = (mobotMoveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->drivexy(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+int CMobot::drivexyNB(double x, double y, double radius, double trackwidth) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	mobotMoveArg_t *mArg = new mobotMoveArg_t;
+	mArg->robot = this;
+	mArg->x = x;
+	mArg->y = y;
+	mArg->radius = radius;
+	mArg->trackwidth = trackwidth;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, drivexyThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
+int CMobot::drivexyTo(double x, double y, double radius, double trackwidth) {
+	// get current position
+	double x0, y0;
+	this->getxy(x0, y0);
+
+	// get current rotation
+	double r0 = this->getRotation(CENTER, 2);
+
+	// compute rotation matrix for body frame
+	dMatrix3 R;
+	dRFromAxisAndAngle(R, 0, 0, 1, r0);
+
+	// get angle to turn in body coordinates (transform of R)
+	double angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
+
+	// turn toward new postition until pointing correctly
+	while (fabs(angle) > 0.01) {
+		// turn in shortest path
+		if (angle > EPSILON)
+			this->turnRight(RAD2DEG(angle), radius, trackwidth);
+		else if (angle < -EPSILON)
+			this->turnLeft(RAD2DEG(-angle), radius, trackwidth);
+
+		// calculate new rotation from error
+		this->getxy(x0, y0);
+		r0 = this->getRotation(CENTER, 2);
+		dRFromAxisAndAngle(R, 0, 0, 1, r0);
+		angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
+	}
+
+	// move along length of line
+	this->getxy(x0, y0);
+	this->moveDistance(sqrt(x*x - 2*x*x0 + x0*x0 + y*y - 2*y*y0 + y0*y0), radius);
+
+	// success
+	return 0;
+}
+
+void* CMobot::drivexyToThread(void *arg) {
+	// cast arg
+	mobotMoveArg_t *mArg = (mobotMoveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->drivexyTo(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+int CMobot::drivexyToNB(double x, double y, double radius, double trackwidth) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	mobotMoveArg_t *mArg = new mobotMoveArg_t;
+	mArg->robot = this;
+	mArg->x = x;
+	mArg->y = y;
+	mArg->radius = radius;
+	mArg->trackwidth = trackwidth;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, drivexyToThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
+int CMobot::drivexyWait(void) {
+	// wait for motion to complete
+	MUTEX_LOCK(&_motion_mutex);
+	while (_motion) {
+		COND_WAIT(&_motion_cond, &_motion_mutex);
+	}
+	MUTEX_UNLOCK(&_motion_mutex);
+
+	// success
+	return 0;
+}
+
 int CMobot::enableRecordDataShift(void) {
 	_g_shift_data = 1;
 	_g_shift_data_en = 1;
@@ -1255,143 +1392,6 @@ int CMobot::moveWait(void) {
 		_seek[i] = false;
 	}
 	MUTEX_UNLOCK(&_success_mutex);
-
-	// success
-	return 0;
-}
-
-int CMobot::movexy(double x, double y, double radius, double trackwidth) {
-	// get current position
-	double x0, y0;
-	this->getxy(x0, y0);
-
-	// move to new global coordinates
-	return this->movexyTo(x + x0, y + y0, radius, trackwidth);
-}
-
-void* CMobot::movexyThread(void *arg) {
-	// cast arg
-	mobotMoveArg_t *mArg = (mobotMoveArg_t *)arg;
-
-	// perform motion
-	mArg->robot->movexy(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
-
-	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
-
-	// cleanup
-	delete mArg;
-
-	// success
-	return NULL;
-}
-
-int CMobot::movexyNB(double x, double y, double radius, double trackwidth) {
-	// create thread
-	THREAD_T move;
-
-	// store args
-	mobotMoveArg_t *mArg = new mobotMoveArg_t;
-	mArg->robot = this;
-	mArg->x = x;
-	mArg->y = y;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
-
-	// motion in progress
-	_motion = true;
-
-	// start thread
-	THREAD_CREATE(&move, movexyThread, (void *)mArg);
-
-	// success
-	return 0;
-}
-
-int CMobot::movexyTo(double x, double y, double radius, double trackwidth) {
-	// get current position
-	double x0, y0;
-	this->getxy(x0, y0);
-
-	// get current rotation
-	double r0 = this->getRotation(CENTER, 2);
-
-	// compute rotation matrix for body frame
-	dMatrix3 R;
-	dRFromAxisAndAngle(R, 0, 0, 1, r0);
-
-	// get angle to turn in body coordinates (transform of R)
-	double angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
-
-	// turn toward new postition until pointing correctly
-	while (fabs(angle) > 0.01) {
-		// turn in shortest path
-		if (angle > EPSILON)
-			this->turnRight(RAD2DEG(angle), radius, trackwidth);
-		else if (angle < -EPSILON)
-			this->turnLeft(RAD2DEG(-angle), radius, trackwidth);
-
-		// calculate new rotation from error
-		this->getxy(x0, y0);
-		r0 = this->getRotation(CENTER, 2);
-		dRFromAxisAndAngle(R, 0, 0, 1, r0);
-		angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
-	}
-
-	// move along length of line
-	this->getxy(x0, y0);
-	this->moveDistance(sqrt(x*x - 2*x*x0 + x0*x0 + y*y - 2*y*y0 + y0*y0), radius);
-
-	// success
-	return 0;
-}
-
-void* CMobot::movexyToThread(void *arg) {
-	// cast arg
-	mobotMoveArg_t *mArg = (mobotMoveArg_t *)arg;
-
-	// perform motion
-	mArg->robot->movexyTo(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
-
-	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
-
-	// cleanup
-	delete mArg;
-
-	// success
-	return NULL;
-}
-
-int CMobot::movexyToNB(double x, double y, double radius, double trackwidth) {
-	// create thread
-	THREAD_T move;
-
-	// store args
-	mobotMoveArg_t *mArg = new mobotMoveArg_t;
-	mArg->robot = this;
-	mArg->x = x;
-	mArg->y = y;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
-
-	// motion in progress
-	_motion = true;
-
-	// start thread
-	THREAD_CREATE(&move, movexyToThread, (void *)mArg);
-
-	// success
-	return 0;
-}
-
-int CMobot::movexyWait(void) {
-	// wait for motion to complete
-	MUTEX_LOCK(&_motion_mutex);
-	while (_motion) {
-		COND_WAIT(&_motion_cond, &_motion_mutex);
-	}
-	MUTEX_UNLOCK(&_motion_mutex);
 
 	// success
 	return 0;

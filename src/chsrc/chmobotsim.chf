@@ -125,6 +125,71 @@ int CMobot::disconnect(void) {
     return retval;
 }
 
+int CMobot::drivexy(double x, double y, double radius, double trackwidth) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_drivexy_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, drivexy, this, x, y, radius, trackwidth);
+    return retval;
+}
+
+int CMobot::drivexyNB(double x, double y, double radius, double trackwidth) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_drivexyNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, drivexyNB, this, x, y, radius, trackwidth);
+    return retval;
+}
+
+int CMobot::drivexyTo(double x, double y, double radius, double trackwidth) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_drivexyTo_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, drivexyTo, this, x, y, radius, trackwidth);
+    return retval;
+}
+
+int CMobot::drivexyToNB(double x, double y, double radius, double trackwidth) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_drivexyToNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, drivexyToNB, this, x, y, radius, trackwidth);
+    return retval;
+}
+
+int CMobot::drivexyWait(void) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_drivexyWait_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, drivexyWait, this);
+    return retval;
+}
+
 int CMobot::enableRecordDataShift(void) {
 	void *fptr;
 	int retval;
@@ -1174,68 +1239,43 @@ int CMobot::moveWait(void) {
 }
 
 int CMobot::movexy(double x, double y, double radius, double trackwidth) {
-    void *fptr;
-    int retval;
+	DEPRECATED("movexy", "drivexy");
+	drivexy(x, y, radius, trackwidth);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_movexy_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, movexy, this, x, y, radius, trackwidth);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobot::movexyNB(double x, double y, double radius, double trackwidth) {
-    void *fptr;
-    int retval;
+	DEPRECATED("movexyNB", "drivexyNB");
+	drivexyNB(x, y, radius, trackwidth);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_movexyNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, movexyNB, this, x, y, radius, trackwidth);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobot::movexyTo(double x, double y, double radius, double trackwidth) {
-    void *fptr;
-    int retval;
+	DEPRECATED("movexyTo", "drivexyTo");
+	drivexyTo(x, y, radius, trackwidth);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_movexyTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, movexyTo, this, x, y, radius, trackwidth);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobot::movexyToNB(double x, double y, double radius, double trackwidth) {
-    void *fptr;
-    int retval;
+	DEPRECATED("movexyToNB", "drivexyToNB");
+	drivexyToNB(x, y, radius, trackwidth);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_movexyToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, movexyToNB, this, x, y, radius, trackwidth);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobot::movexyWait(void) {
-    void *fptr;
-    int retval;
+	DEPRECATED("movexyWait", "drivexyWait");
+	drivexyWait();
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_movexyWait_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, movexyWait, this);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobot::point(double x, double y, double z, int pointsize, char *color) {

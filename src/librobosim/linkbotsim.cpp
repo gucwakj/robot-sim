@@ -113,6 +113,341 @@ int CLinkbotT::disconnect(void) {
 	return 0;
 }
 
+int CLinkbotT::drivexy(double x, double y, double radius, double trackwidth) {
+	// get current position
+	double x0, y0;
+	this->getxy(x0, y0);
+
+	// move to new global coordinates
+	return this->drivexyTo(x + x0, y + y0, radius, trackwidth);
+}
+
+void* CLinkbotT::drivexyThread(void *arg) {
+	// cast arg
+	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->drivexy(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::drivexyNB(double x, double y, double radius, double trackwidth) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
+	mArg->robot = this;
+	mArg->x = x;
+	mArg->y = y;
+	mArg->radius = radius;
+	mArg->trackwidth = trackwidth;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, drivexyThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::drivexyTo(double x, double y, double radius, double trackwidth) {
+	// get current position
+	double x0, y0;
+	this->getxy(x0, y0);
+
+	// if movement is too small, just call it good
+	if (fabs(x-x0) < 0.1 && fabs(y-y0) < 0.1) {
+		return 1;
+	}
+
+	// get current rotation
+	double r0 = this->getRotation(BODY, 2);
+
+	// compute rotation matrix for body frame
+	dMatrix3 R;
+	dRFromAxisAndAngle(R, 0, 0, 1, r0);
+
+	// get angle to turn in body coordinates (transform of R)
+	double angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
+
+	// get speed of robot
+	double speed[NUM_DOF] = {0};
+	this->getJointSpeeds(speed[0], speed[1], speed[2]);
+
+	if (fabs(speed[0]) > 120) {
+		this->setJointSpeeds(45, 45, 45);
+	}
+
+	// turn toward new postition until pointing correctly
+	while (fabs(angle) > 0.005) {
+		// turn in shortest path
+		if (angle > 0.005)
+			this->turnRight(RAD2DEG(angle), radius, trackwidth);
+		else if (angle < -0.005)
+			this->turnLeft(RAD2DEG(-angle), radius, trackwidth);
+
+		// calculate new rotation from error
+		this->getxy(x0, y0);
+		r0 = this->getRotation(BODY, 2);
+		dRSetIdentity(R);
+		dRFromAxisAndAngle(R, 0, 0, 1, r0);
+		angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
+
+		// move slowly
+		this->setJointSpeeds(45, 45, 45);
+	}
+
+	// reset to original speed after turning
+	this->setJointSpeeds(speed[0], speed[1], speed[2]);
+
+	// move along length of line
+	this->getxy(x0, y0);
+	this->moveDistance(sqrt(x*x - 2*x*x0 + x0*x0 + y*y - 2*y*y0 + y0*y0), radius);
+
+	// success
+	return 0;
+}
+
+void* CLinkbotT::drivexyToThread(void *arg) {
+	// cast arg
+	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->drivexyTo(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::drivexyToNB(double x, double y, double radius, double trackwidth) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
+	mArg->robot = this;
+	mArg->x = x;
+	mArg->y = y;
+	mArg->radius = radius;
+	mArg->trackwidth = trackwidth;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, drivexyToThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::drivexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
+	// number of steps necessary
+	double step = (xf-x0)/(n-1);
+
+	// drivexy to sequence of (x,y) values
+	for (int i = 0; i < n; i++) {
+		double x = x0 + i*step;
+		double y = func(x);
+		this->drivexyTo(x, y, radius, trackwidth);
+	}
+
+	// success
+	return 0;
+}
+
+void* CLinkbotT::drivexyToFuncThread(void *arg) {
+	// cast arg
+	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->drivexyToFunc(mArg->x, mArg->y, mArg->i, mArg->func, mArg->radius, mArg->trackwidth);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::drivexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
+	mArg->robot = this;
+	mArg->x = x0;
+	mArg->y = xf;
+	mArg->i = n;
+	mArg->func = func;
+	mArg->radius = radius;
+	mArg->trackwidth = trackwidth;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, drivexyToFuncThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::drivexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
+	// init variables
+	double *coeff;
+	int *power, order = 0;
+	char str[5];
+	char input[100];
+	std::strcpy(input, poly);
+
+	// parse 'fcn' into usable format
+	char *var = std::strchr(input, '^');
+	if (var != NULL) {
+		order = atoi(++var);
+		coeff = new double[order+1]();
+		power = new int[order+1]();
+		for (int i = 0; i < order+1; i++) {
+			coeff[i] = 1;
+			power[i] = order-i;
+		}
+		for (int i = 0; i < order; i++) {
+			sprintf(str, "^%d", power[i]);
+			var = std::strstr(input, str);
+			if (var != NULL) {
+				if (var[-2] == '*')
+					coeff[i] = atof(var-=3);
+				else if (var[-2] == ' ' || var[-2] == '=')
+					coeff[i] = 1;
+				else
+					coeff[i] = atof(var-=2);
+			}
+			else {
+				coeff[i] = 0;
+			}
+		}
+		var = std::strrchr(input, 'x');
+		var = std::strpbrk(input, "+-");
+		if (var != NULL) {
+			if (var[1] == ' ')
+				var[1] = var[0];
+			coeff[order] = atof(++var);
+		}
+		else {
+			coeff[order] = 0;
+		}
+	}
+	else {
+		order = 1;
+		coeff = new double[order+1];
+		power = new int[order+1];
+		power[0] = 1;
+		var = std::strchr(input, 'x');
+		if (var != NULL) {
+			if (var[-1] == '*')
+				coeff[0] = atof(var-=2);
+			else
+				coeff[0] = atof(--var);
+		}
+		var = std::strpbrk(input, "+-");
+		if (var != NULL) {
+			if (var[1] == ' ')
+				var[1] = var[0];
+			coeff[1] = atof(++var);
+			power[1] = 0;
+		}
+	}
+
+	// number of steps necessary
+	double step = (xf-x0)/(n-1);
+
+	// drivexy to sequence of (x,y) values
+	for (int i = 0; i < n; i++) {
+		double x = x0 + i*step;
+		double y = 0;
+		for (int j = 0; j <= order; j++) {
+			y += coeff[j]*pow(x, power[j]);
+		}
+		this->drivexyTo(x, y, radius, 0);
+	}
+
+	return 0;
+}
+
+void* CLinkbotT::drivexyToPolyThread(void *arg) {
+	// cast arg
+	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->drivexyToPoly(mArg->x, mArg->y, mArg->i, mArg->expr, mArg->radius, mArg->trackwidth);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::drivexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
+	mArg->robot = this;
+	mArg->x = x0;
+	mArg->y = xf;
+	mArg->i = n;
+	mArg->expr = poly;
+	mArg->radius = radius;
+	mArg->trackwidth = trackwidth;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, drivexyToPolyThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::drivexyWait(void) {
+	// wait for motion to complete
+	MUTEX_LOCK(&_motion_mutex);
+	while (_motion) {
+		COND_WAIT(&_motion_cond, &_motion_mutex);
+	}
+	MUTEX_UNLOCK(&_motion_mutex);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::enableRecordDataShift(void) {
 	_g_shift_data = 1;
 	_g_shift_data_en = 1;
@@ -768,341 +1103,6 @@ int CLinkbotT::moveWait(void) {
 		COND_WAIT(&_success_cond, &_success_mutex);
 	}
 	MUTEX_UNLOCK(&_success_mutex);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexy(double x, double y, double radius, double trackwidth) {
-	// get current position
-	double x0, y0;
-	this->getxy(x0, y0);
-
-	// move to new global coordinates
-	return this->movexyTo(x + x0, y + y0, radius, trackwidth);
-}
-
-void* CLinkbotT::movexyThread(void *arg) {
-	// cast arg
-	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
-
-	// perform motion
-	mArg->robot->movexy(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
-
-	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
-
-	// cleanup
-	delete mArg;
-
-	// success
-	return NULL;
-}
-
-int CLinkbotT::movexyNB(double x, double y, double radius, double trackwidth) {
-	// create thread
-	THREAD_T move;
-
-	// store args
-	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
-	mArg->robot = this;
-	mArg->x = x;
-	mArg->y = y;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
-
-	// motion in progress
-	_motion = true;
-
-	// start thread
-	THREAD_CREATE(&move, movexyThread, (void *)mArg);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyTo(double x, double y, double radius, double trackwidth) {
-	// get current position
-	double x0, y0;
-	this->getxy(x0, y0);
-
-	// if movement is too small, just call it good
-	if (fabs(x-x0) < 0.1 && fabs(y-y0) < 0.1) {
-		return 1;
-	}
-
-	// get current rotation
-	double r0 = this->getRotation(BODY, 2);
-
-	// compute rotation matrix for body frame
-	dMatrix3 R;
-	dRFromAxisAndAngle(R, 0, 0, 1, r0);
-
-	// get angle to turn in body coordinates (transform of R)
-	double angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
-
-	// get speed of robot
-	double speed[NUM_DOF] = {0};
-	this->getJointSpeeds(speed[0], speed[1], speed[2]);
-
-	if (fabs(speed[0]) > 120) {
-		this->setJointSpeeds(45, 45, 45);
-	}
-
-	// turn toward new postition until pointing correctly
-	while (fabs(angle) > 0.005) {
-		// turn in shortest path
-		if (angle > 0.005)
-			this->turnRight(RAD2DEG(angle), radius, trackwidth);
-		else if (angle < -0.005)
-			this->turnLeft(RAD2DEG(-angle), radius, trackwidth);
-
-		// calculate new rotation from error
-		this->getxy(x0, y0);
-		r0 = this->getRotation(BODY, 2);
-		dRSetIdentity(R);
-		dRFromAxisAndAngle(R, 0, 0, 1, r0);
-		angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
-
-		// move slowly
-		this->setJointSpeeds(45, 45, 45);
-	}
-
-	// reset to original speed after turning
-	this->setJointSpeeds(speed[0], speed[1], speed[2]);
-
-	// move along length of line
-	this->getxy(x0, y0);
-	this->moveDistance(sqrt(x*x - 2*x*x0 + x0*x0 + y*y - 2*y*y0 + y0*y0), radius);
-
-	// success
-	return 0;
-}
-
-void* CLinkbotT::movexyToThread(void *arg) {
-	// cast arg
-	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
-
-	// perform motion
-	mArg->robot->movexyTo(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
-
-	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
-
-	// cleanup
-	delete mArg;
-
-	// success
-	return NULL;
-}
-
-int CLinkbotT::movexyToNB(double x, double y, double radius, double trackwidth) {
-	// create thread
-	THREAD_T move;
-
-	// store args
-	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
-	mArg->robot = this;
-	mArg->x = x;
-	mArg->y = y;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
-
-	// motion in progress
-	_motion = true;
-
-	// start thread
-	THREAD_CREATE(&move, movexyToThread, (void *)mArg);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
-	// number of steps necessary
-	double step = (xf-x0)/(n-1);
-
-	// movexy to sequence of (x,y) values
-	for (int i = 0; i < n; i++) {
-		double x = x0 + i*step;
-		double y = func(x);
-		this->movexyTo(x, y, radius, trackwidth);
-	}
-
-	// success
-	return 0;
-}
-
-void* CLinkbotT::movexyToFuncThread(void *arg) {
-	// cast arg
-	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
-
-	// perform motion
-	mArg->robot->movexyToFunc(mArg->x, mArg->y, mArg->i, mArg->func, mArg->radius, mArg->trackwidth);
-
-	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
-
-	// cleanup
-	delete mArg;
-
-	// success
-	return NULL;
-}
-
-int CLinkbotT::movexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
-	// create thread
-	THREAD_T move;
-
-	// store args
-	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
-	mArg->robot = this;
-	mArg->x = x0;
-	mArg->y = xf;
-	mArg->i = n;
-	mArg->func = func;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
-
-	// motion in progress
-	_motion = true;
-
-	// start thread
-	THREAD_CREATE(&move, movexyToFuncThread, (void *)mArg);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
-	// init variables
-	double *coeff;
-	int *power, order = 0;
-	char str[5];
-	char input[100];
-	std::strcpy(input, poly);
-
-	// parse 'fcn' into usable format
-	char *var = std::strchr(input, '^');
-	if (var != NULL) {
-		order = atoi(++var);
-		coeff = new double[order+1]();
-		power = new int[order+1]();
-		for (int i = 0; i < order+1; i++) {
-			coeff[i] = 1;
-			power[i] = order-i;
-		}
-		for (int i = 0; i < order; i++) {
-			sprintf(str, "^%d", power[i]);
-			var = std::strstr(input, str);
-			if (var != NULL) {
-				if (var[-2] == '*')
-					coeff[i] = atof(var-=3);
-				else if (var[-2] == ' ' || var[-2] == '=')
-					coeff[i] = 1;
-				else
-					coeff[i] = atof(var-=2);
-			}
-			else {
-				coeff[i] = 0;
-			}
-		}
-		var = std::strrchr(input, 'x');
-		var = std::strpbrk(input, "+-");
-		if (var != NULL) {
-			if (var[1] == ' ')
-				var[1] = var[0];
-			coeff[order] = atof(++var);
-		}
-		else {
-			coeff[order] = 0;
-		}
-	}
-	else {
-		order = 1;
-		coeff = new double[order+1];
-		power = new int[order+1];
-		power[0] = 1;
-		var = std::strchr(input, 'x');
-		if (var != NULL) {
-			if (var[-1] == '*')
-				coeff[0] = atof(var-=2);
-			else
-				coeff[0] = atof(--var);
-		}
-		var = std::strpbrk(input, "+-");
-		if (var != NULL) {
-			if (var[1] == ' ')
-				var[1] = var[0];
-			coeff[1] = atof(++var);
-			power[1] = 0;
-		}
-	}
-
-	// number of steps necessary
-	double step = (xf-x0)/(n-1);
-
-	// movexy to sequence of (x,y) values
-	for (int i = 0; i < n; i++) {
-		double x = x0 + i*step;
-		double y = 0;
-		for (int j = 0; j <= order; j++) {
-			y += coeff[j]*pow(x, power[j]);
-		}
-		this->movexyTo(x, y, radius, 0);
-	}
-
-	return 0;
-}
-
-void* CLinkbotT::movexyToPolyThread(void *arg) {
-	// cast arg
-	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
-
-	// perform motion
-	mArg->robot->movexyToPoly(mArg->x, mArg->y, mArg->i, mArg->expr, mArg->radius, mArg->trackwidth);
-
-	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
-
-	// cleanup
-	delete mArg;
-
-	// success
-	return NULL;
-}
-
-int CLinkbotT::movexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
-	// create thread
-	THREAD_T move;
-
-	// store args
-	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
-	mArg->robot = this;
-	mArg->x = x0;
-	mArg->y = xf;
-	mArg->i = n;
-	mArg->expr = poly;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
-
-	// motion in progress
-	_motion = true;
-
-	// start thread
-	THREAD_CREATE(&move, movexyToPolyThread, (void *)mArg);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyWait(void) {
-	// wait for motion to complete
-	MUTEX_LOCK(&_motion_mutex);
-	while (_motion) {
-		COND_WAIT(&_motion_cond, &_motion_mutex);
-	}
-	MUTEX_UNLOCK(&_motion_mutex);
 
 	// success
 	return 0;

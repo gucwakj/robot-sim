@@ -32,6 +32,19 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
+		int drivexy(double x, double y, double radius, double trackwidth);
+		int drivexyNB(double x, double y, double radius, double trackwidth);
+		int drivexyTo(double x, double y, double radius, double trackwidth);
+		int drivexyToNB(double x, double y, double radius, double trackwidth);
+#ifdef _CH_
+		int drivexyToExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth);
+		int drivexyToExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth);
+#endif
+		int drivexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
+		int drivexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
+		int drivexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
+		int drivexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
+		int drivexyWait(void);
 		int enableRecordDataShift(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
@@ -105,19 +118,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
-		int movexy(double x, double y, double radius, double trackwidth);
-		int movexyNB(double x, double y, double radius, double trackwidth);
-		int movexyTo(double x, double y, double radius, double trackwidth);
-		int movexyToNB(double x, double y, double radius, double trackwidth);
-#ifdef _CH_
-		int movexyToExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth);
-		int movexyToExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth);
-#endif
-		int movexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
-		int movexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
-		int movexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
-		int movexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
-		int movexyWait(void);
 		int openGripper(double angle);
 		int openGripperNB(double angle);
 #ifdef ENABLE_GRAPHICS
@@ -245,10 +245,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int init_params(int disabled, int type);											// initialize robot parameters
 		int init_dims(void);																// initialize robot dimensions
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);					// modify angle to count continuously
-		static void* movexyThread(void *arg);												// thread to run movexy
-		static void* movexyToThread(void *arg);												// thread to run movexy
-		static void* movexyToFuncThread(void *arg);											// thread to run movexyFunc
-		static void* movexyToPolyThread(void *arg);											// thread to run movexyPoly
+		static void* drivexyThread(void *arg);												// thread to run drivexy
+		static void* drivexyToThread(void *arg);											// thread to run drivexy
+		static void* drivexyToFuncThread(void *arg);										// thread to run drivexyFunc
+		static void* drivexyToPolyThread(void *arg);										// thread to run drivexyPoly
 		static void* recordAngleThread(void *arg);											// thread to record angle
 		static void* recordAngleBeginThread(void *arg);										// thread to record angle
 		static void* recordAnglesThread(void *arg);											// thread to record angles
@@ -380,6 +380,17 @@ class DLLIMPORT CLinkbotI {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
+		int drivexy(double x, double y, double radius, double trackwidth);
+		int drivexyNB(double x, double y, double radius, double trackwidth);
+		int drivexyTo(double x, double y, double radius, double trackwidth);
+		int drivexyToNB(double x, double y, double radius, double trackwidth);
+		int drivexyToExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth);
+		int drivexyToExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth);
+		int drivexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
+		int drivexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
+		int drivexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
+		int drivexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
+		int drivexyWait(void);
 		int enableRecordDataShift(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
@@ -445,17 +456,6 @@ class DLLIMPORT CLinkbotI {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
-		int movexy(double x, double y, double radius, double trackwidth);
-		int movexyNB(double x, double y, double radius, double trackwidth);
-		int movexyTo(double x, double y, double radius, double trackwidth);
-		int movexyToNB(double x, double y, double radius, double trackwidth);
-		int movexyToExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth);
-		int movexyToExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth);
-		int movexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
-		int movexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
-		int movexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
-		int movexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
-		int movexyWait(void);
 		int openGripper(double angle);
 		int openGripperNB(double angle);
 		int point(double x, double y, double z, int pointsize, char *color);
@@ -617,6 +617,11 @@ class DLLIMPORT CLinkbotL {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
+		int drivexy(double x, double y, double radius, double trackwidth);
+		int drivexyNB(double x, double y, double radius, double trackwidth);
+		int drivexyTo(double x, double y, double radius, double trackwidth);
+		int drivexyToNB(double x, double y, double radius, double trackwidth);
+		int drivexyWait(void);
 		int enableRecordDataShift(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
@@ -678,11 +683,6 @@ class DLLIMPORT CLinkbotL {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
-		int movexy(double x, double y, double radius, double trackwidth);
-		int movexyNB(double x, double y, double radius, double trackwidth);
-		int movexyTo(double x, double y, double radius, double trackwidth);
-		int movexyToNB(double x, double y, double radius, double trackwidth);
-		int movexyWait(void);
 		int openGripper(double angle);
 		int openGripperNB(double angle);
 		int point(double x, double y, double z, int pointsize, char *color);
