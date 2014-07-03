@@ -171,6 +171,55 @@ int CLinkbotT::driveForwardNB(double angle) {
 	return 0;
 }
 
+int CLinkbotT::driveTime(double seconds) {
+	// move joint
+	this->driveForeverNB();
+
+	// sleep
+	this->doze(seconds*1000);
+
+	// stop joint
+	this->holdJoints();
+
+	// success
+	return 0;
+}
+
+void* CLinkbotT::driveTimeNBThread(void *arg) {
+	// cast argument
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// get robot
+	CLinkbotT *robot = dynamic_cast<CLinkbotT *>(rArg->robot);
+	// sleep
+	robot->doze(rArg->msecs);
+	// hold all robot motion
+	robot->holdJoints();
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::driveTimeNB(double seconds) {
+	// set up threading
+	THREAD_T moving;
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->msecs = 1000*seconds;
+
+	// set joint movements
+	this->driveForeverNB();
+
+	// create thread to wait
+	THREAD_CREATE(&moving, (void* (*)(void *))&CLinkbotT::driveTimeNBThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::drivexy(double x, double y, double radius, double trackwidth) {
 	// get current position
 	double x0, y0;

@@ -39,6 +39,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int driveForeverNB(void);
 		int driveForward(double angle);
 		int driveForwardNB(double angle);
+		int driveTime(double seconds);
+		int driveTimeNB(double seconds);
 		int drivexy(double x, double y, double radius, double trackwidth);
 		int drivexyNB(double x, double y, double radius, double trackwidth);
 		int drivexyTo(double x, double y, double radius, double trackwidth);
@@ -246,6 +248,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int init_params(int disabled, int type);											// initialize robot parameters
 		int init_dims(void);																// initialize robot dimensions
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);					// modify angle to count continuously
+		static void* driveTimeNBThread(void *arg);											// thread to drive robot
 		static void* drivexyThread(void *arg);												// thread to run drivexy
 		static void* drivexyToThread(void *arg);											// thread to run drivexy
 		static void* drivexyToFuncThread(void *arg);										// thread to run drivexyFunc
@@ -295,6 +298,8 @@ class DLLIMPORT CLinkbotTGroup {
 		int driveForeverNB(void);
 		int driveForward(double angle);
 		int driveForwardNB(double angle);
+		int driveTime(double seconds);
+		int driveTimeNB(double seconds);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
@@ -389,6 +394,8 @@ class DLLIMPORT CLinkbotI {
 		int driveForeverNB(void);
 		int driveForward(double angle);
 		int driveForwardNB(double angle);
+		int driveTime(double seconds);
+		int driveTimeNB(double seconds);
 		int drivexy(double x, double y, double radius, double trackwidth);
 		int drivexyNB(double x, double y, double radius, double trackwidth);
 		int drivexyTo(double x, double y, double radius, double trackwidth);
@@ -541,6 +548,8 @@ class DLLIMPORT CLinkbotIGroup {
 		int driveForeverNB(void);
 		int driveForward(double angle);
 		int driveForwardNB(double angle);
+		int driveTime(double seconds);
+		int driveTimeNB(double seconds);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);

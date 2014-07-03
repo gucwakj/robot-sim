@@ -229,6 +229,32 @@ int CLinkbotI::driveForwardNB(double angle) {
     return retval;
 }
 
+int CLinkbotI::driveTime(double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_driveTime_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveTime, this, seconds);
+    return retval;
+}
+
+int CLinkbotI::driveTimeNB(double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_driveTimeNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveTimeNB, this, seconds);
+    return retval;
+}
+
 int CLinkbotI::drivexy(double x, double y, double radius, double trackwidth) {
     void *fptr;
     int retval;
@@ -2311,6 +2337,32 @@ int CLinkbotIGroup::driveForwardNB(double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, driveForwardNB, this, angle);
+    return retval;
+}
+
+int CLinkbotIGroup::driveTime(double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveTime_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveTime, this, seconds);
+    return retval;
+}
+
+int CLinkbotIGroup::driveTimeNB(double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveTimeNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveTimeNB, this, seconds);
     return retval;
 }
 

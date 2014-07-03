@@ -239,6 +239,36 @@ EXPORTCH int CMobot_driveForwardNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_driveTime_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->driveTime(seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CMobot_driveTimeNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    seconds = Ch_VaArg(interp, ap, double);
+    retval = robot->driveTimeNB(seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_drivexy_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2471,6 +2501,36 @@ EXPORTCH int CMG_driveForwardNB_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CMobotGroup *);
     angle = Ch_VaArg(interp, ap, double);
     retval = robot->driveForwardNB(angle);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CMG_driveTime_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobotGroup *robot;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobotGroup *);
+    seconds = Ch_VaArg(interp, ap, double );
+    retval = robot->driveTime(seconds);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CMG_driveTimeNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobotGroup *robot;
+    double seconds;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobotGroup *);
+    seconds = Ch_VaArg(interp, ap, double );
+    retval = robot->driveTimeNB(seconds);
     Ch_VaEnd(interp, ap);
     return retval;
 }

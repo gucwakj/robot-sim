@@ -139,6 +139,42 @@ int CLinkbotTGroup::driveForwardNB(double angle) {
 	return 0;
 }
 
+int CLinkbotTGroup::driveTime(double seconds) {
+	int msecs = seconds * 1000.0;
+
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveForeverNB();
+		rtmp = rtmp->next;
+	}
+
+#ifdef _WIN32
+	Sleep(msecs);
+#else
+	usleep(msecs*1000);
+#endif
+
+	rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->holdJoints();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotTGroup::driveTimeNB(double seconds) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveTimeNB(seconds);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotTGroup::holdJoint(robotJointId_t id) {
 	robots_t rtmp = _robots;
 	while (rtmp) {

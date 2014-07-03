@@ -129,6 +129,42 @@ int CMobotGroup::driveForwardNB(double angle) {
 	return 0;
 }
 
+int CMobotGroup::driveTime(double seconds) {
+	int msecs = seconds * 1000.0;
+
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveForeverNB();
+		rtmp = rtmp->next;
+	}
+
+#ifdef _WIN32
+	Sleep(msecs);
+#else
+	usleep(msecs*1000);
+#endif
+
+	rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->holdJoints();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CMobotGroup::driveTimeNB(double seconds) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveTimeNB(seconds);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobotGroup::jumpJointTo(robotJointId_t id, double angle) {
 	jumpJointToNB(id, angle);
 	return moveWait();

@@ -135,6 +135,29 @@ int CMobot::driveForwardNB(double angle) {
 	return 0;
 }
 
+int CMobot::driveTime(double seconds) {
+	this->driveTimeNB(seconds);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::driveTimeNB(double seconds) {
+	// set joint movements
+	this->moveJointForeverNB(JOINT1);
+	this->moveJointForeverNB(JOINT4);
+
+	// sleep
+	this->doze(seconds * 1000);
+
+	// stop motion
+	this->holdJoints();
+
+	// success
+	return 0;
+}
+
 int CMobot::drivexy(double x, double y, double radius, double trackwidth) {
 	// get current position
 	double x0, y0;

@@ -216,6 +216,32 @@ int CMobot::driveForwardNB(double angle) {
     return retval;
 }
 
+int CMobot::driveTime(double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_driveTime_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveTime, this, seconds);
+    return retval;
+}
+
+int CMobot::driveTimeNB(double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_driveTimeNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveTimeNB, this, seconds);
+    return retval;
+}
+
 int CMobot::drivexy(double x, double y, double radius, double trackwidth) {
     void *fptr;
     int retval;
@@ -2110,6 +2136,32 @@ int CMobotGroup::driveForwardNB(double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, driveForwardNB, this, angle);
+    return retval;
+}
+
+int CMobotGroup::driveTime(double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMG_driveTime_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveTime, this, seconds);
+    return retval;
+}
+
+int CMobotGroup::driveTimeNB(double seconds) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMG_driveTimeNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveTimeNB, this, seconds);
     return retval;
 }
 
