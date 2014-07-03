@@ -164,32 +164,6 @@ int CLinkbotT::driveJointToNB(robotJointId_t id, double angle) {
     return retval;
 }
 
-int CLinkbotT::driveJointToDirect(robotJointId_t id, double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_driveJointToDirect_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveJointToDirect, this, id, angle);
-    return retval;
-}
-
-int CLinkbotT::driveJointToDirectNB(robotJointId_t id, double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_driveJointToDirectNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveJointToDirectNB, this, id, angle);
-    return retval;
-}
-
 int CLinkbotT::driveTo(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
@@ -200,32 +174,6 @@ int CLinkbotT::driveTo(double angle1, double angle2, double angle3) {
         return -1;
     }
     dlrunfun(fptr, &retval, driveTo, this, angle1, angle2, angle3);
-    return retval;
-}
-
-int CLinkbotT::driveToDirect(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_driveToDirect_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveToDirect, this, angle1, angle2, angle3);
-    return retval;
-}
-
-int CLinkbotT::driveToDirectNB(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_driveToDirectNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveToDirectNB, this, angle1, angle2, angle3);
     return retval;
 }
 
@@ -1928,32 +1876,6 @@ int CLinkbotTGroup::driveJointToNB(int id, double angle) {
     return retval;
 }
 
-int CLinkbotTGroup::driveJointToDirect(int id, double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_driveJointToDirect_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveJointToDirect, this, id, angle);
-    return retval;
-}
-
-int CLinkbotTGroup::driveJointToDirectNB(int id, double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_driveJointToDirectNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveJointToDirectNB, this, id, angle);
-    return retval;
-}
-
 int CLinkbotTGroup::driveTo(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
@@ -1977,32 +1899,6 @@ int CLinkbotTGroup::driveToNB(double angle1, double angle2, double angle3) {
         return -1;
     }
     dlrunfun(fptr, &retval, driveToNB, this, angle1, angle2, angle3);
-    return retval;
-}
-
-int CLinkbotTGroup::driveToDirect(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_driveToDirect_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveToDirect, this, angle1, angle2, angle3);
-    return retval;
-}
-
-int CLinkbotTGroup::driveToDirectNB(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_driveToDirectNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveToDirectNB, this, angle1, angle2, angle3);
     return retval;
 }
 

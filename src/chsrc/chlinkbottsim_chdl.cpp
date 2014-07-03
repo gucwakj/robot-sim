@@ -179,40 +179,6 @@ EXPORTCH int CLinkbotT_driveJointToNB_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotT_driveJointToDirect_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotT *robot;
-    robotJointId_t id;
-    double angle;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    angle = Ch_VaArg(interp, ap, double);
-    retval = robot->driveJointToDirect(id, angle);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotT_driveJointToDirectNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotT *robot;
-    robotJointId_t id;
-    double angle;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    angle = Ch_VaArg(interp, ap, double);
-    retval = robot->driveJointToDirectNB(id, angle);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLinkbotT_driveTo_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -247,44 +213,6 @@ EXPORTCH int CLinkbotT_driveToNB_chdl(void *varg) {
     angle2 = Ch_VaArg(interp, ap, double);
     angle3 = Ch_VaArg(interp, ap, double);
     retval = robot->driveToNB(angle1, angle2, angle3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotT_driveToDirect_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotT *robot;
-    double angle1;
-    double angle2;
-    double angle3;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
-    angle1 = Ch_VaArg(interp, ap, double);
-    angle2 = Ch_VaArg(interp, ap, double);
-    angle3 = Ch_VaArg(interp, ap, double);
-    retval = robot->driveToDirect(angle1, angle2, angle3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotT_driveToDirectNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotT *robot;
-    double angle1;
-    double angle2;
-    double angle3;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
-    angle1 = Ch_VaArg(interp, ap, double);
-    angle2 = Ch_VaArg(interp, ap, double);
-    angle3 = Ch_VaArg(interp, ap, double);
-    retval = robot->driveToDirectNB(angle1, angle2, angle3);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2355,40 +2283,6 @@ EXPORTCH int CLTG_driveJointToNB_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLTG_driveJointToDirect_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotTGroup *robot;
-    robotJointId_t id;
-    double angle;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    angle = Ch_VaArg(interp, ap, double);
-    retval = robot->driveJointToDirect(id, angle);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLTG_driveJointToDirectNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotTGroup *robot;
-    robotJointId_t id;
-    double angle;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    angle = Ch_VaArg(interp, ap, double);
-    retval = robot->driveJointToDirectNB(id, angle);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLTG_driveTo_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2423,44 +2317,6 @@ EXPORTCH int CLTG_driveToNB_chdl(void *varg) {
     angle2 = Ch_VaArg(interp, ap, double);
     angle3 = Ch_VaArg(interp, ap, double);
     retval = robot->driveToNB(angle1, angle2, angle3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLTG_driveToDirect_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotTGroup *robot;
-    double angle1;
-    double angle2;
-    double angle3;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
-    angle1 = Ch_VaArg(interp, ap, double);
-    angle2 = Ch_VaArg(interp, ap, double);
-    angle3 = Ch_VaArg(interp, ap, double);
-    retval = robot->driveToDirect(angle1, angle2, angle3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLTG_driveToDirectNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotTGroup *robot;
-    double angle1;
-    double angle2;
-    double angle3;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
-    angle1 = Ch_VaArg(interp, ap, double);
-    angle2 = Ch_VaArg(interp, ap, double);
-    angle3 = Ch_VaArg(interp, ap, double);
-    retval = robot->driveToDirectNB(angle1, angle2, angle3);
     Ch_VaEnd(interp, ap);
     return retval;
 }
