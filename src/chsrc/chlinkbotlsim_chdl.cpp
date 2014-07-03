@@ -51,6 +51,19 @@ EXPORTCH int CLinkbotL_blinkLED_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotL_closeGripper_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    retval = robot->closeGripper();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotL_connect_chdl(void *varg) {
 	ChInterp_t interp;
 	ChVaList_t ap;
@@ -1212,6 +1225,36 @@ EXPORTCH int CLinkbotL_movexyWait_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotL_openGripper_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+	double angle;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    angle = Ch_VaArg(interp, ap, double);
+    retval = robot->openGripper(angle);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotL_openGripperNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+	double angle;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    angle = Ch_VaArg(interp, ap, double);
+    retval = robot->openGripperNB(angle);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotL_point_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2101,6 +2144,19 @@ EXPORTCH int CLLG_blinkLED_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLLG_closeGripper_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotLGroup *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
+    retval = robot->closeGripper();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLLG_connect_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2713,6 +2769,36 @@ EXPORTCH int CLLG_moveWait_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
     retval = robot->moveWait();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLLG_openGripper_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotLGroup *robot;
+	double angle;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
+    angle = Ch_VaArg(interp, ap, double);
+    retval = robot->openGripper(angle);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLLG_openGripperNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotLGroup *robot;
+	double angle;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
+    angle = Ch_VaArg(interp, ap, double);
+    retval = robot->openGripperNB(angle);
     Ch_VaEnd(interp, ap);
     return retval;
 }

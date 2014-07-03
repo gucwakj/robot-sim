@@ -22,8 +22,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual ~CLinkbotT();
 
 		int blinkLED(double delay, int num);
-#ifdef _CH_
 		int closeGripper(void);
+#ifdef _CH_
 		int connect(...);
 #else
 		int connect(char *name = NULL, int pause = 3);
@@ -118,10 +118,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int movexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int movexyWait(void);
-#ifdef _CH_
 		int openGripper(double angle);
 		int openGripperNB(double angle);
-#endif
 #ifdef ENABLE_GRAPHICS
 		int point(double x, double y, double z, int pointsize, char *color);
 #endif // ENABLE_GRAPHICS
@@ -287,6 +285,7 @@ class DLLIMPORT CLinkbotTGroup {
 #else
 		int addRobots(CLinkbotT robots[], int num);
 #endif
+		int closeGripper(void);
 		int connect(void);
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToNB(robotJointId_t id, double angle);
@@ -329,6 +328,8 @@ class DLLIMPORT CLinkbotTGroup {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
+		int openGripper(double angle);
+		int openGripperNB(double angle);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
 		int reset(void);
@@ -528,6 +529,7 @@ class DLLIMPORT CLinkbotIGroup {
 		int addRobot(CLinkbotI& robot);
 		int addRobots(array CLinkbotI robots[], ...);
 		int blinkLED(double delay, int num);
+		int closeGripper(void);
 		int connect(void);
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToNB(robotJointId_t id, double angle);
@@ -570,6 +572,8 @@ class DLLIMPORT CLinkbotIGroup {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
+		int openGripper(double angle);
+		int openGripperNB(double angle);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
 		int reset(void);
@@ -617,8 +621,8 @@ class DLLIMPORT CLinkbotL {
 		virtual ~CLinkbotL();
 
 		int blinkLED(double delay, int num);
-		int connect(...);
 		int closeGripper(void);
+		int connect(...);
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
@@ -757,6 +761,7 @@ class DLLIMPORT CLinkbotLGroup {
 		int addRobot(CLinkbotL& robot);
 		int addRobots(array CLinkbotL robots[], ...);
 		int blinkLED(double delay, int num);
+		int closeGripper(void);
 		int connect(void);
 		int driveJointTo(robotJointId_t id, double angle);
 		int driveJointToNB(robotJointId_t id, double angle);
@@ -795,6 +800,8 @@ class DLLIMPORT CLinkbotLGroup {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
+		int openGripper(double angle);
+		int openGripperNB(double angle);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
 		int reset(void);

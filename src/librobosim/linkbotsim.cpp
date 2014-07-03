@@ -39,6 +39,23 @@ int CLinkbotT::blinkLED(double delay, int num) {
 	return 0;
 }
 
+int CLinkbotT::closeGripper(void) {
+	double gripperAngleOld = 0;
+	double gripperAngleNew = 0;
+	int retval = getJointAngle(JOINT1, gripperAngleNew);
+	while ( fabs(gripperAngleNew - gripperAngleOld) > 0.1 ) {
+		gripperAngleOld = gripperAngleNew;
+		retval = retval || getJointAngle(JOINT1, gripperAngleNew);
+		retval = retval || moveNB(8, 0, 8);
+		delaySeconds(1);
+		retval = retval || getJointAngle(JOINT1, gripperAngleNew);
+	}
+	retval = retval || moveNB(8, 0, 8);
+	delaySeconds(1);
+	retval = retval || holdJoints();
+	return retval;
+}
+
 int CLinkbotT::connect(char *name, int pause) {
 	// create simulation object if necessary
 	if (!_simObject)
@@ -1116,6 +1133,24 @@ int CLinkbotT::movexyWait(void) {
 		COND_WAIT(&_motion_cond, &_motion_mutex);
 	}
 	MUTEX_UNLOCK(&_motion_mutex);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::openGripper(double angle) {
+	this->openGripperNB(angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::openGripperNB(double angle) {
+	if (_type == LINKBOTL)
+		this->moveJointToNB(JOINT1, -angle);
+	else
+		this->moveToNB(-angle/2, 0, -angle/2);
 
 	// success
 	return 0;

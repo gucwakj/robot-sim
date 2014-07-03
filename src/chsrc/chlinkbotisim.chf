@@ -49,24 +49,15 @@ int CLinkbotI::blinkLED(double delay, int numBlinks) {
 }
 
 int CLinkbotI::closeGripper(void) {
-	double gripperAngleOld = 0;
-	double gripperAngleNew = 0;
+	void *fptr;
 	int retval;
 
-	retval = getJointAngle(JOINT1, gripperAngleNew);
-
-	while ( fabs(gripperAngleNew - gripperAngleOld) > 0.1 ) {
-		gripperAngleOld = gripperAngleNew;
-		retval = retval || getJointAngle(JOINT1, gripperAngleNew);
-		retval = retval || moveNB(8, NaN, 8);
-		delaySeconds(1);
-		retval = retval || getJointAngle(JOINT1, gripperAngleNew);
+	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_closeGripper_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
 	}
-
-	retval = retval || moveNB(8, NaN, 8);
-	delaySeconds(1);
-	retval = retval || holdJoints();
-
+	dlrunfun(fptr, &retval, NULL, this);
 	return retval;
 }
 
@@ -1144,11 +1135,29 @@ int CLinkbotI::movexyWait(void) {
 }
 
 int CLinkbotI::openGripper(double angle) {
-	return moveTo(-angle/2, NaN, -angle/2);
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_openGripper_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, openGripper, this, angle);
+    return retval;
 }
 
 int CLinkbotI::openGripperNB(double angle) {
-	return moveToNB(-angle/2, NaN, -angle/2);
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_openGripperNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, openGripperNB, this, angle);
+    return retval;
 }
 
 int CLinkbotI::point(double x, double y, double z, int pointsize, char *color) {
@@ -2075,6 +2084,19 @@ int CLinkbotIGroup::blinkLED(double delay, int numBlinks) {
     return retval;
 }
 
+int CLinkbotIGroup::closeGripper(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CLIG_closeGripper_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this);
+	return retval;
+}
+
 int CLinkbotIGroup::connect(void) {
     void *fptr;
     int retval;
@@ -2618,6 +2640,32 @@ int CLinkbotIGroup::moveWait(void) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveWait, this);
+    return retval;
+}
+
+int CLinkbotIGroup::openGripper(double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_openGripper_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, openGripper, this, angle);
+    return retval;
+}
+
+int CLinkbotIGroup::openGripperNB(double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_openGripperNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, openGripperNB, this, angle);
     return retval;
 }
 

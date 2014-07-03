@@ -58,6 +58,17 @@ int CLinkbotTGroup::blinkLED(double delay, int num) {
 	return 0;
 }
 
+int CLinkbotTGroup::closeGripper(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->closeGripper();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotTGroup::connect(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -441,6 +452,22 @@ int CLinkbotTGroup::moveWait(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveWait();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotTGroup::openGripper(double angle) {
+	openGripperNB(angle);
+	return moveWait();
+}
+
+int CLinkbotTGroup::openGripperNB(double angle) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->openGripperNB(angle);
 		rtmp = rtmp->next;
 	}
 
