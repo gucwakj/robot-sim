@@ -92,7 +92,7 @@ int CMobot::enableRecordDataShift(void) {
 
 int CMobot::getDistance(double &distance, double radius) {
 	double angle;
-	this->getJointAngleAverage(JOINT1, angle, 2);
+	this->getJointAngle(JOINT1, angle, 2);
 	distance = DEG2RAD(angle) * radius;
 
 	// success
@@ -106,14 +106,7 @@ int CMobot::getFormFactor(int &formFactor) {
 	return 0;
 }
 
-int CMobot::getJointAngleInstant(robotJointId_t id, double &angle) {
-	angle = RAD2DEG(this->getAngle(id));
-
-	// success
-	return 0;
-}
-
-int CMobot::getJointAngleAverage(robotJointId_t id, double &angle, int numReadings) {
+int CMobot::getJointAngle(robotJointId_t id, double &angle, int numReadings) {
 	//initialize variables
 	double d;
 	angle = 0;
@@ -133,21 +126,28 @@ int CMobot::getJointAngleAverage(robotJointId_t id, double &angle, int numReadin
 	return 0;
 }
 
-int CMobot::getJointAnglesInstant(double &angle1, double &angle2, double &angle3, double &angle4) {
-	this->getJointAngleInstant(JOINT1, angle1);
-	this->getJointAngleInstant(JOINT2, angle2);
-	this->getJointAngleInstant(JOINT3, angle3);
-	this->getJointAngleInstant(JOINT4, angle4);
+int CMobot::getJointAngleInstant(robotJointId_t id, double &angle) {
+	angle = RAD2DEG(this->getAngle(id));
 
 	// success
 	return 0;
 }
 
-int CMobot::getJointAnglesAverage(double &angle1, double &angle2, double &angle3, double &angle4, int numReadings) {
-	this->getJointAngleAverage(JOINT1, angle1, numReadings);
-	this->getJointAngleAverage(JOINT2, angle2, numReadings);
-	this->getJointAngleAverage(JOINT3, angle3, numReadings);
-	this->getJointAngleAverage(JOINT4, angle4, numReadings);
+int CMobot::getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4, int numReadings) {
+	this->getJointAngle(JOINT1, angle1, numReadings);
+	this->getJointAngle(JOINT2, angle2, numReadings);
+	this->getJointAngle(JOINT3, angle3, numReadings);
+	this->getJointAngle(JOINT4, angle4, numReadings);
+
+	// success
+	return 0;
+}
+
+int CMobot::getJointAnglesInstant(double &angle1, double &angle2, double &angle3, double &angle4) {
+	this->getJointAngleInstant(JOINT1, angle1);
+	this->getJointAngleInstant(JOINT2, angle2);
+	this->getJointAngleInstant(JOINT3, angle3);
+	this->getJointAngleInstant(JOINT4, angle4);
 
 	// success
 	return 0;

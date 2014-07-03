@@ -267,27 +267,14 @@ int CLinkbotI::getID(void) {
     return retval;
 }
 
-int CLinkbotI::getJointAngleInstant(int id, double & angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_getJointAngleInstant_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, NULL, this, id, &angle);
-    return retval;
-}
-
-int CLinkbotI::getJointAngleAverage(int id, double & angle, ...) {
+int CLinkbotI::getJointAngle(int id, double & angle, ...) {
     void *fptr;
     int retval;
     int numReadings;
     va_list ap;
     va_start(ap, angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_getJointAngleAverage_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_getJointAngle_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -302,27 +289,35 @@ int CLinkbotI::getJointAngleAverage(int id, double & angle, ...) {
     return retval;
 }
 
-int CLinkbotI::getJointAnglesInstant(double &angle1, double &angle2, double &angle3) {
+int CLinkbotI::getJointAngleAverage(int id, double & angle, ...) {
+	DEPRECATED("getJointAnglesAverage", "getJointAngles");
+	getJointAngles(angle1, angle2, angle3);
+
+	// success
+	return 0;
+}
+
+int CLinkbotI::getJointAngleInstant(int id, double & angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_getJointAnglesInstant_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_getJointAngleInstant_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, NULL, this, &angle1, &angle2, &angle3);
+    dlrunfun(fptr, &retval, NULL, this, id, &angle);
     return retval;
 }
 
-int CLinkbotI::getJointAnglesAverage(double &angle1, double &angle2, double &angle3, ...) {
+int CLinkbotI::getJointAngles(double &angle1, double &angle2, double &angle3, ...) {
     void *fptr;
     int retval;
     va_list ap;
     int numReadings;
     va_start(ap, angle3);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_getJointAnglesAverage_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_getJointAngles_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -334,6 +329,27 @@ int CLinkbotI::getJointAnglesAverage(double &angle1, double &angle2, double &ang
       dlrunfun(fptr, &retval, NULL, this, &angle1, &angle2, &angle3);
     }
     va_end(ap);
+    return retval;
+}
+
+int CLinkbotI::getJointAnglesAverage(double &angle1, double &angle2, double &angle3, ...) {
+	DEPRECATED("getJointAnglesAverage", "getJointAngles");
+	getJointAngles(angle1, angle2, angle3);
+
+	// success
+	return 0;
+}
+
+int CLinkbotI::getJointAnglesInstant(double &angle1, double &angle2, double &angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_getJointAnglesInstant_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, NULL, this, &angle1, &angle2, &angle3);
     return retval;
 }
 

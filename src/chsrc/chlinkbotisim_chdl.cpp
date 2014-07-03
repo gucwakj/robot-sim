@@ -267,6 +267,29 @@ EXPORTCH int CLinkbotI_getID_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotI_getJointAngle_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    int id;
+    double* angle;
+    int numReadings;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    id = Ch_VaArg(interp, ap, int);
+    angle = Ch_VaArg(interp, ap, double *);
+    if(Ch_VaCount(interp, ap) == 1) {
+      numReadings = Ch_VaArg(interp, ap, int);
+      retval = robot->getJointAngle((robotJointId_t)id, *angle, numReadings);
+    } else {
+      retval = robot->getJointAngle((robotJointId_t)id, *angle);
+    }
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotI_getJointAngleInstant_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -284,24 +307,26 @@ EXPORTCH int CLinkbotI_getJointAngleInstant_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotI_getJointAngleAverage_chdl(void *varg) {
+EXPORTCH int CLinkbotI_getJointAngles_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CLinkbotI *robot;
-    int id;
-    double* angle;
+    double* angle1;
+    double* angle2;
+    double* angle3;
     int numReadings;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    id = Ch_VaArg(interp, ap, int);
-    angle = Ch_VaArg(interp, ap, double *);
-    if(Ch_VaCount(interp, ap) == 1) {
+    angle1 = Ch_VaArg(interp, ap, double *);
+    angle2 = Ch_VaArg(interp, ap, double *);
+    angle3 = Ch_VaArg(interp, ap, double *);
+    if(Ch_VaCount(interp ,ap) == 1) {
       numReadings = Ch_VaArg(interp, ap, int);
-      retval = robot->getJointAngleAverage((robotJointId_t)id, *angle, numReadings);
+      retval = robot->getJointAngles(*angle1, *angle2, *angle3, numReadings);
     } else {
-      retval = robot->getJointAngleAverage((robotJointId_t)id, *angle);
+      retval = robot->getJointAngles(*angle1, *angle2, *angle3);
     }
     Ch_VaEnd(interp, ap);
     return retval;
@@ -322,31 +347,6 @@ EXPORTCH int CLinkbotI_getJointAnglesInstant_chdl(void *varg) {
     angle2 = Ch_VaArg(interp, ap, double *);
     angle3 = Ch_VaArg(interp, ap, double *);
     retval = robot->getJointAnglesInstant(*angle1, *angle2, *angle3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotI_getJointAnglesAverage_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotI *robot;
-    double* angle1;
-    double* angle2;
-    double* angle3;
-    int numReadings;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    angle1 = Ch_VaArg(interp, ap, double *);
-    angle2 = Ch_VaArg(interp, ap, double *);
-    angle3 = Ch_VaArg(interp, ap, double *);
-    if(Ch_VaCount(interp ,ap) == 1) {
-      numReadings = Ch_VaArg(interp, ap, int);
-      retval = robot->getJointAnglesAverage(*angle1, *angle2, *angle3, numReadings);
-    } else {
-      retval = robot->getJointAnglesAverage(*angle1, *angle2, *angle3);
-    }
     Ch_VaEnd(interp, ap);
     return retval;
 }

@@ -159,7 +159,7 @@ int CLinkbotT::getLEDColorRGB(int &r, int &g, int &b) {
 
 int CLinkbotT::getDistance(double &distance, double radius) {
 	double angle;
-	this->getJointAngleAverage(JOINT1, angle, 2);
+	this->getJointAngle(JOINT1, angle, 2);
 	distance = DEG2RAD(angle) * radius;
 
 	// success
@@ -177,14 +177,7 @@ int CLinkbotT::getID(void) {
 	return _id;
 }
 
-int CLinkbotT::getJointAngleInstant(robotJointId_t id, double &angle) {
-	angle = RAD2DEG(this->getAngle(id));
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::getJointAngleAverage(robotJointId_t id, double &angle, int numReadings) {
+int CLinkbotT::getJointAngle(robotJointId_t id, double &angle, int numReadings) {
 	//initialize variables
 	double d;
 	angle = 0;
@@ -204,19 +197,26 @@ int CLinkbotT::getJointAngleAverage(robotJointId_t id, double &angle, int numRea
 	return 0;
 }
 
-int CLinkbotT::getJointAnglesInstant(double &angle1, double &angle2, double &angle3) {
-	this->getJointAngleInstant(JOINT1, angle1);
-	this->getJointAngleInstant(JOINT2, angle2);
-	this->getJointAngleInstant(JOINT3, angle3);
+int CLinkbotT::getJointAngleInstant(robotJointId_t id, double &angle) {
+	angle = RAD2DEG(this->getAngle(id));
 
 	// success
 	return 0;
 }
 
-int CLinkbotT::getJointAnglesAverage(double &angle1, double &angle2, double &angle3, int numReadings) {
-	this->getJointAngleAverage(JOINT1, angle1, numReadings);
-	this->getJointAngleAverage(JOINT2, angle2, numReadings);
-	this->getJointAngleAverage(JOINT3, angle3, numReadings);
+int CLinkbotT::getJointAngles(double &angle1, double &angle2, double &angle3, int numReadings) {
+	this->getJointAngle(JOINT1, angle1, numReadings);
+	this->getJointAngle(JOINT2, angle2, numReadings);
+	this->getJointAngle(JOINT3, angle3, numReadings);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::getJointAnglesInstant(double &angle1, double &angle2, double &angle3) {
+	this->getJointAngleInstant(JOINT1, angle1);
+	this->getJointAngleInstant(JOINT2, angle2);
+	this->getJointAngleInstant(JOINT3, angle3);
 
 	// success
 	return 0;

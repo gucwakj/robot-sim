@@ -253,6 +253,29 @@ EXPORTCH int CMobot_getFormFactor_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_getJointAngle_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    int id;
+    double* angle;
+    int numReadings;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    id = Ch_VaArg(interp, ap, int);
+    angle = Ch_VaArg(interp, ap, double *);
+    if(Ch_VaCount(interp, ap) == 1) {
+      numReadings = Ch_VaArg(interp, ap, int);
+      retval = robot->getJointAngle((robotJointId_t)id, *angle, numReadings);
+    } else {
+      retval = robot->getJointAngle((robotJointId_t)id, *angle);
+    }
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_getJointAngleInstant_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -270,24 +293,28 @@ EXPORTCH int CMobot_getJointAngleInstant_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CMobot_getJointAngleAverage_chdl(void *varg) {
+EXPORTCH int CMobot_getJointAngles_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
     class CMobot *robot;
-    int id;
-    double* angle;
+    double* angle1;
+    double* angle2;
+    double* angle3;
+    double* angle4;
     int numReadings;
     int retval;
 
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CMobot *);
-    id = Ch_VaArg(interp, ap, int);
-    angle = Ch_VaArg(interp, ap, double *);
-    if(Ch_VaCount(interp, ap) == 1) {
+    angle1 = Ch_VaArg(interp, ap, double *);
+    angle2 = Ch_VaArg(interp, ap, double *);
+    angle3 = Ch_VaArg(interp, ap, double *);
+    angle4 = Ch_VaArg(interp, ap, double *);
+    if(Ch_VaCount(interp ,ap) == 1) {
       numReadings = Ch_VaArg(interp, ap, int);
-      retval = robot->getJointAngleAverage((robotJointId_t)id, *angle, numReadings);
+      retval = robot->getJointAngles(*angle1, *angle2, *angle3, *angle4, numReadings);
     } else {
-      retval = robot->getJointAngleAverage((robotJointId_t)id, *angle);
+      retval = robot->getJointAngles(*angle1, *angle2, *angle3, *angle4);
     }
     Ch_VaEnd(interp, ap);
     return retval;
@@ -310,33 +337,6 @@ EXPORTCH int CMobot_getJointAnglesInstant_chdl(void *varg) {
     angle3 = Ch_VaArg(interp, ap, double *);
     angle4 = Ch_VaArg(interp, ap, double *);
     retval = robot->getJointAnglesInstant(*angle1, *angle2, *angle3, *angle4);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CMobot_getJointAnglesAverage_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobot *robot;
-    double* angle1;
-    double* angle2;
-    double* angle3;
-    double* angle4;
-    int numReadings;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CMobot *);
-    angle1 = Ch_VaArg(interp, ap, double *);
-    angle2 = Ch_VaArg(interp, ap, double *);
-    angle3 = Ch_VaArg(interp, ap, double *);
-    angle4 = Ch_VaArg(interp, ap, double *);
-    if(Ch_VaCount(interp ,ap) == 1) {
-      numReadings = Ch_VaArg(interp, ap, int);
-      retval = robot->getJointAnglesAverage(*angle1, *angle2, *angle3, *angle4, numReadings);
-    } else {
-      retval = robot->getJointAnglesAverage(*angle1, *angle2, *angle3, *angle4);
-    }
     Ch_VaEnd(interp, ap);
     return retval;
 }

@@ -164,7 +164,37 @@ int CMobot::getFormFactor(int &formFactor) {
     return retval;
 }
 
-int CMobot::getJointAngleInstant(robotJointId_t id, double &angle) {
+int CMobot::getJointAngle(int id, double & angle, ...) {
+    void *fptr;
+    int retval;
+    int numReadings;
+    va_list ap;
+    va_start(ap, angle);
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_getJointAngle_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    if(va_count(ap) == 1) {
+      numReadings = va_arg(ap, int);
+      dlrunfun(fptr, &retval, NULL, this, id, &angle, numReadings);
+    } else {
+      dlrunfun(fptr, &retval, NULL, this, id, &angle);
+    }
+    va_end(ap);
+    return retval;
+}
+
+int CMobot::getJointAngleAverage(int id, double & angle, ...) {
+	DEPRECATED("getJointAnglesAverage", "getJointAngles");
+	getJointAngles(angle1, angle2, angle3);
+
+	// success
+	return 0;
+}
+
+int CMobot::getJointAngleInstant(int id, double & angle) {
     void *fptr;
     int retval;
 
@@ -177,27 +207,34 @@ int CMobot::getJointAngleInstant(robotJointId_t id, double &angle) {
     return retval;
 }
 
-int CMobot::getJointAngleAverage(robotJointId_t id, double &angle, ...) {
+int CMobot::getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4...) {
     void *fptr;
     int retval;
-    int numReadings;
     va_list ap;
-    va_start(ap, angle);
+    int numReadings;
+    va_start(ap, angle3);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_getJointAngleAverage_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_getJointAngles_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
     if(va_count(ap) == 1) {
-		numReadings = va_arg(ap, int);
-		dlrunfun(fptr, &retval, NULL, this, id, &angle, numReadings);
-    }
-	else {
-		dlrunfun(fptr, &retval, NULL, this, id, &angle);
+      numReadings = va_arg(ap, int);
+      dlrunfun(fptr, &retval, NULL, this, &angle1, &angle2, &angle3, &angle4, numReadings);
+    } else {
+      dlrunfun(fptr, &retval, NULL, this, &angle1, &angle2, &angle3, &angle4);
     }
     va_end(ap);
     return retval;
+}
+
+int CMobot::getJointAnglesAverage(double &angle1, double &angle2, double &angle3, double &angle4, ...) {
+	DEPRECATED("getJointAnglesAverage", "getJointAngles");
+	getJointAngles(angle1, angle2, angle3, angle4);
+
+	// success
+	return 0;
 }
 
 int CMobot::getJointAnglesInstant(double &angle1, double &angle2, double &angle3, double &angle4) {
@@ -210,29 +247,6 @@ int CMobot::getJointAnglesInstant(double &angle1, double &angle2, double &angle3
         return -1;
     }
     dlrunfun(fptr, &retval, NULL, this, &angle1, &angle2, &angle3, &angle4);
-    return retval;
-}
-
-int CMobot::getJointAnglesAverage(double &angle1, double &angle2, double &angle3, double &angle4, ...) {
-    void *fptr;
-    int retval;
-    va_list ap;
-    int numReadings;
-    va_start(ap, angle4);
-
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_getJointAnglesAverage_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    if(va_count(ap) == 1) {
-		numReadings = va_arg(ap, int);
-		dlrunfun(fptr, &retval, NULL, this, &angle1, &angle2, &angle3, &angle4, numReadings);
-    }
-	else {
-		dlrunfun(fptr, &retval, NULL, this, &angle1, &angle2, &angle3, &angle4);
-    }
-    va_end(ap);
     return retval;
 }
 
