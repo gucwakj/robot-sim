@@ -190,6 +190,19 @@ int CLinkbotI::driveDistanceNB(double distance, double radius) {
     return retval;
 }
 
+int CLinkbotI::driveForeverNB(void) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_driveForeverNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveForeverNB, this);
+    return retval;
+}
+
 int CLinkbotI::driveForward(double angle) {
     void *fptr;
     int retval;
@@ -2259,6 +2272,19 @@ int CLinkbotIGroup::driveDistanceNB(double distance, double radius) {
         return -1;
     }
     dlrunfun(fptr, &retval, driveDistanceNB, this, distance, radius);
+    return retval;
+}
+
+int CLinkbotIGroup::driveForeverNB(void) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveForeverNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveForeverNB, this);
     return retval;
 }
 

@@ -102,6 +102,17 @@ int CMobotGroup::driveDistanceNB(double distance, double radius) {
 	return 0;
 }
 
+int CMobotGroup::driveForeverNB(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveForeverNB();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobotGroup::driveForward(double angle) {
 	driveForwardNB(angle);
 	return moveWait();

@@ -31,6 +31,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int driveBackwardNB(double angle);
 		int driveDistance(double distance, double radius);
 		int driveDistanceNB(double distance, double radius);
+		int driveForeverNB(void);
 		int driveForward(double angle);
 		int driveForwardNB(double angle);
 		int drivexy(double x, double y, double radius, double trackwidth);
@@ -289,6 +290,7 @@ class CMobotGroup {
 		int driveBackwardNB(double angle);
 		int driveDistance(double distance, double radius);
 		int driveDistanceNB(double distance, double radius);
+		int driveForeverNB(void);
 		int driveForward(double angle);
 		int driveForwardNB(double angle);
 		int holdJoint(robotJointId_t id);

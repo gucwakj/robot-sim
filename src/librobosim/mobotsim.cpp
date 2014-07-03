@@ -112,6 +112,14 @@ int CMobot::driveDistanceNB(double distance, double radius) {
 	return 0;
 }
 
+int CMobot::driveForeverNB(void) {
+	this->moveJointForeverNB(JOINT1);
+	this->moveJointForeverNB(JOINT4);
+
+	// success
+	return 0;
+}
+
 int CMobot::driveForward(double angle) {
 	this->driveForwardNB(angle);
 	this->moveWait();

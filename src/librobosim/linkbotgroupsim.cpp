@@ -112,6 +112,17 @@ int CLinkbotTGroup::driveDistanceNB(double distance, double radius) {
 	return 0;
 }
 
+int CLinkbotTGroup::driveForeverNB(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveForeverNB();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotTGroup::driveForward(double angle) {
 	driveForwardNB(angle);
 	return moveWait();

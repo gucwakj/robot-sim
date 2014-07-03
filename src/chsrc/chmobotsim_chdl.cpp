@@ -196,6 +196,19 @@ EXPORTCH int CMobot_driveDistanceNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_driveForeverNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    retval = robot->driveForeverNB();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_driveForward_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2415,6 +2428,19 @@ EXPORTCH int CMG_driveDistanceNB_chdl(void *varg) {
     distance = Ch_VaArg(interp, ap, double);
     radius = Ch_VaArg(interp, ap, double);
     retval = robot->driveDistanceNB(distance, radius);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CMG_driveForeverNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobotGroup *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobotGroup *);
+    retval = robot->driveForeverNB();
     Ch_VaEnd(interp, ap);
     return retval;
 }

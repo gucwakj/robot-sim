@@ -143,6 +143,19 @@ int CLinkbotT::driveDistanceNB(double distance, double radius) {
 	return 0;
 }
 
+int CLinkbotT::driveForeverNB(void) {
+	// negate speed to act as a car
+	_speed[JOINT3] = -_speed[JOINT3];
+
+	// set joint movements
+	this->moveJointForeverNB(JOINT1);
+	this->moveJointForeverNB(JOINT2);
+	this->moveJointForeverNB(JOINT3);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::driveForward(double angle) {
 	this->driveForwardNB(angle);
 	this->moveWait();
@@ -787,9 +800,6 @@ int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 }
 
 int CLinkbotT::moveForeverNB(void) {
-	// negate speed to act as a car
-	_speed[JOINT3] = -_speed[JOINT3];
-
 	// set joint movements
 	this->moveJointForeverNB(JOINT1);
 	this->moveJointForeverNB(JOINT2);

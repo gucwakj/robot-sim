@@ -209,6 +209,19 @@ EXPORTCH int CLinkbotI_driveDistanceNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotI_driveForeverNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    retval = robot->driveForeverNB();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotI_driveForward_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2309,6 +2322,19 @@ EXPORTCH int CLIG_driveDistanceNB_chdl(void *varg) {
     distance = Ch_VaArg(interp, ap, double);
     radius = Ch_VaArg(interp, ap, double);
     retval = robot->driveDistanceNB(distance, radius);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLIG_driveForeverNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotIGroup *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
+    retval = robot->driveForeverNB();
     Ch_VaEnd(interp, ap);
     return retval;
 }
