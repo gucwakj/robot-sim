@@ -80,6 +80,54 @@ int CLinkbotTGroup::connect(void) {
 	return 0;
 }
 
+int CLinkbotTGroup::driveBackward(double angle) {
+	driveBackwardNB(angle);
+	return moveWait();
+}
+
+int CLinkbotTGroup::driveBackwardNB(double angle) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveBackwardNB(angle);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotTGroup::driveDistance(double distance, double radius) {
+	driveDistanceNB(distance, radius);
+	return moveWait();
+}
+
+int CLinkbotTGroup::driveDistanceNB(double distance, double radius) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveDistanceNB(distance, radius);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotTGroup::driveForward(double angle) {
+	driveForwardNB(angle);
+	return moveWait();
+}
+
+int CLinkbotTGroup::driveForwardNB(double angle) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveForwardNB(angle);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotTGroup::holdJoint(robotJointId_t id) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -179,58 +227,10 @@ int CLinkbotTGroup::moveNB(double angle1, double angle2, double angle3) {
 	return 0;
 }
 
-int CLinkbotTGroup::moveBackward(double angle) {
-	moveBackwardNB(angle);
-	return moveWait();
-}
-
-int CLinkbotTGroup::moveBackwardNB(double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveBackwardNB(angle);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::moveDistance(double distance, double radius) {
-	moveDistanceNB(distance, radius);
-	return moveWait();
-}
-
-int CLinkbotTGroup::moveDistanceNB(double distance, double radius) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveDistanceNB(distance, radius);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CLinkbotTGroup::moveForeverNB(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveForeverNB();
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::moveForward(double angle) {
-	moveForwardNB(angle);
-	return moveWait();
-}
-
-int CLinkbotTGroup::moveForwardNB(double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveForwardNB(angle);
 		rtmp = rtmp->next;
 	}
 

@@ -82,6 +82,51 @@ int CMobot::disconnect(void) {
 	return 0;
 }
 
+int CMobot::driveBackward(double angle) {
+	this->driveBackwardNB(angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::driveBackwardNB(double angle) {
+	this->moveNB(-angle, 0, 0, -angle);
+
+	// success
+	return 0;
+}
+
+int CMobot::driveDistance(double distance, double radius) {
+	this->driveForwardNB(RAD2DEG(distance/radius));
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::driveDistanceNB(double distance, double radius) {
+	this->driveForwardNB(RAD2DEG(distance/radius));
+
+	// success
+	return 0;
+}
+
+int CMobot::driveForward(double angle) {
+	this->driveForwardNB(angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::driveForwardNB(double angle) {
+	this->moveNB(angle, 0, 0, angle);
+
+	// success
+	return 0;
+}
+
 int CMobot::drivexy(double x, double y, double radius, double trackwidth) {
 	// get current position
 	double x0, y0;
@@ -162,7 +207,7 @@ int CMobot::drivexyTo(double x, double y, double radius, double trackwidth) {
 
 	// move along length of line
 	this->getxy(x0, y0);
-	this->moveDistance(sqrt(x*x - 2*x*x0 + x0*x0 + y*y - 2*y*y0 + y0*y0), radius);
+	this->driveDistance(sqrt(x*x - 2*x*x0 + x0*x0 + y*y - 2*y*y0 + y0*y0), radius);
 
 	// success
 	return 0;
@@ -1096,56 +1141,11 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 	return 0;
 }
 
-int CMobot::moveBackward(double angle) {
-	this->moveBackwardNB(angle);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CMobot::moveBackwardNB(double angle) {
-	this->moveNB(-angle, 0, 0, -angle);
-
-	// success
-	return 0;
-}
-
-int CMobot::moveDistance(double distance, double radius) {
-	this->moveForwardNB(RAD2DEG(distance/radius));
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CMobot::moveDistanceNB(double distance, double radius) {
-	this->moveForwardNB(RAD2DEG(distance/radius));
-
-	// success
-	return 0;
-}
-
 int CMobot::moveForeverNB(void) {
 	this->moveJointForeverNB(JOINT1);
 	this->moveJointForeverNB(JOINT2);
 	this->moveJointForeverNB(JOINT3);
 	this->moveJointForeverNB(JOINT4);
-
-	// success
-	return 0;
-}
-
-int CMobot::moveForward(double angle) {
-	this->moveForwardNB(angle);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CMobot::moveForwardNB(double angle) {
-	this->moveNB(angle, 0, 0, angle);
 
 	// success
 	return 0;

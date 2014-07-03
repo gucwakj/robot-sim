@@ -691,32 +691,6 @@ int CLinkbotL::moveNB(double angle1, double angle2, double angle3) {
     return retval;
 }
 
-int CLinkbotL::moveBackward(double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_moveBackward_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveBackward, this, angle);
-    return retval;
-}
-
-int CLinkbotL::moveBackwardNB(double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_moveBackwardNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveBackwardNB, this, angle);
-    return retval;
-}
-
 int CLinkbotL::moveForeverNB(void) {
     void *fptr;
     int retval;

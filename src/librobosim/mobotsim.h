@@ -27,6 +27,12 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
+		int driveBackward(double angle);
+		int driveBackwardNB(double angle);
+		int driveDistance(double distance, double radius);
+		int driveDistanceNB(double distance, double radius);
+		int driveForward(double angle);
+		int driveForwardNB(double angle);
 		int drivexy(double x, double y, double radius, double trackwidth);
 		int drivexyNB(double x, double y, double radius, double trackwidth);
 		int drivexyTo(double x, double y, double radius, double trackwidth);
@@ -98,13 +104,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int motionWait(void);
 		int move(double angle1, double angle2, double angle3, double angle4);
 		int moveNB(double angle1, double angle2, double angle3, double angle4);
-		int moveBackward(double angle);
-		int moveBackwardNB(double angle);
-		int moveDistance(double distance, double radius);
-		int moveDistanceNB(double distance, double radius);
 		int moveForeverNB(void);
-		int moveForward(double angle);
-		int moveForwardNB(double angle);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointForeverNB(robotJointId_t id);
@@ -285,6 +285,12 @@ class CMobotGroup {
 #endif
 		int blinkLED(double delay, int num);
 		int connect(void);
+		int driveBackward(double angle);
+		int driveBackwardNB(double angle);
+		int driveDistance(double distance, double radius);
+		int driveDistanceNB(double distance, double radius);
+		int driveForward(double angle);
+		int driveForwardNB(double angle);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
@@ -323,13 +329,7 @@ class CMobotGroup {
 		int motionWait(void);
 		int move(double angle1, double angle2, double angle3, double angle4);
 		int moveNB(double angle1, double angle2, double angle3, double angle4);
-		int moveBackward(double angle);
-		int moveBackwardNB(double angle);
-		int moveDistance(double distance, double radius);
-		int moveDistanceNB(double distance, double radius);
 		int moveForeverNB(void);
-		int moveForward(double angle);
-		int moveForwardNB(double angle);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointForeverNB(robotJointId_t id);

@@ -70,6 +70,54 @@ int CMobotGroup::connect(void) {
 	return 0;
 }
 
+int CMobotGroup::driveBackward(double angle) {
+	driveBackwardNB(angle);
+	return moveWait();
+}
+
+int CMobotGroup::driveBackwardNB(double angle) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveBackwardNB(angle);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CMobotGroup::driveDistance(double distance, double radius) {
+	driveDistanceNB(distance, radius);
+	return moveWait();
+}
+
+int CMobotGroup::driveDistanceNB(double distance, double radius) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveDistanceNB(distance, radius);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CMobotGroup::driveForward(double angle) {
+	driveForwardNB(angle);
+	return moveWait();
+}
+
+int CMobotGroup::driveForwardNB(double angle) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveForwardNB(angle);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobotGroup::jumpJointTo(robotJointId_t id, double angle) {
 	jumpJointToNB(id, angle);
 	return moveWait();
@@ -412,58 +460,10 @@ int CMobotGroup::moveNB(double angle1, double angle2, double angle3, double angl
 	return 0;
 }
 
-int CMobotGroup::moveBackward(double angle) {
-	moveBackwardNB(angle);
-	return moveWait();
-}
-
-int CMobotGroup::moveBackwardNB(double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveBackwardNB(angle);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::moveDistance(double distance, double radius) {
-	moveDistanceNB(distance, radius);
-	return moveWait();
-}
-
-int CMobotGroup::moveDistanceNB(double distance, double radius) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveDistanceNB(distance, radius);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CMobotGroup::moveForeverNB(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveForeverNB();
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::moveForward(double angle) {
-	moveForwardNB(angle);
-	return moveWait();
-}
-
-int CMobotGroup::moveForwardNB(double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveForwardNB(angle);
 		rtmp = rtmp->next;
 	}
 

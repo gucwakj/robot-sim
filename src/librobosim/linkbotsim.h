@@ -32,6 +32,12 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
+		int driveBackward(double angle);
+		int driveBackwardNB(double angle);
+		int driveDistance(double distance, double radius);
+		int driveDistanceNB(double distance, double radius);
+		int driveForward(double angle);
+		int driveForwardNB(double angle);
 		int drivexy(double x, double y, double radius, double trackwidth);
 		int drivexyNB(double x, double y, double radius, double trackwidth);
 		int drivexyTo(double x, double y, double radius, double trackwidth);
@@ -92,13 +98,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #endif // ENABLE_GRAPHICS
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
-		int moveBackward(double angle);
-		int moveBackwardNB(double angle);
-		int moveDistance(double distance, double radius);
-		int moveDistanceNB(double distance, double radius);
 		int moveForeverNB(void);
-		int moveForward(double angle);
-		int moveForwardNB(double angle);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointForeverNB(robotJointId_t id);
@@ -287,6 +287,12 @@ class DLLIMPORT CLinkbotTGroup {
 #endif
 		int closeGripper(void);
 		int connect(void);
+		int driveBackward(double angle);
+		int driveBackwardNB(double angle);
+		int driveDistance(double distance, double radius);
+		int driveDistanceNB(double distance, double radius);
+		int driveForward(double angle);
+		int driveForwardNB(double angle);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
@@ -298,13 +304,7 @@ class DLLIMPORT CLinkbotTGroup {
 		int jumpToNB(double angle1, double angle2, double angle3);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
-		int moveBackward(double angle);
-		int moveBackwardNB(double angle);
-		int moveDistance(double distance, double radius);
-		int moveDistanceNB(double distance, double radius);
 		int moveForeverNB(void);
-		int moveForward(double angle);
-		int moveForwardNB(double angle);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointForeverNB(robotJointId_t id);
@@ -380,6 +380,12 @@ class DLLIMPORT CLinkbotI {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
+		int driveBackward(double angle);
+		int driveBackwardNB(double angle);
+		int driveDistance(double distance, double radius);
+		int driveDistanceNB(double distance, double radius);
+		int driveForward(double angle);
+		int driveForwardNB(double angle);
 		int drivexy(double x, double y, double radius, double trackwidth);
 		int drivexyNB(double x, double y, double radius, double trackwidth);
 		int drivexyTo(double x, double y, double radius, double trackwidth);
@@ -430,13 +436,13 @@ class DLLIMPORT CLinkbotI {
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
-		int moveBackward(double angle);
-		int moveBackwardNB(double angle);
-		int moveDistance(double distance, double radius);
-		int moveDistanceNB(double distance, double radius);
+		int moveBackward(double angle);		// deprecated
+		int moveBackwardNB(double angle);		// deprecated
+		int moveDistance(double distance, double radius);		// deprecated
+		int moveDistanceNB(double distance, double radius);		// deprecated
 		int moveForeverNB(void);
-		int moveForward(double angle);
-		int moveForwardNB(double angle);
+		int moveForward(double angle);		// deprecated
+		int moveForwardNB(double angle);		// deprecated
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointForeverNB(robotJointId_t id);
@@ -525,6 +531,12 @@ class DLLIMPORT CLinkbotIGroup {
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
 		int connect(void);
+		int driveBackward(double angle);
+		int driveBackwardNB(double angle);
+		int driveDistance(double distance, double radius);
+		int driveDistanceNB(double distance, double radius);
+		int driveForward(double angle);
+		int driveForwardNB(double angle);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
@@ -536,13 +548,13 @@ class DLLIMPORT CLinkbotIGroup {
 		int jumpToNB(double angle1, double angle2, double angle3);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
-		int moveBackward(double angle);
-		int moveBackwardNB(double angle);
-		int moveDistance(double distance, double radius);
-		int moveDistanceNB(double distance, double radius);
+		int moveBackward(double angle);		// deprecated
+		int moveBackwardNB(double angle);		// deprecated
+		int moveDistance(double distance, double radius);		// deprecated
+		int moveDistanceNB(double distance, double radius);		// deprecated
 		int moveForeverNB(void);
-		int moveForward(double angle);
-		int moveForwardNB(double angle);
+		int moveForward(double angle);		// deprecated
+		int moveForwardNB(double angle);		// deprecated
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointForeverNB(robotJointId_t id);
@@ -661,8 +673,6 @@ class DLLIMPORT CLinkbotL {
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
-		int moveBackward(double angle);
-		int moveBackwardNB(double angle);
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
@@ -762,8 +772,6 @@ class DLLIMPORT CLinkbotLGroup {
 		int jumpToNB(double angle1, double angle2, double angle3);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
-		int moveBackward(double angle);
-		int moveBackwardNB(double angle);
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);

@@ -138,6 +138,84 @@ int CLinkbotI::disconnect(void) {
     return retval;
 }
 
+int CLinkbotI::driveBackward(double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_driveBackward_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveBackward, this, angle);
+    return retval;
+}
+
+int CLinkbotI::driveBackwardNB(double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_driveBackwardNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveBackwardNB, this, angle);
+    return retval;
+}
+
+int CLinkbotI::driveDistance(double distance, double radius) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_driveDistance_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveDistance, this, distance, radius);
+    return retval;
+}
+
+int CLinkbotI::driveDistanceNB(double distance, double radius) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_driveDistanceNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveDistanceNB, this, distance, radius);
+    return retval;
+}
+
+int CLinkbotI::driveForward(double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_driveForward_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveForward, this, angle);
+    return retval;
+}
+
+int CLinkbotI::driveForwardNB(double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_driveForwardNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveForwardNB, this, angle);
+    return retval;
+}
+
 int CLinkbotI::drivexy(double x, double y, double radius, double trackwidth) {
     void *fptr;
     int retval;
@@ -761,55 +839,51 @@ int CLinkbotI::moveNB(double angle1, double angle2, double angle3) {
 }
 
 int CLinkbotI::moveBackward(double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("moveBackward", "driveBackward");
+	driveBackward(angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveBackward_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveBackward, this, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::moveBackwardNB(double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("moveBackwardNB", "driveBackwardNB");
+	driveBackwardNB(angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveBackwardNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveBackwardNB, this, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::moveDistance(double distance, double radius) {
-    void *fptr;
-    int retval;
+	DEPRECATED("moveDistance", "driveDistance");
+	driveDistance(distance, radius);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveDistance_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveDistance, this, distance, radius);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::moveDistanceNB(double distance, double radius) {
-    void *fptr;
-    int retval;
+	DEPRECATED("moveDistanceNB", "driveDistanceNB");
+	driveDistanceNB(distance, radius);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveDistanceNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveDistanceNB, this, distance, radius);
-    return retval;
+	// success
+	return 0;
+}
+
+int CLinkbotI::moveForward(double angle) {
+	DEPRECATED("moveForward", "driveForward");
+	driveForward(angle);
+
+	// success
+	return 0;
+}
+
+int CLinkbotI::moveForwardNB(double angle) {
+	DEPRECATED("moveForwardNB", "driveForwardNB");
+	driveForwardNB(angle);
+
+	// success
+	return 0;
 }
 
 int CLinkbotI::moveForeverNB(void) {
@@ -822,32 +896,6 @@ int CLinkbotI::moveForeverNB(void) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveForeverNB, this);
-    return retval;
-}
-
-int CLinkbotI::moveForward(double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveForward_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveForward, this, angle);
-    return retval;
-}
-
-int CLinkbotI::moveForwardNB(double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveForwardNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveForwardNB, this, angle);
     return retval;
 }
 
@@ -2162,6 +2210,84 @@ int CLinkbotIGroup::connect(void) {
     return retval;
 }
 
+int CLinkbotIGroup::driveBackward(double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveBackward_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveBackward, this, angle);
+    return retval;
+}
+
+int CLinkbotIGroup::driveBackwardNB(double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveBackwardNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveBackwardNB, this, angle);
+    return retval;
+}
+
+int CLinkbotIGroup::driveDistance(double distance, double radius) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveDistance_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveDistance, this, distance, radius);
+    return retval;
+}
+
+int CLinkbotIGroup::driveDistanceNB(double distance, double radius) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveDistanceNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveDistanceNB, this, distance, radius);
+    return retval;
+}
+
+int CLinkbotIGroup::driveForward(double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveForward_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveForward, this, angle);
+    return retval;
+}
+
+int CLinkbotIGroup::driveForwardNB(double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveForwardNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, driveForwardNB, this, angle);
+    return retval;
+}
+
 int CLinkbotIGroup::holdJoint(robotJointId_t id) {
     void *fptr;
     int retval;
@@ -2306,55 +2432,51 @@ int CLinkbotIGroup::moveNB(double angle1, double angle2, double angle3) {
 }
 
 int CLinkbotIGroup::moveBackward(double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("moveBackward", "driveBackward");
+	driveBackward(angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_moveBackward_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveBackward, this, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::moveBackwardNB(double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("moveBackwardNB", "driveBackwardNB");
+	driveBackwardNB(angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_moveBackwardNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveBackwardNB, this, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::moveDistance(double distance, double radius) {
-    void *fptr;
-    int retval;
+	DEPRECATED("moveDistance", "driveDistance");
+	driveDistance(distance, radius);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_moveDistance_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveDistance, this, distance, radius);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::moveDistanceNB(double distance, double radius) {
-    void *fptr;
-    int retval;
+	DEPRECATED("moveDistanceNB", "driveDistanceNB");
+	driveDistanceNB(distance, radius);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_moveDistanceNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveDistanceNB, this, distance, radius);
-    return retval;
+	// success
+	return 0;
+}
+
+int CLinkbotIGroup::moveForward(double angle) {
+	DEPRECATED("moveForward", "driveForward");
+	driveForward(angle);
+
+	// success
+	return 0;
+}
+
+int CLinkbotIGroup::moveForwardNB(double angle) {
+	DEPRECATED("moveForwardNB", "driveForwardNB");
+	driveForwardNB(angle);
+
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::moveForeverNB(void) {
@@ -2367,32 +2489,6 @@ int CLinkbotIGroup::moveForeverNB(void) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveForeverNB, this);
-    return retval;
-}
-
-int CLinkbotIGroup::moveForward(double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_moveForward_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveForward, this, angle);
-    return retval;
-}
-
-int CLinkbotIGroup::moveForwardNB(double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_moveForwardNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveForwardNB, this, angle);
     return retval;
 }
 
