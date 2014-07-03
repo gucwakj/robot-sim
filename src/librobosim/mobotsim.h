@@ -30,8 +30,8 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int enableRecordDataShift(void);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
-		int getJointAngle(robotJointId_t id, double &angle);
-		int getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4);
+		int getJointAngleInstant(robotJointId_t id, double &angle);
+		int getJointAnglesInstant(double &angle1, double &angle2, double &angle3, double &angle4);
 #ifdef _CH_
 		int getJointAngleAverage(robotJointId_t id, double &angle, ...);
 		int getJointAnglesAverage(double &angle1, double &angle2, double &angle3, double &angle4, ...);

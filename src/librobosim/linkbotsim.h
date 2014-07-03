@@ -43,8 +43,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getID(void);
-		int getJointAngle(robotJointId_t id, double &angle);
-		int getJointAngles(double &angle1, double &angle2, double &angle3);
+		int getJointAngleInstant(robotJointId_t id, double &angle);
+		int getJointAnglesInstant(double &angle1, double &angle2, double &angle3);
 #ifdef _CH_
 		int getJointAngleAverage(robotJointId_t id, double &angle, ...);
 		int getJointAnglesAverage(double &angle1, double &angle2, double &angle3, ...);
@@ -388,9 +388,9 @@ class DLLIMPORT CLinkbotI {
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getID(void);
-		int getJointAngle(robotJointId_t id, double &angle);
+		int getJointAngleInstant(robotJointId_t id, double &angle);
 		int getJointAngleAverage(robotJointId_t id, double &angle, ... );
-		int getJointAngles(double &angle1, double &angle2, double &angle3);
+		int getJointAnglesInstant(double &angle1, double &angle2, double &angle3);
 		int getJointAnglesAverage(double &angle1, double &angle2, double &angle3, ...);
 		int getJointMaxSpeed(robotJointId_t id, double &maxSpeed);
 		int getJointSafetyAngle(double &angle);
@@ -623,9 +623,9 @@ class DLLIMPORT CLinkbotL {
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
 		int getID(void);
-		int getJointAngle(robotJointId_t id, double &angle);
+		int getJointAngleInstant(robotJointId_t id, double &angle);
 		int getJointAngleAverage(robotJointId_t id, double &angle, ... );
-		int getJointAngles(double &angle1, double &angle2, double &angle3);
+		int getJointAnglesInstant(double &angle1, double &angle2, double &angle3);
 		int getJointAnglesAverage(double &angle1, double &angle2, double &angle3, ...);
 		int getJointMaxSpeed(robotJointId_t id, double &maxSpeed);
 		int getJointSafetyAngle(double &angle);

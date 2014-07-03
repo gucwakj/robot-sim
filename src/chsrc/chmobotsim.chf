@@ -164,11 +164,11 @@ int CMobot::getFormFactor(int &formFactor) {
     return retval;
 }
 
-int CMobot::getJointAngle(robotJointId_t id, double &angle) {
+int CMobot::getJointAngleInstant(robotJointId_t id, double &angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_getJointAngle_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_getJointAngleInstant_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -200,11 +200,11 @@ int CMobot::getJointAngleAverage(robotJointId_t id, double &angle, ...) {
     return retval;
 }
 
-int CMobot::getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4) {
+int CMobot::getJointAnglesInstant(double &angle1, double &angle2, double &angle3, double &angle4) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_getJointAngles_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_getJointAnglesInstant_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;

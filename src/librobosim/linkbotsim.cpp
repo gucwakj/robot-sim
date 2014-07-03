@@ -42,13 +42,13 @@ int CLinkbotT::blinkLED(double delay, int num) {
 int CLinkbotT::closeGripper(void) {
 	double gripperAngleOld = 0;
 	double gripperAngleNew = 0;
-	int retval = getJointAngle(JOINT1, gripperAngleNew);
+	int retval = getJointAngleInstant(JOINT1, gripperAngleNew);
 	while ( fabs(gripperAngleNew - gripperAngleOld) > 0.1 ) {
 		gripperAngleOld = gripperAngleNew;
-		retval = retval || getJointAngle(JOINT1, gripperAngleNew);
+		retval = retval || getJointAngleInstant(JOINT1, gripperAngleNew);
 		retval = retval || moveNB(8, 0, 8);
 		delaySeconds(1);
-		retval = retval || getJointAngle(JOINT1, gripperAngleNew);
+		retval = retval || getJointAngleInstant(JOINT1, gripperAngleNew);
 	}
 	retval = retval || moveNB(8, 0, 8);
 	delaySeconds(1);
@@ -177,7 +177,7 @@ int CLinkbotT::getID(void) {
 	return _id;
 }
 
-int CLinkbotT::getJointAngle(robotJointId_t id, double &angle) {
+int CLinkbotT::getJointAngleInstant(robotJointId_t id, double &angle) {
 	angle = RAD2DEG(this->getAngle(id));
 
 	// success
@@ -191,7 +191,7 @@ int CLinkbotT::getJointAngleAverage(robotJointId_t id, double &angle, int numRea
 
 	// get joint angle numReadings times
 	for (int i = 0; i < numReadings; i++) {
-		if (this->getJointAngle(id, d)) {
+		if (this->getJointAngleInstant(id, d)) {
 			return -1;
 		}
 		angle += d;
@@ -204,10 +204,10 @@ int CLinkbotT::getJointAngleAverage(robotJointId_t id, double &angle, int numRea
 	return 0;
 }
 
-int CLinkbotT::getJointAngles(double &angle1, double &angle2, double &angle3) {
-	this->getJointAngle(JOINT1, angle1);
-	this->getJointAngle(JOINT2, angle2);
-	this->getJointAngle(JOINT3, angle3);
+int CLinkbotT::getJointAnglesInstant(double &angle1, double &angle2, double &angle3) {
+	this->getJointAngleInstant(JOINT1, angle1);
+	this->getJointAngleInstant(JOINT2, angle2);
+	this->getJointAngleInstant(JOINT3, angle3);
 
 	// success
 	return 0;

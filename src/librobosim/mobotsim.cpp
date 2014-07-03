@@ -106,7 +106,7 @@ int CMobot::getFormFactor(int &formFactor) {
 	return 0;
 }
 
-int CMobot::getJointAngle(robotJointId_t id, double &angle) {
+int CMobot::getJointAngleInstant(robotJointId_t id, double &angle) {
 	angle = RAD2DEG(this->getAngle(id));
 
 	// success
@@ -120,7 +120,7 @@ int CMobot::getJointAngleAverage(robotJointId_t id, double &angle, int numReadin
 
 	// get joint angle numReadings times
 	for (int i = 0; i < numReadings; i++) {
-		if(this->getJointAngle(id, d)) {
+		if(this->getJointAngleInstant(id, d)) {
 			return -1;
 		}
 		angle += d;
@@ -133,11 +133,11 @@ int CMobot::getJointAngleAverage(robotJointId_t id, double &angle, int numReadin
 	return 0;
 }
 
-int CMobot::getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4) {
-	this->getJointAngle(JOINT1, angle1);
-	this->getJointAngle(JOINT2, angle2);
-	this->getJointAngle(JOINT3, angle3);
-	this->getJointAngle(JOINT4, angle4);
+int CMobot::getJointAnglesInstant(double &angle1, double &angle2, double &angle3, double &angle4) {
+	this->getJointAngleInstant(JOINT1, angle1);
+	this->getJointAngleInstant(JOINT2, angle2);
+	this->getJointAngleInstant(JOINT3, angle3);
+	this->getJointAngleInstant(JOINT4, angle4);
 
 	// success
 	return 0;
@@ -509,8 +509,8 @@ int CMobot::motionRollBackwardNB(double angle) {
 
 int CMobot::motionRollForward(double angle) {
 	double motorPosition[2];
-	this->getJointAngle(JOINT1, motorPosition[0]);
-	this->getJointAngle(JOINT4, motorPosition[1]);
+	this->getJointAngleInstant(JOINT1, motorPosition[0]);
+	this->getJointAngleInstant(JOINT4, motorPosition[1]);
 	this->moveJointToNB(JOINT1, motorPosition[0] + angle);
 	this->moveJointToNB(JOINT4, motorPosition[1] + angle);
 	this->moveWait();
