@@ -585,22 +585,6 @@ int CMobotGroup::moveJointToNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CMobotGroup::moveJointToDirect(robotJointId_t id, double angle) {
-	moveJointToDirectNB(id, angle);
-	return moveWait();
-}
-
-int CMobotGroup::moveJointToDirectNB(robotJointId_t id, double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveJointToDirectNB(id, angle);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CMobotGroup::moveJointWait(robotJointId_t id) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -657,22 +641,6 @@ int CMobotGroup::moveToNB(double angle1, double angle2, double angle3, double an
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveToNB(angle1, angle2, angle3, angle4);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::moveToDirect(double angle1, double angle2, double angle3, double angle4) {
-	moveToDirectNB(angle1, angle2, angle3, angle4);
-	return moveWait();
-}
-
-int CMobotGroup::moveToDirectNB(double angle1, double angle2, double angle3, double angle4) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveToDirectNB(angle1, angle2, angle3, angle4);
 		rtmp = rtmp->next;
 	}
 
@@ -1133,11 +1101,11 @@ void* CMobotGroup::motionUnstandThread(void* arg) {
 	CMobotGroup *cmg = (CMobotGroup *)arg;
 
 	// move
-	cmg->moveToDirect(0, 0, 0, 0);
+	cmg->moveTo(0, 0, 0, 0);
 	cmg->moveJointTo(JOINT3, 45);
 	cmg->moveJointTo(JOINT2, -85);
 	cmg->moveWait();
-	cmg->moveToDirect(0, 0, 0, 0);
+	cmg->moveTo(0, 0, 0, 0);
 	cmg->moveJointTo(JOINT2, 20);
 
 	// motion is complete

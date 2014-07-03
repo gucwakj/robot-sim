@@ -352,22 +352,6 @@ int CLinkbotTGroup::moveJointToNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CLinkbotTGroup::moveJointToDirect(robotJointId_t id, double angle) {
-	moveJointToDirectNB(id, angle);
-	return moveWait();
-}
-
-int CLinkbotTGroup::moveJointToDirectNB(robotJointId_t id, double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveJointToDirectNB(id, angle);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CLinkbotTGroup::moveJointWait(robotJointId_t id) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -424,22 +408,6 @@ int CLinkbotTGroup::moveToNB(double angle1, double angle2, double angle3) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveToNB(angle1, angle2, angle3);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::moveToDirect(double angle1, double angle2, double angle3) {
-	moveToDirectNB(angle1, angle2, angle3);
-	return moveWait();
-}
-
-int CLinkbotTGroup::moveToDirectNB(double angle1, double angle2, double angle3) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveToDirectNB(angle1, angle2, angle3);
 		rtmp = rtmp->next;
 	}
 
