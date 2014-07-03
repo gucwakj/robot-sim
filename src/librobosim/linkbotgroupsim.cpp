@@ -137,8 +137,20 @@ int CLinkbotTGroup::blinkLED(double delay, int num) {
 
 int CLinkbotTGroup::closeGripper(void) {
 	robots_t rtmp = _robots;
+	while (rtmp->next) {
+		rtmp->robot->closeGripperNB();
+		rtmp = rtmp->next;
+	}
+	rtmp->robot->closeGripper();
+
+	// success
+	return 0;
+}
+
+int CLinkbotTGroup::closeGripperNB(void) {
+	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->closeGripper();
+		rtmp->robot->closeGripperNB();
 		rtmp = rtmp->next;
 	}
 

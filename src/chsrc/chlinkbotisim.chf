@@ -152,6 +152,19 @@ int CLinkbotI::closeGripper(void) {
 	return retval;
 }
 
+int CLinkbotI::closeGripperNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_closeGripperNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this);
+	return retval;
+}
+
 int CLinkbotI::connect(...) {
 	void *fptr;
 	int retval;
@@ -2449,6 +2462,19 @@ int CLinkbotIGroup::closeGripper(void) {
 	int retval;
 
 	fptr = dlsym(RoboSim::_dlhandle, "CLIG_closeGripper_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this);
+	return retval;
+}
+
+int CLinkbotIGroup::closeGripperNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CLIG_closeGripperNB_chdl");
 	if(fptr == NULL) {
 		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
 		return -1;

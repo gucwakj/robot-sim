@@ -91,6 +91,41 @@ int CLinkbotT::closeGripper(void) {
 	return retval;
 }
 
+void* CLinkbotT::closeGripperNBThread(void *arg) {
+	// cast arg
+	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->closeGripper();
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+int CLinkbotT::closeGripperNB(void) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
+	mArg->robot = this;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, closeGripperNBThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::connect(char *name, int pause) {
 	// create simulation object if necessary
 	if (!_simObject)

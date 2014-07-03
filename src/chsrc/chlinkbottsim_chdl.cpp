@@ -199,6 +199,19 @@ EXPORTCH int CLinkbotT_closeGripper_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotT_closeGripperNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotT *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
+    retval = robot->closeGripperNB();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotT_connect_chdl(void *varg) {
 	ChInterp_t interp;
 	ChVaList_t ap;
@@ -2608,6 +2621,19 @@ EXPORTCH int CLTG_closeGripper_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
     retval = robot->closeGripper();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLTG_closeGripperNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotTGroup *robot;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
+    retval = robot->closeGripperNB();
     Ch_VaEnd(interp, ap);
     return retval;
 }

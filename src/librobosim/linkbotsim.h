@@ -30,6 +30,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
+		int closeGripperNB(void);
 #ifdef _CH_
 		int connect(...);
 #else
@@ -258,6 +259,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int init_params(int disabled, int type);											// initialize robot parameters
 		int init_dims(void);																// initialize robot dimensions
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);					// modify angle to count continuously
+		static void* closeGripperNBThread(void *arg);										// thread to close gripper
 		static void* driveTimeNBThread(void *arg);											// thread to drive robot
 		static void* drivexyThread(void *arg);												// thread to run drivexy
 		static void* drivexyToThread(void *arg);											// thread to run drivexy
@@ -307,6 +309,7 @@ class DLLIMPORT CLinkbotTGroup {
 #endif
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
+		int closeGripperNB(void);
 		int connect(void);
 		int driveAccelCycloidNB(double radius, double d, double t);
 		int driveAccelDistanceNB(double radius, double a, double d);
@@ -409,6 +412,7 @@ class DLLIMPORT CLinkbotI {
 		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
+		int closeGripperNB(void);
 		int connect(...);
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
@@ -577,6 +581,7 @@ class DLLIMPORT CLinkbotIGroup {
 		int addRobots(array CLinkbotI robots[], ...);
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
+		int closeGripperNB(void);
 		int connect(void);
 		int driveAccelCycloidNB(double radius, double d, double t);
 		int driveAccelDistanceNB(double radius, double a, double d);
@@ -684,6 +689,7 @@ class DLLIMPORT CLinkbotL {
 		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
+		int closeGripperNB(void);
 		int connect(...);
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
@@ -818,6 +824,7 @@ class DLLIMPORT CLinkbotLGroup {
 		int addRobots(array CLinkbotL robots[], ...);
 		int blinkLED(double delay, int num);
 		int closeGripper(void);
+		int closeGripperNB(void);
 		int connect(void);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
