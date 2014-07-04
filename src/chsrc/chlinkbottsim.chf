@@ -721,7 +721,7 @@ int CLinkbotT::getJointAngle(int id, double & angle, ...) {
 
 int CLinkbotT::getJointAngleAverage(int id, double & angle, ...) {
 	DEPRECATED("getJointAnglesAverage", "getJointAngles");
-	getJointAngles(angle1, angle2, angle3);
+	getJointAngle(id, angle);
 
 	// success
 	return 0;
@@ -1056,54 +1056,6 @@ int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
     return retval;
 }
 
-int CLinkbotT::moveBackward(double angle) {
-	DEPRECATED("moveBackward", "driveBackward");
-	driveBackward(angle);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveBackwardNB(double angle) {
-	DEPRECATED("moveBackwardNB", "driveBackwardNB");
-	driveBackwardNB(angle);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveDistance(double distance, double radius) {
-	DEPRECATED("moveDistance", "driveDistance");
-	driveDistance(distance, radius);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveDistanceNB(double distance, double radius) {
-	DEPRECATED("moveDistanceNB", "driveDistanceNB");
-	driveDistanceNB(distance, radius);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveForward(double angle) {
-	DEPRECATED("moveForward", "driveForward");
-	driveForward(angle);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveForwardNB(double angle) {
-	DEPRECATED("moveForwardNB", "driveForwardNB");
-	driveForwardNB(angle);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::moveForeverNB(void) {
     void *fptr;
     int retval;
@@ -1310,94 +1262,6 @@ int CLinkbotT::moveWait(void) {
     }
     dlrunfun(fptr, &retval, moveWait, this);
     return retval;
-}
-
-int CLinkbotT::movexy(double x, double y, double radius, double trackwidth) {
-	DEPRECATED("movexy", "drivexy");
-	drivexy(x, y, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyNB(double x, double y, double radius, double trackwidth) {
-	DEPRECATED("movexyNB", "drivexyNB");
-	drivexyNB(x, y, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyTo(double x, double y, double radius, double trackwidth) {
-	DEPRECATED("movexyTo", "drivexyTo");
-	drivexyTo(x, y, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyToNB(double x, double y, double radius, double trackwidth) {
-	DEPRECATED("movexyToNB", "drivexyToNB");
-	drivexyToNB(x, y, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyToExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth) {
-	DEPRECATED("movexyToExpr", "drivexyToExpr");
-	drivexyToExpr(x0, xf, n, expr, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyToExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth) {
-	DEPRECATED("movexyToExprNB", "drivexyToExprNB");
-	drivexyToExprNB(x0, xf, n, expr, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
-	DEPRECATED("movexyToFunc", "drivexyToFunc");
-	drivexyToFunc(x0, xf, n, func, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
-	DEPRECATED("movexyToFuncNB", "drivexyToFuncNB");
-	drivexyToFuncNB(x0, xf, n, func, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
-	DEPRECATED("movexyToPoly", "drivexyToPoly");
-	drivexy(x0, xf, n, poly, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
-	DEPRECATED("movexyToPolyNB", "drivexyToPolyNB");
-	drivexyToPolyNB(x0, xf, n, poly, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::movexyWait(void) {
-	DEPRECATED("movexyWait", "drivexyWait");
-	drivexyWait();
-
-	// success
-	return 0;
 }
 
 int CLinkbotT::openGripper(double angle) {
@@ -2637,54 +2501,6 @@ int CLinkbotTGroup::moveNB(double angle1, double angle2, double angle3) {
     }
     dlrunfun(fptr, &retval, moveNB, this, angle1, angle2, angle3);
     return retval;
-}
-
-int CLinkbotTGroup::moveBackward(double angle) {
-	DEPRECATED("moveBackward", "driveBackward");
-	driveBackward(angle);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::moveBackwardNB(double angle) {
-	DEPRECATED("moveBackwardNB", "driveBackwardNB");
-	driveBackwardNB(angle);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::moveDistance(double distance, double radius) {
-	DEPRECATED("moveDistance", "driveDistance");
-	driveDistance(distance, radius);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::moveDistanceNB(double distance, double radius) {
-	DEPRECATED("moveDistanceNB", "driveDistanceNB");
-	driveDistanceNB(distance, radius);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::moveForward(double angle) {
-	DEPRECATED("moveForward", "driveForward");
-	driveForward(angle);
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::moveForwardNB(double angle) {
-	DEPRECATED("moveForwardNB", "driveForwardNB");
-	driveForwardNB(angle);
-
-	// success
-	return 0;
 }
 
 int CLinkbotTGroup::moveForeverNB(void) {

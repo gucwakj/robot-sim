@@ -78,7 +78,7 @@ int CLinkbotI::accelJointSmoothNB(robotJointId_t id, double accel0, double accel
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_driveAccelSmoothNB_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_accelJointSmoothNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -281,7 +281,7 @@ int CLinkbotI::driveAccelHarmonicNB(double radius, double distance, double time)
     return retval;
 }
 
-int CLinkbotI::driveAccelSmoothNB(int id, double accel0, double accelf, double vmax, double angle) {
+int CLinkbotI::driveAccelSmoothNB(double radius, double accel0, double accelf, double vmax, double distance) {
     void *fptr;
     int retval;
 
@@ -290,7 +290,7 @@ int CLinkbotI::driveAccelSmoothNB(int id, double accel0, double accelf, double v
         fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, NULL, this, id, accel0, accelf, vmax, angle);
+    dlrunfun(fptr, &retval, NULL, this, radius, accel0, accelf, vmax, distance);
     return retval;
 }
 
@@ -424,6 +424,22 @@ int CLinkbotI::driveForwardNB(double angle) {
     return retval;
 }
 
+int CLinkbotI::driveJointTo(robotJointId_t id, double angle) {
+	DEPRECATED("driveJointTo", "jumpJointTo");
+	jumpJointTo(id, angle);
+
+	// success
+	return 0;
+}
+
+int CLinkbotI::driveJointToNB(robotJointId_t id, double angle) {
+	DEPRECATED("driveJointToNB", "jumpJointToNB");
+	jumpJointToNB(id, angle);
+
+	// success
+	return 0;
+}
+
 int CLinkbotI::driveTime(double seconds) {
     void *fptr;
     int retval;
@@ -448,6 +464,22 @@ int CLinkbotI::driveTimeNB(double seconds) {
     }
     dlrunfun(fptr, &retval, driveTimeNB, this, seconds);
     return retval;
+}
+
+int CLinkbotI::driveTo(double angle1, double angle2, double angle3) {
+	DEPRECATED("driveTo", "jumpTo");
+	jumpTo(angle1, angle2, angle3);
+
+	// success
+	return 0;
+}
+
+int CLinkbotI::driveToNB(double angle1, double angle2, double angle3) {
+	DEPRECATED("driveToNB", "jumpToNB");
+	jumpToNB(angle1, angle2, angle3);
+
+	// success
+	return 0;
 }
 
 int CLinkbotI::drivexy(double x, double y, double radius, double trackwidth) {
@@ -737,7 +769,7 @@ int CLinkbotI::getJointAngle(int id, double & angle, ...) {
 
 int CLinkbotI::getJointAngleAverage(int id, double & angle, ...) {
 	DEPRECATED("getJointAnglesAverage", "getJointAngles");
-	getJointAngles(angle1, angle2, angle3);
+	getJointAngle(id, angle);
 
 	// success
 	return 0;
@@ -1394,7 +1426,7 @@ int CLinkbotI::movexyToFuncNB(double x0, double xf, int n, double (*func)(double
 
 int CLinkbotI::movexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
 	DEPRECATED("movexyToPoly", "drivexyToPoly");
-	drivexy(x0, xf, n, poly, radius, trackwidth);
+	drivexyToPoly(x0, xf, n, poly, radius, trackwidth);
 
 	// success
 	return 0;
@@ -2678,6 +2710,22 @@ int CLinkbotIGroup::driveForwardNB(double angle) {
     return retval;
 }
 
+int CLinkbotIGroup::driveJointTo(robotJointId_t id, double angle) {
+	DEPRECATED("driveJointTo", "jumpJointTo");
+	driveJointTo(id, angle);
+
+	// success
+	return 0;
+}
+
+int CLinkbotIGroup::driveJointToNB(robotJointId_t id, double angle) {
+	DEPRECATED("driveJointToNB", "jumpJointToNB");
+	driveJointToNB(id, angle);
+
+	// success
+	return 0;
+}
+
 int CLinkbotIGroup::driveTime(double seconds) {
     void *fptr;
     int retval;
@@ -2702,6 +2750,22 @@ int CLinkbotIGroup::driveTimeNB(double seconds) {
     }
     dlrunfun(fptr, &retval, driveTimeNB, this, seconds);
     return retval;
+}
+
+int CLinkbotIGroup::driveTo(double angle1, double angle2, double angle3) {
+	DEPRECATED("driveTo", "jumpTo");
+	jumpTo(angle1, angle2, angle3);
+
+	// success
+	return 0;
+}
+
+int CLinkbotIGroup::driveToNB(double angle1, double angle2, double angle3) {
+	DEPRECATED("driveToNB", "jumpToNB");
+	jumpToNB(angle1, angle2, angle3);
+
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::holdJoint(robotJointId_t id) {

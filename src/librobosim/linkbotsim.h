@@ -432,8 +432,12 @@ class DLLIMPORT CLinkbotI {
 		int driveForeverNB(void);
 		int driveForward(double angle);
 		int driveForwardNB(double angle);
+		int driveJointTo(robotJointId_t id, double angle);		// deprecated
+		int driveJointToNB(robotJointId_t id, double angle);		// deprecated
 		int driveTime(double seconds);
 		int driveTimeNB(double seconds);
+		int driveTo(double angle1, double angle2, double angle3);		// deprecated
+		int driveToNB(double angle1, double angle2, double angle3);		// deprecated
 		int drivexy(double x, double y, double radius, double trackwidth);
 		int drivexyNB(double x, double y, double radius, double trackwidth);
 		int drivexyTo(double x, double y, double radius, double trackwidth);
@@ -506,6 +510,17 @@ class DLLIMPORT CLinkbotI {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
+		int movexy(double x, double y, double radius, double trackwidth);		// deprecated
+		int movexyNB(double x, double y, double radius, double trackwidth);		// deprecated
+		int movexyTo(double x, double y, double radius, double trackwidth);		// deprecated
+		int movexyToNB(double x, double y, double radius, double trackwidth);		// deprecated
+		int movexyToExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth);		// deprecated
+		int movexyToExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth);		// deprecated
+		int movexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);		// deprecated
+		int movexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);		// deprecated
+		int movexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);		// deprecated
+		int movexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);		// deprecated
+		int movexyWait(void);		// deprecated
 		int openGripper(double angle);
 		int openGripperNB(double angle);
 		int point(double x, double y, double z, int pointsize, char *color);
@@ -597,8 +612,12 @@ class DLLIMPORT CLinkbotIGroup {
 		int driveForeverNB(void);
 		int driveForward(double angle);
 		int driveForwardNB(double angle);
+		int driveJointTo(robotJointId_t id, double angle);		// deprecated
+		int driveJointToNB(robotJointId_t id, double angle);		// deprecated
 		int driveTime(double seconds);
 		int driveTimeNB(double seconds);
+		int driveTo(double angle1, double angle2, double angle3);		// deprecated
+		int driveToNB(double angle1, double angle2, double angle3);		// deprecated
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
@@ -695,6 +714,10 @@ class DLLIMPORT CLinkbotL {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
+		int driveJointTo(robotJointId_t id, double angle);		// deprecated
+		int driveJointToNB(robotJointId_t id, double angle);		// deprecated
+		int driveTo(double angle1, double angle2, double angle3);		// deprecated
+		int driveToNB(double angle1, double angle2, double angle3);		// deprecated
 		int enableRecordDataShift(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getBatteryVoltage(double &voltage);
@@ -826,6 +849,10 @@ class DLLIMPORT CLinkbotLGroup {
 		int closeGripper(void);
 		int closeGripperNB(void);
 		int connect(void);
+		int driveJointTo(robotJointId_t id, double angle);		// deprecated
+		int driveJointToNB(robotJointId_t id, double angle);		// deprecated
+		int driveTo(double angle1, double angle2, double angle3);		// deprecated
+		int driveToNB(double angle1, double angle2, double angle3);		// deprecated
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);

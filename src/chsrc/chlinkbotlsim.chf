@@ -242,6 +242,38 @@ int CLinkbotL::disconnect(void) {
     return retval;
 }
 
+int CLinkbotL::driveJointTo(robotJointId_t id, double angle) {
+	DEPRECATED("driveJointTo", "jumpJointTo");
+	driveJointTo(id, angle);
+
+	// success
+	return 0;
+}
+
+int CLinkbotL::driveJointToNB(robotJointId_t id, double angle) {
+	DEPRECATED("driveJointToNB", "jumpJointToNB");
+	driveJointToNB(id, angle);
+
+	// success
+	return 0;
+}
+
+int CLinkbotL::driveTo(double angle1, double angle2, double angle3) {
+	DEPRECATED("driveTo", "jumpTo");
+	jumpTo(angle1, angle2, angle3);
+
+	// success
+	return 0;
+}
+
+int CLinkbotL::driveToNB(double angle1, double angle2, double angle3) {
+	DEPRECATED("driveToNB", "jumpToNB");
+	jumpToNB(angle1, angle2, angle3);
+
+	// success
+	return 0;
+}
+
 int CLinkbotL::enableRecordDataShift(void) {
 	void *fptr;
 	int retval;
@@ -395,7 +427,7 @@ int CLinkbotL::getJointAngle(int id, double & angle, ...) {
 
 int CLinkbotL::getJointAngleAverage(int id, double & angle, ...) {
 	DEPRECATED("getJointAnglesAverage", "getJointAngles");
-	getJointAngles(angle1, angle2, angle3);
+	getJointAngle(id, angle);
 
 	// success
 	return 0;
@@ -1977,6 +2009,38 @@ int CLinkbotLGroup::connect(void) {
     return retval;
 }
 
+int CLinkbotLGroup::driveJointTo(robotJointId_t id, double angle) {
+	DEPRECATED("driveJointTo", "jumpJointTo");
+	driveJointTo(id, angle);
+
+	// success
+	return 0;
+}
+
+int CLinkbotLGroup::driveJointToNB(robotJointId_t id, double angle) {
+	DEPRECATED("driveJointToNB", "jumpJointToNB");
+	driveJointToNB(id, angle);
+
+	// success
+	return 0;
+}
+
+int CLinkbotLGroup::driveTo(double angle1, double angle2, double angle3) {
+	DEPRECATED("driveTo", "jumpTo");
+	jumpTo(angle1, angle2, angle3);
+
+	// success
+	return 0;
+}
+
+int CLinkbotLGroup::driveToNB(double angle1, double angle2, double angle3) {
+	DEPRECATED("driveToNB", "jumpToNB");
+	jumpToNB(angle1, angle2, angle3);
+
+	// success
+	return 0;
+}
+
 int CLinkbotLGroup::holdJoint(robotJointId_t id) {
     void *fptr;
     int retval;
@@ -2117,32 +2181,6 @@ int CLinkbotLGroup::moveNB(double angle1, double angle2, double angle3) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveNB, this, angle1, angle2, angle3);
-    return retval;
-}
-
-int CLinkbotLGroup::moveBackward(double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLLG_moveBackward_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveBackward, this, angle);
-    return retval;
-}
-
-int CLinkbotLGroup::moveBackwardNB(double angle) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLLG_moveBackwardNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, moveBackwardNB, this, angle);
     return retval;
 }
 
