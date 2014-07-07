@@ -2017,20 +2017,6 @@ int CLinkbotT::relaxJoints(void) {
 	return 0;
 }
 
-int CLinkbotT::reset(void) {
-	MUTEX_LOCK(&_angle_mutex);
-	for (int i = 0; i < NUM_DOF; i++) {
-		_offset[i] = _angle[i];
-		_angle[i] = 0;
-		_goal[i] -= _offset[i];
-		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
-	}
-	MUTEX_UNLOCK(&_angle_mutex);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::resetToZero(void) {
 	this->resetToZeroNB();
 	this->moveWait();

@@ -1950,19 +1950,6 @@ EXPORTCH int CLinkbotT_relaxJoints_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotT_reset_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotT *robot;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotT *);
-    retval = robot->reset();
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLinkbotT_resetToZero_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3342,19 +3329,6 @@ EXPORTCH int CLTG_relaxJoints_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
     retval = robot->relaxJoints();
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLTG_reset_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotTGroup *robot;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotTGroup *);
-    retval = robot->reset();
     Ch_VaEnd(interp, ap);
     return retval;
 }

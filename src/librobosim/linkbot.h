@@ -163,7 +163,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int recordWait(void);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);
@@ -354,7 +353,6 @@ class DLLIMPORT CLinkbotTGroup {
 		int openGripperNB(double angle);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);
@@ -532,7 +530,7 @@ class DLLIMPORT CLinkbotI {
 		int recordxyEnd(int &num);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset(void);
+		int reset(void);		// deprecated
 		int resetToZero(void);
 		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);
@@ -647,7 +645,7 @@ class DLLIMPORT CLinkbotIGroup {
 		int openGripperNB(double angle);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset(void);
+		int reset(void);		// deprecated
 		int resetToZero(void);
 		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);
@@ -784,7 +782,7 @@ class DLLIMPORT CLinkbotL {
 		int recordxyEnd(int &num);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset(void);
+		int reset(void);		// deprecated
 		int resetToZero(void);
 		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);
@@ -876,7 +874,7 @@ class DLLIMPORT CLinkbotLGroup {
 		int openGripperNB(double angle);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset(void);
+		int reset(void);		// deprecated
 		int resetToZero(void);
 		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);

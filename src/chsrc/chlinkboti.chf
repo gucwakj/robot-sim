@@ -1764,16 +1764,11 @@ int CLinkbotI::relaxJoints(void) {
 }
 
 int CLinkbotI::reset(void) {
-    void *fptr;
-    int retval;
+	DEPRECATED("reset", "resetToZero");
+	resetToZero();
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_reset_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, reset, this);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::resetToZero(void) {
@@ -3201,16 +3196,11 @@ int CLinkbotIGroup::relaxJoints(void) {
 }
 
 int CLinkbotIGroup::reset(void) {
-    void *fptr;
-    int retval;
+	DEPRECATED("reset", "resetToZero");
+	resetToZero();
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_reset_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, reset, this);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::resetToZero(void) {

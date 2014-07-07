@@ -646,17 +646,6 @@ int CLinkbotTGroup::relaxJoints(void) {
 	return 0;
 }
 
-int CLinkbotTGroup::reset(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->reset();
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CLinkbotTGroup::resetToZero(void) {
 	resetToZeroNB();
 	return moveWait();
