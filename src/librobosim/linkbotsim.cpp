@@ -20,36 +20,50 @@ CLinkbotT::~CLinkbotT(void) {
 }
 
 int CLinkbotT::accelJointAngleNB(robotJointId_t id, double a, double angle) {
+	fprintf(stderr, "Warning: accelJointAngleNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
 
 int CLinkbotT::accelJointCycloidNB(robotJointId_t id, double angle, double t) {
+	fprintf(stderr, "Warning: accelJointCycloidNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
 
 int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double t) {
+	fprintf(stderr, "Warning: accelJointHarmonicNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
 
 int CLinkbotT::accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle) {
+	fprintf(stderr, "Warning: accelJointSmoothNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
 
 int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
+	fprintf(stderr, "Warning: accelJointTimeNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
 
 int CLinkbotT::accelJointToMaxSpeedNB(robotJointId_t id, double a) {
+	fprintf(stderr, "Warning: accelJointToMaxSpeedNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
 
 int CLinkbotT::accelJointToVelocityNB(robotJointId_t id, double a, double v) {
+	fprintf(stderr, "Warning: accelJointToVelocityNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
@@ -184,36 +198,50 @@ int CLinkbotT::disconnect(void) {
 }
 
 int CLinkbotT::driveAccelCycloidNB(double radius, double d, double t) {
+	fprintf(stderr, "Warning: driveAccelCycloidNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
 
 int CLinkbotT::driveAccelDistanceNB(double radius, double a, double d) {
+	fprintf(stderr, "Warning: driveAccelDistanceNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
 
 int CLinkbotT::driveAccelHarmonicNB(double radius, double d, double t) {
+	fprintf(stderr, "Warning: driveAccelHarmonicNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
 
 int CLinkbotT::driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d) {
+	fprintf(stderr, "Warning: driveAccelSmoothNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
 
 int CLinkbotT::driveAccelTimeNB(double radius, double a, double t) {
+	fprintf(stderr, "Warning: driveAccelTimeNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
 
 int CLinkbotT::driveAccelToMaxSpeedNB(double radius, double a) {
+	fprintf(stderr, "Warning: driveAccelToMaxSpeedNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
 
 int CLinkbotT::driveAccelToVelocityNB(double radius, double a, double v) {
+	fprintf(stderr, "Warning: driveAccelToVelocityNB not yet implemented in RoboSim.  Please use hardware robots.");
+
 	// success
 	return 0;
 }
