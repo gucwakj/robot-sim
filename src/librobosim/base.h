@@ -217,6 +217,11 @@ class DLLIMPORT CRobot {
 			POSITIVE,
 			NEGATIVE,
 		} robotJointState_t;
+		typedef enum robot_motor_mode_e {
+			ACCEL_CONST = 0,
+			CONTINUOUS,
+			SEEK,
+		} robotMotorMode_t;
 
 		// recording angles struct
 		typedef struct recordAngleArg_s {
@@ -246,7 +251,6 @@ class DLLIMPORT CRobot {
 		bool _motion;			// motion in progress
 		bool *_recording;		// recording in progress
 		bool *_rec_active;		// actively recording a new value
-		bool *_seek;			// currently seeking goal?
 		bool *_success;			// trigger for goal
 		conn_t _conn;			// connectors
 		dBodyID *_body;			// body parts
@@ -255,6 +259,7 @@ class DLLIMPORT CRobot {
 		dJointID *_motor;		// motors
 		dSpaceID _space;		// space for this robot
 		dWorldID _world;		// world for all robots
+		double *_alpha;			// motor acceleration
 		double _accel[3];		// accelerometer data
 		double *_angle;			// angles
 		double *_clock;			// world clock
@@ -287,6 +292,8 @@ class DLLIMPORT CRobot {
 		int _disabled;			// which joint is disabled
 		int *_enabled;			// list of enabled motors
 		int _id;				// robot id
+		int *_mode;				// robot motor modes
+		int *_mode_timeout;		// robot motor modes
 		int *_rec_num;			// recording data points
 		int _seed;				// seed for random number generation
 		int _shift_data;		// shift recorded data or not

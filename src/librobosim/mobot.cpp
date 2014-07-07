@@ -1157,7 +1157,7 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 		dJointEnable(_motor[j]);
 		if (_speed[j] < -EPSILON) delta[j] = -delta[j];
 		_goal[j] += DEG2RAD(delta[j]);
-		_seek[j] = true;
+		_mode[j] = SEEK;
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		_success[j] = false;
 	}
@@ -1199,7 +1199,7 @@ int CMobot::moveJointNB(robotJointId_t id, double angle) {
 	_goal[id] += DEG2RAD(angle);
 
 	// actively seeking an angle
-	_seek[id] = true;
+	_mode[id] = SEEK;
 
 	// enable motor
 	MUTEX_LOCK(&_angle_mutex);
@@ -1227,7 +1227,7 @@ int CMobot::moveJointForeverNB(robotJointId_t id) {
 	// enable motor
 	dJointEnable(_motor[id]);
 	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
-	_seek[id] = false;
+	_mode[id] = CONTINUOUS;
 	if ( _speed[id] > EPSILON )
 		_state[id] = POSITIVE;
 	else if ( _speed[id] < EPSILON )
@@ -1282,7 +1282,7 @@ int CMobot::moveJointToNB(robotJointId_t id, double angle) {
 	_goal[id] = DEG2RAD(angle);
 
 	// actively seeking an angle
-	_seek[id] = true;
+	_mode[id] = SEEK;
 
 	// enable motor
 	MUTEX_LOCK(&_angle_mutex);
@@ -1360,7 +1360,7 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
 	for (int j = 0; j < NUM_DOF; j++) {
 		dJointEnable(_motor[j]);
 		_goal[j] += delta[j];
-		_seek[j] = true;
+		_mode[j] = SEEK;
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
 		_success[j] = false;
 	}
@@ -1390,7 +1390,7 @@ int CMobot::moveWait(void) {
 		COND_WAIT(&_success_cond, &_success_mutex);
 	}
 	for (int i = 0; i < NUM_DOF; i++) {
-		_seek[i] = false;
+		_mode[i] = CONTINUOUS;
 	}
 	MUTEX_UNLOCK(&_success_mutex);
 
@@ -2671,35 +2671,37 @@ void CMobot::simPreCollisionThread(void) {
 		// set motor angle to current angle
 		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
 		// drive motor to get current angle to match future angle
-		if (_seek[i]) {
-			if (_angle[i] < _goal[i] - _encoder) {
-				_state[i] = POSITIVE;
-				dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i]));
-			}
-			else if (_angle[i] > _goal[i] + _encoder) {
-				_state[i] = NEGATIVE;
-				dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i]));
-			}
-			else {
-				_state[i] = HOLD;
-				dJointSetAMotorParam(_motor[i], dParamVel, 0);
-			}
-		}
-		else {
-			switch (_state[i]) {
-				case POSITIVE:
+		switch (_mode[i]) {
+			case CONTINUOUS:
+				switch (_state[i]) {
+					case POSITIVE:
+						dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i]));
+						break;
+					case NEGATIVE:
+						dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i]));
+						break;
+					case HOLD:
+						dJointSetAMotorParam(_motor[i], dParamVel, 0);
+						break;
+					case NEUTRAL:
+						dJointDisable(_motor[i]);
+						break;
+				}
+				break;
+			case SEEK:
+				if (_angle[i] < _goal[i] - _encoder) {
+					_state[i] = POSITIVE;
 					dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i]));
-					break;
-				case NEGATIVE:
+				}
+				else if (_angle[i] > _goal[i] + _encoder) {
+					_state[i] = NEGATIVE;
 					dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i]));
-					break;
-				case HOLD:
+				}
+				else {
+					_state[i] = HOLD;
 					dJointSetAMotorParam(_motor[i], dParamVel, 0);
-					break;
-				case NEUTRAL:
-					dJointDisable(_motor[i]);
-					break;
-			}
+				}
+				break;
 		}
 	}
 
@@ -4069,13 +4071,14 @@ int CMobot::init_params(void) {
 	_joint = new dJointID[6];
 	_max_force = new double[NUM_DOF];
 	_max_speed = new double[NUM_DOF];
+	_mode = new int[NUM_DOF];
+	_mode_timeout = new int[NUM_DOF];
 	_motor = new dJointID[NUM_DOF];
 	_offset = new double[NUM_DOF];
 	_rec_active = new bool[NUM_DOF];
 	_rec_angles = new double ** [NUM_DOF];
 	_rec_num = new int[NUM_DOF];
 	_recording = new bool[NUM_DOF];
-	_seek = new bool[NUM_DOF];
 	_speed = new double[NUM_DOF];
 	_state = new int[NUM_DOF];
 	_success = new bool[NUM_DOF];
@@ -4085,11 +4088,12 @@ int CMobot::init_params(void) {
 		_angle[i] = 0;
 		_goal[i] = 0;
 		_max_speed[i] = 120;		// deg/sec
+		_mode[i] = SEEK;
+		_mode_timeout[i] = 0;
 		_offset[i] = 0;
 		_rec_active[i] = false;
 		_rec_num[i] = 0;
 		_recording[i] = false;
-		_seek[i] = false;
 		_speed[i] = 0.7854;			// 45 deg/sec
 		_state[i] = NEUTRAL;
 		_success[i] = true;

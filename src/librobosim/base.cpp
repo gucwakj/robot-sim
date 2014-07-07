@@ -40,7 +40,6 @@ CRobot::~CRobot(void) {
 	delete [] _rec_angles;
 	delete [] _rec_num;
 	delete [] _recording;
-	delete [] _seek;
 	delete [] _speed;
 	delete [] _state;
 	delete [] _success;
