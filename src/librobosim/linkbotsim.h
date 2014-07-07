@@ -927,11 +927,6 @@ int RoboSim::_dlcount = 0;
 #pragma importf "chlinkbotlsim.chf"
 #pragma importf "chlinkbottsim.chf"
 #else
-typedef struct linkbotMotionArg_s {
-	int i;
-	double d;
-	CLinkbotT *robot;
-} linkbotMotionArg_t;
 typedef struct linkbotMoveArg_s {
 	double x, y, radius, trackwidth;
 	int i;
