@@ -29,10 +29,10 @@ int CLinkbotTGroup::accelJointAngleNB(robotJointId_t id, double a, double angle)
 	return 0;
 }
 
-int CLinkbotTGroup::accelJointCycloidNB(robotJointId_t id, double angle, double t) {
+int CLinkbotTGroup::accelJointCycloidalNB(robotJointId_t id, double angle, double t) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->accelJointCycloidNB(id, angle, t);
+		rtmp->robot->accelJointCycloidalNB(id, angle, t);
 		rtmp = rtmp->next;
 	}
 
@@ -169,10 +169,10 @@ int CLinkbotTGroup::connect(void) {
 	return 0;
 }
 
-int CLinkbotTGroup::driveAccelCycloidNB(double radius, double d, double t) {
+int CLinkbotTGroup::driveAccelCycloidalNB(double radius, double d, double t) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
-		rtmp->robot->driveAccelCycloidNB(radius, d, t);
+		rtmp->robot->driveAccelCycloidalNB(radius, d, t);
 		rtmp = rtmp->next;
 	}
 

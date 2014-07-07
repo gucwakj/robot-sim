@@ -53,7 +53,7 @@ EXPORTCH int CLinkbotI_accelJointAngleNB_chdl(void *varg) {
 	return retval;
 }
 
-EXPORTCH int CLinkbotI_accelJointCycloidNB_chdl(void *varg) {
+EXPORTCH int CLinkbotI_accelJointCycloidalNB_chdl(void *varg) {
 	ChInterp_t interp;
 	ChVaList_t ap;
 	class CLinkbotI *robot;
@@ -67,7 +67,7 @@ EXPORTCH int CLinkbotI_accelJointCycloidNB_chdl(void *varg) {
 	id = Ch_VaArg(interp, ap, int);
 	angle = Ch_VaArg(interp, ap, double);
 	timeout = Ch_VaArg(interp, ap, double);
-	retval = robot->accelJointCycloidNB((robotJointId_t)id, angle, timeout);
+	retval = robot->accelJointCycloidalNB((robotJointId_t)id, angle, timeout);
 	Ch_VaEnd(interp, ap);
 	return retval;
 }
@@ -293,7 +293,7 @@ EXPORTCH int CLinkbotI_disconnect_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotI_driveAccelCycloidNB_chdl(void *varg) {
+EXPORTCH int CLinkbotI_driveAccelCycloidalNB_chdl(void *varg) {
 	ChInterp_t interp;
 	ChVaList_t ap;
 	class CLinkbotI *robot;
@@ -307,7 +307,7 @@ EXPORTCH int CLinkbotI_driveAccelCycloidNB_chdl(void *varg) {
 	radius = Ch_VaArg(interp, ap, double);
 	distance = Ch_VaArg(interp, ap, double);
 	timeout = Ch_VaArg(interp, ap, double);
-	retval = robot->driveAccelCycloidNB(radius, distance, timeout);
+	retval = robot->driveAccelCycloidalNB(radius, distance, timeout);
 	Ch_VaEnd(interp, ap);
 	return retval;
 }
@@ -2447,7 +2447,7 @@ EXPORTCH int CLIG_accelJointAngleNB_chdl(void *varg) {
 	return retval;
 }
 
-EXPORTCH int CLIG_accelJointCycloidNB_chdl(void *varg) {
+EXPORTCH int CLIG_accelJointCycloidalNB_chdl(void *varg) {
 	ChInterp_t interp;
 	ChVaList_t ap;
 	class CLinkbotIGroup *robot;
@@ -2461,7 +2461,7 @@ EXPORTCH int CLIG_accelJointCycloidNB_chdl(void *varg) {
 	id = Ch_VaArg(interp, ap, int);
 	angle = Ch_VaArg(interp, ap, double);
 	timeout = Ch_VaArg(interp, ap, double);
-	retval = robot->accelJointCycloidNB((robotJointId_t)id, angle, timeout);
+	retval = robot->accelJointCycloidalNB((robotJointId_t)id, angle, timeout);
 	Ch_VaEnd(interp, ap);
 	return retval;
 }
@@ -2651,7 +2651,7 @@ EXPORTCH int CLIG_connect_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLIG_driveAccelCycloidNB_chdl(void *varg) {
+EXPORTCH int CLIG_driveAccelCycloidalNB_chdl(void *varg) {
 	ChInterp_t interp;
 	ChVaList_t ap;
 	class CLinkbotIGroup *robot;
@@ -2665,7 +2665,7 @@ EXPORTCH int CLIG_driveAccelCycloidNB_chdl(void *varg) {
 	radius = Ch_VaArg(interp, ap, double);
 	distance = Ch_VaArg(interp, ap, double);
 	timeout = Ch_VaArg(interp, ap, double);
-	retval = robot->driveAccelCycloidNB(radius, distance, timeout);
+	retval = robot->driveAccelCycloidalNB(radius, distance, timeout);
 	Ch_VaEnd(interp, ap);
 	return retval;
 }

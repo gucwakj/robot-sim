@@ -22,7 +22,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual ~CLinkbotT();
 
 		int accelJointAngleNB(robotJointId_t id, double a, double angle);
-		int accelJointCycloidNB(robotJointId_t id, double angle, double t);
+		int accelJointCycloidalNB(robotJointId_t id, double angle, double t);
 		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
 		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
 		int accelJointTimeNB(robotJointId_t id, double a, double t);
@@ -40,7 +40,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
-		int driveAccelCycloidNB(double radius, double d, double t);
+		int driveAccelCycloidalNB(double radius, double d, double t);
 		int driveAccelDistanceNB(double radius, double a, double d);
 		int driveAccelHarmonicNB(double radius, double d, double t);
 		int driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d);
@@ -295,7 +295,7 @@ class DLLIMPORT CLinkbotTGroup {
 		virtual ~CLinkbotTGroup();
 
 		int accelJointAngleNB(robotJointId_t id, double a, double angle);
-		int accelJointCycloidNB(robotJointId_t id, double angle, double t);
+		int accelJointCycloidalNB(robotJointId_t id, double angle, double t);
 		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
 		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
 		int accelJointTimeNB(robotJointId_t id, double a, double t);
@@ -311,7 +311,7 @@ class DLLIMPORT CLinkbotTGroup {
 		int closeGripper(void);
 		int closeGripperNB(void);
 		int connect(void);
-		int driveAccelCycloidNB(double radius, double d, double t);
+		int driveAccelCycloidalNB(double radius, double d, double t);
 		int driveAccelDistanceNB(double radius, double a, double d);
 		int driveAccelHarmonicNB(double radius, double d, double t);
 		int driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d);
@@ -404,7 +404,7 @@ class DLLIMPORT CLinkbotI {
 		virtual ~CLinkbotI();
 
 		int accelJointAngleNB(robotJointId_t id, double a, double angle);
-		int accelJointCycloidNB(robotJointId_t id, double angle, double t);
+		int accelJointCycloidalNB(robotJointId_t id, double angle, double t);
 		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
 		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
 		int accelJointTimeNB(robotJointId_t id, double a, double t);
@@ -418,7 +418,7 @@ class DLLIMPORT CLinkbotI {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
-		int driveAccelCycloidNB(double radius, double d, double t);
+		int driveAccelCycloidalNB(double radius, double d, double t);
 		int driveAccelDistanceNB(double radius, double a, double d);
 		int driveAccelHarmonicNB(double radius, double d, double t);
 		int driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d);
@@ -586,7 +586,7 @@ class DLLIMPORT CLinkbotIGroup {
 		virtual ~CLinkbotIGroup();
 
 		int accelJointAngleNB(robotJointId_t id, double a, double angle);
-		int accelJointCycloidNB(robotJointId_t id, double angle, double t);
+		int accelJointCycloidalNB(robotJointId_t id, double angle, double t);
 		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
 		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
 		int accelJointTimeNB(robotJointId_t id, double a, double t);
@@ -598,7 +598,7 @@ class DLLIMPORT CLinkbotIGroup {
 		int closeGripper(void);
 		int closeGripperNB(void);
 		int connect(void);
-		int driveAccelCycloidNB(double radius, double d, double t);
+		int driveAccelCycloidalNB(double radius, double d, double t);
 		int driveAccelDistanceNB(double radius, double a, double d);
 		int driveAccelHarmonicNB(double radius, double d, double t);
 		int driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d);
@@ -700,7 +700,7 @@ class DLLIMPORT CLinkbotL {
 		virtual ~CLinkbotL();
 
 		int accelJointAngleNB(robotJointId_t id, double a, double angle);
-		int accelJointCycloidNB(robotJointId_t id, double angle, double t);
+		int accelJointCycloidalNB(robotJointId_t id, double angle, double t);
 		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
 		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
 		int accelJointTimeNB(robotJointId_t id, double a, double t);
@@ -837,7 +837,7 @@ class DLLIMPORT CLinkbotLGroup {
 		virtual ~CLinkbotLGroup();
 
 		int accelJointAngleNB(robotJointId_t id, double a, double angle);
-		int accelJointCycloidNB(robotJointId_t id, double angle, double t);
+		int accelJointCycloidalNB(robotJointId_t id, double angle, double t);
 		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
 		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
 		int accelJointTimeNB(robotJointId_t id, double a, double t);

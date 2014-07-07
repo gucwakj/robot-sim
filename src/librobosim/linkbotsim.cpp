@@ -26,8 +26,8 @@ int CLinkbotT::accelJointAngleNB(robotJointId_t id, double a, double angle) {
 	return 0;
 }
 
-int CLinkbotT::accelJointCycloidNB(robotJointId_t id, double angle, double t) {
-	fprintf(stderr, "Warning: accelJointCycloidNB not yet implemented in RoboSim.  Please use hardware robots.");
+int CLinkbotT::accelJointCycloidalNB(robotJointId_t id, double angle, double t) {
+	fprintf(stderr, "Warning: accelJointCycloidalNB not yet implemented in RoboSim.  Please use hardware robots.");
 
 	// success
 	return 0;
@@ -197,8 +197,8 @@ int CLinkbotT::disconnect(void) {
 	return 0;
 }
 
-int CLinkbotT::driveAccelCycloidNB(double radius, double d, double t) {
-	fprintf(stderr, "Warning: driveAccelCycloidNB not yet implemented in RoboSim.  Please use hardware robots.");
+int CLinkbotT::driveAccelCycloidalNB(double radius, double d, double t) {
+	fprintf(stderr, "Warning: driveAccelCycloidalNB not yet implemented in RoboSim.  Please use hardware robots.");
 
 	// success
 	return 0;

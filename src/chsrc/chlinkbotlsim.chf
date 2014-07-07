@@ -48,11 +48,11 @@ int CLinkbotL::accelJointAngleNB(robotJointId_t id, double acceleration, double 
     return retval;
 }
 
-int CLinkbotL::accelJointCycloidNB(robotJointId_t id, double angle, double time) {
+int CLinkbotL::accelJointCycloidalNB(robotJointId_t id, double angle, double time) {
     void *fptr;
     int retval;
 
-	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_accelJointCycloidNB_chdl");
+	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_accelJointCycloidalNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1844,11 +1844,11 @@ int CLinkbotLGroup::accelJointAngleNB(robotJointId_t id, double acceleration, do
     return retval;
 }
 
-int CLinkbotLGroup::accelJointCycloidNB(robotJointId_t id, double angle, double time) {
+int CLinkbotLGroup::accelJointCycloidalNB(robotJointId_t id, double angle, double time) {
     void *fptr;
     int retval;
 
-	fptr = dlsym(RoboSim::_dlhandle, "CLLG_accelJointCycloidNB_chdl");
+	fptr = dlsym(RoboSim::_dlhandle, "CLLG_accelJointCycloidalNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;

@@ -53,7 +53,7 @@ EXPORTCH int CLinkbotL_accelJointAngleNB_chdl(void *varg) {
 	return retval;
 }
 
-EXPORTCH int CLinkbotL_accelJointCycloidNB_chdl(void *varg) {
+EXPORTCH int CLinkbotL_accelJointCycloidalNB_chdl(void *varg) {
 	ChInterp_t interp;
 	ChVaList_t ap;
 	class CLinkbotL *robot;
@@ -67,7 +67,7 @@ EXPORTCH int CLinkbotL_accelJointCycloidNB_chdl(void *varg) {
 	id = Ch_VaArg(interp, ap, int);
 	angle = Ch_VaArg(interp, ap, double);
 	timeout = Ch_VaArg(interp, ap, double);
-	retval = robot->accelJointCycloidNB((robotJointId_t)id, angle, timeout);
+	retval = robot->accelJointCycloidalNB((robotJointId_t)id, angle, timeout);
 	Ch_VaEnd(interp, ap);
 	return retval;
 }
@@ -1991,7 +1991,7 @@ EXPORTCH int CLLG_accelJointAngleNB_chdl(void *varg) {
 	return retval;
 }
 
-EXPORTCH int CLLG_accelJointCycloidNB_chdl(void *varg) {
+EXPORTCH int CLLG_accelJointCycloidalNB_chdl(void *varg) {
 	ChInterp_t interp;
 	ChVaList_t ap;
 	class CLinkbotLGroup *robot;
@@ -2005,7 +2005,7 @@ EXPORTCH int CLLG_accelJointCycloidNB_chdl(void *varg) {
 	id = Ch_VaArg(interp, ap, int);
 	angle = Ch_VaArg(interp, ap, double);
 	timeout = Ch_VaArg(interp, ap, double);
-	retval = robot->accelJointCycloidNB((robotJointId_t)id, angle, timeout);
+	retval = robot->accelJointCycloidalNB((robotJointId_t)id, angle, timeout);
 	Ch_VaEnd(interp, ap);
 	return retval;
 }
