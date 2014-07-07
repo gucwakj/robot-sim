@@ -259,9 +259,8 @@ class DLLIMPORT CRobot {
 		dJointID *_motor;		// motors
 		dSpaceID _space;		// space for this robot
 		dWorldID _world;		// world for all robots
-		double *_alpha;			// motor acceleration
+		double *_alpha;			// motor angular acceleration
 		double _accel[3];		// accelerometer data
-		double *_angle;			// angles
 		double *_clock;			// world clock
 		double _center[3];		// offset of body from initial (x,y,z)
 		double _distOffset;		// offset for recorded distance
@@ -276,6 +275,7 @@ class DLLIMPORT CRobot {
 		double _rgb[3];			// rgb of 'led'
 		double _safety_angle;	// joint safety angle
 		double _safety_timeout;	// joint safety timeout
+		double *_theta;			// motor angle
 		double _trackwidth;		// trackwidth of robot
 		double	_center_length, _center_width, _center_height, _center_radius, _center_offset,
 				_body_length, _body_width, _body_height, _body_radius,

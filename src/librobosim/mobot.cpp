@@ -1158,7 +1158,7 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 		if (_omega[j] < -EPSILON) delta[j] = -delta[j];
 		_goal[j] += DEG2RAD(delta[j]);
 		_mode[j] = SEEK;
-		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
+		dJointSetAMotorAngle(_motor[j], 0, _theta[j]);
 		_success[j] = false;
 	}
     dBodyEnable(_body[CENTER]);
@@ -1204,7 +1204,7 @@ int CMobot::moveJointNB(robotJointId_t id, double angle) {
 	// enable motor
 	MUTEX_LOCK(&_angle_mutex);
 	dJointEnable(_motor[id]);
-	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
+	dJointSetAMotorAngle(_motor[id], 0, _theta[id]);
 	dBodyEnable(_body[CENTER]);
 	MUTEX_UNLOCK(&_angle_mutex);
 
@@ -1226,7 +1226,7 @@ int CMobot::moveJointForeverNB(robotJointId_t id) {
 
 	// enable motor
 	dJointEnable(_motor[id]);
-	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
+	dJointSetAMotorAngle(_motor[id], 0, _theta[id]);
 	_mode[id] = CONTINUOUS;
 	if ( _omega[id] > EPSILON )
 		_state[id] = POSITIVE;
@@ -1287,7 +1287,7 @@ int CMobot::moveJointToNB(robotJointId_t id, double angle) {
 	// enable motor
 	MUTEX_LOCK(&_angle_mutex);
 	dJointEnable(_motor[id]);
-	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
+	dJointSetAMotorAngle(_motor[id], 0, _theta[id]);
 	dBodyEnable(_body[CENTER]);
 	MUTEX_UNLOCK(&_angle_mutex);
 
@@ -1348,8 +1348,8 @@ int CMobot::moveTo(double angle1, double angle2, double angle3, double angle4) {
 
 int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4) {
 	// store angles into array
-	double delta[4] = {	DEG2RAD(angle1) - _angle[0], DEG2RAD(angle2) - _angle[1],
-						DEG2RAD(angle3) - _angle[2], DEG2RAD(angle4) - _angle[3]};
+	double delta[4] = {	DEG2RAD(angle1) - _theta[0], DEG2RAD(angle2) - _theta[1],
+						DEG2RAD(angle3) - _theta[2], DEG2RAD(angle4) - _theta[3]};
 
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
@@ -1361,7 +1361,7 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
 		dJointEnable(_motor[j]);
 		_goal[j] += delta[j];
 		_mode[j] = SEEK;
-		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
+		dJointSetAMotorAngle(_motor[j], 0, _theta[j]);
 		_success[j] = false;
 	}
     dBodyEnable(_body[CENTER]);
@@ -1423,7 +1423,7 @@ void* CMobot::recordAngleThread(void *arg) {
 		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angle
-		rArg->angle1[i] = RAD2DEG(rArg->robot->_angle[rArg->id]);
+		rArg->angle1[i] = RAD2DEG(rArg->robot->_theta[rArg->id]);
 
 		// check if joint is moving
 		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
@@ -1539,7 +1539,7 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_angle[rArg->id]);
+		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_theta[rArg->id]);
 
 		// check if joint is moving
 		moving = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
@@ -1654,10 +1654,10 @@ void* CMobot::recordAnglesThread(void *arg) {
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angles
-		rArg->angle1[i] = RAD2DEG(rArg->robot->_angle[JOINT1]);
-		rArg->angle2[i] = RAD2DEG(rArg->robot->_angle[JOINT2]);
-		rArg->angle3[i] = RAD2DEG(rArg->robot->_angle[JOINT3]);
-		rArg->angle4[i] = RAD2DEG(rArg->robot->_angle[JOINT4]);
+		rArg->angle1[i] = RAD2DEG(rArg->robot->_theta[JOINT1]);
+		rArg->angle2[i] = RAD2DEG(rArg->robot->_theta[JOINT2]);
+		rArg->angle3[i] = RAD2DEG(rArg->robot->_theta[JOINT3]);
+		rArg->angle4[i] = RAD2DEG(rArg->robot->_theta[JOINT4]);
 
 		// check if joints are moving
 		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT1), dParamVel)*1000);
@@ -1799,10 +1799,10 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_angle[JOINT1]);
-		(*(rArg->pangle2))[i] = RAD2DEG(rArg->robot->_angle[JOINT2]);
-		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_angle[JOINT3]);
-		(*(rArg->pangle4))[i] = RAD2DEG(rArg->robot->_angle[JOINT4]);
+		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_theta[JOINT1]);
+		(*(rArg->pangle2))[i] = RAD2DEG(rArg->robot->_theta[JOINT2]);
+		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_theta[JOINT3]);
+		(*(rArg->pangle4))[i] = RAD2DEG(rArg->robot->_theta[JOINT4]);
 
 		// store time of data point
 		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
@@ -2148,10 +2148,10 @@ int CMobot::relaxJoints(void) {
 int CMobot::reset(void) {
 	MUTEX_LOCK(&_angle_mutex);
 	for (int i = 0; i < NUM_DOF; i++) {
-		_offset[i] = _angle[i];
-		_angle[i] = 0;
+		_offset[i] = _theta[i];
+		_theta[i] = 0;
 		_goal[i] -= _offset[i];
-		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
+		dJointSetAMotorAngle(_motor[i], 0, _theta[i]);
 	}
 	MUTEX_UNLOCK(&_angle_mutex);
 
@@ -2162,10 +2162,10 @@ int CMobot::reset(void) {
 int CMobot::resetToZero(void) {
 	// reset absolute counter to 0 -> 2M_PI
 	MUTEX_LOCK(&_angle_mutex);
-	int rev = (int)(_angle[LE]/2/M_PI);
-	if (rev) _angle[LE] -= 2*rev*M_PI;
-	rev = (int)(_angle[RE]/2/M_PI);
-	if (rev) _angle[RE] -= 2*rev*M_PI;
+	int rev = (int)(_theta[LE]/2/M_PI);
+	if (rev) _theta[LE] -= 2*rev*M_PI;
+	rev = (int)(_theta[RE]/2/M_PI);
+	if (rev) _theta[RE] -= 2*rev*M_PI;
 	MUTEX_UNLOCK(&_angle_mutex);
 
 	// move to zero position
@@ -2178,10 +2178,10 @@ int CMobot::resetToZero(void) {
 int CMobot::resetToZeroNB(void) {
 	// reset absolute counter to 0 -> 2M_PI
 	MUTEX_LOCK(&_angle_mutex);
-	int rev = (int)(_angle[LE]/2/M_PI);
-	if (rev) _angle[LE] -= 2*rev*M_PI;
-	rev = (int)(_angle[RE]/2/M_PI);
-	if (rev) _angle[RE] -= 2*rev*M_PI;
+	int rev = (int)(_theta[LE]/2/M_PI);
+	if (rev) _theta[LE] -= 2*rev*M_PI;
+	rev = (int)(_theta[RE]/2/M_PI);
+	if (rev) _theta[RE] -= 2*rev*M_PI;
 	MUTEX_UNLOCK(&_angle_mutex);
 
 	// move to zero position
@@ -2473,14 +2473,14 @@ int CMobot::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 
 double CMobot::getAngle(int i) {
 	if (i == LE || i == RE)
-		_angle[i] = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
+		_theta[i] = mod_angle(_theta[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
 	else
-		_angle[i] = dJointGetHingeAngle(_joint[i]);
+		_theta[i] = dJointGetHingeAngle(_joint[i]);
 
 	// add noise to angle
-	//this->noisy(&(_angle[i]), 1, 0.0005);
+	//this->noisy(&(_theta[i]), 1, 0.0005);
 
-	return _angle[i];
+	return _theta[i];
 }
 
 double CMobot::getAngularRate(int i) {
@@ -2633,7 +2633,7 @@ int CMobot::getType(void) {
 }
 
 bool CMobot::isHome(void) {
-    return ( fabs(_angle[LE]) < EPSILON && fabs(_angle[LB]) < EPSILON && fabs(_angle[RB]) < EPSILON && fabs(_angle[RE]) < EPSILON );
+    return ( fabs(_theta[LE]) < EPSILON && fabs(_theta[LB]) < EPSILON && fabs(_theta[RB]) < EPSILON && fabs(_theta[RE]) < EPSILON );
 }
 
 int CMobot::isShiftEnabled(void) {
@@ -2667,9 +2667,9 @@ void CMobot::simPreCollisionThread(void) {
 	// update angle values for each degree of freedom
 	for (int i = 0; i < NUM_DOF; i++) {
 		// store current angle
-		_angle[i] = getAngle(i);
+		_theta[i] = getAngle(i);
 		// set motor angle to current angle
-		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
+		dJointSetAMotorAngle(_motor[i], 0, _theta[i]);
 		// drive motor to get current angle to match future angle
 		switch (_mode[i]) {
 			case CONTINUOUS:
@@ -2689,11 +2689,11 @@ void CMobot::simPreCollisionThread(void) {
 				}
 				break;
 			case SEEK:
-				if (_angle[i] < _goal[i] - _encoder) {
+				if (_theta[i] < _goal[i] - _encoder) {
 					_state[i] = POSITIVE;
 					dJointSetAMotorParam(_motor[i], dParamVel, fabs(_omega[i]));
 				}
-				else if (_angle[i] > _goal[i] + _encoder) {
+				else if (_theta[i] > _goal[i] + _encoder) {
 					_state[i] = NEGATIVE;
 					dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_omega[i]));
 				}
@@ -3076,10 +3076,10 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 	}
 
     // convert input angles to radians
-    _angle[LE] = DEG2RAD(r_le);       // left end
-    _angle[LB] = DEG2RAD(r_lb);       // left body
-    _angle[RB] = DEG2RAD(r_rb);       // right body
-    _angle[RE] = DEG2RAD(r_re);       // right end
+    _theta[LE] = DEG2RAD(r_le);       // left end
+    _theta[LB] = DEG2RAD(r_lb);       // left body
+    _theta[RB] = DEG2RAD(r_rb);       // right body
+    _theta[RE] = DEG2RAD(r_re);       // right end
 
     // offset values for each body part[0-2] and joint[3-5] from center
     double le[6] = {-_body_radius - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_body_radius/2 - _body_length - _body_end_depth, 0, 0};
@@ -3150,22 +3150,22 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 
     // create rotation matrices for each body part
     dMatrix3 R_e, R_b, R_le, R_lb, R_rb, R_re;
-    dRFromAxisAndAngle(R_b, 0, 1, 0, _angle[LB]);
+    dRFromAxisAndAngle(R_b, 0, 1, 0, _theta[LB]);
     dMultiply0(R_lb, R, R_b, 3, 3, 3);
-    dRFromAxisAndAngle(R_e, -1, 0, 0, _angle[LE]);
+    dRFromAxisAndAngle(R_e, -1, 0, 0, _theta[LE]);
     dMultiply0(R_le, R_lb, R_e, 3, 3, 3);
-    dRFromAxisAndAngle(R_b, 0, 1, 0, _angle[RB]);
+    dRFromAxisAndAngle(R_b, 0, 1, 0, _theta[RB]);
     dMultiply0(R_rb, R, R_b, 3, 3, 3);
-    dRFromAxisAndAngle(R_e, -1, 0, 0, _angle[RE]);
+    dRFromAxisAndAngle(R_e, -1, 0, 0, _theta[RE]);
     dMultiply0(R_re, R_rb, R_e, 3, 3, 3);
 
 	// if bodies are rotated, then redraw
-	if (_angle[LE] != 0 || _angle[LB] != 0 ||_angle[RB] != 0 || _angle[RE] != 0 ) {
+	if (_theta[LE] != 0 || _theta[LB] != 0 ||_theta[RB] != 0 || _theta[RE] != 0 ) {
 		// offset values from center of robot
-		double le_r[3] = {-_body_radius - (_body_length + _body_end_depth + _end_depth/2)*cos(_angle[LB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_angle[LB])};
-		double lb_r[3] = {-_body_radius - (_body_length + _body_end_depth/2)*cos(_angle[LB]), 0, (_body_length + _body_end_depth/2)*sin(_angle[LB])};
-		double rb_r[3] = {_body_radius + (_body_length + _body_end_depth/2)*cos(_angle[RB]), 0, (_body_length + _body_end_depth/2)*sin(_angle[RB])};
-		double re_r[3] = {_body_radius + (_body_length + _body_end_depth + _end_depth/2)*cos(_angle[RB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_angle[RB])};
+		double le_r[3] = {-_body_radius - (_body_length + _body_end_depth + _end_depth/2)*cos(_theta[LB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_theta[LB])};
+		double lb_r[3] = {-_body_radius - (_body_length + _body_end_depth/2)*cos(_theta[LB]), 0, (_body_length + _body_end_depth/2)*sin(_theta[LB])};
+		double rb_r[3] = {_body_radius + (_body_length + _body_end_depth/2)*cos(_theta[RB]), 0, (_body_length + _body_end_depth/2)*sin(_theta[RB])};
+		double re_r[3] = {_body_radius + (_body_length + _body_end_depth + _end_depth/2)*cos(_theta[RB]), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_theta[RB])};
 		// re-build pieces of module
 		this->build_endcap(ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le);
 		this->build_body(BODY_L, R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb);
@@ -4063,7 +4063,7 @@ int CMobot::get_connector_params(xml_conn_t conn, dMatrix3 R, double *p) {
 
 int CMobot::init_params(void) {
 	// create arrays for mobots
-	_angle = new double[NUM_DOF];
+	_theta = new double[NUM_DOF];
 	_body = new dBodyID[NUM_PARTS];
 	_enabled = new int[2];
 	_geom = new dGeomID * [NUM_PARTS];
@@ -4085,7 +4085,7 @@ int CMobot::init_params(void) {
 
 	// fill with default data
 	for (int i = 0; i < NUM_DOF; i++) {
-		_angle[i] = 0;
+		_theta[i] = 0;
 		_goal[i] = 0;
 		_max_omega[i] = 120;		// deg/sec
 		_mode[i] = SEEK;

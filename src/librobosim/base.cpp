@@ -27,7 +27,6 @@ CRobot::~CRobot(void) {
 
 	// delete all arrays
 	delete [] _alpha;
-	delete [] _angle;
 	delete [] _body;
 	delete [] _enabled;
 	delete [] _geom;
@@ -44,6 +43,7 @@ CRobot::~CRobot(void) {
 	delete [] _recording;
 	delete [] _state;
 	delete [] _success;
+	delete [] _theta;
 
 	// destroy mutexes
 	MUTEX_DESTROY(&_angle_mutex);

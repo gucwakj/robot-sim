@@ -977,7 +977,7 @@ int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 		_goal[j] += DEG2RAD(delta[j]);
 		_mode[j] = SEEK;
 		dJointEnable(_motor[j]);
-		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
+		dJointSetAMotorAngle(_motor[j], 0, _theta[j]);
 		_success[j] = false;
 	}
 
@@ -1028,7 +1028,7 @@ int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 	// enable motor
 	MUTEX_LOCK(&_angle_mutex);
 	dJointEnable(_motor[id]);
-	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
+	dJointSetAMotorAngle(_motor[id], 0, _theta[id]);
 	dBodyEnable(_body[BODY]);
 	MUTEX_UNLOCK(&_angle_mutex);
 
@@ -1050,7 +1050,7 @@ int CLinkbotT::moveJointForeverNB(robotJointId_t id) {
 
 	// enable motor
 	dJointEnable(_motor[id]);
-	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
+	dJointSetAMotorAngle(_motor[id], 0, _theta[id]);
 	_mode[id] = CONTINUOUS;
 	if ( _omega[id] > EPSILON )
 		_state[id] = POSITIVE;
@@ -1142,7 +1142,7 @@ int CLinkbotT::moveJointToNB(robotJointId_t id, double angle) {
 	// enable motor
 	MUTEX_LOCK(&_angle_mutex);
 	dJointEnable(_motor[id]);
-	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
+	dJointSetAMotorAngle(_motor[id], 0, _theta[id]);
 	dBodyEnable(_body[BODY]);
 	MUTEX_UNLOCK(&_angle_mutex);
 
@@ -1227,7 +1227,7 @@ int CLinkbotT::moveTo(double angle1, double angle2, double angle3) {
 
 int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 	// store angles into array
-	double delta[3] = {DEG2RAD(angle1) - _angle[0], DEG2RAD(angle2) - _angle[1], DEG2RAD(angle3) - _angle[2]};
+	double delta[3] = {DEG2RAD(angle1) - _theta[0], DEG2RAD(angle2) - _theta[1], DEG2RAD(angle3) - _theta[2]};
 
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
@@ -1240,7 +1240,7 @@ int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 		_goal[j] += delta[j];
 		_mode[j] = SEEK;
 		dJointEnable(_motor[j]);
-		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
+		dJointSetAMotorAngle(_motor[j], 0, _theta[j]);
 		_success[j] = false;
 	}
 
@@ -1325,7 +1325,7 @@ void* CLinkbotT::recordAngleThread(void *arg) {
 		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angle
-		rArg->angle1[i] = RAD2DEG(rArg->robot->_angle[rArg->id]);
+		rArg->angle1[i] = RAD2DEG(rArg->robot->_theta[rArg->id]);
 
 		// check if joint is moving
 		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
@@ -1438,7 +1438,7 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_angle[rArg->id]);
+		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_theta[rArg->id]);
 		moving = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
 
 		// store time of data point
@@ -1548,9 +1548,9 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angles
-		rArg->angle1[i] = RAD2DEG(rArg->robot->_angle[JOINT1]);
-		rArg->angle2[i] = RAD2DEG(rArg->robot->_angle[JOINT2]);
-		rArg->angle3[i] = RAD2DEG(rArg->robot->_angle[JOINT3]);
+		rArg->angle1[i] = RAD2DEG(rArg->robot->_theta[JOINT1]);
+		rArg->angle2[i] = RAD2DEG(rArg->robot->_theta[JOINT2]);
+		rArg->angle3[i] = RAD2DEG(rArg->robot->_theta[JOINT3]);
 
 		// check if joints are moving
 		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT1), dParamVel)*1000);
@@ -1686,9 +1686,9 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_angle[JOINT1]);
-		(*(rArg->pangle2))[i] = RAD2DEG(rArg->robot->_angle[JOINT2]);
-		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_angle[JOINT3]);
+		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_theta[JOINT1]);
+		(*(rArg->pangle2))[i] = RAD2DEG(rArg->robot->_theta[JOINT2]);
+		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_theta[JOINT3]);
 
 		// store time of data point
 		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
@@ -2041,9 +2041,9 @@ int CLinkbotT::resetToZeroNB(void) {
 	// reset absolute counter to 0 -> 2M_PI
 	MUTEX_LOCK(&_angle_mutex);
 	for (int i = 0; i < 3; i++) {
-		int rev = (int)(_angle[i]/2/M_PI);
+		int rev = (int)(_theta[i]/2/M_PI);
 		if (rev) {
-			_angle[i] -= 2*rev*M_PI;
+			_theta[i] -= 2*rev*M_PI;
 			_goal[i] -= 2*rev*M_PI;
 		}
 	}
@@ -2381,14 +2381,14 @@ int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 
 double CLinkbotT::getAngle(int i) {
 	if (i != _disabled)
-		_angle[i] = mod_angle(_angle[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i])) - _offset[i];
+		_theta[i] = mod_angle(_theta[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i])) - _offset[i];
 	else
-		_angle[i] = 0;
+		_theta[i] = 0;
 
 	// add noise to angle
-	//this->noisy(&(_angle[i]), 1, 0.0005);
+	//this->noisy(&(_theta[i]), 1, 0.0005);
 
-    return _angle[i];
+    return _theta[i];
 }
 
 double CLinkbotT::getAngularRate(int i) {
@@ -2506,7 +2506,7 @@ int CLinkbotT::getType(void) {
 }
 
 bool CLinkbotT::isHome(void) {
-    return ( fabs(_angle[FACE1]) < EPSILON && fabs(_angle[FACE2]) < EPSILON && fabs(_angle[FACE3]) < EPSILON );
+    return ( fabs(_theta[FACE1]) < EPSILON && fabs(_theta[FACE2]) < EPSILON && fabs(_theta[FACE3]) < EPSILON );
 }
 
 int CLinkbotT::isShiftEnabled(void) {
@@ -2541,7 +2541,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		int i = _enabled[j];
 		// store current angle
-		_angle[i] = getAngle(i);
+		_theta[i] = getAngle(i);
 		// set rotation axis
 		dVector3 axis;
 		conn_t ctmp = _conn;
@@ -2553,7 +2553,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 			ctmp = ctmp->next;
 		}
 		// set motor angle to current angle
-		dJointSetAMotorAngle(_motor[i], 0, _angle[i]);
+		dJointSetAMotorAngle(_motor[i], 0, _theta[i]);
 		// engage motor depending upon motor mode
 		switch (_mode[i]) {
 			case ACCEL_CONST:
@@ -2602,7 +2602,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 				}
 				break;
 			case SEEK:
-				if ((_goal[i] - 6*_encoder - _angle[i]) > EPSILON) {
+				if ((_goal[i] - 6*_encoder - _theta[i]) > EPSILON) {
 					_state[i] = POSITIVE;
 					if (_starting[i]++ < 25)
 						dJointSetAMotorParam(_motor[i], dParamVel, _starting[i]*fabs(_omega[i])/50);
@@ -2613,15 +2613,15 @@ void CLinkbotT::simPreCollisionThread(void) {
 					else
 						dJointSetAMotorParam(_motor[i], dParamVel, fabs(_omega[i]));
 				}
-				else if ((_goal[i] - 3*_encoder - _angle[i]) > EPSILON) {
+				else if ((_goal[i] - 3*_encoder - _theta[i]) > EPSILON) {
 					_state[i] = POSITIVE;
 					dJointSetAMotorParam(_motor[i], dParamVel, fabs(_omega[i])/2);
 				}
-				else if ((_goal[i] - _encoder - _angle[i]) > EPSILON) {
+				else if ((_goal[i] - _encoder - _theta[i]) > EPSILON) {
 					_state[i] = POSITIVE;
 					dJointSetAMotorParam(_motor[i], dParamVel, fabs(_omega[i])/4);
 				}
-				else if ((_angle[i] - _goal[i] - 6*_encoder) > EPSILON) {
+				else if ((_theta[i] - _goal[i] - 6*_encoder) > EPSILON) {
 					_state[i] = NEGATIVE;
 					if (_starting[i]++ < 25)
 						dJointSetAMotorParam(_motor[i], dParamVel, -_starting[i]*fabs(_omega[i])/50);
@@ -2632,11 +2632,11 @@ void CLinkbotT::simPreCollisionThread(void) {
 					else
 						dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_omega[i]));
 				}
-				else if ((_angle[i] - _goal[i] - 3*_encoder) > EPSILON) {
+				else if ((_theta[i] - _goal[i] - 3*_encoder) > EPSILON) {
 					_state[i] = NEGATIVE;
 					dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_omega[i])/2);
 				}
-				else if ((_angle[i] - _goal[i] - _encoder) > EPSILON) {
+				else if ((_theta[i] - _goal[i] - _encoder) > EPSILON) {
 					_state[i] = NEGATIVE;
 					dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_omega[i])/4);
 				}
@@ -3017,14 +3017,14 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 	if (fabs(z) < (_body_radius-EPSILON)) {z += _body_height/2; }
 
     // convert input angles to radians
-    _angle[F1] = DEG2RAD(r_f1);	// face 1
-    _angle[F2] = DEG2RAD(r_f2);	// face 2
-    _angle[F3] = DEG2RAD(r_f3);	// face 3
+    _theta[F1] = DEG2RAD(r_f1);	// face 1
+    _theta[F2] = DEG2RAD(r_f2);	// face 2
+    _theta[F3] = DEG2RAD(r_f3);	// face 3
 
 	// set goal to current angle
-	_goal[F1] = _angle[F1];
-	_goal[F2] = _angle[F2];
-	_goal[F3] = _angle[F3];
+	_goal[F1] = _theta[F1];
+	_goal[F2] = _theta[F2];
+	_goal[F3] = _theta[F3];
 
 	// offset values for each body part[0-2] and joint[3-5] from center
 	double f1[6] = {-_body_width/2 - _face_depth/2, 0, 0, -_body_width/2, 0, 0};
@@ -3085,17 +3085,17 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 
     // create rotation matrices for each body part
     dMatrix3 R_f, R_f1, R_f2, R_f3;
-    dRFromAxisAndAngle(R_f, -1, 0, 0, _angle[F1]);
+    dRFromAxisAndAngle(R_f, -1, 0, 0, _theta[F1]);
     dMultiply0(R_f1, R, R_f, 3, 3, 3);
 	dRSetIdentity(R_f);
-    dRFromAxisAndAngle(R_f, 0, -1, 0, _angle[F2]);
+    dRFromAxisAndAngle(R_f, 0, -1, 0, _theta[F2]);
     dMultiply0(R_f2, R, R_f, 3, 3, 3);
 	dRSetIdentity(R_f);
-    dRFromAxisAndAngle(R_f, 1, 0, 0, _angle[F3]);
+    dRFromAxisAndAngle(R_f, 1, 0, 0, _theta[F3]);
     dMultiply0(R_f3, R, R_f, 3, 3, 3);
 
 	// if bodies are rotated, then redraw
-	if ( _angle[F1] != 0 || _angle[F2] != 0 ||_angle[F3] != 0 ) {
+	if ( _theta[F1] != 0 || _theta[F2] != 0 ||_theta[F3] != 0 ) {
 		this->build_face(FACE1, R[0]*f1[0] + x, R[4]*f1[0] + y, R[8]*f1[0] + z, R_f1, 0);
 		this->build_face(FACE2, R[1]*f2[1] + x, R[5]*f2[1] + y, R[9]*f2[1] + z, R_f2, 0);
 		this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R_f3, 0);
@@ -4004,7 +4004,7 @@ int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, double *p) {
 int CLinkbotT::init_params(int disabled, int type) {
 	// create arrays for linkbots
 	_alpha = new double[NUM_DOF];
-	_angle = new double[NUM_DOF];
+	_theta = new double[NUM_DOF];
 	_body = new dBodyID[NUM_PARTS];
 	_enabled = new int[(disabled == -1) ? 3 : 2];
 	_geom = new dGeomID * [NUM_PARTS];
@@ -4029,7 +4029,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 	// fill with default data
 	for (int i = 0, j = 0; i < NUM_DOF; i++) {
 		_alpha[i] = 0;
-		_angle[i] = 0;
+		_theta[i] = 0;
 		if (i != disabled) { _enabled[j++] = i; }
 		_goal[i] = 0;
 		_max_force[i] = 2;
