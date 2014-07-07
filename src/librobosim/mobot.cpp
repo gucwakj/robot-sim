@@ -367,7 +367,7 @@ int CMobot::getJointAnglesInstant(double &angle1, double &angle2, double &angle3
 }
 
 int CMobot::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
-	maxSpeed = _max_speed[id];
+	maxSpeed = _max_omega[id];
 
 	// success
 	return 0;
@@ -388,33 +388,33 @@ int CMobot::getJointSafetyAngleTimeout(double &seconds) {
 }
 
 int CMobot::getJointSpeed(robotJointId_t id, double &speed) {
-	speed = RAD2DEG(_speed[id]);
+	speed = RAD2DEG(_omega[id]);
 
 	// success
 	return 0;
 }
 
 int CMobot::getJointSpeedRatio(robotJointId_t id, double &ratio) {
-	ratio = _speed[id]/DEG2RAD(_max_speed[id]);
+	ratio = _omega[id]/DEG2RAD(_max_omega[id]);
 	// success
 	return 0;
 }
 
 int CMobot::getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4) {
-	speed1 = RAD2DEG(_speed[0]);
-	speed2 = RAD2DEG(_speed[1]);
-	speed3 = RAD2DEG(_speed[2]);
-	speed4 = RAD2DEG(_speed[3]);
+	speed1 = RAD2DEG(_omega[0]);
+	speed2 = RAD2DEG(_omega[1]);
+	speed3 = RAD2DEG(_omega[2]);
+	speed4 = RAD2DEG(_omega[3]);
 
 	// success
 	return 0;
 }
 
 int CMobot::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, double &ratio4) {
-	ratio1 = _speed[0]/DEG2RAD(_max_speed[0]);
-	ratio2 = _speed[1]/DEG2RAD(_max_speed[1]);
-	ratio3 = _speed[2]/DEG2RAD(_max_speed[2]);
-	ratio4 = _speed[3]/DEG2RAD(_max_speed[3]);
+	ratio1 = _omega[0]/DEG2RAD(_max_omega[0]);
+	ratio2 = _omega[1]/DEG2RAD(_max_omega[1]);
+	ratio3 = _omega[2]/DEG2RAD(_max_omega[2]);
+	ratio4 = _omega[3]/DEG2RAD(_max_omega[3]);
 
 	// success
 	return 0;
@@ -1155,7 +1155,7 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 	// enable motor
 	for ( int j = 0; j < NUM_DOF; j++ ) {
 		dJointEnable(_motor[j]);
-		if (_speed[j] < -EPSILON) delta[j] = -delta[j];
+		if (_omega[j] < -EPSILON) delta[j] = -delta[j];
 		_goal[j] += DEG2RAD(delta[j]);
 		_mode[j] = SEEK;
 		dJointSetAMotorAngle(_motor[j], 0, _angle[j]);
@@ -1195,7 +1195,7 @@ int CMobot::moveJointNB(robotJointId_t id, double angle) {
 	MUTEX_LOCK(&_goal_mutex);
 
 	// set new goal angles
-	if (_speed[id] < -EPSILON) angle = -angle;
+	if (_omega[id] < -EPSILON) angle = -angle;
 	_goal[id] += DEG2RAD(angle);
 
 	// actively seeking an angle
@@ -1228,9 +1228,9 @@ int CMobot::moveJointForeverNB(robotJointId_t id) {
 	dJointEnable(_motor[id]);
 	dJointSetAMotorAngle(_motor[id], 0, _angle[id]);
 	_mode[id] = CONTINUOUS;
-	if ( _speed[id] > EPSILON )
+	if ( _omega[id] > EPSILON )
 		_state[id] = POSITIVE;
-	else if ( _speed[id] < EPSILON )
+	else if ( _omega[id] < EPSILON )
 		_state[id] = NEGATIVE;
 	else
 		_state[id] = HOLD;
@@ -2206,14 +2206,14 @@ int CMobot::setJointSafetyAngleTimeout(double seconds) {
 }
 
 int CMobot::setJointSpeed(robotJointId_t id, double speed) {
-	if (speed > _max_speed[id]) {
+	if (speed > _max_omega[id]) {
 		fprintf(stderr, "Warning: Cannot set speed for joint %d to %.2lf degrees/second which is "
 			"beyond the maximum limit of %.2lf degrees/second.\n",
-			id, speed, _max_speed[id]);
-		_speed[id] = DEG2RAD(_max_speed[id]);
+			id, speed, _max_omega[id]);
+		_omega[id] = DEG2RAD(_max_omega[id]);
 	}
 	else {
-		_speed[id] = DEG2RAD(speed);
+		_omega[id] = DEG2RAD(speed);
 	}
 
 	// success
@@ -2224,7 +2224,7 @@ int CMobot::setJointSpeedRatio(robotJointId_t id, double ratio) {
 	if ( ratio < 0 || ratio > 1 ) {
 		return -1;
 	}
-	return this->setJointSpeed(id, ratio * _max_speed[(int)id]);
+	return this->setJointSpeed(id, ratio * _max_omega[(int)id]);
 }
 
 int CMobot::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
@@ -2675,10 +2675,10 @@ void CMobot::simPreCollisionThread(void) {
 			case CONTINUOUS:
 				switch (_state[i]) {
 					case POSITIVE:
-						dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i]));
+						dJointSetAMotorParam(_motor[i], dParamVel, fabs(_omega[i]));
 						break;
 					case NEGATIVE:
-						dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i]));
+						dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_omega[i]));
 						break;
 					case HOLD:
 						dJointSetAMotorParam(_motor[i], dParamVel, 0);
@@ -2691,11 +2691,11 @@ void CMobot::simPreCollisionThread(void) {
 			case SEEK:
 				if (_angle[i] < _goal[i] - _encoder) {
 					_state[i] = POSITIVE;
-					dJointSetAMotorParam(_motor[i], dParamVel, fabs(_speed[i]));
+					dJointSetAMotorParam(_motor[i], dParamVel, fabs(_omega[i]));
 				}
 				else if (_angle[i] > _goal[i] + _encoder) {
 					_state[i] = NEGATIVE;
-					dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_speed[i]));
+					dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_omega[i]));
 				}
 				else {
 					_state[i] = HOLD;
@@ -4070,7 +4070,7 @@ int CMobot::init_params(void) {
 	_goal = new double[NUM_DOF];
 	_joint = new dJointID[6];
 	_max_force = new double[NUM_DOF];
-	_max_speed = new double[NUM_DOF];
+	_max_omega = new double[NUM_DOF];
 	_mode = new int[NUM_DOF];
 	_mode_timeout = new int[NUM_DOF];
 	_motor = new dJointID[NUM_DOF];
@@ -4079,7 +4079,7 @@ int CMobot::init_params(void) {
 	_rec_angles = new double ** [NUM_DOF];
 	_rec_num = new int[NUM_DOF];
 	_recording = new bool[NUM_DOF];
-	_speed = new double[NUM_DOF];
+	_omega = new double[NUM_DOF];
 	_state = new int[NUM_DOF];
 	_success = new bool[NUM_DOF];
 
@@ -4087,14 +4087,14 @@ int CMobot::init_params(void) {
 	for (int i = 0; i < NUM_DOF; i++) {
 		_angle[i] = 0;
 		_goal[i] = 0;
-		_max_speed[i] = 120;		// deg/sec
+		_max_omega[i] = 120;		// deg/sec
 		_mode[i] = SEEK;
 		_mode_timeout[i] = 0;
 		_offset[i] = 0;
 		_rec_active[i] = false;
 		_rec_num[i] = 0;
 		_recording[i] = false;
-		_speed[i] = 0.7854;			// 45 deg/sec
+		_omega[i] = 0.7854;			// 45 deg/sec
 		_state[i] = NEUTRAL;
 		_success[i] = true;
 	}

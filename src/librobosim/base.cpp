@@ -26,6 +26,7 @@ CRobot::~CRobot(void) {
 	}
 
 	// delete all arrays
+	delete [] _alpha;
 	delete [] _angle;
 	delete [] _body;
 	delete [] _enabled;
@@ -33,14 +34,14 @@ CRobot::~CRobot(void) {
 	delete [] _goal;
 	delete [] _joint;
 	delete [] _max_force;
-	delete [] _max_speed;
+	delete [] _max_omega;
 	delete [] _motor;
 	delete [] _offset;
+	delete [] _omega;
 	delete [] _rec_active;
 	delete [] _rec_angles;
 	delete [] _rec_num;
 	delete [] _recording;
-	delete [] _speed;
 	delete [] _state;
 	delete [] _success;
 

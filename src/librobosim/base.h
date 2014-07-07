@@ -268,14 +268,14 @@ class DLLIMPORT CRobot {
 		double _encoder;		// motor encoder resolution
 		double *_goal;			// goals
 		double *_max_force;		// maximum joint forces
-		double *_max_speed;		// maximum joint speeds
+		double *_max_omega;		// maximum joint speeds
 		double *_offset;		// offset from zero for resetting
+		double *_omega;			// motor angular rate
 		double _radius;			// wheel radius
 		double ***_rec_angles;	// recorded angles from thread
 		double _rgb[3];			// rgb of 'led'
 		double _safety_angle;	// joint safety angle
 		double _safety_timeout;	// joint safety timeout
-		double *_speed;			// speed
 		double _trackwidth;		// trackwidth of robot
 		double	_center_length, _center_width, _center_height, _center_radius, _center_offset,
 				_body_length, _body_width, _body_height, _body_radius,
