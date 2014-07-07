@@ -189,7 +189,7 @@ class DLLIMPORT CRobot {
 		void doze(double ms);
 
 		// pure virtual functions to be overridden by inherited classes of each robot
-		virtual int addToSim(dWorldID &world, dSpaceID &space, double *clock) = 0;
+		virtual int addToSim(dWorldID &world, dSpaceID &space, double *clock, double *step) = 0;
 		virtual int build(xml_robot_t robot) = 0;
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn) = 0;
 		virtual bool getSuccess(int i) = 0;
@@ -275,6 +275,7 @@ class DLLIMPORT CRobot {
 		double _rgb[3];			// rgb of 'led'
 		double _safety_angle;	// joint safety angle
 		double _safety_timeout;	// joint safety timeout
+		double *_step;			// world clock step
 		double *_theta;			// motor angle
 		double _trackwidth;		// trackwidth of robot
 		double	_center_length, _center_width, _center_height, _center_radius, _center_offset,

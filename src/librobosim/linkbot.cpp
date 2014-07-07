@@ -56,7 +56,7 @@ int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
 	}
 	_mode[id] = ACCEL_CONST;
 	_alpha[id] = a;
-	_mode_timeout[id] = (int)(t/0.004);
+	_mode_timeout[id] = (int)(t/(*_step));
 
 	// success
 	return 0;
@@ -2264,10 +2264,11 @@ int CLinkbotT::turnRightNB(double angle, double radius, double trackwidth) {
 /**********************************************************
 	inherited functions
  **********************************************************/
-int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space, double *clock) {
+int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space, double *clock, double *step) {
 	_world = world;
     _space = dHashSpaceCreate(space);
 	_clock = clock;
+	_step = step;
 
 	// success
 	return 0;
@@ -2569,9 +2570,9 @@ void CLinkbotT::simPreCollisionThread(void) {
 				}
 
 				// set new theta
-				_goal[i] += 0.004*_omega[i];
+				_goal[i] += (*_step)*_omega[i];
 				if (_omega[i] <= _max_omega[i]) {
-					_goal[i] += _alpha[i]*0.004*0.004/2;
+					_goal[i] += _alpha[i]*(*_step)*(*_step)/2;
 				}
 
 				// move to new theta
@@ -2579,7 +2580,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 				dJointSetAMotorParam(_motor[i], dParamVel, _omega[i]);
 
 				// update omega
-				_omega[i] += 0.004 * _alpha[i];
+				_omega[i] += *_step * _alpha[i];
 				if (_omega[i] > _max_omega[i])
 					_omega[i] = _max_omega[i];
 				else if (_omega[i] < -_max_omega[i])
