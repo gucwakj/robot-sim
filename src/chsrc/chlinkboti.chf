@@ -2156,16 +2156,11 @@ int CLinkbotI::setTwoWheelRobotSpeed(double speed, double radius) {
 }
 
 int CLinkbotI::stop(void) {
-    void *fptr;
-    int retval;
+	DEPRECATED("stop", "relaxJoints");
+	relaxJoints();
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_stop_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stop, this);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::stopAllJoints(void) {
@@ -2177,42 +2172,28 @@ int CLinkbotI::stopAllJoints(void) {
 }
 
 int CLinkbotI::stopOneJoint(int id) {
-    void *fptr;
-    int retval;
+	DEPRECATED("stopOneJoint", "relaxJoint");
+	relaxJoint(id);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_stopOneJoint_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopOneJoint, this, id);
-    return retval;
-}
-
-int CLinkbotI::stopTwoJoints(int id1, int id2) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_stopTwoJoints_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopTwoJoints, this, id1, id2);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::stopThreeJoints(int id1, int id2, int id3) {
-    void *fptr;
-    int retval;
+	DEPRECATED("stopThreeJoints", "relaxJoints");
+	relaxJoints();
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_stopThreeJoints_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopThreeJoints, this, id1, id2, id3);
-    return retval;
+	// success
+	return 0;
+}
+
+int CLinkbotI::stopTwoJoints(int id1, int id2) {
+	DEPRECATED("stopTwoJoints", "relaxJoint");
+	relaxJoint(id1);
+	relaxJoint(id2);
+
+	// success
+	return 0;
 }
 
 int CLinkbotI::systemTime(double &systemTime) {
@@ -3584,16 +3565,11 @@ int CLinkbotIGroup::setTwoWheelRobotSpeed(double speed, double radius) {
 }
 
 int CLinkbotIGroup::stop(void) {
-    void *fptr;
-    int retval;
+	DEPRECATED("stop", "relaxJoints");
+	relaxJoints();
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_stop_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stop, this);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::stopAllJoints(void) {
@@ -3605,42 +3581,28 @@ int CLinkbotIGroup::stopAllJoints(void) {
 }
 
 int CLinkbotIGroup::stopOneJoint(int id) {
-    void *fptr;
-    int retval;
+	DEPRECATED("stopOneJoint", "relaxJoint");
+	relaxJoint(id);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_stopOneJoint_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopOneJoint, this, id);
-    return retval;
-}
-
-int CLinkbotIGroup::stopTwoJoints(int id1, int id2) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_stopTwoJoints_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopTwoJoints, this, id1, id2);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::stopThreeJoints(int id1, int id2, int id3) {
-    void *fptr;
-    int retval;
+	DEPRECATED("stopThreeJoints", "relaxJoints");
+	relaxJoints();
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_stopThreeJoints_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopThreeJoints, this, id1, id2, id3);
-    return retval;
+	// success
+	return 0;
+}
+
+int CLinkbotIGroup::stopTwoJoints(int id1, int id2) {
+	DEPRECATED("stopTwoJoints", "relaxJoint");
+	relaxJoint(id1);
+	relaxJoint(id2);
+
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::traceOff(void) {

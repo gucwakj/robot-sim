@@ -111,8 +111,6 @@ createpkg: librobosim.dl
 	cp ../../docs/images/robosim.png $(PKGDIR)/docs
 	mkdir $(PKGDIR)/include
 	cp $(HEADERS) $(PKGDIR)/include
-	mv $(PKGDIR)/include/mobot.h $(PKGDIR)/include
-	mv $(PKGDIR)/include/linkbot.h $(PKGDIR)/include
 	mkdir $(PKGDIR)/lib
 	cp chmobot.chf $(PKGDIR)/lib
 	cp chlinkboti.chf $(PKGDIR)/lib

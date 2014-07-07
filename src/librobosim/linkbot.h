@@ -179,10 +179,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
 		int setMotorPower(robotJointId_t id, int power);
 		int setSpeed(double speed, double radius);
-		int stop(void);
-		int stopOneJoint(robotJointId_t id);
-		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
-		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int systemTime(double &time);
 #ifdef ENABLE_GRAPHICS
 		int text(double x, double y, double z, char *text);
@@ -374,10 +370,6 @@ class DLLIMPORT CLinkbotTGroup {
 		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
 		int setMotorPower(robotJointId_t id, int power);
 		int setSpeed(double speed, double radius);
-		int stop(void);
-		int stopOneJoint(robotJointId_t id);
-		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
-		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int traceOff(void);
 		int traceOn(void);
 		int turnLeft(double angle, double radius, double trackwidth);
@@ -566,11 +558,11 @@ class DLLIMPORT CLinkbotI {
 		int setMovementStateTimeNB(int dir1, int dir2, int dir3, double seconds);		// deprecated
 		int setSpeed(double speed, double radius);
 		int setTwoWheelRobotSpeed(double speed, double radius);		// deprecated
-		int stop(void);
+		int stop(void);		// deprecated
 		int stopAllJoints(void);		// deprecated
-		int stopOneJoint(robotJointId_t id);
-		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
-		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
+		int stopOneJoint(robotJointId_t id);		// deprecated
+		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);		// deprecated
+		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);		// deprecated
 		int systemTime(double &time);
 		int text(double x, double y, double z, char *text);
 		int traceOff(void);
@@ -681,11 +673,11 @@ class DLLIMPORT CLinkbotIGroup {
 		int setMovementStateTimeNB(int dir1, int dir2, int dir3, double seconds);		// deprecated
 		int setSpeed(double speed, double radius);
 		int setTwoWheelRobotSpeed(double speed, double radius);		// deprecated
-		int stop(void);
+		int stop(void);		// deprecated
 		int stopAllJoints(void);		// deprecated
-		int stopOneJoint(robotJointId_t id);
-		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
-		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
+		int stopOneJoint(robotJointId_t id);		// deprecated
+		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);		// deprecated
+		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);		// deprecated
 		int traceOff(void);
 		int traceOn(void);
 		int turnLeft(double angle, double radius, double trackwidth);
@@ -817,11 +809,11 @@ class DLLIMPORT CLinkbotL {
 		int setMovementStateTime(int dir1, int dir2, int dir3, double seconds);		// deprecated
 		int setMovementStateTimeNB(int dir1, int dir2, int dir3, double seconds);		// deprecated
 		int setSpeed(double speed, double radius);
-		int stop(void);
+		int stop(void);		// deprecated
 		int stopAllJoints(void);		// deprecated
-		int stopOneJoint(robotJointId_t id);
-		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
-		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
+		int stopOneJoint(robotJointId_t id);		// deprecated
+		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);		// deprecated
+		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);		// deprecated
 		int systemTime(double &time);
 		int text(double x, double y, double z, char *text);
 		int traceOff(void);
@@ -909,11 +901,11 @@ class DLLIMPORT CLinkbotLGroup {
 		int setMovementStateTime(int dir1, int dir2, int dir3, double seconds);		// deprecated
 		int setMovementStateTimeNB(int dir1, int dir2, int dir3, double seconds);		// deprecated
 		int setSpeed(double speed, double radius);
-		int stop(void);
+		int stop(void);		// deprecated
 		int stopAllJoints(void);		// deprecated
-		int stopOneJoint(robotJointId_t id);
-		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
-		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
+		int stopOneJoint(robotJointId_t id);		// deprecated
+		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);		// deprecated
+		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);		// deprecated
 		int traceOff(void);
 		int traceOn(void);
 		int turnLeft(double angle, double radius, double trackwidth);
@@ -923,9 +915,9 @@ class DLLIMPORT CLinkbotLGroup {
 };
 void* RoboSim::_dlhandle = NULL;
 int RoboSim::_dlcount = 0;
-#pragma importf "chlinkbotisim.chf"
-#pragma importf "chlinkbotlsim.chf"
-#pragma importf "chlinkbottsim.chf"
+#pragma importf "chlinkboti.chf"
+#pragma importf "chlinkbotl.chf"
+#pragma importf "chlinkbott.chf"
 #else
 typedef struct linkbotMoveArg_s {
 	double x, y, radius, trackwidth;

@@ -816,50 +816,6 @@ int CLinkbotTGroup::setSpeed(double speed, double radius) {
 	return 0;
 }
 
-int CLinkbotTGroup::stop(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->stop();
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::stopOneJoint(robotJointId_t id) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->stopOneJoint(id);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::stopTwoJoints(robotJointId_t id1, robotJointId_t id2) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->stopTwoJoints(id1, id2);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->stopThreeJoints(id1, id2, id3);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CLinkbotTGroup::traceOff(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {

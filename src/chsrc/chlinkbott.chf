@@ -1787,58 +1787,6 @@ int CLinkbotT::setSpeed(double speed, double radius) {
     return retval;
 }
 
-int CLinkbotT::stop(void) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_stop_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stop, this);
-    return retval;
-}
-
-int CLinkbotT::stopOneJoint(int id) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_stopOneJoint_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopOneJoint, this, id);
-    return retval;
-}
-
-int CLinkbotT::stopTwoJoints(int id1, int id2) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_stopTwoJoints_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopTwoJoints, this, id1, id2);
-    return retval;
-}
-
-int CLinkbotT::stopThreeJoints(int id1, int id2, int id3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_stopThreeJoints_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopThreeJoints, this, id1, id2, id3);
-    return retval;
-}
-
 int CLinkbotT::systemTime(double &systemTime) {
     void *fptr;
     int retval;
@@ -2968,58 +2916,6 @@ int CLinkbotTGroup::setSpeed(double speed, double radius) {
         return -1;
     }
     dlrunfun(fptr, &retval, setSpeed, this, speed, radius);
-    return retval;
-}
-
-int CLinkbotTGroup::stop(void) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_stop_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stop, this);
-    return retval;
-}
-
-int CLinkbotTGroup::stopOneJoint(int id) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_stopOneJoint_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopOneJoint, this, id);
-    return retval;
-}
-
-int CLinkbotTGroup::stopTwoJoints(int id1, int id2) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_stopTwoJoints_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopTwoJoints, this, id1, id2);
-    return retval;
-}
-
-int CLinkbotTGroup::stopThreeJoints(int id1, int id2, int id3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_stopThreeJoints_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, stopThreeJoints, this, id1, id2, id3);
     return retval;
 }
 

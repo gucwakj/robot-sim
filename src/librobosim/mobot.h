@@ -407,7 +407,7 @@ typedef struct mobotMoveArg_s {
 #ifdef _CH_
 void* RoboSim::_dlhandle = NULL;
 int RoboSim::_dlcount = 0;
-#pragma importf "chmobotsim.chf"
+#pragma importf "chmobot.chf"
 #else
 extern RoboSim *_simObject;
 #endif

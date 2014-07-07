@@ -2184,39 +2184,6 @@ int CLinkbotT::setSpeed(double speed, double radius) {
 	return 0;
 }
 
-int CLinkbotT::stop(void) {
-	this->setJointSpeed(JOINT1, 0);
-	this->setJointSpeed(JOINT2, 0);
-	this->setJointSpeed(JOINT3, 0);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::stopOneJoint(robotJointId_t id) {
-	this->setJointSpeed(id, 0);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::stopTwoJoints(robotJointId_t id1, robotJointId_t id2) {
-	this->setJointSpeed(id1, 0);
-	this->setJointSpeed(id2, 0);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3) {
-	this->setJointSpeed(id1, 0);
-	this->setJointSpeed(id2, 0);
-	this->setJointSpeed(id3, 0);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::systemTime(double &time) {
 	// get time
 	time = *_clock;
