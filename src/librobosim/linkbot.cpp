@@ -1,4 +1,4 @@
-#include "linkbotsim.h"
+#include "linkbot.h"
 
 CLinkbotT::CLinkbotT(int disabled, int type) {
 	// initialize parameters

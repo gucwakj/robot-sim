@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "mobotsim.h"
+#include "mobot.h"
 
 CMobotGroup::CMobotGroup(void) {
 	_motion = 0;

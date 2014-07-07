@@ -1,5 +1,5 @@
 #include <iostream>
-#include "linkbotsim.h"
+#include "linkbot.h"
 using namespace std;
 
 int main(int argc, char *argv[]) {

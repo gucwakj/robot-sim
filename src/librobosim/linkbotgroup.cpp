@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "linkbotsim.h"
+#include "linkbot.h"
 
 CLinkbotTGroup::CLinkbotTGroup(void) {
 	_thread = (THREAD_T *)malloc(sizeof(THREAD_T));
