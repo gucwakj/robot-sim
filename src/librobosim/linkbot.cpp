@@ -79,16 +79,19 @@ int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
 		else
 			_omega[id] = -0.01;
 	}
+	if (t == 0)
+		_mode_timeout[id] = abs((int)((DEG2RAD(_max_omega[id])-fabs(_omega[id]))/a/(*_step)));
+	else
+		_mode_timeout[id] = abs((int)(t/(*_step)));
 	_mode[id] = ACCEL_CONSTANT;
 	_alpha[id] = a;
-	_mode_timeout[id] = (int)(t/(*_step));
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::accelJointToMaxSpeedNB(robotJointId_t id, double a) {
-	this->accelJointTimeNB(id, a, (_max_omega[id] - _omega[id])/a);
+	this->accelJointTimeNB(id, a, 0);
 
 	// success
 	return 0;
@@ -239,8 +242,8 @@ int CLinkbotT::driveAccelCycloidalNB(double radius, double d, double t) {
 }
 
 int CLinkbotT::driveAccelDistanceNB(double radius, double a, double d) {
-	this->accelJointAngleNB(JOINT1,  d/radius,  a/radius);
-	this->accelJointAngleNB(JOINT3, -d/radius, -a/radius);
+	this->accelJointTimeNB(JOINT1,  a/radius, sqrt(2*d/a));
+	this->accelJointTimeNB(JOINT3, -a/radius, -sqrt(2*d/a));
 
 	// success
 	return 0;
