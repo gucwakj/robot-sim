@@ -2471,7 +2471,7 @@ int CMobot::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 }
 
 double CMobot::getAngle(int i) {
-	if (i == LE || i == RE)
+	if (i == JOINT1 || i == JOINT4)
 		_motor[i].theta = mod_angle(_motor[i].theta, dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i]));
 	else
 		_motor[i].theta = dJointGetHingeAngle(_joint[i]);

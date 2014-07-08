@@ -3,6 +3,8 @@
 
 #include "robosim.h"
 
+#define NUM_DOF 3
+
 #ifdef _CH_
 #include <array.h>
 class DLLIMPORT CLinkbotT {
@@ -196,12 +198,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 			FACE2,
 			FACE3,
 			NUM_PARTS
-		};
-		enum robot_bodies_e {       // each body which has a degree of freedom
-			F1,
-			F2,
-			F3,
-			NUM_DOF
 		};
 
 		// private functions inherited from CRobot class
