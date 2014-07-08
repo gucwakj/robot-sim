@@ -27,45 +27,45 @@ int CLinkbotT::accelJointAngleNB(robotJointId_t id, double a, double angle) {
 }
 
 int CLinkbotT::accelJointCycloidalNB(robotJointId_t id, double angle, double t) {
-	if (_state[id] != POSITIVE || _state[id] != NEGATIVE) {
+	if (_motor[id].state != POSITIVE || _motor[id].state != NEGATIVE) {
 		if ( angle > EPSILON )
-			_omega[id] = 1;
+			_motor[id].omega = 1;
 		else
-			_omega[id] = -1;
+			_motor[id].omega = -1;
 	}
-	_mode[id] = ACCEL_CYCLOIDAL;
-	_goal[id] = angle;
-	_mode_timeout[id] = (int)(t/(*_step));
-	_period = t;
-	_numrun[id] = 0;
-	_starttime = 0;
-	_initAngle[id] = _theta[id];
+	_motor[id].mode = ACCEL_CYCLOIDAL;
+	_motor[id].goal = angle;
+	_motor[id].mode_timeout = (int)(t/(*_step));
+	_motor[id].period = t;
+	_motor[id].numrun = 0;
+	_motor[id].starttime = 0;
+	_motor[id].initAngle = _motor[id].theta;
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double t) {
-	if (_state[id] != POSITIVE || _state[id] != NEGATIVE) {
+	if (_motor[id].state != POSITIVE || _motor[id].state != NEGATIVE) {
 		if ( angle > EPSILON )
-			_omega[id] = 0.01;
+			_motor[id].omega = 0.01;
 		else
-			_omega[id] = -0.01;
+			_motor[id].omega = -0.01;
 	}
-	_mode[id] = ACCEL_HARMONIC;
-	_goal[id] = angle - DEG2RAD(2);
-	_mode_timeout[id] = (int)(t/(*_step));
-	_period = t;
-	_numrun[id] = 0;
-	_starttime = 0;
-	_initAngle[id] = _theta[id];
+	_motor[id].mode = ACCEL_HARMONIC;
+	_motor[id].goal = angle - DEG2RAD(2);
+	_motor[id].mode_timeout = (int)(t/(*_step));
+	_motor[id].period = t;
+	_motor[id].numrun = 0;
+	_motor[id].starttime = 0;
+	_motor[id].initAngle = _motor[id].theta;
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle) {
-	_omega[id] = DEG2RAD(vmax);
+	_motor[id].omega = DEG2RAD(vmax);
 	this->moveJoint(id, angle);
 
 	// success
@@ -73,18 +73,18 @@ int CLinkbotT::accelJointSmoothNB(robotJointId_t id, double a0, double af, doubl
 }
 
 int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
-	if (_state[id] != POSITIVE || _state[id] != NEGATIVE) {
+	if (_motor[id].state != POSITIVE || _motor[id].state != NEGATIVE) {
 		if ( a > EPSILON )
-			_omega[id] = 0.01;
+			_motor[id].omega = 0.01;
 		else
-			_omega[id] = -0.01;
+			_motor[id].omega = -0.01;
 	}
 	if (t == 0)
-		_mode_timeout[id] = abs((int)((DEG2RAD(_max_omega[id])-fabs(_omega[id]))/a/(*_step)));
+		_motor[id].mode_timeout = abs((int)((DEG2RAD(_motor[id].max_omega)-fabs(_motor[id].omega))/a/(*_step)));
 	else
-		_mode_timeout[id] = abs((int)(t/(*_step)));
-	_mode[id] = ACCEL_CONSTANT;
-	_alpha[id] = a;
+		_motor[id].mode_timeout = abs((int)(t/(*_step)));
+	_motor[id].mode = ACCEL_CONSTANT;
+	_motor[id].alpha = a;
 
 	// success
 	return 0;
@@ -321,7 +321,7 @@ int CLinkbotT::driveDistanceNB(double distance, double radius) {
 
 int CLinkbotT::driveForeverNB(void) {
 	// negate speed to act as a car
-	_omega[JOINT3] = -_omega[JOINT3];
+	_motor[JOINT3].omega = -_motor[JOINT3].omega;
 
 	// set joint movements
 	this->moveJointForeverNB(JOINT1);
@@ -841,53 +841,53 @@ int CLinkbotT::getJointAnglesInstant(double &angle1, double &angle2, double &ang
 }
 
 int CLinkbotT::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
-	maxSpeed = _max_omega[id];
+	maxSpeed = _motor[id].max_omega;
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::getJointSafetyAngle(double &angle) {
-	angle = _safety_angle;
+	angle = _motor[JOINT1].safety_angle;
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::getJointSafetyAngleTimeout(double &seconds) {
-	seconds = _safety_timeout;
+	seconds = _motor[JOINT1].safety_timeout;
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::getJointSpeed(robotJointId_t id, double &speed) {
-	speed = RAD2DEG(_omega[id]);
+	speed = RAD2DEG(_motor[id].omega);
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::getJointSpeedRatio(robotJointId_t id, double &ratio) {
-	ratio = _omega[id]/DEG2RAD(_max_omega[id]);
+	ratio = _motor[id].omega/DEG2RAD(_motor[id].max_omega);
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::getJointSpeeds(double &speed1, double &speed2, double &speed3) {
-	speed1 = RAD2DEG(_omega[0]);
-	speed2 = RAD2DEG(_omega[1]);
-	speed3 = RAD2DEG(_omega[2]);
+	speed1 = RAD2DEG(_motor[JOINT1].omega);
+	speed2 = RAD2DEG(_motor[JOINT2].omega);
+	speed3 = RAD2DEG(_motor[JOINT3].omega);
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3) {
-	ratio1 = _omega[0]/DEG2RAD(_max_omega[0]);
-	ratio2 = _omega[1]/DEG2RAD(_max_omega[1]);
-	ratio3 = _omega[2]/DEG2RAD(_max_omega[2]);
+	ratio1 = _motor[JOINT1].omega/DEG2RAD(_motor[JOINT1].max_omega);
+	ratio2 = _motor[JOINT2].omega/DEG2RAD(_motor[JOINT2].max_omega);
+	ratio3 = _motor[JOINT3].omega/DEG2RAD(_motor[JOINT3].max_omega);
 
 	// success
 	return 0;
@@ -935,7 +935,7 @@ int CLinkbotT::isConnected(void) {
 
 int CLinkbotT::isMoving(void) {
 	for (int i = 0; i < NUM_DOF; i++) {
-		if (_state[i] == POSITIVE || _state[i] == NEGATIVE) {
+		if (_motor[i].state == POSITIVE || _motor[i].state == NEGATIVE) {
 			return 1;
 		}
 	}
@@ -1004,12 +1004,12 @@ int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 	// loop over joints
 	for (int i = 0; i < ((_disabled == -1) ? 3 : 2); i++) {
 		int j = _enabled[i];
-		if (_omega[j] < -EPSILON) delta[j] = -delta[j];
-		_goal[j] += DEG2RAD(delta[j]);
-		_mode[j] = SEEK;
-		dJointEnable(_motor[j]);
-		dJointSetAMotorAngle(_motor[j], 0, _theta[j]);
-		_success[j] = false;
+		if (_motor[j].omega < -EPSILON) delta[j] = -delta[j];
+		_motor[j].goal += DEG2RAD(delta[j]);
+		_motor[j].mode = SEEK;
+		dJointEnable(_motor[j].id);
+		dJointSetAMotorAngle(_motor[j].id, 0, _motor[j].theta);
+		_motor[j].success = false;
 	}
 
 	// enable body
@@ -1050,22 +1050,22 @@ int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 	MUTEX_LOCK(&_goal_mutex);
 
 	// set new goal angles
-	if (_omega[id] < -EPSILON) angle = -angle;
-	_goal[id] += DEG2RAD(angle);
+	if (_motor[id].omega < -EPSILON) angle = -angle;
+	_motor[id].goal += DEG2RAD(angle);
 
 	// actively seeking an angle
-	_mode[id] = SEEK;
+	_motor[id].mode = SEEK;
 
 	// enable motor
 	MUTEX_LOCK(&_angle_mutex);
-	dJointEnable(_motor[id]);
-	dJointSetAMotorAngle(_motor[id], 0, _theta[id]);
+	dJointEnable(_motor[id].id);
+	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
 	dBodyEnable(_body[BODY]);
 	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
 	MUTEX_LOCK(&_success_mutex);
-	_success[id] = false;
+	_motor[id].success = false;
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
@@ -1080,16 +1080,16 @@ int CLinkbotT::moveJointForeverNB(robotJointId_t id) {
 	MUTEX_LOCK(&_success_mutex);
 
 	// enable motor
-	dJointEnable(_motor[id]);
-	dJointSetAMotorAngle(_motor[id], 0, _theta[id]);
-	_mode[id] = CONTINUOUS;
-	if ( _omega[id] > EPSILON )
-		_state[id] = POSITIVE;
-	else if ( _omega[id] < EPSILON )
-		_state[id] = NEGATIVE;
+	dJointEnable(_motor[id].id);
+	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
+	_motor[id].mode = CONTINUOUS;
+	if ( _motor[id].omega > EPSILON )
+		_motor[id].state = POSITIVE;
+	else if ( _motor[id].omega < EPSILON )
+		_motor[id].state = NEGATIVE;
 	else
-		_state[id] = HOLD;
-	_success[id] = true;
+		_motor[id].state = HOLD;
+	_motor[id].success = true;
     dBodyEnable(_body[BODY]);
 
 	// unlock mutexes
@@ -1165,21 +1165,21 @@ int CLinkbotT::moveJointToNB(robotJointId_t id, double angle) {
 	MUTEX_LOCK(&_goal_mutex);
 
 	// set new goal angles
-	_goal[id] = DEG2RAD(angle);
+	_motor[id].goal = DEG2RAD(angle);
 
 	// actively seeking an angle
-	_mode[id] = SEEK;
+	_motor[id].mode = SEEK;
 
 	// enable motor
 	MUTEX_LOCK(&_angle_mutex);
-	dJointEnable(_motor[id]);
-	dJointSetAMotorAngle(_motor[id], 0, _theta[id]);
+	dJointEnable(_motor[id].id);
+	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
 	dBodyEnable(_body[BODY]);
 	MUTEX_UNLOCK(&_angle_mutex);
 
 	// set success to false
 	MUTEX_LOCK(&_success_mutex);
-	_success[id] = false;
+	_motor[id].success = false;
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// unlock goal
@@ -1192,7 +1192,7 @@ int CLinkbotT::moveJointToNB(robotJointId_t id, double angle) {
 int CLinkbotT::moveJointWait(robotJointId_t id) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_success_mutex);
-	while ( !_success[id] ) { COND_WAIT(&_success_cond, &_success_mutex); }
+	while ( !_motor[id].success ) { COND_WAIT(&_success_cond, &_success_mutex); }
 	MUTEX_UNLOCK(&_success_mutex);
 
 	// success
@@ -1258,7 +1258,7 @@ int CLinkbotT::moveTo(double angle1, double angle2, double angle3) {
 
 int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 	// store angles into array
-	double delta[3] = {DEG2RAD(angle1) - _theta[0], DEG2RAD(angle2) - _theta[1], DEG2RAD(angle3) - _theta[2]};
+	double delta[3] = {DEG2RAD(angle1) - _motor[JOINT1].theta, DEG2RAD(angle2) - _motor[JOINT2].theta, DEG2RAD(angle3) - _motor[JOINT3].theta};
 
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
@@ -1268,11 +1268,11 @@ int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 	// loop over joints
 	for (int i = 0; i < ((_disabled == -1) ? 3 : 2); i++) {
 		int j = _enabled[i];
-		_goal[j] += delta[j];
-		_mode[j] = SEEK;
-		dJointEnable(_motor[j]);
-		dJointSetAMotorAngle(_motor[j], 0, _theta[j]);
-		_success[j] = false;
+		_motor[j].goal += delta[j];
+		_motor[j].mode = SEEK;
+		dJointEnable(_motor[j].id);
+		dJointSetAMotorAngle(_motor[j].id, 0, _motor[j].theta);
+		_motor[j].success = false;
 	}
 
 	// enable body
@@ -1304,7 +1304,7 @@ int CLinkbotT::moveToZeroNB(void) {
 int CLinkbotT::moveWait(void) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_success_mutex);
-	while ((_success[0] + _success[1] + _success[2]) != NUM_DOF) {
+	while ((_motor[JOINT1].success + _motor[JOINT2].success + _motor[JOINT3].success) != NUM_DOF) {
 		COND_WAIT(&_success_cond, &_success_mutex);
 	}
 	MUTEX_UNLOCK(&_success_mutex);
@@ -1356,7 +1356,7 @@ void* CLinkbotT::recordAngleThread(void *arg) {
 		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angle
-		rArg->angle1[i] = RAD2DEG(rArg->robot->_theta[rArg->id]);
+		rArg->angle1[i] = RAD2DEG(rArg->robot->_motor[rArg->id].theta);
 
 		// check if joint is moving
 		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
@@ -1469,7 +1469,7 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_theta[rArg->id]);
+		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_motor[rArg->id].theta);
 		moving = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
 
 		// store time of data point
@@ -1579,9 +1579,9 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angles
-		rArg->angle1[i] = RAD2DEG(rArg->robot->_theta[JOINT1]);
-		rArg->angle2[i] = RAD2DEG(rArg->robot->_theta[JOINT2]);
-		rArg->angle3[i] = RAD2DEG(rArg->robot->_theta[JOINT3]);
+		rArg->angle1[i] = RAD2DEG(rArg->robot->_motor[JOINT1].theta);
+		rArg->angle2[i] = RAD2DEG(rArg->robot->_motor[JOINT2].theta);
+		rArg->angle3[i] = RAD2DEG(rArg->robot->_motor[JOINT3].theta);
 
 		// check if joints are moving
 		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT1), dParamVel)*1000);
@@ -1717,9 +1717,9 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 		}
 
 		// store joint angles
-		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_theta[JOINT1]);
-		(*(rArg->pangle2))[i] = RAD2DEG(rArg->robot->_theta[JOINT2]);
-		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_theta[JOINT3]);
+		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_motor[JOINT1].theta);
+		(*(rArg->pangle2))[i] = RAD2DEG(rArg->robot->_motor[JOINT2].theta);
+		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_motor[JOINT3].theta);
 
 		// store time of data point
 		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
@@ -2045,16 +2045,16 @@ int CLinkbotT::recordxyEnd(int &num) {
 }
 
 int CLinkbotT::relaxJoint(robotJointId_t id) {
-	dJointDisable(_motor[id]);
+	dJointDisable(_motor[id].id);
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::relaxJoints(void) {
-	dJointDisable(_motor[JOINT1]);
-	dJointDisable(_motor[JOINT2]);
-	dJointDisable(_motor[JOINT3]);
+	dJointDisable(_motor[JOINT1].id);
+	dJointDisable(_motor[JOINT2].id);
+	dJointDisable(_motor[JOINT3].id);
 
 	// success
 	return 0;
@@ -2072,10 +2072,10 @@ int CLinkbotT::resetToZeroNB(void) {
 	// reset absolute counter to 0 -> 2M_PI
 	MUTEX_LOCK(&_angle_mutex);
 	for (int i = 0; i < 3; i++) {
-		int rev = (int)(_theta[i]/2/M_PI);
+		int rev = (int)(_motor[i].theta/2/M_PI);
 		if (rev) {
-			_theta[i] -= 2*rev*M_PI;
-			_goal[i] -= 2*rev*M_PI;
+			_motor[i].theta -= 2*rev*M_PI;
+			_motor[i].goal -= 2*rev*M_PI;
 		}
 	}
 	MUTEX_UNLOCK(&_angle_mutex);
@@ -2144,26 +2144,30 @@ int CLinkbotT::setLEDColorRGB(int r, int g, int b) {
 }
 
 int CLinkbotT::setJointSafetyAngle(double angle) {
-	_safety_angle = angle;
+	_motor[JOINT1].safety_angle = angle;
+	_motor[JOINT2].safety_angle = angle;
+	_motor[JOINT3].safety_angle = angle;
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::setJointSafetyAngleTimeout(double seconds) {
-	_safety_timeout = seconds;
+	_motor[JOINT1].safety_timeout = seconds;
+	_motor[JOINT2].safety_timeout = seconds;
+	_motor[JOINT3].safety_timeout = seconds;
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::setJointSpeed(robotJointId_t id, double speed) {
-	if (speed > _max_omega[id]) {
+	if (speed > _motor[id].max_omega) {
 		fprintf(stderr, "Warning: Setting the speed for joint %d to %.2lf degrees per second is "
 			"beyond the hardware limit of %.2lf degrees per second.\n",
-			id+1, speed, _max_omega[id]);
+			id+1, speed, _motor[id].max_omega);
 	}
-	_omega[id] = DEG2RAD(speed);
+	_motor[id].omega = DEG2RAD(speed);
 
 	// success
 	return 0;
@@ -2173,7 +2177,7 @@ int CLinkbotT::setJointSpeedRatio(robotJointId_t id, double ratio) {
 	if ( ratio < 0 || ratio > 1 ) {
 		return -1;
 	}
-	return this->setJointSpeed(id, ratio * _max_omega[(int)id]);
+	return this->setJointSpeed(id, ratio * _motor[(int)id].max_omega);
 }
 
 int CLinkbotT::setJointSpeeds(double speed1, double speed2, double speed3) {
@@ -2202,7 +2206,7 @@ int CLinkbotT::setMotorPower(robotJointId_t id, int power) {
 }
 
 int CLinkbotT::setSpeed(double speed, double radius) {
-	if (RAD2DEG(speed/radius) > _max_omega[JOINT1]) {
+	if (RAD2DEG(speed/radius) > _motor[JOINT1].max_omega) {
 		fprintf(stderr, "Warning: Speed %.2lf corresponds to joint speeds of %.2lf degrees/second.\n",
 			speed, RAD2DEG(speed/radius));
 	}
@@ -2413,18 +2417,18 @@ int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 
 double CLinkbotT::getAngle(int i) {
 	if (i != _disabled)
-		_theta[i] = mod_angle(_theta[i], dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i])) - _offset[i];
+		_motor[i].theta = mod_angle(_motor[i].theta, dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i])) - _motor[i].offset;
 	else
-		_theta[i] = 0;
+		_motor[i].theta = 0;
 
 	// add noise to angle
-	//this->noisy(&(_theta[i]), 1, 0.0005);
+	//this->noisy(&(_motor[i].theta), 1, 0.0005);
 
-    return _theta[i];
+    return _motor[i].theta;
 }
 
 double CLinkbotT::getAngularRate(int i) {
-	return dJointGetAMotorParam(_motor[i], dParamVel);
+	return dJointGetAMotorParam(_motor[i].id, dParamVel);
 }
 
 dBodyID CLinkbotT::getBodyID(int id) {
@@ -2500,7 +2504,7 @@ int CLinkbotT::getRobotID(void) {
 }
 
 dJointID CLinkbotT::getMotorID(int id) {
-    return _motor[id];
+    return _motor[id].id;
 }
 
 double CLinkbotT::getPosition(int body, int i) {
@@ -2530,7 +2534,7 @@ double CLinkbotT::getRotation(int body, int i) {
 }
 
 bool CLinkbotT::getSuccess(int i) {
-	return _success[i];
+	return _motor[i].success;
 }
 
 int CLinkbotT::getType(void) {
@@ -2538,7 +2542,7 @@ int CLinkbotT::getType(void) {
 }
 
 bool CLinkbotT::isHome(void) {
-    return ( fabs(_theta[FACE1]) < EPSILON && fabs(_theta[FACE2]) < EPSILON && fabs(_theta[FACE3]) < EPSILON );
+    return ( fabs(_motor[JOINT1].theta) < EPSILON && fabs(_motor[JOINT2].theta) < EPSILON && fabs(_motor[JOINT3].theta) < EPSILON );
 }
 
 int CLinkbotT::isShiftEnabled(void) {
@@ -2573,7 +2577,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		int i = _enabled[j];
 		// store current angle
-		_theta[i] = getAngle(i);
+		_motor[i].theta = getAngle(i);
 		// set rotation axis
 		dVector3 axis;
 		conn_t ctmp = _conn;
@@ -2585,128 +2589,128 @@ void CLinkbotT::simPreCollisionThread(void) {
 			ctmp = ctmp->next;
 		}
 		// set motor angle to current angle
-		dJointSetAMotorAngle(_motor[i], 0, _theta[i]);
+		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
 		// engage motor depending upon motor mode
 		double t = 0, angle = 0;
-		switch (_mode[i]) {
+		switch (_motor[i].mode) {
 			case ACCEL_CONSTANT:
 				// check if done with acceleration
-				if (_mode_timeout[i]) {
-					_mode_timeout[i]--;
+				if (_motor[i].mode_timeout) {
+					_motor[i].mode_timeout--;
 				}
 				else {
-					_mode[i] = CONTINUOUS;
-					if (_omega[i] > 0) _state[i] = POSITIVE;
-					else if (_omega[i] < 0) _state[i] = NEGATIVE;
-					_mode_timeout[i] = -1;
+					_motor[i].mode = CONTINUOUS;
+					if (_motor[i].omega > 0) _motor[i].state = POSITIVE;
+					else if (_motor[i].omega < 0) _motor[i].state = NEGATIVE;
+					_motor[i].mode_timeout = -1;
 				}
 
 				// set new theta
-				_goal[i] += (*_step)*_omega[i];
-				if (_omega[i] <= _max_omega[i]) {
-					_goal[i] += _alpha[i]*(*_step)*(*_step)/2;
+				_motor[i].goal += (*_step)*_motor[i].omega;
+				if (_motor[i].omega <= _motor[i].max_omega) {
+					_motor[i].goal += _motor[i].alpha*(*_step)*(*_step)/2;
 				}
 
 				// move to new theta
-				dJointEnable(_motor[i]);
-				dJointSetAMotorParam(_motor[i], dParamVel, _omega[i]);
+				dJointEnable(_motor[i].id);
+				dJointSetAMotorParam(_motor[i].id, dParamVel, _motor[i].omega);
 
 				// update omega
-				_omega[i] += *_step * _alpha[i];
-				if (_omega[i] > _max_omega[i])
-					_omega[i] = _max_omega[i];
-				else if (_omega[i] < -_max_omega[i])
-					_omega[i] = -_max_omega[i];
+				_motor[i].omega += *_step * _motor[i].alpha;
+				if (_motor[i].omega > _motor[i].max_omega)
+					_motor[i].omega = _motor[i].max_omega;
+				else if (_motor[i].omega < -_motor[i].max_omega)
+					_motor[i].omega = -_motor[i].max_omega;
 				break;
 			case ACCEL_CYCLOIDAL:
 			case ACCEL_HARMONIC:
-				if (_numrun[i] == 0) {
-					_initAngle[i] = _theta[i];
-					_starttime = (double)(*_clock);
-					_numrun[i] = 1;
+				if (_motor[i].numrun == 0) {
+					_motor[i].initAngle = _motor[i].theta;
+					_motor[i].starttime = (double)(*_clock);
+					_motor[i].numrun = 1;
 					break;
 				}
 				t = (double)(*_clock);
-				if (_mode[i] == ACCEL_CYCLOIDAL)
-					angle = _goal[i]*((t-_starttime)/_period -((1.0/(2*M_PI))*sin((2*M_PI*(t-_starttime))/_period)))+_initAngle[i];
-				else if (_mode[i] == ACCEL_HARMONIC)
-					angle = (_goal[i]/2.0)*(1-cos((M_PI*(t-_starttime))/_period))+_initAngle[i];
-				_omega[i] = (angle-_theta[i])/(*_step);
-				if (0 < _omega[i] && _omega[i] < 0.1 ) _omega[i] = 0.1;
-				else if (-0.1 < _omega[i] && _omega[i] < 0 ) _omega[i] = -0.1;
-				if (_mode_timeout[i]) {
-					dJointEnable(_motor[i]);
-					dJointSetAMotorParam(_motor[i], dParamVel, _omega[i]);
-					_mode_timeout[i]--;
+				if (_motor[i].mode == ACCEL_CYCLOIDAL)
+					angle = _motor[i].goal*((t-_motor[i].starttime)/_motor[i].period -((1.0/(2*M_PI))*sin((2*M_PI*(t-_motor[i].starttime))/_motor[i].period)))+_motor[i].initAngle;
+				else if (_motor[i].mode == ACCEL_HARMONIC)
+					angle = (_motor[i].goal/2.0)*(1-cos((M_PI*(t-_motor[i].starttime))/_motor[i].period))+_motor[i].initAngle;
+				_motor[i].omega = (angle-_motor[i].theta)/(*_step);
+				if (0 < _motor[i].omega && _motor[i].omega < 0.1 ) _motor[i].omega = 0.1;
+				else if (-0.1 < _motor[i].omega && _motor[i].omega < 0 ) _motor[i].omega = -0.1;
+				if (_motor[i].mode_timeout) {
+					dJointEnable(_motor[i].id);
+					dJointSetAMotorParam(_motor[i].id, dParamVel, _motor[i].omega);
+					_motor[i].mode_timeout--;
 				}
 				else {
-					_mode[i] = CONTINUOUS;
-					if (_omega[i] > 0) _state[i] = POSITIVE;
-					else if (_omega[i] < 0) _state[i] = NEGATIVE;
-					dJointSetAMotorParam(_motor[i], dParamVel, 0);
-					_numrun[i] = 0;
-					_mode_timeout[i] = -1;
+					_motor[i].mode = CONTINUOUS;
+					if (_motor[i].omega > 0) _motor[i].state = POSITIVE;
+					else if (_motor[i].omega < 0) _motor[i].state = NEGATIVE;
+					dJointSetAMotorParam(_motor[i].id, dParamVel, 0);
+					_motor[i].numrun = 0;
+					_motor[i].mode_timeout = -1;
 				}
 				break;
 			case CONTINUOUS:
-				switch (_state[i]) {
+				switch (_motor[i].state) {
 					case POSITIVE:
-						dJointSetAMotorParam(_motor[i], dParamVel, fabs(_omega[i]));
+						dJointSetAMotorParam(_motor[i].id, dParamVel, fabs(_motor[i].omega));
 						break;
 					case NEGATIVE:
-						dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_omega[i]));
+						dJointSetAMotorParam(_motor[i].id, dParamVel, -fabs(_motor[i].omega));
 						break;
 					case HOLD:
-						dJointSetAMotorParam(_motor[i], dParamVel, 0);
+						dJointSetAMotorParam(_motor[i].id, dParamVel, 0);
 						break;
 					case NEUTRAL:
-						dJointDisable(_motor[i]);
+						dJointDisable(_motor[i].id);
 						break;
 				}
 				break;
 			case SEEK:
-				if ((_goal[i] - 6*_encoder - _theta[i]) > EPSILON) {
-					_state[i] = POSITIVE;
-					if (_starting[i]++ < 25)
-						dJointSetAMotorParam(_motor[i], dParamVel, _starting[i]*fabs(_omega[i])/50);
-					else if (_starting[i]++ < 50)
-						dJointSetAMotorParam(_motor[i], dParamVel, _starting[i]*fabs(_omega[i])/150 + 0.3*fabs(_omega[i]));
-					else if (_starting[i]++ < 100)
-						dJointSetAMotorParam(_motor[i], dParamVel, _starting[i]*fabs(_omega[i])/150 + fabs(_omega[i])/3);
+				if ((_motor[i].goal - 6*_motor[i].encoder - _motor[i].theta) > EPSILON) {
+					_motor[i].state = POSITIVE;
+					if (_motor[i].starting++ < 25)
+						dJointSetAMotorParam(_motor[i].id, dParamVel, _motor[i].starting*fabs(_motor[i].omega)/50);
+					else if (_motor[i].starting++ < 50)
+						dJointSetAMotorParam(_motor[i].id, dParamVel, _motor[i].starting*fabs(_motor[i].omega)/150 + 0.3*fabs(_motor[i].omega));
+					else if (_motor[i].starting++ < 100)
+						dJointSetAMotorParam(_motor[i].id, dParamVel, _motor[i].starting*fabs(_motor[i].omega)/150 + fabs(_motor[i].omega)/3);
 					else
-						dJointSetAMotorParam(_motor[i], dParamVel, fabs(_omega[i]));
+						dJointSetAMotorParam(_motor[i].id, dParamVel, fabs(_motor[i].omega));
 				}
-				else if ((_goal[i] - 3*_encoder - _theta[i]) > EPSILON) {
-					_state[i] = POSITIVE;
-					dJointSetAMotorParam(_motor[i], dParamVel, fabs(_omega[i])/2);
+				else if ((_motor[i].goal - 3*_motor[i].encoder - _motor[i].theta) > EPSILON) {
+					_motor[i].state = POSITIVE;
+					dJointSetAMotorParam(_motor[i].id, dParamVel, fabs(_motor[i].omega)/2);
 				}
-				else if ((_goal[i] - _encoder - _theta[i]) > EPSILON) {
-					_state[i] = POSITIVE;
-					dJointSetAMotorParam(_motor[i], dParamVel, fabs(_omega[i])/4);
+				else if ((_motor[i].goal - _motor[i].encoder - _motor[i].theta) > EPSILON) {
+					_motor[i].state = POSITIVE;
+					dJointSetAMotorParam(_motor[i].id, dParamVel, fabs(_motor[i].omega)/4);
 				}
-				else if ((_theta[i] - _goal[i] - 6*_encoder) > EPSILON) {
-					_state[i] = NEGATIVE;
-					if (_starting[i]++ < 25)
-						dJointSetAMotorParam(_motor[i], dParamVel, -_starting[i]*fabs(_omega[i])/50);
-					else if (_starting[i]++ < 50)
-						dJointSetAMotorParam(_motor[i], dParamVel, -_starting[i]*fabs(_omega[i])/150 - 0.3*fabs(_omega[i]));
-					else if (_starting[i]++ < 100)
-						dJointSetAMotorParam(_motor[i], dParamVel, -_starting[i]*fabs(_omega[i])/150 - fabs(_omega[i])/3);
+				else if ((_motor[i].theta - _motor[i].goal - 6*_motor[i].encoder) > EPSILON) {
+					_motor[i].state = NEGATIVE;
+					if (_motor[i].starting++ < 25)
+						dJointSetAMotorParam(_motor[i].id, dParamVel, -_motor[i].starting*fabs(_motor[i].omega)/50);
+					else if (_motor[i].starting++ < 50)
+						dJointSetAMotorParam(_motor[i].id, dParamVel, -_motor[i].starting*fabs(_motor[i].omega)/150 - 0.3*fabs(_motor[i].omega));
+					else if (_motor[i].starting++ < 100)
+						dJointSetAMotorParam(_motor[i].id, dParamVel, -_motor[i].starting*fabs(_motor[i].omega)/150 - fabs(_motor[i].omega)/3);
 					else
-						dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_omega[i]));
+						dJointSetAMotorParam(_motor[i].id, dParamVel, -fabs(_motor[i].omega));
 				}
-				else if ((_theta[i] - _goal[i] - 3*_encoder) > EPSILON) {
-					_state[i] = NEGATIVE;
-					dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_omega[i])/2);
+				else if ((_motor[i].theta - _motor[i].goal - 3*_motor[i].encoder) > EPSILON) {
+					_motor[i].state = NEGATIVE;
+					dJointSetAMotorParam(_motor[i].id, dParamVel, -fabs(_motor[i].omega)/2);
 				}
-				else if ((_theta[i] - _goal[i] - _encoder) > EPSILON) {
-					_state[i] = NEGATIVE;
-					dJointSetAMotorParam(_motor[i], dParamVel, -fabs(_omega[i])/4);
+				else if ((_motor[i].theta - _motor[i].goal - _motor[i].encoder) > EPSILON) {
+					_motor[i].state = NEGATIVE;
+					dJointSetAMotorParam(_motor[i].id, dParamVel, -fabs(_motor[i].omega)/4);
 				}
 				else {
-					_state[i] = HOLD;
-					_starting[i] = 0;
-					dJointSetAMotorParam(_motor[i], dParamVel, 0);
+					_motor[i].state = HOLD;
+					_motor[i].starting = 0;
+					dJointSetAMotorParam(_motor[i].id, dParamVel, 0);
 				}
 				break;
 		}
@@ -2726,16 +2730,16 @@ void CLinkbotT::simPostCollisionThread(void) {
 	// check if joint speed is zero -> joint has completed step
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		int i = _enabled[j];
-		_stopping[i] += (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
+		_motor[i].stopping += (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
 		// once motor has been stopped for 10 steps
-		if (_stopping[i] == 50) {
-			_stopping[i] = 0;
-			_success[i] = 1;
+		if (_motor[i].stopping == 50) {
+			_motor[i].stopping = 0;
+			_motor[i].success = 1;
 		}
 	}
 
 	// signal completion of step
-	if (_success[0] && _success[1] && _success[2]) {
+	if (_motor[JOINT1].success && _motor[JOINT2].success && _motor[JOINT3].success) {
 		COND_SIGNAL(&_success_cond);
 	}
 
@@ -3080,14 +3084,14 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 	if (fabs(z) < (_body_radius-EPSILON)) {z += _body_height/2; }
 
     // convert input angles to radians
-    _theta[F1] = DEG2RAD(r_f1);	// face 1
-    _theta[F2] = DEG2RAD(r_f2);	// face 2
-    _theta[F3] = DEG2RAD(r_f3);	// face 3
+    _motor[JOINT1].theta = DEG2RAD(r_f1);
+    _motor[JOINT2].theta = DEG2RAD(r_f2);
+    _motor[JOINT3].theta = DEG2RAD(r_f3);
 
 	// set goal to current angle
-	_goal[F1] = _theta[F1];
-	_goal[F2] = _theta[F2];
-	_goal[F3] = _theta[F3];
+	_motor[JOINT1].goal = _motor[JOINT1].theta;
+	_motor[JOINT2].goal = _motor[JOINT2].theta;
+	_motor[JOINT3].goal = _motor[JOINT3].theta;
 
 	// offset values for each body part[0-2] and joint[3-5] from center
 	double f1[6] = {-_body_width/2 - _face_depth/2, 0, 0, -_body_width/2, 0, 0};
@@ -3148,54 +3152,54 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 
     // create rotation matrices for each body part
     dMatrix3 R_f, R_f1, R_f2, R_f3;
-    dRFromAxisAndAngle(R_f, -1, 0, 0, _theta[F1]);
+    dRFromAxisAndAngle(R_f, -1, 0, 0, _motor[JOINT1].theta);
     dMultiply0(R_f1, R, R_f, 3, 3, 3);
 	dRSetIdentity(R_f);
-    dRFromAxisAndAngle(R_f, 0, -1, 0, _theta[F2]);
+    dRFromAxisAndAngle(R_f, 0, -1, 0, _motor[JOINT2].theta);
     dMultiply0(R_f2, R, R_f, 3, 3, 3);
 	dRSetIdentity(R_f);
-    dRFromAxisAndAngle(R_f, 1, 0, 0, _theta[F3]);
+    dRFromAxisAndAngle(R_f, 1, 0, 0, _motor[JOINT3].theta);
     dMultiply0(R_f3, R, R_f, 3, 3, 3);
 
 	// if bodies are rotated, then redraw
-	if ( _theta[F1] != 0 || _theta[F2] != 0 ||_theta[F3] != 0 ) {
+	if ( _motor[JOINT1].theta != 0 || _motor[JOINT2].theta != 0 || _motor[JOINT3].theta != 0 ) {
 		this->build_face(FACE1, R[0]*f1[0] + x, R[4]*f1[0] + y, R[8]*f1[0] + z, R_f1, 0);
 		this->build_face(FACE2, R[1]*f2[1] + x, R[5]*f2[1] + y, R[9]*f2[1] + z, R_f2, 0);
 		this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R_f3, 0);
 	}
 
     // motor for body to face 1
-    _motor[F1] = dJointCreateAMotor(_world, 0);
-    dJointAttach(_motor[F1], _body[BODY], _body[FACE1]);
-    dJointSetAMotorMode(_motor[F1], dAMotorUser);
-    dJointSetAMotorNumAxes(_motor[F1], 1);
-    dJointSetAMotorAxis(_motor[F1], 0, 1, R[0], R[4], R[8]);
-    dJointSetAMotorAngle(_motor[F1], 0, 0);
-    dJointSetAMotorParam(_motor[F1], dParamFMax, _max_force[F1]);
-    dJointSetAMotorParam(_motor[F1], dParamFudgeFactor, 0.3);
-	dJointDisable(_motor[F1]);
+    _motor[JOINT1].id = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[JOINT1].id, _body[BODY], _body[FACE1]);
+    dJointSetAMotorMode(_motor[JOINT1].id, dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[JOINT1].id, 1);
+    dJointSetAMotorAxis(_motor[JOINT1].id, 0, 1, R[0], R[4], R[8]);
+    dJointSetAMotorAngle(_motor[JOINT1].id, 0, 0);
+    dJointSetAMotorParam(_motor[JOINT1].id, dParamFMax, _motor[JOINT1].max_force);
+    dJointSetAMotorParam(_motor[JOINT1].id, dParamFudgeFactor, 0.3);
+	dJointDisable(_motor[JOINT1].id);
 
     // motor for body to face 2
-    _motor[F2] = dJointCreateAMotor(_world, 0);
-    dJointAttach(_motor[F2], _body[BODY], _body[FACE2]);
-    dJointSetAMotorMode(_motor[F2], dAMotorUser);
-    dJointSetAMotorNumAxes(_motor[F2], 1);
-    dJointSetAMotorAxis(_motor[F2], 0, 1, R[1], R[5], R[9]);
-    dJointSetAMotorAngle(_motor[F2], 0, 0);
-    dJointSetAMotorParam(_motor[F2], dParamFMax, _max_force[F2]);
-    dJointSetAMotorParam(_motor[F2], dParamFudgeFactor, 0.3);
-	dJointDisable(_motor[F2]);
+    _motor[JOINT2].id = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[JOINT2].id, _body[BODY], _body[FACE2]);
+    dJointSetAMotorMode(_motor[JOINT2].id, dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[JOINT2].id, 1);
+    dJointSetAMotorAxis(_motor[JOINT2].id, 0, 1, R[1], R[5], R[9]);
+    dJointSetAMotorAngle(_motor[JOINT2].id, 0, 0);
+    dJointSetAMotorParam(_motor[JOINT2].id, dParamFMax, _motor[JOINT2].max_force);
+    dJointSetAMotorParam(_motor[JOINT2].id, dParamFudgeFactor, 0.3);
+	dJointDisable(_motor[JOINT2].id);
 
     // motor for body to face 3
-    _motor[F3] = dJointCreateAMotor(_world, 0);
-    dJointAttach(_motor[F3], _body[BODY], _body[FACE3]);
-    dJointSetAMotorMode(_motor[F3], dAMotorUser);
-    dJointSetAMotorNumAxes(_motor[F3], 1);
-    dJointSetAMotorAxis(_motor[F3], 0, 1, -R[0], -R[4], -R[8]);
-    dJointSetAMotorAngle(_motor[F3], 0, 0);
-    dJointSetAMotorParam(_motor[F3], dParamFMax, _max_force[F3]);
-    dJointSetAMotorParam(_motor[F3], dParamFudgeFactor, 0.3);
-	dJointDisable(_motor[F3]);
+    _motor[JOINT3].id = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[JOINT3].id, _body[BODY], _body[FACE3]);
+    dJointSetAMotorMode(_motor[JOINT3].id, dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[JOINT3].id, 1);
+    dJointSetAMotorAxis(_motor[JOINT3].id, 0, 1, -R[0], -R[4], -R[8]);
+    dJointSetAMotorAngle(_motor[JOINT3].id, 0, 0);
+    dJointSetAMotorParam(_motor[JOINT3].id, dParamFMax, _motor[JOINT3].max_force);
+    dJointSetAMotorParam(_motor[JOINT3].id, dParamFudgeFactor, 0.3);
+	dJointDisable(_motor[JOINT3].id);
 
     // set damping on all bodies to 0.1
     for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(_body[i], 0.1, 0.1);
@@ -4066,63 +4070,48 @@ int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, double *p) {
 
 int CLinkbotT::init_params(int disabled, int type) {
 	// create arrays for linkbots
-	_alpha = new double[NUM_DOF];
-	_theta = new double[NUM_DOF];
 	_body = new dBodyID[NUM_PARTS];
 	_enabled = new int[(disabled == -1) ? 3 : 2];
 	_geom = new dGeomID * [NUM_PARTS];
-	_goal = new double[NUM_DOF];
-	_initAngle = new double[NUM_DOF];
 	_joint = new dJointID[NUM_DOF];
-	_max_force = new double[NUM_DOF];
-	_max_omega = new double[NUM_DOF];
-	_mode = new int[NUM_DOF];
-	_mode_timeout = new int[NUM_DOF];
-	_motor = new dJointID[NUM_DOF];
-	_numrun = new double[NUM_DOF];
-	_offset = new double[NUM_DOF];
-	_omega = new double[NUM_DOF];
+	_motor = new struct motor_s[NUM_DOF];
 	_rec_active = new bool[NUM_DOF];
 	_rec_angles = new double ** [NUM_DOF];
 	_rec_num = new int[NUM_DOF];
 	_recording = new bool[NUM_DOF];
-	_starting = new int[NUM_DOF];
-	_stopping = new int[NUM_DOF];
-	_state = new int[NUM_DOF];
-	_success = new bool[NUM_DOF];
 
 	// fill with default data
 	for (int i = 0, j = 0; i < NUM_DOF; i++) {
-		_alpha[i] = 0;
-		_theta[i] = 0;
+		_motor[i].alpha = 0;
+		_motor[i].encoder = DEG2RAD(0.25);
+		_motor[i].goal = 0;
+		_motor[i].max_force = 2;
+		_motor[i].max_omega = 240;		// deg/sec
+		_motor[i].mode = SEEK;
+		_motor[i].mode_timeout = 0;
+		_motor[i].offset = 0;
+		_motor[i].omega = 0.7854;			// 45 deg/sec
+		_motor[i].safety_angle = 10;
+		_motor[i].safety_timeout = 4;
+		_motor[i].starting = 0;
+		_motor[i].state = NEUTRAL;
+		_motor[i].stopping = 0;
+		_motor[i].success = true;
+		_motor[i].theta = 0;
 		if (i != disabled) { _enabled[j++] = i; }
-		_goal[i] = 0;
-		_max_force[i] = 2;
-		_max_omega[i] = 240;		// deg/sec
-		_mode[i] = SEEK;
-		_mode_timeout[i] = 0;
-		_offset[i] = 0;
-		_omega[i] = 0.7854;			// 45 deg/sec
 		_rec_active[i] = false;
 		_rec_num[i] = 0;
 		_recording[i] = false;
-		_starting[i] = 0;
-		_stopping[i] = 0;
-		_state[i] = NEUTRAL;
-		_success[i] = true;
 	}
 	_conn = NULL;
 	_connected = 0;
 	_disabled = disabled;
 	_distOffset = 0;
-	_encoder = DEG2RAD(0.25);
 	_id = -1;
 	_motion = false;
 	_rgb[0] = 0;
 	_rgb[1] = 0;
 	_rgb[2] = 1;
-	_safety_angle = 10;
-	_safety_timeout = 4;
 	_shift_data = 0;
 	_g_shift_data = 0;
 	_g_shift_data_en = 0;

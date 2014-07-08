@@ -225,7 +225,7 @@ class DLLIMPORT CRobot {
 			SEEK,
 		} robotMotorMode_t;
 
-		// recording angles struct
+		// recording
 		typedef struct recordAngleArg_s {
 			CRobot *robot;
 			robotJointId_t id;
@@ -249,36 +249,48 @@ class DLLIMPORT CRobot {
 			dGeomID *geom;
 			struct conn_s *next;
 		} *conn_t;
+		typedef struct motor_s {
+			bool success;			// trigger for motion completion
+			dJointID id;			// motors
+			double alpha;			// angular acceleration
+			double encoder;			// encoder resolution
+			double goal;			// goal theta value
+			double initAngle;		// motion initial angle
+			double max_force;		// maximum forces
+			double max_omega;		// maximum speeds
+			double numrun;			// number of motions
+			double offset;			// offset from zero for resetting
+			double omega;			// angular rate
+			double period;			// motion period
+			double safety_angle;	// safety angle
+			double safety_timeout;	// safety timeout
+			double starttime;		// motion start time
+			double theta;			// theta
+			int mode;				// modes
+			int mode_timeout;		// mode timeout
+			int starting;			// starting movement
+			int stopping;			// stopping movement
+			int state;				// state
+		} *motor_t;
 
-		bool _motion;			// motion in progress
-		bool *_recording;		// recording in progress
-		bool *_rec_active;		// actively recording a new value
-		bool *_success;			// trigger for goal
 		conn_t _conn;			// connectors
 		dBodyID *_body;			// body parts
 		dGeomID **_geom;		// geometries of each body part
 		dJointID *_joint;		// joints between body parts
-		dJointID *_motor;		// motors
 		dSpaceID _space;		// space for this robot
 		dWorldID _world;		// world for all robots
-		double *_alpha;			// motor angular acceleration
+		motor_t _motor;			// motors
+		bool _motion;			// motion in progress
+		bool *_recording;		// recording in progress
+		bool *_rec_active;		// actively recording a new value
 		double _accel[3];		// accelerometer data
 		double *_clock;			// world clock
 		double _center[3];		// offset of body from initial (x,y,z)
 		double _distOffset;		// offset for recorded distance
-		double _encoder;		// motor encoder resolution
-		double *_goal;			// goals
-		double *_max_force;		// maximum joint forces
-		double *_max_omega;		// maximum joint speeds
-		double *_offset;		// offset from zero for resetting
-		double *_omega;			// motor angular rate
 		double _radius;			// wheel radius
 		double ***_rec_angles;	// recorded angles from thread
 		double _rgb[3];			// rgb of 'led'
-		double _safety_angle;	// joint safety angle
-		double _safety_timeout;	// joint safety timeout
 		double *_step;			// world clock step
-		double *_theta;			// motor angle
 		double _trackwidth;		// trackwidth of robot
 		double	_center_length, _center_width, _center_height, _center_radius, _center_offset,
 				_body_length, _body_width, _body_height, _body_radius,
@@ -295,24 +307,13 @@ class DLLIMPORT CRobot {
 		int _disabled;			// which joint is disabled
 		int *_enabled;			// list of enabled motors
 		int _id;				// robot id
-		int *_mode;				// robot motor modes
-		int *_mode_timeout;		// robot motor modes
 		int *_rec_num;			// recording data points
 		int _seed;				// seed for random number generation
 		int _shift_data;		// shift recorded data or not
-		int *_starting;			// starting motion
-		int *_stopping;			// stopping motion
 		int _g_shift_data;		// globally shift data for robot
 		int _g_shift_data_en;	// globally shift data for robot enable/disable flag
-		int *_state;			// joint states
 		int _trace;				// tracing on or off
 		int _type;				// type of robot
-
-		// motor variables
-		double *_initAngle;
-		double *_numrun;
-		double _starttime;
-		double _period;
 
 		// threading locks for each robot
 		MUTEX_T _angle_mutex;

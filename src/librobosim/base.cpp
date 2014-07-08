@@ -26,24 +26,15 @@ CRobot::~CRobot(void) {
 	}
 
 	// delete all arrays
-	delete [] _alpha;
 	delete [] _body;
 	delete [] _enabled;
 	delete [] _geom;
-	delete [] _goal;
 	delete [] _joint;
-	delete [] _max_force;
-	delete [] _max_omega;
 	delete [] _motor;
-	delete [] _offset;
-	delete [] _omega;
 	delete [] _rec_active;
 	delete [] _rec_angles;
 	delete [] _rec_num;
 	delete [] _recording;
-	delete [] _state;
-	delete [] _success;
-	delete [] _theta;
 
 	// destroy mutexes
 	MUTEX_DESTROY(&_angle_mutex);

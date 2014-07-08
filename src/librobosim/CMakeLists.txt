@@ -109,20 +109,20 @@ add_library( robosim SHARED
 	base.cpp
 	graphics.cpp
 	robosim.cpp
-	mobot.cpp
-	mobotgroup.cpp
 	linkbot.cpp
 	linkbotgroup.cpp
+	mobot.cpp
+	mobotgroup.cpp
 	rgbhashtable.c
 )
 else (ENABLE_GRAPHICS)
 add_library( robosim SHARED
 	base.cpp
 	robosim.cpp
-	mobot.cpp
-	mobotgroup.cpp
 	linkbot.cpp
 	linkbotgroup.cpp
+	mobot.cpp
+	mobotgroup.cpp
 	rgbhashtable.c
 )
 endif (ENABLE_GRAPHICS)
