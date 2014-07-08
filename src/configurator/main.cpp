@@ -9,17 +9,10 @@
 #endif
 #include <gtk/gtk.h>
 #include <tinyxml2.h>
+#include "../librobosim/macros.h"
 
 #define XML_VERSION 2
 
-typedef enum wheels_e {
-	NONE,
-	BIGWHEEL,
-	SMALLWHEEL,
-	TINYWHEEL,
-	CUSTOM,
-	NUM_WHEELS
-} wheels_t;
 typedef enum preconfig_e {
 	BOW = 1,
 	EXPLORER,
@@ -29,7 +22,7 @@ typedef enum preconfig_e {
 	GROUPBOW,
 	INCHWORM,
 	LIFT,
-	OMNIDRIVE,
+	P_OMNIDRIVE,
 	SNAKE,
 	STAND
 } preconfig_t;
@@ -38,7 +31,7 @@ typedef struct robots_s {
 	int type;
 	double x, y, z;
 	double psi, theta, phi;
-	wheels_t wheel;
+	int wheel;
 	double radius;
 	struct robots_s *next;
 } *robots_t;
@@ -433,7 +426,7 @@ G_MODULE_EXPORT void on_notebook_switch_page(GtkWidget *widget, gpointer data) {
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 1);
 				break;
-			case OMNIDRIVE:
+			case P_OMNIDRIVE:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 1);
 				break;
@@ -596,7 +589,7 @@ G_MODULE_EXPORT void on_wheeled_changed(GtkWidget *widget, gpointer data) {
 		// store into database
 		if (g_units) {
 			if (!strcmp(type, "None"))
-				tmp->wheel = NONE;
+				tmp->wheel = -1;
 			else if (!strcmp(type, "2.0"))
 				tmp->wheel = BIGWHEEL;
 			else if (!strcmp(type, "1.75"))
@@ -604,11 +597,11 @@ G_MODULE_EXPORT void on_wheeled_changed(GtkWidget *widget, gpointer data) {
 			else if (!strcmp(type, "1.625"))
 				tmp->wheel = TINYWHEEL;
 			else if (!strcmp(type, "Custom"))
-				tmp->wheel = CUSTOM;
+				tmp->wheel = WHEEL;
 		}
 		else {
 			if (!strcmp(type, "None"))
-				tmp->wheel = NONE;
+				tmp->wheel = -1;
 			else if (!strcmp(type, "5.08"))
 				tmp->wheel = BIGWHEEL;
 			else if (!strcmp(type, "4.45"))
@@ -616,7 +609,7 @@ G_MODULE_EXPORT void on_wheeled_changed(GtkWidget *widget, gpointer data) {
 			else if (!strcmp(type, "4.13"))
 				tmp->wheel = TINYWHEEL;
 			else if (!strcmp(type, "Custom"))
-				tmp->wheel = CUSTOM;
+				tmp->wheel = WHEEL;
 		}
 
 		// save configuration
@@ -2254,8 +2247,8 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 
 		// set configuration options
 		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
-		type->SetAttribute("val", OMNIDRIVE);
-		g_type = OMNIDRIVE;
+		type->SetAttribute("val", P_OMNIDRIVE);
+		g_type = P_OMNIDRIVE;
 
 		// clean out sim node
 		tinyxml2::XMLElement *sim = g_doc.FirstChildElement("sim");
@@ -2872,7 +2865,7 @@ void readXMLConfig(void) {
 			case LIFT:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 1);
 				break;
-			case OMNIDRIVE:
+			case P_OMNIDRIVE:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 1);
 				break;
 			case SNAKE:
@@ -2903,7 +2896,7 @@ void readXMLConfig(void) {
 				nr->type = 0;
 				nr->x = 0; nr->y = 0; nr->z = 0;
 				nr->psi = 0; nr->theta = 0; nr->phi = 0;
-				nr->wheel = NONE;
+				nr->wheel = -1;
 				node->QueryIntAttribute("id", &(nr->id));
 				if ( (ele = node->FirstChildElement("position")) ) {
 					ele->QueryDoubleAttribute("x", &(nr->x));
@@ -2934,7 +2927,7 @@ void readXMLConfig(void) {
 				nr->type = 1;
 				nr->x = 0; nr->y = 0; nr->z = 0;
 				nr->psi = 0; nr->theta = 0; nr->phi = 0;
-				nr->wheel = NONE;
+				nr->wheel = -1;
 				node->QueryIntAttribute("id", &(nr->id));
 				if ( (ele = node->FirstChildElement("position")) ) {
 					ele->QueryDoubleAttribute("x", &(nr->x));
@@ -2965,7 +2958,7 @@ void readXMLConfig(void) {
 				nr->type = 2;
 				nr->x = 0; nr->y = 0; nr->z = 0;
 				nr->psi = 0; nr->theta = 0; nr->phi = 0;
-				nr->wheel = NONE;
+				nr->wheel = -1;
 				node->QueryIntAttribute("id", &(nr->id));
 				if ( (ele = node->FirstChildElement("position")) ) {
 					ele->QueryDoubleAttribute("x", &(nr->x));
@@ -2996,7 +2989,7 @@ void readXMLConfig(void) {
 				nr->type = 3;
 				nr->x = 0; nr->y = 0; nr->z = 0;
 				nr->psi = 0; nr->theta = 0; nr->phi = 0;
-				nr->wheel = NONE;
+				nr->wheel = -1;
 				node->QueryIntAttribute("id", &(nr->id));
 				if ( (ele = node->FirstChildElement("position")) ) {
 					ele->QueryDoubleAttribute("x", &(nr->x));
@@ -3032,11 +3025,6 @@ void readXMLConfig(void) {
 						tmp = g_robots;
 						while (tmp && tmp->id != id)
 							tmp = tmp->next;
-
-						if (wheeltype == 0) { if (tmp) tmp->wheel = BIGWHEEL; }
-						else if (wheeltype == 9) { if (tmp) tmp->wheel = SMALLWHEEL; }
-						else if (wheeltype == 12) { if (tmp) tmp->wheel = TINYWHEEL; }
-						else if (wheeltype == 13) { if (tmp) tmp->wheel = CUSTOM; }
 
 						side->QueryDoubleAttribute("radius", &radius);
 						tmp->radius = convert(radius, 0);
@@ -3248,12 +3236,28 @@ void refreshRobotList(void) {
 			gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "4", "Custom");
 #endif
 		}
-		gtk_combo_box_set_active(GTK_COMBO_BOX(w), tmp->wheel);
+		switch (tmp->wheel) {
+			case -1:
+				gtk_combo_box_set_active(GTK_COMBO_BOX(w), 0);
+				break;
+			case BIGWHEEL:
+				gtk_combo_box_set_active(GTK_COMBO_BOX(w), 1);
+				break;
+			case SMALLWHEEL:
+				gtk_combo_box_set_active(GTK_COMBO_BOX(w), 2);
+				break;
+			case TINYWHEEL:
+				gtk_combo_box_set_active(GTK_COMBO_BOX(w), 3);
+				break;
+			case WHEEL:
+				gtk_combo_box_set_active(GTK_COMBO_BOX(w), 4);
+				break;
+		}
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_wheeled_changed), (void *)(tmp->id));
 		// wheel radius
-		if (tmp->wheel == CUSTOM) {
+		if (tmp->wheel == WHEEL) {
 			wheel_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->radius, 0.1, 180, 0.1, 1, 1));
 			w = gtk_spin_button_new(wheel_adj, 0.1, 3);
 			gtk_widget_show(w);
@@ -3263,7 +3267,7 @@ void refreshRobotList(void) {
 		// remove button
 		w = gtk_button_new_with_label("Remove");
 		gtk_widget_show(w);
-		if (tmp->wheel == CUSTOM)
+		if (tmp->wheel == WHEEL)
 			gtk_table_attach(GTK_TABLE(rootTable), w, 12, 13, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		else
 			gtk_table_attach(GTK_TABLE(rootTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
@@ -3349,7 +3353,7 @@ void saveRobotList(int force) {
 			robot->InsertAfterChild(pos, rot);
 
 			// add wheels
-			if (tmp->type != 3 && tmp->wheel) {
+			if (tmp->type != 3 && tmp->wheel != -1) {
 				tinyxml2::XMLElement *simple1 = g_doc.NewElement("simple");
 				tinyxml2::XMLElement *s1side1 = g_doc.NewElement("side");
 				s1side1->SetAttribute("id", 1);
@@ -3371,21 +3375,11 @@ void saveRobotList(int force) {
 				s2side2->SetAttribute("robot", tmp->id);
 				simple2->InsertAfterChild(s2side1, s2side2);
 
-				if (tmp->wheel == BIGWHEEL) {
-					s1side2->SetAttribute("conn", 0);
-					s2side2->SetAttribute("conn", 0);
+				if (tmp->wheel != -1) {
+					s1side2->SetAttribute("conn", tmp->wheel);
+					s2side2->SetAttribute("conn", tmp->wheel);
 				}
-				else if (tmp->wheel == SMALLWHEEL) {
-					s1side2->SetAttribute("conn", 9);
-					s2side2->SetAttribute("conn", 9);
-				}
-				else if (tmp->wheel == TINYWHEEL) {
-					s1side2->SetAttribute("conn", 12);
-					s2side2->SetAttribute("conn", 12);
-				}
-				else if (tmp->wheel == CUSTOM) {
-					s1side2->SetAttribute("conn", 13);
-					s2side2->SetAttribute("conn", 13);
+				if (tmp->wheel == WHEEL) {
 					s1side2->SetAttribute("radius", convert(tmp->radius, 1));
 					s2side2->SetAttribute("radius", convert(tmp->radius, 1));
 				}
