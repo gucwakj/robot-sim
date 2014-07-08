@@ -3175,7 +3175,7 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
     dJointSetAMotorNumAxes(_motor[JOINT1].id, 1);
     dJointSetAMotorAxis(_motor[JOINT1].id, 0, 1, R[0], R[4], R[8]);
     dJointSetAMotorAngle(_motor[JOINT1].id, 0, 0);
-    dJointSetAMotorParam(_motor[JOINT1].id, dParamFMax, _motor[JOINT1].max_force);
+    dJointSetAMotorParam(_motor[JOINT1].id, dParamFMax, _motor[JOINT1].tau_max);
     dJointSetAMotorParam(_motor[JOINT1].id, dParamFudgeFactor, 0.3);
 	dJointDisable(_motor[JOINT1].id);
 
@@ -3186,7 +3186,7 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
     dJointSetAMotorNumAxes(_motor[JOINT2].id, 1);
     dJointSetAMotorAxis(_motor[JOINT2].id, 0, 1, R[1], R[5], R[9]);
     dJointSetAMotorAngle(_motor[JOINT2].id, 0, 0);
-    dJointSetAMotorParam(_motor[JOINT2].id, dParamFMax, _motor[JOINT2].max_force);
+    dJointSetAMotorParam(_motor[JOINT2].id, dParamFMax, _motor[JOINT2].tau_max);
     dJointSetAMotorParam(_motor[JOINT2].id, dParamFudgeFactor, 0.3);
 	dJointDisable(_motor[JOINT2].id);
 
@@ -3197,7 +3197,7 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
     dJointSetAMotorNumAxes(_motor[JOINT3].id, 1);
     dJointSetAMotorAxis(_motor[JOINT3].id, 0, 1, -R[0], -R[4], -R[8]);
     dJointSetAMotorAngle(_motor[JOINT3].id, 0, 0);
-    dJointSetAMotorParam(_motor[JOINT3].id, dParamFMax, _motor[JOINT3].max_force);
+    dJointSetAMotorParam(_motor[JOINT3].id, dParamFMax, _motor[JOINT3].tau_max);
     dJointSetAMotorParam(_motor[JOINT3].id, dParamFudgeFactor, 0.3);
 	dJointDisable(_motor[JOINT3].id);
 
@@ -4085,18 +4085,18 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_motor[i].alpha = 0;
 		_motor[i].encoder = DEG2RAD(0.25);
 		_motor[i].goal = 0;
-		_motor[i].max_force = 2;
-		_motor[i].omega_max = 240;		// deg/sec
 		_motor[i].mode = SEEK;
 		_motor[i].mode_timeout = 0;
 		_motor[i].offset = 0;
 		_motor[i].omega = 0.7854;			// 45 deg/sec
+		_motor[i].omega_max = 240;		// deg/sec
 		_motor[i].safety_angle = 10;
 		_motor[i].safety_timeout = 4;
 		_motor[i].starting = 0;
 		_motor[i].state = NEUTRAL;
 		_motor[i].stopping = 0;
 		_motor[i].success = true;
+		_motor[i].tau_max = 2;
 		_motor[i].theta = 0;
 		if (i != disabled) { _enabled[j++] = i; }
 		_rec_active[i] = false;

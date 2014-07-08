@@ -257,7 +257,6 @@ class DLLIMPORT CRobot {
 			double encoder;			// encoder resolution
 			double goal;			// goal theta value
 			double initAngle;		// motion initial angle
-			double max_force;		// maximum forces
 			double numrun;			// number of motions
 			double offset;			// offset from zero for resetting
 			double omega;			// angular rate
@@ -266,6 +265,7 @@ class DLLIMPORT CRobot {
 			double safety_angle;	// safety angle
 			double safety_timeout;	// safety timeout
 			double starttime;		// motion start time
+			double tau_max;			// maximum force
 			double theta;			// theta
 			int mode;				// modes
 			int mode_timeout;		// mode timeout

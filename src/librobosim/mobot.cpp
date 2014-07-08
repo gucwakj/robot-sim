@@ -3179,7 +3179,7 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 	dJointSetAMotorNumAxes(_motor[JOINT1].id, 1);
 	dJointSetAMotorAxis(_motor[JOINT1].id, 0, 1, R_lb[0], R_lb[4], R_lb[8]);
 	dJointSetAMotorAngle(_motor[JOINT1].id, 0, 0);
-	dJointSetAMotorParam(_motor[JOINT1].id, dParamFMax, _motor[JOINT1].max_force);
+	dJointSetAMotorParam(_motor[JOINT1].id, dParamFMax, _motor[JOINT1].tau_max);
 	dJointDisable(_motor[JOINT1].id);
 
 	// motor for center to left body
@@ -3189,7 +3189,7 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 	dJointSetAMotorNumAxes(_motor[JOINT2].id, 1);
 	dJointSetAMotorAxis(_motor[JOINT2].id, 0, 1, -R[1], -R[5], -R[9]);
 	dJointSetAMotorAngle(_motor[JOINT2].id, 0, 0);
-	dJointSetAMotorParam(_motor[JOINT2].id, dParamFMax, _motor[JOINT2].max_force);
+	dJointSetAMotorParam(_motor[JOINT2].id, dParamFMax, _motor[JOINT2].tau_max);
 	dJointDisable(_motor[JOINT2].id);
 
 	// motor for center to right body
@@ -3199,7 +3199,7 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 	dJointSetAMotorNumAxes(_motor[JOINT3].id, 1);
 	dJointSetAMotorAxis(_motor[JOINT3].id, 0, 1, -R[1], -R[5], -R[9]);
 	dJointSetAMotorAngle(_motor[JOINT3].id, 0, 0);
-	dJointSetAMotorParam(_motor[JOINT3].id, dParamFMax, _motor[JOINT3].max_force);
+	dJointSetAMotorParam(_motor[JOINT3].id, dParamFMax, _motor[JOINT3].tau_max);
 	dJointDisable(_motor[JOINT3].id);
 
 	// motor for right body to endcap
@@ -3209,7 +3209,7 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 	dJointSetAMotorNumAxes(_motor[JOINT4].id, 1);
 	dJointSetAMotorAxis(_motor[JOINT4].id, 0, 1, R_rb[0], R_rb[4], R_rb[8]);
 	dJointSetAMotorAngle(_motor[JOINT4].id, 0, 0);
-	dJointSetAMotorParam(_motor[JOINT4].id, dParamFMax, _motor[JOINT4].max_force);
+	dJointSetAMotorParam(_motor[JOINT4].id, dParamFMax, _motor[JOINT4].tau_max);
 	dJointDisable(_motor[JOINT4].id);
 
 	// set damping on all bodies to 0.1
@@ -4094,10 +4094,10 @@ int CMobot::init_params(void) {
 	_conn = NULL;
 	_distOffset = 0;
 	_id = -1;
-	_motor[JOINT1].max_force = 0.260;
-	_motor[JOINT2].max_force = 1.059;
-	_motor[JOINT3].max_force = 1.059;
-	_motor[JOINT4].max_force = 0.260;
+	_motor[JOINT1].tau_max = 0.260;
+	_motor[JOINT2].tau_max = 1.059;
+	_motor[JOINT3].tau_max = 1.059;
+	_motor[JOINT4].tau_max = 0.260;
 	_motion = false;
 	_rgb[0] = 0;
 	_rgb[1] = 0;
