@@ -2,22 +2,18 @@
 #define ROBOSIM_H_
 
 #include "base.h"
-
-#ifndef _CH_
 #include "config.h"
 #include <iostream>
 #include <tinyxml2.h>
 #ifdef ENABLE_GRAPHICS
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
-#endif // not _CH_
 
 class DLLIMPORT RoboSim {
 	public:
 		RoboSim(char *name, int pause);
 		virtual ~RoboSim();
 
-#ifndef _CH_
 		int addRobot(CRobot *robot);
 		int deleteRobot(CRobot *robot);
 		int getUnits(void);
@@ -87,11 +83,9 @@ class DLLIMPORT RoboSim {
 		int init_viz(void);							// visualization initialization function
 		static void* graphics_thread(void *arg);	// thread for graphics objects
 #endif // ENABLE_GRAPHICS
-#else
 	public:
 		static void *_dlhandle;
 		static int _dlcount;
-#endif // not _CH_
 };
 
 #endif	// ROBOSIM_H_

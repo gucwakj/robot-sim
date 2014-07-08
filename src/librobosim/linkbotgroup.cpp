@@ -858,35 +858,3 @@ int CLinkbotTGroup::turnRightNB(double angle, double radius, double trackwidth) 
 	// success
 	return 0;
 }
-
-#ifdef _CH_
-CLinkbotIGroup::~CLinkbotIGroup(void) {
-	// remove robots from group
-	while (_robots != NULL) {
-		robots_t tmp = _robots->next;
-		free(_robots);
-		_robots = tmp;
-	}
-
-	// kill thread
-	THREAD_CANCEL(*_thread);
-
-	// success
-	return 0;
-}
-
-CLinkbotLGroup::~CLinkbotLGroup(void) {
-	// remove robots from group
-	while (_robots != NULL) {
-		robots_t tmp = _robots->next;
-		free(_robots);
-		_robots = tmp;
-	}
-
-	// kill thread
-	THREAD_CANCEL(*_thread);
-
-	// success
-	return 0;
-}
-#endif

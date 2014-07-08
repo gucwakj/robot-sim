@@ -1,4 +1,3 @@
-#include <robosim.h>
 #include <mobot.h>
 #include <dlfcn.h>
 #include <stdarg.h>

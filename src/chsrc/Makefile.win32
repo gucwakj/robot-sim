@@ -1,13 +1,14 @@
 #
 # chrobosim
 #
-PACKAGE=chrobosim
-VERSION=win32-1.6.70
-PKGDIR=$(PACKAGE)-$(VERSION)/$(PACKAGE)
-ARCH=x86
 
-SRC=../librobosim
-HEADERS= $(SRC)/robosim.h $(SRC)/mobot.h $(SRC)/linkbot.h $(SRC)/graphics.h $(SRC)/base.h
+PACKAGE = chrobosim
+VERSION = win32-1.6.70
+PKGDIR = $(PACKAGE)-$(VERSION)/$(PACKAGE)
+ARCH = x86
+
+SRC = ../librobosim
+HEADERS = $(SRC)/robosim.h $(SRC)/mobot.h $(SRC)/linkbot.h $(SRC)/graphics.h $(SRC)/base.h $(SRC)/macros.h
 CPPFLAGS = -DdDOUBLE /EHsc
 INCLUDES = /I ../librobosim/build /I ../opende/include /I ../tinyxml2 /I ../openscenegraph/include /I ../openscenegraph/build/include
 LIBPATHS = /LIBPATH:../opende/lib/Release/ /LIBPATH:../tinyxml2/build/Release/ /LIBPATH:../openscenegraph/build/lib/
@@ -17,19 +18,40 @@ target: librobosim.dl
 
 OBJS =	robosim.obj \
 		base.obj \
-		mobot.obj \
-		mobotgroup.obj \
+		graphics.obj \
 		linkbot.obj \
 		linkbotgroup.obj \
-		graphics.obj \
-		chmobot_chdl.obj \
+		mobot.obj \
+		mobotgroup.obj \
+		rgbhashtable.obj \
 		chlinkboti_chdl.obj \
 		chlinkbotl_chdl.obj \
 		chlinkbott_chdl.obj \
-		rgbhashtable.obj
+		chmobot_chdl.obj
 
-chmobot_chdl.obj: chmobot_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus chmobot_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+robosim.obj: $(SRC)/robosim.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/robosim.cpp $(CPPFLAGS) $(INCLUDES)
+
+base.obj: $(SRC)/base.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/base.cpp $(CPPFLAGS) $(INCLUDES)
+
+graphics.obj: $(SRC)/graphics.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
+
+linkbot.obj: $(SRC)/linkbot.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbot.cpp $(CPPFLAGS) $(INCLUDES)
+
+linkbotgroup.obj: $(SRC)/linkbotgroup.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbotgroup.cpp $(CPPFLAGS) $(INCLUDES)
+
+mobot.obj: $(SRC)/mobot.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/mobot.cpp $(CPPFLAGS) $(INCLUDES)
+
+mobotgroup.obj: $(SRC)/mobotgroup.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotgroup.cpp $(CPPFLAGS) $(INCLUDES)
+
+rgbhashtable.obj: $(SRC)/rgbhashtable.c $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/rgbhashtable.c $(CPPFLAGS) $(INCLUDES)
 
 chlinkboti_chdl.obj: chlinkboti_chdl.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus chlinkboti_chdl.cpp $(CPPFLAGS) $(INCLUDES)
@@ -40,29 +62,8 @@ chlinkbotl_chdl.obj: chlinkbotl_chdl.cpp $(HEADERS)
 chlinkbott_chdl.obj: chlinkbott_chdl.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus chlinkbott_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-robosim.obj: $(SRC)/robosim.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/robosim.cpp $(CPPFLAGS) $(INCLUDES)
-
-base.obj: $(SRC)/base.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/base.cpp $(CPPFLAGS) $(INCLUDES)
-
-mobot.obj: $(SRC)/mobot.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/mobot.cpp $(CPPFLAGS) $(INCLUDES)
-
-mobotgroup.obj: $(SRC)/mobotgroup.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotgroup.cpp $(CPPFLAGS) $(INCLUDES)
-
-linkbot.obj: $(SRC)/linkbot.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbot.cpp $(CPPFLAGS) $(INCLUDES)
-
-linkbotgroup.obj: $(SRC)/linkbotgroup.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbotgroup.cpp $(CPPFLAGS) $(INCLUDES)
-
-graphics.obj: $(SRC)/graphics.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
-
-rgbhashtable.obj: $(SRC)/rgbhashtable.c $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/rgbhashtable.c $(CPPFLAGS) $(INCLUDES)
+chmobot_chdl.obj: chmobot_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus chmobot_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
 librobosim.dl: $(OBJS)
 	ch dllink librobosim.dl cplusplus $(OBJS) $(LIBPATHS) $(LIBS)
@@ -136,7 +137,9 @@ createpkg: librobosim.dl
 	cp ../../docs/robosim.pdf $(PKGDIR)/docs
 	cp ../../docs/images/robosim.png $(PKGDIR)/docs
 	mkdir $(PKGDIR)/include
-	cp $(HEADERS) $(PKGDIR)/include
+	cp mobot.h $(PKGDIR)/include
+	cp linkbot.h $(PKGDIR)/include
+	cp $(SRC)/macros.h $(PKGDIR)/include
 	mkdir $(PKGDIR)/lib
 	cp chmobot.chf $(PKGDIR)/lib
 	cp chlinkboti.chf $(PKGDIR)/lib
