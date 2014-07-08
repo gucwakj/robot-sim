@@ -27,21 +27,46 @@ int CLinkbotT::accelJointAngleNB(robotJointId_t id, double a, double angle) {
 }
 
 int CLinkbotT::accelJointCycloidalNB(robotJointId_t id, double angle, double t) {
-	fprintf(stderr, "Warning: accelJointCycloidalNB not yet implemented in RoboSim.  Please use hardware robots.");
+	if (_state[id] != POSITIVE || _state[id] != NEGATIVE) {
+		if ( angle > EPSILON )
+			_omega[id] = 1;
+		else
+			_omega[id] = -1;
+	}
+	_mode[id] = ACCEL_CYCLOIDAL;
+	_goal[id] = angle;
+	_mode_timeout[id] = (int)(t/(*_step));
+	_period = t;
+	_numrun[id] = 0;
+	_starttime = 0;
+	_initAngle[id] = _theta[id];
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double t) {
-	fprintf(stderr, "Warning: accelJointHarmonicNB not yet implemented in RoboSim.  Please use hardware robots.");
+	if (_state[id] != POSITIVE || _state[id] != NEGATIVE) {
+		if ( angle > EPSILON )
+			_omega[id] = 0.01;
+		else
+			_omega[id] = -0.01;
+	}
+	_mode[id] = ACCEL_HARMONIC;
+	_goal[id] = angle - DEG2RAD(2);
+	_mode_timeout[id] = (int)(t/(*_step));
+	_period = t;
+	_numrun[id] = 0;
+	_starttime = 0;
+	_initAngle[id] = _theta[id];
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle) {
-	fprintf(stderr, "Warning: accelJointSmoothNB not yet implemented in RoboSim.  Please use hardware robots.");
+	_omega[id] = DEG2RAD(vmax);
+	this->moveJoint(id, angle);
 
 	// success
 	return 0;
@@ -54,7 +79,7 @@ int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
 		else
 			_omega[id] = -0.01;
 	}
-	_mode[id] = ACCEL_CONST;
+	_mode[id] = ACCEL_CONSTANT;
 	_alpha[id] = a;
 	_mode_timeout[id] = (int)(t/(*_step));
 
@@ -206,7 +231,8 @@ int CLinkbotT::disconnect(void) {
 }
 
 int CLinkbotT::driveAccelCycloidalNB(double radius, double d, double t) {
-	fprintf(stderr, "Warning: driveAccelCycloidalNB not yet implemented in RoboSim.  Please use hardware robots.");
+	this->accelJointCycloidalNB(JOINT1,  d/radius, t);
+	this->accelJointCycloidalNB(JOINT3, -d/radius, t);
 
 	// success
 	return 0;
@@ -221,14 +247,16 @@ int CLinkbotT::driveAccelDistanceNB(double radius, double a, double d) {
 }
 
 int CLinkbotT::driveAccelHarmonicNB(double radius, double d, double t) {
-	fprintf(stderr, "Warning: driveAccelHarmonicNB not yet implemented in RoboSim.  Please use hardware robots.");
+	this->accelJointHarmonicNB(JOINT1,  d/radius, t);
+	this->accelJointHarmonicNB(JOINT3, -d/radius, t);
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d) {
-	fprintf(stderr, "Warning: driveAccelSmoothNB not yet implemented in RoboSim.  Please use hardware robots.");
+	this->accelJointSmoothNB(JOINT1, a0, af, vmax, d/radius);
+	this->accelJointSmoothNB(JOINT3, a0, af, vmax, d/radius);
 
 	// success
 	return 0;
@@ -2556,8 +2584,9 @@ void CLinkbotT::simPreCollisionThread(void) {
 		// set motor angle to current angle
 		dJointSetAMotorAngle(_motor[i], 0, _theta[i]);
 		// engage motor depending upon motor mode
+		double t = 0, angle = 0;
 		switch (_mode[i]) {
-			case ACCEL_CONST:
+			case ACCEL_CONSTANT:
 				// check if done with acceleration
 				if (_mode_timeout[i]) {
 					_mode_timeout[i]--;
@@ -2585,6 +2614,36 @@ void CLinkbotT::simPreCollisionThread(void) {
 					_omega[i] = _max_omega[i];
 				else if (_omega[i] < -_max_omega[i])
 					_omega[i] = -_max_omega[i];
+				break;
+			case ACCEL_CYCLOIDAL:
+			case ACCEL_HARMONIC:
+				if (_numrun[i] == 0) {
+					_initAngle[i] = _theta[i];
+					_starttime = (double)(*_clock);
+					_numrun[i] = 1;
+					break;
+				}
+				t = (double)(*_clock);
+				if (_mode[i] == ACCEL_CYCLOIDAL)
+					angle = _goal[i]*((t-_starttime)/_period -((1.0/(2*M_PI))*sin((2*M_PI*(t-_starttime))/_period)))+_initAngle[i];
+				else if (_mode[i] == ACCEL_HARMONIC)
+					angle = (_goal[i]/2.0)*(1-cos((M_PI*(t-_starttime))/_period))+_initAngle[i];
+				_omega[i] = (angle-_theta[i])/(*_step);
+				if (0 < _omega[i] && _omega[i] < 0.1 ) _omega[i] = 0.1;
+				else if (-0.1 < _omega[i] && _omega[i] < 0 ) _omega[i] = -0.1;
+				if (_mode_timeout[i]) {
+					dJointEnable(_motor[i]);
+					dJointSetAMotorParam(_motor[i], dParamVel, _omega[i]);
+					_mode_timeout[i]--;
+				}
+				else {
+					_mode[i] = CONTINUOUS;
+					if (_omega[i] > 0) _state[i] = POSITIVE;
+					else if (_omega[i] < 0) _state[i] = NEGATIVE;
+					dJointSetAMotorParam(_motor[i], dParamVel, 0);
+					_numrun[i] = 0;
+					_mode_timeout[i] = -1;
+				}
 				break;
 			case CONTINUOUS:
 				switch (_state[i]) {
@@ -4010,12 +4069,14 @@ int CLinkbotT::init_params(int disabled, int type) {
 	_enabled = new int[(disabled == -1) ? 3 : 2];
 	_geom = new dGeomID * [NUM_PARTS];
 	_goal = new double[NUM_DOF];
+	_initAngle = new double[NUM_DOF];
 	_joint = new dJointID[NUM_DOF];
 	_max_force = new double[NUM_DOF];
 	_max_omega = new double[NUM_DOF];
 	_mode = new int[NUM_DOF];
 	_mode_timeout = new int[NUM_DOF];
 	_motor = new dJointID[NUM_DOF];
+	_numrun = new double[NUM_DOF];
 	_offset = new double[NUM_DOF];
 	_omega = new double[NUM_DOF];
 	_rec_active = new bool[NUM_DOF];

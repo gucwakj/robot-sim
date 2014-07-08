@@ -218,7 +218,9 @@ class DLLIMPORT CRobot {
 			NEGATIVE,
 		} robotJointState_t;
 		typedef enum robot_motor_mode_e {
-			ACCEL_CONST = 0,
+			ACCEL_CONSTANT = 0,
+			ACCEL_CYCLOIDAL,
+			ACCEL_HARMONIC,
 			CONTINUOUS,
 			SEEK,
 		} robotMotorMode_t;
@@ -305,6 +307,12 @@ class DLLIMPORT CRobot {
 		int *_state;			// joint states
 		int _trace;				// tracing on or off
 		int _type;				// type of robot
+
+		// motor variables
+		double *_initAngle;
+		double *_numrun;
+		double _starttime;
+		double _period;
 
 		// threading locks for each robot
 		MUTEX_T _angle_mutex;
