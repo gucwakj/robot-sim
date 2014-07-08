@@ -249,6 +249,7 @@ class DLLIMPORT CRobot {
 			dGeomID *geom;
 			struct conn_s *next;
 		} *conn_t;
+		// motor
 		typedef struct motor_s {
 			bool success;			// trigger for motion completion
 			dJointID id;			// motors
@@ -257,10 +258,10 @@ class DLLIMPORT CRobot {
 			double goal;			// goal theta value
 			double initAngle;		// motion initial angle
 			double max_force;		// maximum forces
-			double max_omega;		// maximum speeds
 			double numrun;			// number of motions
 			double offset;			// offset from zero for resetting
 			double omega;			// angular rate
+			double omega_max;		// maximum rate
 			double period;			// motion period
 			double safety_angle;	// safety angle
 			double safety_timeout;	// safety timeout

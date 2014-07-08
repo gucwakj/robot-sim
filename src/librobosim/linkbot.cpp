@@ -80,7 +80,7 @@ int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
 			_motor[id].omega = -0.01;
 	}
 	if (t == 0)
-		_motor[id].mode_timeout = abs((int)((DEG2RAD(_motor[id].max_omega)-fabs(_motor[id].omega))/a/(*_step)));
+		_motor[id].mode_timeout = abs((int)((DEG2RAD(_motor[id].omega_max)-fabs(_motor[id].omega))/a/(*_step)));
 	else
 		_motor[id].mode_timeout = abs((int)(t/(*_step)));
 	_motor[id].mode = ACCEL_CONSTANT;
@@ -841,7 +841,7 @@ int CLinkbotT::getJointAnglesInstant(double &angle1, double &angle2, double &ang
 }
 
 int CLinkbotT::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
-	maxSpeed = _motor[id].max_omega;
+	maxSpeed = _motor[id].omega_max;
 
 	// success
 	return 0;
@@ -869,7 +869,7 @@ int CLinkbotT::getJointSpeed(robotJointId_t id, double &speed) {
 }
 
 int CLinkbotT::getJointSpeedRatio(robotJointId_t id, double &ratio) {
-	ratio = _motor[id].omega/DEG2RAD(_motor[id].max_omega);
+	ratio = _motor[id].omega/DEG2RAD(_motor[id].omega_max);
 
 	// success
 	return 0;
@@ -885,9 +885,9 @@ int CLinkbotT::getJointSpeeds(double &speed1, double &speed2, double &speed3) {
 }
 
 int CLinkbotT::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3) {
-	ratio1 = _motor[JOINT1].omega/DEG2RAD(_motor[JOINT1].max_omega);
-	ratio2 = _motor[JOINT2].omega/DEG2RAD(_motor[JOINT2].max_omega);
-	ratio3 = _motor[JOINT3].omega/DEG2RAD(_motor[JOINT3].max_omega);
+	ratio1 = _motor[JOINT1].omega/DEG2RAD(_motor[JOINT1].omega_max);
+	ratio2 = _motor[JOINT2].omega/DEG2RAD(_motor[JOINT2].omega_max);
+	ratio3 = _motor[JOINT3].omega/DEG2RAD(_motor[JOINT3].omega_max);
 
 	// success
 	return 0;
@@ -2162,10 +2162,10 @@ int CLinkbotT::setJointSafetyAngleTimeout(double seconds) {
 }
 
 int CLinkbotT::setJointSpeed(robotJointId_t id, double speed) {
-	if (speed > _motor[id].max_omega) {
+	if (speed > _motor[id].omega_max) {
 		fprintf(stderr, "Warning: Setting the speed for joint %d to %.2lf degrees per second is "
 			"beyond the hardware limit of %.2lf degrees per second.\n",
-			id+1, speed, _motor[id].max_omega);
+			id+1, speed, _motor[id].omega_max);
 	}
 	_motor[id].omega = DEG2RAD(speed);
 
@@ -2177,7 +2177,7 @@ int CLinkbotT::setJointSpeedRatio(robotJointId_t id, double ratio) {
 	if ( ratio < 0 || ratio > 1 ) {
 		return -1;
 	}
-	return this->setJointSpeed(id, ratio * _motor[(int)id].max_omega);
+	return this->setJointSpeed(id, ratio * _motor[(int)id].omega_max);
 }
 
 int CLinkbotT::setJointSpeeds(double speed1, double speed2, double speed3) {
@@ -2206,7 +2206,7 @@ int CLinkbotT::setMotorPower(robotJointId_t id, int power) {
 }
 
 int CLinkbotT::setSpeed(double speed, double radius) {
-	if (RAD2DEG(speed/radius) > _motor[JOINT1].max_omega) {
+	if (RAD2DEG(speed/radius) > _motor[JOINT1].omega_max) {
 		fprintf(stderr, "Warning: Speed %.2lf corresponds to joint speeds of %.2lf degrees/second.\n",
 			speed, RAD2DEG(speed/radius));
 	}
@@ -2607,7 +2607,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 
 				// set new theta
 				_motor[i].goal += (*_step)*_motor[i].omega;
-				if (_motor[i].omega <= _motor[i].max_omega) {
+				if (_motor[i].omega <= _motor[i].omega_max) {
 					_motor[i].goal += _motor[i].alpha*(*_step)*(*_step)/2;
 				}
 
@@ -2617,10 +2617,10 @@ void CLinkbotT::simPreCollisionThread(void) {
 
 				// update omega
 				_motor[i].omega += *_step * _motor[i].alpha;
-				if (_motor[i].omega > _motor[i].max_omega)
-					_motor[i].omega = _motor[i].max_omega;
-				else if (_motor[i].omega < -_motor[i].max_omega)
-					_motor[i].omega = -_motor[i].max_omega;
+				if (_motor[i].omega > _motor[i].omega_max)
+					_motor[i].omega = _motor[i].omega_max;
+				else if (_motor[i].omega < -_motor[i].omega_max)
+					_motor[i].omega = -_motor[i].omega_max;
 				break;
 			case ACCEL_CYCLOIDAL:
 			case ACCEL_HARMONIC:
@@ -4086,7 +4086,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_motor[i].encoder = DEG2RAD(0.25);
 		_motor[i].goal = 0;
 		_motor[i].max_force = 2;
-		_motor[i].max_omega = 240;		// deg/sec
+		_motor[i].omega_max = 240;		// deg/sec
 		_motor[i].mode = SEEK;
 		_motor[i].mode_timeout = 0;
 		_motor[i].offset = 0;

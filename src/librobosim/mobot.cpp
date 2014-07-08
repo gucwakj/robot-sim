@@ -367,7 +367,7 @@ int CMobot::getJointAnglesInstant(double &angle1, double &angle2, double &angle3
 }
 
 int CMobot::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
-	maxSpeed = _motor[id].max_omega;
+	maxSpeed = _motor[id].omega_max;
 
 	// success
 	return 0;
@@ -395,7 +395,7 @@ int CMobot::getJointSpeed(robotJointId_t id, double &speed) {
 }
 
 int CMobot::getJointSpeedRatio(robotJointId_t id, double &ratio) {
-	ratio = _motor[id].omega/DEG2RAD(_motor[id].max_omega);
+	ratio = _motor[id].omega/DEG2RAD(_motor[id].omega_max);
 	// success
 	return 0;
 }
@@ -411,10 +411,10 @@ int CMobot::getJointSpeeds(double &speed1, double &speed2, double &speed3, doubl
 }
 
 int CMobot::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, double &ratio4) {
-	ratio1 = _motor[JOINT1].omega/DEG2RAD(_motor[JOINT1].max_omega);
-	ratio2 = _motor[JOINT2].omega/DEG2RAD(_motor[JOINT2].max_omega);
-	ratio3 = _motor[JOINT3].omega/DEG2RAD(_motor[JOINT3].max_omega);
-	ratio4 = _motor[JOINT4].omega/DEG2RAD(_motor[JOINT4].max_omega);
+	ratio1 = _motor[JOINT1].omega/DEG2RAD(_motor[JOINT1].omega_max);
+	ratio2 = _motor[JOINT2].omega/DEG2RAD(_motor[JOINT2].omega_max);
+	ratio3 = _motor[JOINT3].omega/DEG2RAD(_motor[JOINT3].omega_max);
+	ratio4 = _motor[JOINT4].omega/DEG2RAD(_motor[JOINT4].omega_max);
 
 	// success
 	return 0;
@@ -2204,11 +2204,11 @@ int CMobot::setJointSafetyAngleTimeout(double seconds) {
 }
 
 int CMobot::setJointSpeed(robotJointId_t id, double speed) {
-	if (speed > _motor[id].max_omega) {
+	if (speed > _motor[id].omega_max) {
 		fprintf(stderr, "Warning: Cannot set speed for joint %d to %.2lf degrees/second which is "
 			"beyond the maximum limit of %.2lf degrees/second.\n",
-			id, speed, _motor[id].max_omega);
-		_motor[id].omega = DEG2RAD(_motor[id].max_omega);
+			id, speed, _motor[id].omega_max);
+		_motor[id].omega = DEG2RAD(_motor[id].omega_max);
 	}
 	else {
 		_motor[id].omega = DEG2RAD(speed);
@@ -2222,7 +2222,7 @@ int CMobot::setJointSpeedRatio(robotJointId_t id, double ratio) {
 	if ( ratio < 0 || ratio > 1 ) {
 		return -1;
 	}
-	return this->setJointSpeed(id, ratio * _motor[(int)id].max_omega);
+	return this->setJointSpeed(id, ratio * _motor[(int)id].omega_max);
 }
 
 int CMobot::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
@@ -4077,7 +4077,7 @@ int CMobot::init_params(void) {
 		_motor[i].alpha = 0;
 		_motor[i].encoder = DEG2RAD(0.1);
 		_motor[i].goal = 0;
-		_motor[i].max_omega = 120;			// deg/sec
+		_motor[i].omega_max = 120;			// deg/sec
 		_motor[i].mode = SEEK;
 		_motor[i].mode_timeout = 0;
 		_motor[i].offset = 0;
