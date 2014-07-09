@@ -34,7 +34,7 @@ int CLinkbotT::accelJointCycloidalNB(robotJointId_t id, double angle, double t) 
 			_motor[id].omega = -1;
 	}
 	_motor[id].mode = ACCEL_CYCLOIDAL;
-	_motor[id].goal = angle;
+	_motor[id].goal = DEG2RAD(angle);
 	_motor[id].mode_timeout = (int)(t/(*_step));
 	_motor[id].period = t;
 	_motor[id].numrun = 0;
@@ -53,7 +53,7 @@ int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double t) {
 			_motor[id].omega = -0.01;
 	}
 	_motor[id].mode = ACCEL_HARMONIC;
-	_motor[id].goal = angle - DEG2RAD(2);
+	_motor[id].goal = DEG2RAD(angle) - DEG2RAD(2);
 	_motor[id].mode_timeout = (int)(t/(*_step));
 	_motor[id].period = t;
 	_motor[id].numrun = 0;
@@ -84,7 +84,7 @@ int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
 	else
 		_motor[id].mode_timeout = abs((int)(t/(*_step)));
 	_motor[id].mode = ACCEL_CONSTANT;
-	_motor[id].alpha = a;
+	_motor[id].alpha = DEG2RAD(a);
 
 	// success
 	return 0;
