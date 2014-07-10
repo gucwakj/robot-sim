@@ -87,9 +87,6 @@ class DLLIMPORT RoboSim {
 		int init_viz(void);							// visualization initialization function
 		static void* graphics_thread(void *arg);	// thread for graphics objects
 #endif // ENABLE_GRAPHICS
-	public:
-		static void *_dlhandle;
-		static int _dlcount;
 };
 
 #endif	// ROBOSIM_H_
