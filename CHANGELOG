@@ -1,3 +1,9 @@
+Version 1.7.0 - July 11, 2014
+	*) API resort - drive for cars, etc.
+	*) completely separate Ch code from C code
+	*) add acceleration API
+	*) disable collisions when robots are hidden
+
 Version 1.6.0 - June 26, 2014
 	*) API changes to match hardware robots
 	*) renaming of set*Movement family to moveTime family
