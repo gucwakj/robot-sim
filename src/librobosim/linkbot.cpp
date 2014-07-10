@@ -44,10 +44,10 @@ int CLinkbotT::accelJointCycloidalNB(robotJointId_t id, double angle, double t) 
 	// set acceleration parameters
 	_motor[id].mode = ACCEL_CYCLOIDAL;
 	_motor[id].goal = DEG2RAD(angle);
+	_motor[id].accel.init = _motor[id].theta;
 	_motor[id].accel.period = t;
 	_motor[id].accel.run = 0;
 	_motor[id].accel.start = 0;
-	_motor[id].accel.init = _motor[id].theta;
 
 	// enable motor
 	MUTEX_LOCK(&_theta_mutex);
@@ -86,10 +86,10 @@ int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double t) {
 	// set acceleration parameters
 	_motor[id].mode = ACCEL_HARMONIC;
 	_motor[id].goal = DEG2RAD(angle) - DEG2RAD(2);
+	_motor[id].accel.init = _motor[id].theta;
 	_motor[id].accel.period = t;
 	_motor[id].accel.run = 0;
 	_motor[id].accel.start = 0;
-	_motor[id].accel.init = _motor[id].theta;
 
 	// enable motor
 	MUTEX_LOCK(&_theta_mutex);
@@ -304,24 +304,25 @@ int CLinkbotT::disconnect(void) {
 }
 
 int CLinkbotT::driveAccelCycloidalNB(double radius, double d, double t) {
-	this->accelJointCycloidalNB(JOINT1,  d/radius, t);
-	this->accelJointCycloidalNB(JOINT3, -d/radius, t);
+	this->accelJointCycloidalNB(JOINT1,  RAD2DEG(d/radius), t);
+	this->accelJointCycloidalNB(JOINT3, -RAD2DEG(d/radius), t);
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::driveAccelDistanceNB(double radius, double a, double d) {
-	this->accelJointTimeNB(JOINT1,  a/radius, sqrt(2*d/a));
-	this->accelJointTimeNB(JOINT3, -a/radius, -sqrt(2*d/a));
+	a = DEG2RAD(a);
+	this->accelJointTimeNB(JOINT1,  RAD2DEG(a/radius), sqrt(2*d/a));
+	this->accelJointTimeNB(JOINT3, -RAD2DEG(a/radius), sqrt(2*d/a));
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::driveAccelHarmonicNB(double radius, double d, double t) {
-	this->accelJointHarmonicNB(JOINT1,  d/radius, t);
-	this->accelJointHarmonicNB(JOINT3, -d/radius, t);
+	this->accelJointHarmonicNB(JOINT1,  RAD2DEG(d/radius), t);
+	this->accelJointHarmonicNB(JOINT3, -RAD2DEG(d/radius), t);
 
 	// success
 	return 0;
@@ -336,24 +337,27 @@ int CLinkbotT::driveAccelSmoothNB(double radius, double a0, double af, double vm
 }
 
 int CLinkbotT::driveAccelTimeNB(double radius, double a, double t) {
-	this->accelJointTimeNB(JOINT1,  a/radius, t);
-	this->accelJointTimeNB(JOINT3, -a/radius, t);
+	a = DEG2RAD(a);
+	this->accelJointTimeNB(JOINT1,  RAD2DEG(a/radius), t);
+	this->accelJointTimeNB(JOINT3, -RAD2DEG(a/radius), t);
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::driveAccelToMaxSpeedNB(double radius, double a) {
-	this->accelJointTimeNB(JOINT1,  a/radius, 0);
-	this->accelJointTimeNB(JOINT3, -a/radius, 0);
+	a = DEG2RAD(a);
+	this->accelJointTimeNB(JOINT1,  RAD2DEG(a/radius), 0);
+	this->accelJointTimeNB(JOINT3, -RAD2DEG(a/radius), 0);
 
 	// success
 	return 0;
 }
 
 int CLinkbotT::driveAccelToVelocityNB(double radius, double a, double v) {
-	this->accelJointTimeNB(JOINT1,  a/radius, v/a);
-	this->accelJointTimeNB(JOINT3, -a/radius, v/a);
+	a = DEG2RAD(a);
+	this->accelJointTimeNB(JOINT1,  RAD2DEG(a/radius), v/a);
+	this->accelJointTimeNB(JOINT3, -RAD2DEG(a/radius), v/a);
 
 	// success
 	return 0;
@@ -2659,7 +2663,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 		// set motor angle to current angle
 		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
 		// engage motor depending upon motor mode
-		double t = 0, angle = 0;
+		double t = 0, angle = 0, h = 0, dt = 0;
 		double step = g_sim->getStep();
 		switch (_motor[i].mode) {
 			case ACCEL_CONSTANT:
@@ -2680,15 +2684,15 @@ void CLinkbotT::simPreCollisionThread(void) {
 					_motor[i].goal += _motor[i].alpha*step*step/2;
 				}
 
+				// move to new theta
+				dJointSetAMotorParam(_motor[i].id, dParamVel, _motor[i].omega);
+
 				// update omega
 				_motor[i].omega += step * _motor[i].alpha;
 				if (_motor[i].omega > _motor[i].omega_max)
 					_motor[i].omega = _motor[i].omega_max;
 				else if (_motor[i].omega < -_motor[i].omega_max)
 					_motor[i].omega = -_motor[i].omega_max;
-
-				// move to new theta
-				dJointSetAMotorParam(_motor[i].id, dParamVel, _motor[i].omega);
 				break;
 			case ACCEL_CYCLOIDAL:
 			case ACCEL_HARMONIC:
@@ -2700,22 +2704,22 @@ void CLinkbotT::simPreCollisionThread(void) {
 					break;
 				}
 
-				// store time
-				t = g_sim->getClock();
-
 				// calculate new angle
+				h = _motor[i].goal - _motor[i].accel.init;
+				t = g_sim->getClock();
+				dt = (t - _motor[i].accel.start)/_motor[i].accel.period;
 				if (_motor[i].mode == ACCEL_CYCLOIDAL)
-					angle = _motor[i].goal*((t-_motor[i].accel.start)/_motor[i].accel.period -((1.0/(2*M_PI))*sin((2*M_PI*(t-_motor[i].accel.start))/_motor[i].accel.period)))+_motor[i].accel.init;
+					angle = h*(dt - sin(2*M_PI*dt)/2/M_PI) + _motor[i].accel.init;
 				else if (_motor[i].mode == ACCEL_HARMONIC)
-					angle = (_motor[i].goal/2.0)*(1-cos((M_PI*(t-_motor[i].accel.start))/_motor[i].accel.period))+_motor[i].accel.init;
+					angle = h*(1 - cos(M_PI*dt))/2 + _motor[i].accel.init;
 
 				// set new omega
 				_motor[i].omega = (angle - _motor[i].theta)/step;
 
 				// give it an initial push
-				if (0 < _motor[i].omega && _motor[i].omega < 0.1 )
+				if (0 < _motor[i].omega && _motor[i].omega < 0.01)
 					_motor[i].omega = 0.01;
-				else if (-0.1 < _motor[i].omega && _motor[i].omega < 0 )
+				else if (-0.01 < _motor[i].omega && _motor[i].omega < 0)
 					_motor[i].omega = -0.01;
 
 				// move until timeout is reached

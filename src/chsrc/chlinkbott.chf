@@ -64,7 +64,7 @@ int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double time
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_accelAngleHarmonicNB_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_accelJointHarmonicNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
@@ -1938,7 +1938,7 @@ int CLinkbotTGroup::accelJointHarmonicNB(robotJointId_t id, double angle, double
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_accelAngleHarmonicNB_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CLTG_accelJointHarmonicNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
