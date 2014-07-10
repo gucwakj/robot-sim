@@ -2,7 +2,7 @@
 using namespace std;
 
 // global robot simulation object
-RoboSim *_simObject = NULL;
+RoboSim *g_sim = NULL;
 
 RoboSim::RoboSim(char *name, int pause) {
 	// initialize xml config file

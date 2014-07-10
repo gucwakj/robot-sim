@@ -10,8 +10,8 @@ CLinkbotT::CLinkbotT(int disabled, int type) {
 
 CLinkbotT::~CLinkbotT(void) {
 	// remove robot from simulation
-	if ( _simObject != NULL && !(_simObject->deleteRobot(this)) )
-		delete _simObject;
+	if ( g_sim != NULL && !(g_sim->deleteRobot(this)) )
+		delete g_sim;
 
 	// destroy geoms
 	if (_connected) {
@@ -39,7 +39,7 @@ int CLinkbotT::accelJointCycloidalNB(robotJointId_t id, double angle, double t) 
 	}
 
 	// set timeout
-	_motor[id].timeout = t/_simObject->getStep();
+	_motor[id].timeout = t/g_sim->getStep();
 
 	// set acceleration parameters
 	_motor[id].mode = ACCEL_CYCLOIDAL;
@@ -81,7 +81,7 @@ int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double t) {
 	}
 
 	// set timeout
-	_motor[id].timeout = t/_simObject->getStep();
+	_motor[id].timeout = t/g_sim->getStep();
 
 	// set acceleration parameters
 	_motor[id].mode = ACCEL_HARMONIC;
@@ -131,7 +131,7 @@ int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
 	}
 
 	// set timeout
-	double step = _simObject->getStep();
+	double step = g_sim->getStep();
 	if (t == 0)
 		_motor[id].timeout = fabs((_motor[id].omega_max-fabs(_motor[id].omega))/DEG2RAD(a)/step);
 	else
@@ -248,8 +248,8 @@ int CLinkbotT::closeGripperNB(void) {
 
 int CLinkbotT::connect(char *name, int pause) {
 	// create simulation object if necessary
-	if (!_simObject)
-		_simObject = new RoboSim(name, pause);
+	if (!g_sim)
+		g_sim = new RoboSim(name, pause);
 
 	// set initial 'led' color
 	_rgb[0] = 0;
@@ -257,7 +257,7 @@ int CLinkbotT::connect(char *name, int pause) {
 	_rgb[2] = 0;
 
 	// add to simulation
-	_simObject->addRobot(this);
+	g_sim->addRobot(this);
 
 	// and we are connected
 	_connected = 1;
@@ -268,10 +268,10 @@ int CLinkbotT::connect(char *name, int pause) {
 
 int CLinkbotT::delay(double milliseconds) {
 	// set ending time
-	double end = _simObject->getClock() + milliseconds/1000;
+	double end = g_sim->getClock() + milliseconds/1000;
 
 	// while clock hasn't reached ending time
-	while ((end - _simObject->getClock()) > EPSILON) {
+	while ((end - g_sim->getClock()) > EPSILON) {
 		this->doze(5);
 	}
 
@@ -965,8 +965,8 @@ int CLinkbotT::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio
 
 int CLinkbotT::getxy(double &x, double &y) {
 	// retrn x and y positions
-	x = (_simObject->getUnits()) ? 39.37*this->getCenter(0) : 100*this->getCenter(0);
-	y = (_simObject->getUnits()) ? 39.37*this->getCenter(1) : 100*this->getCenter(1);
+	x = (g_sim->getUnits()) ? 39.37*this->getCenter(0) : 100*this->getCenter(0);
+	y = (g_sim->getUnits()) ? 39.37*this->getCenter(1) : 100*this->getCenter(1);
 
 	// success
 	return 0;
@@ -1050,7 +1050,7 @@ int CLinkbotT::jumpToNB(double angle1, double angle2, double angle3) {
 
 #ifdef ENABLE_GRAPHICS
 int CLinkbotT::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
-	return _simObject->line(x1, y1, z1, x2, y2, z2, linewidth, color);
+	return g_sim->line(x1, y1, z1, x2, y2, z2, linewidth, color);
 }
 #endif // ENABLE_GRAPHICS
 
@@ -1403,7 +1403,7 @@ int CLinkbotT::openGripperNB(double angle) {
 
 #ifdef ENABLE_GRAPHICS
 int CLinkbotT::point(double x, double y, double z, int pointsize, char *color) {
-	return _simObject->point(x, y, z, pointsize, color);
+	return g_sim->point(x, y, z, pointsize, color);
 }
 #endif // ENABLE_GRAPHICS
 
@@ -1413,7 +1413,7 @@ void* CLinkbotT::recordAngleThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)(_simObject->getClock()*1000);
+	int time = (int)(g_sim->getClock()*1000);
 
 	// is robot moving
 	int *moving = new int[rArg->num];
@@ -1421,7 +1421,7 @@ void* CLinkbotT::recordAngleThread(void *arg) {
 	// get 'num' data points
 	for (int i = 0; i < rArg->num; i++) {
 		// store time of data point
-		rArg->time[i] = _simObject->getClock()*1000;
+		rArg->time[i] = g_sim->getClock()*1000;
 		if (i == 0) { start_time = rArg->time[i]; }
 		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
@@ -1435,8 +1435,8 @@ void* CLinkbotT::recordAngleThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(_simObject->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
+		if ( (int)(g_sim->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
 	}
 
 	// shift time to start of movement
@@ -1507,7 +1507,7 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)((_simObject->getClock())*1000);
+	int time = (int)((g_sim->getClock())*1000);
 
 	// is robot moving
 	int moving;
@@ -1543,7 +1543,7 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 		moving = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
 
 		// store time of data point
-		(*rArg->ptime)[i] = _simObject->getClock()*1000;
+		(*rArg->ptime)[i] = g_sim->getClock()*1000;
 		if (i == 0) { start_time = (*rArg->ptime)[i]; }
 		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
 
@@ -1551,8 +1551,8 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(_simObject->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
+		if ( (int)(g_sim->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
 
 		// wait until movement to start recording
 		if( !moving && rArg->robot->isShiftEnabled() ) {
@@ -1636,7 +1636,7 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
 
 	// create initial time points
     double start_time = 0;
-	int time = (int)(_simObject->getClock()*1000);
+	int time = (int)(g_sim->getClock()*1000);
 
 	// is robot moving
 	int *moving = new int[rArg->num];
@@ -1644,7 +1644,7 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
 	// get 'num' data points
     for (int i = 0; i < rArg->num; i++) {
 		// store time of data point
-		rArg->time[i] = _simObject->getClock()*1000;
+		rArg->time[i] = g_sim->getClock()*1000;
         if (i == 0) { start_time = rArg->time[i]; }
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
@@ -1662,8 +1662,8 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(_simObject->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
+		if ( (int)(g_sim->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
     }
 
 	// shift time to start of movement
@@ -1746,7 +1746,7 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)((_simObject->getClock())*1000);
+	int time = (int)((g_sim->getClock())*1000);
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
@@ -1792,7 +1792,7 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_motor[JOINT3].theta);
 
 		// store time of data point
-		(*rArg->ptime)[i] = _simObject->getClock()*1000;
+		(*rArg->ptime)[i] = g_sim->getClock()*1000;
 		if (i == 0) { start_time = (*rArg->ptime)[i]; }
 		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
 
@@ -1800,8 +1800,8 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(_simObject->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
+		if ( (int)(g_sim->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
 	}
 
 	// signal completion of recording
@@ -1900,7 +1900,7 @@ int CLinkbotT::recordDistanceEnd(robotJointId_t id, int &num) {
 	this->recordAngleEnd(id, num);
 
 	// convert radius to output units
-	double radius = (_simObject->getUnits()) ? _radius*39.37 : _radius*100;
+	double radius = (g_sim->getUnits()) ? _radius*39.37 : _radius*100;
 
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
@@ -1952,7 +1952,7 @@ int CLinkbotT::recordDistancesEnd(int &num) {
 	this->recordAnglesEnd(num);
 
 	// convert radius to output units
-	double radius = (_simObject->getUnits()) ? _radius*39.37 : _radius*100;
+	double radius = (g_sim->getUnits()) ? _radius*39.37 : _radius*100;
 
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
@@ -1982,7 +1982,7 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
 	// create initial time points
-	int time = (int)((_simObject->getClock())*1000);
+	int time = (int)((g_sim->getClock())*1000);
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
@@ -2025,8 +2025,8 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(_simObject->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
+		if ( (int)(g_sim->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
 	}
 
 	// signal completion of recording
@@ -2104,7 +2104,7 @@ int CLinkbotT::recordxyEnd(int &num) {
 	num = _rec_num[JOINT1];
 
 	// convert recorded values into in/cm
-	double m2x = (_simObject->getUnits()) ? 39.37 : 100;
+	double m2x = (g_sim->getUnits()) ? 39.37 : 100;
 	for (int i = 0; i < num; i++) {
 		(*_rec_angles[JOINT1])[i] = ((*_rec_angles[JOINT1])[i]) * m2x;
 		(*_rec_angles[JOINT2])[i] = ((*_rec_angles[JOINT2])[i]) * m2x;
@@ -2289,7 +2289,7 @@ int CLinkbotT::setSpeed(double speed, double radius) {
 
 int CLinkbotT::systemTime(double &time) {
 	// get time
-	time = _simObject->getClock();
+	time = g_sim->getClock();
 
 	// success
 	return 0;
@@ -2297,7 +2297,7 @@ int CLinkbotT::systemTime(double &time) {
 
 #ifdef ENABLE_GRAPHICS
 int CLinkbotT::text(double x, double y, double z, char *text) {
-	return _simObject->text(x, y, z, text);
+	return g_sim->text(x, y, z, text);
 }
 #endif // ENABLE_GRAPHICS
 
@@ -2332,7 +2332,7 @@ int CLinkbotT::turnLeft(double angle, double radius, double trackwidth) {
 
 int CLinkbotT::turnLeftNB(double angle, double radius, double trackwidth) {
 	// use internally calculated track width
-	double width = (_simObject->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
+	double width = (g_sim->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
 
 	// calculate joint angle from global turn angle
 	angle = (angle*width)/(2*radius);
@@ -2354,7 +2354,7 @@ int CLinkbotT::turnRight(double angle, double radius, double trackwidth) {
 
 int CLinkbotT::turnRightNB(double angle, double radius, double trackwidth) {
 	// use internally calculated track width
-	double width = (_simObject->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
+	double width = (g_sim->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
 
 	// calculate joint angle from global turn angle
 	angle = (angle*width)/(2*radius);
@@ -2660,7 +2660,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
 		// engage motor depending upon motor mode
 		double t = 0, angle = 0;
-		double step = _simObject->getStep();
+		double step = g_sim->getStep();
 		switch (_motor[i].mode) {
 			case ACCEL_CONSTANT:
 				// check if done with acceleration
@@ -2695,13 +2695,13 @@ void CLinkbotT::simPreCollisionThread(void) {
 				// init params on first run
 				if (_motor[i].accel.run == 0) {
 					_motor[i].accel.init = _motor[i].theta;
-					_motor[i].accel.start = _simObject->getClock();
+					_motor[i].accel.start = g_sim->getClock();
 					_motor[i].accel.run = 1;
 					break;
 				}
 
 				// store time
-				t = _simObject->getClock();
+				t = g_sim->getClock();
 
 				// calculate new angle
 				if (_motor[i].mode == ACCEL_CYCLOIDAL)
@@ -2958,7 +2958,7 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	}
 
 	// set update callback for robot
-	_robot->setUpdateCallback(new linkbotNodeCallback(this, _simObject->getUnits()));
+	_robot->setUpdateCallback(new linkbotNodeCallback(this, g_sim->getUnits()));
 
 	// set masks
 	//robot->setNodeMask(CASTS_SHADOW_MASK);

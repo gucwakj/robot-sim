@@ -363,6 +363,6 @@ typedef struct mobotMoveArg_s {
 	CMobot *robot;
 } mobotMoveArg_t;
 
-extern RoboSim *_simObject;
+extern RoboSim *g_sim;
 
 #endif  // MOBOT_H_

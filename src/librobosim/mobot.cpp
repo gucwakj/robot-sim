@@ -10,8 +10,8 @@ CMobot::CMobot(void) {
 
 CMobot::~CMobot(void) {
 	// remove robot from simulation
-	if ( _simObject != NULL && !(_simObject->deleteRobot(this)) )
-		delete _simObject;
+	if ( g_sim != NULL && !(g_sim->deleteRobot(this)) )
+		delete g_sim;
 
 	// remove geoms
 	if (_connected) {
@@ -28,8 +28,8 @@ int CMobot::blinkLED(double delay, int num) {
 
 int CMobot::connect(char *name, int pause) {
 	// create simulation object if necessary
-	if (!_simObject)
-		_simObject = new RoboSim(name, pause);
+	if (!g_sim)
+		g_sim = new RoboSim(name, pause);
 
 	// set initial 'led' color
 	_rgb[0] = 0;
@@ -37,7 +37,7 @@ int CMobot::connect(char *name, int pause) {
 	_rgb[2] = 0;
 
 	// add to simulation
-	_simObject->addRobot(this);
+	g_sim->addRobot(this);
 
 	// and we are connected
 	_connected = 1;
@@ -48,10 +48,10 @@ int CMobot::connect(char *name, int pause) {
 
 int CMobot::delay(double milliseconds) {
 	// set ending time
-	double end = _simObject->getClock() + milliseconds/1000;
+	double end = g_sim->getClock() + milliseconds/1000;
 
 	// while clock hasn't reached ending time
-	while ((end - _simObject->getClock()) >= EPSILON)
+	while ((end - g_sim->getClock()) >= EPSILON)
 		this->doze(50);
 
 	// success
@@ -422,8 +422,8 @@ int CMobot::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, 
 
 int CMobot::getxy(double &x, double &y) {
 	// retrn x and y positions
-	x = (_simObject->getUnits()) ? 39.37*this->getCenter(0) : 100*this->getCenter(0);
-	y = (_simObject->getUnits()) ? 39.37*this->getCenter(1) : 100*this->getCenter(1);
+	x = (g_sim->getUnits()) ? 39.37*this->getCenter(0) : 100*this->getCenter(0);
+	y = (g_sim->getUnits()) ? 39.37*this->getCenter(1) : 100*this->getCenter(1);
 
 	// success
 	return 0;
@@ -508,7 +508,7 @@ int CMobot::jumpToNB(double angle1, double angle2, double angle3, double angle4)
 
 #ifdef ENABLE_GRAPHICS
 int CMobot::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
-	return _simObject->line(x1, y1, z1, x2, y2, z2, linewidth, color);
+	return g_sim->line(x1, y1, z1, x2, y2, z2, linewidth, color);
 }
 #endif // ENABLE_GRAPHICS
 
@@ -1400,7 +1400,7 @@ int CMobot::moveWait(void) {
 
 #ifdef ENABLE_GRAPHICS
 int CMobot::point(double x, double y, double z, int pointsize, char *color) {
-	return _simObject->point(x, y, z, pointsize, color);
+	return g_sim->point(x, y, z, pointsize, color);
 }
 #endif // ENABLE_GRAPHICS
 
@@ -1410,7 +1410,7 @@ void* CMobot::recordAngleThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)(_simObject->getClock()*1000);
+	int time = (int)(g_sim->getClock()*1000);
 
 	// is robot moving
 	int *moving = new int[rArg->num];
@@ -1418,7 +1418,7 @@ void* CMobot::recordAngleThread(void *arg) {
 	// get 'num' data points
 	for (int i = 0; i < rArg->num; i++) {
 		// store time of data point
-		rArg->time[i] = _simObject->getClock()*1000;
+		rArg->time[i] = g_sim->getClock()*1000;
 		if (i == 0) { start_time = rArg->time[i]; }
 		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
@@ -1432,8 +1432,8 @@ void* CMobot::recordAngleThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(_simObject->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
+		if ( (int)(g_sim->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
 	}
 
 	// shift time to start of movement
@@ -1501,7 +1501,7 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)(_simObject->getClock()*1000);
+	int time = (int)(g_sim->getClock()*1000);
 
 	// is robot moving
 	int moving;
@@ -1545,7 +1545,7 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 		moving = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
 
 		// store time of data point
-		(*rArg->ptime)[i] = _simObject->getClock()*1000;
+		(*rArg->ptime)[i] = g_sim->getClock()*1000;
 		if (i == 0) { start_time = (*rArg->ptime)[i]; }
 		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
 
@@ -1553,8 +1553,8 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(_simObject->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
+		if ( (int)(g_sim->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
 
 		// wait until movement to start recording
 		if( !moving && rArg->robot->isShiftEnabled() ) {
@@ -1641,7 +1641,7 @@ void* CMobot::recordAnglesThread(void *arg) {
 
 	// create initial time points
     double start_time = 0;
-	int time = (int)(_simObject->getClock()*1000);
+	int time = (int)(g_sim->getClock()*1000);
 
 	// is robot moving
 	int *moving = new int[rArg->num];
@@ -1649,7 +1649,7 @@ void* CMobot::recordAnglesThread(void *arg) {
 	// get 'num' data points
     for (int i = 0; i < rArg->num; i++) {
 		// store time of data point
-		rArg->time[i] = _simObject->getClock()*1000;
+		rArg->time[i] = g_sim->getClock()*1000;
         if (i == 0) { start_time = rArg->time[i]; }
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
@@ -1669,8 +1669,8 @@ void* CMobot::recordAnglesThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(_simObject->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
+		if ( (int)(g_sim->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
     }
 
 	// shift time to start of movement
@@ -1751,7 +1751,7 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)(_simObject->getClock()*1000);
+	int time = (int)(g_sim->getClock()*1000);
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
@@ -1805,7 +1805,7 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 		(*(rArg->pangle4))[i] = RAD2DEG(rArg->robot->_motor[JOINT4].theta);
 
 		// store time of data point
-		(*rArg->ptime)[i] = _simObject->getClock()*1000;
+		(*rArg->ptime)[i] = g_sim->getClock()*1000;
 		if (i == 0) { start_time = (*rArg->ptime)[i]; }
 		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
 
@@ -1813,8 +1813,8 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(_simObject->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
+		if ( (int)(g_sim->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
 	}
 
 	// signal completion of recording
@@ -1993,7 +1993,7 @@ void* CMobot::recordxyBeginThread(void *arg) {
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
 	// create initial time points
-	int time = (int)(_simObject->getClock()*1000);
+	int time = (int)(g_sim->getClock()*1000);
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
@@ -2037,8 +2037,8 @@ void* CMobot::recordxyBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(_simObject->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
+		if ( (int)(g_sim->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
 	}
 
 	// signal completion of recording
@@ -2118,7 +2118,7 @@ int CMobot::recordxyEnd(int &num) {
 	num = _rec_num[JOINT1];
 
 	// convert recorded values into in/cm
-	double m2x = (_simObject->getUnits()) ? 39.37 : 100;
+	double m2x = (g_sim->getUnits()) ? 39.37 : 100;
 	for (int i = 0; i < num; i++) {
 		(*_rec_angles[JOINT1])[i] = ((*_rec_angles[JOINT1])[i]) * m2x;
 		(*_rec_angles[JOINT2])[i] = ((*_rec_angles[JOINT2])[i]) * m2x;
@@ -2296,7 +2296,7 @@ int CMobot::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId
 
 int CMobot::systemTime(double &time) {
 	// get time
-	time = _simObject->getClock();
+	time = g_sim->getClock();
 
 	// success
 	return 0;
@@ -2304,7 +2304,7 @@ int CMobot::systemTime(double &time) {
 
 #ifdef ENABLE_GRAPHICS
 int CMobot::text(double x, double y, double z, char *text) {
-	return _simObject->text(x, y, z, text);
+	return g_sim->text(x, y, z, text);
 }
 #endif // ENABLE_GRAPHICS
 
@@ -2339,7 +2339,7 @@ int CMobot::turnLeft(double angle, double radius, double trackwidth) {
 
 int CMobot::turnLeftNB(double angle, double radius, double trackwidth) {
 	// use internally calculated track width
-	double width = (_simObject->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
+	double width = (g_sim->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
 
 	// calculate joint angle from global turn angle
 	angle = (angle*width)/(2*radius);
@@ -2361,7 +2361,7 @@ int CMobot::turnRight(double angle, double radius, double trackwidth) {
 
 int CMobot::turnRightNB(double angle, double radius, double trackwidth) {
 	// use internally calculated track width
-	double width = (_simObject->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
+	double width = (g_sim->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
 
 	// calculate joint angle from global turn angle
 	angle = (angle*width)/(2*radius);
@@ -2944,7 +2944,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	}
 
 	// set update callback for robot
-	_robot->setUpdateCallback(new mobotNodeCallback(this, _simObject->getUnits()));
+	_robot->setUpdateCallback(new mobotNodeCallback(this, g_sim->getUnits()));
 
 	// set shadow mask
 	//robot->setNodeMask(CASTS_SHADOW_MASK);
