@@ -104,6 +104,12 @@ class DLLIMPORT CRobot {
 			dGeomID *geom;
 			struct conn_s *next;
 		} *conn_t;
+		typedef struct accel_s {
+			double init;			// motion initial angle
+			double start;			// motion start time
+			double period;			// motion period
+			double run;				// number of motions
+		} accel_t;
 		// motor
 		typedef struct motor_s {
 			bool success;			// trigger for motion completion
@@ -111,15 +117,11 @@ class DLLIMPORT CRobot {
 			double alpha;			// angular acceleration
 			double encoder;			// encoder resolution
 			double goal;			// goal theta value
-			double initAngle;		// motion initial angle
-			double numrun;			// number of motions
 			double offset;			// offset from zero for resetting
 			double omega;			// angular rate
 			double omega_max;		// maximum rate
-			double period;			// motion period
 			double safety_angle;	// safety angle
 			double safety_timeout;	// safety timeout
-			double starttime;		// motion start time
 			double tau_max;			// maximum force
 			double theta;			// theta
 			int mode;				// modes
@@ -127,6 +129,7 @@ class DLLIMPORT CRobot {
 			int starting;			// starting movement
 			int stopping;			// stopping movement
 			int state;				// state
+			accel_t accel;			// acceleration variables
 		} *motor_t;
 
 		conn_t _conn;			// connectors

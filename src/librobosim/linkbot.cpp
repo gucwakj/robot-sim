@@ -44,10 +44,10 @@ int CLinkbotT::accelJointCycloidalNB(robotJointId_t id, double angle, double t) 
 	// set acceleration parameters
 	_motor[id].mode = ACCEL_CYCLOIDAL;
 	_motor[id].goal = DEG2RAD(angle);
-	_motor[id].period = t;
-	_motor[id].numrun = 0;
-	_motor[id].starttime = 0;
-	_motor[id].initAngle = _motor[id].theta;
+	_motor[id].accel.period = t;
+	_motor[id].accel.run = 0;
+	_motor[id].accel.start = 0;
+	_motor[id].accel.init = _motor[id].theta;
 
 	// enable motor
 	MUTEX_LOCK(&_angle_mutex);
@@ -86,10 +86,10 @@ int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double t) {
 	// set acceleration parameters
 	_motor[id].mode = ACCEL_HARMONIC;
 	_motor[id].goal = DEG2RAD(angle) - DEG2RAD(2);
-	_motor[id].period = t;
-	_motor[id].numrun = 0;
-	_motor[id].starttime = 0;
-	_motor[id].initAngle = _motor[id].theta;
+	_motor[id].accel.period = t;
+	_motor[id].accel.run = 0;
+	_motor[id].accel.start = 0;
+	_motor[id].accel.init = _motor[id].theta;
 
 	// enable motor
 	MUTEX_LOCK(&_angle_mutex);
@@ -2693,10 +2693,10 @@ void CLinkbotT::simPreCollisionThread(void) {
 			case ACCEL_CYCLOIDAL:
 			case ACCEL_HARMONIC:
 				// init params on first run
-				if (_motor[i].numrun == 0) {
-					_motor[i].initAngle = _motor[i].theta;
-					_motor[i].starttime = _simObject->getClock();
-					_motor[i].numrun = 1;
+				if (_motor[i].accel.run == 0) {
+					_motor[i].accel.init = _motor[i].theta;
+					_motor[i].accel.start = _simObject->getClock();
+					_motor[i].accel.run = 1;
 					break;
 				}
 
@@ -2705,9 +2705,9 @@ void CLinkbotT::simPreCollisionThread(void) {
 
 				// calculate new angle
 				if (_motor[i].mode == ACCEL_CYCLOIDAL)
-					angle = _motor[i].goal*((t-_motor[i].starttime)/_motor[i].period -((1.0/(2*M_PI))*sin((2*M_PI*(t-_motor[i].starttime))/_motor[i].period)))+_motor[i].initAngle;
+					angle = _motor[i].goal*((t-_motor[i].accel.start)/_motor[i].accel.period -((1.0/(2*M_PI))*sin((2*M_PI*(t-_motor[i].accel.start))/_motor[i].accel.period)))+_motor[i].accel.init;
 				else if (_motor[i].mode == ACCEL_HARMONIC)
-					angle = (_motor[i].goal/2.0)*(1-cos((M_PI*(t-_motor[i].starttime))/_motor[i].period))+_motor[i].initAngle;
+					angle = (_motor[i].goal/2.0)*(1-cos((M_PI*(t-_motor[i].accel.start))/_motor[i].accel.period))+_motor[i].accel.init;
 
 				// set new omega
 				_motor[i].omega = (angle - _motor[i].theta)/step;
@@ -2729,7 +2729,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 					if (_motor[i].omega > 0) _motor[i].state = POSITIVE;
 					else if (_motor[i].omega < 0) _motor[i].state = NEGATIVE;
 					dJointSetAMotorParam(_motor[i].id, dParamVel, 0);
-					_motor[i].numrun = 0;
+					_motor[i].accel.run = 0;
 					_motor[i].mode_timeout = -1;
 				}
 				break;
@@ -4163,20 +4163,20 @@ int CLinkbotT::init_params(int disabled, int type) {
 
 	// fill with default data
 	for (int i = 0, j = 0; i < NUM_DOF; i++) {
+		_motor[i].accel.init = 0;
+		_motor[i].accel.run = 0;
+		_motor[i].accel.period = 0;
+		_motor[i].accel.start = 0;
 		_motor[i].alpha = 0;
 		_motor[i].encoder = DEG2RAD(0.25);
 		_motor[i].goal = 0;
-		_motor[i].initAngle = 0;
 		_motor[i].mode = SEEK;
 		_motor[i].mode_timeout = 0;
-		_motor[i].numrun = 0;
 		_motor[i].offset = 0;
 		_motor[i].omega = 0.7854;			// 45 deg/sec
 		_motor[i].omega_max = 240;		// deg/sec
-		_motor[i].period = 0;
 		_motor[i].safety_angle = 10;
 		_motor[i].safety_timeout = 4;
-		_motor[i].starttime = 0;
 		_motor[i].starting = 0;
 		_motor[i].state = NEUTRAL;
 		_motor[i].stopping = 0;
