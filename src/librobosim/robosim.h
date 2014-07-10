@@ -16,6 +16,7 @@ class DLLIMPORT RoboSim {
 
 		int addRobot(CRobot *robot);
 		int deleteRobot(CRobot *robot);
+		double getStep(void);
 		int getUnits(void);
 		int runSimulation(void);
 #ifdef ENABLE_GRAPHICS
@@ -57,6 +58,7 @@ class DLLIMPORT RoboSim {
 		MUTEX_T _pause_mutex;		// mutex for paused simulation
 		MUTEX_T _robot_mutex;		// mutex for ground collisions
 		MUTEX_T _running_mutex;		// mutex for actively running program
+		MUTEX_T _step_mutex;		// mutex for getting the step value
 		THREAD_T _simulation;		// simulation thread
 
 		// private functions

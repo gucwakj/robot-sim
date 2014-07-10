@@ -40,9 +40,10 @@ RoboSim::~RoboSim(void) {
 	MUTEX_UNLOCK(&_running_mutex);
 	THREAD_JOIN(_simulation);
 	COND_DESTROY(&_running_cond);
-	MUTEX_DESTROY(&_running_mutex);
 	MUTEX_DESTROY(&_pause_mutex);
 	MUTEX_DESTROY(&_robot_mutex);
+	MUTEX_DESTROY(&_running_mutex);
+	MUTEX_DESTROY(&_step_mutex);
 
 	// remove ode
 	dJointGroupDestroy(_group);
@@ -116,6 +117,7 @@ int RoboSim::init_sim(int pause) {
 	MUTEX_INIT(&_pause_mutex);
 	MUTEX_INIT(&_robot_mutex);
 	MUTEX_INIT(&_running_mutex);
+	MUTEX_INIT(&_step_mutex);
 	COND_INIT(&_running_cond);
 	THREAD_CREATE(&_simulation, (void* (*)(void *))&RoboSim::simulation_thread, this);
 
@@ -920,6 +922,13 @@ int RoboSim::deleteRobot(CRobot *robot) {
 		return 1;
 }
 
+double RoboSim::getStep(void) {
+	MUTEX_LOCK(&_step_mutex);
+	double step = _step;
+	MUTEX_UNLOCK(&_step_mutex);
+	return step;
+}
+
 int RoboSim::getUnits(void) {
 	return _us;
 }
@@ -1152,6 +1161,9 @@ void* RoboSim::simulation_thread(void *arg) {
 					for (i = 1; i < num; i++) { dt[i] = 0; }
 				}
 
+				// lock step variable
+				MUTEX_LOCK(&(sim->_step_mutex));
+
 				// set next time step if calculations took longer than step
 				if ( (end - start) > ((unsigned int)(sim->_clock*1000) - clock/1000) ) {
 					sim->_step = ((end - start - ((unsigned int)(sim->_clock*1000) - clock/1000))/num + sum)/1000.0;
@@ -1168,6 +1180,9 @@ void* RoboSim::simulation_thread(void *arg) {
 
 				// make sure time step is large enough
 				sim->_step = (sim->_step*1000 < 4) ? 0.004 : sim->_step;
+
+				// unlock step variable
+				MUTEX_UNLOCK(&(sim->_step_mutex));
 			}
 
 			// lock pause variable
