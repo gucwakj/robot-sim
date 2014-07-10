@@ -2183,6 +2183,13 @@ int CMobot::resetToZeroNB(void) {
 	return 0;
 }
 
+int CMobot::setJointPower(robotJointId_t id, int power) {
+	_motor[id].omega = (power/100.0)*_motor[id].omega_max;
+
+	// success
+	return 0;
+}
+
 int CMobot::setJointSafetyAngle(double angle) {
 	_motor[JOINT1].safety_angle = angle;
 	_motor[JOINT2].safety_angle = angle;
@@ -2240,13 +2247,6 @@ int CMobot::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, dou
 	this->setJointSpeedRatio(JOINT2, ratio2);
 	this->setJointSpeedRatio(JOINT3, ratio3);
 	this->setJointSpeedRatio(JOINT4, ratio4);
-
-	// success
-	return 0;
-}
-
-int CMobot::setMotorPower(robotJointId_t id, int power) {
-	printf("CMobot::setMotorPower not implemented.\n");
 
 	// success
 	return 0;

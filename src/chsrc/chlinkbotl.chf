@@ -1493,6 +1493,19 @@ int CLinkbotL::setJointMovementStateTimeNB(int id, int dir, double seconds) {
 	return 0;
 }
 
+int CLinkbotL::setJointPower(int id, int power) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_setJointPower_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, setJointPower, this, id, power);
+    return retval;
+}
+
 int CLinkbotL::setJointSafetyAngle(double angle) {
     void *fptr;
     int retval;
@@ -1572,16 +1585,11 @@ int CLinkbotL::setJointSpeedRatios(double ratio1, double ratio2, double ratio3) 
 }
 
 int CLinkbotL::setMotorPower(int id, int power) {
-    void *fptr;
-    int retval;
+	DEPRECATED("setMotorPower", "setJointPower");
+	setJointPower(id, power);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_setMotorPower_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setMotorPower, this, id, power);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotL::setMovementStateNB(int dir1, int dir2, int dir3) {
@@ -2600,6 +2608,19 @@ int CLinkbotLGroup::setJointMovementStateTimeNB(int id, int dir, double seconds)
 	return 0;
 }
 
+int CLinkbotLGroup::setJointPower(int id, int power) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLLG_setJointPower_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, setJointPower, this, id, power);
+    return retval;
+}
+
 int CLinkbotLGroup::setJointSafetyAngle(double angle) {
     void *fptr;
     int retval;
@@ -2679,16 +2700,11 @@ int CLinkbotLGroup::setJointSpeedRatios(double ratio1, double ratio2, double rat
 }
 
 int CLinkbotLGroup::setMotorPower(int id, int power) {
-    void *fptr;
-    int retval;
+	DEPRECATED("setMotorPower", "setJointPower");
+	setJointPower(id, power);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLLG_setMotorPower_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setMotorPower, this, id, power);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotLGroup::setMovementStateNB(int dir1, int dir2, int dir3) {

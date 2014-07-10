@@ -717,6 +717,17 @@ int CLinkbotTGroup::setLEDColorRGB(int r, int g, int b) {
 	return 0;
 }
 
+int CLinkbotTGroup::setJointPower(robotJointId_t id, int power) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->setJointPower(id, power);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotTGroup::setJointSafetyAngle(double angle) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -776,17 +787,6 @@ int CLinkbotTGroup::setJointSpeedRatios(double ratio1, double ratio2, double rat
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setJointSpeedRatios(ratio1, ratio2, ratio3);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotTGroup::setMotorPower(robotJointId_t id, int power) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setMotorPower(id, power);
 		rtmp = rtmp->next;
 	}
 

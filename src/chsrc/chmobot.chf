@@ -369,7 +369,7 @@ int CMobot::getJointAngle(int id, double & angle, ...) {
 
 int CMobot::getJointAngleAverage(int id, double & angle, ...) {
 	DEPRECATED("getJointAnglesAverage", "getJointAngles");
-	getJointAngles(angle1, angle2, angle3);
+	getJointAngle(id, angle);
 
 	// success
 	return 0;
@@ -1029,54 +1029,6 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
     return retval;
 }
 
-int CMobot::moveBackward(double angle) {
-	DEPRECATED("moveBackward", "driveBackward");
-	driveBackward(angle);
-
-	// success
-	return 0;
-}
-
-int CMobot::moveBackwardNB(double angle) {
-	DEPRECATED("moveBackwardNB", "driveBackwardNB");
-	driveBackwardNB(angle);
-
-	// success
-	return 0;
-}
-
-int CMobot::moveDistance(double distance, double radius) {
-	DEPRECATED("moveDistance", "driveDistance");
-	driveDistance(distance, radius);
-
-	// success
-	return 0;
-}
-
-int CMobot::moveDistanceNB(double distance, double radius) {
-	DEPRECATED("moveDistanceNB", "driveDistanceNB");
-	driveDistanceNB(distance, radius);
-
-	// success
-	return 0;
-}
-
-int CMobot::moveForward(double angle) {
-	DEPRECATED("moveForward", "driveForward");
-	driveForward(angle);
-
-	// success
-	return 0;
-}
-
-int CMobot::moveForwardNB(double angle) {
-	DEPRECATED("moveForwardNB", "driveForwardNB");
-	driveForwardNB(angle);
-
-	// success
-	return 0;
-}
-
 int CMobot::moveForeverNB(void) {
     void *fptr;
     int retval;
@@ -1270,46 +1222,6 @@ int CMobot::moveWait(void) {
     }
     dlrunfun(fptr, &retval, moveWait, this);
     return retval;
-}
-
-int CMobot::movexy(double x, double y, double radius, double trackwidth) {
-	DEPRECATED("movexy", "drivexy");
-	drivexy(x, y, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CMobot::movexyNB(double x, double y, double radius, double trackwidth) {
-	DEPRECATED("movexyNB", "drivexyNB");
-	drivexyNB(x, y, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CMobot::movexyTo(double x, double y, double radius, double trackwidth) {
-	DEPRECATED("movexyTo", "drivexyTo");
-	drivexyTo(x, y, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CMobot::movexyToNB(double x, double y, double radius, double trackwidth) {
-	DEPRECATED("movexyToNB", "drivexyToNB");
-	drivexyToNB(x, y, radius, trackwidth);
-
-	// success
-	return 0;
-}
-
-int CMobot::movexyWait(void) {
-	DEPRECATED("movexyWait", "drivexyWait");
-	drivexyWait();
-
-	// success
-	return 0;
 }
 
 int CMobot::point(double x, double y, double z, int pointsize, char *color) {
@@ -1643,6 +1555,19 @@ int CMobot::resetToZeroNB(void) {
     return retval;
 }
 
+int CMobot::setJointPower(int id, int power) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_setJointPower_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, setJointPower, this, id, power);
+    return retval;
+}
+
 int CMobot::setJointSafetyAngle(double angle) {
     void *fptr;
     int retval;
@@ -1722,16 +1647,11 @@ int CMobot::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, dou
 }
 
 int CMobot::setMotorPower(int id, int power) {
-    void *fptr;
-    int retval;
+	DEPRECATED("setMotorPower", "setJointPower");
+	setJointPower(id, power);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_setMotorPower_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setMotorPower, this, id, power);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobot::setSpeed(double speed, double radius) {
@@ -2450,54 +2370,6 @@ int CMobotGroup::moveNB(double angle1, double angle2, double angle3, double angl
     return retval;
 }
 
-int CMobotGroup::moveBackward(double angle) {
-	DEPRECATED("moveBackward", "driveBackward");
-	driveBackward(angle);
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::moveBackwardNB(double angle) {
-	DEPRECATED("moveBackwardNB", "driveBackwardNB");
-	driveBackwardNB(angle);
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::moveDistance(double distance, double radius) {
-	DEPRECATED("moveDistance", "driveDistance");
-	driveDistance(distance, radius);
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::moveDistanceNB(double distance, double radius) {
-	DEPRECATED("moveDistanceNB", "driveDistanceNB");
-	driveDistanceNB(distance, radius);
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::moveForward(double angle) {
-	DEPRECATED("moveForward", "driveForward");
-	driveForward(angle);
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::moveForwardNB(double angle) {
-	DEPRECATED("moveForwardNB", "driveForwardNB");
-	driveForwardNB(angle);
-
-	// success
-	return 0;
-}
-
 int CMobotGroup::moveForeverNB(void) {
     void *fptr;
     int retval;
@@ -2771,6 +2643,19 @@ int CMobotGroup::resetToZeroNB(void) {
     return retval;
 }
 
+int CMobotGroup::setJointPower(int id, int power) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMG_setJointPower_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, setJointPower, this, id, power);
+    return retval;
+}
+
 int CMobotGroup::setJointSafetyAngle(double angle) {
     void *fptr;
     int retval;
@@ -2847,6 +2732,14 @@ int CMobotGroup::setJointSpeedRatios(double ratio1, double ratio2, double ratio3
     }
     dlrunfun(fptr, &retval, setJointSpeedRatios, this, ratio1, ratio2, ratio3, ratio4);
     return retval;
+}
+
+int CMobotGroup::setMotorPower(int id, int power) {
+	DEPRECATED("setMotorPower", "setJointPower");
+	setJointPower(id, power);
+
+	// success
+	return 0;
 }
 
 int CMobotGroup::setSpeed(double speed, double radius) {

@@ -2053,6 +2053,23 @@ EXPORTCH int CLinkbotI_setLEDColorRGB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotI_setJointPower_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    robotJointId_t id;
+    int power;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    power = Ch_VaArg(interp, ap, int);
+    retval = robot->setJointPower(id, power);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotI_setJointSafetyAngle_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2152,23 +2169,6 @@ EXPORTCH int CLinkbotI_setJointSpeedRatios_chdl(void *varg) {
     ratio2 = Ch_VaArg(interp, ap, double );
     ratio3 = Ch_VaArg(interp, ap, double );
     retval = robot->setJointSpeedRatios(ratio1, ratio2, ratio3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotI_setMotorPower_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotI *robot;
-    robotJointId_t id;
-    int power;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    power = Ch_VaArg(interp, ap, int);
-    retval = robot->setMotorPower(id, power);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -3436,6 +3436,23 @@ EXPORTCH int CLIG_setLEDColorRGB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLIG_setJointPower_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotIGroup *robot;
+    robotJointId_t id;
+    int power;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    power = Ch_VaArg(interp, ap, int);
+    retval = robot->setJointPower(id, power);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLIG_setJointSafetyAngle_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3533,23 +3550,6 @@ EXPORTCH int CLIG_setJointSpeedRatios_chdl(void *varg) {
     ratio2 = Ch_VaArg(interp, ap, double);
     ratio3 = Ch_VaArg(interp, ap, double);
     retval = robot->setJointSpeedRatios(ratio1, ratio2, ratio3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLIG_setMotorPower_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotIGroup *robot;
-    robotJointId_t id;
-    int power;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    power = Ch_VaArg(interp, ap, int);
-    retval = robot->setMotorPower(id, power);
     Ch_VaEnd(interp, ap);
     return retval;
 }

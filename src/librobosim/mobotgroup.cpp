@@ -724,6 +724,17 @@ int CMobotGroup::resetToZeroNB(void) {
 	return 0;
 }
 
+int CMobotGroup::setJointPower(robotJointId_t id, int power) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->setJointPower(id, power);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobotGroup::setJointSafetyAngle(double angle) {
 	robots_t rtmp = _robots;
 	while (rtmp) {

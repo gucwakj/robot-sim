@@ -129,13 +129,13 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int reset(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
+		int setJointPower(robotJointId_t id, int power);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
-		int setMotorPower(robotJointId_t id, int power);
 		int setSpeed(double speed, double radius);
 		int stop(void);
 		int stopOneJoint(robotJointId_t id);
@@ -313,6 +313,7 @@ class CMobotGroup {
 		int reset(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
+		int setJointPower(robotJointId_t id, int power);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double angle);
 		int setJointSpeed(robotJointId_t id, double speed);

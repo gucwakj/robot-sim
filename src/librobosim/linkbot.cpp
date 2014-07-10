@@ -2213,6 +2213,13 @@ int CLinkbotT::setLEDColorRGB(int r, int g, int b) {
 	return 0;
 }
 
+int CLinkbotT::setJointPower(robotJointId_t id, int power) {
+	_motor[id].omega = (power/100.0)*_motor[id].omega_max;
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::setJointSafetyAngle(double angle) {
 	_motor[JOINT1].safety_angle = angle;
 	_motor[JOINT2].safety_angle = angle;
@@ -2263,13 +2270,6 @@ int CLinkbotT::setJointSpeedRatios(double ratio1, double ratio2, double ratio3) 
 	this->setJointSpeedRatio(JOINT1, ratio1);
 	this->setJointSpeedRatio(JOINT2, ratio2);
 	this->setJointSpeedRatio(JOINT3, ratio3);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::setMotorPower(robotJointId_t id, int power) {
-	printf("CLinkbot::setMotorPower not implemented.\n");
 
 	// success
 	return 0;

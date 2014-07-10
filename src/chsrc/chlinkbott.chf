@@ -1669,6 +1669,19 @@ int CLinkbotT::setLEDColorRGB(int r, int g, int b) {
     return retval;
 }
 
+int CLinkbotT::setJointPower(int id, int power) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_setJointPower_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, setJointPower, this, id, power);
+    return retval;
+}
+
 int CLinkbotT::setJointSafetyAngle(double angle) {
     void *fptr;
     int retval;
@@ -1744,19 +1757,6 @@ int CLinkbotT::setJointSpeedRatios(double ratio1, double ratio2, double ratio3) 
         return -1;
     }
     dlrunfun(fptr, &retval, NULL, this, ratio1, ratio2, ratio3);
-    return retval;
-}
-
-int CLinkbotT::setMotorPower(int id, int power) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_setMotorPower_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setMotorPower, this, id, power);
     return retval;
 }
 
@@ -2788,6 +2788,19 @@ int CLinkbotTGroup::setLEDColorRGB(int r, int g, int b) {
     return retval;
 }
 
+int CLinkbotTGroup::setJointPower(int id, int power) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLTG_setJointPower_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, setJointPower, this, id, power);
+    return retval;
+}
+
 int CLinkbotTGroup::setJointSafetyAngle(double angle) {
     void *fptr;
     int retval;
@@ -2863,19 +2876,6 @@ int CLinkbotTGroup::setJointSpeedRatios(double ratio1, double ratio2, double rat
         return -1;
     }
     dlrunfun(fptr, &retval, setJointSpeedRatios, this, ratio1, ratio2, ratio3);
-    return retval;
-}
-
-int CLinkbotTGroup::setMotorPower(int id, int power) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_setMotorPower_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setMotorPower, this, id, power);
     return retval;
 }
 

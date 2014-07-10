@@ -1894,6 +1894,23 @@ EXPORTCH int CMobot_resetToZeroNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_setJointPower_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    robotJointId_t id;
+    int power;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    power = Ch_VaArg(interp, ap, int);
+    retval = robot->setJointPower(id, power);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_setJointSafetyAngle_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -1997,23 +2014,6 @@ EXPORTCH int CMobot_setJointSpeedRatios_chdl(void *varg) {
     ratio3 = Ch_VaArg(interp, ap, double );
     ratio4 = Ch_VaArg(interp, ap, double );
     retval = robot->setJointSpeedRatios(ratio1, ratio2, ratio3, ratio4);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CMobot_setMotorPower_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobot *robot;
-    robotJointId_t id;
-    int power;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CMobot *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    power = Ch_VaArg(interp, ap, int);
-    retval = robot->setMotorPower(id, power);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -3360,6 +3360,23 @@ EXPORTCH int CMG_resetToZeroNB_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     group = Ch_VaArg(interp, ap, class CMobotGroup *);
     retval = group->resetToZeroNB();
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CMG_setJointPower_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobotGroup *robot;
+    robotJointId_t id;
+    int power;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobotGroup *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    power = Ch_VaArg(interp, ap, int);
+    retval = robot->setJointPower(id, power);
     Ch_VaEnd(interp, ap);
     return retval;
 }

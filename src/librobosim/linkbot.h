@@ -133,13 +133,13 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
+		int setJointPower(robotJointId_t id, int power);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeeds(double speed1, double speed2, double speed3);
 		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
-		int setMotorPower(robotJointId_t id, int power);
 		int setSpeed(double speed, double radius);
 		int systemTime(double &time);
 #ifdef ENABLE_GRAPHICS
@@ -311,13 +311,13 @@ class DLLIMPORT CLinkbotTGroup {
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
+		int setJointPower(robotJointId_t id, int power);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
 		int setJointSpeeds(double speed1, double speed2, double speed3);
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
-		int setMotorPower(robotJointId_t id, int power);
 		int setSpeed(double speed, double radius);
 		int traceOff(void);
 		int traceOn(void);
