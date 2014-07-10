@@ -39,7 +39,7 @@ int CLinkbotT::accelJointCycloidalNB(robotJointId_t id, double angle, double t) 
 	}
 
 	// set timeout
-	_motor[id].mode_timeout = t/_simObject->getStep();
+	_motor[id].timeout = t/_simObject->getStep();
 
 	// set acceleration parameters
 	_motor[id].mode = ACCEL_CYCLOIDAL;
@@ -81,7 +81,7 @@ int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double t) {
 	}
 
 	// set timeout
-	_motor[id].mode_timeout = t/_simObject->getStep();
+	_motor[id].timeout = t/_simObject->getStep();
 
 	// set acceleration parameters
 	_motor[id].mode = ACCEL_HARMONIC;
@@ -133,9 +133,9 @@ int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
 	// set timeout
 	double step = _simObject->getStep();
 	if (t == 0)
-		_motor[id].mode_timeout = fabs((DEG2RAD(_motor[id].omega_max)-fabs(_motor[id].omega))/DEG2RAD(a)/step);
+		_motor[id].timeout = fabs((DEG2RAD(_motor[id].omega_max)-fabs(_motor[id].omega))/DEG2RAD(a)/step);
 	else
-		_motor[id].mode_timeout = fabs(t/step);
+		_motor[id].timeout = fabs(t/step);
 
 	// set acceleration parameters
 	_motor[id].alpha = DEG2RAD(a);
@@ -2664,14 +2664,14 @@ void CLinkbotT::simPreCollisionThread(void) {
 		switch (_motor[i].mode) {
 			case ACCEL_CONSTANT:
 				// check if done with acceleration
-				if (_motor[i].mode_timeout) {
-					_motor[i].mode_timeout--;
+				if (_motor[i].timeout) {
+					_motor[i].timeout--;
 				}
 				else {
 					_motor[i].mode = CONTINUOUS;
 					if (_motor[i].omega > 0) _motor[i].state = POSITIVE;
 					else if (_motor[i].omega < 0) _motor[i].state = NEGATIVE;
-					_motor[i].mode_timeout = -1;
+					_motor[i].timeout = -1;
 				}
 
 				// set new theta
@@ -2719,10 +2719,10 @@ void CLinkbotT::simPreCollisionThread(void) {
 					_motor[i].omega = -0.01;
 
 				// move until timeout is reached
-				if (_motor[i].mode_timeout) {
+				if (_motor[i].timeout) {
 					dJointEnable(_motor[i].id);
 					dJointSetAMotorParam(_motor[i].id, dParamVel, _motor[i].omega);
-					_motor[i].mode_timeout--;
+					_motor[i].timeout--;
 				}
 				else {
 					_motor[i].mode = CONTINUOUS;
@@ -2730,7 +2730,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 					else if (_motor[i].omega < 0) _motor[i].state = NEGATIVE;
 					dJointSetAMotorParam(_motor[i].id, dParamVel, 0);
 					_motor[i].accel.run = 0;
-					_motor[i].mode_timeout = -1;
+					_motor[i].timeout = -1;
 				}
 				break;
 			case CONTINUOUS:
@@ -4171,7 +4171,6 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_motor[i].encoder = DEG2RAD(0.25);
 		_motor[i].goal = 0;
 		_motor[i].mode = SEEK;
-		_motor[i].mode_timeout = 0;
 		_motor[i].offset = 0;
 		_motor[i].omega = 0.7854;			// 45 deg/sec
 		_motor[i].omega_max = 240;		// deg/sec
@@ -4182,6 +4181,7 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_motor[i].stopping = 0;
 		_motor[i].success = true;
 		_motor[i].tau_max = 2;
+		_motor[i].timeout = 0;
 		_motor[i].theta = 0;
 		if (i != disabled) { _enabled[j++] = i; }
 		_rec_active[i] = false;

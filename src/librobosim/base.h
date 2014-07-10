@@ -125,7 +125,7 @@ class DLLIMPORT CRobot {
 			double tau_max;			// maximum force
 			double theta;			// theta
 			int mode;				// modes
-			int mode_timeout;		// mode timeout
+			int timeout;			// mode timeout
 			int starting;			// starting movement
 			int stopping;			// stopping movement
 			int state;				// state

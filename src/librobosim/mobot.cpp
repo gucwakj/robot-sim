@@ -4077,7 +4077,6 @@ int CMobot::init_params(void) {
 		_motor[i].goal = 0;
 		_motor[i].omega_max = 120;			// deg/sec
 		_motor[i].mode = SEEK;
-		_motor[i].mode_timeout = 0;
 		_motor[i].offset = 0;
 		_motor[i].omega = 0.7854;			// 45 deg/sec
 		_motor[i].safety_angle = 10;
@@ -4085,6 +4084,7 @@ int CMobot::init_params(void) {
 		_motor[i].state = NEUTRAL;
 		_motor[i].success = true;
 		_motor[i].theta = 0;
+		_motor[i].timeout = 0;
 		_rec_active[i] = false;
 		_rec_num[i] = 0;
 		_recording[i] = false;
