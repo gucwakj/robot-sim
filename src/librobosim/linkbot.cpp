@@ -50,11 +50,11 @@ int CLinkbotT::accelJointCycloidalNB(robotJointId_t id, double angle, double t) 
 	_motor[id].accel.init = _motor[id].theta;
 
 	// enable motor
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	dJointEnable(_motor[id].id);
 	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
     dBodyEnable(_body[BODY]);
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 
 	// unsuccessful
 	MUTEX_LOCK(&_success_mutex);
@@ -92,11 +92,11 @@ int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double t) {
 	_motor[id].accel.init = _motor[id].theta;
 
 	// enable motor
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	dJointEnable(_motor[id].id);
 	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
     dBodyEnable(_body[BODY]);
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 
 	// unsuccessful
 	MUTEX_LOCK(&_success_mutex);
@@ -142,11 +142,11 @@ int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
 	_motor[id].mode = ACCEL_CONSTANT;
 
 	// enable motor
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	dJointEnable(_motor[id].id);
 	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
     dBodyEnable(_body[BODY]);
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 
 	// unsuccessful
 	MUTEX_LOCK(&_success_mutex);
@@ -1068,7 +1068,7 @@ int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
 	// loop over joints
@@ -1087,7 +1087,7 @@ int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 
 	// unlock mutexes
 	MUTEX_UNLOCK(&_success_mutex);
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 
 	// success
@@ -1127,11 +1127,11 @@ int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 	_motor[id].mode = SEEK;
 
 	// enable motor
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	dJointEnable(_motor[id].id);
 	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
 	dBodyEnable(_body[BODY]);
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 
 	// set success to false
 	MUTEX_LOCK(&_success_mutex);
@@ -1241,11 +1241,11 @@ int CLinkbotT::moveJointToNB(robotJointId_t id, double angle) {
 	_motor[id].mode = SEEK;
 
 	// enable motor
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	dJointEnable(_motor[id].id);
 	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
 	dBodyEnable(_body[BODY]);
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 
 	// set success to false
 	MUTEX_LOCK(&_success_mutex);
@@ -1332,7 +1332,7 @@ int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
 	// loop over joints
@@ -1350,7 +1350,7 @@ int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 
 	// unlock mutexes
 	MUTEX_UNLOCK(&_success_mutex);
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 
 	// success
@@ -2140,7 +2140,7 @@ int CLinkbotT::resetToZero(void) {
 
 int CLinkbotT::resetToZeroNB(void) {
 	// reset absolute counter to 0 -> 2M_PI
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	for (int i = 0; i < 3; i++) {
 		int rev = (int)(_motor[i].theta/2/M_PI);
 		if (rev) {
@@ -2148,7 +2148,7 @@ int CLinkbotT::resetToZeroNB(void) {
 			_motor[i].goal -= 2*rev*M_PI;
 		}
 	}
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 
 	// move to zero position
 	this->moveToZeroNB();
@@ -2630,7 +2630,7 @@ int CLinkbotT::setID(int id) {
 void CLinkbotT::simPreCollisionThread(void) {
 	// lock angle and goal
 	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 
 	// get body rotation from world
 	const double *R = dBodyGetRotation(_body[BODY]);
@@ -2798,14 +2798,14 @@ void CLinkbotT::simPreCollisionThread(void) {
 	}
 
 	// unlock angle and goal
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 }
 
 void CLinkbotT::simPostCollisionThread(void) {
 	// lock angle and goal
 	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
 	// check if joint speed is zero -> joint has completed step
@@ -2826,7 +2826,7 @@ void CLinkbotT::simPostCollisionThread(void) {
 
 	// unlock angle and goal
 	MUTEX_UNLOCK(&_success_mutex);
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 }
 

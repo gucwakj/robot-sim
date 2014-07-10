@@ -1149,7 +1149,7 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
 	// enable motor
@@ -1165,7 +1165,7 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 
 	// unlock mutexes
 	MUTEX_UNLOCK(&_success_mutex);
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 
 	// success
@@ -1202,11 +1202,11 @@ int CMobot::moveJointNB(robotJointId_t id, double angle) {
 	_motor[id].mode = SEEK;
 
 	// enable motor
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	dJointEnable(_motor[id].id);
 	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
 	dBodyEnable(_body[CENTER]);
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 
 	// set success to false
 	MUTEX_LOCK(&_success_mutex);
@@ -1285,11 +1285,11 @@ int CMobot::moveJointToNB(robotJointId_t id, double angle) {
 	_motor[id].mode = SEEK;
 
 	// enable motor
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	dJointEnable(_motor[id].id);
 	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
 	dBodyEnable(_body[CENTER]);
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 
 	// set success to false
 	MUTEX_LOCK(&_success_mutex);
@@ -1353,7 +1353,7 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
 
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	MUTEX_LOCK(&_success_mutex);
 
 	// enable motor
@@ -1368,7 +1368,7 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
 
 	// unlock mutexes
 	MUTEX_UNLOCK(&_success_mutex);
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 
 	// success
@@ -2146,14 +2146,14 @@ int CMobot::relaxJoints(void) {
 }
 
 int CMobot::reset(void) {
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	for (int i = 0; i < NUM_DOF; i++) {
 		_motor[i].offset = _motor[i].theta;
 		_motor[i].theta = 0;
 		_motor[i].goal -= _motor[i].offset;
 		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
 	}
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 
 	// success
 	return 0;
@@ -2169,12 +2169,12 @@ int CMobot::resetToZero(void) {
 
 int CMobot::resetToZeroNB(void) {
 	// reset absolute counter to 0 -> 2M_PI
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 	int rev = (int)(_motor[JOINT1].theta/2/M_PI);
 	if (rev) _motor[JOINT1].theta -= 2*rev*M_PI;
 	rev = (int)(_motor[JOINT4].theta/2/M_PI);
 	if (rev) _motor[JOINT4].theta -= 2*rev*M_PI;
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 
 	// move to zero position
 	this->moveToZeroNB();
@@ -2650,7 +2650,7 @@ int CMobot::setID(int id) {
 void CMobot::simPreCollisionThread(void) {
 	// lock angle and goal
 	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_angle_mutex);
+	MUTEX_LOCK(&_theta_mutex);
 
 	// get body rotation from world
 	const double *R = dBodyGetRotation(_body[CENTER]);
@@ -2703,7 +2703,7 @@ void CMobot::simPreCollisionThread(void) {
 	}
 
 	// unlock angle and goal
-	MUTEX_UNLOCK(&_angle_mutex);
+	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 }
 

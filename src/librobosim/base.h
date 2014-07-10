@@ -174,16 +174,16 @@ class DLLIMPORT CRobot {
 		int _type;				// type of robot
 
 		// threading locks for each robot
-		MUTEX_T _angle_mutex;
+		MUTEX_T _active_mutex;
+		COND_T _active_cond;
 		MUTEX_T _goal_mutex;
 		MUTEX_T _motion_mutex;
 		COND_T _motion_cond;
 		MUTEX_T _recording_mutex;
 		COND_T _recording_cond;
-		MUTEX_T _active_mutex;
-		COND_T _active_cond;
 		MUTEX_T _success_mutex;
 		COND_T _success_cond;
+		MUTEX_T _theta_mutex;
 
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group *root, int tracking) = 0;
