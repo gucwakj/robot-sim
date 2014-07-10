@@ -40,6 +40,7 @@ RoboSim::~RoboSim(void) {
 	MUTEX_UNLOCK(&_running_mutex);
 	THREAD_JOIN(_simulation);
 	COND_DESTROY(&_running_cond);
+	MUTEX_DESTROY(&_clock_mutex);
 	MUTEX_DESTROY(&_pause_mutex);
 	MUTEX_DESTROY(&_robot_mutex);
 	MUTEX_DESTROY(&_running_mutex);
@@ -114,6 +115,7 @@ int RoboSim::init_sim(int pause) {
 	_cor[0] = 0.3;	_cor[1] = 0.3;
 
 	// thread variables
+	MUTEX_INIT(&_clock_mutex);
 	MUTEX_INIT(&_pause_mutex);
 	MUTEX_INIT(&_robot_mutex);
 	MUTEX_INIT(&_running_mutex);
@@ -816,7 +818,7 @@ int RoboSim::addRobot(CRobot *robot) {
 	}
 
 	// give simulation data to robot
-	robot->addToSim(_world, _space, &_clock);
+	robot->addToSim(_world, _space);
 	robot->setID(btmp->id);
 
 	// find if robot is connected to another one
@@ -920,6 +922,13 @@ int RoboSim::deleteRobot(CRobot *robot) {
 		return 0;
 	else
 		return 1;
+}
+
+double RoboSim::getClock(void) {
+	MUTEX_LOCK(&_clock_mutex);
+	double clock = _clock;
+	MUTEX_UNLOCK(&_clock_mutex);
+	return clock;
 }
 
 double RoboSim::getStep(void) {
@@ -1121,7 +1130,9 @@ void* RoboSim::simulation_thread(void *arg) {
 			// perform ode update
 			dSpaceCollide(sim->_space, sim, &sim->collision);
 			dWorldStep(sim->_world, sim->_step);
+			MUTEX_LOCK(&(sim->_clock_mutex));
 			sim->_clock += sim->_step;
+			MUTEX_UNLOCK(&(sim->_clock_mutex));
 			dJointGroupEmpty(sim->_group);
 
 			// perform post-collision updates

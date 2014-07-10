@@ -268,10 +268,10 @@ int CLinkbotT::connect(char *name, int pause) {
 
 int CLinkbotT::delay(double milliseconds) {
 	// set ending time
-	double end = *_clock + milliseconds/1000;
+	double end = _simObject->getClock() + milliseconds/1000;
 
 	// while clock hasn't reached ending time
-	while ((end - *_clock) > EPSILON) {
+	while ((end - _simObject->getClock()) > EPSILON) {
 		this->doze(5);
 	}
 
@@ -1412,8 +1412,8 @@ void* CLinkbotT::recordAngleThread(void *arg) {
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
 	// create initial time points
-	double start_time;
-	int time = (int)(*(rArg->robot->_clock)*1000);
+	double start_time = 0;
+	int time = (int)(_simObject->getClock()*1000);
 
 	// is robot moving
 	int *moving = new int[rArg->num];
@@ -1421,7 +1421,7 @@ void* CLinkbotT::recordAngleThread(void *arg) {
 	// get 'num' data points
 	for (int i = 0; i < rArg->num; i++) {
 		// store time of data point
-		rArg->time[i] = *(rArg->robot->_clock)*1000;
+		rArg->time[i] = _simObject->getClock()*1000;
 		if (i == 0) { start_time = rArg->time[i]; }
 		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
@@ -1435,8 +1435,8 @@ void* CLinkbotT::recordAngleThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
-			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
+		if ( (int)(_simObject->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
 	}
 
 	// shift time to start of movement
@@ -1507,7 +1507,7 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)((*(rArg->robot->_clock))*1000);
+	int time = (int)((_simObject->getClock())*1000);
 
 	// is robot moving
 	int moving;
@@ -1543,7 +1543,7 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 		moving = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
 
 		// store time of data point
-		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
+		(*rArg->ptime)[i] = _simObject->getClock()*1000;
 		if (i == 0) { start_time = (*rArg->ptime)[i]; }
 		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
 
@@ -1551,8 +1551,8 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
-			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
+		if ( (int)(_simObject->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
 
 		// wait until movement to start recording
 		if( !moving && rArg->robot->isShiftEnabled() ) {
@@ -1635,8 +1635,8 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
     recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
 	// create initial time points
-    double start_time;
-	int time = (int)(*(rArg->robot->_clock)*1000);
+    double start_time = 0;
+	int time = (int)(_simObject->getClock()*1000);
 
 	// is robot moving
 	int *moving = new int[rArg->num];
@@ -1644,7 +1644,7 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
 	// get 'num' data points
     for (int i = 0; i < rArg->num; i++) {
 		// store time of data point
-		rArg->time[i] = *(rArg->robot->_clock)*1000;
+		rArg->time[i] = _simObject->getClock()*1000;
         if (i == 0) { start_time = rArg->time[i]; }
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
@@ -1662,8 +1662,8 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
-			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
+		if ( (int)(_simObject->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
     }
 
 	// shift time to start of movement
@@ -1746,7 +1746,7 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)((*(rArg->robot->_clock))*1000);
+	int time = (int)((_simObject->getClock())*1000);
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
@@ -1792,7 +1792,7 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 		(*(rArg->pangle3))[i] = RAD2DEG(rArg->robot->_motor[JOINT3].theta);
 
 		// store time of data point
-		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
+		(*rArg->ptime)[i] = _simObject->getClock()*1000;
 		if (i == 0) { start_time = (*rArg->ptime)[i]; }
 		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
 
@@ -1800,8 +1800,8 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
-			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
+		if ( (int)(_simObject->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
 	}
 
 	// signal completion of recording
@@ -1982,7 +1982,7 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
 	// create initial time points
-	int time = (int)((*(rArg->robot->_clock))*1000);
+	int time = (int)((_simObject->getClock())*1000);
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
@@ -2025,8 +2025,8 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
-			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
+		if ( (int)(_simObject->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
 	}
 
 	// signal completion of recording
@@ -2289,7 +2289,7 @@ int CLinkbotT::setSpeed(double speed, double radius) {
 
 int CLinkbotT::systemTime(double &time) {
 	// get time
-	time = *_clock;
+	time = _simObject->getClock();
 
 	// success
 	return 0;
@@ -2369,10 +2369,9 @@ int CLinkbotT::turnRightNB(double angle, double radius, double trackwidth) {
 /**********************************************************
 	inherited functions
  **********************************************************/
-int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space, double *clock) {
+int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space) {
 	_world = world;
     _space = dHashSpaceCreate(space);
-	_clock = clock;
 
 	// success
 	return 0;
@@ -2696,13 +2695,13 @@ void CLinkbotT::simPreCollisionThread(void) {
 				// init params on first run
 				if (_motor[i].numrun == 0) {
 					_motor[i].initAngle = _motor[i].theta;
-					_motor[i].starttime = (double)(*_clock);
+					_motor[i].starttime = _simObject->getClock();
 					_motor[i].numrun = 1;
 					break;
 				}
 
 				// store time
-				t = (double)(*_clock);
+				t = _simObject->getClock();
 
 				// calculate new angle
 				if (_motor[i].mode == ACCEL_CYCLOIDAL)

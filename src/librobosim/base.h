@@ -44,7 +44,7 @@ class DLLIMPORT CRobot {
 		void doze(double ms);
 
 		// pure virtual functions to be overridden by inherited classes of each robot
-		virtual int addToSim(dWorldID &world, dSpaceID &space, double *clock) = 0;
+		virtual int addToSim(dWorldID &world, dSpaceID &space) = 0;
 		virtual int build(xml_robot_t robot) = 0;
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn) = 0;
 		virtual bool getSuccess(int i) = 0;
@@ -140,7 +140,6 @@ class DLLIMPORT CRobot {
 		bool *_recording;		// recording in progress
 		bool *_rec_active;		// actively recording a new value
 		double _accel[3];		// accelerometer data
-		double *_clock;			// world clock
 		double _center[3];		// offset of body from initial (x,y,z)
 		double _distOffset;		// offset for recorded distance
 		double _radius;			// wheel radius

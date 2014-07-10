@@ -16,6 +16,7 @@ class DLLIMPORT RoboSim {
 
 		int addRobot(CRobot *robot);
 		int deleteRobot(CRobot *robot);
+		double getClock(void);
 		double getStep(void);
 		int getUnits(void);
 		int runSimulation(void);
@@ -55,6 +56,7 @@ class DLLIMPORT RoboSim {
 		int _running;				// is the program running
 		int _us;					// us customary units
 		COND_T _running_cond;		// condition for actively running program
+		MUTEX_T _clock_mutex;		// mutex for getting the clock
 		MUTEX_T _pause_mutex;		// mutex for paused simulation
 		MUTEX_T _robot_mutex;		// mutex for ground collisions
 		MUTEX_T _running_mutex;		// mutex for actively running program

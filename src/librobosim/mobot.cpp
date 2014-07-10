@@ -48,10 +48,10 @@ int CMobot::connect(char *name, int pause) {
 
 int CMobot::delay(double milliseconds) {
 	// set ending time
-	double end = *_clock + milliseconds/1000;
+	double end = _simObject->getClock() + milliseconds/1000;
 
 	// while clock hasn't reached ending time
-	while ((end - *_clock) >= EPSILON)
+	while ((end - _simObject->getClock()) >= EPSILON)
 		this->doze(50);
 
 	// success
@@ -1409,8 +1409,8 @@ void* CMobot::recordAngleThread(void *arg) {
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
 	// create initial time points
-	double start_time;
-	int time = (int)(*(rArg->robot->_clock)*1000);
+	double start_time = 0;
+	int time = (int)(_simObject->getClock()*1000);
 
 	// is robot moving
 	int *moving = new int[rArg->num];
@@ -1418,7 +1418,7 @@ void* CMobot::recordAngleThread(void *arg) {
 	// get 'num' data points
 	for (int i = 0; i < rArg->num; i++) {
 		// store time of data point
-		rArg->time[i] = *(rArg->robot->_clock)*1000;
+		rArg->time[i] = _simObject->getClock()*1000;
 		if (i == 0) { start_time = rArg->time[i]; }
 		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
@@ -1432,8 +1432,8 @@ void* CMobot::recordAngleThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
-			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
+		if ( (int)(_simObject->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
 	}
 
 	// shift time to start of movement
@@ -1501,7 +1501,7 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)((*(rArg->robot->_clock))*1000);
+	int time = (int)(_simObject->getClock()*1000);
 
 	// is robot moving
 	int moving;
@@ -1545,7 +1545,7 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 		moving = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
 
 		// store time of data point
-		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
+		(*rArg->ptime)[i] = _simObject->getClock()*1000;
 		if (i == 0) { start_time = (*rArg->ptime)[i]; }
 		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
 
@@ -1553,8 +1553,8 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
-			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
+		if ( (int)(_simObject->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
 
 		// wait until movement to start recording
 		if( !moving && rArg->robot->isShiftEnabled() ) {
@@ -1640,8 +1640,8 @@ void* CMobot::recordAnglesThread(void *arg) {
     recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
 	// create initial time points
-    double start_time;
-	int time = (int)(*(rArg->robot->_clock)*1000);
+    double start_time = 0;
+	int time = (int)(_simObject->getClock()*1000);
 
 	// is robot moving
 	int *moving = new int[rArg->num];
@@ -1649,7 +1649,7 @@ void* CMobot::recordAnglesThread(void *arg) {
 	// get 'num' data points
     for (int i = 0; i < rArg->num; i++) {
 		// store time of data point
-		rArg->time[i] = *(rArg->robot->_clock)*1000;
+		rArg->time[i] = _simObject->getClock()*1000;
         if (i == 0) { start_time = rArg->time[i]; }
         rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
@@ -1669,8 +1669,8 @@ void* CMobot::recordAnglesThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
-			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
+		if ( (int)(_simObject->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
     }
 
 	// shift time to start of movement
@@ -1751,7 +1751,7 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)((*(rArg->robot->_clock))*1000);
+	int time = (int)(_simObject->getClock()*1000);
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
@@ -1805,7 +1805,7 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 		(*(rArg->pangle4))[i] = RAD2DEG(rArg->robot->_motor[JOINT4].theta);
 
 		// store time of data point
-		(*rArg->ptime)[i] = *(rArg->robot->_clock)*1000;
+		(*rArg->ptime)[i] = _simObject->getClock()*1000;
 		if (i == 0) { start_time = (*rArg->ptime)[i]; }
 		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
 
@@ -1813,8 +1813,8 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
-			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
+		if ( (int)(_simObject->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
 	}
 
 	// signal completion of recording
@@ -1993,7 +1993,7 @@ void* CMobot::recordxyBeginThread(void *arg) {
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
 
 	// create initial time points
-	int time = (int)((*(rArg->robot->_clock))*1000);
+	int time = (int)(_simObject->getClock()*1000);
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
@@ -2037,8 +2037,8 @@ void* CMobot::recordxyBeginThread(void *arg) {
 		time += rArg->msecs;
 
 		// pause until next step
-		if ( (int)(*(rArg->robot->_clock)*1000) < time )
-			rArg->robot->doze(time - (int)(*(rArg->robot->_clock)*1000));
+		if ( (int)(_simObject->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(_simObject->getClock()*1000));
 	}
 
 	// signal completion of recording
@@ -2296,7 +2296,7 @@ int CMobot::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId
 
 int CMobot::systemTime(double &time) {
 	// get time
-	time = *_clock;
+	time = _simObject->getClock();
 
 	// success
 	return 0;
@@ -2376,10 +2376,9 @@ int CMobot::turnRightNB(double angle, double radius, double trackwidth) {
 /**********************************************************
 	inherited functions
  **********************************************************/
-int CMobot::addToSim(dWorldID &world, dSpaceID &space, double *clock) {
+int CMobot::addToSim(dWorldID &world, dSpaceID &space) {
 	_world = world;
     _space = dHashSpaceCreate(space);
-	_clock = clock;
 
 	// success
 	return 0;
