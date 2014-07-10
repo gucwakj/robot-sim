@@ -2369,11 +2369,10 @@ int CLinkbotT::turnRightNB(double angle, double radius, double trackwidth) {
 /**********************************************************
 	inherited functions
  **********************************************************/
-int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space, double *clock, double *step) {
+int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space, double *clock) {
 	_world = world;
     _space = dHashSpaceCreate(space);
 	_clock = clock;
-	_step = step;
 
 	// success
 	return 0;
@@ -2662,6 +2661,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
 		// engage motor depending upon motor mode
 		double t = 0, angle = 0;
+		double step = _simObject->getStep();
 		switch (_motor[i].mode) {
 			case ACCEL_CONSTANT:
 				// check if done with acceleration
@@ -2676,13 +2676,13 @@ void CLinkbotT::simPreCollisionThread(void) {
 				}
 
 				// set new theta
-				_motor[i].goal += (*_step)*_motor[i].omega;
+				_motor[i].goal += step*_motor[i].omega;
 				if (_motor[i].omega <= DEG2RAD(_motor[i].omega_max)) {
-					_motor[i].goal += _motor[i].alpha*(*_step)*(*_step)/2;
+					_motor[i].goal += _motor[i].alpha*step*step/2;
 				}
 
 				// update omega
-				_motor[i].omega += *_step * _motor[i].alpha;
+				_motor[i].omega += step * _motor[i].alpha;
 				if (_motor[i].omega > DEG2RAD(_motor[i].omega_max))
 					_motor[i].omega = DEG2RAD(_motor[i].omega_max);
 				else if (_motor[i].omega < -DEG2RAD(_motor[i].omega_max))
@@ -2711,7 +2711,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 					angle = (_motor[i].goal/2.0)*(1-cos((M_PI*(t-_motor[i].starttime))/_motor[i].period))+_motor[i].initAngle;
 
 				// set new omega
-				_motor[i].omega = (angle - _motor[i].theta)/(*_step);
+				_motor[i].omega = (angle - _motor[i].theta)/step;
 
 				// give it an initial push
 				if (0 < _motor[i].omega && _motor[i].omega < 0.1 )

@@ -2376,11 +2376,10 @@ int CMobot::turnRightNB(double angle, double radius, double trackwidth) {
 /**********************************************************
 	inherited functions
  **********************************************************/
-int CMobot::addToSim(dWorldID &world, dSpaceID &space, double *clock, double *step) {
+int CMobot::addToSim(dWorldID &world, dSpaceID &space, double *clock) {
 	_world = world;
     _space = dHashSpaceCreate(space);
 	_clock = clock;
-	_step = step;
 
 	// success
 	return 0;
