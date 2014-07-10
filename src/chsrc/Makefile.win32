@@ -3,7 +3,7 @@
 #
 
 PACKAGE = chrobosim
-VERSION = win32-1.6.70
+VERSION = win32-1.7.0
 PKGDIR = $(PACKAGE)-$(VERSION)/$(PACKAGE)
 ARCH = x86
 
