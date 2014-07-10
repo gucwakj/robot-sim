@@ -498,7 +498,10 @@ while larger values are for softer surfaces.
 The ground section holds the solid bodies which are a part of the ground for
 which the robots to interact.  The objects do not need to be on the ground
 plane.  They can be floating in space but are still a part of the ground
-objects.  Everything to be added is put between the \verb%<ground>% tags.
+objects.  Each object has a mass associated with it and interacts in the
+simulation.  An object with heavy mass cannot be moved by the robots, while
+lighter objects will be pushed around.  Everything to be added is put between
+the \verb%<ground>% tags.
 \begin{verbatim}
 <ground>
 </ground>
@@ -506,42 +509,42 @@ objects.  Everything to be added is put between the \verb%<ground>% tags.
 
 \subsubsection{Box}
 \begin{verbatim}
-<box>
+<box mass="1">
     <size x="1" y="1" z="1"/>
     <position x="1" y="1" z="1"/>
     <rotation psi="1" theta="1" phi="1"/>
 </box>
 \end{verbatim}
-The ground box is configured with the size, position, and rotation parameters.
-The size gives the lengths in the X, Y, and Z directions.  Position gives the X,
-Y, and Z location of the center of the box.  The rotation gives the three Euler
-Angles of the box.
+The ground box is configured with the mass, size, position, and rotation
+parameters.  Mass is given as the total mass for the object.  The size gives the
+lengths in the X, Y, and Z directions.  Position gives the X, Y, and Z location
+of the center of the box.  The rotation gives the three Euler Angles of the box.
 
 \subsubsection{Cylinder}
 \begin{verbatim}
-<cylinder>
+<cylinder mass="1" axis="1">
     <size radius="1" length="10"/>
     <position x="1" y="1" z="1"/>
     <rotation psi="1" theta="1" phi="1"/>
 </cylinder>
 \end{verbatim}
-The ground cylinder is configured with the size, position, and rotation
-parameters.  The size gives the radius and length of the cylinder.  By default
-the cylinder is drawn with the long axis along the X-axis.  Position gives the
-X, Y, and Z location of the center of the cylinder.  The rotation gives the
-three Euler Angles.
+The ground cylinder is configured with the mass, axis, size, position, and
+rotation parameters.  Mass is the total mass of the object.  Axis is the long
+axis for the object given the convention 1=X, 2=Y, and 3=Z.  The size gives the
+radius and length of the cylinder.  Position gives the X, Y, and Z location of
+the center of the cylinder.  The rotation gives the three Euler Angles.
 
 \subsubsection{Sphere}
 \begin{verbatim}
-<sphere>
+<sphere mass="1">
     <size radius="1"/>
     <position x="1" y="1" z="1"/>
 </sphere>
 \end{verbatim}
-The ground sphere is configured with the size and position parameters.  The size
-gives the radius of the sphere.  By default the cylinder is drawn with the long
-axis along the X-axis.  Position gives the X, Y, and Z location of the center of
-the sphere.
+The ground sphere is configured with the mass, size and position parameters.
+Mass is the total mass of the object.  The size gives the radius of the sphere.
+By default the cylinder is drawn with the long axis along the X-axis.  Position
+gives the X, Y, and Z location of the center of the sphere.
 
 \subsection{Simulation Section}
 The simulation section holds the robots and accessories for the current

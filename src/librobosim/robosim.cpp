@@ -5,11 +5,11 @@ using namespace std;
 RoboSim *g_sim = NULL;
 
 RoboSim::RoboSim(char *name, int pause) {
-	// initialize xml config file
-	init_xml(name);
-
 	// initialize ode
 	init_ode();
+
+	// initialize xml config file
+	init_xml(name);
 
 	// initialize simulation
 	init_sim(pause);
@@ -93,7 +93,8 @@ int RoboSim::init_ode(void) {
 	_space = dHashSpaceCreate(0);						// create space for robots
 	_group = dJointGroupCreate(0);						// create group for joints
 	ground_t ng = new struct ground_s;
-	ng->object = dCreatePlane(_space, 0, 0, 1, 0);
+	ng->body = NULL;								// immovable
+	ng->geom = dCreatePlane(_space, 0, 0, 1, 0);	// ground plane
 	ng->next = NULL;
 	_ground = ng;
 
@@ -252,7 +253,10 @@ int RoboSim::init_xml(char *name) {
 	while (node) {
 		if ( !strcmp(node->Value(), "box") ) {
 			ground_t ng = new struct ground_s;
-			double lx, ly, lz, px, py, pz, psi, theta, phi;
+			double lx, ly, lz, px, py, pz, psi, theta, phi, mass;
+			if (node->QueryDoubleAttribute("mass", &mass)) {
+				mass = 0.1;
+			}
 			if ( (ele = node->FirstChildElement("size")) ) {
 				ele->QueryDoubleAttribute("x", &lx);
 				ele->QueryDoubleAttribute("y", &ly);
@@ -278,10 +282,21 @@ int RoboSim::init_xml(char *name) {
 			dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
 			dMultiply0(R, R_xy, R_z, 3, 3, 3);
 
-			// position object
-			ng->object = dCreateBox(_space, lx, ly, lz);
-			dGeomSetPosition(ng->object, px, py, pz);
-			dGeomSetRotation(ng->object, R);
+			// create body
+			dMass m;
+			dMassSetBoxTotal(&m, mass, lx, ly, lz);
+			ng->body = dBodyCreate(_world);
+			dBodySetPosition(ng->body, px, py, pz);
+			dBodySetRotation(ng->body, R);
+
+			// position geom
+			ng->geom = dCreateBox(_space, lx, ly, lz);
+			dGeomSetBody(ng->geom, ng->body);
+			dGeomSetOffsetPosition(ng->geom, -m.c[0], -m.c[1], -m.c[2]);
+
+			// set mass center to (0,0,0) of _bodyID
+			dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+			dBodySetMass(ng->body, &m);
 
 			// add object to linked list
 			ground_t gtmp = _ground;
@@ -291,7 +306,14 @@ int RoboSim::init_xml(char *name) {
 		}
 		else if ( !strcmp(node->Value(), "cylinder") ) {
 			ground_t ng = new struct ground_s;
-			double r, l, px, py, pz, psi, theta, phi;
+			double r, l, px, py, pz, psi, theta, phi, mass;
+			int axis;
+			if (node->QueryDoubleAttribute("mass", &mass)) {
+				mass = 0.1;
+			}
+			if (node->QueryIntAttribute("axis", &axis)) {
+				axis = 1;
+			}
 			if ( (ele = node->FirstChildElement("size")) ) {
 				ele->QueryDoubleAttribute("radius", &r);
 				ele->QueryDoubleAttribute("length", &l);
@@ -316,10 +338,21 @@ int RoboSim::init_xml(char *name) {
 			dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
 			dMultiply0(R, R_xy, R_z, 3, 3, 3);
 
-			// position object
-			ng->object = dCreateCylinder(_space, r, l);
-			dGeomSetPosition(ng->object, px, py, pz);
-			dGeomSetRotation(ng->object, R);
+			// create body
+			dMass m;
+			dMassSetCylinderTotal(&m, mass, axis, r, l);
+			ng->body = dBodyCreate(_world);
+			dBodySetPosition(ng->body, px, py, pz);
+			dBodySetRotation(ng->body, R);
+
+			// position geom
+			ng->geom = dCreateCylinder(_space, r, l);
+			dGeomSetBody(ng->geom, ng->body);
+			dGeomSetOffsetPosition(ng->geom, -m.c[0], -m.c[1], -m.c[2]);
+
+			// set mass center to (0,0,0) of _bodyID
+			dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+			dBodySetMass(ng->body, &m);
 
 			// add object to linked list
 			ground_t gtmp = _ground;
@@ -329,7 +362,10 @@ int RoboSim::init_xml(char *name) {
 		}
 		else if ( !strcmp(node->Value(), "sphere") ) {
 			ground_t ng = new struct ground_s;
-			double r, px, py, pz;
+			double r, px, py, pz, mass;
+			if (node->QueryDoubleAttribute("mass", &mass)) {
+				mass = 0.1;
+			}
 			if ( (ele = node->FirstChildElement("size")) ) {
 				ele->QueryDoubleAttribute("radius", &r);
 			}
@@ -340,9 +376,20 @@ int RoboSim::init_xml(char *name) {
 			}
 			ng->next = NULL;
 
-			// position object
-			ng->object = dCreateSphere(_space, r);
-			dGeomSetPosition(ng->object, px, py, pz);
+			// create body
+			dMass m;
+			dMassSetSphereTotal(&m, mass, r);
+			ng->body = dBodyCreate(_world);
+			dBodySetPosition(ng->body, px, py, pz);
+
+			// position geom
+			ng->geom = dCreateSphere(_space, r);
+			dGeomSetBody(ng->geom, ng->body);
+			dGeomSetOffsetPosition(ng->geom, -m.c[0], -m.c[1], -m.c[2]);
+
+			// set mass center to (0,0,0) of _bodyID
+			dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+			dBodySetMass(ng->body, &m);
 
 			// add object to linked list
 			ground_t gtmp = _ground;

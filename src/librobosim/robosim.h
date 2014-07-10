@@ -29,7 +29,8 @@ class DLLIMPORT RoboSim {
 	private:
 		// ground struct
 		typedef struct ground_s {
-			dGeomID object;
+			dBodyID body;
+			dGeomID geom;
 			struct ground_s *next;
 		} *ground_t;
 		// robots struct
