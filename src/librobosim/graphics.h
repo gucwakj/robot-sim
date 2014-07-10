@@ -56,6 +56,8 @@ extern osg::Node::NodeMask IS_PICKABLE_MASK;
 extern osg::Node::NodeMask VISIBLE_MASK;
 
 class CRobot;
+class RoboSim;
+extern RoboSim *g_sim;
 
 /**********************************************************
 	MoveEarthySkyWithEyePointTransform

@@ -100,6 +100,7 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 								osg::PositionAttitudeTransform *pat;
 								pat = dynamic_cast<osg::PositionAttitudeTransform *>(shadow->getChild(i)->asGroup()->getChild(j));
 								pat->setNodeMask((pat->getNodeMask() ? NOT_VISIBLE_MASK : VISIBLE_MASK));
+								pat->getNodeMask() ? g_sim->setCollisions(1) : g_sim->setCollisions(0);
 							}
 						}
 					}

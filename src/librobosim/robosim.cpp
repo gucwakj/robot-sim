@@ -134,6 +134,7 @@ int RoboSim::init_sim(int pause) {
 #endif
     _step = 0.004;			// initial time step
 	_clock = 0;				// start clock
+	_collision = true;		// perform inter-robot collisions
 
 	// success
 	return 0;
@@ -953,6 +954,23 @@ int RoboSim::runSimulation(void) {
 	return 0;
 }
 
+int RoboSim::setCollisions(int mode) {
+	switch (mode) {
+		case 0:
+			_collision = false;
+			break;
+		case 1:
+			_collision = true;
+			break;
+		case 2:
+			_collision = _collision ? false : true;
+			break;
+	}
+
+	// success
+	return 0;
+}
+
 #ifdef ENABLE_GRAPHICS
 int RoboSim::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
 	// convert x and y into meters
@@ -1232,6 +1250,11 @@ void RoboSim::collision(void *data, dGeomID o1, dGeomID o2) {
 
 	// if geom bodies are connected, do not intersect
 	if ( b1 && b2 && dAreConnected(b1, b2) ) return;
+
+	// do not collide spaces (robots) together
+	if (!ptr->_collision && dGeomIsSpace(o1) && dGeomIsSpace(o2)) {
+		return;
+	}
 
 	// special case for collision of spaces
 	if (dGeomIsSpace(o1) || dGeomIsSpace(o2)) {

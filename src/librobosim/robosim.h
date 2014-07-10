@@ -20,6 +20,7 @@ class DLLIMPORT RoboSim {
 		double getStep(void);
 		int getUnits(void);
 		int runSimulation(void);
+		int setCollisions(int mode);
 #ifdef ENABLE_GRAPHICS
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int point(double x, double y, double z, int pointsize, char *color);
@@ -46,6 +47,7 @@ class DLLIMPORT RoboSim {
 		ground_t _ground;			// ground (static) objects
 		robots_t _robots;			// robot data within simulation
 		xml_robot_t _bot;			// robots read from config file
+		bool _collision;			// check to perform collisions
 		double _clock;				// clock time of simulation
 		double _cor[2];				// coefficient of restitution [body/ground, body/body]
 		double _mu[2];				// coefficient of friction [body/ground, body/body]
