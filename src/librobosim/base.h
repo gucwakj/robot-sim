@@ -104,6 +104,7 @@ class DLLIMPORT CRobot {
 			dGeomID *geom;
 			struct conn_s *next;
 		} *conn_t;
+		// motor accelerations
 		typedef struct accel_s {
 			double init;			// motion initial angle
 			double start;			// motion start time

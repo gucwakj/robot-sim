@@ -133,7 +133,7 @@ int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
 	// set timeout
 	double step = _simObject->getStep();
 	if (t == 0)
-		_motor[id].timeout = fabs((DEG2RAD(_motor[id].omega_max)-fabs(_motor[id].omega))/DEG2RAD(a)/step);
+		_motor[id].timeout = fabs((_motor[id].omega_max-fabs(_motor[id].omega))/DEG2RAD(a)/step);
 	else
 		_motor[id].timeout = fabs(t/step);
 
@@ -911,7 +911,7 @@ int CLinkbotT::getJointAnglesInstant(double &angle1, double &angle2, double &ang
 }
 
 int CLinkbotT::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
-	maxSpeed = _motor[id].omega_max;
+	maxSpeed = RAD2DEG(_motor[id].omega_max);
 
 	// success
 	return 0;
@@ -939,7 +939,7 @@ int CLinkbotT::getJointSpeed(robotJointId_t id, double &speed) {
 }
 
 int CLinkbotT::getJointSpeedRatio(robotJointId_t id, double &ratio) {
-	ratio = _motor[id].omega/DEG2RAD(_motor[id].omega_max);
+	ratio = _motor[id].omega/_motor[id].omega_max;
 
 	// success
 	return 0;
@@ -955,9 +955,9 @@ int CLinkbotT::getJointSpeeds(double &speed1, double &speed2, double &speed3) {
 }
 
 int CLinkbotT::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3) {
-	ratio1 = _motor[JOINT1].omega/DEG2RAD(_motor[JOINT1].omega_max);
-	ratio2 = _motor[JOINT2].omega/DEG2RAD(_motor[JOINT2].omega_max);
-	ratio3 = _motor[JOINT3].omega/DEG2RAD(_motor[JOINT3].omega_max);
+	ratio1 = _motor[JOINT1].omega/_motor[JOINT1].omega_max;
+	ratio2 = _motor[JOINT2].omega/_motor[JOINT2].omega_max;
+	ratio3 = _motor[JOINT3].omega/_motor[JOINT3].omega_max;
 
 	// success
 	return 0;
@@ -2232,10 +2232,10 @@ int CLinkbotT::setJointSafetyAngleTimeout(double seconds) {
 }
 
 int CLinkbotT::setJointSpeed(robotJointId_t id, double speed) {
-	if (speed > _motor[id].omega_max) {
+	if (speed > RAD2DEG(_motor[id].omega_max)) {
 		fprintf(stderr, "Warning: Setting the speed for joint %d to %.2lf degrees per second is "
 			"beyond the hardware limit of %.2lf degrees per second.\n",
-			id+1, speed, _motor[id].omega_max);
+			id+1, speed, RAD2DEG(_motor[id].omega_max));
 	}
 	_motor[id].omega = DEG2RAD(speed);
 
@@ -2247,7 +2247,7 @@ int CLinkbotT::setJointSpeedRatio(robotJointId_t id, double ratio) {
 	if ( ratio < 0 || ratio > 1 ) {
 		return -1;
 	}
-	return this->setJointSpeed(id, ratio * _motor[(int)id].omega_max);
+	return this->setJointSpeed(id, ratio * RAD2DEG(_motor[(int)id].omega_max));
 }
 
 int CLinkbotT::setJointSpeeds(double speed1, double speed2, double speed3) {
@@ -2276,7 +2276,7 @@ int CLinkbotT::setMotorPower(robotJointId_t id, int power) {
 }
 
 int CLinkbotT::setSpeed(double speed, double radius) {
-	if (RAD2DEG(speed/radius) > _motor[JOINT1].omega_max) {
+	if (RAD2DEG(speed/radius) > RAD2DEG(_motor[JOINT1].omega_max)) {
 		fprintf(stderr, "Warning: Speed %.2lf corresponds to joint speeds of %.2lf degrees/second.\n",
 			speed, RAD2DEG(speed/radius));
 	}
@@ -2676,16 +2676,16 @@ void CLinkbotT::simPreCollisionThread(void) {
 
 				// set new theta
 				_motor[i].goal += step*_motor[i].omega;
-				if (_motor[i].omega <= DEG2RAD(_motor[i].omega_max)) {
+				if (_motor[i].omega <= _motor[i].omega_max) {
 					_motor[i].goal += _motor[i].alpha*step*step/2;
 				}
 
 				// update omega
 				_motor[i].omega += step * _motor[i].alpha;
-				if (_motor[i].omega > DEG2RAD(_motor[i].omega_max))
-					_motor[i].omega = DEG2RAD(_motor[i].omega_max);
-				else if (_motor[i].omega < -DEG2RAD(_motor[i].omega_max))
-					_motor[i].omega = -DEG2RAD(_motor[i].omega_max);
+				if (_motor[i].omega > _motor[i].omega_max)
+					_motor[i].omega = _motor[i].omega_max;
+				else if (_motor[i].omega < -_motor[i].omega_max)
+					_motor[i].omega = -_motor[i].omega_max;
 
 				// move to new theta
 				dJointSetAMotorParam(_motor[i].id, dParamVel, _motor[i].omega);
@@ -4172,8 +4172,8 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_motor[i].goal = 0;
 		_motor[i].mode = SEEK;
 		_motor[i].offset = 0;
-		_motor[i].omega = 0.7854;			// 45 deg/sec
-		_motor[i].omega_max = 240;		// deg/sec
+		_motor[i].omega = 0.7854;			//  45 deg/sec
+		_motor[i].omega_max = 4.1888;		// 240 deg/sec
 		_motor[i].safety_angle = 10;
 		_motor[i].safety_timeout = 4;
 		_motor[i].starting = 0;
