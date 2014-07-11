@@ -204,9 +204,8 @@ void pickHandler::pick(const osgGA::GUIEventAdapter &ea, osgViewer::Viewer *view
 /**********************************************************
 	Linkbot Node Callback
  **********************************************************/
-linkbotNodeCallback::linkbotNodeCallback(CRobot *robot, int units) {
+linkbotNodeCallback::linkbotNodeCallback(CRobot *robot) {
 	_robot = robot;
-	_units = units;
 	_count = 1;
 }
 
@@ -242,7 +241,7 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		osg::Geode *geode = dynamic_cast<osg::Geode *>(group->getChild(0));
 		osgText::Text *label = dynamic_cast<osgText::Text *>(geode->getDrawable(0));
 		char text[50];
-		if (_units) {
+		if (g_sim->getUnits()) {
 			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [in]", _robot->getRobotID()+1,
 				_robot->getCenter(0)*39.37, _robot->getCenter(1)*39.37);
 		}
@@ -274,9 +273,8 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 /**********************************************************
 	Mobot Node Callback
  **********************************************************/
-mobotNodeCallback::mobotNodeCallback(CRobot *robot, int units) {
+mobotNodeCallback::mobotNodeCallback(CRobot *robot) {
 	_robot = robot;
-	_units = units;
 	_count = 1;
 }
 
@@ -306,7 +304,7 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		osg::Geode *geode = dynamic_cast<osg::Geode *>(group->getChild(0));
 		osgText::Text *label = dynamic_cast<osgText::Text *>(geode->getDrawable(0));
 		char text[50];
-		if (_units) {
+		if (g_sim->getUnits()) {
 			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [in]", _robot->getRobotID()+1,
 				_robot->getCenter(0)*39.37, _robot->getCenter(1)*39.37);
 		}

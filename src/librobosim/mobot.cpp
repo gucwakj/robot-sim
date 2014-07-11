@@ -2952,7 +2952,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	}
 
 	// set update callback for robot
-	_robot->setUpdateCallback(new mobotNodeCallback(this, g_sim->getUnits()));
+	_robot->setUpdateCallback(new mobotNodeCallback(this));
 
 	// set shadow mask
 	//robot->setNodeMask(CASTS_SHADOW_MASK);
