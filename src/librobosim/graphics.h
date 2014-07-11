@@ -127,4 +127,15 @@ class mobotNodeCallback : public osg::NodeCallback {
 		int _count;
 };
 
+/**********************************************************
+	Ground Node Callback
+ **********************************************************/
+/*class groundNodeCallback : public osg::NodeCallback {
+	public:
+		groundNodeCallback(ground_t ground);
+		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+	private:
+		ground_t _ground;
+};
+*/
 #endif /* GRAPHICS_H_ */

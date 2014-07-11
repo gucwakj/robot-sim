@@ -1457,11 +1457,11 @@ void* RoboSim::graphics_thread(void *arg) {
 	t_stateset->setRenderBinDetails(-1, "RenderBin");
 	t_stateset->setRenderingHint(osg::StateSet::OPAQUE_BIN);
 	osg::ref_ptr<osg::Node> t_geode = osgDB::readNodeFile(TEXTURE_PATH(ground/terrain.3ds));
-	t_geode->setCullingActive(false);
-	t_geode->setStateSet(t_stateset);
+	//t_geode->setCullingActive(false);
+	//t_geode->setStateSet(t_stateset);
 	osg::ref_ptr<osg::PositionAttitudeTransform> t_transform = new osg::PositionAttitudeTransform();
 	t_transform->setScale(osg::Vec3d(2, 2, 0.001));
-	t_transform->setCullingActive(false);
+	//t_transform->setCullingActive(false);
 	t_transform->addChild(t_geode);
 	osg::ref_ptr<osgUtil::LineSegmentIntersector> r_segment = new osgUtil::LineSegmentIntersector(osg::Vec3d(0, 0, 999), osg::Vec3d(0, 0, -999));
 	osgUtil::IntersectionVisitor r_visitor(r_segment);
@@ -1797,7 +1797,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	osg::ref_ptr<osg::Drawable> drawable = new osg::ShapeDrawable(new osg::Sphere(osg::Vec3(0.0f,0.0f,0.0f),1));
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	geode->setCullingActive(false);
-	geode->setStateSet( stateset );
+	geode->setStateSet(stateset);
 	geode->addDrawable(drawable);
 	osg::ref_ptr<osg::Transform> transform = new MoveEarthySkyWithEyePointTransform;
 	transform->setCullingActive(false);
@@ -1808,6 +1808,70 @@ void* RoboSim::graphics_thread(void *arg) {
 	clearNode->addChild(transform);
 	clearNode->setNodeMask(~IS_PICKABLE_MASK);
 	root->addChild(clearNode);
+
+	// ground objects
+	osg::Group *ground = new osg::Group();
+	osg::ref_ptr<osg::Geode> body = new osg::Geode;
+	const double *pos;
+	dQuaternion quat;
+	osg::Box *box;
+	osg::Cylinder *cyl;
+	osg::Sphere *sph;
+	ground_t gtmp = sim->_ground->next;
+	while (gtmp) {
+		pos = dGeomGetOffsetPosition(gtmp->geom);
+		dGeomGetOffsetQuaternion(gtmp->geom, quat);
+		double radius, length;
+		dVector3 dims;
+		switch (dGeomGetClass(gtmp->geom)) {
+			case dBoxClass:
+				dGeomBoxGetLengths(gtmp->geom, dims);
+				box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), dims[0], dims[1], dims[2]);
+				box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+				body->addDrawable(new osg::ShapeDrawable(box));
+				break;
+			case dCylinderClass:
+				dGeomCylinderGetParams(gtmp->geom, &radius, &length);
+				cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), radius, length);
+				cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+				body->addDrawable(new osg::ShapeDrawable(cyl));
+				break;
+			case dSphereClass:
+				radius = dGeomSphereGetRadius(gtmp->geom);
+				sph = new osg::Sphere(osg::Vec3d(pos[0], pos[1], pos[2]), radius);
+				body->addDrawable(new osg::ShapeDrawable(sph));
+				break;
+		}
+
+		// set up texture
+		osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+		body->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+
+		// set rendering properties
+		body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+		body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+		// add positioning capability
+		osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
+		pat->addChild(body.get());
+		ground->addChild(pat.get());
+
+		// add update callback
+		//ground->setUpdateCallback(new groundNodeCallback(this));
+
+		// set user properties of node
+		ground->setName("ground");
+
+		// optimize object
+		osgUtil::Optimizer optimizer;
+		optimizer.optimize(ground);
+
+		// add to scenegraph
+		shadowedScene->addChild(ground);
+
+		// next object
+		gtmp = gtmp->next;
+	}
 
 	// set up HUD
 	osg::ref_ptr<osg::Geode> HUDGeode = new osg::Geode();
