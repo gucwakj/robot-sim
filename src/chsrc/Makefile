@@ -9,7 +9,7 @@ PKGDIR = $(PACKAGE)-$(VERSION)/$(PACKAGE)
 SRC = ../librobosim
 HEADERS = $(SRC)/robosim.h $(SRC)/mobot.h $(SRC)/linkbot.h $(SRC)/graphics.h $(SRC)/base.h $(SRC)/macros.h
 CPPFLAGS = -DdDOUBLE -fPIC
-INCLUDES = -I../librobosim/build/ -I../opende/sys/include/ -I../openscenegraph/sys/include/ -I../tinyxml2/
+INCLUDES = -I../librobosim/build/ -I../opende/sys/include/ -I../openscenegraph/include/ -I../openscenegraph/build/include/ -I../tinyxml2/
 LIBPATHS = -L../opende/sys/lib/ -L../openscenegraph/build/lib/ -L../tinyxml2/build/
 LIBS = -losg -losgViewer -losgUtil -lOpenThreads -losgGA -losgDB -losgFX -losgShadow -lode -ltinyxml2
 
