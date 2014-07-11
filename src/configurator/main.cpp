@@ -3026,8 +3026,13 @@ void readXMLConfig(void) {
 						while (tmp && tmp->id != id)
 							tmp = tmp->next;
 
-						side->QueryDoubleAttribute("radius", &radius);
-						tmp->radius = convert(radius, 0);
+						if (tmp) {
+							tmp->wheel = wheeltype;
+							if (wheeltype == WHEEL) {
+								side->QueryDoubleAttribute("radius", &radius);
+								tmp->radius = convert(radius, 0);
+							}
+						}
 					}
 				}
 			}
