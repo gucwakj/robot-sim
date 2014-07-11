@@ -49,8 +49,7 @@ void TexMatCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 /**********************************************************
 	Keyboard Event Handler
  **********************************************************/
-keyboardEventHandler::keyboardEventHandler(int *pause, osgText::Text *text) {
-	_pause = pause;
+keyboardEventHandler::keyboardEventHandler(osgText::Text *text) {
 	_text = text;
 }
 
@@ -120,8 +119,8 @@ bool keyboardEventHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIAc
 					return true;
 				}
 				default:
-					*_pause = (*_pause) ? 0 : 1;
-					if (*_pause)
+					g_sim->setPause(2);
+					if (g_sim->getPause())
 						_text->setText("Paused: Press any key to restart");
 					else
 						_text->setText("");

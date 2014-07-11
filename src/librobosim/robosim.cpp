@@ -979,6 +979,13 @@ double RoboSim::getClock(void) {
 	return clock;
 }
 
+int RoboSim::getPause(void) {
+	MUTEX_LOCK(&_pause_mutex);
+	int pause = _pause;
+	MUTEX_UNLOCK(&_pause_mutex);
+	return pause;
+}
+
 double RoboSim::getStep(void) {
 	MUTEX_LOCK(&_step_mutex);
 	double step = _step;
@@ -1013,6 +1020,30 @@ int RoboSim::setCollisions(int mode) {
 			_collision = _collision ? false : true;
 			break;
 	}
+
+	// success
+	return 0;
+}
+
+int RoboSim::setPause(int mode) {
+	// lock pause
+	MUTEX_LOCK(&_pause_mutex);
+
+	// switch pause variable
+	switch (mode) {
+		case 0:
+			_pause = 0;
+			break;
+		case 1:
+			_pause = 1;
+			break;
+		case 2:
+			_pause = _pause ? 0: 1;
+			break;
+	}
+
+	// unlock pause
+	MUTEX_UNLOCK(&_pause_mutex);
 
 	// success
 	return 0;
@@ -1812,7 +1843,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	optimizer.optimize(root);
 
 	// viewer event handlers
-	viewer->addEventHandler(new keyboardEventHandler(&(sim->_pause), textHUD));
+	viewer->addEventHandler(new keyboardEventHandler(textHUD));
 	viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
 	viewer->addEventHandler(new osgViewer::WindowSizeHandler);
 	viewer->addEventHandler(new pickHandler());
