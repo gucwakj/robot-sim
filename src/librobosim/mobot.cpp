@@ -13,6 +13,12 @@ CMobot::~CMobot(void) {
 	if ( g_sim != NULL && !(g_sim->deleteRobot(this)) )
 		delete g_sim;
 
+	// delete mutexes
+	for (int i = 0; i < NUM_DOF; i++) {
+		MUTEX_DESTROY(&_motor[i].success_mutex);
+		COND_DESTROY(&_motor[i].success_cond);
+	}
+
 	// remove geoms
 	if (_connected) {
 		for (int i = NUM_PARTS - 1; i >= 0; i--) { delete [] _geom[i]; }
@@ -1150,21 +1156,21 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
 	MUTEX_LOCK(&_theta_mutex);
-	MUTEX_LOCK(&_success_mutex);
 
 	// enable motor
 	for ( int j = 0; j < NUM_DOF; j++ ) {
+		MUTEX_LOCK(&_motor[j].success_mutex);
 		dJointEnable(_motor[j].id);
 		if (_motor[j].omega < -EPSILON) delta[j] = -delta[j];
 		_motor[j].goal += DEG2RAD(delta[j]);
 		_motor[j].mode = SEEK;
 		dJointSetAMotorAngle(_motor[j].id, 0, _motor[j].theta);
 		_motor[j].success = false;
+		MUTEX_UNLOCK(&_motor[j].success_mutex);
 	}
     dBodyEnable(_body[CENTER]);
 
 	// unlock mutexes
-	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 
@@ -1209,9 +1215,9 @@ int CMobot::moveJointNB(robotJointId_t id, double angle) {
 	MUTEX_UNLOCK(&_theta_mutex);
 
 	// set success to false
-	MUTEX_LOCK(&_success_mutex);
+	MUTEX_LOCK(&_motor[id].success_mutex);
 	_motor[id].success = false;
-	MUTEX_UNLOCK(&_success_mutex);
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// unlock goal
 	MUTEX_UNLOCK(&_goal_mutex);
@@ -1222,7 +1228,7 @@ int CMobot::moveJointNB(robotJointId_t id, double angle) {
 
 int CMobot::moveJointForeverNB(robotJointId_t id) {
 	// lock mutexes
-	MUTEX_LOCK(&_success_mutex);
+	MUTEX_LOCK(&_motor[id].success_mutex);
 
 	// enable motor
 	dJointEnable(_motor[id].id);
@@ -1238,7 +1244,7 @@ int CMobot::moveJointForeverNB(robotJointId_t id) {
     dBodyEnable(_body[CENTER]);
 
 	// unlock mutexes
-	MUTEX_UNLOCK(&_success_mutex);
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// success
 	return 0;
@@ -1292,9 +1298,9 @@ int CMobot::moveJointToNB(robotJointId_t id, double angle) {
 	MUTEX_UNLOCK(&_theta_mutex);
 
 	// set success to false
-	MUTEX_LOCK(&_success_mutex);
+	MUTEX_LOCK(&_motor[id].success_mutex);
 	_motor[id].success = false;
-	MUTEX_UNLOCK(&_success_mutex);
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// unlock goal
 	MUTEX_UNLOCK(&_goal_mutex);
@@ -1305,9 +1311,9 @@ int CMobot::moveJointToNB(robotJointId_t id, double angle) {
 
 int CMobot::moveJointWait(robotJointId_t id) {
 	// wait for motion to complete
-	MUTEX_LOCK(&_success_mutex);
-	while ( !_motor[id].success ) { COND_WAIT(&_success_cond, &_success_mutex); }
-	MUTEX_UNLOCK(&_success_mutex);
+	MUTEX_LOCK(&_motor[id].success_mutex);
+	while ( !_motor[id].success ) { COND_WAIT(&_motor[id].success_cond, &_motor[id].success_mutex); }
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// success
 	return 0;
@@ -1354,20 +1360,20 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
 	MUTEX_LOCK(&_theta_mutex);
-	MUTEX_LOCK(&_success_mutex);
 
 	// enable motor
 	for (int j = 0; j < NUM_DOF; j++) {
+		MUTEX_LOCK(&_motor[j].success_mutex);
 		dJointEnable(_motor[j].id);
 		_motor[j].goal += delta[j];
 		_motor[j].mode = SEEK;
 		dJointSetAMotorAngle(_motor[j].id, 0, _motor[j].theta);
 		_motor[j].success = false;
+		MUTEX_UNLOCK(&_motor[j].success_mutex);
 	}
     dBodyEnable(_body[CENTER]);
 
 	// unlock mutexes
-	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 
@@ -2708,19 +2714,21 @@ void CMobot::simPreCollisionThread(void) {
 }
 
 void CMobot::simPostCollisionThread(void) {
-	// lock
-	MUTEX_LOCK(&_success_mutex);
-
 	// check if joint speed is zero -> joint has completed step
 	for (int i = 0; i < NUM_DOF; i++) {
+		// lock mutex
+		MUTEX_LOCK(&_motor[i].success_mutex);
+		// zero velocity == stopped
 		_motor[i].success = (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
-	}
-	if ( _motor[JOINT1].success && _motor[JOINT2].success && _motor[JOINT3].success && _motor[JOINT4].success ) {
-		COND_SIGNAL(&_success_cond);
+		// signal success
+		if (_motor[i].success)
+			COND_SIGNAL(&_motor[i].success_cond);
+		// unlock mutex
+		MUTEX_UNLOCK(&_motor[i].success_mutex);
 	}
 
-	// unlock
-	MUTEX_UNLOCK(&_success_mutex);
+	if (_motor[JOINT1].success && _motor[JOINT2].success && _motor[JOINT3].success && _motor[JOINT4].success)
+		COND_SIGNAL(&_success_cond);
 }
 
 #ifdef ENABLE_GRAPHICS
@@ -4085,6 +4093,8 @@ int CMobot::init_params(void) {
 		_motor[i].success = true;
 		_motor[i].theta = 0;
 		_motor[i].timeout = 0;
+		MUTEX_INIT(&_motor[i].success_mutex);
+		COND_INIT(&_motor[i].success_cond);
 		_rec_active[i] = false;
 		_rec_num[i] = 0;
 		_recording[i] = false;

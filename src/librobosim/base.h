@@ -131,6 +131,8 @@ class DLLIMPORT CRobot {
 			int stopping;			// stopping movement
 			int state;				// state
 			accel_t accel;			// acceleration variables
+			MUTEX_T success_mutex;
+			COND_T success_cond;
 		} *motor_t;
 
 		conn_t _conn;			// connectors

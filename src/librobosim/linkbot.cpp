@@ -13,6 +13,12 @@ CLinkbotT::~CLinkbotT(void) {
 	if ( g_sim != NULL && !(g_sim->deleteRobot(this)) )
 		delete g_sim;
 
+	// delete mutexes
+	for (int i = 0; i < NUM_DOF; i++) {
+		MUTEX_DESTROY(&_motor[i].success_mutex);
+		COND_DESTROY(&_motor[i].success_cond);
+	}
+
 	// destroy geoms
 	if (_connected) {
 		for (int i = NUM_PARTS - 1; i >= 0; i--) { delete [] _geom[i]; }
@@ -57,9 +63,9 @@ int CLinkbotT::accelJointCycloidalNB(robotJointId_t id, double angle, double t) 
 	MUTEX_UNLOCK(&_theta_mutex);
 
 	// unsuccessful
-	MUTEX_LOCK(&_success_mutex);
+	MUTEX_LOCK(&_motor[id].success_mutex);
 	_motor[id].success = false;
-	MUTEX_UNLOCK(&_success_mutex);
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// unlock goal
 	MUTEX_UNLOCK(&_goal_mutex);
@@ -99,9 +105,9 @@ int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double t) {
 	MUTEX_UNLOCK(&_theta_mutex);
 
 	// unsuccessful
-	MUTEX_LOCK(&_success_mutex);
+	MUTEX_LOCK(&_motor[id].success_mutex);
 	_motor[id].success = false;
-	MUTEX_UNLOCK(&_success_mutex);
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// unlock goal
 	MUTEX_UNLOCK(&_goal_mutex);
@@ -149,9 +155,9 @@ int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
 	MUTEX_UNLOCK(&_theta_mutex);
 
 	// unsuccessful
-	MUTEX_LOCK(&_success_mutex);
+	MUTEX_LOCK(&_motor[id].success_mutex);
 	_motor[id].success = false;
-	MUTEX_UNLOCK(&_success_mutex);
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// unlock goal
 	MUTEX_UNLOCK(&_goal_mutex);
@@ -1073,24 +1079,24 @@ int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
 	MUTEX_LOCK(&_theta_mutex);
-	MUTEX_LOCK(&_success_mutex);
 
 	// loop over joints
 	for (int i = 0; i < ((_disabled == -1) ? 3 : 2); i++) {
 		int j = _enabled[i];
 		if (_motor[j].omega < -EPSILON) delta[j] = -delta[j];
+		MUTEX_LOCK(&_motor[j].success_mutex);
 		_motor[j].goal += DEG2RAD(delta[j]);
 		_motor[j].mode = SEEK;
 		dJointEnable(_motor[j].id);
 		dJointSetAMotorAngle(_motor[j].id, 0, _motor[j].theta);
 		_motor[j].success = false;
+		MUTEX_UNLOCK(&_motor[j].success_mutex);
 	}
 
 	// enable body
 	dBodyEnable(_body[BODY]);
 
 	// unlock mutexes
-	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 
@@ -1138,9 +1144,9 @@ int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 	MUTEX_UNLOCK(&_theta_mutex);
 
 	// set success to false
-	MUTEX_LOCK(&_success_mutex);
+	MUTEX_LOCK(&_motor[id].success_mutex);
 	_motor[id].success = false;
-	MUTEX_UNLOCK(&_success_mutex);
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// unlock goal
 	MUTEX_UNLOCK(&_goal_mutex);
@@ -1151,7 +1157,7 @@ int CLinkbotT::moveJointNB(robotJointId_t id, double angle) {
 
 int CLinkbotT::moveJointForeverNB(robotJointId_t id) {
 	// lock mutexes
-	MUTEX_LOCK(&_success_mutex);
+	MUTEX_LOCK(&_motor[id].success_mutex);
 
 	// enable motor
 	dJointEnable(_motor[id].id);
@@ -1167,7 +1173,7 @@ int CLinkbotT::moveJointForeverNB(robotJointId_t id) {
     dBodyEnable(_body[BODY]);
 
 	// unlock mutexes
-	MUTEX_UNLOCK(&_success_mutex);
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// success
 	return 0;
@@ -1252,9 +1258,9 @@ int CLinkbotT::moveJointToNB(robotJointId_t id, double angle) {
 	MUTEX_UNLOCK(&_theta_mutex);
 
 	// set success to false
-	MUTEX_LOCK(&_success_mutex);
+	MUTEX_LOCK(&_motor[id].success_mutex);
 	_motor[id].success = false;
-	MUTEX_UNLOCK(&_success_mutex);
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// unlock goal
 	MUTEX_UNLOCK(&_goal_mutex);
@@ -1265,9 +1271,9 @@ int CLinkbotT::moveJointToNB(robotJointId_t id, double angle) {
 
 int CLinkbotT::moveJointWait(robotJointId_t id) {
 	// wait for motion to complete
-	MUTEX_LOCK(&_success_mutex);
-	while ( !_motor[id].success ) { COND_WAIT(&_success_cond, &_success_mutex); }
-	MUTEX_UNLOCK(&_success_mutex);
+	MUTEX_LOCK(&_motor[id].success_mutex);
+	while ( !_motor[id].success ) { COND_WAIT(&_motor[id].success_cond, &_motor[id].success_mutex); }
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// success
 	return 0;
@@ -1337,23 +1343,23 @@ int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
 	MUTEX_LOCK(&_theta_mutex);
-	MUTEX_LOCK(&_success_mutex);
 
 	// loop over joints
 	for (int i = 0; i < ((_disabled == -1) ? 3 : 2); i++) {
 		int j = _enabled[i];
+		MUTEX_LOCK(&_motor[j].success_mutex);
 		_motor[j].goal += delta[j];
 		_motor[j].mode = SEEK;
 		dJointEnable(_motor[j].id);
 		dJointSetAMotorAngle(_motor[j].id, 0, _motor[j].theta);
 		_motor[j].success = false;
+		MUTEX_UNLOCK(&_motor[j].success_mutex);
 	}
 
 	// enable body
     dBodyEnable(_body[BODY]);
 
 	// unlock mutexes
-	MUTEX_UNLOCK(&_success_mutex);
 	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
 
@@ -2815,18 +2821,25 @@ void CLinkbotT::simPostCollisionThread(void) {
 	// check if joint speed is zero -> joint has completed step
 	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
 		int i = _enabled[j];
+		// lock mutex
+		MUTEX_LOCK(&_motor[i].success_mutex);
+		// zero velocity == stopped
 		_motor[i].stopping += (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
 		// once motor has been stopped for 10 steps
 		if (_motor[i].stopping == 50) {
 			_motor[i].stopping = 0;
 			_motor[i].success = 1;
 		}
+		// signal success
+		if (_motor[i].success)
+			COND_SIGNAL(&_motor[i].success_cond);
+		// unlock mutex
+		MUTEX_UNLOCK(&_motor[i].success_mutex);
 	}
 
-	// signal completion of step
-	if (_motor[JOINT1].success && _motor[JOINT2].success && _motor[JOINT3].success) {
+	// all joints have completed their motions
+	if (_motor[JOINT1].success && _motor[JOINT2].success && _motor[JOINT3].success)
 		COND_SIGNAL(&_success_cond);
-	}
 
 	// unlock angle and goal
 	MUTEX_UNLOCK(&_success_mutex);
@@ -4187,6 +4200,8 @@ int CLinkbotT::init_params(int disabled, int type) {
 		_motor[i].tau_max = 2;
 		_motor[i].timeout = 0;
 		_motor[i].theta = 0;
+		MUTEX_INIT(&_motor[i].success_mutex);
+		COND_INIT(&_motor[i].success_cond);
 		if (i != disabled) { _enabled[j++] = i; }
 		_rec_active[i] = false;
 		_rec_num[i] = 0;
