@@ -9,8 +9,8 @@ PKGDIR = $(PACKAGE)-$(VERSION)/$(PACKAGE)
 SRC = ../librobosim
 HEADERS = $(SRC)/robosim.h $(SRC)/mobot.h $(SRC)/linkbot.h $(SRC)/graphics.h $(SRC)/base.h $(SRC)/macros.h
 CPPFLAGS = -DdDOUBLE -fPIC
-INCLUDES = -I../librobosim/build/ -I../opende/sys/include/ -I../openscenegraph/include/ -I../openscenegraph/build/include/ -I../tinyxml2/
-LIBPATHS = -L../opende/sys/lib/ -L../openscenegraph/build/lib/ -L../tinyxml2/build/
+INCLUDES = -I../librobosim/build/ -I../opende/sys/include/ -I../osg/include/ -I../osg/build/include/ -I../tinyxml2/
+LIBPATHS = -L../opende/sys/lib/ -L../osg/build/lib/ -L../tinyxml2/build/
 LIBS = -losg -losgViewer -losgUtil -lOpenThreads -losgGA -losgDB -losgShadow -lode -ltinyxml2
 
 target: librobosim.dl
@@ -82,23 +82,23 @@ createpkg: librobosim.dl
 	cp ../../CHANGELOG $(PKGDIR)
 	mkdir $(PKGDIR)/bin
 	cp ../opende/sys/lib/libode.so $(PKGDIR)/bin
-	cp ../openscenegraph/build/lib/libosg.so $(PKGDIR)/bin
-	cp ../openscenegraph/build/lib/libosgDB.so $(PKGDIR)/bin
-	cp ../openscenegraph/build/lib/libosgGA.so $(PKGDIR)/bin
-	cp ../openscenegraph/build/lib/libosgShadow.so $(PKGDIR)/bin
-	cp ../openscenegraph/build/lib/libosgText.so $(PKGDIR)/bin
-	cp ../openscenegraph/build/lib/libosgUtil.so $(PKGDIR)/bin
-	cp ../openscenegraph/build/lib/libosgViewer.so $(PKGDIR)/bin
-	cp ../openscenegraph/build/lib/libOpenThreads.so $(PKGDIR)/bin
+	cp ../osg/build/lib/libosg.so $(PKGDIR)/bin
+	cp ../osg/build/lib/libosgDB.so $(PKGDIR)/bin
+	cp ../osg/build/lib/libosgGA.so $(PKGDIR)/bin
+	cp ../osg/build/lib/libosgShadow.so $(PKGDIR)/bin
+	cp ../osg/build/lib/libosgText.so $(PKGDIR)/bin
+	cp ../osg/build/lib/libosgUtil.so $(PKGDIR)/bin
+	cp ../osg/build/lib/libosgViewer.so $(PKGDIR)/bin
+	cp ../osg/build/lib/libOpenThreads.so $(PKGDIR)/bin
 	mkdir $(PKGDIR)/bin/gui
 	cp ../configurator/build/robosim $(PKGDIR)/bin/gui
 	cp ../configurator/interface3.glade $(PKGDIR)/bin/gui/interface.glade
 	cp ../../CHANGELOG $(PKGDIR)/bin/gui
 	cp -R ../configurator/images $(PKGDIR)/bin/gui
-	mkdir $(PKGDIR)/bin/osgPlugins-3.0.1
-	cp ../openscenegraph/build/lib/osgPlugins-3.0.1/osgdb_png.so $(PKGDIR)/bin/osgPlugins-3.0.1
-	cp ../openscenegraph/build/lib/osgPlugins-3.0.1/osgdb_3ds.so $(PKGDIR)/bin/osgPlugins-3.0.1
-	cp ../openscenegraph/build/lib/osgPlugins-3.0.1/osgdb_tga.so $(PKGDIR)/bin/osgPlugins-3.0.1
+	mkdir $(PKGDIR)/bin/osgPlugins-3.2.0
+	cp ../osg/build/lib/osgPlugins-3.2.0/osgdb_png.so $(PKGDIR)/bin/osgPlugins-3.2.0
+	cp ../osg/build/lib/osgPlugins-3.2.0/osgdb_3ds.so $(PKGDIR)/bin/osgPlugins-3.2.0
+	cp ../osg/build/lib/osgPlugins-3.2.0/osgdb_tga.so $(PKGDIR)/bin/osgPlugins-3.2.0
 	cp ../tinyxml2/build/libtinyxml2.so $(PKGDIR)/bin
 	mkdir $(PKGDIR)/data
 	cp -R ../resources/ground $(PKGDIR)/data
