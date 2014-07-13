@@ -29,8 +29,8 @@ include_directories("../../src/tinyxml2")
 # Add OSG headers
 option (ENABLE_GRAPHICS "Enable graphics for simulation." ON)
 if (ENABLE_GRAPHICS)
-	include_directories("../../src/openscenegraph/include")
-	include_directories("../../src/openscenegraph/build/include")
+	include_directories("../../src/osg/include")
+	include_directories("../../src/osg/build/include")
 endif (ENABLE_GRAPHICS)
 
 # Double precision

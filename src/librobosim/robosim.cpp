@@ -1457,11 +1457,11 @@ void* RoboSim::graphics_thread(void *arg) {
 	t_stateset->setRenderBinDetails(-1, "RenderBin");
 	t_stateset->setRenderingHint(osg::StateSet::OPAQUE_BIN);
 	osg::ref_ptr<osg::Node> t_geode = osgDB::readNodeFile(TEXTURE_PATH(ground/terrain.3ds));
-	//t_geode->setCullingActive(false);
-	//t_geode->setStateSet(t_stateset);
+	t_geode->setCullingActive(false);
+	t_geode->setStateSet(t_stateset);
 	osg::ref_ptr<osg::PositionAttitudeTransform> t_transform = new osg::PositionAttitudeTransform();
 	t_transform->setScale(osg::Vec3d(2, 2, 0.001));
-	//t_transform->setCullingActive(false);
+	t_transform->setCullingActive(false);
 	t_transform->addChild(t_geode);
 	osg::ref_ptr<osgUtil::LineSegmentIntersector> r_segment = new osgUtil::LineSegmentIntersector(osg::Vec3d(0, 0, 999), osg::Vec3d(0, 0, -999));
 	osgUtil::IntersectionVisitor r_visitor(r_segment);
