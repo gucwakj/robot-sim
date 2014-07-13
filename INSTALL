@@ -34,11 +34,11 @@ opende
 
 openscenegraph
 -----------------------------
-	cd src/openscenegraph/
+	cd src/osg/
 	mkdir build/
 	cd build/
 	cmake -DCMAKE_BUILD_TYPE=Release ..
-	make
+	make osg osgDB osgGA osgShadow osgText osgViewer osgdb_png osgdb_3ds osgdb_tga
 	cd ../../../
 
 librobosim
@@ -104,10 +104,10 @@ opende
 
 openscenegraph
 -----------------------------
-	cd src/openscenegraph/
+	cd src/osg/
 	mkdir build/
 	use cmake-gui to configure with visual studio 9 and generate
-		config option: ACTUAL_3RDPARTY_DIR set to openscenegraph/
+		config option: ACTUAL_3RDPARTY_DIR set to osg/
 			third_party/VC9/{x86/x64}
 	open build/OpenSceneGraph.sln in visual studio
 	build Release solution, unecessary plugins can be disabled
