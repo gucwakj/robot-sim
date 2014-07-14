@@ -1812,15 +1812,14 @@ void* RoboSim::graphics_thread(void *arg) {
 	// ground objects
 	osg::Group *ground = new osg::Group();
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
-	const double *pos;
-	dQuaternion quat;
+	const double *pos, *quat;
 	osg::Box *box;
 	osg::Cylinder *cyl;
 	osg::Sphere *sph;
 	ground_t gtmp = sim->_ground->next;
 	while (gtmp) {
-		pos = dGeomGetOffsetPosition(gtmp->geom);
-		dGeomGetOffsetQuaternion(gtmp->geom, quat);
+		pos = dBodyGetPosition(gtmp->body);
+		quat = dBodyGetQuaternion(gtmp->body);
 		double radius, length;
 		dVector3 dims;
 		switch (dGeomGetClass(gtmp->geom)) {
