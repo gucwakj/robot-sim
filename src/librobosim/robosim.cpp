@@ -252,15 +252,22 @@ int RoboSim::init_xml(char *name) {
 	// loop over all ground nodes
 	while (node) {
 		if ( !strcmp(node->Value(), "box") ) {
+			// store default variables
 			ground_t ng = new struct ground_s;
+			ng->r = 0;
+			ng->g = 0;
+			ng->b = 0;
+			ng->next = NULL;
+
+			// get user defined values from xml
 			double lx, ly, lz, px, py, pz, psi, theta, phi, mass;
 			if (node->QueryDoubleAttribute("mass", &mass)) {
 				mass = 0.1;
 			}
-			if ( (ele = node->FirstChildElement("size")) ) {
-				ele->QueryDoubleAttribute("x", &lx);
-				ele->QueryDoubleAttribute("y", &ly);
-				ele->QueryDoubleAttribute("z", &lz);
+			if ( (ele = node->FirstChildElement("color")) ) {
+				ele->QueryIntAttribute("r", &ng->r);
+				ele->QueryIntAttribute("g", &ng->g);
+				ele->QueryIntAttribute("b", &ng->b);
 			}
 			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &px);
@@ -272,7 +279,11 @@ int RoboSim::init_xml(char *name) {
 				ele->QueryDoubleAttribute("theta", &theta);
 				ele->QueryDoubleAttribute("phi", &phi);
 			}
-			ng->next = NULL;
+			if ( (ele = node->FirstChildElement("size")) ) {
+				ele->QueryDoubleAttribute("x", &lx);
+				ele->QueryDoubleAttribute("y", &ly);
+				ele->QueryDoubleAttribute("z", &lz);
+			}
 
 			// set rotation of object
 			dMatrix3 R, R_x, R_y, R_z, R_xy;
@@ -305,7 +316,14 @@ int RoboSim::init_xml(char *name) {
 			gtmp->next = ng;
 		}
 		else if ( !strcmp(node->Value(), "cylinder") ) {
+			// store default variables
 			ground_t ng = new struct ground_s;
+			ng->r = 0;
+			ng->g = 0;
+			ng->b = 0;
+			ng->next = NULL;
+
+			// get user defined values from xml
 			double r, l, px, py, pz, psi, theta, phi, mass;
 			int axis;
 			if (node->QueryDoubleAttribute("mass", &mass)) {
@@ -314,9 +332,10 @@ int RoboSim::init_xml(char *name) {
 			if (node->QueryIntAttribute("axis", &axis)) {
 				axis = 1;
 			}
-			if ( (ele = node->FirstChildElement("size")) ) {
-				ele->QueryDoubleAttribute("radius", &r);
-				ele->QueryDoubleAttribute("length", &l);
+			if ( (ele = node->FirstChildElement("color")) ) {
+				ele->QueryIntAttribute("r", &ng->r);
+				ele->QueryIntAttribute("g", &ng->g);
+				ele->QueryIntAttribute("b", &ng->b);
 			}
 			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &px);
@@ -328,7 +347,10 @@ int RoboSim::init_xml(char *name) {
 				ele->QueryDoubleAttribute("theta", &theta);
 				ele->QueryDoubleAttribute("phi", &phi);
 			}
-			ng->next = NULL;
+			if ( (ele = node->FirstChildElement("size")) ) {
+				ele->QueryDoubleAttribute("radius", &r);
+				ele->QueryDoubleAttribute("length", &l);
+			}
 
 			// set rotation of object
 			dMatrix3 R, R_x, R_y, R_z, R_xy;
@@ -349,6 +371,11 @@ int RoboSim::init_xml(char *name) {
 			ng->geom = dCreateCylinder(_space, r, l);
 			dGeomSetBody(ng->geom, ng->body);
 			dGeomSetOffsetPosition(ng->geom, -m.c[0], -m.c[1], -m.c[2]);
+			dMatrix3 R1;
+			if (axis == 1) {		dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2); }
+			else if (axis == 2) {	dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2); }
+			else if (axis == 3) {	dRFromAxisAndAngle(R1, 0, 0, 1, 0); }
+			dGeomSetOffsetRotation(ng->geom, R1);
 
 			// set mass center to (0,0,0) of _bodyID
 			dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -361,20 +388,31 @@ int RoboSim::init_xml(char *name) {
 			gtmp->next = ng;
 		}
 		else if ( !strcmp(node->Value(), "sphere") ) {
+			// store default variables
 			ground_t ng = new struct ground_s;
+			ng->r = 0;
+			ng->g = 0;
+			ng->b = 0;
+			ng->next = NULL;
+
+			// get user defined values from xml
 			double r, px, py, pz, mass;
 			if (node->QueryDoubleAttribute("mass", &mass)) {
 				mass = 0.1;
 			}
-			if ( (ele = node->FirstChildElement("size")) ) {
-				ele->QueryDoubleAttribute("radius", &r);
+			if ( (ele = node->FirstChildElement("color")) ) {
+				ele->QueryIntAttribute("r", &ng->r);
+				ele->QueryIntAttribute("g", &ng->g);
+				ele->QueryIntAttribute("b", &ng->b);
 			}
 			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &px);
 				ele->QueryDoubleAttribute("y", &py);
 				ele->QueryDoubleAttribute("z", &pz);
 			}
-			ng->next = NULL;
+			if ( (ele = node->FirstChildElement("size")) ) {
+				ele->QueryDoubleAttribute("radius", &r);
+			}
 
 			// create body
 			dMass m;
@@ -1810,41 +1848,45 @@ void* RoboSim::graphics_thread(void *arg) {
 	root->addChild(clearNode);
 
 	// ground objects
-	osg::Group *ground = new osg::Group();
-	osg::ref_ptr<osg::Geode> body = new osg::Geode;
-	const double *pos, *quat;
+	const double *pos;
+	double radius, length;
+	dQuaternion quat;
+	dVector3 dims;
 	osg::Box *box;
 	osg::Cylinder *cyl;
 	osg::Sphere *sph;
-	ground_t gtmp = sim->_ground->next;
+	ground_t gtmp = sim->_ground->next;	// skip default ground plane node
 	while (gtmp) {
-		pos = dBodyGetPosition(gtmp->body);
-		quat = dBodyGetQuaternion(gtmp->body);
-		double radius, length;
-		dVector3 dims;
+		osg::ref_ptr<osg::Group> ground = new osg::Group();
+		osg::ref_ptr<osg::Geode> body = new osg::Geode;
+		osg::ref_ptr<osg::ShapeDrawable> shape;
+		pos = dGeomGetOffsetPosition(gtmp->geom);
+		dGeomGetOffsetQuaternion(gtmp->geom, quat);
 		switch (dGeomGetClass(gtmp->geom)) {
 			case dBoxClass:
 				dGeomBoxGetLengths(gtmp->geom, dims);
 				box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), dims[0], dims[1], dims[2]);
 				box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-				body->addDrawable(new osg::ShapeDrawable(box));
+				shape = new osg::ShapeDrawable(box);
+				shape->setColor(osg::Vec4(gtmp->r, gtmp->g, gtmp->b, 1));
+				body->addDrawable(shape);
 				break;
 			case dCylinderClass:
 				dGeomCylinderGetParams(gtmp->geom, &radius, &length);
 				cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), radius, length);
 				cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-				body->addDrawable(new osg::ShapeDrawable(cyl));
+				shape = new osg::ShapeDrawable(cyl);
+				shape->setColor(osg::Vec4(gtmp->r, gtmp->g, gtmp->b, 1));
+				body->addDrawable(shape);
 				break;
 			case dSphereClass:
 				radius = dGeomSphereGetRadius(gtmp->geom);
 				sph = new osg::Sphere(osg::Vec3d(pos[0], pos[1], pos[2]), radius);
-				body->addDrawable(new osg::ShapeDrawable(sph));
+				shape = new osg::ShapeDrawable(sph);
+				shape->setColor(osg::Vec4(gtmp->r, gtmp->g, gtmp->b, 1));
+				body->addDrawable(shape);
 				break;
 		}
-
-		// set up texture
-		osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
-		body->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 
 		// set rendering properties
 		body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
@@ -1856,7 +1898,7 @@ void* RoboSim::graphics_thread(void *arg) {
 		ground->addChild(pat.get());
 
 		// add update callback
-		//ground->setUpdateCallback(new groundNodeCallback(this));
+		ground->setUpdateCallback(new groundNodeCallback(gtmp));
 
 		// set user properties of node
 		ground->setName("ground");

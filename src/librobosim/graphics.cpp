@@ -333,7 +333,7 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 /**********************************************************
 	Ground Node Callback
  **********************************************************/
-/*groundNodeCallback::groundNodeCallback(ground_t ground) {
+groundNodeCallback::groundNodeCallback(struct ground_s *ground) {
 	_ground = ground;
 }
 
@@ -348,4 +348,4 @@ void groundNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	}
 	traverse(node, nv);
 }
-*/
+

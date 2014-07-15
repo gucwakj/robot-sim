@@ -57,6 +57,7 @@ extern osg::Node::NodeMask VISIBLE_MASK;
 
 class CRobot;
 class RoboSim;
+struct ground_s;
 extern RoboSim *g_sim;
 
 /**********************************************************
@@ -130,12 +131,12 @@ class mobotNodeCallback : public osg::NodeCallback {
 /**********************************************************
 	Ground Node Callback
  **********************************************************/
-/*class groundNodeCallback : public osg::NodeCallback {
+class groundNodeCallback : public osg::NodeCallback {
 	public:
-		groundNodeCallback(ground_t ground);
+		groundNodeCallback(struct ground_s *ground);
 		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 	private:
-		ground_t _ground;
+		struct ground_s *_ground;
 };
-*/
+
 #endif /* GRAPHICS_H_ */

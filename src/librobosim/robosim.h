@@ -9,6 +9,14 @@
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
 
+// ground struct
+typedef struct ground_s {
+	dBodyID body;
+	dGeomID geom;
+	int r, g, b;
+	struct ground_s *next;
+} *ground_t;
+
 class DLLIMPORT RoboSim {
 	public:
 		RoboSim(char *name, int pause);
@@ -29,12 +37,6 @@ class DLLIMPORT RoboSim {
 		int text(double x, double y, double z, char *text);
 #endif // ENABLE_GRAPHICS
 	private:
-		// ground struct
-		typedef struct ground_s {
-			dBodyID body;
-			dGeomID geom;
-			struct ground_s *next;
-		} *ground_t;
 		// robots struct
 		typedef struct robots_s {
 			CRobot *robot;
