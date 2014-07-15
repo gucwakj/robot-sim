@@ -510,41 +510,50 @@ the \verb%<ground>% tags.
 \subsubsection{Box}
 \begin{verbatim}
 <box mass="1">
+    <color r="1" g="1" b="1"/>
     <size x="1" y="1" z="1"/>
     <position x="1" y="1" z="1"/>
     <rotation psi="1" theta="1" phi="1"/>
 </box>
 \end{verbatim}
-The ground box is configured with the mass, size, position, and rotation
-parameters.  Mass is given as the total mass for the object.  The size gives the
-lengths in the X, Y, and Z directions.  Position gives the X, Y, and Z location
-of the center of the box.  The rotation gives the three Euler Angles of the box.
+The ground box is configured with the mass, color, size, position, and rotation
+parameters.  Mass is given as the total mass for the object.  The color
+parameter gives the RGB values in which the object is going to be drawn.  The
+size gives the lengths in the X, Y, and Z directions.  Position gives the X, Y,
+and Z location of the center of the box.  The rotation gives the three Euler
+Angles of the box.
 
 \subsubsection{Cylinder}
 \begin{verbatim}
 <cylinder mass="1" axis="1">
+    <color r="1" g="1" b="1"/>
     <size radius="1" length="10"/>
     <position x="1" y="1" z="1"/>
     <rotation psi="1" theta="1" phi="1"/>
 </cylinder>
 \end{verbatim}
-The ground cylinder is configured with the mass, axis, size, position, and
-rotation parameters.  Mass is the total mass of the object.  Axis is the long
-axis for the object given the convention 1=X, 2=Y, and 3=Z.  The size gives the
-radius and length of the cylinder.  Position gives the X, Y, and Z location of
-the center of the cylinder.  The rotation gives the three Euler Angles.
+The ground cylinder is configured with the mass, axis, color, size, position,
+and rotation parameters.  Mass is the total mass of the object.  Axis is the
+long axis for the object given the convention 1=X, 2=Y, and 3=Z.  The color
+parameter gives the RGB values in which the object is going to be drawn.  The
+size gives the radius and length of the cylinder.  Position gives the X, Y, and
+Z location of the center of the cylinder.  The rotation gives the three Euler
+Angles.
 
 \subsubsection{Sphere}
 \begin{verbatim}
 <sphere mass="1">
+    <color r="1" g="1" b="1"/>
     <size radius="1"/>
     <position x="1" y="1" z="1"/>
 </sphere>
 \end{verbatim}
-The ground sphere is configured with the mass, size and position parameters.
-Mass is the total mass of the object.  The size gives the radius of the sphere.
-By default the cylinder is drawn with the long axis along the X-axis.  Position
-gives the X, Y, and Z location of the center of the sphere.
+The ground sphere is configured with the mass, color, size, and position
+parameters.  Mass is the total mass of the object.  The color parameter gives
+the RGB values in which the object is going to be drawn.  The size gives the
+radius of the sphere.  By default the cylinder is drawn with the long axis along
+the X-axis.  Position gives the X, Y, and Z location of the center of the
+sphere.
 
 \subsection{Simulation Section}
 The simulation section holds the robots and accessories for the current
