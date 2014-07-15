@@ -1891,6 +1891,9 @@ void* RoboSim::graphics_thread(void *arg) {
 		// set rendering properties
 		body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
 		body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+		body->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+		body->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+		body->setCullingActive(false);
 
 		// add positioning capability
 		osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
