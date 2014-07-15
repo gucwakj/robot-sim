@@ -73,13 +73,16 @@ int main(int argc, char **argv) {
    string_t chhome;              // C:/ch
    string_t chtoolkit;           // C:/ch/toolkit
    //string_t chtoolkitinc;        // C:/ch/toolkit/include
+   string_t chexternlib;         // C:/ch/extern/lib
    string_t chpackage;           // C:/ch/package
    string_t chpackagename;       // C:/ch/package/chpng
    string_t chpackagenameinc;    // C:/ch/package/chpng/include
+   string_t chpackagenameso;     // C:/ch/package/chpng/so			shared libraries for extern/lib
    string_t chpackageinstalled;  // C:/ch/package/installed
    string_t chpackageinstallpkg; // C:/ch/package/installed/chpng
    string_t installedfiles;      // files listed in $chpackageinstallpkg
-   string_t headerfiles;         // installed header files in $chtoolkitinc 
+   string_t headerfiles;         // installed header files in $chtoolkitinc
+   string_t sofiles;             // installed so files in $chexternlib
    int u_option = false;         // -u option
    int d_option = false;         // -d option
    char *s, check;
@@ -162,6 +165,7 @@ int main(int argc, char **argv) {
    }
    chtoolkit = stradd(chhome, "/toolkit");
    //chtoolkitinc = stradd(chhome, "/toolkit/include");
+   chexternlib = stradd(chhome, "/extern/lib");
    if(d_option == false) {
      chpackage = stradd(chhome, "/package");
      chpackageinstalled = stradd(chhome, "/package/installed");
@@ -169,6 +173,7 @@ int main(int argc, char **argv) {
    }
    chpackagename = stradd(chpackage, "/", pkgname);
    chpackagenameinc = stradd(chpackagename, "/include");
+   chpackagenameso = stradd(chpackagename, "/so");
 
    if(access(chpackage, W_OK)) 
    {
@@ -288,15 +293,14 @@ int main(int argc, char **argv) {
 
    /* install in the default package dir CHHOME/package */
    if(d_option == false) { 
-      if(access(chpackageinstalled, R_OK) )
+      if ( access(chpackageinstalled, R_OK) )
       {
          mkdir "$chpackageinstalled"
-      }  
-      if((fptr_installed = fopen(chpackageinstallpkg, "w")) == NULL)
-      {
-        fprintf(stderr, "\n\nERROR: fopen: cannot open file %s for write.\n\n", chpackageinstallpkg); 
-         exit(1);
       }
+		if ((fptr_installed = fopen(chpackageinstallpkg, "w")) == NULL) {
+			fprintf(stderr, "\n\nERROR: fopen: cannot open file %s for write.\n\n", chpackageinstallpkg);
+			exit(1);
+		}
 
       //fprintf(fptr_installed, "%s\n", chpackagename);
       //cd $chpackagenameinc
@@ -311,7 +315,21 @@ int main(int argc, char **argv) {
 //fprintf(fptr_installed, "%s\n", stradd(chtoolkitinc, "/",token));
       //}
       //fclose( fptr_installed);
-   }
+
+		// install libraries to extern/lib
+		fprintf(fptr_installed, "%s\n", chpackagename);
+		cd $chpackagenameso
+		sofiles = `ls`;
+		foreach (token; sofiles) {
+#ifdef _WIN32_
+			cp -rf $token "$chexternlib"
+#else
+			cp -rfp $token $chexternlib
+#endif
+			fprintf(fptr_installed, "%s\n", stradd(chexternlib, "/",token));
+		}
+		fclose( fptr_installed);
+	}
    else
    {
 #if defined(_WIN32_)

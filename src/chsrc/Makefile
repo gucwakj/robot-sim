@@ -81,25 +81,10 @@ createpkg: librobosim.dl
 	cp ../../COPYRIGHT $(PKGDIR)
 	cp ../../CHANGELOG $(PKGDIR)
 	mkdir $(PKGDIR)/bin
-	cp ../opende/sys/lib/libode.so $(PKGDIR)/bin
-	cp ../osg/build/lib/libosg.so $(PKGDIR)/bin
-	cp ../osg/build/lib/libosgDB.so $(PKGDIR)/bin
-	cp ../osg/build/lib/libosgGA.so $(PKGDIR)/bin
-	cp ../osg/build/lib/libosgShadow.so $(PKGDIR)/bin
-	cp ../osg/build/lib/libosgText.so $(PKGDIR)/bin
-	cp ../osg/build/lib/libosgUtil.so $(PKGDIR)/bin
-	cp ../osg/build/lib/libosgViewer.so $(PKGDIR)/bin
-	cp ../osg/build/lib/libOpenThreads.so $(PKGDIR)/bin
-	mkdir $(PKGDIR)/bin/gui
-	cp ../configurator/build/robosim $(PKGDIR)/bin/gui
-	cp ../configurator/interface3.glade $(PKGDIR)/bin/gui/interface.glade
-	cp ../../CHANGELOG $(PKGDIR)/bin/gui
-	cp -R ../configurator/images $(PKGDIR)/bin/gui
-	mkdir $(PKGDIR)/bin/osgPlugins-3.2.0
-	cp ../osg/build/lib/osgPlugins-3.2.0/osgdb_png.so $(PKGDIR)/bin/osgPlugins-3.2.0
-	cp ../osg/build/lib/osgPlugins-3.2.0/osgdb_3ds.so $(PKGDIR)/bin/osgPlugins-3.2.0
-	cp ../osg/build/lib/osgPlugins-3.2.0/osgdb_tga.so $(PKGDIR)/bin/osgPlugins-3.2.0
-	cp ../tinyxml2/build/libtinyxml2.so $(PKGDIR)/bin
+	cp ../configurator/build/robosim $(PKGDIR)/bin
+	cp ../configurator/interface3.glade $(PKGDIR)/bin/interface.glade
+	cp ../../CHANGELOG $(PKGDIR)/bin
+	cp -R ../configurator/images $(PKGDIR)/bin
 	mkdir $(PKGDIR)/data
 	cp -R ../resources/ground $(PKGDIR)/data
 	cp -R ../resources/mobot $(PKGDIR)/data
@@ -120,6 +105,21 @@ createpkg: librobosim.dl
 	cp chlinkbott.chf $(PKGDIR)/lib
 	cp delay.chf $(PKGDIR)/lib
 	cp systemTime.chf $(PKGDIR)/lib
+	mkdir $(PKGDIR)/so
+	cp ../opende/sys/lib/libode.so.1 $(PKGDIR)/so
+	cp ../osg/build/lib/libosg.so.100 $(PKGDIR)/so
+	cp ../osg/build/lib/libosgDB.so.100 $(PKGDIR)/so
+	cp ../osg/build/lib/libosgGA.so.100 $(PKGDIR)/so
+	cp ../osg/build/lib/libosgShadow.so.100 $(PKGDIR)/so
+	cp ../osg/build/lib/libosgText.so.100 $(PKGDIR)/so
+	cp ../osg/build/lib/libosgUtil.so.100 $(PKGDIR)/so
+	cp ../osg/build/lib/libosgViewer.so.100 $(PKGDIR)/so
+	cp ../osg/build/lib/libOpenThreads.so.13 $(PKGDIR)/so
+	cp ../tinyxml2/build/libtinyxml2.so.1 $(PKGDIR)/so
+	mkdir $(PKGDIR)/so/osgPlugins-3.2.0
+	cp ../osg/build/lib/osgPlugins-3.2.0/osgdb_png.so $(PKGDIR)/so/osgPlugins-3.2.0
+	cp ../osg/build/lib/osgPlugins-3.2.0/osgdb_3ds.so $(PKGDIR)/so/osgPlugins-3.2.0
+	cp ../osg/build/lib/osgPlugins-3.2.0/osgdb_tga.so $(PKGDIR)/so/osgPlugins-3.2.0
 	cp Makefile $(PACKAGE)-$(VERSION)
 	cp pkginstall.ch $(PACKAGE)-$(VERSION)
 	zip -rq $(PACKAGE)-$(VERSION).zip $(PACKAGE)-$(VERSION)
