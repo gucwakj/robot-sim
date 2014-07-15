@@ -1422,7 +1422,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	cameraManipulator->setVerticalAxisFixed(true);
 	cameraManipulator->setElevation(0.5);
 	viewer->setCameraManipulator(cameraManipulator);
-	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0.7, -0.7, 0.55), osg::Vec3f(0.1, 0.3, 0), osg::Vec3f(0, 0, 1));
+	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0.6, -0.8, 0.5), osg::Vec3f(0.1, 0.3, 0), osg::Vec3f(0, 0, 1));
 
 	// Creating the root node
 	osg::ref_ptr<osg::Group> root = new osg::Group;
