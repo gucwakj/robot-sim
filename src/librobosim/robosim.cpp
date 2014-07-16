@@ -295,8 +295,12 @@ int RoboSim::init_xml(char *name) {
 
 			// create body
 			dMass m;
-			dMassSetBoxTotal(&m, mass, lx, ly, lz);
 			ng->body = dBodyCreate(_world);
+			if ( mass == 0 ) {
+				dBodyDisable(ng->body);
+				mass = 1;
+			}
+			dMassSetBoxTotal(&m, mass, lx, ly, lz);
 			dBodySetPosition(ng->body, px, py, pz);
 			dBodySetRotation(ng->body, R);
 
@@ -362,8 +366,12 @@ int RoboSim::init_xml(char *name) {
 
 			// create body
 			dMass m;
-			dMassSetCylinderTotal(&m, mass, axis, r, l);
 			ng->body = dBodyCreate(_world);
+			if ( mass == 0 ) {
+				dBodyDisable(ng->body);
+				mass = 1;
+			}
+			dMassSetCylinderTotal(&m, mass, axis, r, l);
 			dBodySetPosition(ng->body, px, py, pz);
 			dBodySetRotation(ng->body, R);
 
@@ -416,8 +424,12 @@ int RoboSim::init_xml(char *name) {
 
 			// create body
 			dMass m;
-			dMassSetSphereTotal(&m, mass, r);
 			ng->body = dBodyCreate(_world);
+			if ( mass == 0 ) {
+				dBodyDisable(ng->body);
+				mass = 1;
+			}
+			dMassSetSphereTotal(&m, mass, r);
 			dBodySetPosition(ng->body, px, py, pz);
 
 			// position geom

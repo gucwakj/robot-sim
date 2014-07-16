@@ -498,9 +498,11 @@ while larger values are for softer surfaces.
 The ground section holds the solid bodies which are a part of the ground for
 which the robots to interact.  The objects do not need to be on the ground
 plane.  They can be floating in space but are still a part of the ground
-objects.  Each object has a mass associated with it and interacts in the
-simulation.  An object with heavy mass cannot be moved by the robots, while
-lighter objects will be pushed around.  Everything to be added is put between
+objects.  Each object has a mass, given in kilograms, associated with it and
+interacts in the simulation.  An object with heavy mass cannot be moved by the
+robots, while lighter objects will be pushed around.  There is a special zero
+mass option which will disable the object from interacting with the gravity of
+the simulation allowing floating objects.  Everything to be added is put between
 the \verb%<ground>% tags.
 \begin{verbatim}
 <ground>
