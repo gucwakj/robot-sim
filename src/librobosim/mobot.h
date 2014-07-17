@@ -153,9 +153,9 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int turnRightNB(double angle, double radius, double trackwidth);
     private:
 		enum robot_pieces_e {		// each body part which is built
+			CENTER,
 			ENDCAP_L,
 			BODY_L,
-			CENTER,
 			BODY_R,
 			ENDCAP_R,
 			NUM_PARTS
@@ -178,7 +178,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);
 		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);
 		virtual double getAngle(int i);
-		virtual double getCenter(int i);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
 		virtual int getConnectorParams(int type, int side, dMatrix3 R, double *p);
 		virtual dBodyID getConnectorBodyID(int face);

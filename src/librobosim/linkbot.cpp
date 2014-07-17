@@ -3103,15 +3103,6 @@ double CLinkbotT::getAngle(int i) {
     return _motor[i].theta;
 }
 
-double CLinkbotT::getCenter(int i) {
-	const double *pos = dBodyGetPosition(_body[BODY]);
-	const double *R = dBodyGetRotation(_body[BODY]);
-	double p[3] = {	R[0]*_center[0] + R[1]*_center[1] + R[2]*_center[2],
-					R[4]*_center[0] + R[5]*_center[1] + R[6]*_center[2],
-					R[8]*_center[0] + R[9]*_center[1] + R[10]*_center[2]};
-	return pos[i] + p[i];
-}
-
 int CLinkbotT::getConnectionParams(int face, dMatrix3 R, double *p) {
 	double offset[3] = {0};
 	const double *pos = dBodyGetPosition(_body[face]);

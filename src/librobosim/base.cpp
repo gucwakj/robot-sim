@@ -214,3 +214,12 @@ dBodyID CRobot::getBodyID(int id) {
     return _body[id];
 }
 
+double CRobot::getCenter(int i) {
+	const double *pos = dBodyGetPosition(_body[0]);
+	const double *R = dBodyGetRotation(_body[0]);
+	double p[3] = {	R[0]*_center[0] + R[1]*_center[1] + R[2]*_center[2],
+					R[4]*_center[0] + R[5]*_center[1] + R[6]*_center[2],
+					R[8]*_center[0] + R[9]*_center[1] + R[10]*_center[2]};
+	return pos[i] + p[i];
+}
+

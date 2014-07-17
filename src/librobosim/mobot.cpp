@@ -2967,15 +2967,6 @@ double CMobot::getAngle(int i) {
 	return _motor[i].theta;
 }
 
-double CMobot::getCenter(int i) {
-	const double *pos = dBodyGetPosition(_body[CENTER]);
-	const double *R = dBodyGetRotation(_body[CENTER]);
-	double p[3] = {	R[0]*_center[0] + R[1]*_center[1] + R[2]*_center[2],
-					R[4]*_center[0] + R[5]*_center[1] + R[6]*_center[2],
-					R[8]*_center[0] + R[9]*_center[1] + R[10]*_center[2]};
-	return pos[i] + p[i];
-}
-
 int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
 	const double *pos, *R1;
 	dMatrix3 R2;
