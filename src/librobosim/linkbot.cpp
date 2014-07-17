@@ -3133,66 +3133,6 @@ int CLinkbotT::getConnectionParams(int face, dMatrix3 R, double *p) {
 	return 0;
 }
 
-int CLinkbotT::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
-	double offset[3] = {0};
-	dMatrix3 R1, R2, R3, R4, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
-
-	switch (type) {
-		case BRIDGE:
-			offset[1] = -_bridge_length + 2*_face_radius;
-			dRFromAxisAndAngle(R1, R[1], R[5], R[9], M_PI);
-			break;
-		case CUBE:
-			if (side == 2) {
-				offset[0] = _cubic_length/2;
-				offset[1] = _cubic_length/2;
-				dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI/2);
-			}
-			else if (side == 3) {
-				offset[0] = _cubic_length;
-				dRSetIdentity(R1);
-			}
-			else if (side == 4) {
-				offset[0] = _cubic_length/2;
-				offset[1] = -_cubic_length/2;
-				dRFromAxisAndAngle(R1, R[2], R[6], R[10], -M_PI/2);
-			}
-			else if (side == 5) {
-				offset[0] = _cubic_length/2;
-				offset[2] = _cubic_length/2;
-				dRFromAxisAndAngle(R2, R[1], R[5], R[9], -M_PI/2);
-				dMultiply0(R3, R2, R, 3, 3, 3);
-				dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -M_PI/2);
-				dMultiply0(R1, R4, R2, 3, 3, 3);
-			}
-			break;
-		case OMNIDRIVE:
-			if (side == 2) {
-				offset[2] = -_omni_length + 2*_face_radius;
-			}
-			else if (side == 3) {
-				offset[1] = +_omni_length - 2*_face_radius;
-			}
-			else if (side == 4) {
-				offset[1] = _omni_length - 2*_face_radius;
-				offset[2] = -_omni_length + 2*_face_radius;
-			}
-			dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI);
-			break;
-		case SIMPLE:
-			offset[0] = _connector_depth;
-			dRSetIdentity(R1);
-			break;
-	}
-	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
-	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
-	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
-	dMultiply0(R, R1, Rtmp, 3, 3, 3);
-
-	// success
-	return 0;
-}
-
 void CLinkbotT::simPreCollisionThread(void) {
 	// lock angle and goal
 	MUTEX_LOCK(&_goal_mutex);

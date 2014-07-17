@@ -69,6 +69,7 @@ class DLLIMPORT CRobot {
 		int isShiftEnabled(void);
 		int setID(int id);
 		bool isHome(void);
+		int getConnectorParams(int type, int side, dMatrix3 R, double *p);
 
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int build(xml_robot_t robot) = 0;
@@ -87,7 +88,6 @@ class DLLIMPORT CRobot {
 		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1) = 0;
 		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1) = 0;
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
-		virtual int getConnectorParams(int type, int side, dMatrix3 R, double *p) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;
 

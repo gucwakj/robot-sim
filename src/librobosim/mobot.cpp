@@ -3023,60 +3023,6 @@ int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
 	return 0;
 }
 
-int CMobot::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
-	double offset[3] = {0};
-	dMatrix3 R1, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
-
-	switch (type) {
-		case SIMPLE:
-			offset[0] = _connector_depth;
-			dRSetIdentity(R1);
-			break;
-		/*case BIGWHEEL:
-			offset[0] = 2*_connector_depth/3;
-			dRSetIdentity(R1);
-			break;
-		case SMALLWHEEL:
-			offset[0] = 2*_connector_depth/3;
-			dRSetIdentity(R1);
-			break;*/
-		case SQUARE:
-			if (side == 2) {
-				offset[0] = _end_width/2;
-				offset[1] = _end_width/2;
-				dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI/2);
-			}
-			else if (side == 3) {
-				offset[0] = _end_width;
-				dRSetIdentity(R1);
-			}
-			else if (side == 4) {
-				offset[0] = _end_width/2;
-				offset[1] = -_end_width/2;
-				dRFromAxisAndAngle(R1, R[2], R[6], R[10], -M_PI/2);
-			}
-			break;
-		case TANK:
-			if (side == 2) {
-				offset[0] = _tank_depth;
-				dRSetIdentity(R1);
-			}
-			else if (side == 3) {
-				offset[0] = _tank_depth/2;
-				offset[2] = _tank_height - _connector_height/2;
-				dRFromAxisAndAngle(R1, R[1], R[5], R[9], -M_PI/2);
-			}
-			break;
-	}
-	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
-	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
-	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
-	dMultiply0(R, R1, Rtmp, 3, 3, 3);
-
-	// success
-	return 0;
-}
-
 void CMobot::simPreCollisionThread(void) {
 	// lock angle and goal
 	MUTEX_LOCK(&_goal_mutex);
