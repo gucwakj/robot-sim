@@ -3103,14 +3103,6 @@ double CLinkbotT::getAngle(int i) {
     return _motor[i].theta;
 }
 
-double CLinkbotT::getAngularRate(int i) {
-	return dJointGetAMotorParam(_motor[i].id, dParamVel);
-}
-
-dBodyID CLinkbotT::getBodyID(int id) {
-    return _body[id];
-}
-
 double CLinkbotT::getCenter(int i) {
 	const double *pos = dBodyGetPosition(_body[BODY]);
 	const double *R = dBodyGetRotation(_body[BODY]);

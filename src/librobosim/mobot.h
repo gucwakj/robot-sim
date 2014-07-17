@@ -178,8 +178,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);
 		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);
 		virtual double getAngle(int i);
-		virtual double getAngularRate(int i);
-		virtual dBodyID getBodyID(int id);
 		virtual double getCenter(int i);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
 		virtual int getConnectorParams(int type, int side, dMatrix3 R, double *p);

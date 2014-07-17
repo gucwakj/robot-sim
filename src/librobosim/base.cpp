@@ -206,3 +206,11 @@ int CRobot::addToSim(dWorldID &world, dSpaceID &space) {
 	return 0;
 }
 
+double CRobot::getAngularRate(int id) {
+	return dJointGetAMotorParam(_motor[id].id, dParamVel);
+}
+
+dBodyID CRobot::getBodyID(int id) {
+    return _body[id];
+}
+

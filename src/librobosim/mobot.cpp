@@ -2967,14 +2967,6 @@ double CMobot::getAngle(int i) {
 	return _motor[i].theta;
 }
 
-double CMobot::getAngularRate(int i) {
-	return dJointGetAMotorParam(this->getMotorID(i), dParamVel);
-}
-
-dBodyID CMobot::getBodyID(int id) {
-    return _body[id];
-}
-
 double CMobot::getCenter(int i) {
 	const double *pos = dBodyGetPosition(_body[CENTER]);
 	const double *R = dBodyGetRotation(_body[CENTER]);

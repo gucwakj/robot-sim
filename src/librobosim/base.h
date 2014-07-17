@@ -53,6 +53,8 @@ class DLLIMPORT CRobot {
 		void doze(double ms);
 		int addConnector(int type, int face, double size);
 		int addToSim(dWorldID &world, dSpaceID &space);
+		double getAngularRate(int i);
+		dBodyID getBodyID(int body);
 
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int build(xml_robot_t robot) = 0;
@@ -72,7 +74,6 @@ class DLLIMPORT CRobot {
 		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1) = 0;
 		virtual bool getSuccess(int i) = 0;
 		virtual int getType(void) = 0;
-		virtual dBodyID getBodyID(int body) = 0;
 		virtual dBodyID getConnectorBodyID(int face) = 0;
 		virtual dBodyID getConnectorBodyIDs(int num) = 0;
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
@@ -80,7 +81,6 @@ class DLLIMPORT CRobot {
 		virtual int getRobotID(void) = 0;
 		virtual dJointID getMotorID(int motor) = 0;
 		virtual double getAngle(int i) = 0;
-		virtual double getAngularRate(int i) = 0;
 		virtual double getCenter(int i) = 0;
 		virtual double getPosition(int body, int i) = 0;
 		virtual double getRotation(int body, int i) = 0;
