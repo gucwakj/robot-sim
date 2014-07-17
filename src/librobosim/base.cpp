@@ -61,59 +61,104 @@ void* CRobot::simPostCollisionThreadEntry(void *arg) {
 	return arg;
 }
 
-// generate gaussian random number
-double CRobot::normal(double sigma) {
+dBodyID CRobot::getBodyID(int id) {
+	return _body[id];
+}
+
+dBodyID CRobot::getConnectorBodyID(int face) {
+	conn_t ctmp = _conn;
+	while (ctmp) {
+		if (ctmp->face == face) {
+			return ctmp->body;
+		}
+		ctmp = ctmp->next;
+	}
+	return NULL;
+}
+
+dBodyID CRobot::getConnectorBodyIDs(int num) {
+	conn_t ctmp = _conn;
+	int i = 0;
+	while (ctmp && i++ < num)
+		ctmp = ctmp->next;
+	if (ctmp) {
+		return ctmp->body;
+	}
+	return NULL;
+}
+
+dJointID CRobot::getMotorID(int id) {
+    return _motor[id].id;
+}
+
+double CRobot::getAngle(int id) {
+	if (_type == MOBOT && (id == JOINT2 || id == JOINT3))
+		_motor[id].theta = dJointGetHingeAngle(_joint[id]);
+	else if (id == _disabled)
+		_motor[id].theta = 0;
+	else
+		_motor[id].theta = mod_angle(_motor[id].theta, dJointGetHingeAngle(_joint[id]), dJointGetHingeAngleRate(_joint[id])) - _motor[id].offset;
+
+	// add noise to angle
+	//this->noisy(&(_motor[id].theta), 1, 0.0005);
+
+    return _motor[id].theta;
+}
+
+double CRobot::getAngularRate(int id) {
+	return dJointGetAMotorParam(_motor[id].id, dParamVel);
+}
+
+double CRobot::getCenter(int i) {
+	const double *pos = dBodyGetPosition(_body[0]);
+	const double *R = dBodyGetRotation(_body[0]);
+	double p[3] = {	R[0]*_center[0] + R[1]*_center[1] + R[2]*_center[2],
+					R[4]*_center[0] + R[5]*_center[1] + R[6]*_center[2],
+					R[8]*_center[0] + R[9]*_center[1] + R[10]*_center[2]};
+	return pos[i] + p[i];
+}
+
+double CRobot::getNormal(double sigma) {
 	// compute pair of random uniform data
-	double u1 = this->uniform();
-	double u2 = this->uniform();
+	double u1 = this->getUniform();
+	double u2 = this->getUniform();
 
 	// box-muller transform to gaussian
 	return sigma*(sqrt(-2.0*log(u1))*cos(2*M_PI*u2));
 }
 
-// generate uniform random numbers
-double CRobot::uniform(void) {
+double CRobot::getPosition(int body, int i) {
+	const double *pos = dBodyGetPosition(_body[body]);
+	return pos[i];
+}
+
+double CRobot::getRotation(int body, int i) {
+	const double *R = dBodyGetRotation(_body[body]);
+	double angles[3] = {0};
+    if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
+        angles[0] = atan2(-R[1], -R[2]);		// psi
+        angles[1] = M_PI/2;						// theta
+        angles[2] = 0;							// phi
+    }
+    else if ( fabs(R[8]+1) < DBL_EPSILON ) {    // R_31 == -1; theta = -M_PI/2
+        angles[0] = atan2(R[1], R[2]);			// psi
+        angles[1] = -M_PI/2;					// theta
+        angles[2] = 0;							// phi
+    }
+    else {
+        angles[1] = asin(R[8]);
+        angles[0] = atan2(R[9]/cos(angles[0]), R[10]/cos(angles[0]));
+        angles[2] = atan2(R[4]/cos(angles[0]), R[0]/cos(angles[0]));
+    }
+	return angles[i];
+}
+
+double CRobot::getUniform(void) {
 	int k = _seed/127773;
 	_seed = 16807 * (_seed - k*127773) - k*2836;
 	if (_seed < 0)
 		_seed = _seed + 2147483647;
 	return ((double)(_seed) * 4.656612875E-10);
-}
-
-int CRobot::noisy(double *a, int length, double sigma) {
-	// initialize variables
-	double *rand = new double[length];
-	double sum = 0;
-
-	if (length == 1)
-		a[0] += this->normal(sigma);
-	else {
-		// compute magnitude of randomized vector
-		for (int i = 0; i < length; i++) {
-			rand[i] = this->normal(sigma);
-			sum += (a[i] + rand[i]) * (a[i] + rand[i]);
-		}
-		double mag = sqrt(sum);
-
-		// normalize vector
-		for (int i = 0; i < length; i++) {
-			a[i] = (a[i] + rand[i])/mag;
-		}
-	}
-
-	// clean up array
-	delete [] rand;
-
-	// success
-	return 0;
-}
-
-void CRobot::doze(double ms) {
-#ifdef _WIN32
-	Sleep(ms);
-#else
-	usleep(ms*1000);
-#endif
 }
 
 int CRobot::addConnector(int type, int face, double size) {
@@ -206,177 +251,14 @@ int CRobot::addToSim(dWorldID &world, dSpaceID &space) {
 	return 0;
 }
 
-double CRobot::getAngularRate(int id) {
-	return dJointGetAMotorParam(_motor[id].id, dParamVel);
-}
-
-dBodyID CRobot::getBodyID(int id) {
-	return _body[id];
-}
-
-double CRobot::getCenter(int i) {
-	const double *pos = dBodyGetPosition(_body[0]);
-	const double *R = dBodyGetRotation(_body[0]);
-	double p[3] = {	R[0]*_center[0] + R[1]*_center[1] + R[2]*_center[2],
-					R[4]*_center[0] + R[5]*_center[1] + R[6]*_center[2],
-					R[8]*_center[0] + R[9]*_center[1] + R[10]*_center[2]};
-	return pos[i] + p[i];
-}
-
-double CRobot::getAngle(int id) {
-	if (_type == MOBOT && (id == JOINT2 || id == JOINT3))
-		_motor[id].theta = dJointGetHingeAngle(_joint[id]);
-	else if (id == _disabled)
-		_motor[id].theta = 0;
-	else
-		_motor[id].theta = mod_angle(_motor[id].theta, dJointGetHingeAngle(_joint[id]), dJointGetHingeAngleRate(_joint[id])) - _motor[id].offset;
-
-	// add noise to angle
-	//this->noisy(&(_motor[id].theta), 1, 0.0005);
-
-    return _motor[id].theta;
-}
-
-double CRobot::mod_angle(double past_ang, double cur_ang, double ang_rate) {
-    double new_ang = 0;
-    int stp = (int)( fabs(past_ang) / M_PI );
-    double past_ang_mod = fabs(past_ang) - stp*M_PI;
-
-    if ( (int)(ang_rate*1000) == 0 ) {
-        new_ang = past_ang;
-    }
-    // positive angular velocity, positive angle
-    else if ( ang_rate > 0 && past_ang >= 0 ) {
-        // cross 180
-        if ( cur_ang < 0 && !(stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + 2*M_PI); }
-        // negative
-        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
-        // cross 0
-        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
-        // positive
-        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
-    }
-    // positive angular velocity, negative angle
-    else if ( ang_rate > 0 && past_ang < 0 ) {
-        // cross 180
-        if ( cur_ang < 0 && (stp % 2) ) {   new_ang = past_ang + (cur_ang + past_ang_mod + M_PI);   }
-        // negative
-        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
-        // cross 0
-        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
-        // positive
-        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
-    }
-    // negative angular velocity, positive angle
-    else if ( ang_rate < 0 && past_ang >= 0 ) {
-        // cross 180
-        if ( cur_ang > 0 && (stp % 2) ) {   new_ang = past_ang + (cur_ang - past_ang_mod - M_PI);   }
-        // negative
-        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
-        // cross 0
-        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
-        // positive
-        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
-    }
-    // negative angular velocity, negative angle
-    else if ( ang_rate < 0 && past_ang < 0 ) {
-        // cross 180
-        if ( cur_ang > 0 && !(stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - 2*M_PI); }
-        // negative
-        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
-        // cross 0
-        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
-        // positive
-        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
-    }
-
-    return new_ang;
-}
-
-dBodyID CRobot::getConnectorBodyID(int face) {
-	conn_t ctmp = _conn;
-	while (ctmp) {
-		if (ctmp->face == face) {
-			return ctmp->body;
-		}
-		ctmp = ctmp->next;
-	}
-	return NULL;
-}
-
-dBodyID CRobot::getConnectorBodyIDs(int num) {
-	conn_t ctmp = _conn;
-	int i = 0;
-	while (ctmp && i++ < num)
-		ctmp = ctmp->next;
-	if (ctmp) {
-		return ctmp->body;
-	}
-	return NULL;
-}
-
-int CRobot::getRobotID(void) {
-	return _id;
-}
-
-dJointID CRobot::getMotorID(int id) {
-    return _motor[id].id;
-}
-
-double CRobot::getPosition(int body, int i) {
-	const double *pos = dBodyGetPosition(_body[body]);
-	return pos[i];
-}
-
-double CRobot::getRotation(int body, int i) {
-	const double *R = dBodyGetRotation(_body[body]);
-	double angles[3] = {0};
-    if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
-        angles[0] = atan2(-R[1], -R[2]);		// psi
-        angles[1] = M_PI/2;						// theta
-        angles[2] = 0;							// phi
-    }
-    else if ( fabs(R[8]+1) < DBL_EPSILON ) {    // R_31 == -1; theta = -M_PI/2
-        angles[0] = atan2(R[1], R[2]);			// psi
-        angles[1] = -M_PI/2;					// theta
-        angles[2] = 0;							// phi
-    }
-    else {
-        angles[1] = asin(R[8]);
-        angles[0] = atan2(R[9]/cos(angles[0]), R[10]/cos(angles[0]));
-        angles[2] = atan2(R[4]/cos(angles[0]), R[0]/cos(angles[0]));
-    }
-	return angles[i];
-}
-
-bool CRobot::getSuccess(int i) {
-	return _motor[i].success;
-}
-
-int CRobot::getType(void) {
-	return _type;
-}
-
-int CRobot::isShiftEnabled(void) {
-	if(_shift_data && !_g_shift_data_en)
-		return 1;
-	else if (_g_shift_data_en && _g_shift_data)
-		return 1;
-	else
-		return 0;
-}
-
-int CRobot::setID(int id) {
-	_id = id;
+int CRobot::doze(double ms) {
+#ifdef _WIN32
+	Sleep(ms);
+#else
+	usleep(ms*1000);
+#endif
+	// success
 	return 0;
-}
-
-bool CRobot::isHome(void) {
-	int home = 0;
-	for (int i = 0; i < _dof; i++) {
-		home += fabs(_motor[i].theta) < EPSILON;
-	}
-	return (home ? true : false);
 }
 
 int CRobot::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
@@ -466,5 +348,126 @@ int CRobot::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
 
 	// success
 	return 0;
+}
+
+int CRobot::getRobotID(void) {
+	return _id;
+}
+
+int CRobot::getSuccess(int i) {
+	return _motor[i].success;
+}
+
+int CRobot::getType(void) {
+	return _type;
+}
+
+int CRobot::isShiftEnabled(void) {
+	if(_shift_data && !_g_shift_data_en)
+		return 1;
+	else if (_g_shift_data_en && _g_shift_data)
+		return 1;
+	else
+		return 0;
+}
+
+int CRobot::isHome(void) {
+	int home = 0;
+	for (int i = 0; i < _dof; i++) {
+		home += fabs(_motor[i].theta) < EPSILON;
+	}
+	return (home ? 1 : 0);
+}
+
+int CRobot::noisy(double *a, int length, double sigma) {
+	// initialize variables
+	double *rand = new double[length];
+	double sum = 0;
+
+	if (length == 1)
+		a[0] += this->getNormal(sigma);
+	else {
+		// compute magnitude of randomized vector
+		for (int i = 0; i < length; i++) {
+			rand[i] = this->getNormal(sigma);
+			sum += (a[i] + rand[i]) * (a[i] + rand[i]);
+		}
+		double mag = sqrt(sum);
+
+		// normalize vector
+		for (int i = 0; i < length; i++) {
+			a[i] = (a[i] + rand[i])/mag;
+		}
+	}
+
+	// clean up array
+	delete [] rand;
+
+	// success
+	return 0;
+}
+
+int CRobot::setID(int id) {
+	_id = id;
+	return 0;
+}
+
+/**********************************************************
+	private functions
+ **********************************************************/
+double CRobot::mod_angle(double past_ang, double cur_ang, double ang_rate) {
+    double new_ang = 0;
+    int stp = (int)( fabs(past_ang) / M_PI );
+    double past_ang_mod = fabs(past_ang) - stp*M_PI;
+
+    if ( (int)(ang_rate*1000) == 0 ) {
+        new_ang = past_ang;
+    }
+    // positive angular velocity, positive angle
+    else if ( ang_rate > 0 && past_ang >= 0 ) {
+        // cross 180
+        if ( cur_ang < 0 && !(stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + 2*M_PI); }
+        // negative
+        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
+        // cross 0
+        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
+        // positive
+        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
+    }
+    // positive angular velocity, negative angle
+    else if ( ang_rate > 0 && past_ang < 0 ) {
+        // cross 180
+        if ( cur_ang < 0 && (stp % 2) ) {   new_ang = past_ang + (cur_ang + past_ang_mod + M_PI);   }
+        // negative
+        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
+        // cross 0
+        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
+        // positive
+        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
+    }
+    // negative angular velocity, positive angle
+    else if ( ang_rate < 0 && past_ang >= 0 ) {
+        // cross 180
+        if ( cur_ang > 0 && (stp % 2) ) {   new_ang = past_ang + (cur_ang - past_ang_mod - M_PI);   }
+        // negative
+        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
+        // cross 0
+        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
+        // positive
+        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
+    }
+    // negative angular velocity, negative angle
+    else if ( ang_rate < 0 && past_ang < 0 ) {
+        // cross 180
+        if ( cur_ang > 0 && !(stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - 2*M_PI); }
+        // negative
+        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
+        // cross 0
+        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
+        // positive
+        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
+    }
+
+    return new_ang;
 }
 

@@ -2,10 +2,10 @@
 
 CMobot::CMobot(void) {
 	// initialize parameters
-	init_params(0, MOBOT);
+	this->initParams(0, MOBOT);
 
 	// initialize dimensions
-	init_dims();
+	this->initDims();
 }
 
 CMobot::~CMobot(void) {
@@ -2956,240 +2956,6 @@ int CMobot::build_wheel(conn_t conn, int face, double size, int side, int type) 
 	return 0;
 }
 
-int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
-	const double *pos, *R1;
-	dMatrix3 R2;
-	double offset[3] = {0};
-	int i = 1;
-
-	switch (face) {
-		case 1:
-			pos = dBodyGetPosition(_body[ENDCAP_L]);
-			R1 = dBodyGetRotation(_body[ENDCAP_L]);
-			offset[0] = -_end_depth/2;
-			p[0] = pos[0] + R1[0]*offset[0];
-			p[1] = pos[1] + R1[4]*offset[0];
-			p[2] = pos[2] + R1[8]*offset[0];
-			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI);
-			dMultiply0(R, R2, R1, 3, 3, 3);
-			break;
-		case 2: case 5:
-			pos = dGeomGetPosition(_geom[BODY_L][0]);
-			R1 = dBodyGetRotation(_body[BODY_L]);
-			i = ((face == 5) ? 1 : -1);
-			offset[0] = -_body_end_depth/2 + _body_mount_center;
-			offset[1] = i*_body_width/2;
-			p[0] = pos[0] + R1[0]*offset[0] + R1[1]*offset[1];
-			p[1] = pos[1] + R1[4]*offset[0] + R1[5]*offset[1];
-			p[2] = pos[2] + R1[8]*offset[0] + R1[9]*offset[1];
-			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
-			dMultiply0(R, R2, R1, 3, 3, 3);
-			break;
-		case 3: case 6:
-			pos = dBodyGetPosition(_body[CENTER]);
-			R1 = dBodyGetRotation(_body[CENTER]);
-			i = (face == 6) ? 1 : -1;
-			offset[1] = i*(_body_width/2) - _center_offset;
-			p[0] = pos[0] + R1[1]*offset[1];
-			p[1] = pos[1] + R1[5]*offset[1];
-			p[2] = pos[2] + R1[9]*offset[1];
-			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
-			dMultiply0(R, R2, R1, 3, 3, 3);
-			break;
-		case 4: case 7:
-			pos = dGeomGetPosition(_geom[BODY_R][0]);
-			R1 = dBodyGetRotation(_body[BODY_R]);
-			i = (face == 7) ? 1 : -1;
-			offset[0] = _body_end_depth/2 - _body_mount_center;
-			offset[1] = i*_body_width/2;
-			p[0] = pos[0] + R1[0]*offset[0] + R1[1]*offset[1];
-			p[1] = pos[1] + R1[4]*offset[0] + R1[5]*offset[1];
-			p[2] = pos[2] + R1[8]*offset[0] + R1[9]*offset[1];
-			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
-			dMultiply0(R, R2, R1, 3, 3, 3);
-			break;
-		case 8:
-			pos = dBodyGetPosition(_body[ENDCAP_R]);
-			R1 = dBodyGetRotation(_body[ENDCAP_R]);
-			offset[0] = _end_depth/2;
-			p[0] = pos[0] + R1[0]*offset[0];
-			p[1] = pos[1] + R1[4]*offset[0];
-			p[2] = pos[2] + R1[8]*offset[0];
-			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], 0);
-			dMultiply0(R, R2, R1, 3, 3, 3);
-			break;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobot::init_params(int disabled, int type) {
-	_dof = 4;
-
-	// create arrays for mobots
-	_body = new dBodyID[NUM_PARTS];
-	_enabled = new int[2];
-	_geom = new dGeomID * [NUM_PARTS];
-	_joint = new dJointID[6];
-	_motor = new struct motor_s[_dof];
-	_rec_active = new bool[_dof];
-	_rec_angles = new double ** [_dof];
-	_rec_num = new int[_dof];
-	_recording = new bool[_dof];
-
-	// fill with default data
-	for (int i = 0; i < _dof; i++) {
-		_motor[i].alpha = 0;
-		_motor[i].encoder = DEG2RAD(0.1);
-		_motor[i].goal = 0;
-		_motor[i].mode = SEEK;
-		_motor[i].offset = 0;
-		_motor[i].omega = 0.7854;			//  45 deg/sec
-		_motor[i].omega_max = 2.0943;		// 120 deg/sec
-		_motor[i].safety_angle = 10;
-		_motor[i].safety_timeout = 4;
-		_motor[i].state = NEUTRAL;
-		_motor[i].success = true;
-		_motor[i].theta = 0;
-		_motor[i].timeout = 0;
-		MUTEX_INIT(&_motor[i].success_mutex);
-		COND_INIT(&_motor[i].success_cond);
-		_rec_active[i] = false;
-		_rec_num[i] = 0;
-		_recording[i] = false;
-	}
-	_conn = NULL;
-	_disabled = disabled;
-	_distOffset = 0;
-	_id = -1;
-	_motor[JOINT1].tau_max = 0.260;
-	_motor[JOINT2].tau_max = 1.059;
-	_motor[JOINT3].tau_max = 1.059;
-	_motor[JOINT4].tau_max = 0.260;
-	_motion = false;
-	_rgb[0] = 0;
-	_rgb[1] = 0;
-	_rgb[2] = 1;
-	_shift_data = 0;
-	_g_shift_data = 0;
-	_g_shift_data_en = 0;
-	_trace = 1;
-	_type = type;
-
-	// success
-	return 0;
-}
-
-int CMobot::init_dims(void) {
-	_center_length = 0.0516;
-	_center_width = 0.0327;
-	_center_height = 0.0508;
-	_center_radius = 0.0254;
-	_center_offset = 0.0149;
-	_body_length = 0.0258;
-	_body_width = 0.0762;
-	_body_height = 0.0508;
-	_body_radius = 0.0254;
-	_body_inner_width_left = 0.0366;
-	_body_inner_width_right = 0.0069;
-	_body_end_depth = 0.0352;
-	_body_mount_center = 0.0374;
-	_end_width = 0.0762;
-	_end_height = 0.0762;
-	_end_depth = 0.0080;
-	_end_radius = 0.0254;
-	_connector_depth = 0.0048;
-	_connector_height = 0.0413;
-	_connector_radius = 0.0064;
-	_bigwheel_radius = 0.0571;
-	_smallwheel_radius = 0.0445;
-	_tank_depth = 0.0413;
-	_tank_height = 0.0460;
-	_wheel_radius = 0.0445;
-
-	// success
-	return 0;
-}
-
-void CMobot::simPreCollisionThread(void) {
-	// lock angle and goal
-	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_theta_mutex);
-
-	// get body rotation from world
-	const double *R = dBodyGetRotation(_body[CENTER]);
-	// put into accel array
-	_accel[0] = R[8];
-	_accel[1] = R[9];
-	_accel[2] = R[10];
-	// add gaussian noise to accel
-	this->noisy(_accel, 3, 0.005);
-
-	// update angle values for each degree of freedom
-	for (int i = 0; i < _dof; i++) {
-		// store current angle
-		_motor[i].theta = getAngle(i);
-		// set motor angle to current angle
-		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
-		// drive motor to get current angle to match future angle
-		switch (_motor[i].mode) {
-			case CONTINUOUS:
-				switch (_motor[i].state) {
-					case POSITIVE:
-						dJointSetAMotorParam(_motor[i].id, dParamVel, fabs(_motor[i].omega));
-						break;
-					case NEGATIVE:
-						dJointSetAMotorParam(_motor[i].id, dParamVel, -fabs(_motor[i].omega));
-						break;
-					case HOLD:
-						dJointSetAMotorParam(_motor[i].id, dParamVel, 0);
-						break;
-					case NEUTRAL:
-						dJointDisable(_motor[i].id);
-						break;
-				}
-				break;
-			case SEEK:
-				if (_motor[i].theta < _motor[i].goal - _motor[i].encoder) {
-					_motor[i].state = POSITIVE;
-					dJointSetAMotorParam(_motor[i].id, dParamVel, fabs(_motor[i].omega));
-				}
-				else if (_motor[i].theta > _motor[i].goal + _motor[i].encoder) {
-					_motor[i].state = NEGATIVE;
-					dJointSetAMotorParam(_motor[i].id, dParamVel, -fabs(_motor[i].omega));
-				}
-				else {
-					_motor[i].state = HOLD;
-					dJointSetAMotorParam(_motor[i].id, dParamVel, 0);
-				}
-				break;
-		}
-	}
-
-	// unlock angle and goal
-	MUTEX_UNLOCK(&_theta_mutex);
-	MUTEX_UNLOCK(&_goal_mutex);
-}
-
-void CMobot::simPostCollisionThread(void) {
-	// check if joint speed is zero -> joint has completed step
-	for (int i = 0; i < _dof; i++) {
-		// lock mutex
-		MUTEX_LOCK(&_motor[i].success_mutex);
-		// zero velocity == stopped
-		_motor[i].success = (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
-		// signal success
-		if (_motor[i].success)
-			COND_SIGNAL(&_motor[i].success_cond);
-		// unlock mutex
-		MUTEX_UNLOCK(&_motor[i].success_mutex);
-	}
-
-	if (_motor[JOINT1].success && _motor[JOINT2].success && _motor[JOINT3].success && _motor[JOINT4].success)
-		COND_SIGNAL(&_success_cond);
-}
-
 #ifdef ENABLE_GRAPHICS
 int CMobot::draw(osg::Group *root, int tracking) {
 	// initialize variables
@@ -3473,6 +3239,240 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	return (root->getChildIndex(_robot));
 }
 #endif // ENABLE_GRAPHICS
+
+int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
+	const double *pos, *R1;
+	dMatrix3 R2;
+	double offset[3] = {0};
+	int i = 1;
+
+	switch (face) {
+		case 1:
+			pos = dBodyGetPosition(_body[ENDCAP_L]);
+			R1 = dBodyGetRotation(_body[ENDCAP_L]);
+			offset[0] = -_end_depth/2;
+			p[0] = pos[0] + R1[0]*offset[0];
+			p[1] = pos[1] + R1[4]*offset[0];
+			p[2] = pos[2] + R1[8]*offset[0];
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI);
+			dMultiply0(R, R2, R1, 3, 3, 3);
+			break;
+		case 2: case 5:
+			pos = dGeomGetPosition(_geom[BODY_L][0]);
+			R1 = dBodyGetRotation(_body[BODY_L]);
+			i = ((face == 5) ? 1 : -1);
+			offset[0] = -_body_end_depth/2 + _body_mount_center;
+			offset[1] = i*_body_width/2;
+			p[0] = pos[0] + R1[0]*offset[0] + R1[1]*offset[1];
+			p[1] = pos[1] + R1[4]*offset[0] + R1[5]*offset[1];
+			p[2] = pos[2] + R1[8]*offset[0] + R1[9]*offset[1];
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
+			dMultiply0(R, R2, R1, 3, 3, 3);
+			break;
+		case 3: case 6:
+			pos = dBodyGetPosition(_body[CENTER]);
+			R1 = dBodyGetRotation(_body[CENTER]);
+			i = (face == 6) ? 1 : -1;
+			offset[1] = i*(_body_width/2) - _center_offset;
+			p[0] = pos[0] + R1[1]*offset[1];
+			p[1] = pos[1] + R1[5]*offset[1];
+			p[2] = pos[2] + R1[9]*offset[1];
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
+			dMultiply0(R, R2, R1, 3, 3, 3);
+			break;
+		case 4: case 7:
+			pos = dGeomGetPosition(_geom[BODY_R][0]);
+			R1 = dBodyGetRotation(_body[BODY_R]);
+			i = (face == 7) ? 1 : -1;
+			offset[0] = _body_end_depth/2 - _body_mount_center;
+			offset[1] = i*_body_width/2;
+			p[0] = pos[0] + R1[0]*offset[0] + R1[1]*offset[1];
+			p[1] = pos[1] + R1[4]*offset[0] + R1[5]*offset[1];
+			p[2] = pos[2] + R1[8]*offset[0] + R1[9]*offset[1];
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], i*M_PI/2);
+			dMultiply0(R, R2, R1, 3, 3, 3);
+			break;
+		case 8:
+			pos = dBodyGetPosition(_body[ENDCAP_R]);
+			R1 = dBodyGetRotation(_body[ENDCAP_R]);
+			offset[0] = _end_depth/2;
+			p[0] = pos[0] + R1[0]*offset[0];
+			p[1] = pos[1] + R1[4]*offset[0];
+			p[2] = pos[2] + R1[8]*offset[0];
+			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], 0);
+			dMultiply0(R, R2, R1, 3, 3, 3);
+			break;
+	}
+
+	// success
+	return 0;
+}
+
+int CMobot::initParams(int disabled, int type) {
+	_dof = 4;
+
+	// create arrays for mobots
+	_body = new dBodyID[NUM_PARTS];
+	_enabled = new int[2];
+	_geom = new dGeomID * [NUM_PARTS];
+	_joint = new dJointID[6];
+	_motor = new struct motor_s[_dof];
+	_rec_active = new bool[_dof];
+	_rec_angles = new double ** [_dof];
+	_rec_num = new int[_dof];
+	_recording = new bool[_dof];
+
+	// fill with default data
+	for (int i = 0; i < _dof; i++) {
+		_motor[i].alpha = 0;
+		_motor[i].encoder = DEG2RAD(0.1);
+		_motor[i].goal = 0;
+		_motor[i].mode = SEEK;
+		_motor[i].offset = 0;
+		_motor[i].omega = 0.7854;			//  45 deg/sec
+		_motor[i].omega_max = 2.0943;		// 120 deg/sec
+		_motor[i].safety_angle = 10;
+		_motor[i].safety_timeout = 4;
+		_motor[i].state = NEUTRAL;
+		_motor[i].success = true;
+		_motor[i].theta = 0;
+		_motor[i].timeout = 0;
+		MUTEX_INIT(&_motor[i].success_mutex);
+		COND_INIT(&_motor[i].success_cond);
+		_rec_active[i] = false;
+		_rec_num[i] = 0;
+		_recording[i] = false;
+	}
+	_conn = NULL;
+	_disabled = disabled;
+	_distOffset = 0;
+	_id = -1;
+	_motor[JOINT1].tau_max = 0.260;
+	_motor[JOINT2].tau_max = 1.059;
+	_motor[JOINT3].tau_max = 1.059;
+	_motor[JOINT4].tau_max = 0.260;
+	_motion = false;
+	_rgb[0] = 0;
+	_rgb[1] = 0;
+	_rgb[2] = 1;
+	_shift_data = 0;
+	_g_shift_data = 0;
+	_g_shift_data_en = 0;
+	_trace = 1;
+	_type = type;
+
+	// success
+	return 0;
+}
+
+int CMobot::initDims(void) {
+	_center_length = 0.0516;
+	_center_width = 0.0327;
+	_center_height = 0.0508;
+	_center_radius = 0.0254;
+	_center_offset = 0.0149;
+	_body_length = 0.0258;
+	_body_width = 0.0762;
+	_body_height = 0.0508;
+	_body_radius = 0.0254;
+	_body_inner_width_left = 0.0366;
+	_body_inner_width_right = 0.0069;
+	_body_end_depth = 0.0352;
+	_body_mount_center = 0.0374;
+	_end_width = 0.0762;
+	_end_height = 0.0762;
+	_end_depth = 0.0080;
+	_end_radius = 0.0254;
+	_connector_depth = 0.0048;
+	_connector_height = 0.0413;
+	_connector_radius = 0.0064;
+	_bigwheel_radius = 0.0571;
+	_smallwheel_radius = 0.0445;
+	_tank_depth = 0.0413;
+	_tank_height = 0.0460;
+	_wheel_radius = 0.0445;
+
+	// success
+	return 0;
+}
+
+void CMobot::simPreCollisionThread(void) {
+	// lock angle and goal
+	MUTEX_LOCK(&_goal_mutex);
+	MUTEX_LOCK(&_theta_mutex);
+
+	// get body rotation from world
+	const double *R = dBodyGetRotation(_body[CENTER]);
+	// put into accel array
+	_accel[0] = R[8];
+	_accel[1] = R[9];
+	_accel[2] = R[10];
+	// add gaussian noise to accel
+	this->noisy(_accel, 3, 0.005);
+
+	// update angle values for each degree of freedom
+	for (int i = 0; i < _dof; i++) {
+		// store current angle
+		_motor[i].theta = getAngle(i);
+		// set motor angle to current angle
+		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
+		// drive motor to get current angle to match future angle
+		switch (_motor[i].mode) {
+			case CONTINUOUS:
+				switch (_motor[i].state) {
+					case POSITIVE:
+						dJointSetAMotorParam(_motor[i].id, dParamVel, fabs(_motor[i].omega));
+						break;
+					case NEGATIVE:
+						dJointSetAMotorParam(_motor[i].id, dParamVel, -fabs(_motor[i].omega));
+						break;
+					case HOLD:
+						dJointSetAMotorParam(_motor[i].id, dParamVel, 0);
+						break;
+					case NEUTRAL:
+						dJointDisable(_motor[i].id);
+						break;
+				}
+				break;
+			case SEEK:
+				if (_motor[i].theta < _motor[i].goal - _motor[i].encoder) {
+					_motor[i].state = POSITIVE;
+					dJointSetAMotorParam(_motor[i].id, dParamVel, fabs(_motor[i].omega));
+				}
+				else if (_motor[i].theta > _motor[i].goal + _motor[i].encoder) {
+					_motor[i].state = NEGATIVE;
+					dJointSetAMotorParam(_motor[i].id, dParamVel, -fabs(_motor[i].omega));
+				}
+				else {
+					_motor[i].state = HOLD;
+					dJointSetAMotorParam(_motor[i].id, dParamVel, 0);
+				}
+				break;
+		}
+	}
+
+	// unlock angle and goal
+	MUTEX_UNLOCK(&_theta_mutex);
+	MUTEX_UNLOCK(&_goal_mutex);
+}
+
+void CMobot::simPostCollisionThread(void) {
+	// check if joint speed is zero -> joint has completed step
+	for (int i = 0; i < _dof; i++) {
+		// lock mutex
+		MUTEX_LOCK(&_motor[i].success_mutex);
+		// zero velocity == stopped
+		_motor[i].success = (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
+		// signal success
+		if (_motor[i].success)
+			COND_SIGNAL(&_motor[i].success_cond);
+		// unlock mutex
+		MUTEX_UNLOCK(&_motor[i].success_mutex);
+	}
+
+	if (_motor[JOINT1].success && _motor[JOINT2].success && _motor[JOINT3].success && _motor[JOINT4].success)
+		COND_SIGNAL(&_success_cond);
+}
 
 /**********************************************************
 	private functions
@@ -3919,72 +3919,6 @@ int CMobot::build_endcap(int id, double x, double y, double z, dMatrix3 R) {
 	return 0;
 }
 
-int CMobot::fix_body_to_connector(dBodyID cBody, int face) {
-	if (!cBody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
-
-	// fixed joint
-	dJointID joint = dJointCreateFixed(_world, 0);
-
-	// attach to correct body
-	switch (face) {
-		case 1:
-			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_L));
-			break;
-		case 2: case 5:
-			dJointAttach(joint, cBody, this->getBodyID(BODY_L));
-			break;
-		case 3: case 6:
-			dJointAttach(joint, cBody, this->getBodyID(BODY_L));
-			dJointAttach(joint, cBody, this->getBodyID(BODY_R));
-			break;
-		case 4: case 7:
-			dJointAttach(joint, cBody, this->getBodyID(BODY_R));
-			break;
-		case 8:
-			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_R));
-			break;
-	}
-
-	// set joint params
-	dJointSetFixed(joint);
-
-	// success
-	return 0;
-}
-
-int CMobot::fix_connector_to_body(int face, dBodyID cBody) {
-	// fixed joint
-	dJointID joint = dJointCreateFixed(_world, 0);
-	dJointID joint2 = dJointCreateFixed(_world, 0);
-
-	// attach to correct body
-	switch (face) {
-		case 1:
-			dJointAttach(joint, this->getBodyID(ENDCAP_L), cBody);
-			break;
-		case 2: case 5:
-			dJointAttach(joint, this->getBodyID(BODY_L), cBody);
-			break;
-		case 3: case 6:
-			dJointAttach(joint, this->getBodyID(BODY_L), cBody);
-			dJointAttach(joint2, this->getBodyID(BODY_R), cBody);
-			dJointSetFixed(joint2);
-			break;
-		case 4: case 7:
-			dJointAttach(joint, this->getBodyID(BODY_R), cBody);
-			break;
-		case 8:
-			dJointAttach(joint, this->getBodyID(ENDCAP_R), cBody);
-			break;
-	}
-
-	// set joint params
-	dJointSetFixed(joint);
-
-	// success
-	return 0;
-}
-
 #ifdef ENABLE_GRAPHICS
 void CMobot::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	// initialize variables
@@ -4339,3 +4273,70 @@ void CMobot::draw_wheel(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 #endif // ENABLE_GRAPHICS
+
+int CMobot::fix_body_to_connector(dBodyID cBody, int face) {
+	if (!cBody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
+
+	// fixed joint
+	dJointID joint = dJointCreateFixed(_world, 0);
+
+	// attach to correct body
+	switch (face) {
+		case 1:
+			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_L));
+			break;
+		case 2: case 5:
+			dJointAttach(joint, cBody, this->getBodyID(BODY_L));
+			break;
+		case 3: case 6:
+			dJointAttach(joint, cBody, this->getBodyID(BODY_L));
+			dJointAttach(joint, cBody, this->getBodyID(BODY_R));
+			break;
+		case 4: case 7:
+			dJointAttach(joint, cBody, this->getBodyID(BODY_R));
+			break;
+		case 8:
+			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_R));
+			break;
+	}
+
+	// set joint params
+	dJointSetFixed(joint);
+
+	// success
+	return 0;
+}
+
+int CMobot::fix_connector_to_body(int face, dBodyID cBody) {
+	// fixed joint
+	dJointID joint = dJointCreateFixed(_world, 0);
+	dJointID joint2 = dJointCreateFixed(_world, 0);
+
+	// attach to correct body
+	switch (face) {
+		case 1:
+			dJointAttach(joint, this->getBodyID(ENDCAP_L), cBody);
+			break;
+		case 2: case 5:
+			dJointAttach(joint, this->getBodyID(BODY_L), cBody);
+			break;
+		case 3: case 6:
+			dJointAttach(joint, this->getBodyID(BODY_L), cBody);
+			dJointAttach(joint2, this->getBodyID(BODY_R), cBody);
+			dJointSetFixed(joint2);
+			break;
+		case 4: case 7:
+			dJointAttach(joint, this->getBodyID(BODY_R), cBody);
+			break;
+		case 8:
+			dJointAttach(joint, this->getBodyID(ENDCAP_R), cBody);
+			break;
+	}
+
+	// set joint params
+	dJointSetFixed(joint);
+
+	// success
+	return 0;
+}
+

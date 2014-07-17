@@ -176,10 +176,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);
 		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
+		virtual int initParams(int disabled, int type);
+		virtual int initDims(void);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
-		virtual int init_params(int disabled, int type);
-		virtual int init_dims(void);
 
 		// private functions
 		int add_daisy_chain(int conn, int side, double size, int face, int type);			// add daisy chained connector

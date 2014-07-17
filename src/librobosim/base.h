@@ -39,37 +39,36 @@ typedef struct conn_s {
 
 class DLLIMPORT CRobot {
 	public:
-		CRobot();
-		~CRobot();
+		CRobot(void);
+		~CRobot(void);
 
 		// entry functions for pre- and post-collision updates
 		static void* simPreCollisionThreadEntry(void *arg);
 		static void* simPostCollisionThreadEntry(void *arg);
 
 		// public functions
-		double normal(double sigma);
-		double uniform(void);
-		int noisy(double *a, int length, double sigma);
-		void doze(double ms);
-		int addConnector(int type, int face, double size);
-		int addToSim(dWorldID &world, dSpaceID &space);
-		double getAngle(int id);
-		double getAngularRate(int id);
 		dBodyID getBodyID(int body);
-		double getCenter(int i);
-		double mod_angle(double past_ang, double cur_ang, double ang_rate);
 		dBodyID getConnectorBodyID(int face);
 		dBodyID getConnectorBodyIDs(int num);
-		int getRobotID(void);
 		dJointID getMotorID(int motor);
+		double getAngle(int id);
+		double getAngularRate(int id);
+		double getCenter(int i);
+		double getNormal(double sigma);
 		double getPosition(int body, int i);
 		double getRotation(int body, int i);
-		bool getSuccess(int i);
+		double getUniform(void);
+		int addConnector(int type, int face, double size);
+		int addToSim(dWorldID &world, dSpaceID &space);
+		int doze(double ms);
+		int getConnectorParams(int type, int side, dMatrix3 R, double *p);
+		int getRobotID(void);
+		int getSuccess(int i);
 		int getType(void);
 		int isShiftEnabled(void);
+		int isHome(void);
+		int noisy(double *a, int length, double sigma);
 		int setID(int id);
-		bool isHome(void);
-		int getConnectorParams(int type, int side, dMatrix3 R, double *p);
 
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int build(xml_robot_t robot) = 0;
@@ -89,8 +88,8 @@ class DLLIMPORT CRobot {
 		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1) = 0;
 		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1) = 0;
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
-		virtual int init_params(int disabled, int type) = 0;
-		virtual int init_dims(void) = 0;
+		virtual int initParams(int disabled, int type) = 0;
+		virtual int initDims(void) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;
 
@@ -214,5 +213,7 @@ class DLLIMPORT CRobot {
 		osg::Group *_robot;
 		osg::ShapeDrawable *_led;
 #endif // ENABLE_GRAPHICS
+	private:
+		double mod_angle(double past_ang, double cur_ang, double ang_rate);
 };
 #endif // BASE_H_
