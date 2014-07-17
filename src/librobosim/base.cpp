@@ -293,3 +293,89 @@ double CRobot::mod_angle(double past_ang, double cur_ang, double ang_rate) {
     return new_ang;
 }
 
+dBodyID CRobot::getConnectorBodyID(int face) {
+	conn_t ctmp = _conn;
+	while (ctmp) {
+		if (ctmp->face == face) {
+			return ctmp->body;
+		}
+		ctmp = ctmp->next;
+	}
+	return NULL;
+}
+
+dBodyID CRobot::getConnectorBodyIDs(int num) {
+	conn_t ctmp = _conn;
+	int i = 0;
+	while (ctmp && i++ < num)
+		ctmp = ctmp->next;
+	if (ctmp) {
+		return ctmp->body;
+	}
+	return NULL;
+}
+
+int CRobot::getRobotID(void) {
+	return _id;
+}
+
+dJointID CRobot::getMotorID(int id) {
+    return _motor[id].id;
+}
+
+double CRobot::getPosition(int body, int i) {
+	const double *pos = dBodyGetPosition(_body[body]);
+	return pos[i];
+}
+
+double CRobot::getRotation(int body, int i) {
+	const double *R = dBodyGetRotation(_body[body]);
+	double angles[3] = {0};
+    if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
+        angles[0] = atan2(-R[1], -R[2]);		// psi
+        angles[1] = M_PI/2;						// theta
+        angles[2] = 0;							// phi
+    }
+    else if ( fabs(R[8]+1) < DBL_EPSILON ) {    // R_31 == -1; theta = -M_PI/2
+        angles[0] = atan2(R[1], R[2]);			// psi
+        angles[1] = -M_PI/2;					// theta
+        angles[2] = 0;							// phi
+    }
+    else {
+        angles[1] = asin(R[8]);
+        angles[0] = atan2(R[9]/cos(angles[0]), R[10]/cos(angles[0]));
+        angles[2] = atan2(R[4]/cos(angles[0]), R[0]/cos(angles[0]));
+    }
+	return angles[i];
+}
+
+bool CRobot::getSuccess(int i) {
+	return _motor[i].success;
+}
+
+int CRobot::getType(void) {
+	return _type;
+}
+
+int CRobot::isShiftEnabled(void) {
+	if(_shift_data && !_g_shift_data_en)
+		return 1;
+	else if (_g_shift_data_en && _g_shift_data)
+		return 1;
+	else
+		return 0;
+}
+
+int CRobot::setID(int id) {
+	_id = id;
+	return 0;
+}
+
+bool CRobot::isHome(void) {
+	int home = 0;
+	for (int i = 0; i < _dof; i++) {
+		home += fabs(_motor[i].theta) < EPSILON;
+	}
+	return (home ? true : false);
+}
+

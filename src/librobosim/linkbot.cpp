@@ -14,7 +14,7 @@ CLinkbotT::~CLinkbotT(void) {
 		delete g_sim;
 
 	// delete mutexes
-	for (int i = 0; i < NUM_DOF; i++) {
+	for (int i = 0; i < _dof; i++) {
 		MUTEX_DESTROY(&_motor[i].success_mutex);
 		COND_DESTROY(&_motor[i].success_cond);
 	}
@@ -545,7 +545,7 @@ int CLinkbotT::drivexyTo(double x, double y, double radius, double trackwidth) {
 	double angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
 
 	// get speed of robot
-	double speed[NUM_DOF] = {0};
+	double *speed = new double[_dof]();
 	this->getJointSpeeds(speed[0], speed[1], speed[2]);
 
 	if (fabs(speed[0]) > 120) {
@@ -577,6 +577,9 @@ int CLinkbotT::drivexyTo(double x, double y, double radius, double trackwidth) {
 	// move along length of line
 	this->getxy(x0, y0);
 	this->driveDistance(sqrt(x*x - 2*x*x0 + x0*x0 + y*y - 2*y*y0 + y0*y0), radius);
+
+	// clean up
+	delete speed;
 
 	// success
 	return 0;
@@ -1014,7 +1017,7 @@ int CLinkbotT::isConnected(void) {
 }
 
 int CLinkbotT::isMoving(void) {
-	for (int i = 0; i < NUM_DOF; i++) {
+	for (int i = 0; i < _dof; i++) {
 		if (_motor[i].state == POSITIVE || _motor[i].state == NEGATIVE) {
 			return 1;
 		}
@@ -1074,7 +1077,10 @@ int CLinkbotT::move(double angle1, double angle2, double angle3) {
 
 int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 	// store angles into array
-	double delta[NUM_DOF] = {angle1, angle2, angle3};
+	double *delta = new double[_dof]();
+	delta[0] = angle1;
+	delta[1] = angle2;
+	delta[2] = angle3;
 
 	// lock mutexes
 	MUTEX_LOCK(&_goal_mutex);
@@ -1099,6 +1105,9 @@ int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 	// unlock mutexes
 	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
+
+	// clean up
+	delete delta;
 
 	// success
 	return 0;
@@ -1384,7 +1393,7 @@ int CLinkbotT::moveToZeroNB(void) {
 int CLinkbotT::moveWait(void) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_success_mutex);
-	while ((_motor[JOINT1].success + _motor[JOINT2].success + _motor[JOINT3].success) != NUM_DOF) {
+	while ((_motor[JOINT1].success + _motor[JOINT2].success + _motor[JOINT3].success) != _dof) {
 		COND_WAIT(&_success_cond, &_success_mutex);
 	}
 	MUTEX_UNLOCK(&_success_mutex);
@@ -1702,7 +1711,7 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
 
 	// signal completion of recording
 	MUTEX_LOCK(&rArg->robot->_recording_mutex);
-    for (int i = 0; i < NUM_DOF; i++) {
+    for (int i = 0; i < rArg->robot->_dof; i++) {
         rArg->robot->_recording[i] = false;
     }
 	COND_SIGNAL(&rArg->robot->_recording_cond);
@@ -1718,7 +1727,7 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
 
 int CLinkbotT::recordAngles(double *time, double *angle1, double *angle2, double *angle3, int num, double seconds, int shiftData) {
 	// check if recording already
-	for (int i = 0; i < NUM_DOF; i++) {
+	for (int i = 0; i < _dof; i++) {
 		if (_recording[i]) { return -1; }
 	}
 
@@ -1736,7 +1745,7 @@ int CLinkbotT::recordAngles(double *time, double *angle1, double *angle2, double
 	rArg->msecs = 1000*seconds;
 
 	// lock recording for joints
-	for (int i = 0; i < NUM_DOF; i++) {
+	for (int i = 0; i < _dof; i++) {
 		_recording[i] = true;
 	}
 
@@ -1831,7 +1840,7 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 
 int CLinkbotT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, double seconds, int shiftData) {
 	// check if recording already
-	for (int i = 0; i < NUM_DOF; i++) {
+	for (int i = 0; i < _dof; i++) {
 		if (_recording[i]) { return -1; }
 	}
 
@@ -1858,7 +1867,7 @@ int CLinkbotT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &ang
 	_rec_angles[JOINT3] = &angle3;
 
 	// lock recording for joint id
-	for (int i = 0; i < NUM_DOF; i++) {
+	for (int i = 0; i < _dof; i++) {
 		_recording[i] = true;
 	}
 
@@ -1966,7 +1975,7 @@ int CLinkbotT::recordDistancesEnd(int &num) {
 
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
-		for (int j = 0; j < NUM_DOF; j++) {
+		for (int j = 0; j < _dof; j++) {
 			(*_rec_angles[j])[i] = DEG2RAD((*_rec_angles[j])[i]) * radius + _distOffset;
 		}
 	}
@@ -2056,7 +2065,7 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 
 int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData) {
 	// check if recording already
-	for (int i = 0; i < NUM_DOF; i++) {
+	for (int i = 0; i < _dof; i++) {
 		if (_recording[i]) { return -1; }
 	}
 
@@ -2078,7 +2087,7 @@ int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double 
 	_rec_angles[JOINT2] = &y;
 
 	// lock recording for joint id
-	for (int i = 0; i < NUM_DOF; i++) {
+	for (int i = 0; i < _dof; i++) {
 		_recording[i] = true;
 	}
 
@@ -3184,88 +3193,6 @@ int CLinkbotT::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
 	return 0;
 }
 
-dBodyID CLinkbotT::getConnectorBodyID(int face) {
-	conn_t ctmp = _conn;
-	while (ctmp) {
-		if (ctmp->face == face) {
-			return ctmp->body;
-		}
-		ctmp = ctmp->next;
-	}
-	return NULL;
-}
-
-dBodyID CLinkbotT::getConnectorBodyIDs(int num) {
-	conn_t ctmp = _conn;
-	int i = 0;
-	while (ctmp && i++ < num)
-		ctmp = ctmp->next;
-	if (ctmp) {
-		return ctmp->body;
-	}
-	return NULL;
-}
-
-int CLinkbotT::getRobotID(void) {
-	return _id;
-}
-
-dJointID CLinkbotT::getMotorID(int id) {
-    return _motor[id].id;
-}
-
-double CLinkbotT::getPosition(int body, int i) {
-	const double *pos = dBodyGetPosition(_body[body]);
-	return pos[i];
-}
-
-double CLinkbotT::getRotation(int body, int i) {
-	const double *R = dBodyGetRotation(_body[body]);
-	double angles[3] = {0};
-    if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
-        angles[0] = atan2(-R[1], -R[2]);		// psi
-        angles[1] = M_PI/2;						// theta
-        angles[2] = 0;							// phi
-    }
-    else if ( fabs(R[8]+1) < DBL_EPSILON ) {    // R_31 == -1; theta = -M_PI/2
-        angles[0] = atan2(R[1], R[2]);			// psi
-        angles[1] = -M_PI/2;					// theta
-        angles[2] = 0;							// phi
-    }
-    else {
-        angles[1] = asin(R[8]);
-        angles[0] = atan2(R[9]/cos(angles[0]), R[10]/cos(angles[0]));
-        angles[2] = atan2(R[4]/cos(angles[0]), R[0]/cos(angles[0]));
-    }
-	return angles[i];
-}
-
-bool CLinkbotT::getSuccess(int i) {
-	return _motor[i].success;
-}
-
-int CLinkbotT::getType(void) {
-	return _type;
-}
-
-bool CLinkbotT::isHome(void) {
-    return ( fabs(_motor[JOINT1].theta) < EPSILON && fabs(_motor[JOINT2].theta) < EPSILON && fabs(_motor[JOINT3].theta) < EPSILON );
-}
-
-int CLinkbotT::isShiftEnabled(void) {
-	if(_shift_data && !_g_shift_data_en)
-		return 1;
-	else if (_g_shift_data_en && _g_shift_data)
-		return 1;
-	else
-		return 0;
-}
-
-int CLinkbotT::setID(int id) {
-	_id = id;
-	return 0;
-}
-
 void CLinkbotT::simPreCollisionThread(void) {
 	// lock angle and goal
 	MUTEX_LOCK(&_goal_mutex);
@@ -4074,19 +4001,21 @@ int CLinkbotT::get_body_params(double angle, int face, double rotation, dMatrix3
 }
 
 int CLinkbotT::init_params(int disabled, int type) {
+	_dof = 3;
+
 	// create arrays for linkbots
 	_body = new dBodyID[NUM_PARTS];
 	_enabled = new int[(disabled == -1) ? 3 : 2];
 	_geom = new dGeomID * [NUM_PARTS];
-	_joint = new dJointID[NUM_DOF];
-	_motor = new struct motor_s[NUM_DOF];
-	_rec_active = new bool[NUM_DOF];
-	_rec_angles = new double ** [NUM_DOF];
-	_rec_num = new int[NUM_DOF];
-	_recording = new bool[NUM_DOF];
+	_joint = new dJointID[_dof];
+	_motor = new struct motor_s[_dof];
+	_rec_active = new bool[_dof];
+	_rec_angles = new double ** [_dof];
+	_rec_num = new int[_dof];
+	_recording = new bool[_dof];
 
 	// fill with default data
-	for (int i = 0, j = 0; i < NUM_DOF; i++) {
+	for (int i = 0, j = 0; i < _dof; i++) {
 		_motor[i].accel.init = 0;
 		_motor[i].accel.run = 0;
 		_motor[i].accel.period = 0;

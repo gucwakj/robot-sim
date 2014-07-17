@@ -58,6 +58,17 @@ class DLLIMPORT CRobot {
 		dBodyID getBodyID(int body);
 		double getCenter(int i);
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);
+		dBodyID getConnectorBodyID(int face);
+		dBodyID getConnectorBodyIDs(int num);
+		int getRobotID(void);
+		dJointID getMotorID(int motor);
+		double getPosition(int body, int i);
+		double getRotation(int body, int i);
+		bool getSuccess(int i);
+		int getType(void);
+		int isShiftEnabled(void);
+		int setID(int id);
+		bool isHome(void);
 
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int build(xml_robot_t robot) = 0;
@@ -75,19 +86,8 @@ class DLLIMPORT CRobot {
 		virtual int build_tank(conn_t conn, int face, int side = -1, int type = -1) = 0;
 		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1) = 0;
 		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1) = 0;
-		virtual bool getSuccess(int i) = 0;
-		virtual int getType(void) = 0;
-		virtual dBodyID getConnectorBodyID(int face) = 0;
-		virtual dBodyID getConnectorBodyIDs(int num) = 0;
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
 		virtual int getConnectorParams(int type, int side, dMatrix3 R, double *p) = 0;
-		virtual int getRobotID(void) = 0;
-		virtual dJointID getMotorID(int motor) = 0;
-		virtual double getPosition(int body, int i) = 0;
-		virtual double getRotation(int body, int i) = 0;
-		virtual bool isHome(void) = 0;
-		virtual int isShiftEnabled(void) = 0;
-		virtual int setID(int id) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;
 
@@ -183,6 +183,7 @@ class DLLIMPORT CRobot {
 				_bridge_length, _cubic_length, _omni_length, _tinywheel_radius;
 		int _connected;			// connected to controller
 		int _disabled;			// which joint is disabled
+		int _dof;				// number of DOF
 		int *_enabled;			// list of enabled motors
 		int _id;				// robot id
 		int *_rec_num;			// recording data points

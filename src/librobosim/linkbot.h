@@ -7,8 +7,6 @@
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
 
-#define NUM_DOF 3
-
 class DLLIMPORT CLinkbotT : virtual public CRobot {
 	public:
 		CLinkbotT(int disabled = -1, int type = LINKBOTT);
@@ -178,17 +176,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
 		virtual int getConnectorParams(int type, int side, dMatrix3 R, double *p);
-		virtual dBodyID getConnectorBodyID(int face);
-		virtual dBodyID getConnectorBodyIDs(int num);
-		virtual int getRobotID(void);
-		virtual dJointID getMotorID(int id);
-		virtual double getPosition(int body, int i);
-		virtual double getRotation(int body, int i);
-		virtual bool getSuccess(int i);
-		virtual int getType(void);
-		virtual bool isHome(void);
-		virtual int isShiftEnabled(void);
-		virtual int setID(int id);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
 
