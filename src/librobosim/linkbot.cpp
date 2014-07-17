@@ -3091,18 +3091,6 @@ int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int typ
 	return 0;
 }
 
-double CLinkbotT::getAngle(int i) {
-	if (i != _disabled)
-		_motor[i].theta = mod_angle(_motor[i].theta, dJointGetHingeAngle(_joint[i]), dJointGetHingeAngleRate(_joint[i])) - _motor[i].offset;
-	else
-		_motor[i].theta = 0;
-
-	// add noise to angle
-	//this->noisy(&(_motor[i].theta), 1, 0.0005);
-
-    return _motor[i].theta;
-}
-
 int CLinkbotT::getConnectionParams(int face, dMatrix3 R, double *p) {
 	double offset[3] = {0};
 	const double *pos = dBodyGetPosition(_body[face]);
@@ -4166,62 +4154,6 @@ int CLinkbotT::init_dims(void) {
 
 	// success
 	return 0;
-}
-
-double CLinkbotT::mod_angle(double past_ang, double cur_ang, double ang_rate) {
-    double new_ang = 0;
-    int stp = (int)( fabs(past_ang) / M_PI );
-    double past_ang_mod = fabs(past_ang) - stp*M_PI;
-
-    if ( (int)(ang_rate*1000) == 0 ) {
-        new_ang = past_ang;
-    }
-    // positive angular velocity, positive angle
-    else if ( ang_rate > 0 && past_ang >= 0 ) {
-        // cross 180
-        if ( cur_ang < 0 && !(stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + 2*M_PI); }
-        // negative
-        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
-        // cross 0
-        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
-        // positive
-        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
-    }
-    // positive angular velocity, negative angle
-    else if ( ang_rate > 0 && past_ang < 0 ) {
-        // cross 180
-        if ( cur_ang < 0 && (stp % 2) ) {   new_ang = past_ang + (cur_ang + past_ang_mod + M_PI);   }
-        // negative
-        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
-        // cross 0
-        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
-        // positive
-        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
-    }
-    // negative angular velocity, positive angle
-    else if ( ang_rate < 0 && past_ang >= 0 ) {
-        // cross 180
-        if ( cur_ang > 0 && (stp % 2) ) {   new_ang = past_ang + (cur_ang - past_ang_mod - M_PI);   }
-        // negative
-        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
-        // cross 0
-        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
-        // positive
-        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
-    }
-    // negative angular velocity, negative angle
-    else if ( ang_rate < 0 && past_ang < 0 ) {
-        // cross 180
-        if ( cur_ang > 0 && !(stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - 2*M_PI); }
-        // negative
-        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
-        // cross 0
-        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
-        // positive
-        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
-    }
-
-    return new_ang;
 }
 
 #ifdef ENABLE_GRAPHICS

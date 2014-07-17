@@ -177,7 +177,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		virtual int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1);
 		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);
 		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);
-		virtual double getAngle(int i);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
 		virtual int getConnectorParams(int type, int side, dMatrix3 R, double *p);
 		virtual dBodyID getConnectorBodyID(int face);
@@ -204,7 +203,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int fix_connector_to_body(int face, dBodyID cBody);
 		int init_params(void);
 		int init_dims(void);
-		double mod_angle(double past_ang, double cur_ang, double ang_rate);
 		static void* drivexyThread(void *arg);
 		static void* drivexyToThread(void *arg);
 		static void* motionArchThread(void *arg);

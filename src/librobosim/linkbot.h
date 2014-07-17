@@ -176,7 +176,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual int build_tank(conn_t conn, int face, int side = -1, int type = -1);
 		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);
 		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);
-		virtual double getAngle(int i);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
 		virtual int getConnectorParams(int type, int side, dMatrix3 R, double *p);
 		virtual dBodyID getConnectorBodyID(int face);
@@ -206,7 +205,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int get_body_params(double angle, int face, double rotation, dMatrix3 R, double *p);// get parameters for attaching robot
 		int init_params(int disabled, int type);											// initialize robot parameters
 		int init_dims(void);																// initialize robot dimensions
-		double mod_angle(double past_ang, double cur_ang, double ang_rate);					// modify angle to count continuously
 		static void* closeGripperNBThread(void *arg);										// thread to close gripper
 		static void* driveTimeNBThread(void *arg);											// thread to drive robot
 		static void* drivexyThread(void *arg);												// thread to run drivexy
