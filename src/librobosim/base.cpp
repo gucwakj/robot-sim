@@ -211,7 +211,7 @@ double CRobot::getAngularRate(int id) {
 }
 
 dBodyID CRobot::getBodyID(int id) {
-    return _body[id];
+	return _body[id];
 }
 
 double CRobot::getCenter(int i) {

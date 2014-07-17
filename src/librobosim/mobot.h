@@ -162,6 +162,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		// private functions inherited from CRobot class
 		virtual int build(xml_robot_t robot);
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn);
+		virtual int build_individual(double x, double y, double z, dMatrix3 R, double *rot);
 		virtual int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1);
 		virtual int build_bridge(conn_t conn, int face, int side = -1, int type = -1);
 		virtual int build_caster(conn_t conn, int face, int side = -1, int type = -1);
@@ -176,19 +177,18 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);
 		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
+		virtual int init_params(int disabled, int type);
+		virtual int init_dims(void);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
 
 		// private functions
-		int build_individual(double x, double y, double z, dMatrix3 R, double r_le, double r_lb, double r_rb, double r_re);
 		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);
 		int build_body(int id, double x, double y, double z, dMatrix3 R, double theta);
 		int build_center(double x, double y, double z, dMatrix3 R);
 		int build_endcap(int id, double x, double y, double z, dMatrix3 R);
 		int fix_body_to_connector(dBodyID cBody, int face);
 		int fix_connector_to_body(int face, dBodyID cBody);
-		int init_params(void);
-		int init_dims(void);
 		static void* drivexyThread(void *arg);
 		static void* drivexyToThread(void *arg);
 		static void* motionArchThread(void *arg);

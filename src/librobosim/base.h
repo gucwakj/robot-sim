@@ -74,6 +74,7 @@ class DLLIMPORT CRobot {
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int build(xml_robot_t robot) = 0;
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn) = 0;
+		virtual int build_individual(double x, double y, double z, dMatrix3 R, double *rot) = 0;
 		virtual int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1) = 0;
 		virtual int build_bridge(conn_t conn, int face, int side = -1, int type = -1) = 0;
 		virtual int build_caster(conn_t conn, int face, int side = -1, int type = -1) = 0;
@@ -88,6 +89,8 @@ class DLLIMPORT CRobot {
 		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1) = 0;
 		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1) = 0;
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
+		virtual int init_params(int disabled, int type) = 0;
+		virtual int init_dims(void) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;
 

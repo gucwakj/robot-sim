@@ -2425,7 +2425,8 @@ int CLinkbotT::build(xml_robot_t robot) {
 	}
 
 	// build robot
-	this->build_individual(robot->x, robot->y, robot->z, R, robot->angle1, robot->angle2, robot->angle3);
+	double rot[3] = {robot->angle1, robot->angle2, robot->angle3};
+	this->build_individual(robot->x, robot->y, robot->z, R, rot);
 
 	// add connectors
 	ctmp = robot->conn;
@@ -3133,6 +3134,91 @@ int CLinkbotT::getConnectionParams(int face, dMatrix3 R, double *p) {
 	return 0;
 }
 
+int CLinkbotT::init_params(int disabled, int type) {
+	_dof = 3;
+
+	// create arrays for linkbots
+	_body = new dBodyID[NUM_PARTS];
+	_enabled = new int[(disabled == -1) ? 3 : 2];
+	_geom = new dGeomID * [NUM_PARTS];
+	_joint = new dJointID[_dof];
+	_motor = new struct motor_s[_dof];
+	_rec_active = new bool[_dof];
+	_rec_angles = new double ** [_dof];
+	_rec_num = new int[_dof];
+	_recording = new bool[_dof];
+
+	// fill with default data
+	for (int i = 0, j = 0; i < _dof; i++) {
+		_motor[i].accel.init = 0;
+		_motor[i].accel.run = 0;
+		_motor[i].accel.period = 0;
+		_motor[i].accel.start = 0;
+		_motor[i].alpha = 0;
+		_motor[i].encoder = DEG2RAD(0.25);
+		_motor[i].goal = 0;
+		_motor[i].mode = SEEK;
+		_motor[i].offset = 0;
+		_motor[i].omega = 0.7854;			//  45 deg/sec
+		_motor[i].omega_max = 4.1888;		// 240 deg/sec
+		_motor[i].safety_angle = 10;
+		_motor[i].safety_timeout = 4;
+		_motor[i].starting = 0;
+		_motor[i].state = NEUTRAL;
+		_motor[i].stopping = 0;
+		_motor[i].success = true;
+		_motor[i].tau_max = 2;
+		_motor[i].timeout = 0;
+		_motor[i].theta = 0;
+		MUTEX_INIT(&_motor[i].success_mutex);
+		COND_INIT(&_motor[i].success_cond);
+		if (i != disabled) { _enabled[j++] = i; }
+		_rec_active[i] = false;
+		_rec_num[i] = 0;
+		_recording[i] = false;
+	}
+	_conn = NULL;
+	_connected = 0;
+	_disabled = disabled;
+	_distOffset = 0;
+	_id = -1;
+	_motion = false;
+	_rgb[0] = 0;
+	_rgb[1] = 0;
+	_rgb[2] = 1;
+	_shift_data = 0;
+	_g_shift_data = 0;
+	_g_shift_data_en = 0;
+	_trace = 1;
+	_type = type;
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::init_dims(void) {
+	_body_length = 0.03935;
+	_body_width = 0.07835;
+	_body_height = 0.07250;
+	_body_radius = 0.03625;
+	_face_depth = 0.00200;
+	_face_radius = 0.03060;
+	_connector_depth = 0.00380;
+	_connector_height = 0.03715;
+	_bigwheel_radius = 0.05080;
+	_bridge_length = 0.14025;
+	_cubic_length = 0.07115;
+	_omni_length = 0.17360;
+	_radius = _body_height/2;
+	_smallwheel_radius = 0.04445;
+	_tinywheel_radius = 0.04128;
+	_wheel_depth = 0.00140;
+	_wheel_radius = 0.04445;
+
+	// success
+	return 0;
+}
+
 void CLinkbotT::simPreCollisionThread(void) {
 	// lock angle and goal
 	MUTEX_LOCK(&_goal_mutex);
@@ -3594,7 +3680,7 @@ int CLinkbotT::add_daisy_chain(int conn, int face, double size, int side, int ty
 	return 0;
 }
 
-int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double r_f1, double r_f2, double r_f3) {
+int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double *rot) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
 	_geom[BODY] = new dGeomID[2];
@@ -3606,9 +3692,9 @@ int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double
 	if (fabs(z) < (_body_radius-EPSILON)) {z += _body_height/2; }
 
     // convert input angles to radians
-    _motor[JOINT1].theta = DEG2RAD(r_f1);
-    _motor[JOINT2].theta = DEG2RAD(r_f2);
-    _motor[JOINT3].theta = DEG2RAD(r_f3);
+    _motor[JOINT1].theta = DEG2RAD(rot[JOINT1]);
+    _motor[JOINT2].theta = DEG2RAD(rot[JOINT2]);
+    _motor[JOINT3].theta = DEG2RAD(rot[JOINT3]);
 
 	// set goal to current angle
 	_motor[JOINT1].goal = _motor[JOINT1].theta;
@@ -3757,7 +3843,8 @@ int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn) 
 	this->get_body_params(robot->psi, conn->face2, angle, R, m);
 
     // build new module
-	this->build_individual(m[0], m[1], m[2], R, robot->angle1, robot->angle2, robot->angle3);
+	double rot[3] = {robot->angle1, robot->angle2, robot->angle3};
+	this->build_individual(m[0], m[1], m[2], R, rot);
 
     // add fixed joint to attach two modules
 	this->fix_body_to_connector(base->getConnectorBodyID(conn->face1), conn->face2);
@@ -3935,91 +4022,6 @@ int CLinkbotT::get_body_params(double angle, int face, double rotation, dMatrix3
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
 	dMultiply0(R, R5, R4, 3, 3, 3);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::init_params(int disabled, int type) {
-	_dof = 3;
-
-	// create arrays for linkbots
-	_body = new dBodyID[NUM_PARTS];
-	_enabled = new int[(disabled == -1) ? 3 : 2];
-	_geom = new dGeomID * [NUM_PARTS];
-	_joint = new dJointID[_dof];
-	_motor = new struct motor_s[_dof];
-	_rec_active = new bool[_dof];
-	_rec_angles = new double ** [_dof];
-	_rec_num = new int[_dof];
-	_recording = new bool[_dof];
-
-	// fill with default data
-	for (int i = 0, j = 0; i < _dof; i++) {
-		_motor[i].accel.init = 0;
-		_motor[i].accel.run = 0;
-		_motor[i].accel.period = 0;
-		_motor[i].accel.start = 0;
-		_motor[i].alpha = 0;
-		_motor[i].encoder = DEG2RAD(0.25);
-		_motor[i].goal = 0;
-		_motor[i].mode = SEEK;
-		_motor[i].offset = 0;
-		_motor[i].omega = 0.7854;			//  45 deg/sec
-		_motor[i].omega_max = 4.1888;		// 240 deg/sec
-		_motor[i].safety_angle = 10;
-		_motor[i].safety_timeout = 4;
-		_motor[i].starting = 0;
-		_motor[i].state = NEUTRAL;
-		_motor[i].stopping = 0;
-		_motor[i].success = true;
-		_motor[i].tau_max = 2;
-		_motor[i].timeout = 0;
-		_motor[i].theta = 0;
-		MUTEX_INIT(&_motor[i].success_mutex);
-		COND_INIT(&_motor[i].success_cond);
-		if (i != disabled) { _enabled[j++] = i; }
-		_rec_active[i] = false;
-		_rec_num[i] = 0;
-		_recording[i] = false;
-	}
-	_conn = NULL;
-	_connected = 0;
-	_disabled = disabled;
-	_distOffset = 0;
-	_id = -1;
-	_motion = false;
-	_rgb[0] = 0;
-	_rgb[1] = 0;
-	_rgb[2] = 1;
-	_shift_data = 0;
-	_g_shift_data = 0;
-	_g_shift_data_en = 0;
-	_trace = 1;
-	_type = type;
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::init_dims(void) {
-	_body_length = 0.03935;
-	_body_width = 0.07835;
-	_body_height = 0.07250;
-	_body_radius = 0.03625;
-	_face_depth = 0.00200;
-	_face_radius = 0.03060;
-	_connector_depth = 0.00380;
-	_connector_height = 0.03715;
-	_bigwheel_radius = 0.05080;
-	_bridge_length = 0.14025;
-	_cubic_length = 0.07115;
-	_omni_length = 0.17360;
-	_radius = _body_height/2;
-	_smallwheel_radius = 0.04445;
-	_tinywheel_radius = 0.04128;
-	_wheel_depth = 0.00140;
-	_wheel_radius = 0.04445;
 
 	// success
 	return 0;

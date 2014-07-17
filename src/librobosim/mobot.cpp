@@ -2,7 +2,7 @@
 
 CMobot::CMobot(void) {
 	// initialize parameters
-	init_params();
+	init_params(0, MOBOT);
 
 	// initialize dimensions
 	init_dims();
@@ -2414,7 +2414,8 @@ int CMobot::build(xml_robot_t robot) {
 	}
 
 	// build robot
-	this->build_individual(robot->x, robot->y, robot->z, R, robot->angle1, robot->angle2, robot->angle3, robot->angle4);
+	double rot[4] = {robot->angle1, robot->angle2, robot->angle3, robot->angle4};
+	this->build_individual(robot->x, robot->y, robot->z, R, rot);
 
 	// add connectors
 	ctmp = robot->conn;
@@ -3023,6 +3024,94 @@ int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
 	return 0;
 }
 
+int CMobot::init_params(int disabled, int type) {
+	_dof = 4;
+
+	// create arrays for mobots
+	_body = new dBodyID[NUM_PARTS];
+	_enabled = new int[2];
+	_geom = new dGeomID * [NUM_PARTS];
+	_joint = new dJointID[6];
+	_motor = new struct motor_s[_dof];
+	_rec_active = new bool[_dof];
+	_rec_angles = new double ** [_dof];
+	_rec_num = new int[_dof];
+	_recording = new bool[_dof];
+
+	// fill with default data
+	for (int i = 0; i < _dof; i++) {
+		_motor[i].alpha = 0;
+		_motor[i].encoder = DEG2RAD(0.1);
+		_motor[i].goal = 0;
+		_motor[i].mode = SEEK;
+		_motor[i].offset = 0;
+		_motor[i].omega = 0.7854;			//  45 deg/sec
+		_motor[i].omega_max = 2.0943;		// 120 deg/sec
+		_motor[i].safety_angle = 10;
+		_motor[i].safety_timeout = 4;
+		_motor[i].state = NEUTRAL;
+		_motor[i].success = true;
+		_motor[i].theta = 0;
+		_motor[i].timeout = 0;
+		MUTEX_INIT(&_motor[i].success_mutex);
+		COND_INIT(&_motor[i].success_cond);
+		_rec_active[i] = false;
+		_rec_num[i] = 0;
+		_recording[i] = false;
+	}
+	_conn = NULL;
+	_disabled = disabled;
+	_distOffset = 0;
+	_id = -1;
+	_motor[JOINT1].tau_max = 0.260;
+	_motor[JOINT2].tau_max = 1.059;
+	_motor[JOINT3].tau_max = 1.059;
+	_motor[JOINT4].tau_max = 0.260;
+	_motion = false;
+	_rgb[0] = 0;
+	_rgb[1] = 0;
+	_rgb[2] = 1;
+	_shift_data = 0;
+	_g_shift_data = 0;
+	_g_shift_data_en = 0;
+	_trace = 1;
+	_type = type;
+
+	// success
+	return 0;
+}
+
+int CMobot::init_dims(void) {
+	_center_length = 0.0516;
+	_center_width = 0.0327;
+	_center_height = 0.0508;
+	_center_radius = 0.0254;
+	_center_offset = 0.0149;
+	_body_length = 0.0258;
+	_body_width = 0.0762;
+	_body_height = 0.0508;
+	_body_radius = 0.0254;
+	_body_inner_width_left = 0.0366;
+	_body_inner_width_right = 0.0069;
+	_body_end_depth = 0.0352;
+	_body_mount_center = 0.0374;
+	_end_width = 0.0762;
+	_end_height = 0.0762;
+	_end_depth = 0.0080;
+	_end_radius = 0.0254;
+	_connector_depth = 0.0048;
+	_connector_height = 0.0413;
+	_connector_radius = 0.0064;
+	_bigwheel_radius = 0.0571;
+	_smallwheel_radius = 0.0445;
+	_tank_depth = 0.0413;
+	_tank_height = 0.0460;
+	_wheel_radius = 0.0445;
+
+	// success
+	return 0;
+}
+
 void CMobot::simPreCollisionThread(void) {
 	// lock angle and goal
 	MUTEX_LOCK(&_goal_mutex);
@@ -3388,7 +3477,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 /**********************************************************
 	private functions
  **********************************************************/
-int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_le, double r_lb, double r_rb, double r_re) {
+int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double *rot) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
 	_geom[ENDCAP_L] = new dGeomID[7];
@@ -3405,10 +3494,10 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 	}
 
 	// convert input angles to radians
-	_motor[JOINT1].theta = DEG2RAD(r_le);       // left end
-	_motor[JOINT2].theta = DEG2RAD(r_lb);       // left body
-	_motor[JOINT3].theta = DEG2RAD(r_rb);       // right body
-	_motor[JOINT4].theta = DEG2RAD(r_re);       // right end
+	_motor[JOINT1].theta = DEG2RAD(rot[JOINT1]);	// left end
+	_motor[JOINT2].theta = DEG2RAD(rot[JOINT4]);	// left body
+	_motor[JOINT3].theta = DEG2RAD(rot[JOINT4]);	// right body
+	_motor[JOINT4].theta = DEG2RAD(rot[JOINT4]);	// right end
 
 	// offset values for each body part[0-2] and joint[3-5] from center
 	double le[6] = {-_body_radius - _body_length - _body_end_depth - _end_depth/2, 0, 0, -_body_radius/2 - _body_length - _body_end_depth, 0, 0};
@@ -3497,8 +3586,8 @@ int CMobot::build_individual(double x, double y, double z, dMatrix3 R, double r_
 		double re_r[3] = {_body_radius + (_body_length + _body_end_depth + _end_depth/2)*cos(_motor[JOINT3].theta), 0, (_body_length + _body_end_depth + _end_depth/2)*sin(_motor[JOINT3].theta)};
 		// re-build pieces of module
 		this->build_endcap(ENDCAP_L, R[0]*le_r[0] + R[2]*le_r[2] + x, R[4]*le_r[0] + R[6]*le_r[2] + y, R[8]*le_r[0] + R[10]*le_r[2] + z, R_le);
-		this->build_body(BODY_L, R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, r_lb);
-		this->build_body(BODY_R, R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, r_rb);
+		this->build_body(BODY_L, R[0]*lb_r[0] + R[2]*lb_r[2] + x, R[4]*lb_r[0] + R[6]*lb_r[2] + y, R[8]*lb_r[0] + R[10]*lb_r[2] + z, R_lb, rot[JOINT2]);
+		this->build_body(BODY_R, R[0]*rb_r[0] + R[2]*rb_r[2] + x, R[4]*rb_r[0] + R[6]*rb_r[2] + y, R[8]*rb_r[0] + R[10]*rb_r[2] + z, R_rb, rot[JOINT3]);
 		this->build_endcap(ENDCAP_R, R[0]*re_r[0] + R[2]*re_r[2] + x, R[4]*re_r[0] + R[6]*re_r[2] + y, R[8]*re_r[0] + R[10]*re_r[2] + z, R_re);
 	}
 
@@ -3638,7 +3727,8 @@ int CMobot::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 	m[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
 
     // build new module
-	this->build_individual(m[0], m[1], m[2], R6, r_le, r_lb, r_rb, r_re);
+	double rot[4] = {r_le, r_lb, r_rb, r_re};
+	this->build_individual(m[0], m[1], m[2], R6, rot);
 
     // add fixed joint to attach two modules
 	this->fix_body_to_connector(base->getConnectorBodyID(conn->face1), conn->face2);
@@ -3890,91 +3980,6 @@ int CMobot::fix_connector_to_body(int face, dBodyID cBody) {
 
 	// set joint params
 	dJointSetFixed(joint);
-
-	// success
-	return 0;
-}
-
-int CMobot::init_params(void) {
-	// create arrays for mobots
-	_body = new dBodyID[NUM_PARTS];
-	_enabled = new int[2];
-	_geom = new dGeomID * [NUM_PARTS];
-	_joint = new dJointID[6];
-	_motor = new struct motor_s[_dof];
-	_rec_active = new bool[_dof];
-	_rec_angles = new double ** [_dof];
-	_rec_num = new int[_dof];
-	_recording = new bool[_dof];
-
-	// fill with default data
-	for (int i = 0; i < _dof; i++) {
-		_motor[i].alpha = 0;
-		_motor[i].encoder = DEG2RAD(0.1);
-		_motor[i].goal = 0;
-		_motor[i].mode = SEEK;
-		_motor[i].offset = 0;
-		_motor[i].omega = 0.7854;			//  45 deg/sec
-		_motor[i].omega_max = 2.0943;		// 120 deg/sec
-		_motor[i].safety_angle = 10;
-		_motor[i].safety_timeout = 4;
-		_motor[i].state = NEUTRAL;
-		_motor[i].success = true;
-		_motor[i].theta = 0;
-		_motor[i].timeout = 0;
-		MUTEX_INIT(&_motor[i].success_mutex);
-		COND_INIT(&_motor[i].success_cond);
-		_rec_active[i] = false;
-		_rec_num[i] = 0;
-		_recording[i] = false;
-	}
-	_conn = NULL;
-	_distOffset = 0;
-	_id = -1;
-	_motor[JOINT1].tau_max = 0.260;
-	_motor[JOINT2].tau_max = 1.059;
-	_motor[JOINT3].tau_max = 1.059;
-	_motor[JOINT4].tau_max = 0.260;
-	_motion = false;
-	_rgb[0] = 0;
-	_rgb[1] = 0;
-	_rgb[2] = 1;
-	_shift_data = 0;
-	_g_shift_data = 0;
-	_g_shift_data_en = 0;
-	_trace = 1;
-	_type = MOBOT;
-
-	// success
-	return 0;
-}
-
-int CMobot::init_dims(void) {
-	_center_length = 0.0516;
-	_center_width = 0.0327;
-	_center_height = 0.0508;
-	_center_radius = 0.0254;
-	_center_offset = 0.0149;
-	_body_length = 0.0258;
-	_body_width = 0.0762;
-	_body_height = 0.0508;
-	_body_radius = 0.0254;
-	_body_inner_width_left = 0.0366;
-	_body_inner_width_right = 0.0069;
-	_body_end_depth = 0.0352;
-	_body_mount_center = 0.0374;
-	_end_width = 0.0762;
-	_end_height = 0.0762;
-	_end_depth = 0.0080;
-	_end_radius = 0.0254;
-	_connector_depth = 0.0048;
-	_connector_height = 0.0413;
-	_connector_radius = 0.0064;
-	_bigwheel_radius = 0.0571;
-	_smallwheel_radius = 0.0445;
-	_tank_depth = 0.0413;
-	_tank_height = 0.0460;
-	_wheel_radius = 0.0445;
 
 	// success
 	return 0;

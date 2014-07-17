@@ -161,6 +161,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		// private functions inherited from CRobot class
 		virtual int build(xml_robot_t robot);
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn);
+		virtual int build_individual(double x, double y, double z, dMatrix3 R, double *rot);
 		virtual int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1);
 		virtual int build_bridge(conn_t conn, int face, int side = -1, int type = -1);
 		virtual int build_caster(conn_t conn, int face, int side = -1, int type = -1);
@@ -177,11 +178,11 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
 		virtual void simPreCollisionThread(void);
 		virtual void simPostCollisionThread(void);
+		virtual int init_params(int disabled, int type);
+		virtual int init_dims(void);
 
 		// private functions
 		int add_daisy_chain(int conn, int side, double size, int face, int type);			// add daisy chained connector
-		int build_individual(double x, double y, double z, dMatrix3 R,						// build individual robot
-							 double r_f1, double r_f2, double r_f3);
 		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);				// build rotated and attached robot
 		int build_body(double x, double y, double z, dMatrix3 R, double theta);				// build body of mobot
 		int build_face(int id, double x, double y, double z, dMatrix3 R, double theta);		// build face of mobot
@@ -189,8 +190,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int fix_body_to_ground(dBodyID cbody);												// fix body to ground
 		int fix_connector_to_body(dBodyID rBody, dBodyID cBody);							// fix connector to robot body
 		int get_body_params(double angle, int face, double rotation, dMatrix3 R, double *p);// get parameters for attaching robot
-		int init_params(int disabled, int type);											// initialize robot parameters
-		int init_dims(void);																// initialize robot dimensions
 		static void* closeGripperNBThread(void *arg);										// thread to close gripper
 		static void* driveTimeNBThread(void *arg);											// thread to drive robot
 		static void* drivexyThread(void *arg);												// thread to run drivexy
