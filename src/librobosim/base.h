@@ -51,11 +51,25 @@ class DLLIMPORT CRobot {
 		double uniform(void);
 		int noisy(double *a, int length, double sigma);
 		void doze(double ms);
+		int addConnector(int type, int face, double size);
 
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int addToSim(dWorldID &world, dSpaceID &space) = 0;
 		virtual int build(xml_robot_t robot) = 0;
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn) = 0;
+		virtual int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1) = 0;
+		virtual int build_bridge(conn_t conn, int face, int side = -1, int type = -1) = 0;
+		virtual int build_caster(conn_t conn, int face, int side = -1, int type = -1) = 0;
+		virtual int build_cube(conn_t conn, int face, int side = -1, int type = -1) = 0;
+		virtual int build_faceplate(conn_t conn, int face, int side = -1, int type = -1) = 0;
+		virtual int build_gripper(conn_t conn, int face) = 0;
+		virtual int build_omnidrive(conn_t conn, int face, int side = -1, int type = -1) = 0;
+		virtual int build_simple(conn_t conn, int face, int side = -1, int type = -1) = 0;
+		virtual int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1) = 0;
+		virtual int build_square(conn_t conn, int face, int side = -1, int type = -1) = 0;
+		virtual int build_tank(conn_t conn, int face, int side = -1, int type = -1) = 0;
+		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1) = 0;
+		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1) = 0;
 		virtual bool getSuccess(int i) = 0;
 		virtual int getType(void) = 0;
 		virtual dBodyID getBodyID(int body) = 0;

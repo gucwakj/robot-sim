@@ -164,6 +164,19 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual int addToSim(dWorldID &world, dSpaceID &space);
 		virtual int build(xml_robot_t robot);
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn);
+		virtual int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1);
+		virtual int build_bridge(conn_t conn, int face, int side = -1, int type = -1);
+		virtual int build_caster(conn_t conn, int face, int side = -1, int type = -1);
+		virtual int build_cube(conn_t conn, int face, int side = -1, int type = -1);
+		virtual int build_faceplate(conn_t conn, int face, int side = -1, int type = -1);
+		virtual int build_gripper(conn_t conn, int face);
+		virtual int build_omnidrive(conn_t conn, int face, int side = -1, int type = -1);
+		virtual int build_simple(conn_t conn, int face, int side = -1, int type = -1);
+		virtual int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1);
+		virtual int build_square(conn_t conn, int face, int side = -1, int type = -1);
+		virtual int build_tank(conn_t conn, int face, int side = -1, int type = -1);
+		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);
+		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);
 		virtual double getAngle(int i);
 		virtual double getAngularRate(int i);
 		virtual dBodyID getBodyID(int id);
@@ -185,24 +198,12 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual void simPostCollisionThread(void);
 
 		// private functions
-		int add_connector(int type, int face, double size);									// add connector to robot
 		int add_daisy_chain(int conn, int side, double size, int face, int type);			// add daisy chained connector
 		int build_individual(double x, double y, double z, dMatrix3 R,						// build individual robot
 							 double r_f1, double r_f2, double r_f3);
 		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);				// build rotated and attached robot
 		int build_body(double x, double y, double z, dMatrix3 R, double theta);				// build body of mobot
 		int build_face(int id, double x, double y, double z, dMatrix3 R, double theta);		// build face of mobot
-		int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1);			// build big wheel
-		int build_bridge(conn_t conn, int face, int side = -1, int type = -1);				// build bridge
-		int build_caster(conn_t conn, int face, int side = -1, int type = -1);				// build caster
-		int build_cube(conn_t conn, int face, int side = -1, int type = -1);				// build cube
-		int build_faceplate(conn_t conn, int face, int side = -1, int type = -1);			// build faceplate connector
-		int build_gripper(conn_t conn, int face);											// build gripper
-		int build_omnidrive(conn_t conn, int face, int side = -1, int type = -1);			// build omnidrive plate
-		int build_simple(conn_t conn, int face, int side = -1, int type = -1);				// build simple connector
-		int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1);			// build small wheel
-		int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);			// build tiny wheel
-		int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);	// build tiny wheel
 		int fix_body_to_connector(dBodyID cBody, int face);									// fix second body to connector
 		int fix_body_to_ground(dBodyID cbody);												// fix body to ground
 		int fix_connector_to_body(dBodyID rBody, dBodyID cBody);							// fix connector to robot body
