@@ -2428,6 +2428,18 @@ int CLinkbotT::build(xml_robot_t robot) {
 	double rot[3] = {robot->angle1, robot->angle2, robot->angle3};
 	this->buildIndividual(robot->x, robot->y, robot->z, R, rot);
 
+	// add connectors
+	ctmp = robot->conn;
+	while (ctmp) {
+		if (ctmp->robot == _id) {
+			if (ctmp->conn == -1 )
+				this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
+			else
+				this->add_connector_daisy(ctmp->conn, ctmp->face1, ctmp->size, ctmp->side, ctmp->type);
+		}
+		ctmp = ctmp->next;
+	}
+
 	// set trackwidth
 	double wheel[4] = {0};
 	const double *pos;
@@ -2450,20 +2462,8 @@ int CLinkbotT::build(xml_robot_t robot) {
 	}
 	_trackwidth = sqrt(pow(wheel[0] - wheel[2], 2) + pow(wheel[1] - wheel[3], 2));
 
-	// add connectors
-	ctmp = robot->conn;
-	while (ctmp) {
-		if (ctmp->robot == _id) {
-			if (ctmp->conn == -1 )
-				this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
-			else
-				this->add_connector_daisy(ctmp->conn, ctmp->face1, ctmp->size, ctmp->side, ctmp->type);
-		}
-		ctmp = ctmp->next;
-	}
-
 	// fix to ground
-	if (robot->ground != -1) this->fix_body_to_ground(_body[robot->ground]);
+	if (robot->ground != -1) this->fixBodyToGround(_body[robot->ground]);
 
 	// success
 	return 0;
@@ -2489,7 +2489,7 @@ int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 	}
 
 	// fix to ground
-	if (robot->ground != -1) this->fix_body_to_ground(_body[robot->ground]);
+	if (robot->ground != -1) this->fixBodyToGround(_body[robot->ground]);
 
 	// success
 	return 0;
@@ -4448,20 +4448,6 @@ int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
 
 	// attach to correct body
 	dJointAttach(joint, cBody, this->getBodyID(face));
-
-	// set joint params
-	dJointSetFixed(joint);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::fix_body_to_ground(dBodyID cbody) {
-	// fixed joint
-	dJointID joint = dJointCreateFixed(_world, 0);
-
-	// attach to correct body
-	dJointAttach(joint, 0, cbody);
 
 	// set joint params
 	dJointSetFixed(joint);

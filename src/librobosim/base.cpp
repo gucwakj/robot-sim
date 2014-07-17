@@ -167,6 +167,20 @@ int CRobot::doze(double ms) {
 	return 0;
 }
 
+int CRobot::fixBodyToGround(dBodyID cbody) {
+	// fixed joint
+	dJointID joint = dJointCreateFixed(_world, 0);
+
+	// attach to correct body
+	dJointAttach(joint, 0, cbody);
+
+	// set joint params
+	dJointSetFixed(joint);
+
+	// success
+	return 0;
+}
+
 int CRobot::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
 	double offset[3] = {0};
 	dMatrix3 R1, R2, R3, R4, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};

@@ -2447,6 +2447,9 @@ int CMobot::build(xml_robot_t robot) {
 	}
 	_trackwidth = sqrt(pow(wheel[0] - wheel[2], 2) + pow(wheel[1] - wheel[3], 2));
 
+	// fix to ground
+	if (robot->ground != -1) this->fixBodyToGround(_body[robot->ground]);
+
 	// success
 	return 0;
 }
@@ -2462,6 +2465,9 @@ int CMobot::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 			this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
 		ctmp = ctmp->next;
 	}
+
+	// fix to ground
+	if (robot->ground != -1) this->fixBodyToGround(_body[robot->ground]);
 
 	// success
 	return 0;
@@ -4297,20 +4303,6 @@ int CMobot::fix_body_to_connector(dBodyID cBody, int face) {
 			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_R));
 			break;
 	}
-
-	// set joint params
-	dJointSetFixed(joint);
-
-	// success
-	return 0;
-}
-
-int CMobot::fix_body_to_ground(dBodyID cbody) {
-	// fixed joint
-	dJointID joint = dJointCreateFixed(_world, 0);
-
-	// attach to correct body
-	dJointAttach(joint, 0, cbody);
 
 	// set joint params
 	dJointSetFixed(joint);

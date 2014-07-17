@@ -56,6 +56,7 @@ class DLLIMPORT CRobot {
 		double getUniform(void);
 		int addToSim(dWorldID &world, dSpaceID &space);
 		int doze(double ms);
+		int fixBodyToGround(dBodyID cbody);
 		int getConnectorParams(int type, int side, dMatrix3 R, double *p);
 		int getRobotID(void);
 		int getSuccess(int i);
