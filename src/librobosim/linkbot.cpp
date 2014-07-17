@@ -2379,14 +2379,6 @@ int CLinkbotT::turnRightNB(double angle, double radius, double trackwidth) {
 /**********************************************************
 	inherited functions
  **********************************************************/
-int CLinkbotT::addToSim(dWorldID &world, dSpaceID &space) {
-	_world = world;
-    _space = dHashSpaceCreate(space);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::build(xml_robot_t robot) {
 	// create rotation matrix
 	double   sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),

@@ -162,7 +162,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		};
 
 		// private functions inherited from CRobot class
-		virtual int addToSim(dWorldID &world, dSpaceID &space);
 		virtual int build(xml_robot_t robot);
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn);
 		virtual int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1);

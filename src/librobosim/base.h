@@ -52,9 +52,9 @@ class DLLIMPORT CRobot {
 		int noisy(double *a, int length, double sigma);
 		void doze(double ms);
 		int addConnector(int type, int face, double size);
+		int addToSim(dWorldID &world, dSpaceID &space);
 
 		// pure virtual functions to be overridden by inherited classes of each robot
-		virtual int addToSim(dWorldID &world, dSpaceID &space) = 0;
 		virtual int build(xml_robot_t robot) = 0;
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn) = 0;
 		virtual int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1) = 0;

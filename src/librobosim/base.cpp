@@ -197,3 +197,12 @@ int CRobot::addConnector(int type, int face, double size) {
 	// success
 	return 0;
 }
+
+int CRobot::addToSim(dWorldID &world, dSpaceID &space) {
+	_world = world;
+    _space = dHashSpaceCreate(space);
+
+	// success
+	return 0;
+}
+
