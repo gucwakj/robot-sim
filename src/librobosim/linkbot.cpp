@@ -2390,12 +2390,12 @@ int CLinkbotT::turnRightNB(double angle, double radius, double trackwidth) {
  **********************************************************/
 int CLinkbotT::build(xml_robot_t robot) {
 	// create rotation matrix
-	double   sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
+	double	sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
 			stheta = sin(DEG2RAD(robot->theta)),	ctheta = cos(DEG2RAD(robot->theta)),
 			spsi = sin(DEG2RAD(robot->psi)),		cpsi = cos(DEG2RAD(robot->psi));
-	dMatrix3 R = {cphi*ctheta, -cphi*stheta*spsi - sphi*cpsi, -cphi*stheta*cpsi + sphi*spsi, 0,
-				  sphi*ctheta, -sphi*stheta*spsi + cphi*cpsi, -sphi*stheta*cpsi - cphi*spsi, 0,
-				  stheta, ctheta*spsi, ctheta*cpsi, 0};
+	dMatrix3 R = {cphi*ctheta,	-cphi*stheta*spsi - sphi*cpsi,	-cphi*stheta*cpsi + sphi*spsi,	0,
+				  sphi*ctheta,	-sphi*stheta*spsi + cphi*cpsi,	-sphi*stheta*cpsi - cphi*spsi,	0,
+				  stheta,		ctheta*spsi,					ctheta*cpsi,					0};
 
 	// check for wheels
 	xml_conn_t ctmp = robot->conn;
@@ -2426,19 +2426,7 @@ int CLinkbotT::build(xml_robot_t robot) {
 
 	// build robot
 	double rot[3] = {robot->angle1, robot->angle2, robot->angle3};
-	this->build_individual(robot->x, robot->y, robot->z, R, rot);
-
-	// add connectors
-	ctmp = robot->conn;
-	while (ctmp) {
-		if (ctmp->robot == _id) {
-			if (ctmp->conn == -1 )
-				this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
-			else
-				this->add_daisy_chain(ctmp->conn, ctmp->face1, ctmp->size, ctmp->side, ctmp->type);
-		}
-		ctmp = ctmp->next;
-	}
+	this->buildIndividual(robot->x, robot->y, robot->z, R, rot);
 
 	// set trackwidth
 	double wheel[4] = {0};
@@ -2462,6 +2450,18 @@ int CLinkbotT::build(xml_robot_t robot) {
 	}
 	_trackwidth = sqrt(pow(wheel[0] - wheel[2], 2) + pow(wheel[1] - wheel[3], 2));
 
+	// add connectors
+	ctmp = robot->conn;
+	while (ctmp) {
+		if (ctmp->robot == _id) {
+			if (ctmp->conn == -1 )
+				this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
+			else
+				this->add_connector_daisy(ctmp->conn, ctmp->face1, ctmp->size, ctmp->side, ctmp->type);
+		}
+		ctmp = ctmp->next;
+	}
+
 	// fix to ground
 	if (robot->ground != -1) this->fix_body_to_ground(_body[robot->ground]);
 
@@ -2478,9 +2478,9 @@ int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 	while (ctmp) {
 		if (ctmp->robot == _id) {
 			if (ctmp->conn == -1)
-				this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
+				this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
 			else
-				this->add_daisy_chain(ctmp->conn, ctmp->face1, ctmp->size, ctmp->side, ctmp->type);
+				this->add_connector_daisy(ctmp->conn, ctmp->face1, ctmp->size, ctmp->side, ctmp->type);
 		}
 		else if (ctmp->face2 != conn->face2) {
 			this->fix_connector_to_body(this->getBodyID(ctmp->face2), base->getConnectorBodyID(ctmp->face1));
@@ -2495,607 +2495,137 @@ int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 	return 0;
 }
 
-int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
-	// create body
-	conn->body = dBodyCreate(_world);
-	conn->geom = new dGeomID[1];
-
-	// define parameters
-	dMass m;
-	dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
-
-	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
-
-	// set mass of body
-	dMassSetCylinder(&m, 270, 1, 2*_bigwheel_radius, _wheel_depth);
-
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-	// set body parameters
-	dBodySetPosition(conn->body, p[0], p[1], p[2]);
-	dBodySetRotation(conn->body, R);
-	dBodySetFiniteRotationMode(conn->body, 1);
-
-	// rotation matrix for curves
-	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
-
-	// set geometry
-	conn->geom[0] = dCreateCylinder(_space, _bigwheel_radius, _wheel_depth);
-	dGeomSetBody(conn->geom[0], conn->body);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
-	dGeomSetOffsetRotation(conn->geom[0], R1);
-
-	// set mass center to (0,0,0) of _bodyID
-	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-	dBodySetMass(conn->body, &m);
-
-	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
-	// create body
-	conn->body = dBodyCreate(_world);
-	conn->geom = new dGeomID[1];
-
-	// define parameters
-	dMass m;
-	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_connector_depth/2, -_bridge_length/2 + _face_radius, 0};
-	if (face == 3) offset[1] = _bridge_length/2 - _face_radius;
-
-	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0] + R[1]*offset[1];
-	p[1] += R[4]*offset[0] + R[5]*offset[1];
-	p[2] += R[8]*offset[0] + R[9]*offset[1];
-
-	// set mass of body
-	dMassSetBox(&m, 270, _connector_depth, _bridge_length, _connector_height);
-
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-	// set body parameters
-	dBodySetPosition(conn->body, p[0], p[1], p[2]);
-	dBodySetRotation(conn->body, R);
-	dBodySetFiniteRotationMode(conn->body, 1);
-
-	// set geometry
-	conn->geom[0] = dCreateBox(_space, _connector_depth, _bridge_length, _connector_height);
-	dGeomSetBody(conn->geom[0], conn->body);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
-
-	// set mass center to (0,0,0) of _bodyID
-	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-	dBodySetMass(conn->body, &m);
-
-	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
-	// create body
-	conn->body = dBodyCreate(_world);
-	conn->geom = new dGeomID[4];
-
-	// define parameters
-	dMass m;
-	dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_connector_depth/2, 0, 0};
-
-	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
-
-	// set mass of body
-	dMassSetBox(&m, 1000, 2*_connector_depth, 1.5*_face_radius, _body_height);
-	dMassTranslate(&m, 8*_connector_depth, 0, -_body_height/2);
-
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-	// set body parameters
-	dBodySetPosition(conn->body, p[0], p[1], p[2]);
-	dBodySetRotation(conn->body, R);
-	dBodySetFiniteRotationMode(conn->body, 1);
-
-	// rotation matrix for curves
-	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
-
-	// set geometry 1 - box
-	conn->geom[0] = dCreateBox(_space, _connector_depth, 1.5*_face_radius, _body_height);
-	dGeomSetBody(conn->geom[0], conn->body);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
-
-	// set geometry 2 - horizontal support
-	conn->geom[1] = dCreateBox(_space, 0.02, 0.022, 0.0032);
-	dGeomSetBody(conn->geom[1], conn->body);
-	dGeomSetOffsetPosition(conn->geom[1], _connector_depth/2 + 0.01 - m.c[0], -m.c[1], -_body_height/2 + 0.0016 - m.c[2]);
-
-	// set geometry 3 - ball support
-	conn->geom[2] = dCreateCylinder(_space, 0.011, _radius -_face_radius - 0.006 + 0.0032);
-	dGeomSetBody(conn->geom[2], conn->body);
-	dGeomSetOffsetPosition(conn->geom[2], _connector_depth/2 + 0.02 - m.c[0], -m.c[1], -_body_height/2 - (_radius -_face_radius - 0.006)/2 + 0.0016 - m.c[2]);
-
-	// set geometry 4 - sphere
-	conn->geom[3] = dCreateSphere(_space, 0.006);
-	dGeomSetBody(conn->geom[3], conn->body);
-	dGeomSetOffsetPosition(conn->geom[3], _connector_depth/2 + 0.02 - m.c[0], -m.c[1], -_body_height/2 + _face_radius - _radius + 0.006 - m.c[2]);
-
-	// set mass center to (0,0,0) of _bodyID
-	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-	dBodySetMass(conn->body, &m);
-
-	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_cube(conn_t conn, int face, int side, int type) {
-	// create body
-	conn->body = dBodyCreate(_world);
-	conn->geom = new dGeomID[1];
-
-	// define parameters
-	dMass m;
-	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_cubic_length/2, 0, 0};
-
-	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
-
-	// set mass of body
-	dMassSetBox(&m, 270, _cubic_length, _cubic_length, _cubic_length);
-
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-	// set body parameters
-	dBodySetPosition(conn->body, p[0], p[1], p[2]);
-	dBodySetRotation(conn->body, R);
-	dBodySetFiniteRotationMode(conn->body, 1);
-
-	// set geometry
-	conn->geom[0] = dCreateBox(_space, _cubic_length, _cubic_length, _cubic_length);
-	dGeomSetBody(conn->geom[0], conn->body);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
-
-	// set mass center to (0,0,0) of _bodyID
-	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-	dBodySetMass(conn->body, &m);
-
-	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_faceplate(conn_t conn, int face, int side, int type) {
-	// create body
-	conn->body = dBodyCreate(_world);
-	conn->geom = new dGeomID[1];
-
-	// define parameters
-	dMass m;
-	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_connector_depth/2, 0, 0};
-
-	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
-
-	// set mass of body
-	dMassSetBox(&m, 270, _connector_depth, _body_height, _body_height);
-
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-	// set body parameters
-	dBodySetPosition(conn->body, p[0], p[1], p[2]);
-	dBodySetRotation(conn->body, R);
-	dBodySetFiniteRotationMode(conn->body, 1);
-
-	// set geometry
-	conn->geom[0] = dCreateBox(_space, _connector_depth, _body_height, _body_height);
-	dGeomSetBody(conn->geom[0], conn->body);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
-
-	// set mass center to (0,0,0) of _bodyID
-	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-	dBodySetMass(conn->body, &m);
-
-	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_gripper(conn_t conn, int face) {
-	// create body
-	conn->body = dBodyCreate(_world);
-	conn->geom = new dGeomID[3];
-
-	// define parameters
-	dMass m;
-	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_connector_depth/2, 0, 0};
-	int i = (face == 1) ? 1 : -1;
-
-	// position center of connector
-	this->getConnectionParams(face, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
-
-	// set mass of body
-	dMassSetBox(&m, 270, _connector_depth, 2*_face_radius, _connector_height);
-
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-	// set body parameters
-	dBodySetPosition(conn->body, p[0], p[1], p[2]);
-	dBodySetRotation(conn->body, R);
-	dBodySetFiniteRotationMode(conn->body, 1);
-
-	// set geometry 1
-	conn->geom[0] = dCreateBox(_space, _connector_depth, 4*_face_radius, _connector_height/2);
-	dGeomSetBody(conn->geom[0], conn->body);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
-	dGeomSetOffsetPosition(conn->geom[0], 0, -i*_face_radius, 0);
-
-	// set geometry 2
-	conn->geom[1] = dCreateBox(_space, 0.062, 0.04, _connector_depth);
-	dGeomSetBody(conn->geom[1], conn->body);
-	dGeomSetOffsetPosition(conn->geom[1], _connector_depth/2 - 0.062/2 - m.c[0],
-							-i*3*_face_radius + i*0.02 - m.c[1],
-							i*_connector_height/4 - i*_connector_depth/2 - m.c[2]);
-
-	// set geometry 3
-	conn->geom[2] = dCreateBox(_space, 0.0344, 0.04, 0.007);
-	dGeomSetBody(conn->geom[2], conn->body);
-	dGeomSetOffsetPosition(conn->geom[2], _connector_depth/2 - 0.062 + 0.0344/2 - m.c[0],
-							-i*3*_face_radius + i*0.02 - m.c[1],
-							i*_connector_height/4 - i*_connector_depth/2 - i*0.007/2 - m.c[2]);
-
-	// set mass center to (0,0,0) of _bodyID
-	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-	dBodySetMass(conn->body, &m);
-
-	// fix connector to body
-	this->fix_connector_to_body(this->getBodyID(face), conn->body);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
-	// create body
-	conn->body = dBodyCreate(_world);
-	conn->geom = new dGeomID[1];
-
-	// define parameters
-	dMass m;
-	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_connector_depth/2, _omni_length/2 - _face_radius, -_omni_length/2 + _face_radius};
-
-	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
-	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
-	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
-
-	// set mass of body
-	dMassSetBox(&m, 270, _omni_length, _omni_length, _connector_depth);
-
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-	// set body parameters
-	dBodySetPosition(conn->body, p[0], p[1], p[2]);
-	dBodySetRotation(conn->body, R);
-	dBodySetFiniteRotationMode(conn->body, 1);
-
-	// set geometry
-	conn->geom[0] = dCreateBox(_space, _connector_depth, _omni_length, _omni_length);
-	dGeomSetBody(conn->geom[0], conn->body);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
-
-	// set mass center to (0,0,0) of _bodyID
-	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-	dBodySetMass(conn->body, &m);
-
-	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_simple(conn_t conn, int face, int side, int type) {
-	// create body
-	conn->body = dBodyCreate(_world);
-	conn->geom = new dGeomID[1];
-
-	// define parameters
-	dMass m;
-	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_connector_depth/2, 0, 0};
-
-	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
-
-	// set mass of body
-	dMassSetBox(&m, 270, _connector_depth, 2*_face_radius, _connector_height);
-
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-	// set body parameters
-	dBodySetPosition(conn->body, p[0], p[1], p[2]);
-	dBodySetRotation(conn->body, R);
-	dBodySetFiniteRotationMode(conn->body, 1);
-
-	// set geometry
-	conn->geom[0] = dCreateBox(_space, _connector_depth, 2*_face_radius, _connector_height);
-	dGeomSetBody(conn->geom[0], conn->body);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
-
-	// set mass center to (0,0,0) of _bodyID
-	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-	dBodySetMass(conn->body, &m);
-
-	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
-	// create body
-	conn->body = dBodyCreate(_world);
-	conn->geom = new dGeomID[1];
-
-	// define parameters
-	dMass m;
-	dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
-
-	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
-
-	// set mass of body
-	dMassSetCylinder(&m, 270, 1, 2*_smallwheel_radius, _wheel_depth);
-
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-	// set body parameters
-	dBodySetPosition(conn->body, p[0], p[1], p[2]);
-	dBodySetRotation(conn->body, R);
-	dBodySetFiniteRotationMode(conn->body, 1);
-
-	// rotation matrix for curves
-	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
-
-	// set geometry
-	conn->geom[0] = dCreateCylinder(_space, _smallwheel_radius, _wheel_depth);
-	dGeomSetBody(conn->geom[0], conn->body);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
-	dGeomSetOffsetRotation(conn->geom[0], R1);
-
-	// set mass center to (0,0,0) of _bodyID
-	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-	dBodySetMass(conn->body, &m);
-
-	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_square(conn_t conn, int face, int side, int type) {
-	conn->body = NULL;
-	conn->geom = NULL;
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_tank(conn_t conn, int face, int side, int type) {
-	conn->body = NULL;
-	conn->geom = NULL;
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
-	// create body
-	conn->body = dBodyCreate(_world);
-	conn->geom = new dGeomID[1];
-
-	// define parameters
-	dMass m;
-	dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
-
-	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
-
-	// set mass of body
-	dMassSetCylinder(&m, 270, 1, 2*_tinywheel_radius, _wheel_depth);
-
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-	// set body parameters
-	dBodySetPosition(conn->body, p[0], p[1], p[2]);
-	dBodySetRotation(conn->body, R);
-	dBodySetFiniteRotationMode(conn->body, 1);
-
-	// rotation matrix for curves
-	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
-
-	// set geometry
-	conn->geom[0] = dCreateCylinder(_space, _tinywheel_radius, _wheel_depth);
-	dGeomSetBody(conn->geom[0], conn->body);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
-	dGeomSetOffsetRotation(conn->geom[0], R1);
-
-	// set mass center to (0,0,0) of _bodyID
-	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-	dBodySetMass(conn->body, &m);
-
-	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int type) {
-	// create body
-	conn->body = dBodyCreate(_world);
-	conn->geom = new dGeomID[1];
-
-	// store wheel radius
-	_wheel_radius = size;
-
-	// define parameters
-	dMass m;
-	dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
-
-	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
-
-	// set mass of body
-	dMassSetCylinder(&m, 270, 1, 2*_wheel_radius, _wheel_depth);
-
-	// adjust x,y,z to position center of mass correctly
-	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
-	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
-	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
-
-	// set body parameters
-	dBodySetPosition(conn->body, p[0], p[1], p[2]);
-	dBodySetRotation(conn->body, R);
-	dBodySetFiniteRotationMode(conn->body, 1);
-
-	// rotation matrix for curves
-	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
-
-	// set geometry
-	conn->geom[0] = dCreateCylinder(_space, _wheel_radius, _wheel_depth);
-	dGeomSetBody(conn->geom[0], conn->body);
-	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
-	dGeomSetOffsetRotation(conn->geom[0], R1);
-
-	// set mass center to (0,0,0) of _bodyID
-	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-	dBodySetMass(conn->body, &m);
-
-	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+int CLinkbotT::buildIndividual(double x, double y, double z, dMatrix3 R, double *rot) {
+	// init body parts
+	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
+	_geom[BODY] = new dGeomID[2];
+	_geom[FACE1] = new dGeomID[1];
+	_geom[FACE2] = new dGeomID[1];
+	_geom[FACE3] = new dGeomID[1];
+
+	// adjust input height by body height
+	if (fabs(z) < (_body_radius-EPSILON)) {z += _body_height/2; }
+
+    // convert input angles to radians
+    _motor[JOINT1].theta = DEG2RAD(rot[JOINT1]);
+    _motor[JOINT2].theta = DEG2RAD(rot[JOINT2]);
+    _motor[JOINT3].theta = DEG2RAD(rot[JOINT3]);
+
+	// set goal to current angle
+	_motor[JOINT1].goal = _motor[JOINT1].theta;
+	_motor[JOINT2].goal = _motor[JOINT2].theta;
+	_motor[JOINT3].goal = _motor[JOINT3].theta;
+
+	// offset values for each body part[0-2] and joint[3-5] from center
+	double f1[6] = {-_body_width/2 - _face_depth/2, 0, 0, -_body_width/2, 0, 0};
+	double f2[6] = {0, -_body_length - _face_depth/2, 0, 0, -_body_length, 0};
+	double f3[6] = {_body_width/2 + _face_depth/2, 0, 0, _body_width/2, 0, 0};
+
+	// build robot bodies
+	this->build_body(x, y, z, R, 0);
+	this->build_face(FACE1, R[0]*f1[0] + x, R[4]*f1[0] + y, R[8]*f1[0] + z, R, 0);
+	this->build_face(FACE2, R[1]*f2[1] + x, R[5]*f2[1] + y, R[9]*f2[1] + z, R, 0);
+	this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R, 0);
+
+	// get center of robot offset from body position
+	_center[0] = 0;
+	_center[1] = 0.012462;
+	_center[2] = 0;
+
+    // joint for body to face 1
+	_joint[0] = dJointCreateHinge(_world, 0);
+	dJointAttach(_joint[0], _body[BODY], _body[FACE1]);
+	dJointSetHingeAnchor(_joint[0], R[0]*f1[3] + R[1]*f1[4] + R[2]*f1[5] + x,
+									R[4]*f1[3] + R[5]*f1[4] + R[6]*f1[5] + y,
+									R[8]*f1[3] + R[9]*f1[4] + R[10]*f1[5] + z);
+	dJointSetHingeAxis(_joint[0], R[0], R[4], R[8]);
+	dBodySetFiniteRotationAxis(_body[FACE1], R[0], R[4], R[8]);
+
+    // joint for body to face 2
+	if (_disabled == 1) {
+		dJointID joint = dJointCreateFixed(_world, 0);
+		dJointAttach(joint, _body[BODY], _body[FACE2]);
+		dJointSetFixed(joint);
+	}
+	else {
+		_joint[1] = dJointCreateHinge(_world, 0);
+		dJointAttach(_joint[1], _body[BODY], _body[FACE2]);
+		dJointSetHingeAnchor(_joint[1], R[0]*f2[3] + R[1]*f2[4] + R[2]*f2[5] + x,
+										R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y,
+										R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
+		dJointSetHingeAxis(_joint[1], R[1], R[5], R[9]);
+		dBodySetFiniteRotationAxis(_body[FACE2], R[1], R[5], R[9]);
+	}
+
+    // joint for body to face 3
+	if (_disabled == 2) {
+		dJointID joint = dJointCreateFixed(_world, 0);
+		dJointAttach(joint, _body[BODY], _body[FACE3]);
+		dJointSetFixed(joint);
+	}
+	else {
+		_joint[2] = dJointCreateHinge(_world, 0);
+		dJointAttach(_joint[2], _body[BODY], _body[FACE3]);
+		dJointSetHingeAnchor(_joint[2], R[0]*f3[3] + R[1]*f3[4] + R[2]*f3[5] + x,
+										R[4]*f3[3] + R[5]*f3[4] + R[6]*f3[5] + y,
+										R[8]*f3[3] + R[9]*f3[4] + R[10]*f3[5] + z);
+		dJointSetHingeAxis(_joint[2], -R[0], -R[4], -R[8]);
+		dBodySetFiniteRotationAxis(_body[FACE3], -R[0], -R[4], -R[8]);
+	}
+
+    // create rotation matrices for each body part
+    dMatrix3 R_f, R_f1, R_f2, R_f3;
+    dRFromAxisAndAngle(R_f, -1, 0, 0, _motor[JOINT1].theta);
+    dMultiply0(R_f1, R, R_f, 3, 3, 3);
+	dRSetIdentity(R_f);
+    dRFromAxisAndAngle(R_f, 0, -1, 0, _motor[JOINT2].theta);
+    dMultiply0(R_f2, R, R_f, 3, 3, 3);
+	dRSetIdentity(R_f);
+    dRFromAxisAndAngle(R_f, 1, 0, 0, _motor[JOINT3].theta);
+    dMultiply0(R_f3, R, R_f, 3, 3, 3);
+
+	// if bodies are rotated, then redraw
+	if ( _motor[JOINT1].theta != 0 || _motor[JOINT2].theta != 0 || _motor[JOINT3].theta != 0 ) {
+		this->build_face(FACE1, R[0]*f1[0] + x, R[4]*f1[0] + y, R[8]*f1[0] + z, R_f1, 0);
+		this->build_face(FACE2, R[1]*f2[1] + x, R[5]*f2[1] + y, R[9]*f2[1] + z, R_f2, 0);
+		this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R_f3, 0);
+	}
+
+    // motor for body to face 1
+    _motor[JOINT1].id = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[JOINT1].id, _body[BODY], _body[FACE1]);
+    dJointSetAMotorMode(_motor[JOINT1].id, dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[JOINT1].id, 1);
+    dJointSetAMotorAxis(_motor[JOINT1].id, 0, 1, R[0], R[4], R[8]);
+    dJointSetAMotorAngle(_motor[JOINT1].id, 0, 0);
+    dJointSetAMotorParam(_motor[JOINT1].id, dParamFMax, _motor[JOINT1].tau_max);
+    dJointSetAMotorParam(_motor[JOINT1].id, dParamFudgeFactor, 0.3);
+	dJointDisable(_motor[JOINT1].id);
+
+    // motor for body to face 2
+    _motor[JOINT2].id = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[JOINT2].id, _body[BODY], _body[FACE2]);
+    dJointSetAMotorMode(_motor[JOINT2].id, dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[JOINT2].id, 1);
+    dJointSetAMotorAxis(_motor[JOINT2].id, 0, 1, R[1], R[5], R[9]);
+    dJointSetAMotorAngle(_motor[JOINT2].id, 0, 0);
+    dJointSetAMotorParam(_motor[JOINT2].id, dParamFMax, _motor[JOINT2].tau_max);
+    dJointSetAMotorParam(_motor[JOINT2].id, dParamFudgeFactor, 0.3);
+	dJointDisable(_motor[JOINT2].id);
+
+    // motor for body to face 3
+    _motor[JOINT3].id = dJointCreateAMotor(_world, 0);
+    dJointAttach(_motor[JOINT3].id, _body[BODY], _body[FACE3]);
+    dJointSetAMotorMode(_motor[JOINT3].id, dAMotorUser);
+    dJointSetAMotorNumAxes(_motor[JOINT3].id, 1);
+    dJointSetAMotorAxis(_motor[JOINT3].id, 0, 1, -R[0], -R[4], -R[8]);
+    dJointSetAMotorAngle(_motor[JOINT3].id, 0, 0);
+    dJointSetAMotorParam(_motor[JOINT3].id, dParamFMax, _motor[JOINT3].tau_max);
+    dJointSetAMotorParam(_motor[JOINT3].id, dParamFudgeFactor, 0.3);
+	dJointDisable(_motor[JOINT3].id);
+
+    // set damping on all bodies to 0.1
+    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(_body[i], 0.1, 0.1);
 
 	// success
 	return 0;
@@ -3623,7 +3153,83 @@ void CLinkbotT::simPostCollisionThread(void) {
 /**********************************************************
 	private functions
  **********************************************************/
-int CLinkbotT::add_daisy_chain(int conn, int face, double size, int side, int type) {
+int CLinkbotT::add_connector(int type, int face, double size) {
+	// create new connector
+	conn_t nc = new struct conn_s;
+	nc->d_side = -1;
+	nc->d_type = -1;
+	nc->face = face;
+	nc->type = type;
+	nc->next = NULL;
+
+	// add to list of connectors
+	conn_t ctmp = _conn;
+	if ( _conn == NULL )
+		_conn = nc;
+	else {
+		while (ctmp->next)
+			ctmp = ctmp->next;
+		ctmp->next = nc;
+	}
+
+	// build connector
+	switch (type) {
+		case BIGWHEEL:
+			this->build_bigwheel(nc, face);
+			break;
+		case BRIDGE:
+			this->build_bridge(nc, face);
+			break;
+		case CASTER:
+			this->build_caster(nc, face);
+			break;
+		case CUBE:
+			this->build_cube(nc, face);
+			break;
+		case FACEPLATE:
+			this->build_faceplate(nc, face);
+			break;
+		case GRIPPER:
+			this->build_gripper(nc, 1);
+			break;
+		case OMNIDRIVE:
+			this->build_omnidrive(nc, face);
+			break;
+		case SIMPLE:
+			this->build_simple(nc, face);
+			break;
+		case SMALLWHEEL:
+			this->build_smallwheel(nc, face);
+			break;
+		case TINYWHEEL:
+			this->build_tinywheel(nc, face);
+			break;
+		case WHEEL:
+			this->build_wheel(nc, face, size);
+			break;
+	}
+
+	if (type == GRIPPER) {
+		conn_t nc2 = new struct conn_s;
+		nc2->face = 3;
+		nc2->type = GRIPPER;
+		nc2->next = NULL;
+
+		// add to list of connectors
+		conn_t ctmp = _conn;
+		while (ctmp->next)
+			ctmp = ctmp->next;
+		ctmp->next = nc2;
+
+		// build
+		this->build_gripper(nc2, 3);
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::add_connector_daisy(int conn, int face, double size, int side, int type) {
 	// create new connector
 	conn_t nc = new struct conn_s;
 	nc->d_side = side;
@@ -3680,142 +3286,6 @@ int CLinkbotT::add_daisy_chain(int conn, int face, double size, int side, int ty
 	return 0;
 }
 
-int CLinkbotT::build_individual(double x, double y, double z, dMatrix3 R, double *rot) {
-	// init body parts
-	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
-	_geom[BODY] = new dGeomID[2];
-	_geom[FACE1] = new dGeomID[1];
-	_geom[FACE2] = new dGeomID[1];
-	_geom[FACE3] = new dGeomID[1];
-
-	// adjust input height by body height
-	if (fabs(z) < (_body_radius-EPSILON)) {z += _body_height/2; }
-
-    // convert input angles to radians
-    _motor[JOINT1].theta = DEG2RAD(rot[JOINT1]);
-    _motor[JOINT2].theta = DEG2RAD(rot[JOINT2]);
-    _motor[JOINT3].theta = DEG2RAD(rot[JOINT3]);
-
-	// set goal to current angle
-	_motor[JOINT1].goal = _motor[JOINT1].theta;
-	_motor[JOINT2].goal = _motor[JOINT2].theta;
-	_motor[JOINT3].goal = _motor[JOINT3].theta;
-
-	// offset values for each body part[0-2] and joint[3-5] from center
-	double f1[6] = {-_body_width/2 - _face_depth/2, 0, 0, -_body_width/2, 0, 0};
-	double f2[6] = {0, -_body_length - _face_depth/2, 0, 0, -_body_length, 0};
-	double f3[6] = {_body_width/2 + _face_depth/2, 0, 0, _body_width/2, 0, 0};
-
-	// build robot bodies
-	this->build_body(x, y, z, R, 0);
-	this->build_face(FACE1, R[0]*f1[0] + x, R[4]*f1[0] + y, R[8]*f1[0] + z, R, 0);
-	this->build_face(FACE2, R[1]*f2[1] + x, R[5]*f2[1] + y, R[9]*f2[1] + z, R, 0);
-	this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R, 0);
-
-	// get center of robot offset from body position
-	_center[0] = 0;
-	_center[1] = 0.012462;
-	_center[2] = 0;
-
-    // joint for body to face 1
-	_joint[0] = dJointCreateHinge(_world, 0);
-	dJointAttach(_joint[0], _body[BODY], _body[FACE1]);
-	dJointSetHingeAnchor(_joint[0], R[0]*f1[3] + R[1]*f1[4] + R[2]*f1[5] + x,
-									R[4]*f1[3] + R[5]*f1[4] + R[6]*f1[5] + y,
-									R[8]*f1[3] + R[9]*f1[4] + R[10]*f1[5] + z);
-	dJointSetHingeAxis(_joint[0], R[0], R[4], R[8]);
-	dBodySetFiniteRotationAxis(_body[FACE1], R[0], R[4], R[8]);
-
-    // joint for body to face 2
-	if (_disabled == 1) {
-		dJointID joint = dJointCreateFixed(_world, 0);
-		dJointAttach(joint, _body[BODY], _body[FACE2]);
-		dJointSetFixed(joint);
-	}
-	else {
-		_joint[1] = dJointCreateHinge(_world, 0);
-		dJointAttach(_joint[1], _body[BODY], _body[FACE2]);
-		dJointSetHingeAnchor(_joint[1], R[0]*f2[3] + R[1]*f2[4] + R[2]*f2[5] + x,
-										R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y,
-										R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
-		dJointSetHingeAxis(_joint[1], R[1], R[5], R[9]);
-		dBodySetFiniteRotationAxis(_body[FACE2], R[1], R[5], R[9]);
-	}
-
-    // joint for body to face 3
-	if (_disabled == 2) {
-		dJointID joint = dJointCreateFixed(_world, 0);
-		dJointAttach(joint, _body[BODY], _body[FACE3]);
-		dJointSetFixed(joint);
-	}
-	else {
-		_joint[2] = dJointCreateHinge(_world, 0);
-		dJointAttach(_joint[2], _body[BODY], _body[FACE3]);
-		dJointSetHingeAnchor(_joint[2], R[0]*f3[3] + R[1]*f3[4] + R[2]*f3[5] + x,
-										R[4]*f3[3] + R[5]*f3[4] + R[6]*f3[5] + y,
-										R[8]*f3[3] + R[9]*f3[4] + R[10]*f3[5] + z);
-		dJointSetHingeAxis(_joint[2], -R[0], -R[4], -R[8]);
-		dBodySetFiniteRotationAxis(_body[FACE3], -R[0], -R[4], -R[8]);
-	}
-
-    // create rotation matrices for each body part
-    dMatrix3 R_f, R_f1, R_f2, R_f3;
-    dRFromAxisAndAngle(R_f, -1, 0, 0, _motor[JOINT1].theta);
-    dMultiply0(R_f1, R, R_f, 3, 3, 3);
-	dRSetIdentity(R_f);
-    dRFromAxisAndAngle(R_f, 0, -1, 0, _motor[JOINT2].theta);
-    dMultiply0(R_f2, R, R_f, 3, 3, 3);
-	dRSetIdentity(R_f);
-    dRFromAxisAndAngle(R_f, 1, 0, 0, _motor[JOINT3].theta);
-    dMultiply0(R_f3, R, R_f, 3, 3, 3);
-
-	// if bodies are rotated, then redraw
-	if ( _motor[JOINT1].theta != 0 || _motor[JOINT2].theta != 0 || _motor[JOINT3].theta != 0 ) {
-		this->build_face(FACE1, R[0]*f1[0] + x, R[4]*f1[0] + y, R[8]*f1[0] + z, R_f1, 0);
-		this->build_face(FACE2, R[1]*f2[1] + x, R[5]*f2[1] + y, R[9]*f2[1] + z, R_f2, 0);
-		this->build_face(FACE3, R[0]*f3[0] + x, R[4]*f3[0] + y, R[8]*f3[0] + z, R_f3, 0);
-	}
-
-    // motor for body to face 1
-    _motor[JOINT1].id = dJointCreateAMotor(_world, 0);
-    dJointAttach(_motor[JOINT1].id, _body[BODY], _body[FACE1]);
-    dJointSetAMotorMode(_motor[JOINT1].id, dAMotorUser);
-    dJointSetAMotorNumAxes(_motor[JOINT1].id, 1);
-    dJointSetAMotorAxis(_motor[JOINT1].id, 0, 1, R[0], R[4], R[8]);
-    dJointSetAMotorAngle(_motor[JOINT1].id, 0, 0);
-    dJointSetAMotorParam(_motor[JOINT1].id, dParamFMax, _motor[JOINT1].tau_max);
-    dJointSetAMotorParam(_motor[JOINT1].id, dParamFudgeFactor, 0.3);
-	dJointDisable(_motor[JOINT1].id);
-
-    // motor for body to face 2
-    _motor[JOINT2].id = dJointCreateAMotor(_world, 0);
-    dJointAttach(_motor[JOINT2].id, _body[BODY], _body[FACE2]);
-    dJointSetAMotorMode(_motor[JOINT2].id, dAMotorUser);
-    dJointSetAMotorNumAxes(_motor[JOINT2].id, 1);
-    dJointSetAMotorAxis(_motor[JOINT2].id, 0, 1, R[1], R[5], R[9]);
-    dJointSetAMotorAngle(_motor[JOINT2].id, 0, 0);
-    dJointSetAMotorParam(_motor[JOINT2].id, dParamFMax, _motor[JOINT2].tau_max);
-    dJointSetAMotorParam(_motor[JOINT2].id, dParamFudgeFactor, 0.3);
-	dJointDisable(_motor[JOINT2].id);
-
-    // motor for body to face 3
-    _motor[JOINT3].id = dJointCreateAMotor(_world, 0);
-    dJointAttach(_motor[JOINT3].id, _body[BODY], _body[FACE3]);
-    dJointSetAMotorMode(_motor[JOINT3].id, dAMotorUser);
-    dJointSetAMotorNumAxes(_motor[JOINT3].id, 1);
-    dJointSetAMotorAxis(_motor[JOINT3].id, 0, 1, -R[0], -R[4], -R[8]);
-    dJointSetAMotorAngle(_motor[JOINT3].id, 0, 0);
-    dJointSetAMotorParam(_motor[JOINT3].id, dParamFMax, _motor[JOINT3].tau_max);
-    dJointSetAMotorParam(_motor[JOINT3].id, dParamFudgeFactor, 0.3);
-	dJointDisable(_motor[JOINT3].id);
-
-    // set damping on all bodies to 0.1
-    for (int i = 0; i < NUM_PARTS; i++) dBodySetDamping(_body[i], 0.1, 0.1);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 	// initialize new variables
 	double m[3] = {0};
@@ -3844,10 +3314,63 @@ int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn) 
 
     // build new module
 	double rot[3] = {robot->angle1, robot->angle2, robot->angle3};
-	this->build_individual(m[0], m[1], m[2], R, rot);
+	this->buildIndividual(m[0], m[1], m[2], R, rot);
 
     // add fixed joint to attach two modules
 	this->fix_body_to_connector(base->getConnectorBodyID(conn->face1), conn->face2);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
+	// create body
+	conn->body = dBodyCreate(_world);
+	conn->geom = new dGeomID[1];
+
+	// define parameters
+	dMass m;
+	dMatrix3 R, R1;
+	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
+
+	// set mass of body
+	dMassSetCylinder(&m, 270, 1, 2*_bigwheel_radius, _wheel_depth);
+
+	// adjust x,y,z to position center of mass correctly
+	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+	// set body parameters
+	dBodySetPosition(conn->body, p[0], p[1], p[2]);
+	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
+
+	// rotation matrix for curves
+	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
+
+	// set geometry
+	conn->geom[0] = dCreateCylinder(_space, _bigwheel_radius, _wheel_depth);
+	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+	dGeomSetOffsetRotation(conn->geom[0], R1);
+
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;
@@ -3898,6 +3421,173 @@ int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta
 	return 0;
 }
 
+int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
+	// create body
+	conn->body = dBodyCreate(_world);
+	conn->geom = new dGeomID[1];
+
+	// define parameters
+	dMass m;
+	dMatrix3 R;
+	double p[3] = {0}, offset[3] = {_connector_depth/2, -_bridge_length/2 + _face_radius, 0};
+	if (face == 3) offset[1] = _bridge_length/2 - _face_radius;
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
+	p[0] += R[0]*offset[0] + R[1]*offset[1];
+	p[1] += R[4]*offset[0] + R[5]*offset[1];
+	p[2] += R[8]*offset[0] + R[9]*offset[1];
+
+	// set mass of body
+	dMassSetBox(&m, 270, _connector_depth, _bridge_length, _connector_height);
+
+	// adjust x,y,z to position center of mass correctly
+	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+	// set body parameters
+	dBodySetPosition(conn->body, p[0], p[1], p[2]);
+	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
+
+	// set geometry
+	conn->geom[0] = dCreateBox(_space, _connector_depth, _bridge_length, _connector_height);
+	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
+	// create body
+	conn->body = dBodyCreate(_world);
+	conn->geom = new dGeomID[4];
+
+	// define parameters
+	dMass m;
+	dMatrix3 R, R1;
+	double p[3] = {0}, offset[3] = {_connector_depth/2, 0, 0};
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
+
+	// set mass of body
+	dMassSetBox(&m, 1000, 2*_connector_depth, 1.5*_face_radius, _body_height);
+	dMassTranslate(&m, 8*_connector_depth, 0, -_body_height/2);
+
+	// adjust x,y,z to position center of mass correctly
+	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+	// set body parameters
+	dBodySetPosition(conn->body, p[0], p[1], p[2]);
+	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
+
+	// rotation matrix for curves
+	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
+
+	// set geometry 1 - box
+	conn->geom[0] = dCreateBox(_space, _connector_depth, 1.5*_face_radius, _body_height);
+	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+
+	// set geometry 2 - horizontal support
+	conn->geom[1] = dCreateBox(_space, 0.02, 0.022, 0.0032);
+	dGeomSetBody(conn->geom[1], conn->body);
+	dGeomSetOffsetPosition(conn->geom[1], _connector_depth/2 + 0.01 - m.c[0], -m.c[1], -_body_height/2 + 0.0016 - m.c[2]);
+
+	// set geometry 3 - ball support
+	conn->geom[2] = dCreateCylinder(_space, 0.011, _radius -_face_radius - 0.006 + 0.0032);
+	dGeomSetBody(conn->geom[2], conn->body);
+	dGeomSetOffsetPosition(conn->geom[2], _connector_depth/2 + 0.02 - m.c[0], -m.c[1], -_body_height/2 - (_radius -_face_radius - 0.006)/2 + 0.0016 - m.c[2]);
+
+	// set geometry 4 - sphere
+	conn->geom[3] = dCreateSphere(_space, 0.006);
+	dGeomSetBody(conn->geom[3], conn->body);
+	dGeomSetOffsetPosition(conn->geom[3], _connector_depth/2 + 0.02 - m.c[0], -m.c[1], -_body_height/2 + _face_radius - _radius + 0.006 - m.c[2]);
+
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::build_cube(conn_t conn, int face, int side, int type) {
+	// create body
+	conn->body = dBodyCreate(_world);
+	conn->geom = new dGeomID[1];
+
+	// define parameters
+	dMass m;
+	dMatrix3 R;
+	double p[3] = {0}, offset[3] = {_cubic_length/2, 0, 0};
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
+
+	// set mass of body
+	dMassSetBox(&m, 270, _cubic_length, _cubic_length, _cubic_length);
+
+	// adjust x,y,z to position center of mass correctly
+	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+	// set body parameters
+	dBodySetPosition(conn->body, p[0], p[1], p[2]);
+	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
+
+	// set geometry
+	conn->geom[0] = dCreateBox(_space, _cubic_length, _cubic_length, _cubic_length);
+	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, double theta) {
 	// define parameters
 	dMass m;
@@ -3936,6 +3626,376 @@ int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, doub
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
 	dBodySetMass(_body[id], &m);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::build_faceplate(conn_t conn, int face, int side, int type) {
+	// create body
+	conn->body = dBodyCreate(_world);
+	conn->geom = new dGeomID[1];
+
+	// define parameters
+	dMass m;
+	dMatrix3 R;
+	double p[3] = {0}, offset[3] = {_connector_depth/2, 0, 0};
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
+
+	// set mass of body
+	dMassSetBox(&m, 270, _connector_depth, _body_height, _body_height);
+
+	// adjust x,y,z to position center of mass correctly
+	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+	// set body parameters
+	dBodySetPosition(conn->body, p[0], p[1], p[2]);
+	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
+
+	// set geometry
+	conn->geom[0] = dCreateBox(_space, _connector_depth, _body_height, _body_height);
+	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::build_gripper(conn_t conn, int face) {
+	// create body
+	conn->body = dBodyCreate(_world);
+	conn->geom = new dGeomID[3];
+
+	// define parameters
+	dMass m;
+	dMatrix3 R;
+	double p[3] = {0}, offset[3] = {_connector_depth/2, 0, 0};
+	int i = (face == 1) ? 1 : -1;
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
+
+	// set mass of body
+	dMassSetBox(&m, 270, _connector_depth, 2*_face_radius, _connector_height);
+
+	// adjust x,y,z to position center of mass correctly
+	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+	// set body parameters
+	dBodySetPosition(conn->body, p[0], p[1], p[2]);
+	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
+
+	// set geometry 1
+	conn->geom[0] = dCreateBox(_space, _connector_depth, 4*_face_radius, _connector_height/2);
+	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+	dGeomSetOffsetPosition(conn->geom[0], 0, -i*_face_radius, 0);
+
+	// set geometry 2
+	conn->geom[1] = dCreateBox(_space, 0.062, 0.04, _connector_depth);
+	dGeomSetBody(conn->geom[1], conn->body);
+	dGeomSetOffsetPosition(conn->geom[1], _connector_depth/2 - 0.062/2 - m.c[0],
+							-i*3*_face_radius + i*0.02 - m.c[1],
+							i*_connector_height/4 - i*_connector_depth/2 - m.c[2]);
+
+	// set geometry 3
+	conn->geom[2] = dCreateBox(_space, 0.0344, 0.04, 0.007);
+	dGeomSetBody(conn->geom[2], conn->body);
+	dGeomSetOffsetPosition(conn->geom[2], _connector_depth/2 - 0.062 + 0.0344/2 - m.c[0],
+							-i*3*_face_radius + i*0.02 - m.c[1],
+							i*_connector_height/4 - i*_connector_depth/2 - i*0.007/2 - m.c[2]);
+
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	this->fix_connector_to_body(this->getBodyID(face), conn->body);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
+	// create body
+	conn->body = dBodyCreate(_world);
+	conn->geom = new dGeomID[1];
+
+	// define parameters
+	dMass m;
+	dMatrix3 R;
+	double p[3] = {0}, offset[3] = {_connector_depth/2, _omni_length/2 - _face_radius, -_omni_length/2 + _face_radius};
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
+	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
+	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
+	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
+
+	// set mass of body
+	dMassSetBox(&m, 270, _omni_length, _omni_length, _connector_depth);
+
+	// adjust x,y,z to position center of mass correctly
+	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+	// set body parameters
+	dBodySetPosition(conn->body, p[0], p[1], p[2]);
+	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
+
+	// set geometry
+	conn->geom[0] = dCreateBox(_space, _connector_depth, _omni_length, _omni_length);
+	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::build_simple(conn_t conn, int face, int side, int type) {
+	// create body
+	conn->body = dBodyCreate(_world);
+	conn->geom = new dGeomID[1];
+
+	// define parameters
+	dMass m;
+	dMatrix3 R;
+	double p[3] = {0}, offset[3] = {_connector_depth/2, 0, 0};
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
+
+	// set mass of body
+	dMassSetBox(&m, 270, _connector_depth, 2*_face_radius, _connector_height);
+
+	// adjust x,y,z to position center of mass correctly
+	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+	// set body parameters
+	dBodySetPosition(conn->body, p[0], p[1], p[2]);
+	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
+
+	// set geometry
+	conn->geom[0] = dCreateBox(_space, _connector_depth, 2*_face_radius, _connector_height);
+	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
+	// create body
+	conn->body = dBodyCreate(_world);
+	conn->geom = new dGeomID[1];
+
+	// define parameters
+	dMass m;
+	dMatrix3 R, R1;
+	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
+
+	// set mass of body
+	dMassSetCylinder(&m, 270, 1, 2*_smallwheel_radius, _wheel_depth);
+
+	// adjust x,y,z to position center of mass correctly
+	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+	// set body parameters
+	dBodySetPosition(conn->body, p[0], p[1], p[2]);
+	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
+
+	// rotation matrix for curves
+	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
+
+	// set geometry
+	conn->geom[0] = dCreateCylinder(_space, _smallwheel_radius, _wheel_depth);
+	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+	dGeomSetOffsetRotation(conn->geom[0], R1);
+
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
+	// create body
+	conn->body = dBodyCreate(_world);
+	conn->geom = new dGeomID[1];
+
+	// define parameters
+	dMass m;
+	dMatrix3 R, R1;
+	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
+
+	// set mass of body
+	dMassSetCylinder(&m, 270, 1, 2*_tinywheel_radius, _wheel_depth);
+
+	// adjust x,y,z to position center of mass correctly
+	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+	// set body parameters
+	dBodySetPosition(conn->body, p[0], p[1], p[2]);
+	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
+
+	// rotation matrix for curves
+	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
+
+	// set geometry
+	conn->geom[0] = dCreateCylinder(_space, _tinywheel_radius, _wheel_depth);
+	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+	dGeomSetOffsetRotation(conn->geom[0], R1);
+
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int type) {
+	// create body
+	conn->body = dBodyCreate(_world);
+	conn->geom = new dGeomID[1];
+
+	// store wheel radius
+	_wheel_radius = size;
+
+	// define parameters
+	dMass m;
+	dMatrix3 R, R1;
+	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
+
+	// position center of connector
+	this->getConnectionParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
+	p[0] += R[0]*offset[0];
+	p[1] += R[4]*offset[0];
+	p[2] += R[8]*offset[0];
+
+	// set mass of body
+	dMassSetCylinder(&m, 270, 1, 2*_wheel_radius, _wheel_depth);
+
+	// adjust x,y,z to position center of mass correctly
+	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
+	p[1] += R[4]*m.c[0] + R[5]*m.c[1] + R[6]*m.c[2];
+	p[2] += R[8]*m.c[0] + R[9]*m.c[1] + R[10]*m.c[2];
+
+	// set body parameters
+	dBodySetPosition(conn->body, p[0], p[1], p[2]);
+	dBodySetRotation(conn->body, R);
+	dBodySetFiniteRotationMode(conn->body, 1);
+
+	// rotation matrix for curves
+	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
+
+	// set geometry
+	conn->geom[0] = dCreateCylinder(_space, _wheel_radius, _wheel_depth);
+	dGeomSetBody(conn->geom[0], conn->body);
+	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
+	dGeomSetOffsetRotation(conn->geom[0], R1);
+
+	// set mass center to (0,0,0) of _bodyID
+	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+	dBodySetMass(conn->body, &m);
+
+	// fix connector to body
+	if (side != -1)
+		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
+	else
+		this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;

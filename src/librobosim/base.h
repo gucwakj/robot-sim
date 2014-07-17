@@ -58,7 +58,6 @@ class DLLIMPORT CRobot {
 		double getPosition(int body, int i);
 		double getRotation(int body, int i);
 		double getUniform(void);
-		int addConnector(int type, int face, double size);
 		int addToSim(dWorldID &world, dSpaceID &space);
 		int doze(double ms);
 		int getConnectorParams(int type, int side, dMatrix3 R, double *p);
@@ -73,20 +72,7 @@ class DLLIMPORT CRobot {
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int build(xml_robot_t robot) = 0;
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn) = 0;
-		virtual int build_individual(double x, double y, double z, dMatrix3 R, double *rot) = 0;
-		virtual int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1) = 0;
-		virtual int build_bridge(conn_t conn, int face, int side = -1, int type = -1) = 0;
-		virtual int build_caster(conn_t conn, int face, int side = -1, int type = -1) = 0;
-		virtual int build_cube(conn_t conn, int face, int side = -1, int type = -1) = 0;
-		virtual int build_faceplate(conn_t conn, int face, int side = -1, int type = -1) = 0;
-		virtual int build_gripper(conn_t conn, int face) = 0;
-		virtual int build_omnidrive(conn_t conn, int face, int side = -1, int type = -1) = 0;
-		virtual int build_simple(conn_t conn, int face, int side = -1, int type = -1) = 0;
-		virtual int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1) = 0;
-		virtual int build_square(conn_t conn, int face, int side = -1, int type = -1) = 0;
-		virtual int build_tank(conn_t conn, int face, int side = -1, int type = -1) = 0;
-		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1) = 0;
-		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1) = 0;
+		virtual int buildIndividual(double x, double y, double z, dMatrix3 R, double *rot) = 0;
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
 		virtual int initParams(int disabled, int type) = 0;
 		virtual int initDims(void) = 0;

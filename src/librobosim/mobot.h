@@ -162,20 +162,10 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		// private functions inherited from CRobot class
 		virtual int build(xml_robot_t robot);
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn);
-		virtual int build_individual(double x, double y, double z, dMatrix3 R, double *rot);
-		virtual int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1);
-		virtual int build_bridge(conn_t conn, int face, int side = -1, int type = -1);
-		virtual int build_caster(conn_t conn, int face, int side = -1, int type = -1);
-		virtual int build_cube(conn_t conn, int face, int side = -1, int type = -1);
-		virtual int build_faceplate(conn_t conn, int face, int side = -1, int type = -1);
-		virtual int build_gripper(conn_t conn, int face);
-		virtual int build_omnidrive(conn_t conn, int face, int side = -1, int type = -1);
-		virtual int build_simple(conn_t conn, int face, int side = -1, int type = -1);
-		virtual int build_square(conn_t conn, int face, int side = -1, int type = -1);
-		virtual int build_tank(conn_t conn, int face, int side = -1, int type = -1);
-		virtual int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1);
-		virtual int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);
-		virtual int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);
+		virtual int buildIndividual(double x, double y, double z, dMatrix3 R, double *rot);
+#ifdef ENABLE_GRAPHICS
+		virtual int draw(osg::Group *root, int tracking);
+#endif // ENABLE_GRAPHICS
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
 		virtual int initParams(int disabled, int type);
 		virtual int initDims(void);
@@ -183,12 +173,29 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		virtual void simPostCollisionThread(void);
 
 		// private functions
-		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);
-		int build_body(int id, double x, double y, double z, dMatrix3 R, double theta);
-		int build_center(double x, double y, double z, dMatrix3 R);
-		int build_endcap(int id, double x, double y, double z, dMatrix3 R);
-		int fix_body_to_connector(dBodyID cBody, int face);
-		int fix_connector_to_body(int face, dBodyID cBody);
+		int add_connector(int type, int face, double size);								// add connector
+		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);			// build rotated and attached robot
+		int build_bigwheel(conn_t conn, int face);										// build big wheel connector
+		int build_body(int id, double x, double y, double z, dMatrix3 R, double theta);	// build body of mobot
+		int build_caster(conn_t conn, int face);										// build caster connector
+		int build_center(double x, double y, double z, dMatrix3 R);						// build center body of mobot
+		int build_endcap(int id, double x, double y, double z, dMatrix3 R);				// build endcap of mobot
+		int build_simple(conn_t conn, int face);										// build simple connector
+		int build_smallwheel(conn_t conn, int face);									// build small wheel connector
+		int build_square(conn_t conn, int face);										// build square connector
+		int build_tank(conn_t conn, int face);											// build tank connector
+		int build_wheel(conn_t conn, int face, double size);							// build custom wheel connector
+#ifdef ENABLE_GRAPHICS
+		void draw_bigwheel(conn_t conn, osg::Group *robot);								// draw big wheel
+		void draw_caster(conn_t conn, osg::Group *robot);								// draw caster
+		void draw_simple(conn_t conn, osg::Group *robot);								// draw simple
+		void draw_smallwheel(conn_t conn, osg::Group *robot);							// draw small wheel
+		void draw_square(conn_t conn, osg::Group *robot);								// draw square
+		void draw_tank(conn_t conn, osg::Group *robot);									// draw tank
+		void draw_wheel(conn_t conn, osg::Group *robot);								// draw custom wheel
+#endif // ENABLE_GRAPHICS
+		int fix_body_to_connector(dBodyID cBody, int face);								// fix second body to connector
+		int fix_connector_to_body(int face, dBodyID cBody);								// fix connector to robot body
 		static void* drivexyThread(void *arg);
 		static void* drivexyToThread(void *arg);
 		static void* motionArchThread(void *arg);
@@ -209,16 +216,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		static void* recordAnglesThread(void *arg);
 		static void* recordAnglesBeginThread(void *arg);
 		static void* recordxyBeginThread(void *arg);
-#ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group *root, int tracking);
-		void draw_bigwheel(conn_t conn, osg::Group *robot);
-		void draw_caster(conn_t conn, osg::Group *robot);
-		void draw_simple(conn_t conn, osg::Group *robot);
-		void draw_smallwheel(conn_t conn, osg::Group *robot);
-		void draw_square(conn_t conn, osg::Group *robot);
-		void draw_tank(conn_t conn, osg::Group *robot);
-		void draw_wheel(conn_t conn, osg::Group *robot);
-#endif // ENABLE_GRAPHICS
 };
 
 class CMobotGroup {
