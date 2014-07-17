@@ -195,6 +195,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		void draw_wheel(conn_t conn, osg::Group *robot);								// draw custom wheel
 #endif // ENABLE_GRAPHICS
 		int fix_body_to_connector(dBodyID cBody, int face);								// fix second body to connector
+		int fix_body_to_ground(dBodyID cbody);											// fix body to ground
 		int fix_connector_to_body(int face, dBodyID cBody);								// fix connector to robot body
 		static void* drivexyThread(void *arg);
 		static void* drivexyToThread(void *arg);

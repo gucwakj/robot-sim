@@ -4275,8 +4275,6 @@ void CMobot::draw_wheel(conn_t conn, osg::Group *robot) {
 #endif // ENABLE_GRAPHICS
 
 int CMobot::fix_body_to_connector(dBodyID cBody, int face) {
-	if (!cBody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
-
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
 
@@ -4299,6 +4297,20 @@ int CMobot::fix_body_to_connector(dBodyID cBody, int face) {
 			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_R));
 			break;
 	}
+
+	// set joint params
+	dJointSetFixed(joint);
+
+	// success
+	return 0;
+}
+
+int CMobot::fix_body_to_ground(dBodyID cbody) {
+	// fixed joint
+	dJointID joint = dJointCreateFixed(_world, 0);
+
+	// attach to correct body
+	dJointAttach(joint, 0, cbody);
 
 	// set joint params
 	dJointSetFixed(joint);

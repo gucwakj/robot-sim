@@ -49,18 +49,6 @@ CRobot::~CRobot(void) {
 	MUTEX_DESTROY(&_theta_mutex);
 }
 
-void* CRobot::simPreCollisionThreadEntry(void *arg) {
-	CRobot *p = (CRobot *)arg;
-	p->simPreCollisionThread();
-	return arg;
-}
-
-void* CRobot::simPostCollisionThreadEntry(void *arg) {
-	CRobot *p = (CRobot *)arg;
-	p->simPostCollisionThread();
-	return arg;
-}
-
 dBodyID CRobot::getBodyID(int id) {
 	return _body[id];
 }
@@ -328,6 +316,18 @@ int CRobot::noisy(double *a, int length, double sigma) {
 int CRobot::setID(int id) {
 	_id = id;
 	return 0;
+}
+
+void* CRobot::simPreCollisionThreadEntry(void *arg) {
+	CRobot *p = (CRobot *)arg;
+	p->simPreCollisionThread();
+	return arg;
+}
+
+void* CRobot::simPostCollisionThreadEntry(void *arg) {
+	CRobot *p = (CRobot *)arg;
+	p->simPostCollisionThread();
+	return arg;
 }
 
 /**********************************************************

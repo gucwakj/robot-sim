@@ -3288,8 +3288,8 @@ int CLinkbotT::add_connector_daisy(int conn, int face, double size, int side, in
 
 int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 	// initialize new variables
-	double m[3] = {0};
-	dMatrix3 R;
+	double m[3] = {0}, offset[3] = {0};
+	dMatrix3 R, R1, R2, R3, R4, R5, R6;
 
 	// generate parameters for base robot
 	base->getConnectionParams(conn->face1, R, m);
@@ -3297,24 +3297,39 @@ int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn) 
 	// generate parameters for connector
 	this->getConnectorParams(conn->type, conn->side, R, m);
 
-	// find position of new module
-	double angle = 0;
+	// rotate about connection joint
+	dRFromAxisAndAngle(R1, R[0], R[4], R[8], robot->psi);
+	dMultiply0(R2, R1, R, 3, 3, 3);
+
+	// rotate body for connection face
 	switch (conn->face2) {
-		case FACE1:
-			angle = robot->angle1;
+		case 1:
+			offset[0] = _body_width/2 + _face_depth;
+			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], 0);
+			dMultiply0(R4, R3, R2, 3, 3, 3);
+			dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], DEG2RAD(robot->angle1));
 			break;
-		case FACE2:
-			angle = robot->angle2;
+		case 2:
+			offset[0] = _face_depth + _body_length;
+			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], -M_PI/2);
+			dMultiply0(R4, R3, R2, 3, 3, 3);
+			dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -DEG2RAD(robot->angle2));
 			break;
-		case FACE3:
-			angle = robot->angle3;
+		case 3:
+			offset[0] = _body_width/2 + _face_depth;
+			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], M_PI);
+			dMultiply0(R4, R3, R2, 3, 3, 3);
+			dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], DEG2RAD(robot->angle3));
 			break;
 	}
-	this->get_body_params(robot->psi, conn->face2, angle, R, m);
+	m[0] += R[0]*offset[0];
+	m[1] += R[4]*offset[0];
+	m[2] += R[8]*offset[0];
+	dMultiply0(R6, R5, R4, 3, 3, 3);
 
     // build new module
 	double rot[3] = {robot->angle1, robot->angle2, robot->angle3};
-	this->buildIndividual(m[0], m[1], m[2], R, rot);
+	this->buildIndividual(m[0], m[1], m[2], R6, rot);
 
     // add fixed joint to attach two modules
 	this->fix_body_to_connector(base->getConnectorBodyID(conn->face1), conn->face2);
@@ -4428,8 +4443,6 @@ void CLinkbotT::draw_wheel(conn_t conn, osg::Group *robot) {
 #endif // ENABLE_GRAPHICS
 
 int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
-	if (!cBody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
-
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
 
@@ -4444,8 +4457,6 @@ int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
 }
 
 int CLinkbotT::fix_body_to_ground(dBodyID cbody) {
-	if (!cbody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
-
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
 
@@ -4460,8 +4471,6 @@ int CLinkbotT::fix_body_to_ground(dBodyID cbody) {
 }
 
 int CLinkbotT::fix_connector_to_body(dBodyID rBody, dBodyID cBody) {
-	if (!cBody) { fprintf(stderr, "Error: connector body does not exist\n"); exit(-1); }
-
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
 
@@ -4470,44 +4479,6 @@ int CLinkbotT::fix_connector_to_body(dBodyID rBody, dBodyID cBody) {
 
 	// set joint params
 	dJointSetFixed(joint);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::get_body_params(double angle, int face, double rotation, dMatrix3 R, double *p) {
-	double offset[3] = {0};
-	dMatrix3 R1, R2, R3, R4, R5;
-
-	// rotate about connection joint
-	dRFromAxisAndAngle(R1, R[0], R[4], R[8], angle);
-	dMultiply0(R2, R1, R, 3, 3, 3);
-
-	// rotate body for connection face
-	switch (face) {
-		case 1:
-			offset[0] = _body_width/2 + _face_depth;
-			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], 0);
-			dMultiply0(R4, R3, R2, 3, 3, 3);
-			dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], DEG2RAD(rotation));
-			break;
-		case 2:
-			offset[0] = _face_depth + _body_length;
-			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], -M_PI/2);
-			dMultiply0(R4, R3, R2, 3, 3, 3);
-			dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -DEG2RAD(rotation));
-			break;
-		case 3:
-			offset[0] = _body_width/2 + _face_depth;
-			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], M_PI);
-			dMultiply0(R4, R3, R2, 3, 3, 3);
-			dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], DEG2RAD(rotation));
-			break;
-	}
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
-	dMultiply0(R, R5, R4, 3, 3, 3);
 
 	// success
 	return 0;

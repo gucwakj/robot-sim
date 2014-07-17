@@ -42,10 +42,6 @@ class DLLIMPORT CRobot {
 		CRobot(void);
 		~CRobot(void);
 
-		// entry functions for pre- and post-collision updates
-		static void* simPreCollisionThreadEntry(void *arg);
-		static void* simPostCollisionThreadEntry(void *arg);
-
 		// public functions
 		dBodyID getBodyID(int body);
 		dBodyID getConnectorBodyID(int face);
@@ -68,11 +64,16 @@ class DLLIMPORT CRobot {
 		int isHome(void);
 		int noisy(double *a, int length, double sigma);
 		int setID(int id);
+		static void* simPreCollisionThreadEntry(void *arg);
+		static void* simPostCollisionThreadEntry(void *arg);
 
 		// pure virtual functions to be overridden by inherited classes of each robot
 		virtual int build(xml_robot_t robot) = 0;
 		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn) = 0;
 		virtual int buildIndividual(double x, double y, double z, dMatrix3 R, double *rot) = 0;
+#ifdef ENABLE_GRAPHICS
+		virtual int draw(osg::Group *root, int tracking) = 0;
+#endif // ENABLE_GRAPHICS
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
 		virtual int initParams(int disabled, int type) = 0;
 		virtual int initDims(void) = 0;
@@ -195,7 +196,6 @@ class DLLIMPORT CRobot {
 		MUTEX_T _theta_mutex;
 
 #ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group *root, int tracking) = 0;
 		osg::Group *_robot;
 		osg::ShapeDrawable *_led;
 #endif // ENABLE_GRAPHICS

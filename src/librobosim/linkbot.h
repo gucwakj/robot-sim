@@ -204,7 +204,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int fix_body_to_connector(dBodyID cBody, int face);									// fix second body to connector
 		int fix_body_to_ground(dBodyID cbody);												// fix body to ground
 		int fix_connector_to_body(dBodyID rBody, dBodyID cBody);							// fix connector to robot body
-		int get_body_params(double angle, int face, double rotation, dMatrix3 R, double *p);// get parameters for attaching robot
 		static void* closeGripperNBThread(void *arg);										// thread to close gripper
 		static void* driveTimeNBThread(void *arg);											// thread to drive robot
 		static void* drivexyThread(void *arg);												// thread to run drivexy
