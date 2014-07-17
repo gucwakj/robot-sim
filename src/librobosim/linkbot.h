@@ -174,7 +174,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		// private functions
 		int add_connector(int type, int face, double size);									// add connector
 		int add_connector_daisy(int conn, int side, double size, int face, int type);		// add daisy chained connector
-		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);				// build rotated and attached robot
 		int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1);			// build big wheel connector
 		int build_body(double x, double y, double z, dMatrix3 R, double theta);				// build body of linkbot
 		int build_bridge(conn_t conn, int face, int side = -1, int type = -1);				// build bridge connector

@@ -174,7 +174,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 
 		// private functions
 		int add_connector(int type, int face, double size);								// add connector
-		int build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn);			// build rotated and attached robot
 		int build_bigwheel(conn_t conn, int face);										// build big wheel connector
 		int build_body(int id, double x, double y, double z, dMatrix3 R, double theta);	// build body of mobot
 		int build_caster(conn_t conn, int face);										// build caster connector

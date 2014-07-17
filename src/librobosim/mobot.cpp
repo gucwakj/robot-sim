@@ -2455,8 +2455,99 @@ int CMobot::build(xml_robot_t robot) {
 }
 
 int CMobot::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
-	// build robot
-	this->build_attached(robot, base, conn);
+	// initialize new variables
+	int i = 1;
+	double m[3] = {0}, offset[3] = {0};
+	dMatrix3 R, R1, R2, R3, R4, R5, R6;
+
+	// generate parameters for base robot
+	base->getConnectionParams(conn->face1, R, m);
+
+	// generate parameters for connector
+	this->getConnectorParams(conn->type, conn->side, R, m);
+
+	// collect data from struct
+	double r_le = robot->angle1;
+	double r_lb = robot->angle2;
+	double r_rb = robot->angle3;
+	double r_re = robot->angle4;
+
+	switch (conn->face2) {
+		case 1:
+			// rotation matrix
+			dRFromAxisAndAngle(R1, R[2], R[6], R[10], 0);
+			dMultiply0(R2, R1, R, 3, 3, 3);
+			dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], DEG2RAD(r_le));
+			dMultiply0(R4, R3, R2, 3, 3, 3);
+			dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -DEG2RAD(r_lb));
+			dMultiply0(R6, R5, R4, 3, 3, 3);
+			// center offset
+			dRFromAxisAndAngle(R1, 0, 1, 0, -DEG2RAD(r_lb));
+			offset[0] = _end_depth + _body_end_depth + _body_length + R1[0]*_body_radius;
+			offset[1] = R1[4]*_body_radius;
+			offset[2] = R1[8]*_body_radius;
+			break;
+		case 2: case 5:
+			i = (conn->face2 == 2) ? -1 : 1;
+			// rotation matrix
+			dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI/2);
+			dMultiply0(R2, R1, R, 3, 3, 3);
+			dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -DEG2RAD(r_lb));
+			dMultiply0(R6, R3, R2, 3, 3, 3);
+			// center offset
+			dRFromAxisAndAngle(R1, 0, 1, 0, -DEG2RAD(r_lb));
+			offset[0] = _body_width/2;
+			offset[1] = i*_body_end_depth + i*_body_length - i*_body_mount_center + i*R1[0]*_body_radius;
+			offset[2] = R1[8]*_body_radius;
+			break;
+		case 3: case 6:
+			i = (conn->face2 == 3) ? -1 : 1;
+			// rotation matrix
+			dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI/2);
+			dMultiply0(R6, R1, R, 3, 3, 3);
+			// center offset
+			offset[0] = _body_width/2;
+			break;
+		case 4: case 7:
+			i = (conn->face2 == 4) ? 1 : -1;
+			// rotation matrix
+			dRFromAxisAndAngle(R1, R[2], R[6], R[10], -i*M_PI/2);
+			dMultiply0(R2, R1, R, 3, 3, 3);
+			dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], DEG2RAD(r_rb));
+			dMultiply0(R6, R3, R2, 3, 3, 3);
+			// center offset
+			dRFromAxisAndAngle(R1, 0, 1, 0, -DEG2RAD(r_rb));
+			offset[0] = _body_width/2;
+			offset[1] = i*_body_end_depth + i*_body_length - i*_body_mount_center + i*R1[0]*_body_radius;
+			offset[2] = R1[8]*_body_radius;
+			break;
+		case 8:
+			// rotation matrix
+			dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI);
+			dMultiply0(R2, R1, R, 3, 3, 3);
+			dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -DEG2RAD(r_re));
+			dMultiply0(R4, R3, R2, 3, 3, 3);
+			dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], DEG2RAD(r_rb));
+			dMultiply0(R6, R5, R4, 3, 3, 3);
+			// center offset
+			dRFromAxisAndAngle(R1, 0, 1, 0, -DEG2RAD(r_rb));
+			offset[0] = _end_depth + _body_end_depth + _body_length + R1[0]*_body_radius;
+			offset[1] = R1[4]*_body_radius;
+			offset[2] = R1[8]*_body_radius;
+			break;
+	}
+
+	// adjust position by rotation matrix
+	m[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
+	m[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
+	m[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
+
+    // build new module
+	double rot[4] = {r_le, r_lb, r_rb, r_re};
+	this->buildIndividual(m[0], m[1], m[2], R6, rot);
+
+    // add fixed joint to attach two modules
+	this->fix_body_to_connector(base->getConnectorBodyID(conn->face1), conn->face2);
 
 	// add connectors
 	xml_conn_t ctmp = robot->conn;
@@ -3198,105 +3289,6 @@ int CMobot::add_connector(int type, int face, double size) {
 			this->build_wheel(nc, face, size);
 			break;
 	}
-
-	// success
-	return 0;
-}
-
-int CMobot::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
-	// initialize new variables
-	int i = 1;
-	double m[3] = {0}, offset[3] = {0};
-	dMatrix3 R, R1, R2, R3, R4, R5, R6;
-
-	// generate parameters for base robot
-	base->getConnectionParams(conn->face1, R, m);
-
-	// generate parameters for connector
-	this->getConnectorParams(conn->type, conn->side, R, m);
-
-	// collect data from struct
-	double r_le = robot->angle1;
-	double r_lb = robot->angle2;
-	double r_rb = robot->angle3;
-	double r_re = robot->angle4;
-
-	switch (conn->face2) {
-		case 1:
-			// rotation matrix
-			dRFromAxisAndAngle(R1, R[2], R[6], R[10], 0);
-			dMultiply0(R2, R1, R, 3, 3, 3);
-			dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], DEG2RAD(r_le));
-			dMultiply0(R4, R3, R2, 3, 3, 3);
-			dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -DEG2RAD(r_lb));
-			dMultiply0(R6, R5, R4, 3, 3, 3);
-			// center offset
-			dRFromAxisAndAngle(R1, 0, 1, 0, -DEG2RAD(r_lb));
-			offset[0] = _end_depth + _body_end_depth + _body_length + R1[0]*_body_radius;
-			offset[1] = R1[4]*_body_radius;
-			offset[2] = R1[8]*_body_radius;
-			break;
-		case 2: case 5:
-			i = (conn->face2 == 2) ? -1 : 1;
-			// rotation matrix
-			dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI/2);
-			dMultiply0(R2, R1, R, 3, 3, 3);
-			dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -DEG2RAD(r_lb));
-			dMultiply0(R6, R3, R2, 3, 3, 3);
-			// center offset
-			dRFromAxisAndAngle(R1, 0, 1, 0, -DEG2RAD(r_lb));
-			offset[0] = _body_width/2;
-			offset[1] = i*_body_end_depth + i*_body_length - i*_body_mount_center + i*R1[0]*_body_radius;
-			offset[2] = R1[8]*_body_radius;
-			break;
-		case 3: case 6:
-			i = (conn->face2 == 3) ? -1 : 1;
-			// rotation matrix
-			dRFromAxisAndAngle(R1, R[2], R[6], R[10], i*M_PI/2);
-			dMultiply0(R6, R1, R, 3, 3, 3);
-			// center offset
-			offset[0] = _body_width/2;
-			break;
-		case 4: case 7:
-			i = (conn->face2 == 4) ? 1 : -1;
-			// rotation matrix
-			dRFromAxisAndAngle(R1, R[2], R[6], R[10], -i*M_PI/2);
-			dMultiply0(R2, R1, R, 3, 3, 3);
-			dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], DEG2RAD(r_rb));
-			dMultiply0(R6, R3, R2, 3, 3, 3);
-			// center offset
-			dRFromAxisAndAngle(R1, 0, 1, 0, -DEG2RAD(r_rb));
-			offset[0] = _body_width/2;
-			offset[1] = i*_body_end_depth + i*_body_length - i*_body_mount_center + i*R1[0]*_body_radius;
-			offset[2] = R1[8]*_body_radius;
-			break;
-		case 8:
-			// rotation matrix
-			dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI);
-			dMultiply0(R2, R1, R, 3, 3, 3);
-			dRFromAxisAndAngle(R3, R2[0], R2[4], R2[8], -DEG2RAD(r_re));
-			dMultiply0(R4, R3, R2, 3, 3, 3);
-			dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], DEG2RAD(r_rb));
-			dMultiply0(R6, R5, R4, 3, 3, 3);
-			// center offset
-			dRFromAxisAndAngle(R1, 0, 1, 0, -DEG2RAD(r_rb));
-			offset[0] = _end_depth + _body_end_depth + _body_length + R1[0]*_body_radius;
-			offset[1] = R1[4]*_body_radius;
-			offset[2] = R1[8]*_body_radius;
-			break;
-	}
-
-	// adjust position by rotation matrix
-	m[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
-	m[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
-	m[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
-
-    // build new module
-	double rot[4] = {r_le, r_lb, r_rb, r_re};
-	this->buildIndividual(m[0], m[1], m[2], R6, rot);
-
-    // add fixed joint to attach two modules
-	this->fix_body_to_connector(base->getConnectorBodyID(conn->face1), conn->face2);
 
 	// success
 	return 0;

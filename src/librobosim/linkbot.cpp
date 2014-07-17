@@ -2470,8 +2470,52 @@ int CLinkbotT::build(xml_robot_t robot) {
 }
 
 int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
-	// build robot
-	this->build_attached(robot, base, conn);
+	// initialize new variables
+	double m[3] = {0}, offset[3] = {0};
+	dMatrix3 R, R1, R2, R3, R4, R5, R6;
+
+	// generate parameters for base robot
+	base->getConnectionParams(conn->face1, R, m);
+
+	// generate parameters for connector
+	this->getConnectorParams(conn->type, conn->side, R, m);
+
+	// rotate about connection joint
+	dRFromAxisAndAngle(R1, R[0], R[4], R[8], robot->psi);
+	dMultiply0(R2, R1, R, 3, 3, 3);
+
+	// rotate body for connection face
+	switch (conn->face2) {
+		case 1:
+			offset[0] = _body_width/2 + _face_depth;
+			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], 0);
+			dMultiply0(R4, R3, R2, 3, 3, 3);
+			dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], DEG2RAD(robot->angle1));
+			break;
+		case 2:
+			offset[0] = _face_depth + _body_length;
+			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], -M_PI/2);
+			dMultiply0(R4, R3, R2, 3, 3, 3);
+			dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -DEG2RAD(robot->angle2));
+			break;
+		case 3:
+			offset[0] = _body_width/2 + _face_depth;
+			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], M_PI);
+			dMultiply0(R4, R3, R2, 3, 3, 3);
+			dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], DEG2RAD(robot->angle3));
+			break;
+	}
+	m[0] += R[0]*offset[0];
+	m[1] += R[4]*offset[0];
+	m[2] += R[8]*offset[0];
+	dMultiply0(R6, R5, R4, 3, 3, 3);
+
+    // build new module
+	double rot[3] = {robot->angle1, robot->angle2, robot->angle3};
+	this->buildIndividual(m[0], m[1], m[2], R6, rot);
+
+    // add fixed joint to attach two modules
+	this->fix_body_to_connector(base->getConnectorBodyID(conn->face1), conn->face2);
 
 	// add connectors
 	xml_conn_t ctmp = robot->conn;
@@ -3281,58 +3325,6 @@ int CLinkbotT::add_connector_daisy(int conn, int face, double size, int side, in
 			this->build_wheel(nc, face, size, side, type);
 			break;
 	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::build_attached(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
-	// initialize new variables
-	double m[3] = {0}, offset[3] = {0};
-	dMatrix3 R, R1, R2, R3, R4, R5, R6;
-
-	// generate parameters for base robot
-	base->getConnectionParams(conn->face1, R, m);
-
-	// generate parameters for connector
-	this->getConnectorParams(conn->type, conn->side, R, m);
-
-	// rotate about connection joint
-	dRFromAxisAndAngle(R1, R[0], R[4], R[8], robot->psi);
-	dMultiply0(R2, R1, R, 3, 3, 3);
-
-	// rotate body for connection face
-	switch (conn->face2) {
-		case 1:
-			offset[0] = _body_width/2 + _face_depth;
-			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], 0);
-			dMultiply0(R4, R3, R2, 3, 3, 3);
-			dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], DEG2RAD(robot->angle1));
-			break;
-		case 2:
-			offset[0] = _face_depth + _body_length;
-			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], -M_PI/2);
-			dMultiply0(R4, R3, R2, 3, 3, 3);
-			dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -DEG2RAD(robot->angle2));
-			break;
-		case 3:
-			offset[0] = _body_width/2 + _face_depth;
-			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], M_PI);
-			dMultiply0(R4, R3, R2, 3, 3, 3);
-			dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], DEG2RAD(robot->angle3));
-			break;
-	}
-	m[0] += R[0]*offset[0];
-	m[1] += R[4]*offset[0];
-	m[2] += R[8]*offset[0];
-	dMultiply0(R6, R5, R4, 3, 3, 3);
-
-    // build new module
-	double rot[3] = {robot->angle1, robot->angle2, robot->angle3};
-	this->buildIndividual(m[0], m[1], m[2], R6, rot);
-
-    // add fixed joint to attach two modules
-	this->fix_body_to_connector(base->getConnectorBodyID(conn->face1), conn->face2);
 
 	// success
 	return 0;
