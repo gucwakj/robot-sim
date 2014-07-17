@@ -169,6 +169,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		virtual dBodyID getBodyID(int id);
 		virtual double getCenter(int i);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
+		virtual int getConnectorParams(int type, int side, dMatrix3 R, double *p);
 		virtual dBodyID getConnectorBodyID(int face);
 		virtual dBodyID getConnectorBodyIDs(int num);
 		virtual int getRobotID(void);
@@ -206,7 +207,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int fix_body_to_ground(dBodyID cbody);												// fix body to ground
 		int fix_connector_to_body(dBodyID rBody, dBodyID cBody);							// fix connector to robot body
 		int get_body_params(double angle, int face, double rotation, dMatrix3 R, double *p);// get parameters for attaching robot
-		int get_connector_params(int type, int side, dMatrix3 R, double *p);				// get parameters of connector
 		int init_params(int disabled, int type);											// initialize robot parameters
 		int init_dims(void);																// initialize robot dimensions
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);					// modify angle to count continuously

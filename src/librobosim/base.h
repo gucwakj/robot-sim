@@ -28,6 +28,15 @@
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
 
+// connector
+typedef struct conn_s {
+	int face, type;
+	int d_side, d_type;
+	dBodyID body;
+	dGeomID *geom;
+	struct conn_s *next;
+} *conn_t;
+
 class DLLIMPORT CRobot {
 	public:
 		CRobot();
@@ -53,6 +62,7 @@ class DLLIMPORT CRobot {
 		virtual dBodyID getConnectorBodyID(int face) = 0;
 		virtual dBodyID getConnectorBodyIDs(int num) = 0;
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
+		virtual int getConnectorParams(int type, int side, dMatrix3 R, double *p) = 0;
 		virtual int getRobotID(void) = 0;
 		virtual dJointID getMotorID(int motor) = 0;
 		virtual double getAngle(int i) = 0;
@@ -97,13 +107,6 @@ class DLLIMPORT CRobot {
 			double *angle4;
 			double **pangle4;
 		} recordAngleArg_t;
-		// connector
-		typedef struct conn_s {
-			int face, type;
-			dBodyID body;
-			dGeomID *geom;
-			struct conn_s *next;
-		} *conn_t;
 		// motor accelerations
 		typedef struct accel_s {
 			double init;			// motion initial angle

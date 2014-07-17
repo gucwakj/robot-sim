@@ -230,12 +230,18 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]+0.00001));
 		pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		// draw connectors
-		while (_robot->getConnectorBodyIDs(k)) {
-			pos = dBodyGetPosition(_robot->getConnectorBodyIDs(k));
-			quat = dBodyGetQuaternion(_robot->getConnectorBodyIDs(k));
+		conn_t ctmp = _robot->_conn;
+		while(ctmp) {
+			dMatrix3 R;
+			dQuaternion Q;
+			double p[3] = {0};
+			_robot->getConnectionParams(ctmp->face, R, p);
+			if (ctmp->d_side != -1) _robot->getConnectorParams(ctmp->d_type, ctmp->d_side, R, p);
+			dRtoQ(R, Q);
 			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i + k++));
-			pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
-			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+			pat->setPosition(osg::Vec3d(p[0], p[1], p[2]));
+			pat->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
+			ctmp = ctmp->next;
 		}
 		// draw hud
 		osg::Geode *geode = dynamic_cast<osg::Geode *>(group->getChild(0));
