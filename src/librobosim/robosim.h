@@ -13,7 +13,7 @@
 typedef struct ground_s {
 	dBodyID body;
 	dGeomID geom;
-	int r, g, b;
+	double r, g, b, alpha;
 	struct ground_s *next;
 } *ground_t;
 

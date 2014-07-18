@@ -257,6 +257,7 @@ int RoboSim::init_xml(char *name) {
 			ng->r = 0;
 			ng->g = 0;
 			ng->b = 0;
+			ng->alpha = 1;
 			ng->next = NULL;
 
 			// get user defined values from xml
@@ -265,9 +266,10 @@ int RoboSim::init_xml(char *name) {
 				mass = 0.1;
 			}
 			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryIntAttribute("r", &ng->r);
-				ele->QueryIntAttribute("g", &ng->g);
-				ele->QueryIntAttribute("b", &ng->b);
+				ele->QueryDoubleAttribute("r", &ng->r);
+				ele->QueryDoubleAttribute("g", &ng->g);
+				ele->QueryDoubleAttribute("b", &ng->b);
+				ele->QueryDoubleAttribute("alpha", &ng->alpha);
 			}
 			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &px);
@@ -325,6 +327,7 @@ int RoboSim::init_xml(char *name) {
 			ng->r = 0;
 			ng->g = 0;
 			ng->b = 0;
+			ng->alpha = 1;
 			ng->next = NULL;
 
 			// get user defined values from xml
@@ -337,9 +340,10 @@ int RoboSim::init_xml(char *name) {
 				axis = 1;
 			}
 			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryIntAttribute("r", &ng->r);
-				ele->QueryIntAttribute("g", &ng->g);
-				ele->QueryIntAttribute("b", &ng->b);
+				ele->QueryDoubleAttribute("r", &ng->r);
+				ele->QueryDoubleAttribute("g", &ng->g);
+				ele->QueryDoubleAttribute("b", &ng->b);
+				ele->QueryDoubleAttribute("alpha", &ng->alpha);
 			}
 			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &px);
@@ -401,6 +405,7 @@ int RoboSim::init_xml(char *name) {
 			ng->r = 0;
 			ng->g = 0;
 			ng->b = 0;
+			ng->alpha = 1;
 			ng->next = NULL;
 
 			// get user defined values from xml
@@ -409,9 +414,10 @@ int RoboSim::init_xml(char *name) {
 				mass = 0.1;
 			}
 			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryIntAttribute("r", &ng->r);
-				ele->QueryIntAttribute("g", &ng->g);
-				ele->QueryIntAttribute("b", &ng->b);
+				ele->QueryDoubleAttribute("r", &ng->r);
+				ele->QueryDoubleAttribute("g", &ng->g);
+				ele->QueryDoubleAttribute("b", &ng->b);
+				ele->QueryDoubleAttribute("alpha", &ng->alpha);
 			}
 			if ( (ele = node->FirstChildElement("position")) ) {
 				ele->QueryDoubleAttribute("x", &px);
@@ -1880,7 +1886,7 @@ void* RoboSim::graphics_thread(void *arg) {
 				box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), dims[0], dims[1], dims[2]);
 				box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 				shape = new osg::ShapeDrawable(box);
-				shape->setColor(osg::Vec4(gtmp->r, gtmp->g, gtmp->b, 1));
+				shape->setColor(osg::Vec4(gtmp->r, gtmp->g, gtmp->b, gtmp->alpha));
 				body->addDrawable(shape);
 				break;
 			case dCylinderClass:
@@ -1888,14 +1894,14 @@ void* RoboSim::graphics_thread(void *arg) {
 				cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), radius, length);
 				cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 				shape = new osg::ShapeDrawable(cyl);
-				shape->setColor(osg::Vec4(gtmp->r, gtmp->g, gtmp->b, 1));
+				shape->setColor(osg::Vec4(gtmp->r, gtmp->g, gtmp->b, gtmp->alpha));
 				body->addDrawable(shape);
 				break;
 			case dSphereClass:
 				radius = dGeomSphereGetRadius(gtmp->geom);
 				sph = new osg::Sphere(osg::Vec3d(pos[0], pos[1], pos[2]), radius);
 				shape = new osg::ShapeDrawable(sph);
-				shape->setColor(osg::Vec4(gtmp->r, gtmp->g, gtmp->b, 1));
+				shape->setColor(osg::Vec4(gtmp->r, gtmp->g, gtmp->b, gtmp->alpha));
 				body->addDrawable(shape);
 				break;
 		}
@@ -1905,6 +1911,7 @@ void* RoboSim::graphics_thread(void *arg) {
 		body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 		body->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
 		body->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+		body->getOrCreateStateSet()->setMode(GL_ALPHA_TEST, osg::StateAttribute::ON);
 		body->setCullingActive(false);
 
 		// add positioning capability
