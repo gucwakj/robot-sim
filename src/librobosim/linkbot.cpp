@@ -4021,7 +4021,7 @@ void CLinkbotT::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
 
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bigwheel.osg));
+	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bigwheel.stl));
 	geode->setCullingActive(false);
 
 	// PAT to transform mesh
@@ -4059,7 +4059,7 @@ void CLinkbotT::draw_bridge(conn_t conn, osg::Group *robot) {
 	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
 
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bridge.osg));
+	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bridge.stl));
 	geode->setCullingActive(false);
 
 	// PAT to transform mesh
@@ -4097,7 +4097,7 @@ void CLinkbotT::draw_caster(conn_t conn, osg::Group *robot) {
 	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
 
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/caster.osg));
+	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/caster.stl));
 	geode->setCullingActive(false);
 
 	// PAT to transform mesh
@@ -4135,7 +4135,7 @@ void CLinkbotT::draw_cube(conn_t conn, osg::Group *robot) {
 	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
 
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/cube.osg));
+	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/cube.stl));
 	geode->setCullingActive(false);
 
 	// PAT to transform mesh
@@ -4173,7 +4173,7 @@ void CLinkbotT::draw_faceplate(conn_t conn, osg::Group *robot) {
 	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
 
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/faceplate.osg));
+	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/faceplate.stl));
 	geode->setCullingActive(false);
 
 	// PAT to transform mesh
@@ -4211,7 +4211,7 @@ void CLinkbotT::draw_gripper(conn_t conn, osg::Group *robot) {
 	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
 
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/gripper.osg));
+	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/gripper.stl));
 	geode->setCullingActive(false);
 
 	// PAT to transform mesh
@@ -4249,7 +4249,7 @@ void CLinkbotT::draw_omnidrive(conn_t conn, osg::Group *robot) {
 	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
 
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/omnidrive.osg));
+	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/omnidrive.stl));
 	geode->setCullingActive(false);
 
 	// PAT to transform mesh
@@ -4287,7 +4287,7 @@ void CLinkbotT::draw_simple(conn_t conn, osg::Group *robot) {
 	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
 
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/simple.osg));
+	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/simple.stl));
 	geode->setCullingActive(false);
 
 	// PAT to transform mesh
@@ -4325,7 +4325,7 @@ void CLinkbotT::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
 
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/smallwheel.osg));
+	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/smallwheel.stl));
 	geode->setCullingActive(false);
 
 	// PAT to transform mesh
@@ -4363,7 +4363,7 @@ void CLinkbotT::draw_tinywheel(conn_t conn, osg::Group *robot) {
 	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
 
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.osg));
+	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.stl));
 	geode->setCullingActive(false);
 
 	// PAT to transform mesh
