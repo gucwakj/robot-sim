@@ -188,24 +188,14 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);			// build tiny wheel connector
 		int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);	// build custom wheel connector
 #ifdef ENABLE_GRAPHICS
-		void draw_bigwheel(conn_t conn, osg::Group *robot);									// draw big wheel
-		void draw_bridge(conn_t conn, osg::Group *robot);									// draw bridge
-		void draw_caster(conn_t conn, osg::Group *robot);									// draw caster
-		void draw_cube(conn_t conn, osg::Group *robot);										// draw cube
-		void draw_faceplate(conn_t conn, osg::Group *robot);								// draw faceplate
-		void draw_gripper(conn_t conn, osg::Group *robot);									// draw gripper
-		void draw_omnidrive(conn_t conn, osg::Group *robot);								// draw omnidrive
-		void draw_simple(conn_t conn, osg::Group *robot);									// draw simple
-		void draw_smallwheel(conn_t conn, osg::Group *robot);								// draw small wheel
-		void draw_tinywheel(conn_t conn, osg::Group *robot);								// draw tiny wheel
-		void draw_wheel(conn_t conn, osg::Group *robot);									// draw custom wheel
+		void draw_connector(conn_t conn, osg::Group *robot);								// load connector stl
 #endif // ENABLE_GRAPHICS
-		int fix_body_to_connector(dBodyID cBody, int face);									// fix second body to connector
-		int fix_connector_to_body(dBodyID rBody, dBodyID cBody);							// fix connector to robot body
+		int fix_body_to_connector(dBodyID cBody, int face);									// fix body onto connector
+		int fix_connector_to_body(dBodyID rBody, dBodyID cBody);							// fix connector onto body
 		static void* closeGripperNBThread(void *arg);										// thread to close gripper
 		static void* driveTimeNBThread(void *arg);											// thread to drive robot
 		static void* drivexyThread(void *arg);												// thread to run drivexy
-		static void* drivexyToThread(void *arg);											// thread to run drivexy
+		static void* drivexyToThread(void *arg);											// thread to run drivexyTo
 		static void* drivexyToFuncThread(void *arg);										// thread to run drivexyFunc
 		static void* drivexyToPolyThread(void *arg);										// thread to run drivexyPoly
 		static void* recordAngleThread(void *arg);											// thread to record angle
@@ -213,7 +203,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		static void* recordAnglesThread(void *arg);											// thread to record angles
 		static void* recordAnglesBeginThread(void *arg);									// thread to record angles
 		static void* recordxyBeginThread(void *arg);										// thread to record positions
-		static void* moveJointTimeNBThread(void *arg);										// thread to move joint
+		static void* moveJointTimeNBThread(void *arg);										// thread to move a joint
 		static void* moveTimeNBThread(void *arg);											// thread to move all joints
 };
 

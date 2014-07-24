@@ -2764,41 +2764,7 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	// add connectors
 	conn_t ctmp = _conn;
 	while (ctmp) {
-		switch (ctmp->type) {
-			case BIGWHEEL:
-				this->draw_bigwheel(ctmp, _robot);
-				break;
-			case BRIDGE:
-				this->draw_bridge(ctmp, _robot);
-				break;
-			case CASTER:
-				this->draw_caster(ctmp, _robot);
-				break;
-			case CUBE:
-				this->draw_cube(ctmp, _robot);
-				break;
-			case FACEPLATE:
-				this->draw_faceplate(ctmp, _robot);
-				break;
-			case GRIPPER:
-				this->draw_gripper(ctmp, _robot);
-				break;
-			case OMNIDRIVE:
-				this->draw_omnidrive(ctmp, _robot);
-				break;
-			case SIMPLE:
-				this->draw_simple(ctmp, _robot);
-				break;
-			case SMALLWHEEL:
-				this->draw_smallwheel(ctmp, _robot);
-				break;
-			case TINYWHEEL:
-				this->draw_tinywheel(ctmp, _robot);
-				break;
-			case WHEEL:
-				this->draw_wheel(ctmp, _robot);
-				break;
-		}
+		this->draw_connector(ctmp, _robot);
 		ctmp = ctmp->next;
 	}
 
@@ -4009,7 +3975,7 @@ int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int typ
 }
 
 #ifdef ENABLE_GRAPHICS
-void CLinkbotT::draw_bigwheel(conn_t conn, osg::Group *robot) {
+void CLinkbotT::draw_connector(conn_t conn, osg::Group *robot) {
 	// initialize variables
 	dMatrix3 R;
 	dQuaternion Q;
@@ -4020,400 +3986,50 @@ void CLinkbotT::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	dRtoQ(R, Q);
 	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
 
-	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bigwheel.stl));
-	geode->setCullingActive(false);
-
 	// PAT to transform mesh
 	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
 	transform->setPosition(osg::Vec3d(p[0], p[1], p[2]));
 	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
 
-	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
-	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
-
-	// set rendering
-	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add body to pat
-	transform->addChild(geode);
-	// add to scenegraph
-	robot->addChild(transform);
-}
-
-void CLinkbotT::draw_bridge(conn_t conn, osg::Group *robot) {
-	// initialize variables
-	dMatrix3 R;
-	dQuaternion Q;
-	double p[3] = {0};
-
-	// get connection parameters
-	this->getConnectionParams(conn->face, R, p);
-	dRtoQ(R, Q);
-	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
-
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bridge.stl));
-	geode->setCullingActive(false);
-
-	// PAT to transform mesh
-	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
-	transform->setPosition(osg::Vec3d(p[0], p[1], p[2]));
-	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
-
-	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
-	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
-
-	// set rendering
-	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add body to pat
-	transform->addChild(geode);
-	// add to scenegraph
-	robot->addChild(transform);
-}
-
-void CLinkbotT::draw_caster(conn_t conn, osg::Group *robot) {
-	// initialize variables
-	dMatrix3 R;
-	dQuaternion Q;
-	double p[3] = {0};
-
-	// get connection parameters
-	this->getConnectionParams(conn->face, R, p);
-	dRtoQ(R, Q);
-	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
-
-	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/caster.stl));
-	geode->setCullingActive(false);
-
-	// PAT to transform mesh
-	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
-	transform->setPosition(osg::Vec3d(p[0], p[1], p[2]));
-	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
-
-	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
-	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
-
-	// set rendering
-	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add body to pat
-	transform->addChild(geode);
-	// add to scenegraph
-	robot->addChild(transform);
-}
-
-void CLinkbotT::draw_cube(conn_t conn, osg::Group *robot) {
-	// initialize variables
-	dMatrix3 R;
-	dQuaternion Q;
-	double p[3] = {0};
-
-	// get connection parameters
-	this->getConnectionParams(conn->face, R, p);
-	dRtoQ(R, Q);
-	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
-
-	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/cube.stl));
-	geode->setCullingActive(false);
-
-	// PAT to transform mesh
-	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
-	transform->setPosition(osg::Vec3d(p[0], p[1], p[2]));
-	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
-
-	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
-	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
-
-	// set rendering
-	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add body to pat
-	transform->addChild(geode);
-	// add to scenegraph
-	robot->addChild(transform);
-}
-
-void CLinkbotT::draw_faceplate(conn_t conn, osg::Group *robot) {
-	// initialize variables
-	dMatrix3 R;
-	dQuaternion Q;
-	double p[3] = {0};
-
-	// get connection parameters
-	this->getConnectionParams(conn->face, R, p);
-	dRtoQ(R, Q);
-	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
-
-	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/faceplate.stl));
-	geode->setCullingActive(false);
-
-	// PAT to transform mesh
-	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
-	transform->setPosition(osg::Vec3d(p[0], p[1], p[2]));
-	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
-
-	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
-	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
-
-	// set rendering
-	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add body to pat
-	transform->addChild(geode);
-	// add to scenegraph
-	robot->addChild(transform);
-}
-
-void CLinkbotT::draw_gripper(conn_t conn, osg::Group *robot) {
-	// initialize variables
-	dMatrix3 R;
-	dQuaternion Q;
-	double p[3] = {0};
-
-	// get connection parameters
-	this->getConnectionParams(conn->face, R, p);
-	dRtoQ(R, Q);
-	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
-
-	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/gripper.stl));
-	geode->setCullingActive(false);
-
-	// PAT to transform mesh
-	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
-	transform->setPosition(osg::Vec3d(p[0], p[1], p[2]));
-	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
-
-	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
-	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
-
-	// set rendering
-	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add body to pat
-	transform->addChild(geode);
-	// add to scenegraph
-	robot->addChild(transform);
-}
-
-void CLinkbotT::draw_omnidrive(conn_t conn, osg::Group *robot) {
-	// initialize variables
-	dMatrix3 R;
-	dQuaternion Q;
-	double p[3] = {0};
-
-	// get connection parameters
-	this->getConnectionParams(conn->face, R, p);
-	dRtoQ(R, Q);
-	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
-
-	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/omnidrive.stl));
-	geode->setCullingActive(false);
-
-	// PAT to transform mesh
-	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
-	transform->setPosition(osg::Vec3d(p[0], p[1], p[2]));
-	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
-
-	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
-	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
-
-	// set rendering
-	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add body to pat
-	transform->addChild(geode);
-	// add to scenegraph
-	robot->addChild(transform);
-}
-
-void CLinkbotT::draw_simple(conn_t conn, osg::Group *robot) {
-	// initialize variables
-	dMatrix3 R;
-	dQuaternion Q;
-	double p[3] = {0};
-
-	// get connection parameters
-	this->getConnectionParams(conn->face, R, p);
-	dRtoQ(R, Q);
-	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
-
-	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/simple.stl));
-	geode->setCullingActive(false);
-
-	// PAT to transform mesh
-	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
-	transform->setPosition(osg::Vec3d(p[0], p[1], p[2]));
-	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
-
-	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
-	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
-
-	// set rendering
-	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add body to pat
-	transform->addChild(geode);
-	// add to scenegraph
-	robot->addChild(transform);
-}
-
-void CLinkbotT::draw_smallwheel(conn_t conn, osg::Group *robot) {
-	// initialize variables
-	dMatrix3 R;
-	dQuaternion Q;
-	double p[3] = {0};
-
-	// get connection parameters
-	this->getConnectionParams(conn->face, R, p);
-	dRtoQ(R, Q);
-	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
-
-	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/smallwheel.stl));
-	geode->setCullingActive(false);
-
-	// PAT to transform mesh
-	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
-	transform->setPosition(osg::Vec3d(p[0], p[1], p[2]));
-	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
-
-	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
-	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
-
-	// set rendering
-	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add body to pat
-	transform->addChild(geode);
-	// add to scenegraph
-	robot->addChild(transform);
-}
-
-void CLinkbotT::draw_tinywheel(conn_t conn, osg::Group *robot) {
-	// initialize variables
-	dMatrix3 R;
-	dQuaternion Q;
-	double p[3] = {0};
-
-	// get connection parameters
-	this->getConnectionParams(conn->face, R, p);
-	dRtoQ(R, Q);
-	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
-
-	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.stl));
-	geode->setCullingActive(false);
-
-	// PAT to transform mesh
-	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
-	transform->setPosition(osg::Vec3d(p[0], p[1], p[2]));
-	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
-
-	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
-	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
-
-	// set rendering
-	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add body to pat
-	transform->addChild(geode);
-	// add to scenegraph
-	robot->addChild(transform);
-}
-
-void CLinkbotT::draw_wheel(conn_t conn, osg::Group *robot) {
-	// initialize variables
-	osg::ref_ptr<osg::Geode> body = new osg::Geode;
-	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-	const double *pos;
-	dQuaternion quat;
-	osg::Cylinder *cyl;
-
-    // set geometry
-	pos = dGeomGetOffsetPosition(conn->geom[0]);
-	dGeomGetOffsetQuaternion(conn->geom[0], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _wheel_radius, _wheel_depth);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body->addDrawable(new osg::ShapeDrawable(cyl));
-
-	// add zero position dots
-	int n = 4;
-	double step = (_wheel_radius*5/6)/(n-1);
-	for (int i = 0; i < n; i++) {
-		cyl = new osg::Cylinder(osg::Vec3d(pos[0]+0.0001, pos[1], pos[2]+i*step), 0.0025, _wheel_depth);
-		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-		osg::ShapeDrawable *color = new osg::ShapeDrawable(cyl);
-		color->setColor(osg::Vec4(0, 0, 0, 1));
-		body->addDrawable(color);
+	osg::ref_ptr<osg::Node> geode;
+	switch (conn->type) {
+		case BIGWHEEL:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bigwheel.stl));
+			break;
+		case BRIDGE:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bridge.stl));
+			break;
+		case CASTER:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/caster.stl));
+			break;
+		case CUBE:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/cube.stl));
+			break;
+		case FACEPLATE:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/faceplate.stl));
+			break;
+		case GRIPPER:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/gripper.stl));
+			break;
+		case OMNIDRIVE:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/omnidrive.stl));
+			break;
+		case SIMPLE:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/simple.stl));
+			break;
+		case SMALLWHEEL:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/smallwheel.stl));
+			break;
+		case TINYWHEEL:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.stl));
+			break;
+		case WHEEL:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.stl));
+			transform->setScale(osg::Vec3d(1, _wheel_radius/_tinywheel_radius, _wheel_radius/_tinywheel_radius));
+			break;
 	}
+	geode->setCullingActive(false);
 
 	// apply texture
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
@@ -4421,16 +4037,20 @@ void CLinkbotT::draw_wheel(conn_t conn, osg::Group *robot) {
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
 	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 
 	// set rendering
-	body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin");
-	body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 
 	// add body to pat
-	pat->addChild(body.get());
+	transform->addChild(geode);
+
+	// set user properties of node
+	geode->setName("connector");
+
 	// add to scenegraph
-	robot->addChild(pat);
+	robot->addChild(transform);
 }
 #endif // ENABLE_GRAPHICS
 
