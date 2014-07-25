@@ -559,6 +559,50 @@ radius of the sphere.  By default the cylinder is drawn with the long axis along
 the X-axis.  Position gives the X, Y, and Z location of the center of the
 sphere.
 
+\subsection{Graphics Section}
+The graphics section hold elements which are drawn onto the screen but which do
+not interact with the robot simulation.  They are there merely for visual
+representation and elucidation of the mathematics happening.
+
+\subsubsection{Line}
+\begin{verbatim}
+<line width="1">
+    <color r="1" g="1" b="1" alpha="1"/>
+    <start x="1" y="1" z="1"/>
+    <end x="1" y="1" z="1"/>
+</line>
+\end{verbatim}
+The line is drawn from a starting XYZ (\verb%<start>%) to an ending XYZ
+(\verb%<end>%).  Line width is an integer which scales the thickness of the
+line.  Its color and transparency is affected by the \verb%<color>% element each
+value of which scales from zero to one.
+
+\subsubsection{Point}
+\begin{verbatim}
+<point size="1">
+    <color r="1" g="1" b="1" alpha="1"/>
+    <position x="1" y="1" z="1"/>
+</point>
+\end{verbatim}
+The point is drawn from at a XYZ position (\verb%<position>%).  Size is an
+integer which scales the radius of the point.  Its color and transparency is
+affected by the \verb%<color>% element each value of which scales from zero to
+one.
+
+\subsubsection{Text}
+\begin{verbatim}
+<hello>
+    <color r="1" g="1" b="1" alpha="1"/>
+    <position x="1" y="1" z="1"/>
+</hello>
+\end{verbatim}
+Any text can be drawn onto the screen through specific XML elements.  The name
+of the element, such as \verb%hello% in this case, is the text to be rendered.
+Changing this element name (both the starting and ending tags) will change the
+text to be displayed.  The text is drawn at the XYZ position in the
+\verb%<position>% element.  Its color and transparency is affected by the
+\verb%<color>% element each value of which scales from zero to one.
+
 \subsection{Simulation Section}
 The simulation section holds the robots and accessories for the current
 simulation.  Everything to be added is put between the \verb%<sim>% tags.

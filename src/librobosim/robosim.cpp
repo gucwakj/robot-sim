@@ -399,7 +399,73 @@ int RoboSim::init_xml(char *name) {
 				gtmp = gtmp->next;
 			gtmp->next = ng;
 		}
-		else if ( !strcmp(node->Value(), "line") ) {
+		else if ( !strcmp(node->Value(), "sphere") ) {
+			// store default variables
+			ground_t ng = new struct ground_s;
+			ng->r = 0;
+			ng->g = 0;
+			ng->b = 0;
+			ng->alpha = 1;
+			ng->next = NULL;
+
+			// get user defined values from xml
+			double r, px, py, pz, mass;
+			if (node->QueryDoubleAttribute("mass", &mass)) {
+				mass = 0.1;
+			}
+			if ( (ele = node->FirstChildElement("color")) ) {
+				ele->QueryDoubleAttribute("r", &ng->r);
+				ele->QueryDoubleAttribute("g", &ng->g);
+				ele->QueryDoubleAttribute("b", &ng->b);
+				ele->QueryDoubleAttribute("alpha", &ng->alpha);
+			}
+			if ( (ele = node->FirstChildElement("position")) ) {
+				ele->QueryDoubleAttribute("x", &px);
+				ele->QueryDoubleAttribute("y", &py);
+				ele->QueryDoubleAttribute("z", &pz);
+			}
+			if ( (ele = node->FirstChildElement("size")) ) {
+				ele->QueryDoubleAttribute("radius", &r);
+			}
+
+			// create body
+			dMass m;
+			ng->body = dBodyCreate(_world);
+			if ( mass == 0 ) {
+				dBodyDisable(ng->body);
+				mass = 1;
+			}
+			dMassSetSphereTotal(&m, mass, r);
+			dBodySetPosition(ng->body, px, py, pz);
+
+			// position geom
+			ng->geom = dCreateSphere(_space, r);
+			dGeomSetBody(ng->geom, ng->body);
+			dGeomSetOffsetPosition(ng->geom, -m.c[0], -m.c[1], -m.c[2]);
+
+			// set mass center to (0,0,0) of _bodyID
+			dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
+			dBodySetMass(ng->body, &m);
+
+			// add object to linked list
+			ground_t gtmp = _ground;
+			while (gtmp->next)
+				gtmp = gtmp->next;
+			gtmp->next = ng;
+		}
+
+		// go to next node
+		node = node->NextSiblingElement();
+	}
+
+	// check for existence of graphics node
+	if ( (node = doc.FirstChildElement("graphics")) ) {
+		node = node->FirstChildElement();
+	}
+
+	// loop over all graphics nodes
+	while (node) {
+		if ( !strcmp(node->Value(), "line") ) {
 			// store default variables
 			drawing_t nd = new struct drawing_s;
 			nd->type = LINE;
@@ -467,60 +533,6 @@ int RoboSim::init_xml(char *name) {
 					dtmp = dtmp->next;
 				dtmp->next = nd;
 			}
-		}
-		else if ( !strcmp(node->Value(), "sphere") ) {
-			// store default variables
-			ground_t ng = new struct ground_s;
-			ng->r = 0;
-			ng->g = 0;
-			ng->b = 0;
-			ng->alpha = 1;
-			ng->next = NULL;
-
-			// get user defined values from xml
-			double r, px, py, pz, mass;
-			if (node->QueryDoubleAttribute("mass", &mass)) {
-				mass = 0.1;
-			}
-			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryDoubleAttribute("r", &ng->r);
-				ele->QueryDoubleAttribute("g", &ng->g);
-				ele->QueryDoubleAttribute("b", &ng->b);
-				ele->QueryDoubleAttribute("alpha", &ng->alpha);
-			}
-			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &px);
-				ele->QueryDoubleAttribute("y", &py);
-				ele->QueryDoubleAttribute("z", &pz);
-			}
-			if ( (ele = node->FirstChildElement("size")) ) {
-				ele->QueryDoubleAttribute("radius", &r);
-			}
-
-			// create body
-			dMass m;
-			ng->body = dBodyCreate(_world);
-			if ( mass == 0 ) {
-				dBodyDisable(ng->body);
-				mass = 1;
-			}
-			dMassSetSphereTotal(&m, mass, r);
-			dBodySetPosition(ng->body, px, py, pz);
-
-			// position geom
-			ng->geom = dCreateSphere(_space, r);
-			dGeomSetBody(ng->geom, ng->body);
-			dGeomSetOffsetPosition(ng->geom, -m.c[0], -m.c[1], -m.c[2]);
-
-			// set mass center to (0,0,0) of _bodyID
-			dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
-			dBodySetMass(ng->body, &m);
-
-			// add object to linked list
-			ground_t gtmp = _ground;
-			while (gtmp->next)
-				gtmp = gtmp->next;
-			gtmp->next = ng;
 		}
 		else {
 			// store default variables
@@ -1988,7 +2000,7 @@ void* RoboSim::graphics_thread(void *arg) {
 			label->setCharacterSize(25);
 			label->setColor(osg::Vec4(dtmp->c[0], dtmp->c[1], dtmp->c[2], dtmp->c[3]));
 			label->setDrawMode(osgText::Text::TEXT);
-			label->setPosition(osg::Vec3(dtmp->p1[0], dtmp->p1[0], dtmp->p1[0]));
+			label->setPosition(osg::Vec3(dtmp->p1[0], dtmp->p1[1], dtmp->p1[2]));
 			label->setText(dtmp->str);
 
 			// set rendering properties
