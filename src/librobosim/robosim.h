@@ -78,6 +78,22 @@ class DLLIMPORT RoboSim {
 		static void* simulation_thread(void *arg);					// simulation thread function
 
 #ifdef ENABLE_GRAPHICS
+		// enumeration of drawing objects
+		typedef enum drawing_objects_e {
+			LINE,
+			POINT,
+			TEXT,
+			NUM_TYPES
+		} drawingObjects_t;
+
+		// graphics objects struct
+		typedef struct drawing_s {
+			double p1[3], p2[3], c[4];
+			int i, type;
+			std::string str;
+			struct drawing_s *next;
+		} *drawing_t;
+
 		// variables
 		double _grid[6];							// grid spacing (tics, major, total)
 		int _ending;								// temp variable for deleting robots
@@ -85,6 +101,7 @@ class DLLIMPORT RoboSim {
 		int _viewer;								// flag for viewer
 		osgShadow::ShadowedScene *_shadowed;		// root node to hold graphics
 		osg::Group *_staging;						// temp variable for adding robots
+		drawing_t _drawings;						// all graphics objects
 		COND_T _graphics_cond;						// condition for graphics
 		MUTEX_T _graphics_mutex;					// mutex for graphics existence
 		MUTEX_T _viewer_mutex;						// mutex for viewer running state

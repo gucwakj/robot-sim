@@ -399,6 +399,75 @@ int RoboSim::init_xml(char *name) {
 				gtmp = gtmp->next;
 			gtmp->next = ng;
 		}
+		else if ( !strcmp(node->Value(), "line") ) {
+			// store default variables
+			drawing_t nd = new struct drawing_s;
+			nd->type = LINE;
+			nd->next = NULL;
+
+			// get user defined values from xml
+			if (node->QueryIntAttribute("width", &nd->i)) {
+				nd->i = 1;
+			}
+			if ( (ele = node->FirstChildElement("start")) ) {
+				ele->QueryDoubleAttribute("x", &nd->p1[0]);
+				ele->QueryDoubleAttribute("y", &nd->p1[1]);
+				ele->QueryDoubleAttribute("z", &nd->p1[2]);
+			}
+			if ( (ele = node->FirstChildElement("end")) ) {
+				ele->QueryDoubleAttribute("x", &nd->p2[0]);
+				ele->QueryDoubleAttribute("y", &nd->p2[1]);
+				ele->QueryDoubleAttribute("z", &nd->p2[2]);
+			}
+			if ( (ele = node->FirstChildElement("color")) ) {
+				ele->QueryDoubleAttribute("r", &nd->c[0]);
+				ele->QueryDoubleAttribute("g", &nd->c[1]);
+				ele->QueryDoubleAttribute("b", &nd->c[2]);
+				ele->QueryDoubleAttribute("alpha", &nd->c[3]);
+			}
+
+			// add object to linked list
+			drawing_t dtmp = _drawings;
+			if (dtmp == NULL)
+				_drawings = nd;
+			else {
+				while (dtmp->next)
+					dtmp = dtmp->next;
+				dtmp->next = nd;
+			}
+		}
+		else if ( !strcmp(node->Value(), "point") ) {
+			// store default variables
+			drawing_t nd = new struct drawing_s;
+			nd->type = POINT;
+			nd->next = NULL;
+
+			// get user defined values from xml
+			if (node->QueryIntAttribute("size", &nd->i)) {
+				nd->i = 1;
+			}
+			if ( (ele = node->FirstChildElement("position")) ) {
+				ele->QueryDoubleAttribute("x", &nd->p1[0]);
+				ele->QueryDoubleAttribute("y", &nd->p1[1]);
+				ele->QueryDoubleAttribute("z", &nd->p1[2]);
+			}
+			if ( (ele = node->FirstChildElement("color")) ) {
+				ele->QueryDoubleAttribute("r", &nd->c[0]);
+				ele->QueryDoubleAttribute("g", &nd->c[1]);
+				ele->QueryDoubleAttribute("b", &nd->c[2]);
+				ele->QueryDoubleAttribute("alpha", &nd->c[3]);
+			}
+
+			// add object to linked list
+			drawing_t dtmp = _drawings;
+			if (dtmp == NULL)
+				_drawings = nd;
+			else {
+				while (dtmp->next)
+					dtmp = dtmp->next;
+				dtmp->next = nd;
+			}
+		}
 		else if ( !strcmp(node->Value(), "sphere") ) {
 			// store default variables
 			ground_t ng = new struct ground_s;
@@ -452,6 +521,36 @@ int RoboSim::init_xml(char *name) {
 			while (gtmp->next)
 				gtmp = gtmp->next;
 			gtmp->next = ng;
+		}
+		else {
+			// store default variables
+			drawing_t nd = new struct drawing_s;
+			nd->type = TEXT;
+			nd->next = NULL;
+
+			// get user defined values from xml
+			nd->str = node->Value();
+			if ( (ele = node->FirstChildElement("position")) ) {
+				ele->QueryDoubleAttribute("x", &nd->p1[0]);
+				ele->QueryDoubleAttribute("y", &nd->p1[1]);
+				ele->QueryDoubleAttribute("z", &nd->p1[2]);
+			}
+			if ( (ele = node->FirstChildElement("color")) ) {
+				ele->QueryDoubleAttribute("r", &nd->c[0]);
+				ele->QueryDoubleAttribute("g", &nd->c[1]);
+				ele->QueryDoubleAttribute("b", &nd->c[2]);
+				ele->QueryDoubleAttribute("alpha", &nd->c[3]);
+			}
+
+			// add object to linked list
+			drawing_t dtmp = _drawings;
+			if (dtmp == NULL)
+				_drawings = nd;
+			else {
+				while (dtmp->next)
+					dtmp = dtmp->next;
+				dtmp->next = nd;
+			}
 		}
 
 		// go to next node
@@ -1934,6 +2033,90 @@ void* RoboSim::graphics_thread(void *arg) {
 
 		// next object
 		gtmp = gtmp->next;
+	}
+
+	// drawing objects
+	drawing_t dtmp = sim->_drawings;
+	while (dtmp) {
+		if (dtmp->type == LINE) {
+			// draw line
+			osg::Geode *line = new osg::Geode();
+			osg::Geometry *geom = new osg::Geometry();
+			osg::Vec3Array *vert = new osg::Vec3Array();
+			vert->push_back(osg::Vec3(dtmp->p1[0], dtmp->p1[1], dtmp->p1[2]));
+			vert->push_back(osg::Vec3(dtmp->p2[0], dtmp->p2[1], dtmp->p2[2]));
+			geom->setVertexArray(vert);
+			geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 2));
+			osg::Vec4Array *colors = new osg::Vec4Array;
+			colors->push_back(osg::Vec4(dtmp->c[0], dtmp->c[1], dtmp->c[2], dtmp->c[3]));
+			geom->setColorArray(colors);
+			geom->setColorBinding(osg::Geometry::BIND_OVERALL);
+			line->addDrawable(geom);
+
+			// set line width
+			osg::LineWidth *width = new osg::LineWidth();
+			width->setWidth(dtmp->i*3.0f);
+			line->getOrCreateStateSet()->setAttributeAndModes(width, osg::StateAttribute::ON);
+
+			// set rendering properties
+			line->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+			line->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+			// optimize object
+			osgUtil::Optimizer optimizer;
+			optimizer.optimize(line);
+
+			// add to scenegraph
+			shadowedScene->addChild(line);
+		}
+		else if (dtmp->type == POINT) {
+			// create sphere
+			osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(dtmp->p1[0], dtmp->p1[1], dtmp->p1[2]), dtmp->i/500.0);
+			osg::Geode *point = new osg::Geode;
+			osg::ShapeDrawable *pointDrawable = new osg::ShapeDrawable(sphere);
+			point->addDrawable(pointDrawable);
+			pointDrawable->setColor(osg::Vec4(dtmp->c[0], dtmp->c[1], dtmp->c[2], dtmp->c[3]));
+
+			// set rendering properties
+			point->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+			point->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+			// optimize object
+			osgUtil::Optimizer optimizer;
+			optimizer.optimize(point);
+
+			// add to scenegraph
+			shadowedScene->addChild(point);
+		}
+		else if (dtmp->type == TEXT) {
+			// generate text node
+			osgText::Text *label = new osgText::Text();
+			osg::Geode *label_geode = new osg::Geode();
+			label_geode->addDrawable(label);
+			label->setAlignment(osgText::Text::CENTER_CENTER);
+			label->setAxisAlignment(osgText::Text::SCREEN);
+			label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+			label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+			label->setCharacterSize(25);
+			label->setColor(osg::Vec4(dtmp->c[0], dtmp->c[1], dtmp->c[2], dtmp->c[3]));
+			label->setDrawMode(osgText::Text::TEXT);
+			label->setPosition(osg::Vec3(dtmp->p1[0], dtmp->p1[0], dtmp->p1[0]));
+			label->setText(dtmp->str);
+
+			// set rendering properties
+			label_geode->getOrCreateStateSet()->setRenderBinDetails(22, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+			label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+			// optimize object
+			osgUtil::Optimizer optimizer;
+			optimizer.optimize(label_geode);
+
+			// add to scenegraph
+			shadowedScene->addChild(label_geode);
+		}
+
+		// next object
+		dtmp = dtmp->next;
 	}
 
 	// set up HUD
