@@ -795,31 +795,6 @@ EXPORTCH int CMobot_jumpToNB_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CMobot_line_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobot *robot;
-	double x1, y1, z1;
-	double x2, y2, z2;
-	int linewidth;
-	char *color;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CMobot *);
-    x1 = Ch_VaArg(interp, ap, double);
-    y1 = Ch_VaArg(interp, ap, double);
-    z1 = Ch_VaArg(interp, ap, double);
-    x2 = Ch_VaArg(interp, ap, double);
-    y2 = Ch_VaArg(interp, ap, double);
-    z2 = Ch_VaArg(interp, ap, double);
-    linewidth = Ch_VaArg(interp, ap, int);
-    color = Ch_VaArg(interp, ap, char *);
-    retval = robot->line(x1, y1, z1, x2, y2, z2, linewidth, color);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CMobot_motionArch_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -1487,29 +1462,6 @@ EXPORTCH int CMobot_moveWait_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CMobot_point_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobot *robot;
-	double x;
-	double y;
-	double z;
-	int pointsize;
-	char *color;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CMobot *);
-    x = Ch_VaArg(interp, ap, double);
-    y = Ch_VaArg(interp, ap, double);
-    z = Ch_VaArg(interp, ap, double);
-    pointsize = Ch_VaArg(interp, ap, int);
-    color = Ch_VaArg(interp, ap, char *);
-    retval = robot->point(x, y, z, pointsize, color);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CMobot_recordAngle_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2110,27 +2062,6 @@ EXPORTCH int CMobot_systemTime_chdl(void *varg) {
     robot = Ch_VaArg(interp, ap, class CMobot *);
     systemTime = Ch_VaArg(interp, ap, double *);
     retval = robot->systemTime(*systemTime);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CMobot_text_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobot *robot;
-	double x;
-	double y;
-	double z;
-	char *text;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CMobot *);
-    x = Ch_VaArg(interp, ap, double);
-    y = Ch_VaArg(interp, ap, double);
-    z = Ch_VaArg(interp, ap, double);
-    text = Ch_VaArg(interp, ap, char *);
-    retval = robot->text(x, y, z, text);
     Ch_VaEnd(interp, ap);
     return retval;
 }

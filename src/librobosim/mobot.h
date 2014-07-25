@@ -57,9 +57,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int jumpJointToNB(robotJointId_t id, double angle);
 		int jumpTo(double angle1, double angle2, double angle3, double angle4);
 		int jumpToNB(double angle1, double angle2, double angle3, double angle4);
-#ifdef ENABLE_GRAPHICS
-		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
-#endif // ENABLE_GRAPHICS
 		int motionArch(double angle);
 		int motionArchNB(double angle);
 		int motionDistance(double distance, double radius);
@@ -105,9 +102,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
-#ifdef ENABLE_GRAPHICS
-		int point(double x, double y, double z, int pointsize, char *color);
-#endif // ENABLE_GRAPHICS
 		int recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData = 1);
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData = 1);
 		int recordAngleEnd(robotJointId_t id, int &num);
@@ -140,9 +134,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
 		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int systemTime(double &time);
-#ifdef ENABLE_GRAPHICS
-		int text(double x, double y, double z, char *text);
-#endif // ENABLE_GRAPHICS
 		int traceOff(void);
 		int traceOn(void);
 		int turnLeft(double angle, double radius, double trackwidth);

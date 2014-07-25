@@ -1061,12 +1061,6 @@ int CLinkbotT::jumpToNB(double angle1, double angle2, double angle3) {
 	return 0;
 }
 
-#ifdef ENABLE_GRAPHICS
-int CLinkbotT::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
-	return g_sim->line(x1, y1, z1, x2, y2, z2, linewidth, color);
-}
-#endif // ENABLE_GRAPHICS
-
 int CLinkbotT::move(double angle1, double angle2, double angle3) {
 	this->moveNB(angle1, angle2, angle3);
 	this->moveWait();
@@ -1419,12 +1413,6 @@ int CLinkbotT::openGripperNB(double angle) {
 	// success
 	return 0;
 }
-
-#ifdef ENABLE_GRAPHICS
-int CLinkbotT::point(double x, double y, double z, int pointsize, char *color) {
-	return g_sim->point(x, y, z, pointsize, color);
-}
-#endif // ENABLE_GRAPHICS
 
 void* CLinkbotT::recordAngleThread(void *arg) {
 	// cast arg struct
@@ -2313,12 +2301,6 @@ int CLinkbotT::systemTime(double &time) {
 	// success
 	return 0;
 }
-
-#ifdef ENABLE_GRAPHICS
-int CLinkbotT::text(double x, double y, double z, char *text) {
-	return g_sim->text(x, y, z, text);
-}
-#endif // ENABLE_GRAPHICS
 
 int CLinkbotT::traceOff(void) {
 	_trace = 0;

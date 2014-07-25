@@ -31,11 +31,6 @@ class DLLIMPORT RoboSim {
 		int runSimulation(void);
 		int setCollisions(int mode);
 		int setPause(int mode);
-#ifdef ENABLE_GRAPHICS
-		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
-		int point(double x, double y, double z, int pointsize, char *color);
-		int text(double x, double y, double z, char *text);
-#endif // ENABLE_GRAPHICS
 	private:
 		// robots struct
 		typedef struct robots_s {

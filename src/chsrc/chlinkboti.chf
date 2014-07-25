@@ -1065,16 +1065,10 @@ int CLinkbotI::jumpToNB(double angle1, double angle2, double angle3) {
 }
 
 int CLinkbotI::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
-    void *fptr;
-    int retval;
+	DEPRECATED("line", "the RoboSim GUI");
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_line_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, line, this, x1, y1, z1, x2, y2, z2, linewidth, color);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::move(double angle1, double angle2, double angle3) {
@@ -1474,16 +1468,10 @@ int CLinkbotI::openGripperNB(double angle) {
 }
 
 int CLinkbotI::point(double x, double y, double z, int pointsize, char *color) {
-    void *fptr;
-    int retval;
+	DEPRECATED("point", "the RoboSim GUI");
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_point_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, point, this, x, y, z, pointsize, color);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::recordAngle(int id, double time[:], double angle[:], int num, double seconds, ...) {
@@ -2212,16 +2200,10 @@ int CLinkbotI::systemTime(double &systemTime) {
 }
 
 int CLinkbotI::text(double x, double y, double z, char *text) {
-    void *fptr;
-    int retval;
+	DEPRECATED("text", "the RoboSim GUI");
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_text_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, NULL, this, x, y, z, text);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::traceOff(void) {

@@ -82,9 +82,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int jumpJointToNB(robotJointId_t id, double angle);
 		int jumpTo(double angle1, double angle2, double angle3);
 		int jumpToNB(double angle1, double angle2, double angle3);
-#ifdef ENABLE_GRAPHICS
-		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
-#endif // ENABLE_GRAPHICS
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveForeverNB(void);
@@ -105,9 +102,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveWait(void);
 		int openGripper(double angle);
 		int openGripperNB(double angle);
-#ifdef ENABLE_GRAPHICS
-		int point(double x, double y, double z, int pointsize, char *color);
-#endif // ENABLE_GRAPHICS
 		int recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData = 1);
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData = 1);
 		int recordAngleEnd(robotJointId_t id, int &num);
@@ -140,9 +134,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
 		int setSpeed(double speed, double radius);
 		int systemTime(double &time);
-#ifdef ENABLE_GRAPHICS
-		int text(double x, double y, double z, char *text);
-#endif // ENABLE_GRAPHICS
 		int traceOff(void);
 		int traceOn(void);
 		int turnLeft(double angle, double radius, double trackwidth);

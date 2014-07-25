@@ -512,12 +512,6 @@ int CMobot::jumpToNB(double angle1, double angle2, double angle3, double angle4)
 	return 0;
 }
 
-#ifdef ENABLE_GRAPHICS
-int CMobot::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
-	return g_sim->line(x1, y1, z1, x2, y2, z2, linewidth, color);
-}
-#endif // ENABLE_GRAPHICS
-
 int CMobot::motionArch(double angle) {
 	this->moveJointToNB(JOINT2, -angle/2.0);
 	this->moveJointToNB(JOINT3, angle/2.0);
@@ -1403,12 +1397,6 @@ int CMobot::moveWait(void) {
 	// success
 	return 0;
 }
-
-#ifdef ENABLE_GRAPHICS
-int CMobot::point(double x, double y, double z, int pointsize, char *color) {
-	return g_sim->point(x, y, z, pointsize, color);
-}
-#endif // ENABLE_GRAPHICS
 
 void* CMobot::recordAngleThread(void *arg) {
 	// cast arg struct
@@ -2307,12 +2295,6 @@ int CMobot::systemTime(double &time) {
 	// success
 	return 0;
 }
-
-#ifdef ENABLE_GRAPHICS
-int CMobot::text(double x, double y, double z, char *text) {
-	return g_sim->text(x, y, z, text);
-}
-#endif // ENABLE_GRAPHICS
 
 int CMobot::traceOff(void) {
 	_trace = 0;
