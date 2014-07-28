@@ -186,7 +186,7 @@ int RoboSim::init_xml(char *name) {
 
 #ifdef ENABLE_GRAPHICS
 	// read in grid line configuration
-	if ( (node = doc.FirstChildElement("config")->FirstChildElement("grid")) ) {
+	if ( (node = doc.FirstChildElement("graphics")->FirstChildElement("grid")) ) {
 		node->QueryIntAttribute("units", &_us);
 		node->QueryDoubleAttribute("tics", &_grid[0]);
 		node->QueryDoubleAttribute("major", &_grid[1]);
@@ -214,7 +214,7 @@ int RoboSim::init_xml(char *name) {
 	}
 
 	// check if robot tracking is enabled
-	if ( (node = doc.FirstChildElement("config")->FirstChildElement("tracking")) ) {
+	if ( (node = doc.FirstChildElement("graphics")->FirstChildElement("tracking")) ) {
 		node->QueryIntAttribute("val", &tracking);
 	}
 #endif

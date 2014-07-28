@@ -11,7 +11,7 @@
 #include <tinyxml2.h>
 #include "../librobosim/macros.h"
 
-#define XML_VERSION 2
+#define XML_VERSION 3
 
 typedef enum preconfig_e {
 	BOW = 1,
@@ -781,7 +781,7 @@ G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data) {
 		}
 
 		// set configuration options
-		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("graphics")->FirstChildElement("grid");
 		grid->SetAttribute("units", 1);
 		grid->SetAttribute("major", major);
 		grid->SetAttribute("tics", tics);
@@ -842,7 +842,7 @@ G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data) {
 		}
 
 		// set configuration options
-		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("graphics")->FirstChildElement("grid");
 		grid->SetAttribute("units", 0);
 		grid->SetAttribute("major", major);
 		grid->SetAttribute("tics", tics);
@@ -878,7 +878,7 @@ G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_grid_off_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "grid_off")))) {
-		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("graphics")->FirstChildElement("grid");
 		grid->SetAttribute("enabled", 0);
 	}
 
@@ -891,7 +891,7 @@ G_MODULE_EXPORT void on_grid_off_toggled(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_grid_on_toggled(GtkWidget *widget, gpointer data) {
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "grid_on")))) {
-		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("graphics")->FirstChildElement("grid");
 		grid->SetAttribute("enabled", 1);
 	}
 
@@ -904,7 +904,7 @@ G_MODULE_EXPORT void on_grid_on_toggled(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_major_value_changed(GtkWidget *widget, gpointer data) {
 	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
-	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("graphics")->FirstChildElement("grid");
 	grid->SetAttribute("major", val);
 
 	// save file
@@ -916,7 +916,7 @@ G_MODULE_EXPORT void on_major_value_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_tics_value_changed(GtkWidget *widget, gpointer data) {
 	// get old  value
-	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("graphics")->FirstChildElement("grid");
 	double oldval = 0;
 	grid->QueryDoubleAttribute("tics", &oldval);
 
@@ -958,7 +958,7 @@ G_MODULE_EXPORT void on_tics_value_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_minx_value_changed(GtkWidget *widget, gpointer data) {
 	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
-	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("graphics")->FirstChildElement("grid");
 	grid->SetAttribute("minx", val);
 
 	// save file
@@ -970,7 +970,7 @@ G_MODULE_EXPORT void on_minx_value_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_maxx_value_changed(GtkWidget *widget, gpointer data) {
 	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
-	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("graphics")->FirstChildElement("grid");
 	grid->SetAttribute("maxx", val);
 
 	// save file
@@ -982,7 +982,7 @@ G_MODULE_EXPORT void on_maxx_value_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_miny_value_changed(GtkWidget *widget, gpointer data) {
 	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
-	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("graphics")->FirstChildElement("grid");
 	grid->SetAttribute("miny", val);
 
 	// save file
@@ -994,7 +994,7 @@ G_MODULE_EXPORT void on_miny_value_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_maxy_value_changed(GtkWidget *widget, gpointer data) {
 	double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
-	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+	tinyxml2::XMLElement *grid = g_doc.FirstChildElement("graphics")->FirstChildElement("grid");
 	grid->SetAttribute("maxy", val);
 
 	// save file
@@ -2715,7 +2715,7 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data) {
  * When tracking is enabled
  */
 G_MODULE_EXPORT void on_tracking_toggled(GtkWidget *widget, gpointer data) {
-	tinyxml2::XMLElement *tracking = g_doc.FirstChildElement("config")->FirstChildElement("tracking");
+	tinyxml2::XMLElement *tracking = g_doc.FirstChildElement("graphics")->FirstChildElement("tracking");
 
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
 		tracking->SetAttribute("val", 1);
@@ -2779,6 +2779,10 @@ void readXMLConfig(void) {
 		type->SetAttribute("val", 0);
 		config->InsertAfterChild(version, type);
 
+		// set graphics options
+		tinyxml2::XMLElement *graphics = g_doc.NewElement("graphics");
+		g_doc.InsertAfterChild(config, graphics);
+
 		// set grid values
 		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
 		grid->SetAttribute("units", 1);
@@ -2789,14 +2793,14 @@ void readXMLConfig(void) {
 		grid->SetAttribute("maxx", g_grid[3][0]);
 		grid->SetAttribute("miny", g_grid[4][0]);
 		grid->SetAttribute("maxy", g_grid[5][0]);
-		config->InsertAfterChild(type, grid);
+		graphics->InsertFirstChild(grid);
 
 		// set tracking of robots
 		tinyxml2::XMLElement *tracking = g_doc.NewElement("tracking");
 		tracking->SetAttribute("val", 1);
-		config->InsertAfterChild(grid, tracking);
+		graphics->InsertAfterChild(grid, tracking);
 
-		// create empty simulation
+		// create simulation
 		tinyxml2::XMLElement *sim = g_doc.NewElement("sim");
 		g_doc.InsertAfterChild(config, sim);
 
@@ -2880,6 +2884,8 @@ void readXMLConfig(void) {
 	// check version of config file
 	if ( (node = g_doc.FirstChildElement("config")->FirstChildElement("version")) ) {
 		node->QueryIntAttribute("val", &version);
+		if (version != XML_VERSION)
+			node->SetAttribute("val", XML_VERSION);
 	}
 	else {
 		tinyxml2::XMLElement *version = g_doc.NewElement("version");
@@ -3099,7 +3105,7 @@ void readXMLConfig(void) {
 	}
 
 	// check grid settings
-	if ( (node = g_doc.FirstChildElement("config")->FirstChildElement("grid")) ) {
+	if ( (node = g_doc.FirstChildElement("graphics")->FirstChildElement("grid")) ) {
 		node->QueryIntAttribute("units", &g_units);
 
 		// enabled grid
@@ -3168,11 +3174,11 @@ void readXMLConfig(void) {
 		grid->SetAttribute("miny", miny);
 		double maxy = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")));
 		grid->SetAttribute("maxy", maxy);
-		g_doc.FirstChildElement("config")->InsertFirstChild(grid);
+		g_doc.FirstChildElement("graphics")->InsertFirstChild(grid);
 	}
 
 	// check if tracking is enabled
-	if ( (node = g_doc.FirstChildElement("config")->FirstChildElement("tracking")) ) {
+	if ( (node = g_doc.FirstChildElement("graphics")->FirstChildElement("tracking")) ) {
 		int tracking = 1;
 		node->QueryIntAttribute("val", &tracking);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "tracking")), tracking);
@@ -3180,7 +3186,7 @@ void readXMLConfig(void) {
 	else {
 		tinyxml2::XMLElement *tracking = g_doc.NewElement("tracking");
 		tracking->SetAttribute("val", 1);
-		g_doc.FirstChildElement("config")->InsertFirstChild(tracking);
+		g_doc.FirstChildElement("graphics")->InsertFirstChild(tracking);
 	}
 
 	// convert meters into gui units
@@ -3190,6 +3196,12 @@ void readXMLConfig(void) {
 		tmp->y = convert(tmp->y, 0);
 		tmp->z = convert(tmp->z, 0);
 		tmp = tmp->next;
+	}
+
+	// clean old elements from xml
+	if (version == 2 && XML_VERSION == 3) {
+		g_doc.FirstChildElement("config")->DeleteChild(g_doc.FirstChildElement("config")->FirstChildElement("grid"));
+		g_doc.FirstChildElement("config")->DeleteChild(g_doc.FirstChildElement("config")->FirstChildElement("tracking"));
 	}
 
 	// refesh robot list
