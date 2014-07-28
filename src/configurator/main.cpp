@@ -2579,10 +2579,18 @@ G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data) {
 		bridge4->InsertAfterChild(b4side1, b4side2);
 
 		// insert caster
-		tinyxml2::XMLElement *caster = g_doc.NewElement("caster");
-		sim->InsertAfterChild(bridge4, caster);
-		caster->SetAttribute("robot", 4);
-		caster->SetAttribute("face", 2);
+		tinyxml2::XMLElement *simple3 = g_doc.NewElement("simple");
+		sim->InsertAfterChild(bridge4, simple3);
+		tinyxml2::XMLElement *s3side1 = g_doc.NewElement("side");
+		s3side1->SetAttribute("id", 1);
+		s3side1->SetAttribute("robot", 4);
+		s3side1->SetAttribute("face", 2);
+		simple3->InsertFirstChild(s3side1);
+		tinyxml2::XMLElement *s3side2 = g_doc.NewElement("side");
+		s3side2->SetAttribute("id", 2);
+		s3side2->SetAttribute("robot", 4);
+		s3side2->SetAttribute("conn", CASTER);
+		simple3->InsertAfterChild(s3side1, s3side2);
 
 		// save file
 		g_doc.SaveFile(g_xml);
@@ -2837,14 +2845,23 @@ void readXMLConfig(void) {
 		simple2->InsertAfterChild(s2side1, s2side2);
 
 		// add caster
-		tinyxml2::XMLElement *caster = g_doc.NewElement("caster");
-		caster->SetAttribute("robot", 0);
-		caster->SetAttribute("face", 2);
+		tinyxml2::XMLElement *simple3 = g_doc.NewElement("simple");
+		sim->InsertAfterChild(simple2, simple3);
+		tinyxml2::XMLElement *s3side1 = g_doc.NewElement("side");
+		s3side1->SetAttribute("id", 1);
+		s3side1->SetAttribute("robot", 0);
+		s3side1->SetAttribute("face", 2);
+		simple3->InsertFirstChild(s3side1);
+		tinyxml2::XMLElement *s3side2 = g_doc.NewElement("side");
+		s3side2->SetAttribute("id", 2);
+		s3side2->SetAttribute("robot", 0);
+		s3side2->SetAttribute("conn", CASTER);
+		simple3->InsertAfterChild(s3side1, s3side2);
 
 		// add accessories to robot
 		sim->InsertAfterChild(robot, simple1);
 		sim->InsertAfterChild(simple1, simple2);
-		sim->InsertAfterChild(simple2, caster);
+		sim->InsertAfterChild(simple2, simple3);
 
 		// save default config file
 		g_doc.SaveFile(g_xml);
@@ -3431,28 +3448,38 @@ void saveRobotList(int force) {
 					s2side2->SetAttribute("radius", convert(tmp->radius, 1));
 				}
 
-				tinyxml2::XMLElement *caster = g_doc.NewElement("caster");
-				caster->SetAttribute("robot", tmp->id);
+				// caster
+				tinyxml2::XMLElement *simple3 = g_doc.NewElement("simple");
+				sim->InsertAfterChild(simple2, simple3);
+				tinyxml2::XMLElement *s3side1 = g_doc.NewElement("side");
+				s3side1->SetAttribute("id", 1);
+				s3side1->SetAttribute("robot", tmp->id);
+				simple3->InsertFirstChild(s3side1);
+				tinyxml2::XMLElement *s3side2 = g_doc.NewElement("side");
+				s3side2->SetAttribute("id", 2);
+				s3side2->SetAttribute("robot", tmp->id);
+				s3side2->SetAttribute("conn", CASTER);
+				simple3->InsertAfterChild(s3side1, s3side2);
 
 				if (tmp->type == 0) {
 					s2side1->SetAttribute("face", 3);
-					caster->SetAttribute("face", 2);
+					s3side1->SetAttribute("face", 2);
 				}
 				else if (tmp->type == 1) {
 					s2side1->SetAttribute("face", 2);
-					caster->SetAttribute("face", 3);
+					s3side1->SetAttribute("face", 3);
 				}
 				else if (tmp->type == 2) {
 					s2side1->SetAttribute("face", 3);
-					caster->SetAttribute("face", 2);
+					s3side1->SetAttribute("face", 2);
 				}
 				else if (tmp->type == 3) {
 					s2side1->SetAttribute("face", 8);
-					caster->SetAttribute("face", 3);
+					s3side1->SetAttribute("face", 3);
 				}
 				sim->InsertAfterChild(robot, simple1);
 				sim->InsertAfterChild(simple1, simple2);
-				sim->InsertAfterChild(simple2, caster);
+				sim->InsertAfterChild(simple2, simple3);
 			}
 			else if (tmp->type == 3 && tmp->wheel) {
 				tinyxml2::XMLElement	*wheel1 = g_doc.NewElement("smallwheel"),
