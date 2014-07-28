@@ -1218,7 +1218,7 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s1side2 = g_doc.NewElement("side");
 		s1side2->SetAttribute("id", 2);
 		s1side2->SetAttribute("robot", 0);
-		s1side2->SetAttribute("conn", 0);
+		s1side2->SetAttribute("conn", BIGWHEEL);
 		simple1->InsertAfterChild(s1side1, s1side2);
 		sim->InsertAfterChild(robot5, simple1);
 
@@ -1231,7 +1231,7 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s2side2 = g_doc.NewElement("side");
 		s2side2->SetAttribute("id", 2);
 		s2side2->SetAttribute("robot", 1);
-		s2side2->SetAttribute("conn", 0);
+		s2side2->SetAttribute("conn", BIGWHEEL);
 		simple2->InsertAfterChild(s2side1, s2side2);
 		sim->InsertAfterChild(simple1, simple2);
 
@@ -1246,7 +1246,7 @@ G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *cside2 = g_doc.NewElement("side");
 		cside2->SetAttribute("id", 2);
 		cside2->SetAttribute("robot", 0);
-		cside2->SetAttribute("conn", 2);
+		cside2->SetAttribute("conn", CASTER);
 		cube->InsertAfterChild(cside1, cside2);
 		tinyxml2::XMLElement *cside3 = g_doc.NewElement("side");
 		cside3->SetAttribute("id", 3);
@@ -1422,7 +1422,7 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s1side2 = g_doc.NewElement("side");
 		s1side2->SetAttribute("id", 2);
 		s1side2->SetAttribute("robot", 0);
-		s1side2->SetAttribute("conn", 9);
+		s1side2->SetAttribute("conn", SMALLWHEEL);
 		simple1->InsertAfterChild(s1side1, s1side2);
 		sim->InsertAfterChild(omni, simple1);
 
@@ -1435,7 +1435,7 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s2side2 = g_doc.NewElement("side");
 		s2side2->SetAttribute("id", 2);
 		s2side2->SetAttribute("robot", 1);
-		s2side2->SetAttribute("conn", 9);
+		s2side2->SetAttribute("conn", SMALLWHEEL);
 		simple2->InsertAfterChild(s2side1, s2side2);
 		sim->InsertAfterChild(simple1, simple2);
 
@@ -1448,7 +1448,7 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s3side2 = g_doc.NewElement("side");
 		s3side2->SetAttribute("id", 2);
 		s3side2->SetAttribute("robot", 2);
-		s3side2->SetAttribute("conn", 9);
+		s3side2->SetAttribute("conn", SMALLWHEEL);
 		simple3->InsertAfterChild(s3side1, s3side2);
 		sim->InsertAfterChild(simple2, simple3);
 
@@ -1461,7 +1461,7 @@ G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s4side2 = g_doc.NewElement("side");
 		s4side2->SetAttribute("id", 2);
 		s4side2->SetAttribute("robot", 3);
-		s4side2->SetAttribute("conn", 9);
+		s4side2->SetAttribute("conn", SMALLWHEEL);
 		simple4->InsertAfterChild(s4side1, s4side2);
 		sim->InsertAfterChild(simple3, simple4);
 
@@ -1565,7 +1565,7 @@ G_MODULE_EXPORT void on_fourwheeldrive_toggled(GtkWidget *widget, gpointer data)
 		tinyxml2::XMLElement *s1side2 = g_doc.NewElement("side");
 		s1side2->SetAttribute("id", 2);
 		s1side2->SetAttribute("robot", 0);
-		s1side2->SetAttribute("conn", 9);
+		s1side2->SetAttribute("conn", SMALLWHEEL);
 		simple1->InsertAfterChild(s1side1, s1side2);
 		sim->InsertAfterChild(cube, simple1);
 		tinyxml2::XMLElement *simple2 = g_doc.NewElement("simple");
@@ -1577,7 +1577,7 @@ G_MODULE_EXPORT void on_fourwheeldrive_toggled(GtkWidget *widget, gpointer data)
 		tinyxml2::XMLElement *s2side2 = g_doc.NewElement("side");
 		s2side2->SetAttribute("id", 2);
 		s2side2->SetAttribute("robot", 0);
-		s2side2->SetAttribute("conn", 9);
+		s2side2->SetAttribute("conn", SMALLWHEEL);
 		simple2->InsertAfterChild(s2side1, s2side2);
 		sim->InsertAfterChild(simple1, simple2);
 
@@ -1591,7 +1591,7 @@ G_MODULE_EXPORT void on_fourwheeldrive_toggled(GtkWidget *widget, gpointer data)
 		tinyxml2::XMLElement *s3side2 = g_doc.NewElement("side");
 		s3side2->SetAttribute("id", 2);
 		s3side2->SetAttribute("robot", 1);
-		s3side2->SetAttribute("conn", 9);
+		s3side2->SetAttribute("conn", SMALLWHEEL);
 		simple3->InsertAfterChild(s3side1, s3side2);
 		sim->InsertAfterChild(simple2, simple3);
 		tinyxml2::XMLElement *simple4 = g_doc.NewElement("simple");
@@ -1603,7 +1603,7 @@ G_MODULE_EXPORT void on_fourwheeldrive_toggled(GtkWidget *widget, gpointer data)
 		tinyxml2::XMLElement *s4side2 = g_doc.NewElement("side");
 		s4side2->SetAttribute("id", 2);
 		s4side2->SetAttribute("robot", 1);
-		s4side2->SetAttribute("conn", 9);
+		s4side2->SetAttribute("conn", SMALLWHEEL);
 		simple4->InsertAfterChild(s4side1, s4side2);
 		sim->InsertAfterChild(simple3, simple4);
 
@@ -1713,7 +1713,7 @@ G_MODULE_EXPORT void on_fourwheelexplorer_toggled(GtkWidget *widget, gpointer da
 		tinyxml2::XMLElement *s1side2 = g_doc.NewElement("side");
 		s1side2->SetAttribute("id", 2);
 		s1side2->SetAttribute("robot", 0);
-		s1side2->SetAttribute("conn", 9);
+		s1side2->SetAttribute("conn", SMALLWHEEL);
 		simple1->InsertAfterChild(s1side1, s1side2);
 		sim->InsertAfterChild(robot5, simple1);
 
@@ -1726,7 +1726,7 @@ G_MODULE_EXPORT void on_fourwheelexplorer_toggled(GtkWidget *widget, gpointer da
 		tinyxml2::XMLElement *s2side2 = g_doc.NewElement("side");
 		s2side2->SetAttribute("id", 2);
 		s2side2->SetAttribute("robot", 0);
-		s2side2->SetAttribute("conn", 9);
+		s2side2->SetAttribute("conn", SMALLWHEEL);
 		simple2->InsertAfterChild(s2side1, s2side2);
 		sim->InsertAfterChild(simple1, simple2);
 
@@ -1739,7 +1739,7 @@ G_MODULE_EXPORT void on_fourwheelexplorer_toggled(GtkWidget *widget, gpointer da
 		tinyxml2::XMLElement *s3side2 = g_doc.NewElement("side");
 		s3side2->SetAttribute("id", 2);
 		s3side2->SetAttribute("robot", 1);
-		s3side2->SetAttribute("conn", 9);
+		s3side2->SetAttribute("conn", SMALLWHEEL);
 		simple3->InsertAfterChild(s3side1, s3side2);
 		sim->InsertAfterChild(simple2, simple3);
 
@@ -1752,7 +1752,7 @@ G_MODULE_EXPORT void on_fourwheelexplorer_toggled(GtkWidget *widget, gpointer da
 		tinyxml2::XMLElement *s4side2 = g_doc.NewElement("side");
 		s4side2->SetAttribute("id", 2);
 		s4side2->SetAttribute("robot", 1);
-		s4side2->SetAttribute("conn", 9);
+		s4side2->SetAttribute("conn", SMALLWHEEL);
 		simple4->InsertAfterChild(s4side1, s4side2);
 		sim->InsertAfterChild(simple3, simple4);
 
@@ -1767,7 +1767,7 @@ G_MODULE_EXPORT void on_fourwheelexplorer_toggled(GtkWidget *widget, gpointer da
 		tinyxml2::XMLElement *cside2 = g_doc.NewElement("side");
 		cside2->SetAttribute("id", 2);
 		cside2->SetAttribute("robot", 0);
-		cside2->SetAttribute("conn", 2);
+		cside2->SetAttribute("conn", CASTER);
 		cube->InsertAfterChild(cside1, cside2);
 		tinyxml2::XMLElement *cside3 = g_doc.NewElement("side");
 		cside3->SetAttribute("id", 3);
@@ -2358,7 +2358,7 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s1side2 = g_doc.NewElement("side");
 		s1side2->SetAttribute("id", 2);
 		s1side2->SetAttribute("robot", 0);
-		s1side2->SetAttribute("conn", 9);
+		s1side2->SetAttribute("conn", SMALLWHEEL);
 		simple1->InsertAfterChild(s1side1, s1side2);
 		sim->InsertAfterChild(omni, simple1);
 
@@ -2371,7 +2371,7 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s2side2 = g_doc.NewElement("side");
 		s2side2->SetAttribute("id", 2);
 		s2side2->SetAttribute("robot", 1);
-		s2side2->SetAttribute("conn", 9);
+		s2side2->SetAttribute("conn", SMALLWHEEL);
 		simple2->InsertAfterChild(s2side1, s2side2);
 		sim->InsertAfterChild(simple1, simple2);
 
@@ -2384,7 +2384,7 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s3side2 = g_doc.NewElement("side");
 		s3side2->SetAttribute("id", 2);
 		s3side2->SetAttribute("robot", 2);
-		s3side2->SetAttribute("conn", 9);
+		s3side2->SetAttribute("conn", SMALLWHEEL);
 		simple3->InsertAfterChild(s3side1, s3side2);
 		sim->InsertAfterChild(simple2, simple3);
 
@@ -2397,7 +2397,7 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data) {
 		tinyxml2::XMLElement *s4side2 = g_doc.NewElement("side");
 		s4side2->SetAttribute("id", 2);
 		s4side2->SetAttribute("robot", 3);
-		s4side2->SetAttribute("conn", 9);
+		s4side2->SetAttribute("conn", SMALLWHEEL);
 		simple4->InsertAfterChild(s4side1, s4side2);
 		sim->InsertAfterChild(simple3, simple4);
 
@@ -2833,7 +2833,7 @@ void readXMLConfig(void) {
 		tinyxml2::XMLElement *s1side2 = g_doc.NewElement("side");
 		s1side2->SetAttribute("id", 2);
 		s1side2->SetAttribute("robot", 0);
-		s1side2->SetAttribute("conn", 9);
+		s1side2->SetAttribute("conn", SMALLWHEEL);
 		simple1->InsertAfterChild(s1side1, s1side2);
 
 		tinyxml2::XMLElement *simple2 = g_doc.NewElement("simple");
@@ -2845,7 +2845,7 @@ void readXMLConfig(void) {
 		tinyxml2::XMLElement *s2side2 = g_doc.NewElement("side");
 		s2side2->SetAttribute("id", 2);
 		s2side2->SetAttribute("robot", 0);
-		s2side2->SetAttribute("conn", 9);
+		s2side2->SetAttribute("conn", SMALLWHEEL);
 		simple2->InsertAfterChild(s2side1, s2side2);
 
 		// add caster
