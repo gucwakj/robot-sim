@@ -54,7 +54,7 @@ double g_grid[6][2] = {	12,		50,		// major
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+// gui changes
 G_MODULE_EXPORT void on_window_destroy(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_activate(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_aboutdialog_activate_link(GtkAboutDialog *label, gchar *uri, gpointer data);
@@ -64,9 +64,11 @@ G_MODULE_EXPORT void on_changelog_activate(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_notebook_switch_page(GtkWidget *widget, gpointer data);
 
+// output platform
 G_MODULE_EXPORT void on_real_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_simulated_toggled(GtkWidget *widget, gpointer data);
 
+// robot settings
 G_MODULE_EXPORT void on_type_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_x_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_y_value_changed(GtkWidget *widget, gpointer data);
@@ -76,16 +78,22 @@ G_MODULE_EXPORT void on_wheel_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data);
 
+// units
 G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_major_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_tics_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_minx_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_maxx_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_miny_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_maxy_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_defaults_clicked(GtkWidget *widget, gpointer data);
 
+// grid settings
+G_MODULE_EXPORT void on_defaults_clicked(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_grid_off_toggled(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_grid_on_toggled(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_major_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_maxx_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_maxy_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_minx_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_miny_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_tics_value_changed(GtkWidget *widget, gpointer data);
+
+// preconfig
 G_MODULE_EXPORT void on_bow_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_explorer_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_fourbotdrive_toggled(GtkWidget *widget, gpointer data);
@@ -98,6 +106,7 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data);
 
+// tracking
 G_MODULE_EXPORT void on_tracking_toggled(GtkWidget *widget, gpointer data);
 
 double convert(double value, int tometer);
@@ -862,6 +871,32 @@ G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data) {
 		// save file
 		g_doc.SaveFile(g_xml);
 	}
+}
+
+/*
+ * When grid is toggled off
+ */
+G_MODULE_EXPORT void on_grid_off_toggled(GtkWidget *widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "grid_off")))) {
+		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+		grid->SetAttribute("enabled", 0);
+	}
+
+	// save file
+	g_doc.SaveFile(g_xml);
+}
+
+/*
+ * When grid is toggled on
+ */
+G_MODULE_EXPORT void on_grid_on_toggled(GtkWidget *widget, gpointer data) {
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "grid_on")))) {
+		tinyxml2::XMLElement *grid = g_doc.FirstChildElement("config")->FirstChildElement("grid");
+		grid->SetAttribute("enabled", 1);
+	}
+
+	// save file
+	g_doc.SaveFile(g_xml);
 }
 
 /*
@@ -2739,6 +2774,7 @@ void readXMLConfig(void) {
 		// set grid values
 		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
 		grid->SetAttribute("units", 1);
+		grid->SetAttribute("enabled", 1);
 		grid->SetAttribute("major", g_grid[0][0]);
 		grid->SetAttribute("tics", g_grid[1][0]);
 		grid->SetAttribute("minx", g_grid[2][0]);
@@ -3049,6 +3085,11 @@ void readXMLConfig(void) {
 	if ( (node = g_doc.FirstChildElement("config")->FirstChildElement("grid")) ) {
 		node->QueryIntAttribute("units", &g_units);
 
+		// enabled grid
+		int enabled = 1;
+		node->QueryIntAttribute("enabled", &enabled);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "grid_on")), 1);
+
 		// set grid line variables
 		double major, tics, minx, maxx, miny, maxy;
 		node->QueryDoubleAttribute("major", &major);
@@ -3096,6 +3137,7 @@ void readXMLConfig(void) {
 	}
 	else {
 		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
+		grid->SetAttribute("enabled", 1);
 		grid->SetAttribute("units", 1);
 		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
 		grid->SetAttribute("major", major);

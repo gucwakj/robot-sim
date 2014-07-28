@@ -90,7 +90,7 @@ class DLLIMPORT RoboSim {
 		} *drawing_t;
 
 		// variables
-		double _grid[6];							// grid spacing (tics, major, total)
+		double _grid[7];							// grid spacing (tics, major, total)
 		int _ending;								// temp variable for deleting robots
 		int _graphics;								// flag for graphics
 		int _viewer;								// flag for viewer

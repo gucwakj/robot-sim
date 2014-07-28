@@ -194,6 +194,7 @@ int RoboSim::init_xml(char *name) {
 		node->QueryDoubleAttribute("maxx", &_grid[3]);
 		node->QueryDoubleAttribute("miny", &_grid[4]);
 		node->QueryDoubleAttribute("maxy", &_grid[5]);
+		node->QueryDoubleAttribute("enabled", &_grid[6]);
 	}
 	else {
 		_us = 1;			// customary units
@@ -203,6 +204,7 @@ int RoboSim::init_xml(char *name) {
 		_grid[3] = 24;		// max x
 		_grid[4] = -24;		// min y
 		_grid[5] = 24;		// max y
+		_grid[6] = 1;		// enabled or not
 	}
 	for (int i = 0; i < 6; i++) {
 		if (_us)
@@ -1082,7 +1084,8 @@ int RoboSim::deleteRobot(CRobot *robot) {
 		MUTEX_UNLOCK(&(_pause_mutex));
 
 		// get HUD and set message
-		osgText::Text *txt = dynamic_cast<osgText::Text *>(_shadowed->getParent(0)->getChild(6)->asGroup()->getChild(0)->asTransform()->getChild(0)->asGeode()->getDrawable(0));
+		osg::Geode *geode = _shadowed->getParent(0)->getChild(1)->asGroup()->getChild(0)->asTransform()->getChild(0)->asGeode();
+		osgText::Text *txt = dynamic_cast<osgText::Text *>(geode->getDrawable(0));
 		txt->setText("Paused: Press any key to end");
 
 		// sleep until pausing halted by user
@@ -1528,287 +1531,319 @@ void* RoboSim::graphics_thread(void *arg) {
 	t_transform->setNodeMask(~IS_PICKABLE_MASK);
 	shadowedScene->addChild(t_transform);
 
-	// grid lines for each sub-foot
-	double minx = (int)((sim->_grid[2]*1.01)/sim->_grid[0])*sim->_grid[0];
-	double miny = (int)((sim->_grid[4]*1.01)/sim->_grid[0])*sim->_grid[0];
-	int numx = (int)((sim->_grid[3] - minx)/sim->_grid[0]+1);
-	int numy = (int)((sim->_grid[5] - miny)/sim->_grid[0]+1);
-	int numVertices = 2*numx + 2*numy;
-	osg::Geode *gridGeode = new osg::Geode();
-	osg::Geometry *gridLines = new osg::Geometry();
-	osg::Vec3 *myCoords = new osg::Vec3[numVertices]();
-	// draw x lines
-	for (int i = 0, j = 0; i < numx; i++) {
-		myCoords[j++] = osg::Vec3(minx + i*sim->_grid[0], sim->_grid[4], 0.0);
-		myCoords[j++] = osg::Vec3(minx + i*sim->_grid[0], sim->_grid[5], 0.0);
-	}
-	// draw y lines
-	for (int i = 0, j = 2*numx; i < numy; i++) {
-		myCoords[j++] = osg::Vec3(sim->_grid[2], miny + i*sim->_grid[0], 0.0);
-		myCoords[j++] = osg::Vec3(sim->_grid[3], miny + i*sim->_grid[0], 0.0);
-	}
-	// add vertices
-	osg::Vec3Array *vertices = new osg::Vec3Array(numVertices, myCoords);
-	gridLines->setVertexArray(vertices);
-	gridLines->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, numVertices));
-	// set color
-	osg::Vec4Array *colors = new osg::Vec4Array;
-	colors->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f) );	// white
-	gridLines->setColorArray(colors);
-	gridLines->setColorBinding(osg::Geometry::BIND_OVERALL);
-	// set line width
-	osg::LineWidth *linewidth = new osg::LineWidth();
-	linewidth->setWidth(1.0f);
-	gridGeode->getOrCreateStateSet()->setAttributeAndModes(linewidth, osg::StateAttribute::ON);
-	// set rendering properties
-	gridGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	gridGeode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	gridGeode->getOrCreateStateSet()->setRenderBinDetails(-1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	gridGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	// enable shadowing
-	//gridGeode->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
-	// add to scene
-	gridGeode->addDrawable(gridLines);
-	shadowedScene->addChild(gridGeode);
+	// set up HUD
+	osg::ref_ptr<osg::Geode> HUDGeode = new osg::Geode();
+	osg::ref_ptr<osgText::Text> textHUD = new osgText::Text();
+	osg::ref_ptr<osg::Projection> HUDProjectionMatrix = new osg::Projection;
+	osg::ref_ptr<osg::MatrixTransform> HUDModelViewMatrix = new osg::MatrixTransform;
+	osg::ref_ptr<osg::StateSet> HUDStateSet = new osg::StateSet();
+	HUDProjectionMatrix->setMatrix(osg::Matrix::ortho2D(0,traits->width,0,traits->height));
+	HUDProjectionMatrix->addChild(HUDModelViewMatrix);
+	HUDModelViewMatrix->setMatrix(osg::Matrix::identity());
+	HUDModelViewMatrix->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
+	HUDModelViewMatrix->addChild(HUDGeode);
+	HUDGeode->setStateSet(HUDStateSet);
+	HUDStateSet->setMode(GL_BLEND,osg::StateAttribute::ON);
+	HUDStateSet->setMode(GL_DEPTH_TEST,osg::StateAttribute::OFF);
+	HUDStateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	HUDStateSet->setRenderBinDetails(11, "RenderBin");
+	HUDGeode->addDrawable(textHUD);
+	textHUD->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+	textHUD->setMaximumWidth(traits->width);
+	textHUD->setCharacterSize(15);
+	if (sim->_pause) textHUD->setText("Paused: Press any key to start");
+	textHUD->setAxisAlignment(osgText::Text::SCREEN);
+	textHUD->setAlignment(osgText::Text::CENTER_CENTER);
+	textHUD->setPosition(osg::Vec3(traits->width/2, 50, -1.5));
+	textHUD->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+	textHUD->setBackdropColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	textHUD->setBackdropOffset(0.1);
+	root->addChild(HUDProjectionMatrix);
 
-	// grid lines for each foot
-	double minx2 = (int)((sim->_grid[2]*1.01)/sim->_grid[1])*sim->_grid[1];
-	double miny2 = (int)((sim->_grid[4]*1.01)/sim->_grid[1])*sim->_grid[1];
-	int numx2 = (int)((sim->_grid[3] - minx2)/sim->_grid[1]+1);
-	int numy2 = (int)((sim->_grid[5] - miny2)/sim->_grid[1]+1);
-	int numVertices2 = 2*numx2 + 2*numy2;
-	osg::Geode *gridGeode2 = new osg::Geode();
-	osg::Geometry *gridLines2 = new osg::Geometry();
-	osg::Vec3 *myCoords2 = new osg::Vec3[numVertices2]();
-	// draw x lines
-	for (int i = 0, j = 0; i < numx2; i++) {
-		myCoords2[j++] = osg::Vec3(minx2 + i*sim->_grid[1], sim->_grid[4], 0.0);
-		myCoords2[j++] = osg::Vec3(minx2 + i*sim->_grid[1], sim->_grid[5], 0.0);
-	}
-	// draw y lines
-	for (int i = 0, j = 2*numx2; i < numy2; i++) {
-		myCoords2[j++] = osg::Vec3(sim->_grid[2], miny2 + i*sim->_grid[1], 0.0);
-		myCoords2[j++] = osg::Vec3(sim->_grid[3], miny2 + i*sim->_grid[1], 0.0);
-	}
-	// add vertices
-	osg::Vec3Array *vertices2 = new osg::Vec3Array(numVertices2, myCoords2);
-	gridLines2->setVertexArray(vertices2);
-	gridLines2->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, numVertices2));
-	// set color
-	osg::Vec4Array *colors2 = new osg::Vec4Array;
-	colors2->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f) );	// red
-	gridLines2->setColorArray(colors2);
-	gridLines2->setColorBinding(osg::Geometry::BIND_OVERALL);
-	// set line width
-	osg::LineWidth *linewidth2 = new osg::LineWidth();
-	linewidth2->setWidth(2.0f);
-	gridGeode2->getOrCreateStateSet()->setAttributeAndModes(linewidth2, osg::StateAttribute::ON);
-	// set rendering properties
-	gridGeode2->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	gridGeode2->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	gridGeode2->getOrCreateStateSet()->setRenderBinDetails(0, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	gridGeode2->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	// enable shadowing
-	//gridGeode2->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
-	// add to scene
-	gridGeode2->addDrawable(gridLines2);
-	shadowedScene->addChild(gridGeode2);
+	// grid
+	if ( (int)(sim->_grid[6]) ) {
+		// grid lines for each sub-foot
+		double minx = (int)((sim->_grid[2]*1.01)/sim->_grid[0])*sim->_grid[0];
+		double miny = (int)((sim->_grid[4]*1.01)/sim->_grid[0])*sim->_grid[0];
+		int numx = (int)((sim->_grid[3] - minx)/sim->_grid[0]+1);
+		int numy = (int)((sim->_grid[5] - miny)/sim->_grid[0]+1);
+		int numVertices = 2*numx + 2*numy;
+		osg::Geode *gridGeode = new osg::Geode();
+		osg::Geometry *gridLines = new osg::Geometry();
+		osg::Vec3 *myCoords = new osg::Vec3[numVertices]();
+		// draw x lines
+		for (int i = 0, j = 0; i < numx; i++) {
+			myCoords[j++] = osg::Vec3(minx + i*sim->_grid[0], sim->_grid[4], 0.0);
+			myCoords[j++] = osg::Vec3(minx + i*sim->_grid[0], sim->_grid[5], 0.0);
+		}
+		// draw y lines
+		for (int i = 0, j = 2*numx; i < numy; i++) {
+			myCoords[j++] = osg::Vec3(sim->_grid[2], miny + i*sim->_grid[0], 0.0);
+			myCoords[j++] = osg::Vec3(sim->_grid[3], miny + i*sim->_grid[0], 0.0);
+		}
+		// add vertices
+		osg::Vec3Array *vertices = new osg::Vec3Array(numVertices, myCoords);
+		gridLines->setVertexArray(vertices);
+		gridLines->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, numVertices));
+		// set color
+		osg::Vec4Array *colors = new osg::Vec4Array;
+		colors->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f) );	// white
+		gridLines->setColorArray(colors);
+		gridLines->setColorBinding(osg::Geometry::BIND_OVERALL);
+		// set line width
+		osg::LineWidth *linewidth = new osg::LineWidth();
+		linewidth->setWidth(1.0f);
+		gridGeode->getOrCreateStateSet()->setAttributeAndModes(linewidth, osg::StateAttribute::ON);
+		// set rendering properties
+		gridGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+		gridGeode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+		gridGeode->getOrCreateStateSet()->setRenderBinDetails(-1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+		gridGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
+		// enable shadowing
+		//gridGeode->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
+		// add to scene
+		gridGeode->addDrawable(gridLines);
+		shadowedScene->addChild(gridGeode);
 
-	// x- and y-axis lines
-	osg::Geode *gridGeode3 = new osg::Geode();
-	osg::Geometry *gridLines3 = new osg::Geometry();
-	osg::Vec3 myCoords3[4];
-	if ( fabs(sim->_grid[3]) > fabs(sim->_grid[2]) ) {
-		if (sim->_grid[2] < -EPSILON)
-			myCoords3[0] = osg::Vec3(-sim->_grid[3], 0, 0);
-		else
-			myCoords3[0] = osg::Vec3(0, 0, 0);
-		myCoords3[1] = osg::Vec3(sim->_grid[3], 0, 0);
-	}
-	else {
-		if (sim->_grid[3] < -EPSILON)
-			myCoords3[1] = osg::Vec3(0, 0, 0);
-		else
+		// grid lines for each foot
+		double minx2 = (int)((sim->_grid[2]*1.01)/sim->_grid[1])*sim->_grid[1];
+		double miny2 = (int)((sim->_grid[4]*1.01)/sim->_grid[1])*sim->_grid[1];
+		int numx2 = (int)((sim->_grid[3] - minx2)/sim->_grid[1]+1);
+		int numy2 = (int)((sim->_grid[5] - miny2)/sim->_grid[1]+1);
+		int numVertices2 = 2*numx2 + 2*numy2;
+		osg::Geode *gridGeode2 = new osg::Geode();
+		osg::Geometry *gridLines2 = new osg::Geometry();
+		osg::Vec3 *myCoords2 = new osg::Vec3[numVertices2]();
+		// draw x lines
+		for (int i = 0, j = 0; i < numx2; i++) {
+			myCoords2[j++] = osg::Vec3(minx2 + i*sim->_grid[1], sim->_grid[4], 0.0);
+			myCoords2[j++] = osg::Vec3(minx2 + i*sim->_grid[1], sim->_grid[5], 0.0);
+		}
+		// draw y lines
+		for (int i = 0, j = 2*numx2; i < numy2; i++) {
+			myCoords2[j++] = osg::Vec3(sim->_grid[2], miny2 + i*sim->_grid[1], 0.0);
+			myCoords2[j++] = osg::Vec3(sim->_grid[3], miny2 + i*sim->_grid[1], 0.0);
+		}
+		// add vertices
+		osg::Vec3Array *vertices2 = new osg::Vec3Array(numVertices2, myCoords2);
+		gridLines2->setVertexArray(vertices2);
+		gridLines2->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, numVertices2));
+		// set color
+		osg::Vec4Array *colors2 = new osg::Vec4Array;
+		colors2->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f) );	// red
+		gridLines2->setColorArray(colors2);
+		gridLines2->setColorBinding(osg::Geometry::BIND_OVERALL);
+		// set line width
+		osg::LineWidth *linewidth2 = new osg::LineWidth();
+		linewidth2->setWidth(2.0f);
+		gridGeode2->getOrCreateStateSet()->setAttributeAndModes(linewidth2, osg::StateAttribute::ON);
+		// set rendering properties
+		gridGeode2->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+		gridGeode2->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+		gridGeode2->getOrCreateStateSet()->setRenderBinDetails(0, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+		gridGeode2->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
+		// enable shadowing
+		//gridGeode2->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
+		// add to scene
+		gridGeode2->addDrawable(gridLines2);
+		shadowedScene->addChild(gridGeode2);
+
+		// x- and y-axis lines
+		osg::Geode *gridGeode3 = new osg::Geode();
+		osg::Geometry *gridLines3 = new osg::Geometry();
+		osg::Vec3 myCoords3[4];
+		if ( fabs(sim->_grid[3]) > fabs(sim->_grid[2]) ) {
+			if (sim->_grid[2] < -EPSILON)
+				myCoords3[0] = osg::Vec3(-sim->_grid[3], 0, 0);
+			else
+				myCoords3[0] = osg::Vec3(0, 0, 0);
 			myCoords3[1] = osg::Vec3(sim->_grid[3], 0, 0);
-		myCoords3[0] = osg::Vec3(sim->_grid[2], 0, 0);
-	}
-	if ( fabs(sim->_grid[5]) > fabs(sim->_grid[4]) ) {
-		if (sim->_grid[4] < -EPSILON)
-			myCoords3[2] = osg::Vec3(-sim->_grid[5], 0, 0);
-		else
-			myCoords3[2] = osg::Vec3(0, 0, 0);
-		myCoords3[3] = osg::Vec3(0, sim->_grid[5], 0);
-	}
-	else {
-		if (sim->_grid[5] < -EPSILON)
-			myCoords3[3] = osg::Vec3(0, 0, 0);
-		else
+		}
+		else {
+			if (sim->_grid[3] < -EPSILON)
+				myCoords3[1] = osg::Vec3(0, 0, 0);
+			else
+				myCoords3[1] = osg::Vec3(sim->_grid[3], 0, 0);
+			myCoords3[0] = osg::Vec3(sim->_grid[2], 0, 0);
+		}
+		if ( fabs(sim->_grid[5]) > fabs(sim->_grid[4]) ) {
+			if (sim->_grid[4] < -EPSILON)
+				myCoords3[2] = osg::Vec3(-sim->_grid[5], 0, 0);
+			else
+				myCoords3[2] = osg::Vec3(0, 0, 0);
 			myCoords3[3] = osg::Vec3(0, sim->_grid[5], 0);
-		myCoords3[2] = osg::Vec3(0, sim->_grid[4], 0);
-	}
-	// add vertices
-	osg::Vec3Array *vertices3 = new osg::Vec3Array(4, myCoords3);
-	gridLines3->setVertexArray(vertices3);
-	gridLines3->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 4));
-	// set color
-	osg::Vec4Array *colors3 = new osg::Vec4Array;
-	colors3->push_back(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f) );
-	gridLines3->setColorArray(colors3);
-	gridLines3->setColorBinding(osg::Geometry::BIND_OVERALL);
-	// set line width
-	osg::LineWidth *linewidth3 = new osg::LineWidth();
-	linewidth3->setWidth(3.0f);
-	gridGeode3->getOrCreateStateSet()->setAttributeAndModes(linewidth3, osg::StateAttribute::ON);
-	// set rendering properties
-	gridGeode3->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	gridGeode3->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	gridGeode3->getOrCreateStateSet()->setRenderBinDetails(-1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	gridGeode3->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	// enable shadowing
-	//gridGeode3->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
-	// add to scene
-	gridGeode3->addDrawable(gridLines3);
-	shadowedScene->addChild(gridGeode3);
+		}
+		else {
+			if (sim->_grid[5] < -EPSILON)
+				myCoords3[3] = osg::Vec3(0, 0, 0);
+			else
+				myCoords3[3] = osg::Vec3(0, sim->_grid[5], 0);
+			myCoords3[2] = osg::Vec3(0, sim->_grid[4], 0);
+		}
+		// add vertices
+		osg::Vec3Array *vertices3 = new osg::Vec3Array(4, myCoords3);
+		gridLines3->setVertexArray(vertices3);
+		gridLines3->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 4));
+		// set color
+		osg::Vec4Array *colors3 = new osg::Vec4Array;
+		colors3->push_back(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f) );
+		gridLines3->setColorArray(colors3);
+		gridLines3->setColorBinding(osg::Geometry::BIND_OVERALL);
+		// set line width
+		osg::LineWidth *linewidth3 = new osg::LineWidth();
+		linewidth3->setWidth(3.0f);
+		gridGeode3->getOrCreateStateSet()->setAttributeAndModes(linewidth3, osg::StateAttribute::ON);
+		// set rendering properties
+		gridGeode3->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+		gridGeode3->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+		gridGeode3->getOrCreateStateSet()->setRenderBinDetails(-1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+		gridGeode3->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
+		// enable shadowing
+		//gridGeode3->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
+		// add to scene
+		gridGeode3->addDrawable(gridLines3);
+		shadowedScene->addChild(gridGeode3);
 
-	// x-axis label
-	osg::ref_ptr<osg::Billboard> xbillboard = new osg::Billboard();
-	osg::ref_ptr<osgText::Text> xtext = new osgText::Text();
-	xtext->setText("x");
-	xtext->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	xtext->setAlignment(osgText::Text::CENTER_BASE_LINE);
-	xtext->setRotation(osg::Quat(-1.57, osg::Vec3(0, 0, 1)));
-	xtext->setCharacterSize(50);
-	xtext->setColor(osg::Vec4(0, 0, 0, 1));
-	xtext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	if ( fabs(sim->_grid[3]) > fabs(sim->_grid[2]) ) {
-		if (sim->_grid[3] < EPSILON)
-			xbillboard->addDrawable(xtext, osg::Vec3d(0.05, 0.0, 0.0));
-		else
-			xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[3] + 0.05, 0.0, 0.0));
-	}
-	else {
-		if (sim->_grid[2] < -EPSILON)
-			xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[3] + 0.05, 0.0, 0.0));
-		else
-			xbillboard->addDrawable(xtext, osg::Vec3d(0.05, 0.0, 0.0));
-	}
-	xbillboard->setMode(osg::Billboard::AXIAL_ROT);
-	xbillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
-	xbillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
-	xbillboard->setNodeMask(~IS_PICKABLE_MASK);
-	root->addChild(xbillboard);
+		// x-axis label
+		osg::ref_ptr<osg::Billboard> xbillboard = new osg::Billboard();
+		osg::ref_ptr<osgText::Text> xtext = new osgText::Text();
+		xtext->setText("x");
+		xtext->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+		xtext->setAlignment(osgText::Text::CENTER_BASE_LINE);
+		xtext->setRotation(osg::Quat(-1.57, osg::Vec3(0, 0, 1)));
+		xtext->setCharacterSize(50);
+		xtext->setColor(osg::Vec4(0, 0, 0, 1));
+		xtext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+		if ( fabs(sim->_grid[3]) > fabs(sim->_grid[2]) ) {
+			if (sim->_grid[3] < EPSILON)
+				xbillboard->addDrawable(xtext, osg::Vec3d(0.05, 0.0, 0.0));
+			else
+				xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[3] + 0.05, 0.0, 0.0));
+		}
+		else {
+			if (sim->_grid[2] < -EPSILON)
+				xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[3] + 0.05, 0.0, 0.0));
+			else
+				xbillboard->addDrawable(xtext, osg::Vec3d(0.05, 0.0, 0.0));
+		}
+		xbillboard->setMode(osg::Billboard::AXIAL_ROT);
+		xbillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
+		xbillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
+		xbillboard->setNodeMask(~IS_PICKABLE_MASK);
+		root->addChild(xbillboard);
 
-	// y-axis label
-	osg::ref_ptr<osg::Billboard> ybillboard = new osg::Billboard();
-	osg::ref_ptr<osgText::Text> ytext = new osgText::Text();
-	ytext->setText("y");
-	ytext->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	ytext->setAlignment(osgText::Text::CENTER_BASE_LINE);
-	ytext->setCharacterSize(50);
-	ytext->setColor(osg::Vec4(0, 0, 0, 1));
-	ytext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	if ( fabs(sim->_grid[5]) > fabs(sim->_grid[4]) ) {
-		if (sim->_grid[5] < EPSILON)
-			xbillboard->addDrawable(ytext, osg::Vec3d(0.0, 0.05, 0.0));
-		else
-			xbillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[5] + 0.05, 0.0));
-	}
-	else {
-		if (sim->_grid[4] < -EPSILON)
-			xbillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[5] + 0.05, 0.0));
-		else
-			xbillboard->addDrawable(ytext, osg::Vec3d(0.0, 0.05, 0.0));
-	}
-	ybillboard->setMode(osg::Billboard::AXIAL_ROT);
-	ybillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
-	ybillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
-	ybillboard->setNodeMask(~IS_PICKABLE_MASK);
-	root->addChild(ybillboard);
+		// y-axis label
+		osg::ref_ptr<osg::Billboard> ybillboard = new osg::Billboard();
+		osg::ref_ptr<osgText::Text> ytext = new osgText::Text();
+		ytext->setText("y");
+		ytext->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+		ytext->setAlignment(osgText::Text::CENTER_BASE_LINE);
+		ytext->setCharacterSize(50);
+		ytext->setColor(osg::Vec4(0, 0, 0, 1));
+		ytext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+		if ( fabs(sim->_grid[5]) > fabs(sim->_grid[4]) ) {
+			if (sim->_grid[5] < EPSILON)
+				xbillboard->addDrawable(ytext, osg::Vec3d(0.0, 0.05, 0.0));
+			else
+				xbillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[5] + 0.05, 0.0));
+		}
+		else {
+			if (sim->_grid[4] < -EPSILON)
+				xbillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[5] + 0.05, 0.0));
+			else
+				xbillboard->addDrawable(ytext, osg::Vec3d(0.0, 0.05, 0.0));
+		}
+		ybillboard->setMode(osg::Billboard::AXIAL_ROT);
+		ybillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
+		ybillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
+		ybillboard->setNodeMask(~IS_PICKABLE_MASK);
+		root->addChild(ybillboard);
 
-	// x grid numbering
-	osg::ref_ptr<osg::Billboard> xnum_billboard = new osg::Billboard();
-	char text[50];
-	osg::ref_ptr<osgText::Text> xzero_text = new osgText::Text();
-	xzero_text->setText("0");
-	xzero_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	xzero_text->setAlignment(osgText::Text::CENTER_CENTER);
-	xzero_text->setCharacterSize(30);
-	xzero_text->setColor(osg::Vec4(0, 0, 0, 1));
-	xzero_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	xnum_billboard->addDrawable(xzero_text, osg::Vec3d(-0.5*sim->_grid[0], -0.5*sim->_grid[0], 0.0));
-	// positive
-	for (int i = 1; i < (int)(sim->_grid[3]/sim->_grid[1]+1); i++) {
-		osg::ref_ptr<osgText::Text> xnumpos_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "   %.0lf", 39.37*i*sim->_grid[1]);
-		else sprintf(text, "   %.0lf", 100*i*sim->_grid[1]);
-		xnumpos_text->setText(text);
-		xnumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-		xnumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
-		xnumpos_text->setCharacterSize(30);
-		xnumpos_text->setColor(osg::Vec4(0, 0, 0, 1));
-		xnumpos_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		xnum_billboard->addDrawable(xnumpos_text, osg::Vec3d(i*sim->_grid[1], -0.5*sim->_grid[0], 0.0));
-	}
-	// negative
-	for (int i = 1; i < (int)(fabs(sim->_grid[2])/sim->_grid[1]+1); i++) {
-		osg::ref_ptr<osgText::Text> xnumneg_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i*sim->_grid[1]);
-		else sprintf(text, "%.0lf   ", -100*i*sim->_grid[1]);
-		xnumneg_text->setText(text);
-		xnumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-		xnumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
-		xnumneg_text->setCharacterSize(30);
-		xnumneg_text->setColor(osg::Vec4(0, 0, 0, 1));
-		xnumneg_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		xnum_billboard->addDrawable(xnumneg_text, osg::Vec3d(-i*sim->_grid[1], -0.5*sim->_grid[0], 0.0));
-	}
-	xnum_billboard->setMode(osg::Billboard::AXIAL_ROT);
-	xnum_billboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
-	xnum_billboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
-	xnum_billboard->setNodeMask(~IS_PICKABLE_MASK);
-	xnum_billboard->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	xnum_billboard->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	xnum_billboard->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	xnum_billboard->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	root->addChild(xnum_billboard);
+		// x grid numbering
+		osg::ref_ptr<osg::Billboard> xnum_billboard = new osg::Billboard();
+		char text[50];
+		osg::ref_ptr<osgText::Text> xzero_text = new osgText::Text();
+		xzero_text->setText("0");
+		xzero_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+		xzero_text->setAlignment(osgText::Text::CENTER_CENTER);
+		xzero_text->setCharacterSize(30);
+		xzero_text->setColor(osg::Vec4(0, 0, 0, 1));
+		xzero_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+		xnum_billboard->addDrawable(xzero_text, osg::Vec3d(-0.5*sim->_grid[0], -0.5*sim->_grid[0], 0.0));
+		// positive
+		for (int i = 1; i < (int)(sim->_grid[3]/sim->_grid[1]+1); i++) {
+			osg::ref_ptr<osgText::Text> xnumpos_text = new osgText::Text();
+			if (sim->_us) sprintf(text, "   %.0lf", 39.37*i*sim->_grid[1]);
+			else sprintf(text, "   %.0lf", 100*i*sim->_grid[1]);
+			xnumpos_text->setText(text);
+			xnumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+			xnumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
+			xnumpos_text->setCharacterSize(30);
+			xnumpos_text->setColor(osg::Vec4(0, 0, 0, 1));
+			xnumpos_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+			xnum_billboard->addDrawable(xnumpos_text, osg::Vec3d(i*sim->_grid[1], -0.5*sim->_grid[0], 0.0));
+		}
+		// negative
+		for (int i = 1; i < (int)(fabs(sim->_grid[2])/sim->_grid[1]+1); i++) {
+			osg::ref_ptr<osgText::Text> xnumneg_text = new osgText::Text();
+			if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i*sim->_grid[1]);
+			else sprintf(text, "%.0lf   ", -100*i*sim->_grid[1]);
+			xnumneg_text->setText(text);
+			xnumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+			xnumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
+			xnumneg_text->setCharacterSize(30);
+			xnumneg_text->setColor(osg::Vec4(0, 0, 0, 1));
+			xnumneg_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+			xnum_billboard->addDrawable(xnumneg_text, osg::Vec3d(-i*sim->_grid[1], -0.5*sim->_grid[0], 0.0));
+		}
+		xnum_billboard->setMode(osg::Billboard::AXIAL_ROT);
+		xnum_billboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
+		xnum_billboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
+		xnum_billboard->setNodeMask(~IS_PICKABLE_MASK);
+		xnum_billboard->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+		xnum_billboard->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+		xnum_billboard->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+		xnum_billboard->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
+		root->addChild(xnum_billboard);
 
-	// y grid numbering
-	osg::ref_ptr<osg::Billboard> ynum_billboard = new osg::Billboard();
-	// positive
-	for (int i = 1; i < (int)(sim->_grid[5]/sim->_grid[1]+1); i++) {
-		osg::ref_ptr<osgText::Text> ynumpos_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.0lf   ", 39.37*i*sim->_grid[1]);
-		else sprintf(text, "%.0lf   ", 100*i*sim->_grid[1]);
-		ynumpos_text->setText(text);
-		ynumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-		ynumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
-		ynumpos_text->setCharacterSize(30);
-		ynumpos_text->setColor(osg::Vec4(0, 0, 0, 1));
-		ynumpos_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		ynum_billboard->addDrawable(ynumpos_text, osg::Vec3d(0, i*sim->_grid[1] + 0.5*sim->_grid[0], 0.0));
+		// y grid numbering
+		osg::ref_ptr<osg::Billboard> ynum_billboard = new osg::Billboard();
+		// positive
+		for (int i = 1; i < (int)(sim->_grid[5]/sim->_grid[1]+1); i++) {
+			osg::ref_ptr<osgText::Text> ynumpos_text = new osgText::Text();
+			if (sim->_us) sprintf(text, "%.0lf   ", 39.37*i*sim->_grid[1]);
+			else sprintf(text, "%.0lf   ", 100*i*sim->_grid[1]);
+			ynumpos_text->setText(text);
+			ynumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+			ynumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
+			ynumpos_text->setCharacterSize(30);
+			ynumpos_text->setColor(osg::Vec4(0, 0, 0, 1));
+			ynumpos_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+			ynum_billboard->addDrawable(ynumpos_text, osg::Vec3d(0, i*sim->_grid[1] + 0.5*sim->_grid[0], 0.0));
+		}
+		// negative
+		for (int i = 1; i < (int)(fabs(sim->_grid[4])/sim->_grid[1]+1); i++) {
+			osg::ref_ptr<osgText::Text> ynumneg_text = new osgText::Text();
+			if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i*sim->_grid[1]);
+			else sprintf(text, "%.0lf   ", -100*i*sim->_grid[1]);
+			ynumneg_text->setText(text);
+			ynumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+			ynumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
+			ynumneg_text->setCharacterSize(30);
+			ynumneg_text->setColor(osg::Vec4(0, 0, 0, 1));
+			ynumneg_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+			ynum_billboard->addDrawable(ynumneg_text, osg::Vec3d(0, -i*sim->_grid[1] - 0.5*sim->_grid[0], 0.0));
+		}
+		ynum_billboard->setMode(osg::Billboard::AXIAL_ROT);
+		ynum_billboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
+		ynum_billboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
+		ynum_billboard->setNodeMask(~IS_PICKABLE_MASK);
+		ynum_billboard->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+		ynum_billboard->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+		ynum_billboard->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+		ynum_billboard->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
+		root->addChild(ynum_billboard);
 	}
-	// negative
-	for (int i = 1; i < (int)(fabs(sim->_grid[4])/sim->_grid[1]+1); i++) {
-		osg::ref_ptr<osgText::Text> ynumneg_text = new osgText::Text();
-		if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i*sim->_grid[1]);
-		else sprintf(text, "%.0lf   ", -100*i*sim->_grid[1]);
-		ynumneg_text->setText(text);
-		ynumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-		ynumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
-		ynumneg_text->setCharacterSize(30);
-		ynumneg_text->setColor(osg::Vec4(0, 0, 0, 1));
-		ynumneg_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		ynum_billboard->addDrawable(ynumneg_text, osg::Vec3d(0, -i*sim->_grid[1] - 0.5*sim->_grid[0], 0.0));
-	}
-	ynum_billboard->setMode(osg::Billboard::AXIAL_ROT);
-	ynum_billboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
-	ynum_billboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
-	ynum_billboard->setNodeMask(~IS_PICKABLE_MASK);
-	ynum_billboard->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	ynum_billboard->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	ynum_billboard->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	ynum_billboard->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	root->addChild(ynum_billboard);
 
 	// skybox
 	osg::ref_ptr<osg::StateSet> stateset = new osg::StateSet();
@@ -2017,35 +2052,6 @@ void* RoboSim::graphics_thread(void *arg) {
 		// next object
 		dtmp = dtmp->next;
 	}
-
-	// set up HUD
-	osg::ref_ptr<osg::Geode> HUDGeode = new osg::Geode();
-	osg::ref_ptr<osgText::Text> textHUD = new osgText::Text();
-	osg::ref_ptr<osg::Projection> HUDProjectionMatrix = new osg::Projection;
-	osg::ref_ptr<osg::MatrixTransform> HUDModelViewMatrix = new osg::MatrixTransform;
-	osg::ref_ptr<osg::StateSet> HUDStateSet = new osg::StateSet();
-	HUDProjectionMatrix->setMatrix(osg::Matrix::ortho2D(0,traits->width,0,traits->height));
-	HUDProjectionMatrix->addChild(HUDModelViewMatrix);
-	HUDModelViewMatrix->setMatrix(osg::Matrix::identity());
-	HUDModelViewMatrix->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
-	HUDModelViewMatrix->addChild(HUDGeode);
-	HUDGeode->setStateSet(HUDStateSet);
-	HUDStateSet->setMode(GL_BLEND,osg::StateAttribute::ON);
-	HUDStateSet->setMode(GL_DEPTH_TEST,osg::StateAttribute::OFF);
-	HUDStateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	HUDStateSet->setRenderBinDetails(11, "RenderBin");
-	HUDGeode->addDrawable(textHUD);
-	textHUD->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	textHUD->setMaximumWidth(traits->width);
-	textHUD->setCharacterSize(15);
-	if (sim->_pause) textHUD->setText("Paused: Press any key to start");
-	textHUD->setAxisAlignment(osgText::Text::SCREEN);
-	textHUD->setAlignment(osgText::Text::CENTER_CENTER);
-	textHUD->setPosition(osg::Vec3(traits->width/2, 50, -1.5));
-	textHUD->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	textHUD->setBackdropColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	textHUD->setBackdropOffset(0.1);
-	root->addChild(HUDProjectionMatrix);
 
 	// optimize the scene graph, remove redundant nodes and state etc.
 	osgUtil::Optimizer optimizer;
