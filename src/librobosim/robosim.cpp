@@ -219,11 +219,6 @@ int RoboSim::init_xml(char *name) {
 	}
 #endif
 
-	// check if individual vs preconfig
-	if ( (node = doc.FirstChildElement("config")->FirstChildElement("type")) ) {
-		node->QueryIntAttribute("val", &_preconfig);
-	}
-
 	// check for custom mu params
 	if ( (node = doc.FirstChildElement("config")->FirstChildElement("mu")) ) {
 		node->QueryDoubleAttribute("ground", &(_mu[0]));
@@ -573,6 +568,9 @@ int RoboSim::init_xml(char *name) {
 
 	// get root node of xml file
 	node = doc.FirstChildElement("sim")->FirstChildElement();
+
+	// check if individual vs preconfig
+	node->QueryIntAttribute("type", &_preconfig);
 
 	// loop over all nodes
 	while (node) {

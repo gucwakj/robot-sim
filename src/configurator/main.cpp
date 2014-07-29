@@ -2774,11 +2774,6 @@ void readXMLConfig(void) {
 		version->SetAttribute("val", XML_VERSION);
 		config->InsertFirstChild(version);
 
-		// set individual robots as default
-		tinyxml2::XMLElement *type = g_doc.NewElement("type");
-		type->SetAttribute("val", 0);
-		config->InsertAfterChild(version, type);
-
 		// set graphics options
 		tinyxml2::XMLElement *graphics = g_doc.NewElement("graphics");
 		g_doc.InsertAfterChild(config, graphics);
@@ -2803,6 +2798,7 @@ void readXMLConfig(void) {
 		// create simulation
 		tinyxml2::XMLElement *sim = g_doc.NewElement("sim");
 		g_doc.InsertAfterChild(config, sim);
+		sim->SetAttribute("type", 0);
 
 		// set robot type
 		tinyxml2::XMLElement *robot = g_doc.NewElement("linkboti");
@@ -2871,6 +2867,7 @@ void readXMLConfig(void) {
 		g_doc.SaveFile(g_xml);
 	}
 
+	// create xml variables
 	tinyxml2::XMLElement *node;
 	tinyxml2::XMLElement *ele;
 	int version = 0;
@@ -2884,8 +2881,7 @@ void readXMLConfig(void) {
 	// check version of config file
 	if ( (node = g_doc.FirstChildElement("config")->FirstChildElement("version")) ) {
 		node->QueryIntAttribute("val", &version);
-		if (version != XML_VERSION)
-			node->SetAttribute("val", XML_VERSION);
+		if (version != XML_VERSION) { node->SetAttribute("val", XML_VERSION); }
 	}
 	else {
 		tinyxml2::XMLElement *version = g_doc.NewElement("version");
@@ -2894,214 +2890,210 @@ void readXMLConfig(void) {
 	}
 
 	// check invidivual vs preconfigured
-	if ( (node = g_doc.FirstChildElement("config")->FirstChildElement("type")) ) {
-		node->QueryIntAttribute("val", &g_type);
-		if (g_type) {
-			gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_builder_get_object(g_builder, "notebook")), 1);
-		}
-		switch (g_type) {
-			case BOW:
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "bow")), 1);
-				break;
-			case EXPLORER:
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 1);
-				break;
-			case FOURBOTDRIVE:
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourbotdrive")), 1);
-				break;
-			case FOURWHEELDRIVE:
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheeldrive")), 1);
-				break;
-			case FOURWHEELEXPLORER:
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheelexplorer")), 1);
-				break;
-			case GROUPBOW:
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "groupbow")), 1);
-				break;
-			case INCHWORM:
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 1);
-				break;
-			case LIFT:
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 1);
-				break;
-			case P_OMNIDRIVE:
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 1);
-				break;
-			case SNAKE:
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 1);
-				break;
-			case STAND:
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 1);
-				break;
-		}
-	}
-	else {
-		tinyxml2::XMLElement *type = g_doc.NewElement("type");
-		type->SetAttribute("val", 0);
-		g_doc.FirstChildElement("config")->InsertFirstChild(type);
-	}
+	if ( (node = g_doc.FirstChildElement("sim")) ) {
+		node->QueryIntAttribute("type", &g_type);
+		if (version != XML_VERSION) { node->SetAttribute("type", g_type); }
 
-	// read individual robot configuration
-	if (!g_type) {
-		if ( (node = g_doc.FirstChildElement("sim")) == NULL) {
-			node = g_doc.NewElement("sim");
-			g_doc.InsertAfterChild(g_doc.FirstChildElement("config"), node);
-		}
-		node = g_doc.FirstChildElement("sim")->FirstChildElement();
-		robots_t tmp = g_robots;
-		while (node) {
-			if ( !strcmp(node->Value(), "linkboti") ) {
-				robots_t nr = new struct robots_s;
-				nr->type = 0;
-				nr->x = 0; nr->y = 0; nr->z = 0;
-				nr->psi = 0; nr->theta = 0; nr->phi = 0;
-				nr->wheel = -1;
-				node->QueryIntAttribute("id", &(nr->id));
-				if ( (ele = node->FirstChildElement("position")) ) {
-					ele->QueryDoubleAttribute("x", &(nr->x));
-					ele->QueryDoubleAttribute("y", &(nr->y));
-					ele->QueryDoubleAttribute("z", &(nr->z));
-				}
-				if ( (ele = node->FirstChildElement("rotation")) ) {
-					ele->QueryDoubleAttribute("psi", &(nr->psi));
-					ele->QueryDoubleAttribute("theta", &(nr->theta));
-					ele->QueryDoubleAttribute("phi", &(nr->phi));
-				}
-				nr->next = NULL;
-				g_num++;
+		// read individual robot configuration
+		if (!g_type) {
+			node = g_doc.FirstChildElement("sim")->FirstChildElement();
+			robots_t tmp = g_robots;
+			while (node) {
+				if ( !strcmp(node->Value(), "linkboti") ) {
+					robots_t nr = new struct robots_s;
+					nr->type = 0;
+					nr->x = 0; nr->y = 0; nr->z = 0;
+					nr->psi = 0; nr->theta = 0; nr->phi = 0;
+					nr->wheel = -1;
+					node->QueryIntAttribute("id", &(nr->id));
+					if ( (ele = node->FirstChildElement("position")) ) {
+						ele->QueryDoubleAttribute("x", &(nr->x));
+						ele->QueryDoubleAttribute("y", &(nr->y));
+						ele->QueryDoubleAttribute("z", &(nr->z));
+					}
+					if ( (ele = node->FirstChildElement("rotation")) ) {
+						ele->QueryDoubleAttribute("psi", &(nr->psi));
+						ele->QueryDoubleAttribute("theta", &(nr->theta));
+						ele->QueryDoubleAttribute("phi", &(nr->phi));
+					}
+					nr->next = NULL;
+					g_num++;
 
-				// add robot to linked list
-				tmp = g_robots;
-				if (g_robots == NULL) {
-					g_robots = nr;
-				}
-				else {
-					while (tmp->next)
-						tmp = tmp->next;
-					tmp->next = nr;
-				}
-			}
-			else if ( !strcmp(node->Value(), "linkbotl") ) {
-				robots_t nr = new struct robots_s;
-				nr->type = 1;
-				nr->x = 0; nr->y = 0; nr->z = 0;
-				nr->psi = 0; nr->theta = 0; nr->phi = 0;
-				nr->wheel = -1;
-				node->QueryIntAttribute("id", &(nr->id));
-				if ( (ele = node->FirstChildElement("position")) ) {
-					ele->QueryDoubleAttribute("x", &(nr->x));
-					ele->QueryDoubleAttribute("y", &(nr->y));
-					ele->QueryDoubleAttribute("z", &(nr->z));
-				}
-				if ( (ele = node->FirstChildElement("rotation")) ) {
-					ele->QueryDoubleAttribute("psi", &(nr->psi));
-					ele->QueryDoubleAttribute("theta", &(nr->theta));
-					ele->QueryDoubleAttribute("phi", &(nr->phi));
-				}
-				nr->next = NULL;
-				g_num++;
-
-				// add robot to linked list
-				tmp = g_robots;
-				if (g_robots == NULL) {
-					g_robots = nr;
-				}
-				else {
-					while (tmp->next)
-						tmp = tmp->next;
-					tmp->next = nr;
-				}
-			}
-			else if ( !strcmp(node->Value(), "linkbott") ) {
-				robots_t nr = new struct robots_s;
-				nr->type = 2;
-				nr->x = 0; nr->y = 0; nr->z = 0;
-				nr->psi = 0; nr->theta = 0; nr->phi = 0;
-				nr->wheel = -1;
-				node->QueryIntAttribute("id", &(nr->id));
-				if ( (ele = node->FirstChildElement("position")) ) {
-					ele->QueryDoubleAttribute("x", &(nr->x));
-					ele->QueryDoubleAttribute("y", &(nr->y));
-					ele->QueryDoubleAttribute("z", &(nr->z));
-				}
-				if ( (ele = node->FirstChildElement("rotation")) ) {
-					ele->QueryDoubleAttribute("psi", &(nr->psi));
-					ele->QueryDoubleAttribute("theta", &(nr->theta));
-					ele->QueryDoubleAttribute("phi", &(nr->phi));
-				}
-				nr->next = NULL;
-				g_num++;
-
-				// add robot to linked list
-				tmp = g_robots;
-				if (g_robots == NULL) {
-					g_robots = nr;
-				}
-				else {
-					while (tmp->next)
-						tmp = tmp->next;
-					tmp->next = nr;
-				}
-			}
-			else if ( !strcmp(node->Value(), "mobot") ) {
-				robots_t nr = new struct robots_s;
-				nr->type = 3;
-				nr->x = 0; nr->y = 0; nr->z = 0;
-				nr->psi = 0; nr->theta = 0; nr->phi = 0;
-				nr->wheel = -1;
-				node->QueryIntAttribute("id", &(nr->id));
-				if ( (ele = node->FirstChildElement("position")) ) {
-					ele->QueryDoubleAttribute("x", &(nr->x));
-					ele->QueryDoubleAttribute("y", &(nr->y));
-					ele->QueryDoubleAttribute("z", &(nr->z));
-				}
-				if ( (ele = node->FirstChildElement("rotation")) ) {
-					ele->QueryDoubleAttribute("psi", &(nr->psi));
-					ele->QueryDoubleAttribute("theta", &(nr->theta));
-					ele->QueryDoubleAttribute("phi", &(nr->phi));
-				}
-				nr->next = NULL;
-				g_num++;
-
-				// add robot to linked list
-				tmp = g_robots;
-				if (g_robots == NULL) {
-					g_robots = nr;
-				}
-				else {
-					while (tmp->next)
-						tmp = tmp->next;
-					tmp->next = nr;
-				}
-			}
-			else if ( !strcmp(node->Value(), "simple") ) {
-				tinyxml2::XMLElement *side = node->LastChildElement();
-				if (side) {
-					int id = -1, wheeltype = -1;
-					double radius = 0;
-					side->QueryIntAttribute("robot", &id);
-					if (side->QueryIntAttribute("conn", &wheeltype) != tinyxml2::XML_NO_ATTRIBUTE) {
-						tmp = g_robots;
-						while (tmp && tmp->id != id)
+					// add robot to linked list
+					tmp = g_robots;
+					if (g_robots == NULL) {
+						g_robots = nr;
+					}
+					else {
+						while (tmp->next)
 							tmp = tmp->next;
+						tmp->next = nr;
+					}
+				}
+				else if ( !strcmp(node->Value(), "linkbotl") ) {
+					robots_t nr = new struct robots_s;
+					nr->type = 1;
+					nr->x = 0; nr->y = 0; nr->z = 0;
+					nr->psi = 0; nr->theta = 0; nr->phi = 0;
+					nr->wheel = -1;
+					node->QueryIntAttribute("id", &(nr->id));
+					if ( (ele = node->FirstChildElement("position")) ) {
+						ele->QueryDoubleAttribute("x", &(nr->x));
+						ele->QueryDoubleAttribute("y", &(nr->y));
+						ele->QueryDoubleAttribute("z", &(nr->z));
+					}
+					if ( (ele = node->FirstChildElement("rotation")) ) {
+						ele->QueryDoubleAttribute("psi", &(nr->psi));
+						ele->QueryDoubleAttribute("theta", &(nr->theta));
+						ele->QueryDoubleAttribute("phi", &(nr->phi));
+					}
+					nr->next = NULL;
+					g_num++;
 
-						if (tmp) {
-							tmp->wheel = wheeltype;
-							if (wheeltype == WHEEL) {
-								side->QueryDoubleAttribute("radius", &radius);
-								tmp->radius = convert(radius, 0);
+					// add robot to linked list
+					tmp = g_robots;
+					if (g_robots == NULL) {
+						g_robots = nr;
+					}
+					else {
+						while (tmp->next)
+							tmp = tmp->next;
+						tmp->next = nr;
+					}
+				}
+				else if ( !strcmp(node->Value(), "linkbott") ) {
+					robots_t nr = new struct robots_s;
+					nr->type = 2;
+					nr->x = 0; nr->y = 0; nr->z = 0;
+					nr->psi = 0; nr->theta = 0; nr->phi = 0;
+					nr->wheel = -1;
+					node->QueryIntAttribute("id", &(nr->id));
+					if ( (ele = node->FirstChildElement("position")) ) {
+						ele->QueryDoubleAttribute("x", &(nr->x));
+						ele->QueryDoubleAttribute("y", &(nr->y));
+						ele->QueryDoubleAttribute("z", &(nr->z));
+					}
+					if ( (ele = node->FirstChildElement("rotation")) ) {
+						ele->QueryDoubleAttribute("psi", &(nr->psi));
+						ele->QueryDoubleAttribute("theta", &(nr->theta));
+						ele->QueryDoubleAttribute("phi", &(nr->phi));
+					}
+					nr->next = NULL;
+					g_num++;
+
+					// add robot to linked list
+					tmp = g_robots;
+					if (g_robots == NULL) {
+						g_robots = nr;
+					}
+					else {
+						while (tmp->next)
+							tmp = tmp->next;
+						tmp->next = nr;
+					}
+				}
+				else if ( !strcmp(node->Value(), "mobot") ) {
+					robots_t nr = new struct robots_s;
+					nr->type = 3;
+					nr->x = 0; nr->y = 0; nr->z = 0;
+					nr->psi = 0; nr->theta = 0; nr->phi = 0;
+					nr->wheel = -1;
+					node->QueryIntAttribute("id", &(nr->id));
+					if ( (ele = node->FirstChildElement("position")) ) {
+						ele->QueryDoubleAttribute("x", &(nr->x));
+						ele->QueryDoubleAttribute("y", &(nr->y));
+						ele->QueryDoubleAttribute("z", &(nr->z));
+					}
+					if ( (ele = node->FirstChildElement("rotation")) ) {
+						ele->QueryDoubleAttribute("psi", &(nr->psi));
+						ele->QueryDoubleAttribute("theta", &(nr->theta));
+						ele->QueryDoubleAttribute("phi", &(nr->phi));
+					}
+					nr->next = NULL;
+					g_num++;
+
+					// add robot to linked list
+					tmp = g_robots;
+					if (g_robots == NULL) {
+						g_robots = nr;
+					}
+					else {
+						while (tmp->next)
+							tmp = tmp->next;
+						tmp->next = nr;
+					}
+				}
+				else if ( !strcmp(node->Value(), "simple") ) {
+					tinyxml2::XMLElement *side = node->LastChildElement();
+					if (side) {
+						int id = -1, wheeltype = -1;
+						double radius = 0;
+						side->QueryIntAttribute("robot", &id);
+						if (side->QueryIntAttribute("conn", &wheeltype) != tinyxml2::XML_NO_ATTRIBUTE) {
+							tmp = g_robots;
+							while (tmp && tmp->id != id)
+								tmp = tmp->next;
+
+							if (tmp) {
+								tmp->wheel = wheeltype;
+								if (wheeltype == WHEEL) {
+									side->QueryDoubleAttribute("radius", &radius);
+									tmp->radius = convert(radius, 0);
+								}
 							}
 						}
 					}
 				}
+
+				// go to next element
+				node = node->NextSiblingElement();
 			}
 
-			// go to next element
-			node = node->NextSiblingElement();
+			// refesh robot list
+			refreshRobotList();
 		}
-
-		// refesh robot list
-		refreshRobotList();
+		else {
+			gtk_notebook_set_current_page(GTK_NOTEBOOK(gtk_builder_get_object(g_builder, "notebook")), 1);
+			switch (g_type) {
+				case BOW:
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "bow")), 1);
+					break;
+				case EXPLORER:
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 1);
+					break;
+				case FOURBOTDRIVE:
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourbotdrive")), 1);
+					break;
+				case FOURWHEELDRIVE:
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheeldrive")), 1);
+					break;
+				case FOURWHEELEXPLORER:
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheelexplorer")), 1);
+					break;
+				case GROUPBOW:
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "groupbow")), 1);
+					break;
+				case INCHWORM:
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 1);
+					break;
+				case LIFT:
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 1);
+					break;
+				case P_OMNIDRIVE:
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 1);
+					break;
+				case SNAKE:
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 1);
+					break;
+				case STAND:
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 1);
+					break;
+			}
+		}
+	}
+	else {
+		node = g_doc.NewElement("sim");
+		g_doc.InsertAfterChild(g_doc.FirstChildElement("config"), node);
 	}
 
 	// check grid settings
@@ -3202,6 +3194,7 @@ void readXMLConfig(void) {
 	if (version == 2 && XML_VERSION == 3) {
 		g_doc.FirstChildElement("config")->DeleteChild(g_doc.FirstChildElement("config")->FirstChildElement("grid"));
 		g_doc.FirstChildElement("config")->DeleteChild(g_doc.FirstChildElement("config")->FirstChildElement("tracking"));
+		g_doc.FirstChildElement("config")->DeleteChild(g_doc.FirstChildElement("config")->FirstChildElement("type"));
 	}
 
 	// refesh robot list
