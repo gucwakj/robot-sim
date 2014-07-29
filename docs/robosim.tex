@@ -438,31 +438,6 @@ Each one is its own line placed between the starting \verb%<config>% and ending
 The version of the XML configuration file.  Updated internally when new
 non-backwards compatible changes are made.
 
-\subsubsection{Type}
-\begin{verbatim}
-<type val="0"/>
-\end{verbatim}
-There are two options: either preconfigured robots or individual robots.  Used
-to load the right options when launching the GUI.  Can be 0 to show that the
-robots within the \verb%<sim></sim>% are individual.  Any number above that
-represents the preconfigured robots within the GUI.
-
-\subsubsection{Grid}
-\begin{verbatim}
-<grid units="1" major="12" tics="1" minx="-48" maxx="48" miny="-48" maxy="48"/>
-\end{verbatim}
-The grid boxes from the GUI put their information here.  \verb%units%: 1 for US
-Customary and 0 for Metric.  \verb%major% are the red hashmarks and \verb%tics%
-are the gray tick marks.  \verb%minx% and \verb%maxx% are the minimum and
-maximum distances along the X-axis for the grids, respectively.  \verb%miny% and
-\verb%maxy% are the complements for the Y-axis.
-
-\subsubsection{Tracking}
-\begin{verbatim}
-<tracking val="1"/>
-\end{verbatim}
-Setting to track robot location with lines on the ground.  1 for on; 0 for off.
-
 \subsubsection{Pause}
 \begin{verbatim}
 <pause val="1"/>
@@ -564,6 +539,22 @@ The graphics section hold elements which are drawn onto the screen but which do
 not interact with the robot simulation.  They are there merely for visual
 representation and elucidation of the mathematics happening.
 
+\subsubsection{Grid}
+\begin{verbatim}
+<grid units="1" major="12" tics="1" minx="-48" maxx="48" miny="-48" maxy="48"/>
+\end{verbatim}
+The grid boxes from the GUI put their information here.  \verb%units%: 1 for US
+Customary and 0 for Metric.  \verb%major% are the red hashmarks and \verb%tics%
+are the gray tick marks.  \verb%minx% and \verb%maxx% are the minimum and
+maximum distances along the X-axis for the grids, respectively.  \verb%miny% and
+\verb%maxy% are the complements for the Y-axis.
+
+\subsubsection{Tracking}
+\begin{verbatim}
+<tracking val="1"/>
+\end{verbatim}
+Setting to track robot location with lines on the ground.  1 for on; 0 for off.
+
 \subsubsection{Line}
 \begin{verbatim}
 <line width="1">
@@ -610,6 +601,15 @@ simulation.  Everything to be added is put between the \verb%<sim>% tags.
 <sim>
 </sim>
 \end{verbatim}
+
+\subsubsection{Type}
+\begin{verbatim}
+<sim type="0"/>
+\end{verbatim}
+There are two options: either preconfigured robots or individual robots.  Used
+to load the right options when launching the GUI.  Can be 0 to show that the
+robots within the section are individual.  Any number above that represents the
+preconfigured robots within the GUI.
 
 \subsubsection{Robots}
 Each robot has its own xml tag to configure its position, orientation, and
@@ -857,12 +857,12 @@ Some example configuration files.
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <version val="1"/>
-    <type val="0"/>
-	<grid units="1" major="12" tics="1" minx="-48" maxx="48" miny="-48" maxy="48"/>
-    <tracking val="1"/>
 </config>
-
-<sim>
+<graphics>
+    <grid units="1" major="12" tics="1" minx="-48" maxx="48" miny="-48" maxy="48"/>
+    <tracking val="1"/>
+</graphics>
+<sim type="0">
     <linkboti id="0">
         <position x="0" y="0" z="0"/>
         <rotation psi="0" theta="0" phi="0"/>
@@ -884,11 +884,11 @@ Some example configuration files.
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <version val="1"/>
-    <type val="0"/>
-	<grid units="1" major="12" tics="1" minx="-48" maxx="48" miny="-48" maxy="48"/>
-    <tracking val="1"/>
 </config>
-
+<graphics>
+    <grid units="1" major="12" tics="1" minx="-48" maxx="48" miny="-48" maxy="48"/>
+    <tracking val="1"/>
+</graphics>
 <sim>
     <linkboti id="0">
         <position x="0" y="0" z="0"/>
@@ -919,56 +919,4 @@ Some example configuration files.
 </sim>
 \end{verbatim}
 
-\subsubsection{Explorer}
-\begin{verbatim}
-<?xml version="1.0" encoding="UTF-8"?>
-<config>
-    <version val="1"/>
-    <type val="1"/>
-	<grid units="1" major="12" tics="1" minx="-48" maxx="48" miny="-48" maxy="48"/>
-    <tracking val="1"/>
-</config>
-
-<sim>
-    <linkboti id="0">
-        <position x="0" y="0" z="0"/>
-        <rotation psi="0" theta="0" phi="-90"/>
-    </linkboti>
-    <linkboti id="1"/>
-    <linkboti id="2" orientation="3">
-        <joint f1="-20" f2="0" f3="20"/>
-    </linkboti>
-    <linkboti id="3">
-        <joint f1="-90" f2="0" f3="90"/>
-    </linkboti>
-    <linkbotl id="4" orientation="3"/>
-    <simple>
-        <side id="1" robot="0" face="3"/>
-        <side id="2" robot="0" conn="9"/>
-    </simple>
-    <simple>
-        <side id="1" robot="1" face="1"/>
-        <side id="2" robot="1" conn="9"/>
-    </simple>
-    <cube>
-        <side id="1" robot="0" face="1"/>
-        <side id="2" robot="0" conn="2"/>
-        <side id="3" robot="1" face="3"/>
-        <side id="5" robot="2" face="2"/>
-    </cube>
-    <bridge>
-        <side id="1" robot="2" face="1"/>
-        <side id="2" robot="3" face="1"/>
-    </bridge>
-    <bridge>
-        <side id="1" robot="2" face="3"/>
-        <side id="2" robot="3" face="3"/>
-    </bridge>
-    <simple>
-        <side id="1" robot="3" face="2"/>
-        <side id="2" robot="4" face="2"/>
-    </simple>
-    <gripper robot="4"/>
-</sim>
-\end{verbatim}
 \end{document}
