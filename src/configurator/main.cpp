@@ -35,14 +35,23 @@ typedef struct robots_s {
 	double radius;
 	struct robots_s *next;
 } *robots_t;
+typedef struct obstacles_s {
+	int id, type, dir, size;
+	double x, y, z;
+	double l1, l2, l3;
+	double psi, theta, phi;
+	double mass;
+	struct obstacles_s *next;
+} *obstacles_t;
 
 GtkBuilder *g_builder;
 GtkWidget *g_window;
 robots_t g_robots = NULL;
+obstacles_t g_obstacles = NULL;
 tinyxml2::XMLDocument g_doc;
 FILE *fp = NULL;
 char g_xml[512] = "", g_chrc[512] = "", g_chhome[512] = "", *fpbuf;
-int g_num = 0, g_type = 0, g_units = 1;
+int g_num = 0, g_type = 0, g_units = 1, g_num_ob = 0;
 double g_grid[6][2] = {	12,		50,		// major
 						1,		5,		// tics
 						-48,	-200,	// minx
@@ -68,19 +77,12 @@ G_MODULE_EXPORT void on_notebook_switch_page(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_real_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_simulated_toggled(GtkWidget *widget, gpointer data);
 
-// robot settings
-G_MODULE_EXPORT void on_type_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_x_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_y_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_phi_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_wheeled_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_wheel_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data);
-
 // units
 G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data);
+
+// tracking
+G_MODULE_EXPORT void on_tracking_toggled(GtkWidget *widget, gpointer data);
 
 // grid settings
 G_MODULE_EXPORT void on_defaults_clicked(GtkWidget *widget, gpointer data);
@@ -92,6 +94,16 @@ G_MODULE_EXPORT void on_maxy_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_minx_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_miny_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_tics_value_changed(GtkWidget *widget, gpointer data);
+
+// robot settings
+G_MODULE_EXPORT void on_type_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_x_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_y_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_phi_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_wheeled_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_wheel_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_button_add_clicked(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_button_remove_clicked(GtkWidget* widget, gpointer data);
 
 // preconfig
 G_MODULE_EXPORT void on_bow_toggled(GtkWidget *widget, gpointer data);
@@ -106,13 +118,25 @@ G_MODULE_EXPORT void on_omnidrive_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_snake_toggled(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data);
 
-// tracking
-G_MODULE_EXPORT void on_tracking_toggled(GtkWidget *widget, gpointer data);
+// obstacle settings
+G_MODULE_EXPORT void on_ob_type_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_x_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_y_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_z_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_l1_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_l2_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_l3_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_mass_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_size_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_button_add_obstacle_clicked(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_button_remove_obstacle_clicked(GtkWidget* widget, gpointer data);
 
 double convert(double value, int tometer);
 void printRoboSimPath(void);
 void readXMLConfig(void);
+void refreshObstacleList(void);
 void refreshRobotList(void);
+void saveObstacleList(void);
 void saveRobotList(int force = 0);
 
 #ifdef __cplusplus
@@ -398,10 +422,10 @@ G_MODULE_EXPORT void on_menuitem_help_activate(GtkWidget *widget, gpointer data)
 G_MODULE_EXPORT void on_notebook_switch_page(GtkWidget *widget, gpointer data) {
 	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(gtk_builder_get_object(g_builder, "notebook")));
 
-	if (page == 1) {
+	if (page != 0) {
 		saveRobotList(1);
 	}
-	else if (page == 0) {
+	else if (page != 1) {
 		switch (g_type) {
 			case BOW:
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "bow")), 0);
@@ -448,6 +472,9 @@ G_MODULE_EXPORT void on_notebook_switch_page(GtkWidget *widget, gpointer data) {
 				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 1);
 				break;
 		}
+	}
+	else if (page != 2) {
+		saveObstacleList();
 	}
 }
 
@@ -802,9 +829,11 @@ G_MODULE_EXPORT void on_us_toggled(GtkWidget *widget, gpointer data) {
 		g_units = 1;
 
 		// change labels
+		refreshObstacleList();
 		refreshRobotList();
 
 		// save configuration
+		saveObstacleList();
 		saveRobotList();
 
 		// save file
@@ -863,9 +892,11 @@ G_MODULE_EXPORT void on_metric_toggled(GtkWidget *widget, gpointer data) {
 		g_units = 0;
 
 		// change labels
+		refreshObstacleList();
 		refreshRobotList();
 
 		// save configuration
+		saveObstacleList();
 		saveRobotList();
 
 		// save file
@@ -2728,6 +2759,323 @@ G_MODULE_EXPORT void on_tracking_toggled(GtkWidget *widget, gpointer data) {
 }
 
 /*
+ * When a robots type is changed
+ */
+G_MODULE_EXPORT void on_ob_type_changed(GtkWidget *widget, gpointer data) {
+	// cast id
+	gint id = GPOINTER_TO_INT(data);
+
+	// scan to find id
+	robots_t tmp = g_robots;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if found, change its type
+	if (tmp) {
+		// get new type
+#ifdef _WIN32
+		const gchar *type = gtk_combo_box_get_active_text(GTK_COMBO_BOX(widget));
+#else
+		const gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget));
+#endif
+		// store into database
+		if (!strcmp(type, "BOX"))
+			tmp->type = BOX;
+		else if (!strcmp(type, "CYLINDER"))
+			tmp->type = CYLINDER;
+		else if (!strcmp(type, "LINE"))
+			tmp->type = LINE;
+		else if (!strcmp(type, "POINT"))
+			tmp->type = POINT;
+		else if (!strcmp(type, "SPHERE"))
+			tmp->type = SPHERE;
+		else if (!strcmp(type, "TEXT"))
+			tmp->type = TEXT;
+
+		// refresh table
+		//refreshObstacleList();
+
+		// save configuration
+		saveObstacleList();
+	}
+}
+
+/*
+ * When robot's x value is changed
+ */
+G_MODULE_EXPORT void on_ob_x_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
+	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
+	robots_t tmp = g_robots;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if the robot is found, change its x value
+	if (tmp) {
+		// store new value
+		tmp->x = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+
+		// save configuration
+		saveObstacleList();
+	}
+}
+
+/*
+ * When robot's y value is changed
+ */
+G_MODULE_EXPORT void on_ob_y_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
+	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
+	robots_t tmp = g_robots;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if the robot is found, change its y value
+	if (tmp) {
+		// store new value
+		tmp->y = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+
+		// save configuration
+		saveObstacleList();
+	}
+}
+
+/*
+ * When robot's z value is changed
+ */
+G_MODULE_EXPORT void on_ob_z_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
+	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
+	robots_t tmp = g_robots;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if the robot is found, change its y value
+	if (tmp) {
+		// store new value
+		tmp->z = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+
+		// save configuration
+		saveObstacleList();
+	}
+}
+
+/*
+ * When obstacle's l1 value is changed
+ */
+G_MODULE_EXPORT void on_ob_l1_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
+	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
+	obstacles_t tmp = g_obstacles;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if the robot is found, change its y value
+	if (tmp) {
+		// store new value
+		tmp->l1 = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+
+		// save configuration
+		saveObstacleList();
+	}
+}
+
+/*
+ * When obstacle's l2 value is changed
+ */
+G_MODULE_EXPORT void on_ob_l2_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
+	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
+	obstacles_t tmp = g_obstacles;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if the robot is found, change its y value
+	if (tmp) {
+		// store new value
+		tmp->l2 = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+
+		// save configuration
+		saveObstacleList();
+	}
+}
+
+/*
+ * When obstacle's l3 value is changed
+ */
+G_MODULE_EXPORT void on_ob_l3_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
+	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
+	obstacles_t tmp = g_obstacles;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if the robot is found, change its y value
+	if (tmp) {
+		// store new value
+		tmp->l3 = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+
+		// save configuration
+		saveObstacleList();
+	}
+}
+
+/*
+ * When obstacle's mass value is changed
+ */
+G_MODULE_EXPORT void on_ob_mass_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
+	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
+	obstacles_t tmp = g_obstacles;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if the robot is found, change its y value
+	if (tmp) {
+		// store new value
+		tmp->mass = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+
+		// save configuration
+		saveObstacleList();
+	}
+}
+
+/*
+ * When obstacle's size value is changed
+ */
+G_MODULE_EXPORT void on_ob_size_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
+	gint id = GPOINTER_TO_INT(data);
+
+	// scan through robots to find id
+	obstacles_t tmp = g_obstacles;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if the robot is found, change its y value
+	if (tmp) {
+		// store new value
+		tmp->size = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+
+		// save configuration
+		saveObstacleList();
+	}
+}
+
+/*
+ * When an obstacle is added to the list
+ */
+G_MODULE_EXPORT void on_button_add_obstacle_clicked(GtkWidget *widget, gpointer data) {
+	// pointer to linked list
+	obstacles_t tmp = g_obstacles;
+
+	// new obstacle
+	obstacles_t no = new struct obstacles_s;
+	no->type = 0;
+	no->x = 0;
+	no->y = 0;
+	no->z = 0;
+	no->l1 = 0;
+	no->l2 = 0;
+	no->l3 = 0;
+	no->mass = 0;
+	no->dir = 1;
+	no->psi = 0;
+	no->theta = 0;
+	no->phi = 0;
+	no->next = NULL;
+
+	// add robot to linked list
+	tmp = g_obstacles;
+	if (g_obstacles == NULL) {
+		no->id = 0;
+		g_obstacles = no;
+	}
+	else {
+		while (tmp->next)
+			tmp = tmp->next;
+		no->id = tmp->id + 1;
+		tmp->next = no;
+	}
+
+	// increase total number of robots
+	g_num_ob++;
+
+	// refresh gui list with new robot
+	refreshObstacleList();
+
+	// save configuration
+	saveObstacleList();
+
+	// reset toggle buttons
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "bow")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "explorer")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourbotdrive")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheeldrive")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "fourwheelexplorer")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "groupbow")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "inchworm")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "lift")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "omnidrive")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "snake")), 0);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "stand")), 0);
+}
+
+/*
+ * When an obstacle is removed from the list
+ */
+G_MODULE_EXPORT void on_button_remove_obstacle_clicked(GtkWidget* widget, gpointer data) {
+	// cast id of robot
+	gint id = GPOINTER_TO_INT(data);
+
+	// find and remove ndoe
+	obstacles_t tmp = g_obstacles;
+	if (g_obstacles->id == id) {
+		g_obstacles = g_obstacles->next;
+	}
+	else {
+		while (tmp->next) {
+			if (tmp->next->id == id) {
+				tmp->next = tmp->next->next;
+				break;
+			}
+			tmp = tmp->next;
+		}
+	}
+
+	// reset robot ids to be sequential
+	tmp = g_obstacles;
+	int i = 0;
+	while (tmp) {
+		tmp->id = i++;
+		tmp = tmp->next;
+	}
+
+	// decrease total number of robots
+	g_num_ob--;
+
+	// refresh robot list
+	refreshObstacleList();
+
+	// save configuration
+	saveObstacleList();
+}
+
+/*
  * Convert [in/cm] to [m] and back
  */
 double convert(double value, int tometer) {
@@ -3205,6 +3553,422 @@ void readXMLConfig(void) {
 }
 
 /*
+ * Refresh the table of obstacle data
+ */
+void refreshObstacleList(void) {
+	// new table of obstacles
+	static GtkWidget *rootObstacleTable = NULL;
+	if(rootObstacleTable != NULL)
+		gtk_widget_destroy(rootObstacleTable);
+	rootObstacleTable = gtk_table_new(g_num_ob, 20, FALSE);
+
+	// fill table with widgets
+	GtkWidget *w;
+	GtkAdjustment *x_adj, *y_adj, *z_adj, *l1_adj, *l2_adj, *l3_adj, *mass_adj, *int_adj;
+	obstacles_t tmp = g_obstacles;
+	int i = 0;
+
+	while (tmp) {
+		// type
+		w = gtk_combo_box_text_new();
+#ifdef _WIN32
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Box");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Cylinder");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Line");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Point");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Sphere");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Text");
+#else
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "0", "Box");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "Cylinder");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "Line");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "Point");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "4", "Sphere");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "5", "Text");
+#endif
+		gtk_combo_box_set_active(GTK_COMBO_BOX(w), tmp->type);
+		gtk_widget_show(w);
+		gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 1, 2, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_ob_type_changed), (void *)(&(tmp->id)));
+		if (tmp->type == BOX || tmp->type == CYLINDER | tmp->type == SPHERE) {
+			// x position
+			w = ((g_units) ? gtk_label_new(" X [in]:") : gtk_label_new(" X [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 1, 2, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->x, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(x_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 2, 3, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_x_value_changed), (void *)(&(tmp->id)));
+			// y position
+			w = ((g_units) ? gtk_label_new(" Y [in]:") : gtk_label_new(" Y [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 3, 4, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->y, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(y_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 4, 5, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_y_value_changed), (void *)(&(tmp->id)));
+			// z position
+			w = ((g_units) ? gtk_label_new(" Z [in]:") : gtk_label_new(" Z [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 5, 6, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			z_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->z, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(z_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 6, 7, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_z_value_changed), (void *)(&(tmp->id)));
+			// mass
+			w = ((g_units) ? gtk_label_new(" Mass [lb]:") : gtk_label_new(" Mass [kg]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 7, 8, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			mass_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->mass, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(mass_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_mass_value_changed), (void *)(&(tmp->id)));
+			// color
+			GdkColor color;
+			gdk_color_parse("red", &color);
+			w = gtk_color_button_new_with_color(&color);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			// dimension 1
+			if (tmp->type == BOX)
+					w = ((g_units) ? gtk_label_new(" Length [in]:") : gtk_label_new(" Length [cm]:"));
+			else if (tmp->type == CYLINDER)
+					w = ((g_units) ? gtk_label_new(" Length [in]:") : gtk_label_new(" Length [cm]:"));
+			else if (tmp->type == SPHERE)
+					w = ((g_units) ? gtk_label_new(" Radius [in]:") : gtk_label_new(" Radius [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			l1_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->l1, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(l1_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_l1_value_changed), (void *)(&(tmp->id)));
+			// dimension 2
+			if ( tmp->type == BOX || tmp->type == CYLINDER ) {
+				if (tmp->type == BOX)
+						w = ((g_units) ? gtk_label_new(" Width [in]:") : gtk_label_new(" Width [cm]:"));
+				else if (tmp->type == CYLINDER)
+						w = ((g_units) ? gtk_label_new(" Radius [in]:") : gtk_label_new(" Radius [cm]:"));
+				gtk_widget_show(w);
+				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 12, 13, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+				l2_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->l2, -500, 500, 0.1, 0.1, 1));
+				w = gtk_spin_button_new(l2_adj, 0.0, 1);
+				gtk_widget_show(w);
+				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 13, 14, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+				g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_l2_value_changed), (void *)(&(tmp->id)));
+			}
+			// dimension 3
+			if (tmp->type == BOX) {
+				w = ((g_units) ? gtk_label_new(" Height [in]:") : gtk_label_new(" Height [cm]:"));
+				gtk_widget_show(w);
+				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 14, 15, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+				l3_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->l3, -500, 500, 0.1, 0.1, 1));
+				w = gtk_spin_button_new(l3_adj, 0.0, 1);
+				gtk_widget_show(w);
+				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 15, 16, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+				g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_l3_value_changed), (void *)(&(tmp->id)));
+			}
+			// orientation
+			if (tmp->type == CYLINDER) {
+				w = gtk_label_new(" Axis:");
+				gtk_widget_show(w);
+				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 16, 17, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+				w = gtk_combo_box_text_new();
+	#ifdef _WIN32
+				gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "X");
+				gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Y");
+				gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Z");
+	#else
+				gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "0", "X");
+				gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "Y");
+				gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "Z");
+	#endif
+				gtk_combo_box_set_active(GTK_COMBO_BOX(w), tmp->type);
+				gtk_widget_show(w);
+				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 17, 18, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+				g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_ob_type_changed), (void *)(&(tmp->id)));
+			}
+			// remove button
+			w = gtk_button_new_with_label("Remove");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 18, 19, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_obstacle_clicked), (void *)(&(tmp->id)));
+		}
+		else if (tmp->type == LINE) {
+			// x1 position
+			w = ((g_units) ? gtk_label_new(" X1 [in]:") : gtk_label_new(" X1 [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 1, 2, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->x, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(x_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 2, 3, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_x_value_changed), (void *)(&(tmp->id)));
+			// y1 position
+			w = ((g_units) ? gtk_label_new(" Y1 [in]:") : gtk_label_new(" Y1 [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 3, 4, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->y, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(y_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 4, 5, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_y_value_changed), (void *)(&(tmp->id)));
+			// z1 position
+			w = ((g_units) ? gtk_label_new(" Z1 [in]:") : gtk_label_new(" Z1 [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 5, 6, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			z_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->z, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(z_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 6, 7, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_z_value_changed), (void *)(&(tmp->id)));
+			// x2 position
+			w = ((g_units) ? gtk_label_new(" X2 [in]:") : gtk_label_new(" X2 [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 7, 8, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			l1_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->l1, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(l1_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_l1_value_changed), (void *)(&(tmp->id)));
+			// y2 position
+			w = ((g_units) ? gtk_label_new(" Y2 [in]:") : gtk_label_new(" Y2 [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			l2_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->l2, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(l2_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_l2_value_changed), (void *)(&(tmp->id)));
+			// z2 position
+			w = ((g_units) ? gtk_label_new(" Z2 [in]:") : gtk_label_new(" Z2 [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			l3_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->l3, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(l3_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 12, 13, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_l3_value_changed), (void *)(&(tmp->id)));
+			// width
+			w = gtk_label_new(" Width:");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 13, 14, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			int_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->size, -500, 500, 1, 1, 1));
+			w = gtk_spin_button_new(int_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 14, 15, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_size_value_changed), (void *)(&(tmp->id)));
+			// color
+			GdkColor color;
+			gdk_color_parse("red", &color);
+			w = gtk_color_button_new_with_color(&color);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 15, 16, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			// remove button
+			w = gtk_button_new_with_label("Remove");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 16, 17, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_obstacle_clicked), (void *)(&(tmp->id)));
+		}
+		else if (tmp->type == POINT) {
+			// x1 position
+			w = ((g_units) ? gtk_label_new(" X [in]:") : gtk_label_new(" X [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 1, 2, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->x, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(x_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 2, 3, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_x_value_changed), (void *)(&(tmp->id)));
+			// y1 position
+			w = ((g_units) ? gtk_label_new(" Y [in]:") : gtk_label_new(" Y [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 3, 4, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->y, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(y_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 4, 5, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_y_value_changed), (void *)(&(tmp->id)));
+			// z1 position
+			w = ((g_units) ? gtk_label_new(" Z [in]:") : gtk_label_new(" Z [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 5, 6, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			z_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->z, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(z_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 6, 7, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_z_value_changed), (void *)(&(tmp->id)));
+			// width
+			w = gtk_label_new(" Size:");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 7, 8, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			int_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->size, -500, 500, 1, 1, 1));
+			w = gtk_spin_button_new(int_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_size_value_changed), (void *)(&(tmp->id)));
+			// color
+			GdkColor color;
+			gdk_color_parse("red", &color);
+			w = gtk_color_button_new_with_color(&color);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			// remove button
+			w = gtk_button_new_with_label("Remove");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_obstacle_clicked), (void *)(&(tmp->id)));
+		}
+		else if (tmp->type == TEXT) {
+			// x1 position
+			w = ((g_units) ? gtk_label_new(" X [in]:") : gtk_label_new(" X [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 1, 2, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->x, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(x_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 2, 3, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_x_value_changed), (void *)(&(tmp->id)));
+			// y1 position
+			w = ((g_units) ? gtk_label_new(" Y [in]:") : gtk_label_new(" Y [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 3, 4, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->y, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(y_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 4, 5, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_y_value_changed), (void *)(&(tmp->id)));
+			// z1 position
+			w = ((g_units) ? gtk_label_new(" Z [in]:") : gtk_label_new(" Z [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 5, 6, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			z_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->z, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(z_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 6, 7, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_z_value_changed), (void *)(&(tmp->id)));
+			// text entry
+			w = gtk_label_new(" Text:");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 7, 8, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			z_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->z, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(z_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_value_changed), (void *)(&(tmp->id)));
+			// color
+			GdkColor color;
+			gdk_color_parse("red", &color);
+			w = gtk_color_button_new_with_color(&color);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			// remove button
+			w = gtk_button_new_with_label("Remove");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_obstacle_clicked), (void *)(&(tmp->id)));
+		}
+
+		// next obstacle
+		tmp = tmp->next;
+		i++;
+	}
+
+	// set size of table
+	gtk_widget_show(rootObstacleTable);
+	GtkRequisition sizeRequest;
+	gtk_widget_size_request(rootObstacleTable, &sizeRequest);
+	GtkWidget *layout = GTK_WIDGET(gtk_builder_get_object(g_builder, "layout_obstacles"));
+	gtk_layout_set_size(GTK_LAYOUT(layout), sizeRequest.width, sizeRequest.height);
+	gtk_layout_put(GTK_LAYOUT(layout), rootObstacleTable, 0, 0);
+
+	// update liststore
+	static GtkListStore *listStoreOb = GTK_LIST_STORE(gtk_builder_get_object(g_builder, "liststoreob"));
+	gtk_list_store_clear(listStoreOb);
+	GtkTreeIter iter;
+	tmp = g_obstacles;
+	while (tmp) {
+		gtk_list_store_append(listStoreOb, &iter);
+		gtk_list_store_set(listStoreOb, &iter, 0, tmp->id, -1);
+		tmp = tmp->next;
+	}
+}
+
+/*
+ * When the save button is clicked
+ */
+void saveObstacleList(void) {
+	obstacles_t tmp = g_obstacles;
+	while (tmp) {
+		printf("%d object %d \n", tmp->id, tmp->type);
+		tmp = tmp->next;
+	}
+
+	// clean out ground node
+	tinyxml2::XMLElement *ground = g_doc.FirstChildElement("ground");
+	ground->DeleteChildren();
+
+	// clean out graphics node
+	tinyxml2::XMLElement *graphics = g_doc.FirstChildElement("graphics");
+	graphics->DeleteChildren();
+
+	// add each robot in list
+	//obstacles_t tmp = g_obstacles;
+	tmp = g_obstacles;
+	while (tmp) {
+		tinyxml2::XMLElement *out;
+		if ( tmp->type == BOX || tmp->type == CYLINDER || tmp->type == SPHERE)
+			out = ground;
+		else
+			out = graphics;
+
+		// set type
+		tinyxml2::XMLElement *obstacle;
+		if (tmp->type == BOX)
+			obstacle = g_doc.NewElement("box");
+		else if (tmp->type == CYLINDER)
+			obstacle = g_doc.NewElement("cylinder");
+		else if (tmp->type == LINE)
+			obstacle = g_doc.NewElement("line");
+		else if (tmp->type == POINT)
+			obstacle = g_doc.NewElement("point");
+		else if (tmp->type == SPHERE)
+			obstacle = g_doc.NewElement("sphere");
+		else if (tmp->type == TEXT)
+			obstacle = g_doc.NewElement("text");
+
+		if (!(tmp->id))
+			out->InsertFirstChild(obstacle);
+		else
+			out->InsertEndChild(obstacle);
+
+		// set position
+		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
+		pos->SetAttribute("x", convert(tmp->x, 1));
+		pos->SetAttribute("y", convert(tmp->y, 1));
+		pos->SetAttribute("z", convert(tmp->z, 1));
+		obstacle->InsertFirstChild(pos);
+
+		// set rotation
+		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
+		rot->SetAttribute("psi", tmp->psi);
+		rot->SetAttribute("theta", tmp->theta);
+		rot->SetAttribute("phi", tmp->phi);
+		obstacle->InsertAfterChild(pos, rot);
+
+		// go to next obstacle
+		tmp = tmp->next;
+	}
+
+	// save file
+	g_doc.SaveFile(stdout);
+}
+
+/*
  * Refresh the table of robot data
  */
 void refreshRobotList(void) {
@@ -3242,7 +4006,7 @@ void refreshRobotList(void) {
 		gtk_combo_box_set_active(GTK_COMBO_BOX(w), (tmp->type <= 1) ? tmp->type : tmp->type-1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 2, 3, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_type_changed), (void *)(tmp->id));
+		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_type_changed), (void *)(&(tmp->id)));
 		// x position
 		w = ((g_units) ? gtk_label_new(" X [in]:") : gtk_label_new(" X [cm]:"));
 		gtk_widget_show(w);
@@ -3251,7 +4015,7 @@ void refreshRobotList(void) {
 		w = gtk_spin_button_new(x_adj, 0.0, 1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 4, 5, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_x_value_changed), (void *)(tmp->id));
+		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_x_value_changed), (void *)(&(tmp->id)));
 		// y position
 		w = ((g_units) ? gtk_label_new(" Y [in]:") : gtk_label_new(" Y [cm]:"));
 		gtk_widget_show(w);
@@ -3260,7 +4024,7 @@ void refreshRobotList(void) {
 		w = gtk_spin_button_new(y_adj, 0.0, 1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 6, 7, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_y_value_changed), (void *)(tmp->id));
+		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_y_value_changed), (void *)(&(tmp->id)));
 		// phi angle
 		w = gtk_label_new(" Angle [deg]:");
 		gtk_widget_show(w);
@@ -3269,7 +4033,7 @@ void refreshRobotList(void) {
 		w = gtk_spin_button_new(phi_adj, 0.0, 1);
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_phi_value_changed), (void *)(tmp->id));
+		g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_phi_value_changed), (void *)(&(tmp->id)));
 		// wheeled
 		w = ((g_units) ? gtk_label_new(" Wheels [in]:") : gtk_label_new(" Wheels [cm]:"));
 		gtk_widget_show(w);
@@ -3324,14 +4088,14 @@ void refreshRobotList(void) {
 		}
 		gtk_widget_show(w);
 		gtk_table_attach(GTK_TABLE(rootTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_wheeled_changed), (void *)(tmp->id));
+		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_wheeled_changed), (void *)(&(tmp->id)));
 		// wheel radius
 		if (tmp->wheel == WHEEL) {
 			wheel_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->radius, 0.1, 180, 0.1, 1, 1));
 			w = gtk_spin_button_new(wheel_adj, 0.1, 3);
 			gtk_widget_show(w);
 			gtk_table_attach(GTK_TABLE(rootTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_wheel_value_changed), (void *)(tmp->id));
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_wheel_value_changed), (void *)(&(tmp->id)));
 		}
 		// remove button
 		w = gtk_button_new_with_label("Remove");
@@ -3340,7 +4104,7 @@ void refreshRobotList(void) {
 			gtk_table_attach(GTK_TABLE(rootTable), w, 12, 13, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 		else
 			gtk_table_attach(GTK_TABLE(rootTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_clicked), (void *)(tmp->id));
+		g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_clicked), (void *)(&(tmp->id)));
 		// next robot
 		tmp = tmp->next;
 		i++;

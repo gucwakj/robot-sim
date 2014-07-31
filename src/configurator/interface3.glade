@@ -1122,10 +1122,75 @@ Harry H. Cheng</property>
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
+                  <object class="GtkAlignment" id="alignment_objects">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="left_padding">12</property>
+                    <child>
+                      <object class="GtkBox" id="box_obstacles">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkButton" id="button_add_obstacle">
+                            <property name="label" translatable="yes">Add Obstacle</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="margin_top">5</property>
+                            <property name="margin_bottom">5</property>
+                            <signal name="clicked" handler="on_button_add_obstacle_clicked" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkScrolledWindow" id="scrolledwindow1">
+                            <property name="width_request">1080</property>
+                            <property name="height_request">200</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="hexpand">True</property>
+                            <property name="vexpand">True</property>
+                            <property name="border_width">2</property>
+                            <property name="vscrollbar_policy">always</property>
+                            <property name="shadow_type">etched-in</property>
+                            <child>
+                              <object class="GtkLayout" id="layout_obstacles">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="vexpand">True</property>
+                                <property name="width">0</property>
+                                <property name="height">0</property>
+                              </object>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="position">2</property>
+                  </packing>
                 </child>
                 <child type="tab">
-                  <placeholder/>
+                  <object class="GtkLabel" id="label_objects">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Obstacles</property>
+                  </object>
+                  <packing>
+                    <property name="position">2</property>
+                    <property name="tab_fill">False</property>
+                  </packing>
                 </child>
               </object>
               <packing>
@@ -1145,6 +1210,12 @@ Harry H. Cheng</property>
     </child>
   </object>
   <object class="GtkListStore" id="liststore">
+    <columns>
+      <!-- column-name id -->
+      <column type="gint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststoreob">
     <columns>
       <!-- column-name id -->
       <column type="gint"/>
