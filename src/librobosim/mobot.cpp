@@ -2947,9 +2947,10 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	label->setAxisAlignment(osgText::Text::SCREEN);
 	label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 	label->setCharacterSize(30);
-	label->setColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	label->setColor(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	label->setBoundingBoxColor(osg::Vec4(0.0f, 0.0f, 0.0f, 0.9f));
 	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	label->setDrawMode(osgText::Text::TEXT | osgText::Text::ALIGNMENT | osgText::Text::BOUNDINGBOX);
+	label->setDrawMode(osgText::Text::TEXT | osgText::Text::FILLEDBOUNDINGBOX);
 	_robot->insertChild(0, label_geode);
 
 	// draw tracking node
