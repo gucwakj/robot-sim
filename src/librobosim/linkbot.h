@@ -63,13 +63,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int jumpToNB(double angle1, double angle2, double angle3);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
-		int moveJoint(robotJointId_t id, double angle);
-		int moveJointNB(robotJointId_t id, double angle);
-		int moveJointTime(robotJointId_t id, double seconds);
-		int moveJointTimeNB(robotJointId_t id, double seconds);
-		int moveJointTo(robotJointId_t id, double angle);
-		int moveJointToNB(robotJointId_t id, double angle);
-		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
 		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
@@ -169,7 +162,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		//static void* recordAnglesThread(void *arg);											// thread to record angles
 		//static void* recordAnglesBeginThread(void *arg);									// thread to record angles
 		//static void* recordxyBeginThread(void *arg);										// thread to record positions
-		static void* moveJointTimeNBThread(void *arg);										// thread to move a joint
 		static void* moveTimeNBThread(void *arg);											// thread to move all joints
 
 		// private data members

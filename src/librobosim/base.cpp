@@ -262,6 +262,47 @@ int CRobot::moveForeverNB(void) {
 	return 0;
 }
 
+int CRobot::moveJoint(robotJointId_t id, double angle) {
+	this->moveJointNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CRobot::moveJointNB(robotJointId_t id, double angle) {
+	// check if disabled joint
+	if (_disabled == id) return 0;
+
+	// lock goal
+	MUTEX_LOCK(&_goal_mutex);
+
+	// set new goal angles
+	if (_motor[id].omega < -EPSILON) angle = -angle;
+	_motor[id].goal += DEG2RAD(angle);
+
+	// actively seeking an angle
+	_motor[id].mode = SEEK;
+
+	// enable motor
+	MUTEX_LOCK(&_theta_mutex);
+	dJointEnable(_motor[id].id);
+	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
+	dBodyEnable(_body[0]);
+	MUTEX_UNLOCK(&_theta_mutex);
+
+	// set success to false
+	MUTEX_LOCK(&_motor[id].success_mutex);
+	_motor[id].success = false;
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
+
+	// unlock goal
+	MUTEX_UNLOCK(&_goal_mutex);
+
+	// success
+	return 0;
+}
+
 int CRobot::moveJointForeverNB(robotJointId_t id) {
 	// lock mutexes
 	MUTEX_LOCK(&_motor[id].success_mutex);
@@ -283,6 +324,106 @@ int CRobot::moveJointForeverNB(robotJointId_t id) {
 	// enable bodies for collisions
     dBodyEnable(_body[0]);
 	// unlock mutexes
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
+
+	// success
+	return 0;
+}
+
+int CRobot::moveJointTime(robotJointId_t id, double seconds) {
+	// move joint
+	this->moveJointForeverNB(id);
+
+	// sleep
+	this->doze(seconds*1000);
+
+	// stop joint
+	this->holdJoint(id);
+
+	// success
+	return 0;
+}
+
+void* CRobot::moveJointTimeNBThread(void *arg) {
+	// cast argument
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// get robot
+	CRobot *robot = dynamic_cast<CRobot *>(rArg->robot);
+	// sleep
+	robot->doze(rArg->msecs);
+	// hold all robot motion
+	robot->holdJoint(rArg->id);
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+int CRobot::moveJointTimeNB(robotJointId_t id, double seconds) {
+	// set up threading
+	THREAD_T moving;
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->msecs = 1000*seconds;
+	rArg->id = id;
+
+	// set joint movements
+	this->moveJointForeverNB(id);
+
+	// create thread to wait
+	THREAD_CREATE(&moving, (void* (*)(void *))&CRobot::moveJointTimeNBThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+int CRobot::moveJointTo(robotJointId_t id, double angle) {
+	this->moveJointToNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CRobot::moveJointToNB(robotJointId_t id, double angle) {
+	// check if disabled joint
+	if (_disabled == id) return 0;
+
+	// lock goal
+	MUTEX_LOCK(&_goal_mutex);
+
+	// set new goal angles
+	_motor[id].goal = DEG2RAD(angle);
+
+	// actively seeking an angle
+	_motor[id].mode = SEEK;
+
+	// enable motor
+	MUTEX_LOCK(&_theta_mutex);
+	dJointEnable(_motor[id].id);
+	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
+	dBodyEnable(_body[0]);
+	MUTEX_UNLOCK(&_theta_mutex);
+
+	// set success to false
+	MUTEX_LOCK(&_motor[id].success_mutex);
+	_motor[id].success = false;
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
+
+	// unlock goal
+	MUTEX_UNLOCK(&_goal_mutex);
+
+	// success
+	return 0;
+}
+
+int CRobot::moveJointWait(robotJointId_t id) {
+	// wait for motion to complete
+	MUTEX_LOCK(&_motor[id].success_mutex);
+	while ( !_motor[id].success ) { COND_WAIT(&_motor[id].success_cond, &_motor[id].success_mutex); }
 	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// success

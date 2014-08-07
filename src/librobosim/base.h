@@ -72,7 +72,14 @@ class DLLIMPORT CRobot {
 		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int moveForeverNB(void);
+		int moveJoint(robotJointId_t id, double angle);
+		int moveJointNB(robotJointId_t id, double angle);
 		int moveJointForeverNB(robotJointId_t id);
+		int moveJointTime(robotJointId_t id, double seconds);
+		int moveJointTimeNB(robotJointId_t id, double seconds);
+		int moveJointTo(robotJointId_t id, double angle);
+		int moveJointToNB(robotJointId_t id, double angle);
+		int moveJointWait(robotJointId_t id);
 		int setJointSpeed(robotJointId_t id, double speed);
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 
@@ -234,5 +241,6 @@ class DLLIMPORT CRobot {
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);
 		double normal(double sigma);
 		double uniform(void);
+		static void* moveJointTimeNBThread(void *arg);										// thread to move a joint
 };
 #endif // BASE_H_
