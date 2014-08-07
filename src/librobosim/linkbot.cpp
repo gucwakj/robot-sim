@@ -232,43 +232,6 @@ int CLinkbotT::closeGripperNB(void) {
 	return 0;
 }
 
-int CLinkbotT::delay(double milliseconds) {
-	// set ending time
-	double end = g_sim->getClock() + milliseconds/1000;
-
-	// while clock hasn't reached ending time
-	while ((end - g_sim->getClock()) > EPSILON) {
-		this->doze(5);
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::delaySeconds(double seconds) {
-	// delay milliseconds
-	this->delay(1000 * seconds);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::disableRecordDataShift(void) {
-	_g_shift_data = 0;
-	_g_shift_data_en = 1;
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::disconnect(void) {
-	// and we are not connected
-	_connected = 0;
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::driveAccelCycloidalNB(double radius, double d, double t) {
 	this->accelJointCycloidalNB(JOINT1,  RAD2DEG(d/radius), t);
 	this->accelJointCycloidalNB(JOINT3, -RAD2DEG(d/radius), t);
@@ -774,26 +737,11 @@ int CLinkbotT::drivexyWait(void) {
 	return 0;
 }
 
-int CLinkbotT::enableRecordDataShift(void) {
-	_g_shift_data = 1;
-	_g_shift_data_en = 1;
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::getAccelerometerData(double &accel_x, double &accel_y, double &accel_z) {
 	// output current accel data
 	accel_x = _accel[0];
 	accel_y = _accel[1];
 	accel_z = _accel[2];
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::getBatteryVoltage(double &voltage) {
-	voltage = 100;
 
 	// success
 	return 0;
@@ -813,53 +761,6 @@ int CLinkbotT::getLEDColorRGB(int &r, int &g, int &b) {
 	r = (int)(255*_rgb[0]);
 	g = (int)(255*_rgb[1]);
 	b = (int)(255*_rgb[2]);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::getDistance(double &distance, double radius) {
-	double angle;
-	this->getJointAngle(JOINT1, angle, 2);
-	distance = DEG2RAD(angle) * radius;
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::getFormFactor(int &formFactor) {
-	formFactor = _type;
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::getID(void) {
-	return _id;
-}
-
-int CLinkbotT::getJointAngle(robotJointId_t id, double &angle, int numReadings) {
-	//initialize variables
-	double d;
-	angle = 0;
-
-	// get joint angle numReadings times
-	for (int i = 0; i < numReadings; i++) {
-		if (this->getJointAngleInstant(id, d)) {
-			return -1;
-		}
-		angle += d;
-	}
-
-	// store average angle
-	angle = angle/numReadings;
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::getJointAngleInstant(robotJointId_t id, double &angle) {
-	angle = RAD2DEG(this->getAngle(id));
 
 	// success
 	return 0;

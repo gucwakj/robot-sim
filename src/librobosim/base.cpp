@@ -90,6 +90,108 @@ int CRobot::connect(char *name, int pause) {
 	return 0;
 }
 
+int CRobot::delay(double milliseconds) {
+	// set ending time
+	double end = g_sim->getClock() + milliseconds/1000;
+
+	// while clock hasn't reached ending time
+	while ((end - g_sim->getClock()) >= EPSILON)
+		this->doze(50);
+
+	// success
+	return 0;
+}
+
+int CRobot::delaySeconds(double seconds) {
+	// delay milliseconds
+	this->delay(1000 * seconds);
+
+	// success
+	return 0;
+}
+
+int CRobot::disableRecordDataShift(void) {
+	_g_shift_data = 0;
+	_g_shift_data_en = 1;
+
+	// success
+	return 0;
+}
+
+int CRobot::disconnect(void) {
+	// and we are not connected
+	_connected = 0;
+
+	// success
+	return 0;
+}
+
+int CRobot::enableRecordDataShift(void) {
+	_g_shift_data = 1;
+	_g_shift_data_en = 1;
+
+	// success
+	return 0;
+}
+
+int CRobot::getBatteryVoltage(double &voltage) {
+	voltage = 100;
+
+	// success
+	return 0;
+}
+
+int CRobot::getDistance(double &distance, double radius) {
+	double angle;
+	this->getJointAngle(JOINT1, angle, 2);
+	distance = DEG2RAD(angle) * radius;
+
+	// success
+	return 0;
+}
+
+int CRobot::getFormFactor(int &formFactor) {
+	formFactor = _type;
+
+	// success
+	return 0;
+}
+
+int CRobot::getID(void) {
+	// get id of robot
+	return _id;
+}
+
+int CRobot::getJointAngle(robotJointId_t id, double &angle, int numReadings) {
+	//initialize variables
+	double d;
+	angle = 0;
+
+	// get joint angle numReadings times
+	for (int i = 0; i < numReadings; i++) {
+		if(this->getJointAngleInstant(id, d)) {
+			return -1;
+		}
+		angle += d;
+	}
+
+	// store average angle
+	angle = angle/numReadings;
+
+	// success
+	return 0;
+}
+
+int CRobot::getJointAngleInstant(robotJointId_t id, double &angle) {
+	angle = RAD2DEG(this->getAngle(id));
+
+	// success
+	return 0;
+}
+
+/**********************************************************
+	protected functions
+ **********************************************************/
 dBodyID CRobot::getBodyID(int id) {
 	return _body[id];
 }

@@ -12,10 +12,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		CMobot();
 		~CMobot();
 
-		int delay(double milliseconds);
-		int delaySeconds(double seconds);
-		int disableRecordDataShift(void);
-		int disconnect(void);
 		int driveBackward(double angle);
 		int driveBackwardNB(double angle);
 		int driveDistance(double distance, double radius);
@@ -30,12 +26,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int drivexyTo(double x, double y, double radius, double trackwidth);
 		int drivexyToNB(double x, double y, double radius, double trackwidth);
 		int drivexyWait(void);
-		int enableRecordDataShift(void);
-		int getDistance(double &distance, double radius);
-		int getFormFactor(int &formFactor);
-		int getJointAngle(robotJointId_t id, double &angle, int numReadings=10);
-		int getJointAngleInstant(robotJointId_t id, double &angle);
-		int getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4, int numReadings=10);
+		int getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4, int numReadings = 10);
 		int getJointAnglesInstant(double &angle1, double &angle2, double &angle3, double &angle4);
 		int getJointMaxSpeed(robotJointId_t id, double &maxSpeed);
 		int getJointSafetyAngle(double &angle);

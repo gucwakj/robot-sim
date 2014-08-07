@@ -52,6 +52,17 @@ class DLLIMPORT CRobot {
 
 		int blinkLED(double delay, int num);
 		int connect(char *name = NULL, int pause = 3);
+		int delay(double milliseconds);
+		int delaySeconds(double seconds);
+		int disableRecordDataShift(void);
+		int disconnect(void);
+		int enableRecordDataShift(void);
+		int getBatteryVoltage(double &voltage);
+		int getDistance(double &distance, double radius);
+		int getFormFactor(int &formFactor);
+		int getID(void);
+		int getJointAngle(robotJointId_t id, double &angle, int numReadings = 10);
+		int getJointAngleInstant(robotJointId_t id, double &angle);
 
 		// TODO: make private-ish functions protected
 		dBodyID getConnectorBodyID(int face);

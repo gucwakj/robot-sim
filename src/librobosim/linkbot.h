@@ -21,10 +21,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
 		int closeGripper(void);
 		int closeGripperNB(void);
-		int delay(double milliseconds);
-		int delaySeconds(double seconds);
-		int disableRecordDataShift(void);
-		int disconnect(void);
 		int driveAccelCycloidalNB(double radius, double d, double t);
 		int driveAccelDistanceNB(double radius, double a, double d);
 		int driveAccelHarmonicNB(double radius, double d, double t);
@@ -50,16 +46,9 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int drivexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int drivexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int drivexyWait(void);
-		int enableRecordDataShift(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
-		int getBatteryVoltage(double &voltage);
 		int getLEDColorName(char color[]);
 		int getLEDColorRGB(int &r, int &g, int &b);
-		int getDistance(double &distance, double radius);
-		int getFormFactor(int &formFactor);
-		int getID(void);
-		int getJointAngle(robotJointId_t id, double &angle, int numReadings = 10);
-		int getJointAngleInstant(robotJointId_t id, double &angle);
 		int getJointAngles(double &angle1, double &angle2, double &angle3, int numReadings = 10);
 		int getJointAnglesInstant(double &angle1, double &angle2, double &angle3);
 		int getJointMaxSpeed(robotJointId_t id, double &maxSpeed);

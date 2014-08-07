@@ -25,42 +25,6 @@ CMobot::~CMobot(void) {
 	}
 }
 
-int CMobot::delay(double milliseconds) {
-	// set ending time
-	double end = g_sim->getClock() + milliseconds/1000;
-
-	// while clock hasn't reached ending time
-	while ((end - g_sim->getClock()) >= EPSILON)
-		this->doze(50);
-
-	// success
-	return 0;
-}
-
-int CMobot::delaySeconds(double seconds) {
-	// delay milliseconds
-	this->delay(1000 * seconds);
-
-	// success
-	return 0;
-}
-
-int CMobot::disableRecordDataShift(void) {
-	_g_shift_data = 0;
-	_g_shift_data_en = 1;
-
-	// success
-	return 0;
-}
-
-int CMobot::disconnect(void) {
-	// and we are not connected
-	_connected = 0;
-
-	// success
-	return 0;
-}
-
 int CMobot::driveBackward(double angle) {
 	this->driveBackwardNB(angle);
 	this->moveWait();
@@ -269,57 +233,6 @@ int CMobot::drivexyWait(void) {
 		COND_WAIT(&_motion_cond, &_motion_mutex);
 	}
 	MUTEX_UNLOCK(&_motion_mutex);
-
-	// success
-	return 0;
-}
-
-int CMobot::enableRecordDataShift(void) {
-	_g_shift_data = 1;
-	_g_shift_data_en = 1;
-
-	// success
-	return 0;
-}
-
-int CMobot::getDistance(double &distance, double radius) {
-	double angle;
-	this->getJointAngle(JOINT1, angle, 2);
-	distance = DEG2RAD(angle) * radius;
-
-	// success
-	return 0;
-}
-
-int CMobot::getFormFactor(int &formFactor) {
-	formFactor = _type;
-
-	// success
-	return 0;
-}
-
-int CMobot::getJointAngle(robotJointId_t id, double &angle, int numReadings) {
-	//initialize variables
-	double d;
-	angle = 0;
-
-	// get joint angle numReadings times
-	for (int i = 0; i < numReadings; i++) {
-		if(this->getJointAngleInstant(id, d)) {
-			return -1;
-		}
-		angle += d;
-	}
-
-	// store average angle
-	angle = angle/numReadings;
-
-	// success
-	return 0;
-}
-
-int CMobot::getJointAngleInstant(robotJointId_t id, double &angle) {
-	angle = RAD2DEG(this->getAngle(id));
 
 	// success
 	return 0;
