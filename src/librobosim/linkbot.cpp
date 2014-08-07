@@ -2421,7 +2421,7 @@ int CLinkbotT::build(xml_robot_t robot) {
 	ctmp = robot->conn;
 	while (ctmp) {
 		if (ctmp->robot == _id) {
-			if (ctmp->conn == -1 )
+			if (ctmp->conn == -1)
 				this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
 			else
 				this->add_connector_daisy(ctmp->conn, ctmp->face1, ctmp->size, ctmp->side, ctmp->type);
