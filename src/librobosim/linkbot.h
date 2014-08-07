@@ -58,9 +58,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
-		int moveToZero(void);
-		int moveToZeroNB(void);
-		int moveWait(void);
 		int openGripper(double angle);
 		int openGripperNB(double angle);
 		int recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData = 1);
@@ -77,18 +74,11 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int recordWait(void);
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData = 1);
 		int recordxyEnd(int &num);
-		int relaxJoint(robotJointId_t id);
-		int relaxJoints(void);
-		int resetToZero(void);
-		int resetToZeroNB(void);
 		int setBuzzerFrequency(int frequency, double time);
 		int setBuzzerFrequencyOff(void);
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
-		int setJointPower(robotJointId_t id, int power);
-		int setJointSafetyAngle(double angle);
-		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeeds(double speed1, double speed2, double speed3);
 		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
 		int setSpeed(double speed, double radius);

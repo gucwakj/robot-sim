@@ -890,32 +890,6 @@ int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 	return 0;
 }
 
-int CLinkbotT::moveToZero(void) {
-	this->moveTo(0, 0, 0);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveToZeroNB(void) {
-	this->moveToNB(0, 0, 0);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveWait(void) {
-	// wait for motion to complete
-	MUTEX_LOCK(&_success_mutex);
-	while ((_motor[JOINT1].success + _motor[JOINT2].success + _motor[JOINT3].success) != _dof) {
-		COND_WAIT(&_success_cond, &_success_mutex);
-	}
-	MUTEX_UNLOCK(&_success_mutex);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::openGripper(double angle) {
 	this->openGripperNB(angle);
 	this->moveWait();
@@ -1641,49 +1615,6 @@ int CLinkbotT::recordxyEnd(int &num) {
 	return 0;
 }
 
-int CLinkbotT::relaxJoint(robotJointId_t id) {
-	dJointDisable(_motor[id].id);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::relaxJoints(void) {
-	dJointDisable(_motor[JOINT1].id);
-	dJointDisable(_motor[JOINT2].id);
-	dJointDisable(_motor[JOINT3].id);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::resetToZero(void) {
-	this->resetToZeroNB();
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::resetToZeroNB(void) {
-	// reset absolute counter to 0 -> 2M_PI
-	MUTEX_LOCK(&_theta_mutex);
-	for (int i = 0; i < 3; i++) {
-		int rev = (int)(_motor[i].theta/2/M_PI);
-		if (rev) {
-			_motor[i].theta -= 2*rev*M_PI;
-			_motor[i].goal -= 2*rev*M_PI;
-		}
-	}
-	MUTEX_UNLOCK(&_theta_mutex);
-
-	// move to zero position
-	this->moveToZeroNB();
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::setBuzzerFrequency(int frequency, double time) {
 	printf("CLinkbot::setBuzzerFrequency not implemented.\n");
 
@@ -1735,31 +1666,6 @@ int CLinkbotT::setLEDColorRGB(int r, int g, int b) {
 #ifdef ENABLE_GRAPHICS
 	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
 #endif // ENABLE_GRAPHICS
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::setJointPower(robotJointId_t id, int power) {
-	_motor[id].omega = (power/100.0)*_motor[id].omega_max;
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::setJointSafetyAngle(double angle) {
-	_motor[JOINT1].safety_angle = angle;
-	_motor[JOINT2].safety_angle = angle;
-	_motor[JOINT3].safety_angle = angle;
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::setJointSafetyAngleTimeout(double seconds) {
-	_motor[JOINT1].safety_timeout = seconds;
-	_motor[JOINT2].safety_timeout = seconds;
-	_motor[JOINT3].safety_timeout = seconds;
 
 	// success
 	return 0;

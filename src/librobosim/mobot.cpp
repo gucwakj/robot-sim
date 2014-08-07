@@ -977,29 +977,6 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
 	// success
 	return 0;
 }
-
-int CMobot::moveToZero(void) {
-	return this->moveTo(0, 0, 0, 0);
-}
-
-int CMobot::moveToZeroNB(void) {
-	return this->moveToNB(0, 0, 0, 0);
-}
-
-int CMobot::moveWait(void) {
-	// wait for motion to complete
-	MUTEX_LOCK(&_success_mutex);
-	while ((_motor[JOINT1].success + _motor[JOINT2].success + _motor[JOINT3].success + _motor[JOINT4].success) != _dof) {
-		COND_WAIT(&_success_cond, &_success_mutex);
-	}
-	for (int i = 0; i < _dof; i++) {
-		_motor[i].mode = CONTINUOUS;
-	}
-	MUTEX_UNLOCK(&_success_mutex);
-
-	// success
-	return 0;
-}
 /*
 void* CMobot::recordAngleThread(void *arg) {
 	// cast arg struct
@@ -1724,23 +1701,6 @@ int CMobot::recordxyEnd(int &num) {
 	return 0;
 }
 
-int CMobot::relaxJoint(robotJointId_t id) {
-	dJointDisable(_motor[id].id);
-
-	// success
-	return 0;
-}
-
-int CMobot::relaxJoints(void) {
-	dJointDisable(_motor[JOINT1].id);
-	dJointDisable(_motor[JOINT2].id);
-	dJointDisable(_motor[JOINT3].id);
-	dJointDisable(_motor[JOINT4].id);
-
-	// success
-	return 0;
-}
-
 int CMobot::reset(void) {
 	MUTEX_LOCK(&_theta_mutex);
 	for (int i = 0; i < _dof; i++) {
@@ -1750,57 +1710,6 @@ int CMobot::reset(void) {
 		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
 	}
 	MUTEX_UNLOCK(&_theta_mutex);
-
-	// success
-	return 0;
-}
-
-int CMobot::resetToZero(void) {
-	this->resetToZeroNB();
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CMobot::resetToZeroNB(void) {
-	// reset absolute counter to 0 -> 2M_PI
-	MUTEX_LOCK(&_theta_mutex);
-	int rev = (int)(_motor[JOINT1].theta/2/M_PI);
-	if (rev) _motor[JOINT1].theta -= 2*rev*M_PI;
-	rev = (int)(_motor[JOINT4].theta/2/M_PI);
-	if (rev) _motor[JOINT4].theta -= 2*rev*M_PI;
-	MUTEX_UNLOCK(&_theta_mutex);
-
-	// move to zero position
-	this->moveToZeroNB();
-
-	// success
-	return 0;
-}
-
-int CMobot::setJointPower(robotJointId_t id, int power) {
-	_motor[id].omega = (power/100.0)*_motor[id].omega_max;
-
-	// success
-	return 0;
-}
-
-int CMobot::setJointSafetyAngle(double angle) {
-	_motor[JOINT1].safety_angle = angle;
-	_motor[JOINT2].safety_angle = angle;
-	_motor[JOINT3].safety_angle = angle;
-	_motor[JOINT4].safety_angle = angle;
-
-	// success
-	return 0;
-}
-
-int CMobot::setJointSafetyAngleTimeout(double seconds) {
-	_motor[JOINT1].safety_timeout = seconds;
-	_motor[JOINT2].safety_timeout = seconds;
-	_motor[JOINT3].safety_timeout = seconds;
-	_motor[JOINT4].safety_timeout = seconds;
 
 	// success
 	return 0;

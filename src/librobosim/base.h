@@ -89,6 +89,16 @@ class DLLIMPORT CRobot {
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
 		int moveTimeNB(double seconds);
+		int moveToZero(void);
+		int moveToZeroNB(void);
+		int moveWait(void);
+		int relaxJoint(robotJointId_t id);
+		int relaxJoints(void);
+		int resetToZero(void);
+		int resetToZeroNB(void);
+		int setJointPower(robotJointId_t id, int power);
+		int setJointSafetyAngle(double angle);
+		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 

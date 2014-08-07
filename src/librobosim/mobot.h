@@ -62,9 +62,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int moveNB(double angle1, double angle2, double angle3, double angle4);
 		int moveTo(double angle1, double angle2, double angle3, double angle4);
 		int moveToNB(double angle1, double angle2, double angle3, double angle4);
-		int moveToZero(void);
-		int moveToZeroNB(void);
-		int moveWait(void);
 		int recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData = 1);
 		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData = 1);
 		int recordAngleEnd(robotJointId_t id, int &num);
@@ -79,14 +76,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int recordWait(void);
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int recordTrace = 0, int shiftData = 1);
 		int recordxyEnd(int &num);
-		int relaxJoint(robotJointId_t id);
-		int relaxJoints(void);
 		int reset(void);
-		int resetToZero(void);
-		int resetToZeroNB(void);
-		int setJointPower(robotJointId_t id, int power);
-		int setJointSafetyAngle(double angle);
-		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
 		int setSpeed(double speed, double radius);

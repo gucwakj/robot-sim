@@ -401,24 +401,6 @@ int CRobot::moveJointTime(robotJointId_t id, double seconds) {
 	return 0;
 }
 
-void* CRobot::moveJointTimeNBThread(void *arg) {
-	// cast argument
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-
-	// get robot
-	CRobot *robot = dynamic_cast<CRobot *>(rArg->robot);
-	// sleep
-	robot->doze(rArg->msecs);
-	// hold all robot motion
-	robot->holdJoint(rArg->id);
-
-	// cleanup
-	delete rArg;
-
-	// success
-	return NULL;
-}
-
 int CRobot::moveJointTimeNB(robotJointId_t id, double seconds) {
 	// set up threading
 	THREAD_T moving;
@@ -501,24 +483,6 @@ int CRobot::moveTime(double seconds) {
 	return 0;
 }
 
-void* CRobot::moveTimeNBThread(void *arg) {
-	// cast argument
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-
-	// get robot
-	CRobot *robot = dynamic_cast<CRobot *>(rArg->robot);
-	// sleep
-	robot->doze(rArg->msecs);
-	// hold all robot motion
-	robot->holdJoints();
-
-	// cleanup
-	delete rArg;
-
-	// success
-	return NULL;
-}
-
 int CRobot::moveTimeNB(double seconds) {
 	// set up threading
 	THREAD_T moving;
@@ -531,6 +495,117 @@ int CRobot::moveTimeNB(double seconds) {
 
 	// create thread to wait
 	THREAD_CREATE(&moving, (void* (*)(void *))&CRobot::moveTimeNBThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+int CRobot::moveToZero(void) {
+	this->moveToZeroNB();
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CRobot::moveToZeroNB(void) {
+	// move joints to zero
+	for (int i = 0; i < _dof; i++) {
+		this->moveJointToNB(static_cast<robotJointId_t>(i), 0);
+	}
+
+	// success
+	return 0;
+}
+
+int CRobot::moveWait(void) {
+	// lock
+	MUTEX_LOCK(&_success_mutex);
+	// get number of successes
+	int success = 0;
+	for (int i = 0; i < _dof; i++) {
+		success += _motor[static_cast<robotJointId_t>(i)].success;
+	}
+	// wait
+	while (success != _dof) {
+		COND_WAIT(&_success_cond, &_success_mutex);
+		success = 0;
+		for (int i = 0; i < _dof; i++) { success += _motor[static_cast<robotJointId_t>(i)].success; }
+	}
+	// reset motor states
+	for (int i = 0; i < _dof; i++) {
+		_motor[i].mode = CONTINUOUS;
+	}
+	// unlock
+	MUTEX_UNLOCK(&_success_mutex);
+
+	// success
+	return 0;
+}
+
+int CRobot::relaxJoint(robotJointId_t id) {
+	dJointDisable(_motor[id].id);
+
+	// success
+	return 0;
+}
+
+int CRobot::relaxJoints(void) {
+	for (int i = 0; i < _dof; i++) {
+		this->relaxJoint(static_cast<robotJointId_t>(i));
+	}
+
+	// success
+	return 0;
+}
+
+int CRobot::resetToZero(void) {
+	this->resetToZeroNB();
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CRobot::resetToZeroNB(void) {
+	// reset absolute counter to 0 -> 2M_PI
+	MUTEX_LOCK(&_theta_mutex);
+	for (int i = 0; i < _dof; i++) {
+		int rev = (int)(_motor[i].theta/2/M_PI);
+		if (rev) {
+			_motor[i].theta -= 2*rev*M_PI;
+			_motor[i].goal -= 2*rev*M_PI;
+		}
+	}
+	MUTEX_UNLOCK(&_theta_mutex);
+
+	// move to zero position
+	this->moveToZeroNB();
+
+	// success
+	return 0;
+}
+
+int CRobot::setJointPower(robotJointId_t id, int power) {
+	_motor[id].omega = (power/100.0)*_motor[id].omega_max;
+
+	// success
+	return 0;
+}
+
+int CRobot::setJointSafetyAngle(double angle) {
+	for (int i = 0; i < _dof; i++) {
+		_motor[i].safety_angle = angle;
+	}
+
+	// success
+	return 0;
+}
+
+int CRobot::setJointSafetyAngleTimeout(double seconds) {
+	for (int i = 0; i < _dof; i++) {
+		_motor[i].safety_timeout = seconds;
+	}
 
 	// success
 	return 0;
@@ -889,5 +964,41 @@ double CRobot::uniform(void) {
 	if (_seed < 0)
 		_seed = _seed + 2147483647;
 	return ((double)(_seed) * 4.656612875E-10);
+}
+
+void* CRobot::moveJointTimeNBThread(void *arg) {
+	// cast argument
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// get robot
+	CRobot *robot = dynamic_cast<CRobot *>(rArg->robot);
+	// sleep
+	robot->doze(rArg->msecs);
+	// hold all robot motion
+	robot->holdJoint(rArg->id);
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+void* CRobot::moveTimeNBThread(void *arg) {
+	// cast argument
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// get robot
+	CRobot *robot = dynamic_cast<CRobot *>(rArg->robot);
+	// sleep
+	robot->doze(rArg->msecs);
+	// hold all robot motion
+	robot->holdJoints();
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
 }
 
