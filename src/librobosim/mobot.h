@@ -28,17 +28,9 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int drivexyWait(void);
 		int getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4, int numReadings = 10);
 		int getJointAnglesInstant(double &angle1, double &angle2, double &angle3, double &angle4);
-		int getJointMaxSpeed(robotJointId_t id, double &maxSpeed);
-		int getJointSafetyAngle(double &angle);
-		int getJointSafetyAngleTimeout(double &seconds);
-		int getJointSpeed(robotJointId_t id, double &speed);
-		int getJointSpeedRatio(robotJointId_t id, double &ratio);
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, double &ratio4);
 		int getxy(double &x, double &y);
-		int holdJoint(robotJointId_t id);
-		int holdJoints(void);
-		int holdJointsAtExit(void);
 		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
@@ -75,10 +67,8 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int motionWait(void);
 		int move(double angle1, double angle2, double angle3, double angle4);
 		int moveNB(double angle1, double angle2, double angle3, double angle4);
-		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
-		int moveJointForeverNB(robotJointId_t id);
 		int moveJointTime(robotJointId_t id, double seconds);
 		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
@@ -113,8 +103,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int setJointPower(robotJointId_t id, int power);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
-		int setJointSpeed(robotJointId_t id, double speed);
-		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
 		int setSpeed(double speed, double radius);

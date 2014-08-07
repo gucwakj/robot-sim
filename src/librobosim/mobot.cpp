@@ -258,40 +258,6 @@ int CMobot::getJointAnglesInstant(double &angle1, double &angle2, double &angle3
 	return 0;
 }
 
-int CMobot::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
-	maxSpeed = RAD2DEG(_motor[id].omega_max);
-
-	// success
-	return 0;
-}
-
-int CMobot::getJointSafetyAngle(double &angle) {
-	angle = _motor[JOINT1].safety_angle;
-
-	// success
-	return 0;
-}
-
-int CMobot::getJointSafetyAngleTimeout(double &seconds) {
-	seconds = _motor[JOINT1].safety_timeout;
-
-	// success
-	return 0;
-}
-
-int CMobot::getJointSpeed(robotJointId_t id, double &speed) {
-	speed = RAD2DEG(_motor[id].omega);
-
-	// success
-	return 0;
-}
-
-int CMobot::getJointSpeedRatio(robotJointId_t id, double &ratio) {
-	ratio = _motor[id].omega/_motor[id].omega_max;
-	// success
-	return 0;
-}
-
 int CMobot::getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4) {
 	speed1 = RAD2DEG(_motor[JOINT1].omega);
 	speed2 = RAD2DEG(_motor[JOINT2].omega);
@@ -316,34 +282,6 @@ int CMobot::getxy(double &x, double &y) {
 	// retrn x and y positions
 	x = (g_sim->getUnits()) ? 39.37*this->getCenter(0) : 100*this->getCenter(0);
 	y = (g_sim->getUnits()) ? 39.37*this->getCenter(1) : 100*this->getCenter(1);
-
-	// success
-	return 0;
-}
-
-int CMobot::holdJoint(robotJointId_t id) {
-	this->setJointSpeed(id, 0);
-
-	// success
-	return 0;
-}
-
-int CMobot::holdJoints(void) {
-	this->setJointSpeed(JOINT1, 0);
-	this->setJointSpeed(JOINT2, 0);
-	this->setJointSpeed(JOINT3, 0);
-	this->setJointSpeed(JOINT4, 0);
-
-	// success
-	return 0;
-}
-
-int CMobot::holdJointsAtExit(void) {
-	// set joint speeds to zero
-	this->holdJoints();
-
-	// hold joints still
-	this->moveForeverNB();
 
 	// success
 	return 0;
@@ -1058,16 +996,6 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 	return 0;
 }
 
-int CMobot::moveForeverNB(void) {
-	this->moveJointForeverNB(JOINT1);
-	this->moveJointForeverNB(JOINT2);
-	this->moveJointForeverNB(JOINT3);
-	this->moveJointForeverNB(JOINT4);
-
-	// success
-	return 0;
-}
-
 int CMobot::moveJoint(robotJointId_t id, double angle) {
 	this->moveJointNB(id, angle);
 	this->moveJointWait(id);
@@ -1101,30 +1029,6 @@ int CMobot::moveJointNB(robotJointId_t id, double angle) {
 
 	// unlock goal
 	MUTEX_UNLOCK(&_goal_mutex);
-
-	// success
-	return 0;
-}
-
-int CMobot::moveJointForeverNB(robotJointId_t id) {
-	// lock mutexes
-	MUTEX_LOCK(&_motor[id].success_mutex);
-
-	// enable motor
-	dJointEnable(_motor[id].id);
-	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
-	_motor[id].mode = CONTINUOUS;
-	if ( _motor[id].omega > EPSILON )
-		_motor[id].state = POSITIVE;
-	else if ( _motor[id].omega < EPSILON )
-		_motor[id].state = NEGATIVE;
-	else
-		_motor[id].state = HOLD;
-	_motor[id].success = true;
-    dBodyEnable(_body[CENTER]);
-
-	// unlock mutexes
-	MUTEX_UNLOCK(&_motor[id].success_mutex);
 
 	// success
 	return 0;
@@ -2087,28 +1991,6 @@ int CMobot::setJointSafetyAngleTimeout(double seconds) {
 
 	// success
 	return 0;
-}
-
-int CMobot::setJointSpeed(robotJointId_t id, double speed) {
-	if (speed > RAD2DEG(_motor[id].omega_max)) {
-		fprintf(stderr, "Warning: Cannot set speed for joint %d to %.2lf degrees/second which is "
-			"beyond the maximum limit of %.2lf degrees/second.\n",
-			id, speed, RAD2DEG(_motor[id].omega_max));
-		_motor[id].omega = _motor[id].omega_max;
-	}
-	else {
-		_motor[id].omega = DEG2RAD(speed);
-	}
-
-	// success
-	return 0;
-}
-
-int CMobot::setJointSpeedRatio(robotJointId_t id, double ratio) {
-	if ( ratio < 0 || ratio > 1 ) {
-		return -1;
-	}
-	return this->setJointSpeed(id, ratio * RAD2DEG(_motor[(int)id].omega_max));
 }
 
 int CMobot::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {

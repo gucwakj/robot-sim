@@ -189,6 +189,125 @@ int CRobot::getJointAngleInstant(robotJointId_t id, double &angle) {
 	return 0;
 }
 
+int CRobot::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
+	maxSpeed = RAD2DEG(_motor[id].omega_max);
+
+	// success
+	return 0;
+}
+
+int CRobot::getJointSafetyAngle(double &angle) {
+	angle = _motor[JOINT1].safety_angle;
+
+	// success
+	return 0;
+}
+
+int CRobot::getJointSafetyAngleTimeout(double &seconds) {
+	seconds = _motor[JOINT1].safety_timeout;
+
+	// success
+	return 0;
+}
+
+int CRobot::getJointSpeed(robotJointId_t id, double &speed) {
+	speed = RAD2DEG(_motor[id].omega);
+
+	// success
+	return 0;
+}
+
+int CRobot::getJointSpeedRatio(robotJointId_t id, double &ratio) {
+	ratio = _motor[id].omega/_motor[id].omega_max;
+
+	// success
+	return 0;
+}
+
+int CRobot::holdJoint(robotJointId_t id) {
+	this->setJointSpeed(id, 0);
+
+	// success
+	return 0;
+}
+
+int CRobot::holdJoints(void) {
+	// set joints to zero speed
+	for (int i = 0; i < _dof; i++) {
+		this->setJointSpeed(static_cast<robotJointId_t>(i), 0);
+	}
+
+	// success
+	return 0;
+}
+
+int CRobot::holdJointsAtExit(void) {
+	// set joint speeds to zero
+	this->holdJoints();
+
+	// hold joints still
+	this->moveForeverNB();
+
+	// success
+	return 0;
+}
+
+int CRobot::moveForeverNB(void) {
+	// set joint movements
+	for (int i = 0; i < _dof; i++) {
+		this->moveJointForeverNB(static_cast<robotJointId_t>(i));
+	}
+
+	// success
+	return 0;
+}
+
+int CRobot::moveJointForeverNB(robotJointId_t id) {
+	// lock mutexes
+	MUTEX_LOCK(&_motor[id].success_mutex);
+	// enable motor
+	dJointEnable(_motor[id].id);
+	// set motor angle to current angle
+	dJointSetAMotorAngle(_motor[id].id, 0, _motor[id].theta);
+	// set mode
+	_motor[id].mode = CONTINUOUS;
+	// drive in proper direction
+	if ( _motor[id].omega > EPSILON )
+		_motor[id].state = POSITIVE;
+	else if ( _motor[id].omega < EPSILON )
+		_motor[id].state = NEGATIVE;
+	else
+		_motor[id].state = HOLD;
+	// successfully at 'goal'
+	_motor[id].success = true;
+	// enable bodies for collisions
+    dBodyEnable(_body[0]);
+	// unlock mutexes
+	MUTEX_UNLOCK(&_motor[id].success_mutex);
+
+	// success
+	return 0;
+}
+
+int CRobot::setJointSpeed(robotJointId_t id, double speed) {
+	if (speed > RAD2DEG(_motor[id].omega_max)) {
+		fprintf(stderr, "Warning: Setting the speed for joint %d to %.2lf degrees per second is "
+			"beyond the hardware limit of %.2lf degrees per second.\n",
+			id+1, speed, RAD2DEG(_motor[id].omega_max));
+	}
+	_motor[id].omega = DEG2RAD(speed);
+
+	// success
+	return 0;
+}
+
+int CRobot::setJointSpeedRatio(robotJointId_t id, double ratio) {
+	if ( ratio < 0 || ratio > 1 ) {
+		return -1;
+	}
+	return this->setJointSpeed(id, ratio * RAD2DEG(_motor[(int)id].omega_max));
+}
+
 /**********************************************************
 	protected functions
  **********************************************************/

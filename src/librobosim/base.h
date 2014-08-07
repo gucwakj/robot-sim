@@ -63,6 +63,18 @@ class DLLIMPORT CRobot {
 		int getID(void);
 		int getJointAngle(robotJointId_t id, double &angle, int numReadings = 10);
 		int getJointAngleInstant(robotJointId_t id, double &angle);
+		int getJointMaxSpeed(robotJointId_t id, double &maxSpeed);
+		int getJointSafetyAngle(double &angle);
+		int getJointSafetyAngleTimeout(double &seconds);
+		int getJointSpeed(robotJointId_t id, double &speed);
+		int getJointSpeedRatio(robotJointId_t id, double &ratio);
+		int holdJoint(robotJointId_t id);
+		int holdJoints(void);
+		int holdJointsAtExit(void);
+		int moveForeverNB(void);
+		int moveJointForeverNB(robotJointId_t id);
+		int setJointSpeed(robotJointId_t id, double speed);
+		int setJointSpeedRatio(robotJointId_t id, double ratio);
 
 		// TODO: make private-ish functions protected
 		dBodyID getConnectorBodyID(int face);
