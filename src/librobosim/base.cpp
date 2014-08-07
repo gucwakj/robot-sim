@@ -93,10 +93,6 @@ double CRobot::getAngle(int id) {
     return _motor[id].theta;
 }
 
-double CRobot::getAngularRate(int id) {
-	return dJointGetAMotorParam(_motor[id].id, dParamVel);
-}
-
 double CRobot::getCenter(int i) {
 	const double *pos = dBodyGetPosition(_body[0]);
 	const double *R = dBodyGetRotation(_body[0]);
@@ -113,11 +109,6 @@ double CRobot::getNormal(double sigma) {
 
 	// box-muller transform to gaussian
 	return sigma*(sqrt(-2.0*log(u1))*cos(2*M_PI*u2));
-}
-
-double CRobot::getPosition(int body, int i) {
-	const double *pos = dBodyGetPosition(_body[body]);
-	return pos[i];
 }
 
 double CRobot::getRotation(int body, int i) {
@@ -274,10 +265,6 @@ int CRobot::getRobotID(void) {
 	return _id;
 }
 
-int CRobot::getSuccess(int i) {
-	return _motor[i].success;
-}
-
 int CRobot::getType(void) {
 	return _type;
 }
@@ -289,14 +276,6 @@ int CRobot::isShiftEnabled(void) {
 		return 1;
 	else
 		return 0;
-}
-
-int CRobot::isHome(void) {
-	int home = 0;
-	for (int i = 0; i < _dof; i++) {
-		home += fabs(_motor[i].theta) < EPSILON;
-	}
-	return (home ? 1 : 0);
 }
 
 int CRobot::noisy(double *a, int length, double sigma) {

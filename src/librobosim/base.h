@@ -48,10 +48,8 @@ class DLLIMPORT CRobot {
 		dBodyID getConnectorBodyIDs(int num);
 		dJointID getMotorID(int motor);
 		double getAngle(int id);
-		double getAngularRate(int id);
 		double getCenter(int i);
 		double getNormal(double sigma);
-		double getPosition(int body, int i);
 		double getRotation(int body, int i);
 		double getUniform(void);
 		int addToSim(dWorldID &world, dSpaceID &space);
@@ -59,10 +57,8 @@ class DLLIMPORT CRobot {
 		int fixBodyToGround(dBodyID cbody);
 		int getConnectorParams(int type, int side, dMatrix3 R, double *p);
 		int getRobotID(void);
-		int getSuccess(int i);
 		int getType(void);
 		int isShiftEnabled(void);
-		int isHome(void);
 		int noisy(double *a, int length, double sigma);
 		int setID(int id);
 		static void* simPreCollisionThreadEntry(void *arg);
