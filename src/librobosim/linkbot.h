@@ -19,7 +19,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int accelJointTimeNB(robotJointId_t id, double a, double t);
 		int accelJointToMaxSpeedNB(robotJointId_t id, double a);
 		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
-		int blinkLED(double delay, int num);
 		int closeGripper(void);
 		int closeGripperNB(void);
 		int delay(double milliseconds);

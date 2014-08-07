@@ -12,7 +12,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		CMobot();
 		~CMobot();
 
-		int blinkLED(double delay, int num);
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);

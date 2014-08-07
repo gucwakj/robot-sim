@@ -50,6 +50,26 @@ CRobot::~CRobot(void) {
 	MUTEX_DESTROY(&_theta_mutex);
 }
 
+int CRobot::blinkLED(double delay, int num) {
+#ifdef ENABLE_GRAPHICS
+	// blink num-1 full times
+	for (int i = 0; i < num-1; i++) {
+		_led->setColor(osg::Vec4(1, 1, 1, 1));
+		this->doze(delay);
+		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
+		this->doze(delay);
+	}
+
+	// one last off before resetting to original color
+	_led->setColor(osg::Vec4(1, 1, 1, 1));
+	this->doze(delay);
+	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
+#endif // ENABLE_GRAPHICS
+
+	// success
+	return 0;
+}
+
 int CRobot::connect(char *name, int pause) {
 	// create simulation object if necessary
 	if (!g_sim)

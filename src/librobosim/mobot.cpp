@@ -25,13 +25,6 @@ CMobot::~CMobot(void) {
 	}
 }
 
-int CMobot::blinkLED(double delay, int num) {
-	printf("CMobot::blinkLED not implemented.\n");
-
-	// success
-	return 0;
-}
-
 int CMobot::delay(double milliseconds) {
 	// set ending time
 	double end = g_sim->getClock() + milliseconds/1000;

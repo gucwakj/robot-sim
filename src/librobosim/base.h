@@ -50,6 +50,7 @@ class DLLIMPORT CRobot {
 		CRobot(void);
 		~CRobot(void);
 
+		int blinkLED(double delay, int num);
 		int connect(char *name = NULL, int pause = 3);
 
 		// TODO: make private-ish functions protected
