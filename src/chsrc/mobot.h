@@ -163,10 +163,12 @@ class DLLIMPORT CMobot {
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
 		int setMotorPower(robotJointId_t id, int power);		// deprecated
 		int setSpeed(double speed, double radius);
-		int stop(void);
-		int stopOneJoint(robotJointId_t id);
-		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
-		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
+		int stop(void);		// deprecated
+		int stopAllJoints(void);		// deprecated
+		int stopOneJoint(robotJointId_t id);		// deprecated
+		int stopFourJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3, robotJointId_t id4);		// deprecated
+		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);		// deprecated
+		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);		// deprecated
 		int systemTime(double &time);
 		int text(double x, double y, double z, char *text);
 		int traceOff(void);
@@ -263,9 +265,12 @@ class CMobotGroup {
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
 		int setMotorPower(robotJointId_t id, int power);		// deprecated
 		int setSpeed(double speed, double radius);
-		int stopOneJoint(robotJointId_t id);
-		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
-		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
+		int stop(void);		// deprecated
+		int stopAllJoints(void);		// deprecated
+		int stopOneJoint(robotJointId_t id);		// deprecated
+		int stopFourJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3, robotJointId_t id4);		// deprecated
+		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);		// deprecated
+		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);		// deprecated
 		int turnLeft(double angle, double radius, double trackwidth);
 		int turnLeftNB(double angle, double radius, double trackwidth);
 		int turnRight(double angle, double radius, double trackwidth);

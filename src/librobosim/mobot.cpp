@@ -1743,40 +1743,6 @@ int CMobot::setSpeed(double speed, double radius) {
 	return 0;
 }
 
-int CMobot::stop(void) {
-	this->setJointSpeed(JOINT1, 0);
-	this->setJointSpeed(JOINT2, 0);
-	this->setJointSpeed(JOINT3, 0);
-	this->setJointSpeed(JOINT4, 0);
-
-	// success
-	return 0;
-}
-
-int CMobot::stopOneJoint(robotJointId_t id) {
-	this->setJointSpeed(id, 0);
-
-	// success
-	return 0;
-}
-
-int CMobot::stopTwoJoints(robotJointId_t id1, robotJointId_t id2) {
-	this->setJointSpeed(id1, 0);
-	this->setJointSpeed(id2, 0);
-
-	// success
-	return 0;
-}
-
-int CMobot::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3) {
-	this->setJointSpeed(id1, 0);
-	this->setJointSpeed(id2, 0);
-	this->setJointSpeed(id3, 0);
-
-	// success
-	return 0;
-}
-
 int CMobot::systemTime(double &time) {
 	// get time
 	time = g_sim->getClock();

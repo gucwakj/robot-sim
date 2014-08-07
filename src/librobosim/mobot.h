@@ -80,10 +80,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
 		int setSpeed(double speed, double radius);
-		int stop(void);
-		int stopOneJoint(robotJointId_t id);
-		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
-		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int systemTime(double &time);
 		int traceOff(void);
 		int traceOn(void);
@@ -261,9 +257,6 @@ class CMobotGroup {
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
 		int setSpeed(double speed, double radius);
-		int stopOneJoint(robotJointId_t id);
-		int stopTwoJoints(robotJointId_t id1, robotJointId_t id2);
-		int stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3);
 		int turnLeft(double angle, double radius, double trackwidth);
 		int turnLeftNB(double angle, double radius, double trackwidth);
 		int turnRight(double angle, double radius, double trackwidth);

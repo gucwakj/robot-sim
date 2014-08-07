@@ -812,39 +812,6 @@ int CMobotGroup::setSpeed(double speed, double radius) {
 	return 0;
 }
 
-int CMobotGroup::stopOneJoint(robotJointId_t id) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->stopOneJoint(id);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::stopTwoJoints(robotJointId_t id1, robotJointId_t id2) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->stopTwoJoints(id1, id2);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::stopThreeJoints(robotJointId_t id1, robotJointId_t id2, robotJointId_t id3) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->stopThreeJoints(id1, id2, id3);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CMobotGroup::turnLeft(double angle, double radius, double trackwidth) {
 	this->turnLeftNB(angle, radius, trackwidth);
 	return moveWait();
