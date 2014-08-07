@@ -45,23 +45,17 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int drivexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
 		int drivexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int drivexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
-		int drivexyWait(void);
 		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
 		int getLEDColorName(char color[]);
 		int getLEDColorRGB(int &r, int &g, int &b);
-		int getJointAngles(double &angle1, double &angle2, double &angle3, int numReadings = 10);
-		int getJointAnglesInstant(double &angle1, double &angle2, double &angle3);
-		int getJointSpeeds(double &speed1, double &speed2, double &speed3);
-		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3);
-		int getxy(double &x, double &y);
-		int jumpJointTo(robotJointId_t id, double angle);
-		int jumpJointToNB(robotJointId_t id, double angle);
+		int getJointAngles(double&, double&, double&, int = 10);
+		int getJointAnglesInstant(double&, double&, double&);
+		int getJointSpeeds(double&, double&, double&);
+		int getJointSpeedRatios(double&, double&, double&);
 		int jumpTo(double angle1, double angle2, double angle3);
 		int jumpToNB(double angle1, double angle2, double angle3);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
-		int moveTime(double seconds);
-		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
 		int moveToZero(void);
@@ -159,7 +153,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		//static void* recordAnglesThread(void *arg);											// thread to record angles
 		//static void* recordAnglesBeginThread(void *arg);									// thread to record angles
 		//static void* recordxyBeginThread(void *arg);										// thread to record positions
-		static void* moveTimeNBThread(void *arg);											// thread to move all joints
 
 		// private data members
 		double	_bridge_length,

@@ -226,18 +226,6 @@ int CMobot::drivexyToNB(double x, double y, double radius, double trackwidth) {
 	return 0;
 }
 
-int CMobot::drivexyWait(void) {
-	// wait for motion to complete
-	MUTEX_LOCK(&_motion_mutex);
-	while (_motion) {
-		COND_WAIT(&_motion_cond, &_motion_mutex);
-	}
-	MUTEX_UNLOCK(&_motion_mutex);
-
-	// success
-	return 0;
-}
-
 int CMobot::getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4, int numReadings) {
 	this->getJointAngle(JOINT1, angle1, numReadings);
 	this->getJointAngle(JOINT2, angle2, numReadings);
@@ -273,30 +261,6 @@ int CMobot::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, 
 	ratio2 = _motor[JOINT2].omega/_motor[JOINT2].omega_max;
 	ratio3 = _motor[JOINT3].omega/_motor[JOINT3].omega_max;
 	ratio4 = _motor[JOINT4].omega/_motor[JOINT4].omega_max;
-
-	// success
-	return 0;
-}
-
-int CMobot::getxy(double &x, double &y) {
-	// retrn x and y positions
-	x = (g_sim->getUnits()) ? 39.37*this->getCenter(0) : 100*this->getCenter(0);
-	y = (g_sim->getUnits()) ? 39.37*this->getCenter(1) : 100*this->getCenter(1);
-
-	// success
-	return 0;
-}
-
-int CMobot::jumpJointTo(robotJointId_t id, double angle) {
-	this->jumpJointToNB(id, angle);
-	this->moveJointWait(id);
-
-	// success
-	return 0;
-}
-
-int CMobot::jumpJointToNB(robotJointId_t id, double angle) {
-	this->moveJointToNB(id, angle);
 
 	// success
 	return 0;
@@ -972,31 +936,6 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 	// unlock mutexes
 	MUTEX_UNLOCK(&_theta_mutex);
 	MUTEX_UNLOCK(&_goal_mutex);
-
-	// success
-	return 0;
-}
-
-int CMobot::moveTime(double seconds) {
-	this->moveTimeNB(seconds);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CMobot::moveTimeNB(double seconds) {
-	// set joint movements
-	this->moveJointForeverNB(JOINT1);
-	this->moveJointForeverNB(JOINT2);
-	this->moveJointForeverNB(JOINT3);
-	this->moveJointForeverNB(JOINT4);
-
-	// sleep
-	this->doze(seconds * 1000);
-
-	// stop motion
-	this->holdJoints();
 
 	// success
 	return 0;

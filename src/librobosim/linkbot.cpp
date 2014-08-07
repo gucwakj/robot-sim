@@ -725,18 +725,6 @@ int CLinkbotT::drivexyToPolyNB(double x0, double xf, int n, char *poly, double r
 	return 0;
 }
 
-int CLinkbotT::drivexyWait(void) {
-	// wait for motion to complete
-	MUTEX_LOCK(&_motion_mutex);
-	while (_motion) {
-		COND_WAIT(&_motion_cond, &_motion_mutex);
-	}
-	MUTEX_UNLOCK(&_motion_mutex);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::getAccelerometerData(double &accel_x, double &accel_y, double &accel_z) {
 	// output current accel data
 	accel_x = _accel[0];
@@ -802,30 +790,6 @@ int CLinkbotT::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio
 	return 0;
 }
 
-int CLinkbotT::getxy(double &x, double &y) {
-	// retrn x and y positions
-	x = (g_sim->getUnits()) ? 39.37*this->getCenter(0) : 100*this->getCenter(0);
-	y = (g_sim->getUnits()) ? 39.37*this->getCenter(1) : 100*this->getCenter(1);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::jumpJointTo(robotJointId_t id, double angle) {
-	this->jumpJointToNB(id, angle);
-	this->moveJointWait(id);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::jumpJointToNB(robotJointId_t id, double angle) {
-	this->moveJointToNB(id, angle);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::jumpTo(double angle1, double angle2, double angle3) {
 	this->jumpToNB(angle1, angle2, angle3);
 	this->moveWait();
@@ -882,55 +846,6 @@ int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 
 	// clean up
 	delete delta;
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::moveTime(double seconds) {
-	// move joint
-	this->moveForeverNB();
-
-	// sleep
-	this->doze(seconds*1000);
-
-	// stop joint
-	this->holdJoints();
-
-	// success
-	return 0;
-}
-
-void* CLinkbotT::moveTimeNBThread(void *arg) {
-	// cast argument
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
-
-	// get robot
-	CLinkbotT *robot = dynamic_cast<CLinkbotT *>(rArg->robot);
-	// sleep
-	robot->doze(rArg->msecs);
-	// hold all robot motion
-	robot->holdJoints();
-
-	// cleanup
-	delete rArg;
-
-	// success
-	return NULL;
-}
-
-int CLinkbotT::moveTimeNB(double seconds) {
-	// set up threading
-	THREAD_T moving;
-	recordAngleArg_t *rArg = new recordAngleArg_t;
-	rArg->robot = this;
-	rArg->msecs = 1000*seconds;
-
-	// set joint movements
-	this->moveForeverNB();
-
-	// create thread to wait
-	THREAD_CREATE(&moving, (void* (*)(void *))&CLinkbotT::moveTimeNBThread, (void *)rArg);
 
 	// success
 	return 0;

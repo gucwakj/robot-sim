@@ -25,14 +25,10 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int drivexyNB(double x, double y, double radius, double trackwidth);
 		int drivexyTo(double x, double y, double radius, double trackwidth);
 		int drivexyToNB(double x, double y, double radius, double trackwidth);
-		int drivexyWait(void);
-		int getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4, int numReadings = 10);
-		int getJointAnglesInstant(double &angle1, double &angle2, double &angle3, double &angle4);
-		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);
-		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, double &ratio4);
-		int getxy(double &x, double &y);
-		int jumpJointTo(robotJointId_t id, double angle);
-		int jumpJointToNB(robotJointId_t id, double angle);
+		int getJointAngles(double&, double&, double&, double&, int = 10);
+		int getJointAnglesInstant(double&, double&, double&, double&);
+		int getJointSpeeds(double&, double&, double&, double&);
+		int getJointSpeedRatios(double&, double&, double&, double&);
 		int jumpTo(double angle1, double angle2, double angle3, double angle4);
 		int jumpToNB(double angle1, double angle2, double angle3, double angle4);
 		int motionArch(double angle);
@@ -64,8 +60,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int motionWait(void);
 		int move(double angle1, double angle2, double angle3, double angle4);
 		int moveNB(double angle1, double angle2, double angle3, double angle4);
-		int moveTime(double seconds);
-		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3, double angle4);
 		int moveToNB(double angle1, double angle2, double angle3, double angle4);
 		int moveToZero(void);

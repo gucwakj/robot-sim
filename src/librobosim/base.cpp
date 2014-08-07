@@ -126,6 +126,18 @@ int CRobot::disconnect(void) {
 	return 0;
 }
 
+int CRobot::drivexyWait(void) {
+	// wait for motion to complete
+	MUTEX_LOCK(&_motion_mutex);
+	while (_motion) {
+		COND_WAIT(&_motion_cond, &_motion_mutex);
+	}
+	MUTEX_UNLOCK(&_motion_mutex);
+
+	// success
+	return 0;
+}
+
 int CRobot::enableRecordDataShift(void) {
 	_g_shift_data = 1;
 	_g_shift_data_en = 1;
@@ -224,6 +236,15 @@ int CRobot::getJointSpeedRatio(robotJointId_t id, double &ratio) {
 	return 0;
 }
 
+int CRobot::getxy(double &x, double &y) {
+	// return x and y positions
+	x = (g_sim->getUnits()) ? 39.37*this->getCenter(0) : 100*this->getCenter(0);
+	y = (g_sim->getUnits()) ? 39.37*this->getCenter(1) : 100*this->getCenter(1);
+
+	// success
+	return 0;
+}
+
 int CRobot::holdJoint(robotJointId_t id) {
 	this->setJointSpeed(id, 0);
 
@@ -271,6 +292,21 @@ int CRobot::isMoving(void) {
 int CRobot::isNotMoving(void) {
 	// oppositve of ismoving
 	return !(this->isMoving());
+}
+
+int CRobot::jumpJointTo(robotJointId_t id, double angle) {
+	this->jumpJointToNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int CRobot::jumpJointToNB(robotJointId_t id, double angle) {
+	this->moveJointToNB(id, angle);
+
+	// success
+	return 0;
 }
 
 int CRobot::moveForeverNB(void) {
@@ -446,6 +482,55 @@ int CRobot::moveJointWait(robotJointId_t id) {
 	MUTEX_LOCK(&_motor[id].success_mutex);
 	while ( !_motor[id].success ) { COND_WAIT(&_motor[id].success_cond, &_motor[id].success_mutex); }
 	MUTEX_UNLOCK(&_motor[id].success_mutex);
+
+	// success
+	return 0;
+}
+
+int CRobot::moveTime(double seconds) {
+	// move joint
+	this->moveForeverNB();
+
+	// sleep
+	this->doze(seconds*1000);
+
+	// stop joint
+	this->holdJoints();
+
+	// success
+	return 0;
+}
+
+void* CRobot::moveTimeNBThread(void *arg) {
+	// cast argument
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// get robot
+	CRobot *robot = dynamic_cast<CRobot *>(rArg->robot);
+	// sleep
+	robot->doze(rArg->msecs);
+	// hold all robot motion
+	robot->holdJoints();
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+int CRobot::moveTimeNB(double seconds) {
+	// set up threading
+	THREAD_T moving;
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->msecs = 1000*seconds;
+
+	// set joint movements
+	this->moveForeverNB();
+
+	// create thread to wait
+	THREAD_CREATE(&moving, (void* (*)(void *))&CRobot::moveTimeNBThread, (void *)rArg);
 
 	// success
 	return 0;

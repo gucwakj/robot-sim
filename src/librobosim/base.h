@@ -56,6 +56,7 @@ class DLLIMPORT CRobot {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
+		int drivexyWait(void);
 		int enableRecordDataShift(void);
 		int getBatteryVoltage(double &voltage);
 		int getDistance(double &distance, double radius);
@@ -68,12 +69,15 @@ class DLLIMPORT CRobot {
 		int getJointSafetyAngleTimeout(double &seconds);
 		int getJointSpeed(robotJointId_t id, double &speed);
 		int getJointSpeedRatio(robotJointId_t id, double &ratio);
+		int getxy(double &x, double &y);
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
+		int jumpJointTo(robotJointId_t id, double angle);
+		int jumpJointToNB(robotJointId_t id, double angle);
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
@@ -83,6 +87,8 @@ class DLLIMPORT CRobot {
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
+		int moveTime(double seconds);
+		int moveTimeNB(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 
@@ -244,6 +250,7 @@ class DLLIMPORT CRobot {
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);
 		double normal(double sigma);
 		double uniform(void);
-		static void* moveJointTimeNBThread(void *arg);										// thread to move a joint
+		static void* moveJointTimeNBThread(void *arg);						// thread to move a joint
+		static void* moveTimeNBThread(void *arg);							// thread to move all joints
 };
 #endif // BASE_H_
