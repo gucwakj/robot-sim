@@ -1,8 +1,8 @@
 #ifndef ROBOSIM_H_
 #define ROBOSIM_H_
 
-#include "base.h"
 #include "config.h"
+#include "base.h"
 #include <iostream>
 #include <tinyxml2.h>
 #ifdef ENABLE_GRAPHICS

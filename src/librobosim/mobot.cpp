@@ -32,26 +32,6 @@ int CMobot::blinkLED(double delay, int num) {
 	return 0;
 }
 
-int CMobot::connect(char *name, int pause) {
-	// create simulation object if necessary
-	if (!g_sim)
-		g_sim = new RoboSim(name, pause);
-
-	// set initial 'led' color
-	_rgb[0] = 0;
-	_rgb[1] = 1;
-	_rgb[2] = 0;
-
-	// add to simulation
-	g_sim->addRobot(this);
-
-	// and we are connected
-	_connected = 1;
-
-	// success
-	return 0;
-}
-
 int CMobot::delay(double milliseconds) {
 	// set ending time
 	double end = g_sim->getClock() + milliseconds/1000;

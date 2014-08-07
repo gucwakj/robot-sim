@@ -18,9 +18,9 @@
 #include <cstring>
 #include <cstdarg>
 #include <ctime>
-#include "rgbhashtable.h"
 #include "config.h"
 #include "macros.h"
+#include "rgbhashtable.h"
 
 #ifdef ENABLE_GRAPHICS
 #include <osg/Group>
@@ -49,6 +49,10 @@ class DLLIMPORT CRobot {
 	public:
 		CRobot(void);
 		~CRobot(void);
+
+		int connect(char *name = NULL, int pause = 3);
+
+		// TODO: make private-ish functions protected
 		dBodyID getConnectorBodyID(int face);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
 
@@ -186,6 +190,11 @@ class DLLIMPORT CRobot {
 		int _trace;					// tracing on or off
 		int _type;					// type of robot
 
+#ifdef ENABLE_GRAPHICS
+		osg::Group *_robot;
+		osg::ShapeDrawable *_led;
+#endif // ENABLE_GRAPHICS
+
 		// threading locks for each robot
 		MUTEX_T _active_mutex;
 		COND_T _active_cond;
@@ -197,11 +206,6 @@ class DLLIMPORT CRobot {
 		MUTEX_T _success_mutex;
 		COND_T _success_cond;
 		MUTEX_T _theta_mutex;
-
-#ifdef ENABLE_GRAPHICS
-		osg::Group *_robot;
-		osg::ShapeDrawable *_led;
-#endif // ENABLE_GRAPHICS
 	private:
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);
 		double normal(double sigma);

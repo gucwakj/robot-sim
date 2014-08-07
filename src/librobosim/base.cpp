@@ -1,4 +1,5 @@
 #include "base.h"
+#include "robosim.h"
 
 CRobot::CRobot(void) {
 	MUTEX_INIT(&_active_mutex);
@@ -47,6 +48,26 @@ CRobot::~CRobot(void) {
 	MUTEX_DESTROY(&_success_mutex);
 	COND_DESTROY(&_success_cond);
 	MUTEX_DESTROY(&_theta_mutex);
+}
+
+int CRobot::connect(char *name, int pause) {
+	// create simulation object if necessary
+	if (!g_sim)
+		g_sim = new RoboSim(name, pause);
+
+	// set initial 'led' color
+	_rgb[0] = 0;
+	_rgb[1] = 1;
+	_rgb[2] = 0;
+
+	// add to simulation
+	g_sim->addRobot(this);
+
+	// and we are connected
+	_connected = 1;
+
+	// success
+	return 0;
 }
 
 dBodyID CRobot::getBodyID(int id) {
