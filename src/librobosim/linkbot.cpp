@@ -2371,14 +2371,6 @@ int CLinkbotT::turnRightNB(double angle, double radius, double trackwidth) {
 	inherited functions
  **********************************************************/
 int CLinkbotT::build(xml_robot_t robot) {
-	// create rotation matrix
-	double	sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
-			stheta = sin(DEG2RAD(robot->theta)),	ctheta = cos(DEG2RAD(robot->theta)),
-			spsi = sin(DEG2RAD(robot->psi)),		cpsi = cos(DEG2RAD(robot->psi));
-	dMatrix3 R = {cphi*ctheta,	-cphi*stheta*spsi - sphi*cpsi,	-cphi*stheta*cpsi + sphi*spsi,	0,
-				  sphi*ctheta,	-sphi*stheta*spsi + cphi*cpsi,	-sphi*stheta*cpsi - cphi*spsi,	0,
-				  stheta,		ctheta*spsi,					ctheta*cpsi,					0};
-
 	// check for wheels
 	xml_conn_t ctmp = robot->conn;
 	while (ctmp) {
@@ -2405,6 +2397,21 @@ int CLinkbotT::build(xml_robot_t robot) {
 		}
 		ctmp = ctmp->next;
 	}
+	ctmp = robot->conn;
+	while (ctmp) {
+		if (ctmp->conn == CASTER) {
+			robot->psi += RAD2DEG(atan2(_radius - _smallwheel_radius, 0.08575));
+		}
+		ctmp = ctmp->next;
+	}
+
+	// create rotation matrix
+	double	sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
+			stheta = sin(DEG2RAD(robot->theta)),	ctheta = cos(DEG2RAD(robot->theta)),
+			spsi = sin(DEG2RAD(robot->psi)),		cpsi = cos(DEG2RAD(robot->psi));
+	dMatrix3 R = {cphi*ctheta,	-cphi*stheta*spsi - sphi*cpsi,	-cphi*stheta*cpsi + sphi*spsi,	0,
+				  sphi*ctheta,	-sphi*stheta*spsi + cphi*cpsi,	-sphi*stheta*cpsi - cphi*spsi,	0,
+				  stheta,		ctheta*spsi,					ctheta*cpsi,					0};
 
 	// build robot
 	double rot[3] = {robot->angle1, robot->angle2, robot->angle3};
@@ -3467,19 +3474,19 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
 	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
 	// set geometry 2 - horizontal support
-	conn->geom[1] = dCreateBox(_space, 0.02, 0.022, 0.0032);
+	conn->geom[1] = dCreateBox(_space, 0.0368, 0.022, 0.0032);
 	dGeomSetBody(conn->geom[1], conn->body);
 	dGeomSetOffsetPosition(conn->geom[1], _connector_depth/2 + 0.01 - m.c[0], -m.c[1], -_body_height/2 + 0.0016 - m.c[2]);
 
 	// set geometry 3 - ball support
-	conn->geom[2] = dCreateCylinder(_space, 0.011, _radius -_face_radius - 0.006 + 0.0032);
+	conn->geom[2] = dCreateCylinder(_space, 0.011, 0.003);
 	dGeomSetBody(conn->geom[2], conn->body);
-	dGeomSetOffsetPosition(conn->geom[2], _connector_depth/2 + 0.02 - m.c[0], -m.c[1], -_body_height/2 - (_radius -_face_radius - 0.006)/2 + 0.0016 - m.c[2]);
+	dGeomSetOffsetPosition(conn->geom[2], _connector_depth/2 + 0.0368 - m.c[0], -m.c[1], -_body_height/2 + 0.0001 - m.c[2]);
 
 	// set geometry 4 - sphere
 	conn->geom[3] = dCreateSphere(_space, 0.006);
 	dGeomSetBody(conn->geom[3], conn->body);
-	dGeomSetOffsetPosition(conn->geom[3], _connector_depth/2 + 0.02 - m.c[0], -m.c[1], -_body_height/2 + _face_radius - _radius + 0.006 - m.c[2]);
+	dGeomSetOffsetPosition(conn->geom[3], _connector_depth/2 + 0.0368 - m.c[0], -m.c[1], -_body_height/2 - 0.005 - m.c[2]);
 
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
