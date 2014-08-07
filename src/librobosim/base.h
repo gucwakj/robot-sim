@@ -92,15 +92,32 @@ class DLLIMPORT CRobot {
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
+		int recordAngle(robotJointId_t, double[], double[], int, double, int = 1);
+		int recordAngleBegin(robotJointId_t, robotRecordData_t&, robotRecordData_t&, double, int = 1);
+		int recordAngleEnd(robotJointId_t, int&);
+		int recordDistanceBegin(robotJointId_t, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
+		int recordDistanceEnd(robotJointId_t, int&);
+		int recordDistanceOffset(double);
+		int recordWait(void);
+		int recordxyBegin(robotRecordData_t&, robotRecordData_t&, double, int = 1);
+		int recordxyEnd(int&);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
+		int setBuzzerFrequency(int frequency, double time);
+		int setBuzzerFrequencyOff(void);
+		int setBuzzerFrequencyOn(int frequency);
+		int setLEDColor(char *color);
+		int setLEDColorRGB(int r, int g, int b);
 		int setJointPower(robotJointId_t id, int power);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
+		int systemTime(double &time);
+		int traceOff(void);
+		int traceOn(void);
 
 		// TODO: make private-ish functions protected
 		dBodyID getConnectorBodyID(int face);
@@ -257,10 +274,13 @@ class DLLIMPORT CRobot {
 		COND_T _success_cond;
 		MUTEX_T _theta_mutex;
 	private:
-		double mod_angle(double past_ang, double cur_ang, double ang_rate);
-		double normal(double sigma);
-		double uniform(void);
-		static void* moveJointTimeNBThread(void *arg);						// thread to move a joint
-		static void* moveTimeNBThread(void *arg);							// thread to move all joints
+		double mod_angle(double, double, double);		// modify angle for continuous rotation
+		double normal(double sigma);					// get random value from normal distribution
+		double uniform(void);							// get random value from uniform distribution
+		static void* moveJointTimeNBThread(void*);		// thread to move a joint
+		static void* moveTimeNBThread(void*);			// thread to move all joints
+		static void* recordAngleThread(void*);			// thread to record an angle
+		static void* recordAngleBeginThread(void*);		// thread to record an angle indefinitely
+		static void* recordxyBeginThread(void*);		// thread to record (x,y) positions
 };
 #endif // BASE_H_

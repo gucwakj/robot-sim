@@ -52,39 +52,22 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int getJointAnglesInstant(double&, double&, double&);
 		int getJointSpeeds(double&, double&, double&);
 		int getJointSpeedRatios(double&, double&, double&);
-		int jumpTo(double angle1, double angle2, double angle3);
-		int jumpToNB(double angle1, double angle2, double angle3);
-		int move(double angle1, double angle2, double angle3);
-		int moveNB(double angle1, double angle2, double angle3);
-		int moveTo(double angle1, double angle2, double angle3);
-		int moveToNB(double angle1, double angle2, double angle3);
-		int openGripper(double angle);
-		int openGripperNB(double angle);
-		int recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData = 1);
-		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData = 1);
-		int recordAngleEnd(robotJointId_t id, int &num);
-		int recordAngles(double time[], double angle1[], double angle2[], double angle3[], int num, double seconds, int shiftData = 1);
-		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &a1, robotRecordData_t &a2, robotRecordData_t &a3, double seconds, int shiftData = 1);
-		int recordAnglesEnd(int &num);
-		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData = 1);
-		int recordDistanceEnd(robotJointId_t id, int &num);
-		int recordDistanceOffset(double distance);
-		int recordDistancesBegin(robotRecordData_t &t, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, double radius, double seconds, int shiftData = 1);
-		int recordDistancesEnd(int &num);
-		int recordWait(void);
-		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData = 1);
-		int recordxyEnd(int &num);
-		int setBuzzerFrequency(int frequency, double time);
-		int setBuzzerFrequencyOff(void);
-		int setBuzzerFrequencyOn(int frequency);
-		int setLEDColor(char *color);
-		int setLEDColorRGB(int r, int g, int b);
-		int setJointSpeeds(double speed1, double speed2, double speed3);
-		int setJointSpeedRatios(double ratios1, double ratios2, double ratios3);
-		int setSpeed(double speed, double radius);
-		int systemTime(double &time);
-		int traceOff(void);
-		int traceOn(void);
+		int jumpTo(double, double, double);
+		int jumpToNB(double, double, double);
+		int move(double, double, double);
+		int moveNB(double, double, double);
+		int moveTo(double, double, double);
+		int moveToNB(double, double, double);
+		int openGripper(double);
+		int openGripperNB(double);
+		int recordAngles(double[], double[], double[], double[], int, double, int = 1);
+		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t &, robotRecordData_t&, double, int = 1);
+		int recordAnglesEnd(int&);
+		int recordDistancesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
+		int recordDistancesEnd(int&);
+		int setJointSpeeds(double, double, double);
+		int setJointSpeedRatios(double, double, double);
+		int setSpeed(double, double);
 		int turnLeft(double angle, double radius, double trackwidth);
 		int turnLeftNB(double angle, double radius, double trackwidth);
 		int turnRight(double angle, double radius, double trackwidth);
@@ -138,11 +121,8 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		static void* drivexyToThread(void *arg);											// thread to run drivexyTo
 		static void* drivexyToFuncThread(void *arg);										// thread to run drivexyFunc
 		static void* drivexyToPolyThread(void *arg);										// thread to run drivexyPoly
-		//static void* recordAngleThread(void *arg);											// thread to record angle
-		//static void* recordAngleBeginThread(void *arg);										// thread to record angle
 		//static void* recordAnglesThread(void *arg);											// thread to record angles
 		//static void* recordAnglesBeginThread(void *arg);									// thread to record angles
-		//static void* recordxyBeginThread(void *arg);										// thread to record positions
 
 		// private data members
 		double	_bridge_length,

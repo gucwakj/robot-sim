@@ -58,31 +58,19 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int motionUnstand(void);
 		int motionUnstandNB(void);
 		int motionWait(void);
-		int move(double angle1, double angle2, double angle3, double angle4);
-		int moveNB(double angle1, double angle2, double angle3, double angle4);
-		int moveTo(double angle1, double angle2, double angle3, double angle4);
-		int moveToNB(double angle1, double angle2, double angle3, double angle4);
-		int recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData = 1);
-		int recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData = 1);
-		int recordAngleEnd(robotJointId_t id, int &num);
-		int recordAngles(double time[], double angle1[], double angle2[], double angle3[], double angle4[], int num, double seconds, int shiftData = 1);
-		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, int shiftData = 1);
-		int recordAnglesEnd(int &num);
-		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData = 1);
-		int recordDistanceEnd(robotJointId_t id, int &num);
-		int recordDistanceOffset(double distance);
-		int recordDistancesBegin(robotRecordData_t &t, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, robotRecordData_t &d4, double radius, double seconds, int shiftData = 1);
-		int recordDistancesEnd(int &num);
-		int recordWait(void);
-		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int recordTrace = 0, int shiftData = 1);
-		int recordxyEnd(int &num);
+		int move(double, double, double, double);
+		int moveNB(double, double, double, double);
+		int moveTo(double, double, double, double);
+		int moveToNB(double, double, double, double);
+		int recordAngles(double[], double[], double[], double[], double[], int, double, int = 1);
+		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, int = 1);
+		int recordAnglesEnd(int&);
+		int recordDistancesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
+		int recordDistancesEnd(int&);
 		int reset(void);
-		int setJointSpeeds(double speed1, double speed2, double speed3, double speed4);
-		int setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4);
-		int setSpeed(double speed, double radius);
-		int systemTime(double &time);
-		int traceOff(void);
-		int traceOn(void);
+		int setJointSpeeds(double, double, double, double);
+		int setJointSpeedRatios(double, double, double, double);
+		int setSpeed(double, double);
 		int turnLeft(double angle, double radius, double trackwidth);
 		int turnLeftNB(double angle, double radius, double trackwidth);
 		int turnRight(double angle, double radius, double trackwidth);
@@ -148,11 +136,8 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		static void* motionTumbleRightThread(void *arg);
 		static void* motionTumbleLeftThread(void *arg);
 		static void* motionUnstandThread(void *arg);
-		//static void* recordAngleThread(void *arg);
-		//static void* recordAngleBeginThread(void *arg);
 		//static void* recordAnglesThread(void *arg);
 		//static void* recordAnglesBeginThread(void *arg);
-		//static void* recordxyBeginThread(void *arg);
 
 		// private data members
 		double	_body_end_depth,
