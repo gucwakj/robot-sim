@@ -287,25 +287,6 @@ int CMobot::getxy(double &x, double &y) {
 	return 0;
 }
 
-int CMobot::isConnected(void) {
-	return _connected;
-}
-
-int CMobot::isMoving(void) {
-	for (int i = 0; i < _dof; i++) {
-		if (_motor[i].state == POSITIVE || _motor[i].state == NEGATIVE) {
-			return 1;
-		}
-	}
-
-	// success
-	return 0;
-}
-
-int CMobot::isNotMoving(void) {
-	return !(this->isMoving());
-}
-
 int CMobot::jumpJointTo(robotJointId_t id, double angle) {
 	this->jumpJointToNB(id, angle);
 	this->moveJointWait(id);

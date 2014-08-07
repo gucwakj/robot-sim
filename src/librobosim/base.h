@@ -71,6 +71,9 @@ class DLLIMPORT CRobot {
 		int holdJoint(robotJointId_t id);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
+		int isConnected(void);
+		int isMoving(void);
+		int isNotMoving(void);
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);

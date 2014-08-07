@@ -31,9 +31,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4);
 		int getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, double &ratio4);
 		int getxy(double &x, double &y);
-		int isConnected(void);
-		int isMoving(void);
-		int isNotMoving(void);
 		int jumpJointTo(robotJointId_t id, double angle);
 		int jumpJointToNB(robotJointId_t id, double angle);
 		int jumpTo(double angle1, double angle2, double angle3, double angle4);

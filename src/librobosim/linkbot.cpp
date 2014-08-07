@@ -811,25 +811,6 @@ int CLinkbotT::getxy(double &x, double &y) {
 	return 0;
 }
 
-int CLinkbotT::isConnected(void) {
-	return _connected;
-}
-
-int CLinkbotT::isMoving(void) {
-	for (int i = 0; i < _dof; i++) {
-		if (_motor[i].state == POSITIVE || _motor[i].state == NEGATIVE) {
-			return 1;
-		}
-	}
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::isNotMoving(void) {
-	return !(this->isMoving());
-}
-
 int CLinkbotT::jumpJointTo(robotJointId_t id, double angle) {
 	this->jumpJointToNB(id, angle);
 	this->moveJointWait(id);

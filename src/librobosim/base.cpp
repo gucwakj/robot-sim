@@ -252,6 +252,27 @@ int CRobot::holdJointsAtExit(void) {
 	return 0;
 }
 
+int CRobot::isConnected(void) {
+	// return connected status
+	return _connected;
+}
+
+int CRobot::isMoving(void) {
+	for (int i = 0; i < _dof; i++) {
+		if (_motor[i].state == POSITIVE || _motor[i].state == NEGATIVE) {
+			return 1;
+		}
+	}
+
+	// success
+	return 0;
+}
+
+int CRobot::isNotMoving(void) {
+	// oppositve of ismoving
+	return !(this->isMoving());
+}
+
 int CRobot::moveForeverNB(void) {
 	// set joint movements
 	for (int i = 0; i < _dof; i++) {
