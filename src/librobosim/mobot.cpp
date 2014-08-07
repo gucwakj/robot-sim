@@ -1397,7 +1397,7 @@ int CMobot::moveWait(void) {
 	// success
 	return 0;
 }
-
+/*
 void* CMobot::recordAngleThread(void *arg) {
 	// cast arg struct
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
@@ -1462,7 +1462,7 @@ void* CMobot::recordAngleThread(void *arg) {
 	// success
 	return NULL;
 }
-
+*/
 int CMobot::recordAngle(robotJointId_t id, double *time, double *angle, int num, double seconds, int shiftData) {
 	// check if recording already
 	if (_recording[id]) { return -1; }
@@ -1483,12 +1483,12 @@ int CMobot::recordAngle(robotJointId_t id, double *time, double *angle, int num,
 	_recording[id] = true;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordAngleThread, (void *)rArg);
+	//THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordAngleThread, (void *)rArg);
 
 	// success
 	return 0;
 }
-
+/*
 void* CMobot::recordAngleBeginThread(void *arg) {
 	// cast arg struct
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
@@ -1574,7 +1574,7 @@ void* CMobot::recordAngleBeginThread(void *arg) {
 	// success
 	return NULL;
 }
-
+*/
 int CMobot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData) {
 	// check if recording already
 	if (_recording[id]) { return -1; }
@@ -1600,7 +1600,7 @@ int CMobot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRe
 	_recording[id] = true;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordAngleBeginThread, (void *)rArg);
+	//THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordAngleBeginThread, (void *)rArg);
 
 	// success
 	return 0;
@@ -1628,7 +1628,7 @@ int CMobot::recordAngleEnd(robotJointId_t id, int &num) {
 	// success
 	return 0;
 }
-
+/*
 void* CMobot::recordAnglesThread(void *arg) {
 	// cast arg struct
     recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
@@ -1705,7 +1705,7 @@ void* CMobot::recordAnglesThread(void *arg) {
 	// success
 	return NULL;
 }
-
+*/
 int CMobot::recordAngles(double *time, double *angle1, double *angle2, double *angle3, double *angle4, int num, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
@@ -1732,13 +1732,12 @@ int CMobot::recordAngles(double *time, double *angle1, double *angle2, double *a
 	}
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordAnglesThread, (void *)rArg);
+	//THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordAnglesThread, (void *)rArg);
 
 	// success
 	return 0;
 }
-
-
+/*
 void* CMobot::recordAnglesBeginThread(void *arg) {
 	// cast arg struct
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
@@ -1826,7 +1825,7 @@ void* CMobot::recordAnglesBeginThread(void *arg) {
 	// success
 	return NULL;
 }
-
+*/
 int CMobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
@@ -1864,7 +1863,7 @@ int CMobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1
 	}
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordAnglesBeginThread, (void *)rArg);
+	//THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordAnglesBeginThread, (void *)rArg);
 
 	// success
 	return 0;
@@ -1981,7 +1980,7 @@ int CMobot::recordWait(void) {
 	// success
 	return 0;
 }
-
+/*
 void* CMobot::recordxyBeginThread(void *arg) {
 	// cast arg struct
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
@@ -2050,7 +2049,7 @@ void* CMobot::recordxyBeginThread(void *arg) {
 	// success
 	return NULL;
 }
-
+*/
 int CMobot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int recordTrace, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
@@ -2083,7 +2082,7 @@ int CMobot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double sec
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordxyBeginThread, (void *)rArg);
+	//THREAD_CREATE(&recording, (void* (*)(void *))&CMobot::recordxyBeginThread, (void *)rArg);
 
 	// success
 	return 0;

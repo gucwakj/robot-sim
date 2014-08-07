@@ -201,11 +201,11 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		static void* motionTumbleRightThread(void *arg);
 		static void* motionTumbleLeftThread(void *arg);
 		static void* motionUnstandThread(void *arg);
-		static void* recordAngleThread(void *arg);
-		static void* recordAngleBeginThread(void *arg);
-		static void* recordAnglesThread(void *arg);
-		static void* recordAnglesBeginThread(void *arg);
-		static void* recordxyBeginThread(void *arg);
+		//static void* recordAngleThread(void *arg);
+		//static void* recordAngleBeginThread(void *arg);
+		//static void* recordAnglesThread(void *arg);
+		//static void* recordAnglesBeginThread(void *arg);
+		//static void* recordxyBeginThread(void *arg);
 };
 
 class CMobotGroup {

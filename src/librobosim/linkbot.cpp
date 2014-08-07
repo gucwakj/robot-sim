@@ -1413,7 +1413,7 @@ int CLinkbotT::openGripperNB(double angle) {
 	// success
 	return 0;
 }
-
+/*
 void* CLinkbotT::recordAngleThread(void *arg) {
 	// cast arg struct
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
@@ -1478,7 +1478,7 @@ void* CLinkbotT::recordAngleThread(void *arg) {
 	// success
 	return NULL;
 }
-
+*/
 int CLinkbotT::recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData) {
 	// check if recording already
 	if (_recording[id]) { return -1; }
@@ -1502,12 +1502,12 @@ int CLinkbotT::recordAngle(robotJointId_t id, double time[], double angle[], int
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordAngleThread, (void *)rArg);
+	//THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordAngleThread, (void *)rArg);
 
 	// success
 	return 0;
 }
-
+/*
 void* CLinkbotT::recordAngleBeginThread(void *arg) {
 	// cast arg struct
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
@@ -1579,7 +1579,7 @@ void* CLinkbotT::recordAngleBeginThread(void *arg) {
 	// success
 	return NULL;
 }
-
+*/
 int CLinkbotT::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData) {
 	// check if recording already
 	if (_recording[id]) { return -1; }
@@ -1608,7 +1608,7 @@ int CLinkbotT::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robo
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordAngleBeginThread, (void *)rArg);
+	//THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordAngleBeginThread, (void *)rArg);
 
 	// success
 	return 0;
@@ -1636,7 +1636,7 @@ int CLinkbotT::recordAngleEnd(robotJointId_t id, int &num) {
 	// success
 	return 0;
 }
-
+/*
 void* CLinkbotT::recordAnglesThread(void *arg) {
 	// cast arg struct
     recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
@@ -1712,7 +1712,7 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
 	// success
 	return NULL;
 }
-
+*/
 int CLinkbotT::recordAngles(double *time, double *angle1, double *angle2, double *angle3, int num, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
@@ -1741,12 +1741,12 @@ int CLinkbotT::recordAngles(double *time, double *angle1, double *angle2, double
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordAnglesBeginThread, (void *)rArg);
+	//THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordAnglesBeginThread, (void *)rArg);
 
 	// success
 	return 0;
 }
-
+/*
 void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 	// cast arg struct
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
@@ -1825,7 +1825,7 @@ void* CLinkbotT::recordAnglesBeginThread(void *arg) {
 	// success
 	return NULL;
 }
-
+*/
 int CLinkbotT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
@@ -1863,7 +1863,7 @@ int CLinkbotT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &ang
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordAnglesBeginThread, (void *)rArg);
+	//THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordAnglesBeginThread, (void *)rArg);
 
 	// success
 	return 0;
@@ -1983,7 +1983,7 @@ int CLinkbotT::recordWait(void) {
 	// success
 	return 0;
 }
-
+/*
 void* CLinkbotT::recordxyBeginThread(void *arg) {
 	// cast arg struct
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
@@ -2050,7 +2050,7 @@ void* CLinkbotT::recordxyBeginThread(void *arg) {
 	// success
 	return NULL;
 }
-
+*/
 int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
@@ -2083,7 +2083,7 @@ int CLinkbotT::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double 
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordxyBeginThread, (void *)rArg);
+	//THREAD_CREATE(&recording, (void* (*)(void *))&CLinkbotT::recordxyBeginThread, (void *)rArg);
 
 	// success
 	return 0;

@@ -189,11 +189,11 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		static void* drivexyToThread(void *arg);											// thread to run drivexyTo
 		static void* drivexyToFuncThread(void *arg);										// thread to run drivexyFunc
 		static void* drivexyToPolyThread(void *arg);										// thread to run drivexyPoly
-		static void* recordAngleThread(void *arg);											// thread to record angle
-		static void* recordAngleBeginThread(void *arg);										// thread to record angle
-		static void* recordAnglesThread(void *arg);											// thread to record angles
-		static void* recordAnglesBeginThread(void *arg);									// thread to record angles
-		static void* recordxyBeginThread(void *arg);										// thread to record positions
+		//static void* recordAngleThread(void *arg);											// thread to record angle
+		//static void* recordAngleBeginThread(void *arg);										// thread to record angle
+		//static void* recordAnglesThread(void *arg);											// thread to record angles
+		//static void* recordAnglesBeginThread(void *arg);									// thread to record angles
+		//static void* recordxyBeginThread(void *arg);										// thread to record positions
 		static void* moveJointTimeNBThread(void *arg);										// thread to move a joint
 		static void* moveTimeNBThread(void *arg);											// thread to move all joints
 };

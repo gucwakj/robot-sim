@@ -37,14 +37,23 @@ typedef struct conn_s {
 	struct conn_s *next;
 } *conn_t;
 
+class linkbotNodeCallback;
+class mobotNodeCallback;
+class RoboSim;
+
 class DLLIMPORT CRobot {
+		friend class linkbotNodeCallback;
+		friend class mobotNodeCallback;
+		friend class RoboSim;
+
 	public:
 		CRobot(void);
 		~CRobot(void);
-
-		// public functions
-		dBodyID getBodyID(int body);
 		dBodyID getConnectorBodyID(int face);
+		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
+
+	protected:
+		dBodyID getBodyID(int body);
 		dBodyID getConnectorBodyIDs(int num);
 		dJointID getMotorID(int motor);
 		double getAngle(int id);
@@ -69,7 +78,6 @@ class DLLIMPORT CRobot {
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group *root, int tracking) = 0;
 #endif // ENABLE_GRAPHICS
-		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
 		virtual int initParams(int disabled, int type) = 0;
 		virtual int initDims(void) = 0;
 		virtual void simPreCollisionThread(void) = 0;
