@@ -158,7 +158,7 @@ int CRobot::fixBodyToGround(dBodyID cbody) {
 int CRobot::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
 	double offset[3] = {0};
 	dMatrix3 R1, R2, R3, R4, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
-
+/*
 	switch (type) {
 		case BRIDGE:
 			offset[1] = -_bridge_length + 2*_face_radius;
@@ -233,7 +233,7 @@ int CRobot::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
 			}
 			break;
 	}
-
+*/
 	// set output parameters
 	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
 	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];

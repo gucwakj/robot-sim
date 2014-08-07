@@ -145,46 +145,46 @@ class DLLIMPORT CRobot {
 			COND_T success_cond;
 		} *motor_t;
 
-		conn_t _conn;			// connectors
-		dBodyID *_body;			// body parts
-		dGeomID **_geom;		// geometries of each body part
-		dJointID *_joint;		// joints between body parts
-		dSpaceID _space;		// space for this robot
-		dWorldID _world;		// world for all robots
-		motor_t _motor;			// motors
-		bool _motion;			// motion in progress
-		bool *_recording;		// recording in progress
-		bool *_rec_active;		// actively recording a new value
-		double _accel[3];		// accelerometer data
-		double _center[3];		// offset of body from initial (x,y,z)
-		double _distOffset;		// offset for recorded distance
-		double _radius;			// wheel radius
-		double ***_rec_angles;	// recorded angles from thread
-		double _rgb[3];			// rgb of 'led'
-		double _trackwidth;		// trackwidth of robot
-		double	_center_length, _center_width, _center_height, _center_radius, _center_offset,
-				_body_length, _body_width, _body_height, _body_radius,
-				_body_inner_width_left, _body_inner_width_right, _body_end_depth, _body_mount_center,
-				_end_width, _end_height, _end_depth, _end_radius,
-				_face_depth, _face_radius;
-		double	_connector_depth, _connector_height, _connector_radius,
-				_bigwheel_radius, _smallwheel_radius, _wheel_depth, _wheel_radius,
-				// mobot
-				_tank_height, _tank_depth,
-				// linkbot
-				_bridge_length, _cubic_length, _omni_length, _tinywheel_radius;
-		int _connected;			// connected to controller
-		int _disabled;			// which joint is disabled
-		int _dof;				// number of DOF
-		int *_enabled;			// list of enabled motors
-		int _id;				// robot id
-		int *_rec_num;			// recording data points
-		int _seed;				// seed for random number generation
-		int _shift_data;		// shift recorded data or not
-		int _g_shift_data;		// globally shift data for robot
-		int _g_shift_data_en;	// globally shift data for robot enable/disable flag
-		int _trace;				// tracing on or off
-		int _type;				// type of robot
+		conn_t _conn;				// connectors
+		dBodyID *_body;				// body parts
+		dGeomID **_geom;			// geometries of each body part
+		dJointID *_joint;			// joints between body parts
+		dSpaceID _space;			// space for this robot
+		dWorldID _world;			// world for all robots
+		motor_t _motor;				// motors
+		bool _motion;				// motion in progress
+		bool *_recording;			// recording in progress
+		bool *_rec_active;			// actively recording a new value
+		double _accel[3];			// accelerometer data
+		double _bigwheel_radius;	// dimension: big wheel radius
+		double _body_length;		// dimension: body length
+		double _body_height;		// dimension: body height
+		double _body_radius;		// dimension: body radius
+		double _body_width;			// dimension: body width
+		double _center[3];			// offset of body from initial (x,y,z)
+		double _conn_depth;			// dimension: connector depth
+		double _conn_height;		// dimension: connector height
+		double _conn_radius;		// dimension: connector radius
+		double _distOffset;			// offset for recorded distance
+		double _radius;				// wheel radius
+		double ***_rec_angles;		// recorded angles from thread
+		double _rgb[3];				// rgb of 'led'
+		double _smallwheel_radius;	// dimension: small wheel radius
+		double _trackwidth;			// trackwidth of robot
+		double _wheel_depth;		// dimension: wheel depth
+		double _wheel_radius;		// dimension: custom wheel radius
+		int _connected;				// connected to controller
+		int _disabled;				// which joint is disabled
+		int _dof;					// number of DOF
+		int *_enabled;				// list of enabled motors
+		int _id;					// robot id
+		int *_rec_num;				// recording data points
+		int _seed;					// seed for random number generation
+		int _shift_data;			// shift recorded data or not
+		int _g_shift_data;			// globally shift data for robot
+		int _g_shift_data_en;		// globally shift data for robot enable/disable flag
+		int _trace;					// tracing on or off
+		int _type;					// type of robot
 
 		// threading locks for each robot
 		MUTEX_T _active_mutex;

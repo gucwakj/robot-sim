@@ -3134,9 +3134,9 @@ int CMobot::initDims(void) {
 	_end_height = 0.0762;
 	_end_depth = 0.0080;
 	_end_radius = 0.0254;
-	_connector_depth = 0.0048;
-	_connector_height = 0.0413;
-	_connector_radius = 0.0064;
+	_conn_depth = 0.0048;
+	_conn_height = 0.0413;
+	_conn_radius = 0.0064;
 	_bigwheel_radius = 0.0571;
 	_smallwheel_radius = 0.0445;
 	_tank_depth = 0.0413;
@@ -3284,7 +3284,7 @@ int CMobot::build_bigwheel(conn_t conn, int face) {
     // define parameters
     dMass m;
     dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_connector_depth/3, 0, 0};
+	double p[3] = {0}, offset[3] = {_conn_depth/3, 0, 0};
 
 	// position center of connector
 	this->getConnectionParams(face, R, p);
@@ -3293,7 +3293,7 @@ int CMobot::build_bigwheel(conn_t conn, int face) {
 	p[2] += R[8]*offset[0];
 
     // set mass of body
-    dMassSetBox(&m, 270, _connector_depth/2, _end_width, _connector_height);
+    dMassSetBox(&m, 270, _conn_depth/2, _end_width, _conn_height);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3308,7 +3308,7 @@ int CMobot::build_bigwheel(conn_t conn, int face) {
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 
     // set geometry
-    conn->geom[0] = dCreateCylinder(_space, _bigwheel_radius, 2*_connector_depth/3);
+    conn->geom[0] = dCreateCylinder(_space, _bigwheel_radius, 2*_conn_depth/3);
     dGeomSetBody(conn->geom[0], conn->body);
     dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
     dGeomSetOffsetRotation(conn->geom[0], R1);
@@ -3400,10 +3400,10 @@ int CMobot::build_caster(conn_t conn, int face) {
     // define parameters
     dMass m;
     dMatrix3 R, R1;
-	double	depth = _connector_depth,
+	double	depth = _conn_depth,
 			width = _end_width,
-			height = _connector_height,
-			radius = _connector_radius,
+			height = _conn_height,
+			radius = _conn_radius,
 			p[3] = {0},
 			offset[3] = {depth/2, 0, 0};
 
@@ -3615,10 +3615,10 @@ int CMobot::build_simple(conn_t conn, int face) {
     // define parameters
     dMass m;
     dMatrix3 R, R1;
-	double	depth = _connector_depth,
+	double	depth = _conn_depth,
 			width = _end_width,
-			height = _connector_height,
-			radius = _connector_radius,
+			height = _conn_height,
+			radius = _conn_radius,
 			p[3] = {0},
 			offset[3] = {depth/2, 0, 0};
 
@@ -3701,7 +3701,7 @@ int CMobot::build_smallwheel(conn_t conn, int face) {
     // define parameters
     dMass m;
     dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_connector_depth/3, 0, 0};
+	double p[3] = {0}, offset[3] = {_conn_depth/3, 0, 0};
 
 	// position center of connector
 	this->getConnectionParams(face, R, p);
@@ -3710,7 +3710,7 @@ int CMobot::build_smallwheel(conn_t conn, int face) {
 	p[2] += R[8]*offset[0];
 
     // set mass of body
-    dMassSetBox(&m, 270, _connector_depth/2, _end_width, _connector_height);
+    dMassSetBox(&m, 270, _conn_depth/2, _end_width, _conn_height);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3725,7 +3725,7 @@ int CMobot::build_smallwheel(conn_t conn, int face) {
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 
     // set geometry
-    conn->geom[0] = dCreateCylinder(_space, _smallwheel_radius, 2*_connector_depth/3);
+    conn->geom[0] = dCreateCylinder(_space, _smallwheel_radius, 2*_conn_depth/3);
     dGeomSetBody(conn->geom[0], conn->body);
     dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
     dGeomSetOffsetRotation(conn->geom[0], R1);
@@ -3749,7 +3749,7 @@ int CMobot::build_square(conn_t conn, int face) {
     // define parameters
     dMass m;
     dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_connector_depth/2, 0, 0};
+	double p[3] = {0}, offset[3] = {_conn_depth/2, 0, 0};
 
 	// position center of connector
 	this->getConnectionParams(face, R, p);
@@ -3758,7 +3758,7 @@ int CMobot::build_square(conn_t conn, int face) {
 	p[2] += R[8]*offset[0];
 
     // set mass of body
-    dMassSetBox(&m, 270, _end_width, _end_width, _connector_height);
+    dMassSetBox(&m, 270, _end_width, _end_width, _conn_height);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3770,24 +3770,24 @@ int CMobot::build_square(conn_t conn, int face) {
     dBodySetRotation(conn->body, R);
 
     // set geometry 1 - center box
-    conn->geom[0] = dCreateBox(_space, _connector_depth, _end_width, _connector_height);
+    conn->geom[0] = dCreateBox(_space, _conn_depth, _end_width, _conn_height);
     dGeomSetBody(conn->geom[0], conn->body);
     dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
     // set geometry 2 - left box
-    conn->geom[1] = dCreateBox(_space, _end_width - 2*_connector_depth, _connector_depth, _connector_height);
+    conn->geom[1] = dCreateBox(_space, _end_width - 2*_conn_depth, _conn_depth, _conn_height);
     dGeomSetBody(conn->geom[1], conn->body);
-    dGeomSetOffsetPosition(conn->geom[1], _end_width/2 - _connector_depth/2 - m.c[0], -_end_width/2 + _connector_depth/2 - m.c[1], -m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[1], _end_width/2 - _conn_depth/2 - m.c[0], -_end_width/2 + _conn_depth/2 - m.c[1], -m.c[2]);
 
     // set geometry 3 - right box
-    conn->geom[2] = dCreateBox(_space, _end_width - 2*_connector_depth, _connector_depth, _connector_height);
+    conn->geom[2] = dCreateBox(_space, _end_width - 2*_conn_depth, _conn_depth, _conn_height);
     dGeomSetBody(conn->geom[2], conn->body);
-    dGeomSetOffsetPosition(conn->geom[2], _end_width/2 - _connector_depth/2 - m.c[0], _end_width/2 - _connector_depth/2 - m.c[1], -m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[2], _end_width/2 - _conn_depth/2 - m.c[0], _end_width/2 - _conn_depth/2 - m.c[1], -m.c[2]);
 
     // set geometry 4 - fillet upper left
-    conn->geom[3] = dCreateBox(_space, _connector_depth, _end_width, _connector_height);
+    conn->geom[3] = dCreateBox(_space, _conn_depth, _end_width, _conn_height);
     dGeomSetBody(conn->geom[3], conn->body);
-    dGeomSetOffsetPosition(conn->geom[3], _end_width - _connector_depth - m.c[0], -m.c[1], -m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[3], _end_width - _conn_depth - m.c[0], -m.c[1], -m.c[2]);
 
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3835,7 +3835,7 @@ int CMobot::build_tank(conn_t conn, int face) {
     // set geometry 1 - center box
     conn->geom[0] = dCreateBox(_space, depth, width, height);
     dGeomSetBody(conn->geom[0], conn->body);
-    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], (_tank_height - _connector_height)/2 - m.c[2]);
+    dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], (_tank_height - _conn_height)/2 - m.c[2]);
 
     // set mass center to (0,0,0) of _bodyID
     dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -3859,7 +3859,7 @@ int CMobot::build_wheel(conn_t conn, int face, double size) {
     // define parameters
 	dMass m;
 	dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_connector_depth/3, 0, 0};
+	double p[3] = {0}, offset[3] = {_conn_depth/3, 0, 0};
 
 	// position center of connector
 	this->getConnectionParams(face, R, p);
@@ -3868,7 +3868,7 @@ int CMobot::build_wheel(conn_t conn, int face, double size) {
 	p[2] += R[8]*offset[0];
 
     // set mass of body
-    dMassSetBox(&m, 270, _connector_depth/2, _end_width, _connector_height);
+    dMassSetBox(&m, 270, _conn_depth/2, _end_width, _conn_height);
 
     // adjust x,y,z to position center of mass correctly
     p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -3883,7 +3883,7 @@ int CMobot::build_wheel(conn_t conn, int face, double size) {
     dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);
 
     // set geometry
-    conn->geom[0] = dCreateCylinder(_space, _wheel_radius, 2*_connector_depth/3);
+    conn->geom[0] = dCreateCylinder(_space, _wheel_radius, 2*_conn_depth/3);
     dGeomSetBody(conn->geom[0], conn->body);
     dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
     dGeomSetOffsetRotation(conn->geom[0], R1);
@@ -3911,7 +3911,7 @@ void CMobot::draw_bigwheel(conn_t conn, osg::Group *robot) {
     // set geometry
 	pos = dGeomGetOffsetPosition(conn->geom[0]);
 	dGeomGetOffsetQuaternion(conn->geom[0], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _bigwheel_radius, 2*_connector_depth/3);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _bigwheel_radius, 2*_conn_depth/3);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
@@ -3945,10 +3945,10 @@ void CMobot::draw_caster(conn_t conn, osg::Group *robot) {
 	osg::Box *box;
 	osg::Cylinder *cyl;
 	osg::Sphere *sph;
-	double	depth = _connector_depth,
+	double	depth = _conn_depth,
 			width = _end_width,
-			height = _connector_height,
-			radius = _connector_radius;
+			height = _conn_height,
+			radius = _conn_radius;
 
 	pos = dGeomGetOffsetPosition(conn->geom[0]);
 	dGeomGetOffsetQuaternion(conn->geom[0], quat);
@@ -4029,10 +4029,10 @@ void CMobot::draw_simple(conn_t conn, osg::Group *robot) {
 	dQuaternion quat;
 	osg::Box *box;
 	osg::Cylinder *cyl;
-	double	depth = _connector_depth,
+	double	depth = _conn_depth,
 			width = _end_width,
-			height = _connector_height,
-			radius = _connector_radius;
+			height = _conn_height,
+			radius = _conn_radius;
 
 	pos = dGeomGetOffsetPosition(conn->geom[0]);
 	dGeomGetOffsetQuaternion(conn->geom[0], quat);
@@ -4102,7 +4102,7 @@ void CMobot::draw_smallwheel(conn_t conn, osg::Group *robot) {
     // set geometry
 	pos = dGeomGetOffsetPosition(conn->geom[0]);
 	dGeomGetOffsetQuaternion(conn->geom[0], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _smallwheel_radius, 2*_connector_depth/3);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _smallwheel_radius, 2*_conn_depth/3);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 
@@ -4138,22 +4138,22 @@ void CMobot::draw_square(conn_t conn, osg::Group *robot) {
 	// draw geoms
 	pos = dGeomGetOffsetPosition(conn->geom[0]);
 	dGeomGetOffsetQuaternion(conn->geom[0], quat);
-	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _connector_depth, _end_width, _connector_height);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _conn_depth, _end_width, _conn_height);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(box));
 	pos = dGeomGetOffsetPosition(conn->geom[1]);
 	dGeomGetOffsetQuaternion(conn->geom[1], quat);
-	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_width - 2*_connector_depth, _connector_depth, _connector_height);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_width - 2*_conn_depth, _conn_depth, _conn_height);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(box));
 	pos = dGeomGetOffsetPosition(conn->geom[2]);
 	dGeomGetOffsetQuaternion(conn->geom[2], quat);
-	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_width - 2*_connector_depth, _connector_depth, _connector_height);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _end_width - 2*_conn_depth, _conn_depth, _conn_height);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(box));
 	pos = dGeomGetOffsetPosition(conn->geom[3]);
 	dGeomGetOffsetQuaternion(conn->geom[3], quat);
-	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _connector_depth, _end_width, _connector_height);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _conn_depth, _end_width, _conn_height);
 	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(box));
 
@@ -4228,7 +4228,7 @@ void CMobot::draw_wheel(conn_t conn, osg::Group *robot) {
     // set geometry
 	pos = dGeomGetOffsetPosition(conn->geom[0]);
 	dGeomGetOffsetQuaternion(conn->geom[0], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _wheel_radius, 2*_connector_depth/3);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _wheel_radius, 2*_conn_depth/3);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body->addDrawable(new osg::ShapeDrawable(cyl));
 

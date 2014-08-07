@@ -196,6 +196,14 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		//static void* recordxyBeginThread(void *arg);										// thread to record positions
 		static void* moveJointTimeNBThread(void *arg);										// thread to move a joint
 		static void* moveTimeNBThread(void *arg);											// thread to move all joints
+
+		// private data members
+		double	_bridge_length,
+				_cubic_length,
+				_face_depth,
+				_face_radius,
+				_omni_length,
+				_tinywheel_radius;
 };
 
 class DLLIMPORT CLinkbotTGroup {

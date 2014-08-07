@@ -206,6 +206,23 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		//static void* recordAnglesThread(void *arg);
 		//static void* recordAnglesBeginThread(void *arg);
 		//static void* recordxyBeginThread(void *arg);
+
+		// private data members
+		double	_body_end_depth,
+				_body_inner_width_left,
+				_body_inner_width_right,
+				_body_mount_center,
+				_center_length,
+				_center_height,
+				_center_offset,
+				_center_radius,
+				_center_width,
+				_end_depth,
+				_end_height,
+				_end_radius,
+				_end_width,
+				_tank_height,
+				_tank_depth;
 };
 
 class CMobotGroup {
