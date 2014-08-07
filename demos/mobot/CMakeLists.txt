@@ -9,7 +9,7 @@ set (CROBOSIM_MOBOT_DEMOS_VERSION_MINOR 1)
 cmake_policy(SET CMP0015 NEW)
 
 # Set developer warnings
-set(CMAKE_CXX_FLAGS "-Wall")
+set(CMAKE_CXX_FLAGS "-Wno-write-strings")
 
 # Set up a configure file
 configure_file (
