@@ -102,15 +102,6 @@ double CRobot::getCenter(int i) {
 	return pos[i] + p[i];
 }
 
-double CRobot::getNormal(double sigma) {
-	// compute pair of random uniform data
-	double u1 = this->getUniform();
-	double u2 = this->getUniform();
-
-	// box-muller transform to gaussian
-	return sigma*(sqrt(-2.0*log(u1))*cos(2*M_PI*u2));
-}
-
 double CRobot::getRotation(int body, int i) {
 	const double *R = dBodyGetRotation(_body[body]);
 	double angles[3] = {0};
@@ -130,14 +121,6 @@ double CRobot::getRotation(int body, int i) {
         angles[2] = atan2(R[4]/cos(angles[0]), R[0]/cos(angles[0]));
     }
 	return angles[i];
-}
-
-double CRobot::getUniform(void) {
-	int k = _seed/127773;
-	_seed = 16807 * (_seed - k*127773) - k*2836;
-	if (_seed < 0)
-		_seed = _seed + 2147483647;
-	return ((double)(_seed) * 4.656612875E-10);
 }
 
 int CRobot::addToSim(dWorldID &world, dSpaceID &space) {
@@ -284,11 +267,11 @@ int CRobot::noisy(double *a, int length, double sigma) {
 	double sum = 0;
 
 	if (length == 1)
-		a[0] += this->getNormal(sigma);
+		a[0] += this->normal(sigma);
 	else {
 		// compute magnitude of randomized vector
 		for (int i = 0; i < length; i++) {
-			rand[i] = this->getNormal(sigma);
+			rand[i] = this->normal(sigma);
 			sum += (a[i] + rand[i]) * (a[i] + rand[i]);
 		}
 		double mag = sqrt(sum);
@@ -380,5 +363,22 @@ double CRobot::mod_angle(double past_ang, double cur_ang, double ang_rate) {
     }
 
     return new_ang;
+}
+
+double CRobot::normal(double sigma) {
+	// compute pair of random uniform data
+	double u1 = this->uniform();
+	double u2 = this->uniform();
+
+	// box-muller transform to gaussian
+	return sigma*(sqrt(-2.0*log(u1))*cos(2*M_PI*u2));
+}
+
+double CRobot::uniform(void) {
+	int k = _seed/127773;
+	_seed = 16807 * (_seed - k*127773) - k*2836;
+	if (_seed < 0)
+		_seed = _seed + 2147483647;
+	return ((double)(_seed) * 4.656612875E-10);
 }
 

@@ -49,9 +49,7 @@ class DLLIMPORT CRobot {
 		dJointID getMotorID(int motor);
 		double getAngle(int id);
 		double getCenter(int i);
-		double getNormal(double sigma);
 		double getRotation(int body, int i);
-		double getUniform(void);
 		int addToSim(dWorldID &world, dSpaceID &space);
 		int doze(double ms);
 		int fixBodyToGround(dBodyID cbody);
@@ -198,5 +196,7 @@ class DLLIMPORT CRobot {
 #endif // ENABLE_GRAPHICS
 	private:
 		double mod_angle(double past_ang, double cur_ang, double ang_rate);
+		double normal(double sigma);
+		double uniform(void);
 };
 #endif // BASE_H_
