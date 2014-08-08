@@ -8,6 +8,7 @@
 #endif // ENABLE_GRAPHICS
 
 class DLLIMPORT CLinkbotT : virtual public CRobot {
+		friend class linkbotNodeCallback;
 	public:
 		CLinkbotT(int disabled = -1, int type = LINKBOTT);
 		virtual ~CLinkbotT();
@@ -115,6 +116,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 #endif // ENABLE_GRAPHICS
 		int fix_body_to_connector(dBodyID cBody, int face);									// fix body onto connector
 		int fix_connector_to_body(dBodyID rBody, dBodyID cBody);							// fix connector onto body
+		int get_connector_params(int type, int side, dMatrix3 R, double *p);				// get params of connector face
 		static void* closeGripperNBThread(void *arg);										// thread to close gripper
 		static void* driveTimeNBThread(void *arg);											// thread to drive robot
 		static void* drivexyThread(void *arg);												// thread to run drivexy

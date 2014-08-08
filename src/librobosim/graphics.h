@@ -1,11 +1,8 @@
 #ifndef GRAPHICS_H_
 #define GRAPHICS_H_
 
-#include "config.h"
-#include "base.h"
-
+#include <ode/ode.h>
 #include <OpenThreads/Thread>
-
 #include <osg/Billboard>
 #include <osg/ClearNode>
 #include <osg/CullFace>
@@ -28,26 +25,22 @@
 #include <osg/Transform>
 #include <osg/TextureCubeMap>
 #include <osg/VertexProgram>
-
 #include <osgDB/ReadFile>
 #include <osgDB/Registry>
-
 #include <osgGA/OrbitManipulator>
 #include <osgGA/StateSetManipulator>
-
 #include <osgShadow/ShadowMap>
 #include <osgShadow/ShadowedScene>
-
 #include <osgUtil/CullVisitor>
 #include <osgUtil/IntersectionVisitor>
 #include <osgUtil/LineSegmentIntersector>
 #include <osgUtil/Optimizer>
 #include <osgUtil/SmoothingVisitor>
-
 #include <osgViewer/Viewer>
 #include <osgViewer/ViewerEventHandlers>
 
-#include <ode/ode.h>
+#include "config.h"
+#include "base.h"
 
 extern osg::Node::NodeMask NOT_VISIBLE_MASK;
 extern osg::Node::NodeMask RECEIVES_SHADOW_MASK;
@@ -55,9 +48,8 @@ extern osg::Node::NodeMask CASTS_SHADOW_MASK;
 extern osg::Node::NodeMask IS_PICKABLE_MASK;
 extern osg::Node::NodeMask VISIBLE_MASK;
 
-class CRobot;
-class RoboSim;
 struct ground_s;
+class RoboSim;
 extern RoboSim *g_sim;
 
 /**********************************************************
@@ -107,24 +99,26 @@ class pickHandler : public osgGA::GUIEventHandler {
 /**********************************************************
 	Linkbot Node Callback
  **********************************************************/
+class CLinkbotT;
 class linkbotNodeCallback : public osg::NodeCallback {
 	public:
-		linkbotNodeCallback(CRobot *robot);
+		linkbotNodeCallback(CLinkbotT *robot);
 		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 	private:
-		CRobot *_robot;
+		CLinkbotT *_robot;
 		int _count;
 };
 
 /**********************************************************
 	Mobot Node Callback
  **********************************************************/
+class CMobot;
 class mobotNodeCallback : public osg::NodeCallback {
 	public:
-		mobotNodeCallback(CRobot *robot);
+		mobotNodeCallback(CMobot *robot);
 		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 	private:
-		CRobot *_robot;
+		CMobot *_robot;
 		int _count;
 };
 

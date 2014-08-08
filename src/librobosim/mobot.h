@@ -8,6 +8,7 @@
 #endif // ENABLE_GRAPHICS
 
 class DLLIMPORT CMobot : virtual public CRobot {
+		friend class mobotNodeCallback;
 	public:
 		CMobot();
 		~CMobot();
@@ -121,6 +122,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 #endif // ENABLE_GRAPHICS
 		int fix_body_to_connector(dBodyID cBody, int face);								// fix second body to connector
 		int fix_connector_to_body(int face, dBodyID cBody);								// fix connector to robot body
+		int get_connector_params(int type, int side, dMatrix3 R, double *p);			// get params of connector face
 		static void* drivexyThread(void *arg);
 		static void* drivexyToThread(void *arg);
 		static void* motionArchThread(void *arg);

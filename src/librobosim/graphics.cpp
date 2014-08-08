@@ -1,5 +1,7 @@
 #include "graphics.h"
 #include "robosim.h"
+#include "linkbot.h"
+#include "mobot.h"
 
 osg::Node::NodeMask NOT_VISIBLE_MASK = 0x0;
 osg::Node::NodeMask RECEIVES_SHADOW_MASK = 0x1;
@@ -204,7 +206,7 @@ void pickHandler::pick(const osgGA::GUIEventAdapter &ea, osgViewer::Viewer *view
 /**********************************************************
 	Linkbot Node Callback
  **********************************************************/
-linkbotNodeCallback::linkbotNodeCallback(CRobot *robot) {
+linkbotNodeCallback::linkbotNodeCallback(CLinkbotT *robot) {
 	_robot = robot;
 	_count = 1;
 }
@@ -236,7 +238,7 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 			dQuaternion Q;
 			double p[3] = {0};
 			_robot->getConnectionParams(ctmp->face, R, p);
-			if (ctmp->d_side != -1) _robot->getConnectorParams(ctmp->d_type, ctmp->d_side, R, p);
+			if (ctmp->d_side != -1) _robot->get_connector_params(ctmp->d_type, ctmp->d_side, R, p);
 			dRtoQ(R, Q);
 			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i + k++));
 			pat->setPosition(osg::Vec3d(p[0], p[1], p[2]));
@@ -279,7 +281,7 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 /**********************************************************
 	Mobot Node Callback
  **********************************************************/
-mobotNodeCallback::mobotNodeCallback(CRobot *robot) {
+mobotNodeCallback::mobotNodeCallback(CMobot *robot) {
 	_robot = robot;
 	_count = 1;
 }

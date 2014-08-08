@@ -42,10 +42,7 @@ class mobotNodeCallback;
 class RoboSim;
 
 class DLLIMPORT CRobot {
-		friend class linkbotNodeCallback;
-		friend class mobotNodeCallback;
 		friend class RoboSim;
-
 	public:
 		CRobot(void);
 		~CRobot(void);
@@ -131,7 +128,6 @@ class DLLIMPORT CRobot {
 		dBodyID getBodyID(int body);
 		double getCenter(int i);
 		dBodyID getConnectorBodyIDs(int num);
-		int getConnectorParams(int type, int side, dMatrix3 R, double *p);
 		double getRotation(int body, int i);
 		int isShiftEnabled(void);
 		int noisy(double *a, int length, double sigma);
