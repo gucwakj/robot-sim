@@ -195,7 +195,7 @@ int CRobot::getJointAngle(robotJointId_t id, double &angle, int numReadings) {
 }
 
 int CRobot::getJointAngleInstant(robotJointId_t id, double &angle) {
-	angle = RAD2DEG(this->getAngle(id));
+	angle = RAD2DEG(_motor[id].theta);
 
 	// success
 	return 0;
@@ -1023,20 +1023,6 @@ int CRobot::fixBodyToGround(dBodyID cbody) {
 	return 0;
 }
 
-double CRobot::getAngle(int id) {
-	if (_type == MOBOT && (id == JOINT2 || id == JOINT3))
-		_motor[id].theta = dJointGetHingeAngle(_joint[id]);
-	else if (id == _disabled)
-		_motor[id].theta = 0;
-	else
-		_motor[id].theta = mod_angle(_motor[id].theta, dJointGetHingeAngle(_joint[id]), dJointGetHingeAngleRate(_joint[id])) - _motor[id].offset;
-
-	// add noise to angle
-	//this->noisy(&(_motor[id].theta), 1, 0.0005);
-
-    return _motor[id].theta;
-}
-
 dBodyID CRobot::getBodyID(int id) {
 	return _body[id];
 }
@@ -1093,13 +1079,60 @@ double CRobot::getRotation(int body, int i) {
 	return angles[i];
 }
 
-int CRobot::isShiftEnabled(void) {
-	if(_shift_data && !_g_shift_data_en)
-		return 1;
-	else if (_g_shift_data_en && _g_shift_data)
-		return 1;
-	else
-		return 0;
+double CRobot::mod_angle(double past_ang, double cur_ang, double ang_rate) {
+    double new_ang = 0;
+    int stp = (int)( fabs(past_ang) / M_PI );
+    double past_ang_mod = fabs(past_ang) - stp*M_PI;
+
+    if ( (int)(ang_rate*1000) == 0 ) {
+        new_ang = past_ang;
+    }
+    // positive angular velocity, positive angle
+    else if ( ang_rate > 0 && past_ang >= 0 ) {
+        // cross 180
+        if ( cur_ang < 0 && !(stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + 2*M_PI); }
+        // negative
+        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
+        // cross 0
+        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
+        // positive
+        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
+    }
+    // positive angular velocity, negative angle
+    else if ( ang_rate > 0 && past_ang < 0 ) {
+        // cross 180
+        if ( cur_ang < 0 && (stp % 2) ) {   new_ang = past_ang + (cur_ang + past_ang_mod + M_PI);   }
+        // negative
+        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
+        // cross 0
+        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
+        // positive
+        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
+    }
+    // negative angular velocity, positive angle
+    else if ( ang_rate < 0 && past_ang >= 0 ) {
+        // cross 180
+        if ( cur_ang > 0 && (stp % 2) ) {   new_ang = past_ang + (cur_ang - past_ang_mod - M_PI);   }
+        // negative
+        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
+        // cross 0
+        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
+        // positive
+        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
+    }
+    // negative angular velocity, negative angle
+    else if ( ang_rate < 0 && past_ang < 0 ) {
+        // cross 180
+        if ( cur_ang > 0 && !(stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - 2*M_PI); }
+        // negative
+        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
+        // cross 0
+        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
+        // positive
+        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
+    }
+
+    return new_ang;
 }
 
 int CRobot::noisy(double *a, int length, double sigma) {
@@ -1223,60 +1256,13 @@ void* CRobot::simPostCollisionThreadEntry(void *arg) {
 /**********************************************************
 	private functions
  **********************************************************/
-double CRobot::mod_angle(double past_ang, double cur_ang, double ang_rate) {
-    double new_ang = 0;
-    int stp = (int)( fabs(past_ang) / M_PI );
-    double past_ang_mod = fabs(past_ang) - stp*M_PI;
-
-    if ( (int)(ang_rate*1000) == 0 ) {
-        new_ang = past_ang;
-    }
-    // positive angular velocity, positive angle
-    else if ( ang_rate > 0 && past_ang >= 0 ) {
-        // cross 180
-        if ( cur_ang < 0 && !(stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + 2*M_PI); }
-        // negative
-        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
-        // cross 0
-        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
-        // positive
-        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
-    }
-    // positive angular velocity, negative angle
-    else if ( ang_rate > 0 && past_ang < 0 ) {
-        // cross 180
-        if ( cur_ang < 0 && (stp % 2) ) {   new_ang = past_ang + (cur_ang + past_ang_mod + M_PI);   }
-        // negative
-        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
-        // cross 0
-        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
-        // positive
-        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
-    }
-    // negative angular velocity, positive angle
-    else if ( ang_rate < 0 && past_ang >= 0 ) {
-        // cross 180
-        if ( cur_ang > 0 && (stp % 2) ) {   new_ang = past_ang + (cur_ang - past_ang_mod - M_PI);   }
-        // negative
-        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang - past_ang_mod + M_PI);   }
-        // cross 0
-        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
-        // positive
-        else if ( cur_ang > 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang - past_ang_mod);  }
-    }
-    // negative angular velocity, negative angle
-    else if ( ang_rate < 0 && past_ang < 0 ) {
-        // cross 180
-        if ( cur_ang > 0 && !(stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - 2*M_PI); }
-        // negative
-        else if ( cur_ang < 0 && !(stp % 2) ) { new_ang = past_ang + (cur_ang + past_ang_mod);  }
-        // cross 0
-        else if ( cur_ang < 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
-        // positive
-        else if ( cur_ang > 0 && (stp % 2) ) {  new_ang = past_ang + (cur_ang + past_ang_mod - M_PI);   }
-    }
-
-    return new_ang;
+bool CRobot::is_shift_enabled(void) {
+	if(_shift_data && !_g_shift_data_en)
+		return 1;
+	else if (_g_shift_data_en && _g_shift_data)
+		return 1;
+	else
+		return 0;
 }
 
 double CRobot::normal(double sigma) {
@@ -1367,7 +1353,7 @@ void* CRobot::recordAngleThread(void *arg) {
 	// shift time to start of movement
 	double shiftTime = 0;
 	int shiftTimeIndex = 0;
-	if(rArg->robot->isShiftEnabled()) {
+	if(rArg->robot->is_shift_enabled()) {
 		for (int i = 0; i < rArg->num; i++) {
 			if( moving[i] ) {
 				shiftTime = rArg->time[i];
@@ -1451,7 +1437,7 @@ void* CRobot::recordAngleBeginThread(void *arg) {
 			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
 
 		// wait until movement to start recording
-		if( !moving && rArg->robot->isShiftEnabled() ) {
+		if( !moving && rArg->robot->is_shift_enabled() ) {
 			i--;
 		}
 	}
@@ -1509,7 +1495,7 @@ void* CRobot::recordAnglesThread(void *arg) {
 	// shift time to start of movement
 	double shiftTime = 0;
 	int shiftTimeIndex = 0;
-	if(rArg->robot->isShiftEnabled()) {
+	if(rArg->robot->is_shift_enabled()) {
 		for (int i = 0; i < rArg->num; i++) {
 			if (moving[i]) {
 				shiftTime = rArg->time[i];

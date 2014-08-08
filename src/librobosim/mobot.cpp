@@ -1746,6 +1746,15 @@ int CMobot::draw(osg::Group *root, int tracking) {
 }
 #endif // ENABLE_GRAPHICS
 
+double CMobot::getAngle(int id) {
+	if (id == JOINT2 || id == JOINT3)
+		_motor[id].theta = dJointGetHingeAngle(_joint[id]);
+	else
+		_motor[id].theta = mod_angle(_motor[id].theta, dJointGetHingeAngle(_joint[id]), dJointGetHingeAngleRate(_joint[id])) - _motor[id].offset;
+
+    return _motor[id].theta;
+}
+
 int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
 	const double *pos, *R1;
 	dMatrix3 R2;

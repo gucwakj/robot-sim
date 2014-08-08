@@ -124,12 +124,11 @@ class DLLIMPORT CRobot {
 		int addToSim(dWorldID &world, dSpaceID &space, int id);
 		int doze(double ms);
 		int fixBodyToGround(dBodyID cbody);
-		double getAngle(int id);
 		dBodyID getBodyID(int body);
 		double getCenter(int i);
 		dBodyID getConnectorBodyIDs(int num);
 		double getRotation(int body, int i);
-		int isShiftEnabled(void);
+		double mod_angle(double, double, double);
 		int noisy(double *a, int length, double sigma);
 		int recordAngles(double*, double**, int, double, int);
 		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t*&, double, int = 1);
@@ -143,6 +142,7 @@ class DLLIMPORT CRobot {
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group *root, int tracking) = 0;
 #endif // ENABLE_GRAPHICS
+		virtual double getAngle(int id) = 0;
 		virtual int initParams(int disabled, int type) = 0;
 		virtual int initDims(void) = 0;
 		virtual void simPreCollisionThread(void) = 0;
@@ -262,7 +262,7 @@ class DLLIMPORT CRobot {
 		COND_T _success_cond;
 		MUTEX_T _theta_mutex;
 	private:
-		double mod_angle(double, double, double);		// modify angle for continuous rotation
+		bool is_shift_enabled(void);					// is recorded data shift enabled
 		double normal(double sigma);					// get random value from normal distribution
 		double uniform(void);							// get random value from uniform distribution
 		static void* moveJointTimeNBThread(void*);		// thread to move a joint

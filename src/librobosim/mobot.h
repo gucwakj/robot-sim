@@ -91,6 +91,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group *root, int tracking);
 #endif // ENABLE_GRAPHICS
+		virtual double getAngle(int);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
 		virtual int initParams(int disabled, int type);
 		virtual int initDims(void);

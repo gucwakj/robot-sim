@@ -1485,6 +1485,15 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 }
 #endif // ENABLE_GRAPHICS
 
+double CLinkbotT::getAngle(int id) {
+	if (id == _disabled)
+		_motor[id].theta = 0;
+	else
+		_motor[id].theta = mod_angle(_motor[id].theta, dJointGetHingeAngle(_joint[id]), dJointGetHingeAngleRate(_joint[id])) - _motor[id].offset;
+
+    return _motor[id].theta;
+}
+
 int CLinkbotT::getConnectionParams(int face, dMatrix3 R, double *p) {
 	double offset[3] = {0};
 	const double *pos = dBodyGetPosition(_body[face]);
