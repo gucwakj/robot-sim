@@ -554,7 +554,8 @@ int CRobot::recordAngle(robotJointId_t id, double time[], double angle[], int nu
 	recordAngleArg_t *rArg = new recordAngleArg_t;
 	rArg->robot = this;
 	rArg->time = time;
-	rArg->angle1 = angle;
+	rArg->angle = new double * [1];
+	rArg->angle[0] = angle;
 	rArg->id = id;
 	rArg->num = num;
 	rArg->msecs = 1000*seconds;
@@ -588,7 +589,8 @@ int CRobot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRe
 	time = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
 	angle = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
 	rArg->ptime = &time;
-	rArg->pangle1 = &angle;
+	rArg->pangle = new double ** [_dof];
+	rArg->pangle[0] = &angle;
 
 	// store pointer to recorded angles locally
 	_rec_angles[id] = &angle;
@@ -624,6 +626,112 @@ int CRobot::recordAngleEnd(robotJointId_t id, int &num) {
 
 	// report number of data points recorded
 	num = _rec_num[id];
+
+	// success
+	return 0;
+}
+
+int CRobot::recordAngles(double *time, double **angle, int num, double seconds, int shiftData) {
+	// check if recording already
+	for (int i = 0; i < _dof; i++) {
+		if (_recording[i]) { return -1; }
+	}
+
+	// set up recording thread
+	THREAD_T recording;
+
+	// set up recording args struct
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->time = time;
+	rArg->angle = new double * [_dof];
+	rArg->angle = angle;
+	rArg->num = num;
+	rArg->msecs = 1000*seconds;
+
+	// lock recording for joints
+	for (int i = 0; i < _dof; i++) {
+		rArg->angle[i] = angle[i];
+		_recording[i] = true;
+	}
+
+	// set shift data
+	_shift_data = shiftData;
+
+	// create thread
+	THREAD_CREATE(&recording, (void* (*)(void *))&CRobot::recordAnglesThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+int CRobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle, double seconds, int shiftData) {
+	// check if recording already
+	for (int i = 0; i < _dof; i++) {
+		if (_recording[i]) { return -1; }
+	}
+
+	// set up recording thread
+	THREAD_T recording;
+
+	// set up recording args struct
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
+	rArg->msecs = seconds * 1000;
+	time = new double[RECORD_ANGLE_ALLOC_SIZE];
+	for (int i = 0; i < _dof; i++) {
+		angle[i] = new double[RECORD_ANGLE_ALLOC_SIZE];
+	}
+	rArg->ptime = &time;
+	rArg->pangle = new double ** [_dof];
+	for (int i = 0; i < _dof; i++) {
+		rArg->pangle[i] = &angle[i];
+	}
+
+	// store pointer to recorded angles locally
+	for (int i = 0; i < _dof; i++) {
+		_rec_angles[i] = &angle[i];
+	}
+
+	// lock recording for joint id
+	for (int i = 0; i < _dof; i++) {
+		_recording[i] = true;
+	}
+
+	// set shift data
+	_shift_data = shiftData;
+
+	// create thread
+	THREAD_CREATE(&recording, (void* (*)(void *))&CRobot::recordAnglesBeginThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+int CRobot::recordAnglesEnd(int &num) {
+	// turn off recording
+	MUTEX_LOCK(&_recording_mutex);
+	for (int i = 0; i < _dof; i++) {
+		_recording[i] = 0;
+	}
+	MUTEX_UNLOCK(&_recording_mutex);
+
+	// get number of joints recording
+	int rec = 0;
+	for (int i = 0; i < _dof; i++) {
+		rec += _rec_active[i];
+	}
+	MUTEX_LOCK(&_active_mutex);
+	while (rec) {
+		COND_WAIT(&_active_cond, &_active_mutex);
+		rec = 0;
+		for (int i = 0; i < _dof; i++) { rec += _rec_active[i]; }
+	}
+	MUTEX_UNLOCK(&_active_mutex);
+
+	// report number of data points recorded
+	num = _rec_num[JOINT1];
 
 	// success
 	return 0;
@@ -711,10 +819,11 @@ int CRobot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double sec
 	rArg->robot = this;
 	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
 	rArg->msecs = seconds * 1000;
-	x = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
-	y = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	x = new double[RECORD_ANGLE_ALLOC_SIZE];
+	y = new double[RECORD_ANGLE_ALLOC_SIZE];
 	rArg->ptime = &x;
-	rArg->pangle1 = &y;
+	rArg->pangle = new double ** [1];
+	rArg->pangle[0] = &y;
 
 	// store pointer to recorded angles locally
 	_rec_angles[JOINT1] = &x;
@@ -1224,7 +1333,7 @@ void* CRobot::recordAngleThread(void *arg) {
 		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
 
 		// store joint angle
-		rArg->angle1[i] = RAD2DEG(rArg->robot->_motor[rArg->id].theta);
+		rArg->angle[0][i] = RAD2DEG(rArg->robot->_motor[rArg->id].theta);
 
 		// check if joint is moving
 		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->_motor[rArg->id].id, dParamVel)*1000);
@@ -1251,7 +1360,7 @@ void* CRobot::recordAngleThread(void *arg) {
 		for (int i = 0; i < rArg->num; i++) {
 			if (i < shiftTimeIndex) {
 				rArg->time[i] = 0;
-				rArg->angle1[i] = rArg->angle1[shiftTimeIndex];
+				rArg->angle[i] = rArg->angle[shiftTimeIndex];
 			}
 			else {
 				rArg->time[i] = rArg->time[i] - shiftTime;
@@ -1296,19 +1405,19 @@ void* CRobot::recordAngleBeginThread(void *arg) {
 		if (i >= rArg->num) {
 			rArg->num += RECORD_ANGLE_ALLOC_SIZE;
 			// create larger array for time
-			double *newBuf = (double *)malloc(sizeof(double) * rArg->num);
-			memcpy(newBuf, *rArg->ptime, sizeof(double)*i);
-			free(*(rArg->ptime));
-			*(rArg->ptime) = newBuf;
+			double *newbuf = new double[rArg->num];
+			memcpy(newbuf, *rArg->ptime, sizeof(double)*i);
+			delete *(rArg->ptime);
+			*(rArg->ptime) = newbuf;
 			// create larger array for angle
-			newBuf = (double *)malloc(sizeof(double) * rArg->num);
-			memcpy(newBuf, *(rArg->pangle1), sizeof(double)*i);
-			free(*(rArg->pangle1));
-			*(rArg->pangle1) = newBuf;
+			newbuf = new double[rArg->num];
+			memcpy(newbuf, *(rArg->pangle), sizeof(double)*i);
+			delete (*(rArg->pangle));
+			*(rArg->pangle[0]) = newbuf;
 		}
 
 		// store joint angles
-		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_motor[rArg->id].theta);
+		(*(rArg->pangle[0]))[i] = RAD2DEG(rArg->robot->_motor[rArg->id].theta);
 		moving = (int)(dJointGetAMotorParam(rArg->robot->_motor[rArg->id].id, dParamVel)*1000);
 
 		// store time of data point
@@ -1342,6 +1451,153 @@ void* CRobot::recordAngleBeginThread(void *arg) {
 	return NULL;
 }
 
+void* CRobot::recordAnglesThread(void *arg) {
+	// cast arg struct
+    recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// create initial time points
+    double start_time = 0;
+	int time = (int)(g_sim->getClock()*1000);
+
+	// is robot moving
+	int *moving = new int[rArg->num];
+
+	// get 'num' data points
+    for (int i = 0; i < rArg->num; i++) {
+		// store time of data point
+		rArg->time[i] = g_sim->getClock()*1000;
+        if (i == 0) { start_time = rArg->time[i]; }
+        rArg->time[i] = (rArg->time[i] - start_time) / 1000;
+
+		// store joint angles
+		for (int j = 0; j < rArg->robot->_dof; j++) {
+			rArg->angle[j][i] = RAD2DEG(rArg->robot->_motor[j].theta);
+		}
+
+		// check if joints are moving
+		moving[i] = 0;
+		for (int j = 0; j < rArg->robot->_dof; j++) {
+			moving[i] += (int)(dJointGetAMotorParam(rArg->robot->_motor[j].id, dParamVel)*1000);
+		}
+
+		// increment time step
+		time += rArg->msecs;
+
+		// pause until next step
+		if ( (int)(g_sim->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
+    }
+
+	// shift time to start of movement
+	double shiftTime = 0;
+	int shiftTimeIndex = 0;
+	if(rArg->robot->isShiftEnabled()) {
+		for (int i = 0; i < rArg->num; i++) {
+			if (moving[i]) {
+				shiftTime = rArg->time[i];
+				shiftTimeIndex = i;
+				break;
+			}
+		}
+		for (int i = 0; i < rArg->num; i++) {
+			if (i < shiftTimeIndex) {
+				rArg->time[i] = 0;
+				for (int j = 0; j < rArg->robot->_dof; j++) {
+					rArg->angle[j][i] = rArg->angle[j][shiftTimeIndex];
+				}
+			}
+			else {
+				rArg->time[i] = rArg->time[i] - shiftTime;
+			}
+		}
+	}
+
+	// signal completion of recording
+	MUTEX_LOCK(&rArg->robot->_recording_mutex);
+    for (int i = 0; i < rArg->robot->_dof; i++) {
+        rArg->robot->_recording[i] = false;
+    }
+	COND_SIGNAL(&rArg->robot->_recording_cond);
+	MUTEX_UNLOCK(&rArg->robot->_recording_mutex);
+
+	// cleanup
+	delete rArg;
+	delete moving;
+
+	// success
+	return NULL;
+}
+
+void* CRobot::recordAnglesBeginThread(void *arg) {
+	// cast arg struct
+	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+
+	// create initial time points
+	double start_time = 0;
+	int time = (int)((g_sim->getClock())*1000);
+
+	// actively taking a new data point
+	MUTEX_LOCK(&rArg->robot->_active_mutex);
+	for (int i = 0; i < rArg->robot->_dof; i++) {
+		rArg->robot->_rec_active[i] = true;
+	}
+	COND_SIGNAL(&rArg->robot->_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
+
+	// loop until recording is no longer needed
+	for (int i = 0; rArg->robot->_recording[rArg->id]; i++) {
+		// store locally num of data points taken
+		rArg->robot->_rec_num[JOINT1] = i;
+
+		// resize array if filled current one
+		if(i >= rArg->num) {
+			rArg->num += RECORD_ANGLE_ALLOC_SIZE;
+			// create larger array for time
+			double *newbuf = new double[rArg->num];
+			memcpy(newbuf, *rArg->ptime, sizeof(double)*i);
+			delete *(rArg->ptime);
+			*(rArg->ptime) = newbuf;
+			for (int j = 0; j < rArg->robot->_dof; j++) {
+				newbuf = new double[rArg->num];
+				memcpy(newbuf, *(rArg->pangle[j]), sizeof(double)*i);
+				delete (*(rArg->pangle[j]));
+				*(rArg->pangle[j]) = newbuf;
+			}
+		}
+
+		// store joint angles
+		for (int j = 0; j < rArg->robot->_dof; j++) {
+			(*(rArg->pangle[j]))[i] = RAD2DEG(rArg->robot->_motor[j].theta);
+		}
+
+		// store time of data point
+		(*rArg->ptime)[i] = g_sim->getClock()*1000;
+		if (i == 0) { start_time = (*rArg->ptime)[i]; }
+		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
+
+		// increment time step
+		time += rArg->msecs;
+
+		// pause until next step
+		if ( (int)(g_sim->getClock()*1000) < time )
+			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
+	}
+
+	// signal completion of recording
+	MUTEX_LOCK(&rArg->robot->_active_mutex);
+	for (int i = 0; i < rArg->robot->_dof; i++) {
+		rArg->robot->_rec_active[i] = false;
+	}
+	COND_SIGNAL(&rArg->robot->_active_cond);
+	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
 void* CRobot::recordxyBeginThread(void *arg) {
 	// cast arg struct
 	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
@@ -1365,21 +1621,21 @@ void* CRobot::recordxyBeginThread(void *arg) {
 		if (i >= rArg->num) {
 			rArg->num += RECORD_ANGLE_ALLOC_SIZE;
 			// create larger array for time
-			double *newBuf = (double *)malloc(sizeof(double) * rArg->num);
-			memcpy(newBuf, *rArg->ptime, sizeof(double)*i);
-			free(*(rArg->ptime));
-			*(rArg->ptime) = newBuf;
+			double *newbuf = new double[rArg->num];
+			memcpy(newbuf, *rArg->ptime, sizeof(double)*i);
+			delete *(rArg->ptime);
+			*(rArg->ptime) = newbuf;
 			// create larger array for angle
-			newBuf = (double *)malloc(sizeof(double) * rArg->num);
-			memcpy(newBuf, *(rArg->pangle1), sizeof(double)*i);
-			free(*(rArg->pangle1));
-			*(rArg->pangle1) = newBuf;
+			newbuf = new double[rArg->num];
+			memcpy(newbuf, *(rArg->pangle), sizeof(double)*i);
+			delete (*(rArg->pangle));
+			*(rArg->pangle[0]) = newbuf;
 		}
 
 		// store positions
 		if (rArg->robot->_trace) {
 			(*(rArg->ptime))[i] = rArg->robot->getCenter(0);
-			(*(rArg->pangle1))[i] = rArg->robot->getCenter(1);
+			(*(rArg->pangle[0]))[i] = rArg->robot->getCenter(1);
 		}
 		else {
 			i--;

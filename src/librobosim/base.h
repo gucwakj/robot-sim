@@ -92,6 +92,9 @@ class DLLIMPORT CRobot {
 		int recordAngle(robotJointId_t, double[], double[], int, double, int = 1);
 		int recordAngleBegin(robotJointId_t, robotRecordData_t&, robotRecordData_t&, double, int = 1);
 		int recordAngleEnd(robotJointId_t, int&);
+		int recordAngles(double*, double**, int, double, int);
+		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t*&, double, int = 1);
+		int recordAnglesEnd(int&);
 		int recordDistanceBegin(robotJointId_t, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
 		int recordDistanceEnd(robotJointId_t, int&);
 		int recordDistanceOffset(double);
@@ -115,11 +118,9 @@ class DLLIMPORT CRobot {
 		int systemTime(double &time);
 		int traceOff(void);
 		int traceOn(void);
-
 		// TODO: make private-ish functions protected
 		dBodyID getConnectorBodyID(int face);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
-
 	protected:
 		int addToSim(dWorldID &world, dSpaceID &space, int id);
 		int doze(double ms);
@@ -168,14 +169,8 @@ class DLLIMPORT CRobot {
 			int msecs;
 			double *time;
 			double **ptime;
-			double *angle1;
-			double **pangle1;
-			double *angle2;
-			double **pangle2;
-			double *angle3;
-			double **pangle3;
-			double *angle4;
-			double **pangle4;
+			double **angle;
+			double ***pangle;
 		} recordAngleArg_t;
 		// motor accelerations
 		typedef struct accel_s {
@@ -273,6 +268,8 @@ class DLLIMPORT CRobot {
 		static void* moveTimeNBThread(void*);			// thread to move all joints
 		static void* recordAngleThread(void*);			// thread to record an angle
 		static void* recordAngleBeginThread(void*);		// thread to record an angle indefinitely
+		static void* recordAnglesThread(void*);			// thread to record all angles
+		static void* recordAnglesBeginThread(void*);	// thread to record all angles indefinitely
 		static void* recordxyBeginThread(void*);		// thread to record (x,y) positions
 };
 

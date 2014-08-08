@@ -62,8 +62,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int openGripper(double);
 		int openGripperNB(double);
 		int recordAngles(double[], double[], double[], double[], int, double, int = 1);
-		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t &, robotRecordData_t&, double, int = 1);
-		int recordAnglesEnd(int&);
+		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, int = 1);
 		int recordDistancesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
 		int recordDistancesEnd(int&);
 		int setJointSpeeds(double, double, double);
@@ -123,7 +122,6 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		static void* drivexyToThread(void *arg);											// thread to run drivexyTo
 		static void* drivexyToFuncThread(void *arg);										// thread to run drivexyFunc
 		static void* drivexyToPolyThread(void *arg);										// thread to run drivexyPoly
-		//static void* recordAnglesThread(void *arg);											// thread to record angles
 		//static void* recordAnglesBeginThread(void *arg);									// thread to record angles
 
 		// private data members
