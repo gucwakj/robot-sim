@@ -1112,10 +1112,6 @@ int CRobot::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
 	return 0;
 }
 
-dJointID CRobot::getMotorID(int id) {
-    return _motor[id].id;
-}
-
 double CRobot::getRotation(int body, int i) {
 	const double *R = dBodyGetRotation(_body[body]);
 	double angles[3] = {0};
@@ -1320,7 +1316,7 @@ void* CRobot::recordAngleThread(void *arg) {
 		rArg->angle1[i] = RAD2DEG(rArg->robot->_motor[rArg->id].theta);
 
 		// check if joint is moving
-		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
+		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->_motor[rArg->id].id, dParamVel)*1000);
 
 		// increment time step
 		time += rArg->msecs;
@@ -1402,7 +1398,7 @@ void* CRobot::recordAngleBeginThread(void *arg) {
 
 		// store joint angles
 		(*(rArg->pangle1))[i] = RAD2DEG(rArg->robot->_motor[rArg->id].theta);
-		moving = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(rArg->id), dParamVel)*1000);
+		moving = (int)(dJointGetAMotorParam(rArg->robot->_motor[rArg->id].id, dParamVel)*1000);
 
 		// store time of data point
 		(*rArg->ptime)[i] = g_sim->getClock()*1000;

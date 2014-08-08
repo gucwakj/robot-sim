@@ -132,7 +132,6 @@ class DLLIMPORT CRobot {
 		double getCenter(int i);
 		dBodyID getConnectorBodyIDs(int num);
 		int getConnectorParams(int type, int side, dMatrix3 R, double *p);
-		dJointID getMotorID(int motor);
 		double getRotation(int body, int i);
 		int isShiftEnabled(void);
 		int noisy(double *a, int length, double sigma);

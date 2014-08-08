@@ -932,9 +932,10 @@ void* CLinkbotT::recordAnglesThread(void *arg) {
 		rArg->angle3[i] = RAD2DEG(rArg->robot->_motor[JOINT3].theta);
 
 		// check if joints are moving
-		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT1), dParamVel)*1000);
-		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT2), dParamVel)*1000);
-		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT3), dParamVel)*1000);
+		moving[i] = 0;
+		for (int j = 0; j < _dof; j++) {
+			moving[i] += (int)(dJointGetAMotorParam(rArg->robot->_motor[j].id, dParamVel)*1000);
+		}
 
 		// increment time step
 		time += rArg->msecs;
@@ -2025,7 +2026,7 @@ void CLinkbotT::simPostCollisionThread(void) {
 		// lock mutex
 		MUTEX_LOCK(&_motor[i].success_mutex);
 		// zero velocity == stopped
-		_motor[i].stopping += (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
+		_motor[i].stopping += (!(int)(dJointGetAMotorParam(this->_motor[i].id, dParamVel)*1000) );
 		// once motor has been stopped for 10 steps
 		if (_motor[i].stopping == 50) {
 			_motor[i].stopping = 0;

@@ -1003,10 +1003,10 @@ void* CMobot::recordAnglesThread(void *arg) {
 		rArg->angle4[i] = RAD2DEG(rArg->robot->_motor[JOINT4].theta);
 
 		// check if joints are moving
-		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT1), dParamVel)*1000);
-		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT2), dParamVel)*1000);
-		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT3), dParamVel)*1000);
-		moving[i] += (int)(dJointGetAMotorParam(rArg->robot->getMotorID(JOINT4), dParamVel)*1000);
+		moving[i] = 0;
+		for (int j = 0; j < _dof; j++) {
+			moving[i] += (int)(dJointGetAMotorParam(rArg->robot->_motor[j].id, dParamVel)*1000);
+		}
 
 		// increment time step
 		time += rArg->msecs;
@@ -2053,7 +2053,7 @@ void CMobot::simPostCollisionThread(void) {
 		// lock mutex
 		MUTEX_LOCK(&_motor[i].success_mutex);
 		// zero velocity == stopped
-		_motor[i].success = (!(int)(dJointGetAMotorParam(this->getMotorID(i), dParamVel)*1000) );
+		_motor[i].success = (!(int)(dJointGetAMotorParam(this->_motor[i].id, dParamVel)*1000) );
 		// signal success
 		if (_motor[i].success)
 			COND_SIGNAL(&_motor[i].success_cond);
