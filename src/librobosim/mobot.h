@@ -66,7 +66,6 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int recordAngles(double[], double[], double[], double[], double[], int, double, int = 1);
 		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, int = 1);
 		int recordDistancesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
-		int recordDistancesEnd(int&);
 		int reset(void);
 		int setJointSpeeds(double, double, double, double);
 		int setJointSpeedRatios(double, double, double, double);

@@ -1013,30 +1013,20 @@ int CMobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1
 }
 
 int CMobot::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, robotRecordData_t &distance4, double radius, double seconds, int shiftData) {
-	// set radius of robot
-	_radius = radius;
-
-	// record angles
-	this->recordAnglesBegin(time, distance1, distance2, distance3, distance4, seconds, shiftData);
-
-	// success
-	return 0;
-}
-
-int CMobot::recordDistancesEnd(int &num) {
-	// end recording of angles
-	this->recordAnglesEnd(num);
-
-	// convert all angles to distances based upon radius
-	for (int i = 0; i < num; i++) {
-		for (int j = 0; j < _dof; j++) {
-			(*_rec_angles[j])[i] = DEG2RAD((*_rec_angles[j])[i]) * _radius;
-			(*_rec_angles[j])[i] += _distOffset;
-		}
+	// check if recording already
+	for (int i = 0; i < _dof; i++) {
+		if (_recording[i]) { return -1; }
 	}
 
-	// success
-	return 0;
+	// store angles
+	double **angles = new double * [_dof];
+	angles[JOINT1] = distance1;
+	angles[JOINT2] = distance2;
+	angles[JOINT3] = distance3;
+	angles[JOINT4] = distance4;
+
+	// call base class recording function
+	return CRobot::recordAnglesBegin(time, angles, seconds, shiftData);
 }
 
 int CMobot::reset(void) {

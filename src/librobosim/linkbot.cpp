@@ -941,32 +941,19 @@ int CLinkbotT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &ang
 }
 
 int CLinkbotT::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, double radius, double seconds, int shiftData) {
-	// set radius of robot
-	//_radius = radius;
-
-	// record angles
-	this->recordAnglesBegin(time, distance1, distance2, distance3, seconds, shiftData);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::recordDistancesEnd(int &num) {
-	// end recording of angles
-	this->recordAnglesEnd(num);
-
-	// convert radius to output units
-	double radius = (g_sim->getUnits()) ? _radius*39.37 : _radius*100;
-
-	// convert all angles to distances based upon radius
-	for (int i = 0; i < num; i++) {
-		for (int j = 0; j < _dof; j++) {
-			(*_rec_angles[j])[i] = DEG2RAD((*_rec_angles[j])[i]) * radius + _distOffset;
-		}
+	// check if recording already
+	for (int i = 0; i < _dof; i++) {
+		if (_recording[i]) { return -1; }
 	}
 
-	// success
-	return 0;
+	// store angles
+	double **angles = new double * [_dof];
+	angles[JOINT1] = distance1;
+	angles[JOINT2] = distance2;
+	angles[JOINT3] = distance3;
+
+	// call base class recording function
+	return CRobot::recordAnglesBegin(time, angles, seconds, shiftData);
 }
 
 int CLinkbotT::setJointSpeeds(double speed1, double speed2, double speed3) {

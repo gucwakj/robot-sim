@@ -92,12 +92,11 @@ class DLLIMPORT CRobot {
 		int recordAngle(robotJointId_t, double[], double[], int, double, int = 1);
 		int recordAngleBegin(robotJointId_t, robotRecordData_t&, robotRecordData_t&, double, int = 1);
 		int recordAngleEnd(robotJointId_t, int&);
-		int recordAngles(double*, double**, int, double, int);
-		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t*&, double, int = 1);
 		int recordAnglesEnd(int&);
 		int recordDistanceBegin(robotJointId_t, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
 		int recordDistanceEnd(robotJointId_t, int&);
 		int recordDistanceOffset(double);
+		int recordDistancesEnd(int&);
 		int recordWait(void);
 		int recordxyBegin(robotRecordData_t&, robotRecordData_t&, double, int = 1);
 		int recordxyEnd(int&);
@@ -132,6 +131,8 @@ class DLLIMPORT CRobot {
 		double getRotation(int body, int i);
 		int isShiftEnabled(void);
 		int noisy(double *a, int length, double sigma);
+		int recordAngles(double*, double**, int, double, int);
+		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t*&, double, int = 1);
 		static void* simPreCollisionThreadEntry(void *arg);
 		static void* simPostCollisionThreadEntry(void *arg);
 
