@@ -248,17 +248,17 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		osgText::Text *label = dynamic_cast<osgText::Text *>(geode->getDrawable(0));
 		char text[50];
 		if (g_sim->getUnits()) {
-			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [in]", _robot->getRobotID()+1,
+			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [in]", _robot->getID()+1,
 				_robot->getCenter(0)*39.37, _robot->getCenter(1)*39.37);
 		}
 		else {
-			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [cm]", _robot->getRobotID()+1,
+			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [cm]", _robot->getID()+1,
 				_robot->getCenter(0)*100, _robot->getCenter(1)*100);
 		}
 		label->setText(text);
 		double x = _robot->getCenter(0);
 		double y = _robot->getCenter(1);
-		double z = _robot->getCenter(2) + (_robot->getRobotID() % 2 ? 0.08 : 0) + 0.08;
+		double z = _robot->getCenter(2) + (_robot->getID() % 2 ? 0.08 : 0) + 0.08;
 		label->setPosition(osg::Vec3(x, y, z));
 		// draw tracking line
 		if (_robot->_trace) {
@@ -311,17 +311,17 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		osgText::Text *label = dynamic_cast<osgText::Text *>(geode->getDrawable(0));
 		char text[50];
 		if (g_sim->getUnits()) {
-			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [in]", _robot->getRobotID()+1,
+			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [in]", _robot->getID()+1,
 				_robot->getCenter(0)*39.37, _robot->getCenter(1)*39.37);
 		}
 		else {
-			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [cm]", _robot->getRobotID()+1,
+			sprintf(text, "Robot %d\n(%.4lf, %.4lf) [cm]", _robot->getID()+1,
 				_robot->getCenter(0)*100, _robot->getCenter(1)*100);
 		}
 		label->setText(text);
 		double x = _robot->getCenter(0);
 		double y = _robot->getCenter(1);
-		double z = _robot->getCenter(2) + (_robot->getRobotID() % 2 ? 0.08 : 0) + 0.08;
+		double z = _robot->getCenter(2) + (_robot->getID() % 2 ? 0.08 : 0) + 0.08;
 		label->setPosition(osg::Vec3(x, y, z));
 		// draw tracking line
 		if (_robot->_trace) {

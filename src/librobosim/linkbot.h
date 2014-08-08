@@ -68,10 +68,10 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int setJointSpeeds(double, double, double);
 		int setJointSpeedRatios(double, double, double);
 		int setSpeed(double, double);
-		int turnLeft(double angle, double radius, double trackwidth);
-		int turnLeftNB(double angle, double radius, double trackwidth);
-		int turnRight(double angle, double radius, double trackwidth);
-		int turnRightNB(double angle, double radius, double trackwidth);
+		int turnLeft(double, double, double);
+		int turnLeftNB(double, double, double);
+		int turnRight(double, double, double);
+		int turnRightNB(double, double, double);
     private:
 		enum robot_pieces_e {       // each body part which is built
 			BODY,

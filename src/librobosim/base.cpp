@@ -1136,14 +1136,6 @@ int CRobot::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
 	return 0;
 }
 
-int CRobot::getRobotID(void) {
-	return _id;
-}
-
-int CRobot::getType(void) {
-	return _type;
-}
-
 int CRobot::isShiftEnabled(void) {
 	if(_shift_data && !_g_shift_data_en)
 		return 1;

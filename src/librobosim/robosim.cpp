@@ -1010,8 +1010,10 @@ int RoboSim::addRobot(CRobot *robot) {
 	}
 
 	// no robot found
-	if (btmp == NULL || btmp->type != robot->getType()) {
-		switch (robot->getType()) {
+	int form = 0;
+	robot->getFormFactor(form);
+	if (btmp == NULL || btmp->type != form) {
+		switch (form) {
 			case LINKBOTI:
 				fprintf(stderr, "Error: Could not find LinkbotI in RoboSim GUI.\n");
 				break;
@@ -1049,7 +1051,7 @@ int RoboSim::addRobot(CRobot *robot) {
 	if (ctmp) {
 		rtmp = _robots;
 		while (rtmp) {
-			if (rtmp->robot->getRobotID() == ctmp->robot) {
+			if (rtmp->robot->getID() == ctmp->robot) {
 				robot->build(btmp, rtmp->robot, ctmp);
 				break;
 			}

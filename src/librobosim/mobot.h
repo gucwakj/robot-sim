@@ -12,25 +12,25 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		CMobot();
 		~CMobot();
 
-		int driveBackward(double angle);
-		int driveBackwardNB(double angle);
-		int driveDistance(double distance, double radius);
-		int driveDistanceNB(double distance, double radius);
+		int driveBackward(double);
+		int driveBackwardNB(double);
+		int driveDistance(double, double);
+		int driveDistanceNB(double, double);
 		int driveForeverNB(void);
-		int driveForward(double angle);
-		int driveForwardNB(double angle);
-		int driveTime(double seconds);
-		int driveTimeNB(double seconds);
-		int drivexy(double x, double y, double radius, double trackwidth);
-		int drivexyNB(double x, double y, double radius, double trackwidth);
-		int drivexyTo(double x, double y, double radius, double trackwidth);
-		int drivexyToNB(double x, double y, double radius, double trackwidth);
+		int driveForward(double);
+		int driveForwardNB(double);
+		int driveTime(double);
+		int driveTimeNB(double);
+		int drivexy(double, double, double, double);
+		int drivexyNB(double, double, double, double);
+		int drivexyTo(double, double, double, double);
+		int drivexyToNB(double, double, double, double);
 		int getJointAngles(double&, double&, double&, double&, int = 10);
 		int getJointAnglesInstant(double&, double&, double&, double&);
 		int getJointSpeeds(double&, double&, double&, double&);
 		int getJointSpeedRatios(double&, double&, double&, double&);
-		int jumpTo(double angle1, double angle2, double angle3, double angle4);
-		int jumpToNB(double angle1, double angle2, double angle3, double angle4);
+		int jumpTo(double, double, double, double);
+		int jumpToNB(double, double, double, double);
 		int motionArch(double angle);
 		int motionArchNB(double angle);
 		int motionDistance(double distance, double radius);
@@ -71,10 +71,10 @@ class DLLIMPORT CMobot : virtual public CRobot {
 		int setJointSpeeds(double, double, double, double);
 		int setJointSpeedRatios(double, double, double, double);
 		int setSpeed(double, double);
-		int turnLeft(double angle, double radius, double trackwidth);
-		int turnLeftNB(double angle, double radius, double trackwidth);
-		int turnRight(double angle, double radius, double trackwidth);
-		int turnRightNB(double angle, double radius, double trackwidth);
+		int turnLeft(double, double, double);
+		int turnLeftNB(double, double, double);
+		int turnRight(double, double, double);
+		int turnRightNB(double, double, double);
     private:
 		enum robot_pieces_e {		// each body part which is built
 			CENTER,

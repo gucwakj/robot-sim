@@ -134,8 +134,6 @@ class DLLIMPORT CRobot {
 		int doze(double ms);
 		int fixBodyToGround(dBodyID cbody);
 		int getConnectorParams(int type, int side, dMatrix3 R, double *p);
-		int getRobotID(void);
-		int getType(void);
 		int isShiftEnabled(void);
 		int noisy(double *a, int length, double sigma);
 		int setID(int id);
@@ -283,4 +281,5 @@ class DLLIMPORT CRobot {
 		static void* recordAngleBeginThread(void*);		// thread to record an angle indefinitely
 		static void* recordxyBeginThread(void*);		// thread to record (x,y) positions
 };
+
 #endif // BASE_H_
