@@ -249,12 +249,10 @@ class DLLIMPORT CRobot {
 		int _g_shift_data_en;		// globally shift data for robot enable/disable flag
 		int _trace;					// tracing on or off
 		int _type;					// type of robot
-
 #ifdef ENABLE_GRAPHICS
 		osg::Group *_robot;
 		osg::ShapeDrawable *_led;
 #endif // ENABLE_GRAPHICS
-
 		// threading locks for each robot
 		MUTEX_T _active_mutex;
 		COND_T _active_cond;
@@ -266,6 +264,7 @@ class DLLIMPORT CRobot {
 		MUTEX_T _success_mutex;
 		COND_T _success_cond;
 		MUTEX_T _theta_mutex;
+
 	private:
 		bool is_shift_enabled(void);					// is recorded data shift enabled
 		double normal(double sigma);					// get random value from normal distribution

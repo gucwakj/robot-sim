@@ -84,6 +84,7 @@ typedef enum robot_type_e {
 	LINKBOTI,
 	LINKBOTL,
 	LINKBOTT,
+	NXT,
 	NUM_TYPES
 } robotType_t;
 typedef enum robot_joint_id_e {
