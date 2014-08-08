@@ -988,7 +988,106 @@ int CRobot::traceOn(void) {
 }
 
 /**********************************************************
-	protected functions
+	protected functions for variable DOF
+ **********************************************************/
+int CRobot::moveNB(double *angles) {
+	for (int i = 0; i < _dof; i++) {
+		this->moveJointNB(static_cast<robotJointId_t>(i), angles[i]);
+	}
+
+	// success
+	return 0;
+}
+
+int CRobot::moveToNB(double *angles) {
+	for (int i = 0; i < _dof; i++) {
+		this->moveJointToNB(static_cast<robotJointId_t>(i), angles[i]);
+	}
+
+	// success
+	return 0;
+}
+
+int CRobot::recordAngles(double *time, double **angle, int num, double seconds, int shiftData) {
+	// check if recording already
+	for (int i = 0; i < _dof; i++) {
+		if (_recording[i]) { return -1; }
+	}
+
+	// set up recording thread
+	THREAD_T recording;
+
+	// set up recording args struct
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->time = time;
+	rArg->angle = new double * [_dof];
+	rArg->angle = angle;
+	rArg->num = num;
+	rArg->msecs = 1000*seconds;
+
+	// lock recording for joints
+	for (int i = 0; i < _dof; i++) {
+		rArg->angle[i] = angle[i];
+		_recording[i] = true;
+	}
+
+	// set shift data
+	_shift_data = shiftData;
+
+	// create thread
+	THREAD_CREATE(&recording, (void* (*)(void *))&CRobot::recordAnglesThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+int CRobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle, double seconds, int shiftData) {
+	// check if recording already
+	for (int i = 0; i < _dof; i++) {
+		if (_recording[i]) { return -1; }
+	}
+
+	// set up recording thread
+	THREAD_T recording;
+
+	// set up recording args struct
+	recordAngleArg_t *rArg = new recordAngleArg_t;
+	rArg->robot = this;
+	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
+	rArg->msecs = seconds * 1000;
+	time = new double[RECORD_ANGLE_ALLOC_SIZE];
+	for (int i = 0; i < _dof; i++) {
+		angle[i] = new double[RECORD_ANGLE_ALLOC_SIZE];
+	}
+	rArg->ptime = &time;
+	rArg->pangle = new double ** [_dof];
+	for (int i = 0; i < _dof; i++) {
+		rArg->pangle[i] = &angle[i];
+	}
+
+	// store pointer to recorded angles locally
+	for (int i = 0; i < _dof; i++) {
+		_rec_angles[i] = &angle[i];
+	}
+
+	// lock recording for joint id
+	for (int i = 0; i < _dof; i++) {
+		_recording[i] = true;
+	}
+
+	// set shift data
+	_shift_data = shiftData;
+
+	// create thread
+	THREAD_CREATE(&recording, (void* (*)(void *))&CRobot::recordAnglesBeginThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+/**********************************************************
+	protected functions for inherited classes
  **********************************************************/
 int CRobot::addToSim(dWorldID &world, dSpaceID &space, int id) {
 	_world = world;
@@ -1158,84 +1257,6 @@ int CRobot::noisy(double *a, int length, double sigma) {
 
 	// clean up array
 	delete [] rand;
-
-	// success
-	return 0;
-}
-
-int CRobot::recordAngles(double *time, double **angle, int num, double seconds, int shiftData) {
-	// check if recording already
-	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
-	}
-
-	// set up recording thread
-	THREAD_T recording;
-
-	// set up recording args struct
-	recordAngleArg_t *rArg = new recordAngleArg_t;
-	rArg->robot = this;
-	rArg->time = time;
-	rArg->angle = new double * [_dof];
-	rArg->angle = angle;
-	rArg->num = num;
-	rArg->msecs = 1000*seconds;
-
-	// lock recording for joints
-	for (int i = 0; i < _dof; i++) {
-		rArg->angle[i] = angle[i];
-		_recording[i] = true;
-	}
-
-	// set shift data
-	_shift_data = shiftData;
-
-	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CRobot::recordAnglesThread, (void *)rArg);
-
-	// success
-	return 0;
-}
-
-int CRobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle, double seconds, int shiftData) {
-	// check if recording already
-	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
-	}
-
-	// set up recording thread
-	THREAD_T recording;
-
-	// set up recording args struct
-	recordAngleArg_t *rArg = new recordAngleArg_t;
-	rArg->robot = this;
-	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
-	rArg->msecs = seconds * 1000;
-	time = new double[RECORD_ANGLE_ALLOC_SIZE];
-	for (int i = 0; i < _dof; i++) {
-		angle[i] = new double[RECORD_ANGLE_ALLOC_SIZE];
-	}
-	rArg->ptime = &time;
-	rArg->pangle = new double ** [_dof];
-	for (int i = 0; i < _dof; i++) {
-		rArg->pangle[i] = &angle[i];
-	}
-
-	// store pointer to recorded angles locally
-	for (int i = 0; i < _dof; i++) {
-		_rec_angles[i] = &angle[i];
-	}
-
-	// lock recording for joint id
-	for (int i = 0; i < _dof; i++) {
-		_recording[i] = true;
-	}
-
-	// set shift data
-	_shift_data = shiftData;
-
-	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CRobot::recordAnglesBeginThread, (void *)rArg);
 
 	// success
 	return 0;

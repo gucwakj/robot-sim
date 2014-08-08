@@ -120,6 +120,13 @@ class DLLIMPORT CRobot {
 		// TODO: make private-ish functions protected
 		dBodyID getConnectorBodyID(int face);
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
+
+	protected:
+		int moveNB(double*);
+		int moveToNB(double*);
+		int recordAngles(double*, double**, int, double, int);
+		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t*&, double, int = 1);
+
 	protected:
 		int addToSim(dWorldID &world, dSpaceID &space, int id);
 		int doze(double ms);
@@ -130,8 +137,6 @@ class DLLIMPORT CRobot {
 		double getRotation(int body, int i);
 		double mod_angle(double, double, double);
 		int noisy(double *a, int length, double sigma);
-		int recordAngles(double*, double**, int, double, int);
-		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t*&, double, int = 1);
 		static void* simPreCollisionThreadEntry(void *arg);
 		static void* simPostCollisionThreadEntry(void *arg);
 

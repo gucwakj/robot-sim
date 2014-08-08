@@ -913,32 +913,21 @@ int CMobot::move(double angle1, double angle2, double angle3, double angle4) {
 }
 
 int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
-	// store angles into array
-	double delta[4] = {angle1, angle2, angle3, angle4};
+	// store angles
+	double *angles = new double[_dof];
+	angles[JOINT1] = angle1;
+	angles[JOINT2] = angle2;
+	angles[JOINT3] = angle3;
+	angles[JOINT4] = angle4;
 
-	// lock mutexes
-	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_theta_mutex);
+	// call base class recording function
+	int retval = CRobot::moveNB(angles);
 
-	// enable motor
-	for ( int j = 0; j < _dof; j++ ) {
-		MUTEX_LOCK(&_motor[j].success_mutex);
-		dJointEnable(_motor[j].id);
-		if (_motor[j].omega < -EPSILON) delta[j] = -delta[j];
-		_motor[j].goal += DEG2RAD(delta[j]);
-		_motor[j].mode = SEEK;
-		dJointSetAMotorAngle(_motor[j].id, 0, _motor[j].theta);
-		_motor[j].success = false;
-		MUTEX_UNLOCK(&_motor[j].success_mutex);
-	}
-    dBodyEnable(_body[CENTER]);
-
-	// unlock mutexes
-	MUTEX_UNLOCK(&_theta_mutex);
-	MUTEX_UNLOCK(&_goal_mutex);
+	// clean up
+	delete angles;
 
 	// success
-	return 0;
+	return retval;
 }
 
 int CMobot::moveTo(double angle1, double angle2, double angle3, double angle4) {
@@ -950,32 +939,21 @@ int CMobot::moveTo(double angle1, double angle2, double angle3, double angle4) {
 }
 
 int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4) {
-	// store angles into array
-	double delta[4] = {	DEG2RAD(angle1) - _motor[JOINT1].theta, DEG2RAD(angle2) - _motor[JOINT2].theta,
-						DEG2RAD(angle3) - _motor[JOINT3].theta, DEG2RAD(angle4) - _motor[JOINT4].theta};
+	// store angles
+	double *angles = new double[_dof];
+	angles[JOINT1] = angle1;
+	angles[JOINT2] = angle2;
+	angles[JOINT3] = angle3;
+	angles[JOINT4] = angle4;
 
-	// lock mutexes
-	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_theta_mutex);
+	// call base class recording function
+	int retval = CRobot::moveToNB(angles);
 
-	// enable motor
-	for (int j = 0; j < _dof; j++) {
-		MUTEX_LOCK(&_motor[j].success_mutex);
-		dJointEnable(_motor[j].id);
-		_motor[j].goal += delta[j];
-		_motor[j].mode = SEEK;
-		dJointSetAMotorAngle(_motor[j].id, 0, _motor[j].theta);
-		_motor[j].success = false;
-		MUTEX_UNLOCK(&_motor[j].success_mutex);
-	}
-    dBodyEnable(_body[CENTER]);
-
-	// unlock mutexes
-	MUTEX_UNLOCK(&_theta_mutex);
-	MUTEX_UNLOCK(&_goal_mutex);
+	// clean up
+	delete angles;
 
 	// success
-	return 0;
+	return retval;
 }
 
 int CMobot::recordAngles(double *time, double *angle1, double *angle2, double *angle3, double *angle4, int num, double seconds, int shiftData) {

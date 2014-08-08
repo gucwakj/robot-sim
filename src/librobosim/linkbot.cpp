@@ -814,41 +814,20 @@ int CLinkbotT::move(double angle1, double angle2, double angle3) {
 }
 
 int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
-	// store angles into array
-	double *delta = new double[_dof]();
-	delta[0] = angle1;
-	delta[1] = angle2;
-	delta[2] = angle3;
+	// store angles
+	double *angles = new double[_dof];
+	angles[JOINT1] = angle1;
+	angles[JOINT2] = angle2;
+	angles[JOINT3] = angle3;
 
-	// lock mutexes
-	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_theta_mutex);
-
-	// loop over joints
-	for (int i = 0; i < ((_disabled == -1) ? 3 : 2); i++) {
-		int j = _enabled[i];
-		if (_motor[j].omega < -EPSILON) delta[j] = -delta[j];
-		MUTEX_LOCK(&_motor[j].success_mutex);
-		_motor[j].goal += DEG2RAD(delta[j]);
-		_motor[j].mode = SEEK;
-		dJointEnable(_motor[j].id);
-		dJointSetAMotorAngle(_motor[j].id, 0, _motor[j].theta);
-		_motor[j].success = false;
-		MUTEX_UNLOCK(&_motor[j].success_mutex);
-	}
-
-	// enable body
-	dBodyEnable(_body[BODY]);
-
-	// unlock mutexes
-	MUTEX_UNLOCK(&_theta_mutex);
-	MUTEX_UNLOCK(&_goal_mutex);
+	// call base class recording function
+	int retval = CRobot::moveNB(angles);
 
 	// clean up
-	delete delta;
+	delete angles;
 
 	// success
-	return 0;
+	return retval;
 }
 
 int CLinkbotT::moveTo(double angle1, double angle2, double angle3) {
@@ -860,34 +839,20 @@ int CLinkbotT::moveTo(double angle1, double angle2, double angle3) {
 }
 
 int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
-	// store angles into array
-	double delta[3] = {DEG2RAD(angle1) - _motor[JOINT1].theta, DEG2RAD(angle2) - _motor[JOINT2].theta, DEG2RAD(angle3) - _motor[JOINT3].theta};
+	// store angles
+	double *angles = new double[_dof];
+	angles[JOINT1] = angle1;
+	angles[JOINT2] = angle2;
+	angles[JOINT3] = angle3;
 
-	// lock mutexes
-	MUTEX_LOCK(&_goal_mutex);
-	MUTEX_LOCK(&_theta_mutex);
+	// call base class recording function
+	int retval = CRobot::moveToNB(angles);
 
-	// loop over joints
-	for (int i = 0; i < ((_disabled == -1) ? 3 : 2); i++) {
-		int j = _enabled[i];
-		MUTEX_LOCK(&_motor[j].success_mutex);
-		_motor[j].goal += delta[j];
-		_motor[j].mode = SEEK;
-		dJointEnable(_motor[j].id);
-		dJointSetAMotorAngle(_motor[j].id, 0, _motor[j].theta);
-		_motor[j].success = false;
-		MUTEX_UNLOCK(&_motor[j].success_mutex);
-	}
-
-	// enable body
-    dBodyEnable(_body[BODY]);
-
-	// unlock mutexes
-	MUTEX_UNLOCK(&_theta_mutex);
-	MUTEX_UNLOCK(&_goal_mutex);
+	// clean up
+	delete angles;
 
 	// success
-	return 0;
+	return retval;
 }
 
 int CLinkbotT::openGripper(double angle) {
