@@ -941,83 +941,10 @@ int CRobot::traceOn(void) {
 /**********************************************************
 	protected functions
  **********************************************************/
-dBodyID CRobot::getBodyID(int id) {
-	return _body[id];
-}
-
-dBodyID CRobot::getConnectorBodyID(int face) {
-	conn_t ctmp = _conn;
-	while (ctmp) {
-		if (ctmp->face == face) {
-			return ctmp->body;
-		}
-		ctmp = ctmp->next;
-	}
-	return NULL;
-}
-
-dBodyID CRobot::getConnectorBodyIDs(int num) {
-	conn_t ctmp = _conn;
-	int i = 0;
-	while (ctmp && i++ < num)
-		ctmp = ctmp->next;
-	if (ctmp) {
-		return ctmp->body;
-	}
-	return NULL;
-}
-
-dJointID CRobot::getMotorID(int id) {
-    return _motor[id].id;
-}
-
-double CRobot::getAngle(int id) {
-	if (_type == MOBOT && (id == JOINT2 || id == JOINT3))
-		_motor[id].theta = dJointGetHingeAngle(_joint[id]);
-	else if (id == _disabled)
-		_motor[id].theta = 0;
-	else
-		_motor[id].theta = mod_angle(_motor[id].theta, dJointGetHingeAngle(_joint[id]), dJointGetHingeAngleRate(_joint[id])) - _motor[id].offset;
-
-	// add noise to angle
-	//this->noisy(&(_motor[id].theta), 1, 0.0005);
-
-    return _motor[id].theta;
-}
-
-double CRobot::getCenter(int i) {
-	const double *pos = dBodyGetPosition(_body[0]);
-	const double *R = dBodyGetRotation(_body[0]);
-	double p[3] = {	R[0]*_center[0] + R[1]*_center[1] + R[2]*_center[2],
-					R[4]*_center[0] + R[5]*_center[1] + R[6]*_center[2],
-					R[8]*_center[0] + R[9]*_center[1] + R[10]*_center[2]};
-	return pos[i] + p[i];
-}
-
-double CRobot::getRotation(int body, int i) {
-	const double *R = dBodyGetRotation(_body[body]);
-	double angles[3] = {0};
-    if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
-        angles[0] = atan2(-R[1], -R[2]);		// psi
-        angles[1] = M_PI/2;						// theta
-        angles[2] = 0;							// phi
-    }
-    else if ( fabs(R[8]+1) < DBL_EPSILON ) {    // R_31 == -1; theta = -M_PI/2
-        angles[0] = atan2(R[1], R[2]);			// psi
-        angles[1] = -M_PI/2;					// theta
-        angles[2] = 0;							// phi
-    }
-    else {
-        angles[1] = asin(R[8]);
-        angles[0] = atan2(R[9]/cos(angles[0]), R[10]/cos(angles[0]));
-        angles[2] = atan2(R[4]/cos(angles[0]), R[0]/cos(angles[0]));
-    }
-	return angles[i];
-}
-
-int CRobot::addToSim(dWorldID &world, dSpaceID &space) {
+int CRobot::addToSim(dWorldID &world, dSpaceID &space, int id) {
 	_world = world;
-    _space = dHashSpaceCreate(space);
+	_space = dHashSpaceCreate(space);
+	_id = id;
 
 	// success
 	return 0;
@@ -1045,6 +972,55 @@ int CRobot::fixBodyToGround(dBodyID cbody) {
 
 	// success
 	return 0;
+}
+
+double CRobot::getAngle(int id) {
+	if (_type == MOBOT && (id == JOINT2 || id == JOINT3))
+		_motor[id].theta = dJointGetHingeAngle(_joint[id]);
+	else if (id == _disabled)
+		_motor[id].theta = 0;
+	else
+		_motor[id].theta = mod_angle(_motor[id].theta, dJointGetHingeAngle(_joint[id]), dJointGetHingeAngleRate(_joint[id])) - _motor[id].offset;
+
+	// add noise to angle
+	//this->noisy(&(_motor[id].theta), 1, 0.0005);
+
+    return _motor[id].theta;
+}
+
+dBodyID CRobot::getBodyID(int id) {
+	return _body[id];
+}
+
+double CRobot::getCenter(int i) {
+	const double *pos = dBodyGetPosition(_body[0]);
+	const double *R = dBodyGetRotation(_body[0]);
+	double p[3] = {	R[0]*_center[0] + R[1]*_center[1] + R[2]*_center[2],
+					R[4]*_center[0] + R[5]*_center[1] + R[6]*_center[2],
+					R[8]*_center[0] + R[9]*_center[1] + R[10]*_center[2]};
+	return pos[i] + p[i];
+}
+
+dBodyID CRobot::getConnectorBodyID(int face) {
+	conn_t ctmp = _conn;
+	while (ctmp) {
+		if (ctmp->face == face) {
+			return ctmp->body;
+		}
+		ctmp = ctmp->next;
+	}
+	return NULL;
+}
+
+dBodyID CRobot::getConnectorBodyIDs(int num) {
+	conn_t ctmp = _conn;
+	int i = 0;
+	while (ctmp && i++ < num)
+		ctmp = ctmp->next;
+	if (ctmp) {
+		return ctmp->body;
+	}
+	return NULL;
 }
 
 int CRobot::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
@@ -1136,6 +1112,31 @@ int CRobot::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
 	return 0;
 }
 
+dJointID CRobot::getMotorID(int id) {
+    return _motor[id].id;
+}
+
+double CRobot::getRotation(int body, int i) {
+	const double *R = dBodyGetRotation(_body[body]);
+	double angles[3] = {0};
+    if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
+        angles[0] = atan2(-R[1], -R[2]);		// psi
+        angles[1] = M_PI/2;						// theta
+        angles[2] = 0;							// phi
+    }
+    else if ( fabs(R[8]+1) < DBL_EPSILON ) {    // R_31 == -1; theta = -M_PI/2
+        angles[0] = atan2(R[1], R[2]);			// psi
+        angles[1] = -M_PI/2;					// theta
+        angles[2] = 0;							// phi
+    }
+    else {
+        angles[1] = asin(R[8]);
+        angles[0] = atan2(R[9]/cos(angles[0]), R[10]/cos(angles[0]));
+        angles[2] = atan2(R[4]/cos(angles[0]), R[0]/cos(angles[0]));
+    }
+	return angles[i];
+}
+
 int CRobot::isShiftEnabled(void) {
 	if(_shift_data && !_g_shift_data_en)
 		return 1;
@@ -1170,11 +1171,6 @@ int CRobot::noisy(double *a, int length, double sigma) {
 	delete [] rand;
 
 	// success
-	return 0;
-}
-
-int CRobot::setID(int id) {
-	_id = id;
 	return 0;
 }
 

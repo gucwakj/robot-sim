@@ -124,19 +124,18 @@ class DLLIMPORT CRobot {
 		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
 
 	protected:
-		dBodyID getBodyID(int body);
-		dBodyID getConnectorBodyIDs(int num);
-		dJointID getMotorID(int motor);
-		double getAngle(int id);
-		double getCenter(int i);
-		double getRotation(int body, int i);
-		int addToSim(dWorldID &world, dSpaceID &space);
+		int addToSim(dWorldID &world, dSpaceID &space, int id);
 		int doze(double ms);
 		int fixBodyToGround(dBodyID cbody);
+		double getAngle(int id);
+		dBodyID getBodyID(int body);
+		double getCenter(int i);
+		dBodyID getConnectorBodyIDs(int num);
 		int getConnectorParams(int type, int side, dMatrix3 R, double *p);
+		dJointID getMotorID(int motor);
+		double getRotation(int body, int i);
 		int isShiftEnabled(void);
 		int noisy(double *a, int length, double sigma);
-		int setID(int id);
 		static void* simPreCollisionThreadEntry(void *arg);
 		static void* simPostCollisionThreadEntry(void *arg);
 

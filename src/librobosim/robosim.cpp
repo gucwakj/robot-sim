@@ -1035,8 +1035,7 @@ int RoboSim::addRobot(CRobot *robot) {
 	}
 
 	// give simulation data to robot
-	robot->addToSim(_world, _space);
-	robot->setID(btmp->id);
+	robot->addToSim(_world, _space, btmp->id);
 
 	// find if robot is connected to another one
 	xml_conn_t ctmp = btmp->conn;
