@@ -9,46 +9,48 @@
 
 class DLLIMPORT CLinkbotT : virtual public CRobot {
 		friend class linkbotNodeCallback;
+
+	// public api
 	public:
 		CLinkbotT(int disabled = -1, int type = LINKBOTT);
 		virtual ~CLinkbotT();
 
-		int accelJointAngleNB(robotJointId_t id, double a, double angle);
-		int accelJointCycloidalNB(robotJointId_t id, double angle, double t);
-		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
-		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
-		int accelJointTimeNB(robotJointId_t id, double a, double t);
-		int accelJointToMaxSpeedNB(robotJointId_t id, double a);
-		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
+		int accelJointAngleNB(robotJointId_t, double, double);
+		int accelJointCycloidalNB(robotJointId_t, double, double);
+		int accelJointHarmonicNB(robotJointId_t, double, double);
+		int accelJointSmoothNB(robotJointId_t, double, double, double, double);
+		int accelJointTimeNB(robotJointId_t, double, double);
+		int accelJointToMaxSpeedNB(robotJointId_t, double);
+		int accelJointToVelocityNB(robotJointId_t, double, double);
 		int closeGripper(void);
 		int closeGripperNB(void);
-		int driveAccelCycloidalNB(double radius, double d, double t);
-		int driveAccelDistanceNB(double radius, double a, double d);
-		int driveAccelHarmonicNB(double radius, double d, double t);
-		int driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d);
-		int driveAccelTimeNB(double radius, double a, double t);
-		int driveAccelToMaxSpeedNB(double radius, double a);
-		int driveAccelToVelocityNB(double radius, double a, double v);
-		int driveBackward(double angle);
-		int driveBackwardNB(double angle);
-		int driveDistance(double distance, double radius);
-		int driveDistanceNB(double distance, double radius);
+		int driveAccelCycloidalNB(double, double, double);
+		int driveAccelDistanceNB(double, double, double);
+		int driveAccelHarmonicNB(double, double, double);
+		int driveAccelSmoothNB(double, double, double, double, double);
+		int driveAccelTimeNB(double, double, double);
+		int driveAccelToMaxSpeedNB(double, double);
+		int driveAccelToVelocityNB(double, double, double);
+		int driveBackward(double);
+		int driveBackwardNB(double);
+		int driveDistance(double, double);
+		int driveDistanceNB(double, double);
 		int driveForeverNB(void);
-		int driveForward(double angle);
-		int driveForwardNB(double angle);
-		int driveTime(double seconds);
-		int driveTimeNB(double seconds);
-		int drivexy(double x, double y, double radius, double trackwidth);
-		int drivexyNB(double x, double y, double radius, double trackwidth);
-		int drivexyTo(double x, double y, double radius, double trackwidth);
-		int drivexyToNB(double x, double y, double radius, double trackwidth);
-		int drivexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
-		int drivexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
-		int drivexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
-		int drivexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
-		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
-		int getLEDColorName(char color[]);
-		int getLEDColorRGB(int &r, int &g, int &b);
+		int driveForward(double);
+		int driveForwardNB(double);
+		int driveTime(double);
+		int driveTimeNB(double);
+		int drivexy(double, double, double, double);
+		int drivexyNB(double, double, double, double);
+		int drivexyTo(double, double, double, double);
+		int drivexyToNB(double, double, double, double);
+		int drivexyToFunc(double, double, int, double (*func)(double), double, double);
+		int drivexyToFuncNB(double, double, int, double (*func)(double), double, double);
+		int drivexyToPoly(double, double, int, char*, double, double);
+		int drivexyToPolyNB(double, double, int, char*, double, double);
+		int getAccelerometerData(double&, double&, double&);
+		int getLEDColorName(char[]);
+		int getLEDColorRGB(int&, int&, int&);
 		int getJointAngles(double&, double&, double&, int = 10);
 		int getJointAnglesInstant(double&, double&, double&);
 		int getJointSpeeds(double&, double&, double&);
@@ -71,8 +73,56 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 		int turnLeftNB(double, double, double);
 		int turnRight(double, double, double);
 		int turnRightNB(double, double, double);
-    private:
-		enum robot_pieces_e {       // each body part which is built
+
+	// inherited functions
+	private:
+		virtual int build(xml_robot_t);
+		virtual int build(xml_robot_t, CRobot*, xml_conn_t);
+		virtual int buildIndividual(double, double, double, dMatrix3, double*);
+#ifdef ENABLE_GRAPHICS
+		virtual int draw(osg::Group*, int);
+#endif // ENABLE_GRAPHICS
+		virtual double getAngle(int);
+		virtual int getConnectionParams(int, dMatrix3, double*);
+		virtual int initParams(int, int);
+		virtual int initDims(void);
+		virtual void simPreCollisionThread(void);
+		virtual void simPostCollisionThread(void);
+
+	// private functions
+	private:
+		int add_connector(int, int, double);							// add connector
+		int add_connector_daisy(int, int, double, int, int);			// add daisy chained connector
+		int build_bigwheel(conn_t, int, int = -1, int = -1);			// build big wheel connector
+		int build_body(double, double, double, dMatrix3, double);		// build body of linkbot
+		int build_bridge(conn_t, int, int = -1, int = -1);				// build bridge connector
+		int build_caster(conn_t, int, int = -1, int = -1);				// build caster connector
+		int build_cube(conn_t, int, int = -1, int = -1);				// build cube connector
+		int build_face(int, double, double, double, dMatrix3, double);	// build face of linkbot
+		int build_faceplate(conn_t, int, int = -1, int = -1);			// build faceplate connector
+		int build_gripper(conn_t, int);									// build gripper connector
+		int build_omnidrive(conn_t, int, int = -1, int = -1);			// build omnidrive connector
+		int build_simple(conn_t, int face, int = -1, int = -1);			// build simple connector
+		int build_smallwheel(conn_t, int, int = -1, int = -1);			// build small wheel connector
+		int build_tinywheel(conn_t, int, int = -1, int = -1);			// build tiny wheel connector
+		int build_wheel(conn_t, int, double, int = -1, int = -1);		// build custom wheel connector
+#ifdef ENABLE_GRAPHICS
+		void draw_connector(conn_t, osg::Group*);						// load connector stl
+#endif // ENABLE_GRAPHICS
+		int fix_body_to_connector(dBodyID, int);						// fix body onto connector
+		int fix_connector_to_body(dBodyID, dBodyID);					// fix connector onto body
+		int get_connector_params(int, int, dMatrix3, double*);			// get params of connector face
+		static void* closeGripperNBThread(void*);						// thread to close gripper
+		static void* driveTimeNBThread(void*);							// thread to drive robot
+		static void* drivexyThread(void*);								// thread to run drivexy
+		static void* drivexyToThread(void*);							// thread to run drivexyTo
+		static void* drivexyToFuncThread(void*);						// thread to run drivexyFunc
+		static void* drivexyToPolyThread(void*);						// thread to run drivexyPoly
+
+	// private data
+	private:
+		// robot body parts
+		enum robot_pieces_e {
 			BODY,
 			FACE1,
 			FACE2,
@@ -80,50 +130,7 @@ class DLLIMPORT CLinkbotT : virtual public CRobot {
 			NUM_PARTS
 		};
 
-		// private functions inherited from CRobot class
-		virtual int build(xml_robot_t robot);
-		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn);
-		virtual int buildIndividual(double x, double y, double z, dMatrix3 R, double *rot);
-#ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group *root, int tracking);
-#endif // ENABLE_GRAPHICS
-		virtual double getAngle(int);
-		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
-		virtual int initParams(int disabled, int type);
-		virtual int initDims(void);
-		virtual void simPreCollisionThread(void);
-		virtual void simPostCollisionThread(void);
-
-		// private functions
-		int add_connector(int type, int face, double size);									// add connector
-		int add_connector_daisy(int conn, int side, double size, int face, int type);		// add daisy chained connector
-		int build_bigwheel(conn_t conn, int face, int side = -1, int type = -1);			// build big wheel connector
-		int build_body(double x, double y, double z, dMatrix3 R, double theta);				// build body of linkbot
-		int build_bridge(conn_t conn, int face, int side = -1, int type = -1);				// build bridge connector
-		int build_caster(conn_t conn, int face, int side = -1, int type = -1);				// build caster connector
-		int build_cube(conn_t conn, int face, int side = -1, int type = -1);				// build cube connector
-		int build_face(int id, double x, double y, double z, dMatrix3 R, double theta);		// build face of linkbot
-		int build_faceplate(conn_t conn, int face, int side = -1, int type = -1);			// build faceplate connector
-		int build_gripper(conn_t conn, int face);											// build gripper connector
-		int build_omnidrive(conn_t conn, int face, int side = -1, int type = -1);			// build omnidrive connector
-		int build_simple(conn_t conn, int face, int side = -1, int type = -1);				// build simple connector
-		int build_smallwheel(conn_t conn, int face, int side = -1, int type = -1);			// build small wheel connector
-		int build_tinywheel(conn_t conn, int face, int side = -1, int type = -1);			// build tiny wheel connector
-		int build_wheel(conn_t conn, int face, double size, int side = -1, int type = -1);	// build custom wheel connector
-#ifdef ENABLE_GRAPHICS
-		void draw_connector(conn_t conn, osg::Group *robot);								// load connector stl
-#endif // ENABLE_GRAPHICS
-		int fix_body_to_connector(dBodyID cBody, int face);									// fix body onto connector
-		int fix_connector_to_body(dBodyID rBody, dBodyID cBody);							// fix connector onto body
-		int get_connector_params(int type, int side, dMatrix3 R, double *p);				// get params of connector face
-		static void* closeGripperNBThread(void *arg);										// thread to close gripper
-		static void* driveTimeNBThread(void *arg);											// thread to drive robot
-		static void* drivexyThread(void *arg);												// thread to run drivexy
-		static void* drivexyToThread(void *arg);											// thread to run drivexyTo
-		static void* drivexyToFuncThread(void *arg);										// thread to run drivexyFunc
-		static void* drivexyToPolyThread(void *arg);										// thread to run drivexyPoly
-
-		// private data members
+		// dimensions
 		double	_bridge_length,
 				_cubic_length,
 				_face_depth,
@@ -229,14 +236,6 @@ class DLLIMPORT CLinkbotTGroup {
 		THREAD_T *_thread;
 };
 
-typedef struct linkbotMoveArg_s {
-	double x, y, radius, trackwidth;
-	int i;
-	double (*func)(double x);
-	char *expr;
-	CLinkbotT *robot;
-} linkbotMoveArg_t;
-
 class DLLIMPORT CLinkbotI : public CLinkbotT {
 	public:
 		CLinkbotI(void) : CLinkbotT(1, LINKBOTI) {}
@@ -245,10 +244,20 @@ class DLLIMPORT CLinkbotL : public CLinkbotT {
 	public:
 		CLinkbotL(void) : CLinkbotT(2, LINKBOTL) {}
 };
-
 class DLLIMPORT CLinkbotIGroup : public CLinkbotTGroup {};
 class DLLIMPORT CLinkbotLGroup : public CLinkbotTGroup {};
 
+// global structs for threading
+typedef struct linkbotMoveArg_s {
+	double x, y, radius, trackwidth;
+	int i;
+	double (*func)(double x);
+	char *expr;
+	CLinkbotT *robot;
+} linkbotMoveArg_t;
+
+// simulation
 extern RoboSim *g_sim;
 
 #endif // LINKBOT_H_
+

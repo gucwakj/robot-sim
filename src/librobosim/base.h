@@ -37,55 +37,56 @@ typedef struct conn_s {
 	struct conn_s *next;
 } *conn_t;
 
-class linkbotNodeCallback;
-class mobotNodeCallback;
+// forward declare friends
 class RoboSim;
 
 class DLLIMPORT CRobot {
 		friend class RoboSim;
+
+	// common public api
 	public:
 		CRobot(void);
 		~CRobot(void);
 
-		int blinkLED(double delay, int num);
-		int connect(char *name = NULL, int pause = 3);
-		int delay(double milliseconds);
-		int delaySeconds(double seconds);
+		int blinkLED(double, int);
+		int connect(char* = NULL, int = 3);
+		int delay(double);
+		int delaySeconds(double);
 		int disableRecordDataShift(void);
 		int disconnect(void);
 		int drivexyWait(void);
 		int enableRecordDataShift(void);
-		int getBatteryVoltage(double &voltage);
-		int getDistance(double &distance, double radius);
-		int getFormFactor(int &formFactor);
+		int getBatteryVoltage(double&);
+		int getDistance(double&, double);
+		int getFormFactor(int&);
 		int getID(void);
-		int getJointAngle(robotJointId_t id, double &angle, int numReadings = 10);
-		int getJointAngleInstant(robotJointId_t id, double &angle);
-		int getJointMaxSpeed(robotJointId_t id, double &maxSpeed);
-		int getJointSafetyAngle(double &angle);
-		int getJointSafetyAngleTimeout(double &seconds);
-		int getJointSpeed(robotJointId_t id, double &speed);
-		int getJointSpeedRatio(robotJointId_t id, double &ratio);
-		int getxy(double &x, double &y);
-		int holdJoint(robotJointId_t id);
+		int getJointAngle(robotJointId_t, double&, int = 10);
+		int getJointAngleInstant(robotJointId_t, double&);
+		int getJointMaxSpeed(robotJointId_t, double&);
+		int getJointSafetyAngle(double&);
+		int getJointSafetyAngleTimeout(double&);
+		int getJointSpeed(robotJointId_t, double&);
+		int getJointSpeedRatio(robotJointId_t, double&);
+		int getxy(double&, double&);
+		int holdJoint(robotJointId_t);
 		int holdJoints(void);
 		int holdJointsAtExit(void);
 		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int jumpJointTo(robotJointId_t id, double angle);
-		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpJointTo(robotJointId_t, double);
+		int jumpJointToNB(robotJointId_t, double);
 		int moveForeverNB(void);
-		int moveJoint(robotJointId_t id, double angle);
-		int moveJointNB(robotJointId_t id, double angle);
-		int moveJointForeverNB(robotJointId_t id);
-		int moveJointTime(robotJointId_t id, double seconds);
-		int moveJointTimeNB(robotJointId_t id, double seconds);
-		int moveJointTo(robotJointId_t id, double angle);
-		int moveJointToNB(robotJointId_t id, double angle);
-		int moveJointWait(robotJointId_t id);
-		int moveTime(double seconds);
-		int moveTimeNB(double seconds);
+		int moveJoint(robotJointId_t, double);
+		int moveJointNB(robotJointId_t, double);
+		int moveJointForeverNB(robotJointId_t);
+		int moveJointTime(robotJointId_t, double);
+		int moveJointTimeNB(robotJointId_t, double);
+		int moveJointTo(robotJointId_t, double);
+		int moveJointToNB(robotJointId_t, double);
+		int moveJointWait(robotJointId_t);
+		int moveTime(double);
+		int moveTimeNB(double);
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
@@ -104,80 +105,87 @@ class DLLIMPORT CRobot {
 		int relaxJoints(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
-		int setBuzzerFrequency(int frequency, double time);
+		int setBuzzerFrequency(int, double);
 		int setBuzzerFrequencyOff(void);
-		int setBuzzerFrequencyOn(int frequency);
-		int setLEDColor(char *color);
-		int setLEDColorRGB(int r, int g, int b);
-		int setJointPower(robotJointId_t id, int power);
-		int setJointSafetyAngle(double angle);
-		int setJointSafetyAngleTimeout(double seconds);
-		int setJointSpeed(robotJointId_t id, double speed);
-		int setJointSpeedRatio(robotJointId_t id, double ratio);
-		int systemTime(double &time);
+		int setBuzzerFrequencyOn(int);
+		int setLEDColor(char*);
+		int setLEDColorRGB(int, int, int);
+		int setJointPower(robotJointId_t, int);
+		int setJointSafetyAngle(double);
+		int setJointSafetyAngleTimeout(double);
+		int setJointSpeed(robotJointId_t, double);
+		int setJointSpeedRatio(robotJointId_t, double);
+		int systemTime(double&);
 		int traceOff(void);
 		int traceOn(void);
 		// TODO: make private-ish functions protected
-		dBodyID getConnectorBodyID(int face);
-		virtual int getConnectionParams(int face, dMatrix3 R, double *p) = 0;
+		dBodyID getConnectorBodyID(int);
+		virtual int getConnectionParams(int, dMatrix3, double*) = 0;
 
+	// condensed argument versions of function calls
 	protected:
 		int moveNB(double*);
 		int moveToNB(double*);
 		int recordAngles(double*, double**, int, double, int);
 		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t*&, double, int = 1);
 
+	// utility functions for inherited and friend classes
 	protected:
-		int addToSim(dWorldID &world, dSpaceID &space, int id);
-		int doze(double ms);
-		int fixBodyToGround(dBodyID cbody);
-		dBodyID getBodyID(int body);
-		double getCenter(int i);
-		dBodyID getConnectorBodyIDs(int num);
-		double getRotation(int body, int i);
+		int addToSim(dWorldID&, dSpaceID&, int);
+		int doze(double);
+		int fixBodyToGround(dBodyID);
+		dBodyID getBodyID(int);
+		double getCenter(int);
+		dBodyID getConnectorBodyIDs(int);
+		double getRotation(int, int);
 		double mod_angle(double, double, double);
-		int noisy(double *a, int length, double sigma);
-		static void* simPreCollisionThreadEntry(void *arg);
-		static void* simPostCollisionThreadEntry(void *arg);
+		int noisy(double*, int, double);
+		static void* simPreCollisionThreadEntry(void*);
+		static void* simPostCollisionThreadEntry(void*);
 
-		// pure virtual functions to be overridden by inherited classes of each robot
-		virtual int build(xml_robot_t robot) = 0;
-		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn) = 0;
-		virtual int buildIndividual(double x, double y, double z, dMatrix3 R, double *rot) = 0;
+	// virual functions for inherited classes
+	protected:
+		virtual int build(xml_robot_t) = 0;
+		virtual int build(xml_robot_t, CRobot*, xml_conn_t) = 0;
+		virtual int buildIndividual(double, double, double, dMatrix3, double*) = 0;
 #ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group *root, int tracking) = 0;
+		virtual int draw(osg::Group*, int) = 0;
 #endif // ENABLE_GRAPHICS
-		virtual double getAngle(int id) = 0;
-		virtual int initParams(int disabled, int type) = 0;
+		virtual double getAngle(int) = 0;
+		virtual int initParams(int, int) = 0;
 		virtual int initDims(void) = 0;
 		virtual void simPreCollisionThread(void) = 0;
 		virtual void simPostCollisionThread(void) = 0;
 
-		typedef enum robot_joint_state_e {
+	// data members
+	protected:
+		// motor motion directions
+		typedef enum motor_state_e {
 			NEUTRAL = 0,
 			HOLD,
 			POSITIVE,
 			NEGATIVE,
-		} robotJointState_t;
-		typedef enum robot_motor_mode_e {
+		} motorState_t;
+		// motor motion profiles
+		typedef enum motor_mode_e {
 			ACCEL_CONSTANT = 0,
 			ACCEL_CYCLOIDAL,
 			ACCEL_HARMONIC,
 			CONTINUOUS,
 			SEEK,
-		} robotMotorMode_t;
+		} motorMode_t;
 
 		// recording
-		typedef struct recordAngleArg_s {
-			CRobot *robot;
-			robotJointId_t id;
-			int num;
-			int msecs;
-			double *time;
-			double **ptime;
-			double **angle;
-			double ***pangle;
-		} recordAngleArg_t;
+		typedef struct recArg_s {
+			CRobot *robot;			// robot
+			robotJointId_t id;		// joint to record
+			int num;				// number of points
+			int msecs;				// ms between data points
+			double *time;			// array for time
+			double **ptime;			// pointer to time array
+			double **angle;			// array of angles
+			double ***pangle;		// point to array of angles
+		} recArg_t;
 		// motor accelerations
 		typedef struct accel_s {
 			double init;			// motion initial angle
@@ -205,8 +213,8 @@ class DLLIMPORT CRobot {
 			int stopping;			// stopping movement
 			int state;				// state
 			accel_t accel;			// acceleration variables
-			MUTEX_T success_mutex;
-			COND_T success_cond;
+			MUTEX_T success_mutex;	// motion successful mutex
+			COND_T success_cond;	// motion successful condition
 		} *motor_t;
 
 		conn_t _conn;				// connectors
@@ -250,24 +258,24 @@ class DLLIMPORT CRobot {
 		int _trace;					// tracing on or off
 		int _type;					// type of robot
 #ifdef ENABLE_GRAPHICS
-		osg::Group *_robot;
-		osg::ShapeDrawable *_led;
+		osg::Group *_robot;			// all graphical objects for drawing
+		osg::ShapeDrawable *_led;	// led object
 #endif // ENABLE_GRAPHICS
-		// threading locks for each robot
-		MUTEX_T _active_mutex;
-		COND_T _active_cond;
-		MUTEX_T _goal_mutex;
-		MUTEX_T _motion_mutex;
-		COND_T _motion_cond;
-		MUTEX_T _recording_mutex;
-		COND_T _recording_cond;
-		MUTEX_T _success_mutex;
-		COND_T _success_cond;
-		MUTEX_T _theta_mutex;
+		MUTEX_T _active_mutex;		// active recording
+		COND_T _active_cond;		// active recording
+		MUTEX_T _goal_mutex;		// goal value being written
+		MUTEX_T _motion_mutex;		// motion in progress
+		COND_T _motion_cond;		// motion in progress
+		MUTEX_T _recording_mutex;	// recording data point
+		COND_T _recording_cond;		// recording data  point
+		MUTEX_T _success_mutex;		// completed step
+		COND_T _success_cond;		// completed step
+		MUTEX_T _theta_mutex;		// theta value being written
 
+	// private functions
 	private:
 		bool is_shift_enabled(void);					// is recorded data shift enabled
-		double normal(double sigma);					// get random value from normal distribution
+		double normal(double);							// get random value from normal distribution
 		double uniform(void);							// get random value from uniform distribution
 		static void* moveJointTimeNBThread(void*);		// thread to move a joint
 		static void* moveTimeNBThread(void*);			// thread to move all joints
@@ -279,3 +287,4 @@ class DLLIMPORT CRobot {
 };
 
 #endif // BASE_H_
+

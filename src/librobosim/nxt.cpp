@@ -310,7 +310,7 @@ int CNXT::driveTime(double seconds) {
 
 void* CNXT::driveTimeNBThread(void *arg) {
 	// cast argument
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+	recArg_t *rArg = (recArg_t *)arg;
 
 	// get robot
 	CNXT *robot = dynamic_cast<CNXT *>(rArg->robot);
@@ -329,7 +329,7 @@ void* CNXT::driveTimeNBThread(void *arg) {
 int CNXT::driveTimeNB(double seconds) {
 	// set up threading
 	THREAD_T moving;
-	recordAngleArg_t *rArg = new recordAngleArg_t;
+	recArg_t *rArg = new recArg_t;
 	rArg->robot = this;
 	rArg->msecs = 1000*seconds;
 

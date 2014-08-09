@@ -401,7 +401,7 @@ int CRobot::moveJointTime(robotJointId_t id, double seconds) {
 int CRobot::moveJointTimeNB(robotJointId_t id, double seconds) {
 	// set up threading
 	THREAD_T moving;
-	recordAngleArg_t *rArg = new recordAngleArg_t;
+	recArg_t *rArg = new recArg_t;
 	rArg->robot = this;
 	rArg->msecs = 1000*seconds;
 	rArg->id = id;
@@ -480,7 +480,7 @@ int CRobot::moveTime(double seconds) {
 int CRobot::moveTimeNB(double seconds) {
 	// set up threading
 	THREAD_T moving;
-	recordAngleArg_t *rArg = new recordAngleArg_t;
+	recArg_t *rArg = new recArg_t;
 	rArg->robot = this;
 	rArg->msecs = 1000*seconds;
 
@@ -545,7 +545,7 @@ int CRobot::recordAngle(robotJointId_t id, double time[], double angle[], int nu
 	THREAD_T recording;
 
 	// set up recording args struct
-	recordAngleArg_t *rArg = new recordAngleArg_t;
+	recArg_t *rArg = new recArg_t;
 	rArg->robot = this;
 	rArg->time = time;
 	rArg->angle = new double * [1];
@@ -575,7 +575,7 @@ int CRobot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRe
 	THREAD_T recording;
 
 	// set up recording args struct
-	recordAngleArg_t *rArg = new recordAngleArg_t;
+	recArg_t *rArg = new recArg_t;
 	rArg->robot = this;
 	rArg->id = id;
 	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
@@ -749,7 +749,7 @@ int CRobot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double sec
 	THREAD_T recording;
 
 	// set up recording args struct
-	recordAngleArg_t *rArg = new recordAngleArg_t;
+	recArg_t *rArg = new recArg_t;
 	rArg->robot = this;
 	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
 	rArg->msecs = seconds * 1000;
@@ -1012,7 +1012,7 @@ int CRobot::recordAngles(double *time, double **angle, int num, double seconds, 
 	THREAD_T recording;
 
 	// set up recording args struct
-	recordAngleArg_t *rArg = new recordAngleArg_t;
+	recArg_t *rArg = new recArg_t;
 	rArg->robot = this;
 	rArg->time = time;
 	rArg->angle = new double * [_dof];
@@ -1046,7 +1046,7 @@ int CRobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle
 	THREAD_T recording;
 
 	// set up recording args struct
-	recordAngleArg_t *rArg = new recordAngleArg_t;
+	recArg_t *rArg = new recArg_t;
 	rArg->robot = this;
 	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
 	rArg->msecs = seconds * 1000;
@@ -1299,7 +1299,7 @@ double CRobot::uniform(void) {
 
 void* CRobot::moveJointTimeNBThread(void *arg) {
 	// cast argument
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+	recArg_t *rArg = (recArg_t *)arg;
 
 	// get robot
 	CRobot *robot = dynamic_cast<CRobot *>(rArg->robot);
@@ -1317,7 +1317,7 @@ void* CRobot::moveJointTimeNBThread(void *arg) {
 
 void* CRobot::moveTimeNBThread(void *arg) {
 	// cast argument
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+	recArg_t *rArg = (recArg_t *)arg;
 
 	// get robot
 	CRobot *robot = dynamic_cast<CRobot *>(rArg->robot);
@@ -1335,7 +1335,7 @@ void* CRobot::moveTimeNBThread(void *arg) {
 
 void* CRobot::recordAngleThread(void *arg) {
 	// cast arg struct
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+	recArg_t *rArg = (recArg_t *)arg;
 
 	// create initial time points
 	double start_time = 0;
@@ -1400,7 +1400,7 @@ void* CRobot::recordAngleThread(void *arg) {
 
 void* CRobot::recordAngleBeginThread(void *arg) {
 	// cast arg struct
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+	recArg_t *rArg = (recArg_t *)arg;
 
 	// create initial time points
 	double start_time = 0;
@@ -1472,7 +1472,7 @@ void* CRobot::recordAngleBeginThread(void *arg) {
 
 void* CRobot::recordAnglesThread(void *arg) {
 	// cast arg struct
-    recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+    recArg_t *rArg = (recArg_t *)arg;
 
 	// create initial time points
     double start_time = 0;
@@ -1549,7 +1549,7 @@ void* CRobot::recordAnglesThread(void *arg) {
 
 void* CRobot::recordAnglesBeginThread(void *arg) {
 	// cast arg struct
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+	recArg_t *rArg = (recArg_t *)arg;
 
 	// create initial time points
 	double start_time = 0;
@@ -1619,7 +1619,7 @@ void* CRobot::recordAnglesBeginThread(void *arg) {
 
 void* CRobot::recordxyBeginThread(void *arg) {
 	// cast arg struct
-	recordAngleArg_t *rArg = (recordAngleArg_t *)arg;
+	recArg_t *rArg = (recArg_t *)arg;
 
 	// create initial time points
 	int time = (int)((g_sim->getClock())*1000);

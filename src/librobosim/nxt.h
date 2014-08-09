@@ -9,44 +9,46 @@
 
 class DLLIMPORT CNXT : virtual public CRobot {
 		friend class nxtNodeCallback;
+
+	// public api
 	public:
 		CNXT();
 		virtual ~CNXT();
 
-		int accelJointAngleNB(robotJointId_t id, double a, double angle);
-		int accelJointCycloidalNB(robotJointId_t id, double angle, double t);
-		int accelJointHarmonicNB(robotJointId_t id, double angle, double t);
-		int accelJointSmoothNB(robotJointId_t id, double a0, double af, double vmax, double angle);
-		int accelJointTimeNB(robotJointId_t id, double a, double t);
-		int accelJointToMaxSpeedNB(robotJointId_t id, double a);
-		int accelJointToVelocityNB(robotJointId_t id, double a, double v);
-		int driveAccelCycloidalNB(double radius, double d, double t);
-		int driveAccelDistanceNB(double radius, double a, double d);
-		int driveAccelHarmonicNB(double radius, double d, double t);
-		int driveAccelSmoothNB(double radius, double a0, double af, double vmax, double d);
-		int driveAccelTimeNB(double radius, double a, double t);
-		int driveAccelToMaxSpeedNB(double radius, double a);
-		int driveAccelToVelocityNB(double radius, double a, double v);
-		int driveBackward(double angle);
-		int driveBackwardNB(double angle);
-		int driveDistance(double distance, double radius);
-		int driveDistanceNB(double distance, double radius);
+		int accelJointAngleNB(robotJointId_t, double, double);
+		int accelJointCycloidalNB(robotJointId_t, double, double);
+		int accelJointHarmonicNB(robotJointId_t, double, double);
+		int accelJointSmoothNB(robotJointId_t, double, double, double, double);
+		int accelJointTimeNB(robotJointId_t, double, double);
+		int accelJointToMaxSpeedNB(robotJointId_t, double);
+		int accelJointToVelocityNB(robotJointId_t, double, double);
+		int driveAccelCycloidalNB(double, double, double);
+		int driveAccelDistanceNB(double, double, double);
+		int driveAccelHarmonicNB(double, double, double);
+		int driveAccelSmoothNB(double, double, double, double, double);
+		int driveAccelTimeNB(double, double, double);
+		int driveAccelToMaxSpeedNB(double, double);
+		int driveAccelToVelocityNB(double, double, double);
+		int driveBackward(double);
+		int driveBackwardNB(double);
+		int driveDistance(double, double);
+		int driveDistanceNB(double, double);
 		int driveForeverNB(void);
-		int driveForward(double angle);
-		int driveForwardNB(double angle);
-		int driveTime(double seconds);
-		int driveTimeNB(double seconds);
-		int drivexy(double x, double y, double radius, double trackwidth);
-		int drivexyNB(double x, double y, double radius, double trackwidth);
-		int drivexyTo(double x, double y, double radius, double trackwidth);
-		int drivexyToNB(double x, double y, double radius, double trackwidth);
-		int drivexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
-		int drivexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth);
-		int drivexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth);
-		int drivexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
-		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
-		int getLEDColorName(char color[]);
-		int getLEDColorRGB(int &r, int &g, int &b);
+		int driveForward(double);
+		int driveForwardNB(double);
+		int driveTime(double);
+		int driveTimeNB(double);
+		int drivexy(double, double, double, double);
+		int drivexyNB(double, double, double, double);
+		int drivexyTo(double, double, double, double);
+		int drivexyToNB(double, double, double, double);
+		int drivexyToFunc(double, double, int, double (*func)(double), double, double);
+		int drivexyToFuncNB(double, double, int, double (*func)(double), double, double);
+		int drivexyToPoly(double, double, int, char*, double, double);
+		int drivexyToPolyNB(double, double, int, char*, double, double);
+		int getAccelerometerData(double&, double&, double&);
+		int getLEDColorName(char[]);
+		int getLEDColorRGB(int&, int&, int&);
 		int getJointAngles(double&, double&, int = 10);
 		int getJointAnglesInstant(double&, double&);
 		int getJointSpeeds(double&, double&);
@@ -67,36 +69,41 @@ class DLLIMPORT CNXT : virtual public CRobot {
 		int turnLeftNB(double, double, double);
 		int turnRight(double, double, double);
 		int turnRightNB(double, double, double);
+
+	// inherited functions
     private:
-		enum robot_pieces_e {       // each body part which is built
+		virtual int build(xml_robot_t);
+		virtual int build(xml_robot_t, CRobot*, xml_conn_t);
+		virtual int buildIndividual(double, double, double, dMatrix3, double*);
+#ifdef ENABLE_GRAPHICS
+		virtual int draw(osg::Group*, int);
+#endif // ENABLE_GRAPHICS
+		virtual double getAngle(int);
+		virtual int getConnectionParams(int, dMatrix3, double*);
+		virtual int initParams(int, int);
+		virtual int initDims(void);
+		virtual void simPreCollisionThread(void);
+		virtual void simPostCollisionThread(void);
+
+	// private functions
+    private:
+		int build_body(double, double, double, dMatrix3, double);		// build body of linkbot
+		int build_wheel(int, double, double, double, dMatrix3, double);	// build wheels of nxt
+		static void* driveTimeNBThread(void*);							// thread to drive robot
+		static void* drivexyThread(void*);								// thread to run drivexy
+		static void* drivexyToThread(void*);							// thread to run drivexyTo
+		static void* drivexyToFuncThread(void*);						// thread to run drivexyFunc
+		static void* drivexyToPolyThread(void*);						// thread to run drivexyPoly
+
+	// private data
+	private:
+		// robot body parts
+		enum robot_pieces_e {
 			BODY,
 			WHEEL1,
 			WHEEL2,
 			NUM_PARTS
 		};
-
-		// private functions inherited from CRobot class
-		virtual int build(xml_robot_t robot);
-		virtual int build(xml_robot_t robot, CRobot *base, xml_conn_t conn);
-		virtual int buildIndividual(double x, double y, double z, dMatrix3 R, double *rot);
-#ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group *root, int tracking);
-#endif // ENABLE_GRAPHICS
-		virtual double getAngle(int);
-		virtual int getConnectionParams(int face, dMatrix3 R, double *p);
-		virtual int initParams(int disabled, int type);
-		virtual int initDims(void);
-		virtual void simPreCollisionThread(void);
-		virtual void simPostCollisionThread(void);
-
-		// private functions
-		int build_body(double x, double y, double z, dMatrix3 R, double theta);				// build body of linkbot
-		int build_wheel(int id, double x, double y, double z, dMatrix3 R, double theta);	// build wheels of nxt
-		static void* driveTimeNBThread(void *arg);											// thread to drive robot
-		static void* drivexyThread(void *arg);												// thread to run drivexy
-		static void* drivexyToThread(void *arg);											// thread to run drivexyTo
-		static void* drivexyToFuncThread(void *arg);										// thread to run drivexyFunc
-		static void* drivexyToPolyThread(void *arg);										// thread to run drivexyPoly
 };
 
 /*class DLLIMPORT CNXTGroup {
@@ -196,6 +203,7 @@ class DLLIMPORT CNXT : virtual public CRobot {
 		THREAD_T *_thread;
 };*/
 
+// global structs for threading
 typedef struct nxtMoveArg_s {
 	double x, y, radius, trackwidth;
 	int i;
@@ -204,6 +212,8 @@ typedef struct nxtMoveArg_s {
 	CNXT *robot;
 } nxtMoveArg_t;
 
+// simulation
 extern RoboSim *g_sim;
 
 #endif // NXT_H_
+
