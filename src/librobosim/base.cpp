@@ -328,9 +328,6 @@ int CRobot::moveJoint(robotJointId_t id, double angle) {
 }
 
 int CRobot::moveJointNB(robotJointId_t id, double angle) {
-	// check if disabled joint
-	if (_disabled == id) return 0;
-
 	// lock goal
 	MUTEX_LOCK(&_goal_mutex);
 
@@ -428,9 +425,6 @@ int CRobot::moveJointTo(robotJointId_t id, double angle) {
 }
 
 int CRobot::moveJointToNB(robotJointId_t id, double angle) {
-	// check if disabled joint
-	if (_disabled == id) return 0;
-
 	// lock goal
 	MUTEX_LOCK(&_goal_mutex);
 

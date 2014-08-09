@@ -123,6 +123,19 @@ class mobotNodeCallback : public osg::NodeCallback {
 };
 
 /**********************************************************
+	NXT Node Callback
+ **********************************************************/
+class CNXT;
+class nxtNodeCallback : public osg::NodeCallback {
+	public:
+		nxtNodeCallback(CNXT *robot);
+		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+	private:
+		CNXT *_robot;
+		int _count;
+};
+
+/**********************************************************
 	Ground Node Callback
  **********************************************************/
 class groundNodeCallback : public osg::NodeCallback {

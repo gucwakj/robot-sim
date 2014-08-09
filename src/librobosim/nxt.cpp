@@ -926,15 +926,14 @@ int CNXT::build(xml_robot_t robot) {
 	dMatrix3 R = {cphi*ctheta,	-cphi*stheta*spsi - sphi*cpsi,	-cphi*stheta*cpsi + sphi*spsi,	0,
 				  sphi*ctheta,	-sphi*stheta*spsi + cphi*cpsi,	-sphi*stheta*cpsi - cphi*spsi,	0,
 				  stheta,		ctheta*spsi,					ctheta*cpsi,					0};
-
 	// build robot
-	double rot[3] = {robot->angle1, robot->angle2, robot->angle3};
+	double rot[2] = {robot->angle1, robot->angle2};
 	this->buildIndividual(robot->x, robot->y, robot->z, R, rot);
 
 	// set trackwidth
 	const double *pos1, *pos2;
 	pos1 = dBodyGetPosition(_body[WHEEL1]);
-	pos2 = dBodyGetPosition(_body[WHEEL1]);
+	pos2 = dBodyGetPosition(_body[WHEEL2]);
 	_trackwidth = sqrt(pow(pos2[0] - pos1[0], 2) + pow(pos2[1] - pos1[1], 2));
 
 	// fix to ground
@@ -953,7 +952,7 @@ int CNXT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
 int CNXT::buildIndividual(double x, double y, double z, dMatrix3 R, double *rot) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
-	_geom[BODY] = new dGeomID[2];
+	_geom[BODY] = new dGeomID[1];
 	_geom[WHEEL1] = new dGeomID[1];
 	_geom[WHEEL2] = new dGeomID[1];
 
@@ -975,11 +974,11 @@ int CNXT::buildIndividual(double x, double y, double z, dMatrix3 R, double *rot)
 	// build robot bodies
 	this->build_body(x, y, z, R, 0);
 	this->build_wheel(WHEEL1, R[0]*f1[0] + x, R[4]*f1[0] + y, R[8]*f1[0] + z, R, 0);
-	this->build_wheel(WHEEL2, R[1]*f2[1] + x, R[5]*f2[1] + y, R[9]*f2[1] + z, R, 0);
+	this->build_wheel(WHEEL2, R[0]*f2[0] + x, R[4]*f2[0] + y, R[8]*f2[0] + z, R, 0);
 
 	// get center of robot offset from body position
 	_center[0] = 0;
-	_center[1] = 0.012462;
+	_center[1] = 0;
 	_center[2] = 0;
 
     // joint for body to wheel 1
@@ -1068,14 +1067,9 @@ int CNXT::draw(osg::Group *root, int tracking) {
 		cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]+0.0001), 0.01, _body_height);
 		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		_led = new osg::ShapeDrawable(cyl);
-		body[3]->addDrawable(_led);
+		body[NUM_PARTS]->addDrawable(_led);
 		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1));
 	}
-	pos = dGeomGetOffsetPosition(_geom[BODY][1]);
-	dGeomGetOffsetQuaternion(_geom[BODY][1], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _body_radius, _body_width);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[BODY]->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// wheel1
 	pos = dGeomGetOffsetPosition(_geom[WHEEL1][0]);
@@ -1110,7 +1104,7 @@ int CNXT::draw(osg::Group *root, int tracking) {
 	}
 
 	// set update callback for robot
-	//_robot->setUpdateCallback(new nxtNodeCallback(this));
+	_robot->setUpdateCallback(new nxtNodeCallback(this));
 
 	// set masks
 	//robot->setNodeMask(CASTS_SHADOW_MASK);
