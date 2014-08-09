@@ -286,5 +286,69 @@ class DLLIMPORT Robot {
 		static void* recordxyBeginThread(void*);		// thread to record (x,y) positions
 };
 
+/*class DLLIMPORT RobotGroup {
+	// public api
+	public:
+		RobotGroup(void);
+		virtual ~RobotGroup(void);
+		int addRobot(Robot&);
+		int addRobots(Robot[], int);
+
+		int blinkLED(double, int);
+		int connect(void);
+		int disconnect(void);
+		int holdJoint(robotJointId_t);
+		int holdJoints(void);
+		int holdJointsAtExit(void);
+		int isMoving(void);
+		int isNotMoving(void);
+		int jumpJointTo(robotJointId_t, double);
+		int jumpJointToNB(robotJointId_t, double);
+		int moveForeverNB(void);
+		int moveJoint(robotJointId_t, double);
+		int moveJointNB(robotJointId_t, double);
+		int moveJointForeverNB(robotJointId_t);
+		int moveJointTime(robotJointId_t, double);
+		int moveJointTimeNB(robotJointId_t, double);
+		int moveJointTo(robotJointId_t, double);
+		int moveJointToNB(robotJointId_t, double);
+		int moveJointWait(robotJointId_t);
+		int moveTime(double);
+		int moveTimeNB(double);
+		int moveToZero(void);
+		int moveToZeroNB(void);
+		int moveWait(void);
+		int relaxJoint(robotJointId_t id);
+		int relaxJoints(void);
+		int resetToZero(void);
+		int resetToZeroNB(void);
+		int setBuzzerFrequency(int, double);
+		int setBuzzerFrequencyOff(void);
+		int setBuzzerFrequencyOn(int);
+		int setJointPower(robotJointId_t, int);
+		int setJointSafetyAngle(double);
+		int setJointSafetyAngleTimeout(double);
+		int setJointSpeed(robotJointId_t, double);
+		int setJointSpeedRatio(robotJointId_t, double);
+		int setSpeed(double, double);
+		int traceOff(void);
+		int traceOn(void);
+		int turnLeft(double, double, double);
+		int turnLeftNB(double, double, double);
+		int turnRight(double, double, double);
+		int turnRightNB(double, double, double);
+
+	// data members
+	private:
+		typedef struct robots_s {
+			//Robot *robot;
+			struct robots_s *next;
+		} *robots_t;
+		double _d;
+		int _i;
+		robots_t _robots;
+		THREAD_T *_thread;
+};*/
+
 #endif // BASE_H_
 

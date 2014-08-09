@@ -107,6 +107,7 @@ endif ()
 if (ENABLE_GRAPHICS)
 add_library( robosim SHARED
 	base.cpp
+	#robotgroup.cpp
 	graphics.cpp
 	robosim.cpp
 	linkbot.cpp
@@ -119,6 +120,7 @@ add_library( robosim SHARED
 else (ENABLE_GRAPHICS)
 add_library( robosim SHARED
 	base.cpp
+	#robotgroup.cpp
 	robosim.cpp
 	linkbot.cpp
 	linkbotgroup.cpp
