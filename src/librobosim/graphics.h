@@ -40,7 +40,7 @@
 #include <osgViewer/ViewerEventHandlers>
 
 #include "config.h"
-#include "base.h"
+#include "robot.h"
 
 extern osg::Node::NodeMask NOT_VISIBLE_MASK;
 extern osg::Node::NodeMask RECEIVES_SHADOW_MASK;

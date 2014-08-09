@@ -2,7 +2,7 @@
 #define ROBOSIM_H_
 
 #include "config.h"
-#include "base.h"
+#include "robot.h"
 #include <iostream>
 #include <tinyxml2.h>
 #ifdef ENABLE_GRAPHICS

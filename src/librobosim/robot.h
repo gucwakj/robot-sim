@@ -1,5 +1,5 @@
-#ifndef BASE_H_
-#define BASE_H_
+#ifndef ROBOT_H_
+#define ROBOT_H_
 
 #ifdef _WIN32
 #include <windows.h>
@@ -350,5 +350,5 @@ class DLLIMPORT Robot {
 		THREAD_T *_thread;
 };*/
 
-#endif // BASE_H_
+#endif // ROBOT_H_
 
