@@ -1049,7 +1049,7 @@ int CNXT::draw(osg::Group *root, int tracking) {
 	_robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[NUM_PARTS+1];
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat[NUM_PARTS+1];
-	osg::ref_ptr<osg::Texture2D> tex[2];
+	osg::ref_ptr<osg::Texture2D> tex;
 	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
@@ -1077,14 +1077,14 @@ int CNXT::draw(osg::Group *root, int tracking) {
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[BODY]->addDrawable(new osg::ShapeDrawable(cyl));
 
-    // face1
+	// wheel1
 	pos = dGeomGetOffsetPosition(_geom[WHEEL1][0]);
 	dGeomGetOffsetQuaternion(_geom[WHEEL1][0], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _wheel_radius, _wheel_depth);
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[WHEEL1]->addDrawable(new osg::ShapeDrawable(cyl));
 
-    // face 2
+	// wheel2
 	pos = dGeomGetOffsetPosition(_geom[WHEEL2][0]);
 	dGeomGetOffsetQuaternion(_geom[WHEEL2][0], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _wheel_radius, _wheel_depth);
@@ -1092,27 +1092,18 @@ int CNXT::draw(osg::Group *root, int tracking) {
 	body[WHEEL2]->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture to robot
-	tex[0] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/body.png)));
-	tex[1] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/face.png)));
-	for (int i = 0; i < 2; i++) {
-		tex[i]->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-		tex[i]->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-		tex[i]->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-		tex[i]->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	}
-    body[0]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
-    body[1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
-    body[2]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
-    body[3]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
+	tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/body.png)));
+	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
+	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
+	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
+	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
 
-	// set rendering properties
 	for (int i = 0; i < NUM_PARTS+1; i++) {
+		// set rendering properties
+		body[i]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
 		body[i]->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
 		body[i]->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	}
-
-	// position each body within robot
-	for (int i = 0; i < NUM_PARTS+1; i++) {
+		// position in robot
 		pat[i] = new osg::PositionAttitudeTransform;
 		pat[i]->addChild(body[i].get());
 		_robot->addChild(pat[i].get());
@@ -1487,9 +1478,6 @@ int CNXT::build_body(double x, double y, double z, dMatrix3 R, double theta) {
 
 	// set mass of body
 	dMassSetBox(&m, 1000, _body_width, _body_length, _body_height);
-	dMassTranslate(&m, 0, -_body_length/2, 0);
-	dMassSetCylinder(&m2, 400, 1, _body_radius, _body_width);
-	dMassAdd(&m, &m2);
 
 	// adjust x,y,z to position center of mass correctly
 	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -1509,13 +1497,7 @@ int CNXT::build_body(double x, double y, double z, dMatrix3 R, double theta) {
 	// set geometry 1 - box
 	_geom[BODY][0] = dCreateBox(_space, _body_width, _body_length, _body_height);
 	dGeomSetBody(_geom[BODY][0], _body[BODY]);
-	dGeomSetOffsetPosition(_geom[BODY][0], -m.c[0], -_body_length/2 - m.c[1], -m.c[2]);
-
-	// set geometry 2 - cylinder
-	_geom[BODY][1] = dCreateCylinder(_space, _body_radius, _body_width);
-	dGeomSetBody(_geom[BODY][1], _body[BODY]);
-	dGeomSetOffsetPosition(_geom[BODY][1], -m.c[0], -m.c[1], -m.c[2]);
-	dGeomSetOffsetRotation(_geom[BODY][1], R2);
+	dGeomSetOffsetPosition(_geom[BODY][0], -m.c[0], -m.c[1], -m.c[2]);
 
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
@@ -1530,11 +1512,8 @@ int CNXT::build_wheel(int id, double x, double y, double z, dMatrix3 R, double t
 	dMass m;
 	dMatrix3 R1, R2, R3;
 
-	// set mass of body
-	if (id == 2)
-		dMassSetCylinder(&m, 270, 2, 2*_wheel_radius, _wheel_depth);
-	else
-		dMassSetCylinder(&m, 270, 1, 2*_wheel_radius, _wheel_depth);
+	// set mass of wheel
+	dMassSetCylinder(&m, 270, 1, 2*_wheel_radius, _wheel_depth);
 
 	// adjust x,y,z to position center of mass correctly
 	x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -1547,10 +1526,7 @@ int CNXT::build_wheel(int id, double x, double y, double z, dMatrix3 R, double t
 	dBodySetFiniteRotationMode(_body[id], 1);
 
 	// rotation matrix
-	if (id == 2)
-	    dRFromAxisAndAngle(R1, 1, 0, 0, M_PI/2);		// SWITCHED X AND Y AXIS
-	else
-	    dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);		// SWITCHED X AND Y AXIS
+	dRFromAxisAndAngle(R1, 0, 1, 0, M_PI/2);		// SWITCHED X AND Y AXIS
 	dRFromAxisAndAngle(R3, 0, 0, 1, -theta);
 	dMultiply0(R2, R1, R3, 3, 3, 3);
 
