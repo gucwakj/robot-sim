@@ -812,6 +812,28 @@ int CMobotGroup::setSpeed(double speed, double radius) {
 	return 0;
 }
 
+int CMobotGroup::traceOff(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->traceOff();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CMobotGroup::traceOn(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->traceOn();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobotGroup::turnLeft(double angle, double radius, double trackwidth) {
 	this->turnLeftNB(angle, radius, trackwidth);
 	return moveWait();
@@ -844,6 +866,9 @@ int CMobotGroup::turnRightNB(double angle, double radius, double trackwidth) {
 	return 0;
 }
 
+/**********************************************************
+	private functions
+ **********************************************************/
 void* CMobotGroup::motionArchThread(void* arg) {
 	CMobotGroup *cmg = (CMobotGroup *)arg;
 

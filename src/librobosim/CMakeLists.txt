@@ -115,6 +115,7 @@ add_library( robosim SHARED
 	mobot.cpp
 	mobotgroup.cpp
 	nxt.cpp
+	nxtgroup.cpp
 	rgbhashtable.c
 )
 else (ENABLE_GRAPHICS)
@@ -127,6 +128,7 @@ add_library( robosim SHARED
 	mobot.cpp
 	mobotgroup.cpp
 	nxt.cpp
+	nxtgroup.cpp
 	rgbhashtable.c
 )
 endif (ENABLE_GRAPHICS)
