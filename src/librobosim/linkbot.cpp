@@ -821,7 +821,7 @@ int CLinkbotT::moveNB(double angle1, double angle2, double angle3) {
 	angles[JOINT3] = angle3;
 
 	// call base class recording function
-	int retval = CRobot::moveNB(angles);
+	int retval = Robot::moveNB(angles);
 
 	// clean up
 	delete angles;
@@ -846,7 +846,7 @@ int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 	angles[JOINT3] = angle3;
 
 	// call base class recording function
-	int retval = CRobot::moveToNB(angles);
+	int retval = Robot::moveToNB(angles);
 
 	// clean up
 	delete angles;
@@ -886,7 +886,7 @@ int CLinkbotT::recordAngles(double *time, double *angle1, double *angle2, double
 	angles[JOINT3] = angle3;
 
 	// call base class recording function
-	return CRobot::recordAngles(time, angles, num, seconds, shiftData);
+	return Robot::recordAngles(time, angles, num, seconds, shiftData);
 }
 
 int CLinkbotT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, double seconds, int shiftData) {
@@ -902,7 +902,7 @@ int CLinkbotT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &ang
 	angles[JOINT3] = angle3;
 
 	// call base class recording function
-	return CRobot::recordAnglesBegin(time, angles, seconds, shiftData);
+	return Robot::recordAnglesBegin(time, angles, seconds, shiftData);
 }
 
 int CLinkbotT::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, double radius, double seconds, int shiftData) {
@@ -918,7 +918,7 @@ int CLinkbotT::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &
 	angles[JOINT3] = distance3;
 
 	// call base class recording function
-	return CRobot::recordAnglesBegin(time, angles, seconds, shiftData);
+	return Robot::recordAnglesBegin(time, angles, seconds, shiftData);
 }
 
 int CLinkbotT::setJointSpeeds(double speed1, double speed2, double speed3) {
@@ -1086,7 +1086,7 @@ int CLinkbotT::build(xml_robot_t robot) {
 	return 0;
 }
 
-int CLinkbotT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
+int CLinkbotT::build(xml_robot_t robot, Robot *base, xml_conn_t conn) {
 	// initialize new variables
 	double m[3] = {0}, offset[3] = {0};
 	dMatrix3 R, R1, R2, R3, R4, R5, R6;

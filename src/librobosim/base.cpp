@@ -1,7 +1,7 @@
 #include "base.h"
 #include "robosim.h"
 
-CRobot::CRobot(void) {
+Robot::Robot(void) {
 	MUTEX_INIT(&_active_mutex);
 	COND_INIT(&_active_cond);
 	MUTEX_INIT(&_goal_mutex);
@@ -16,7 +16,7 @@ CRobot::CRobot(void) {
 	_seed = time(NULL);
 }
 
-CRobot::~CRobot(void) {
+Robot::~Robot(void) {
 	// destroy connectors array
 	conn_t ctmp = _conn;
 	while (ctmp) {
@@ -50,7 +50,7 @@ CRobot::~CRobot(void) {
 	MUTEX_DESTROY(&_theta_mutex);
 }
 
-int CRobot::blinkLED(double delay, int num) {
+int Robot::blinkLED(double delay, int num) {
 #ifdef ENABLE_GRAPHICS
 	// blink num-1 full times
 	for (int i = 0; i < num-1; i++) {
@@ -70,7 +70,7 @@ int CRobot::blinkLED(double delay, int num) {
 	return 0;
 }
 
-int CRobot::connect(char *name, int pause) {
+int Robot::connect(char *name, int pause) {
 	// create simulation object if necessary
 	if (!g_sim)
 		g_sim = new RoboSim(name, pause);
@@ -90,7 +90,7 @@ int CRobot::connect(char *name, int pause) {
 	return 0;
 }
 
-int CRobot::delay(double milliseconds) {
+int Robot::delay(double milliseconds) {
 	// set ending time
 	double end = g_sim->getClock() + milliseconds/1000;
 
@@ -102,7 +102,7 @@ int CRobot::delay(double milliseconds) {
 	return 0;
 }
 
-int CRobot::delaySeconds(double seconds) {
+int Robot::delaySeconds(double seconds) {
 	// delay milliseconds
 	this->delay(1000 * seconds);
 
@@ -110,7 +110,7 @@ int CRobot::delaySeconds(double seconds) {
 	return 0;
 }
 
-int CRobot::disableRecordDataShift(void) {
+int Robot::disableRecordDataShift(void) {
 	_g_shift_data = 0;
 	_g_shift_data_en = 1;
 
@@ -118,7 +118,7 @@ int CRobot::disableRecordDataShift(void) {
 	return 0;
 }
 
-int CRobot::disconnect(void) {
+int Robot::disconnect(void) {
 	// and we are not connected
 	_connected = 0;
 
@@ -126,7 +126,7 @@ int CRobot::disconnect(void) {
 	return 0;
 }
 
-int CRobot::drivexyWait(void) {
+int Robot::drivexyWait(void) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_motion_mutex);
 	while (_motion) {
@@ -138,7 +138,7 @@ int CRobot::drivexyWait(void) {
 	return 0;
 }
 
-int CRobot::enableRecordDataShift(void) {
+int Robot::enableRecordDataShift(void) {
 	_g_shift_data = 1;
 	_g_shift_data_en = 1;
 
@@ -146,14 +146,14 @@ int CRobot::enableRecordDataShift(void) {
 	return 0;
 }
 
-int CRobot::getBatteryVoltage(double &voltage) {
+int Robot::getBatteryVoltage(double &voltage) {
 	voltage = 100;
 
 	// success
 	return 0;
 }
 
-int CRobot::getDistance(double &distance, double radius) {
+int Robot::getDistance(double &distance, double radius) {
 	double angle;
 	this->getJointAngle(JOINT1, angle, 2);
 	distance = DEG2RAD(angle) * radius;
@@ -162,19 +162,19 @@ int CRobot::getDistance(double &distance, double radius) {
 	return 0;
 }
 
-int CRobot::getFormFactor(int &formFactor) {
+int Robot::getFormFactor(int &formFactor) {
 	formFactor = _type;
 
 	// success
 	return 0;
 }
 
-int CRobot::getID(void) {
+int Robot::getID(void) {
 	// get id of robot
 	return _id;
 }
 
-int CRobot::getJointAngle(robotJointId_t id, double &angle, int numReadings) {
+int Robot::getJointAngle(robotJointId_t id, double &angle, int numReadings) {
 	//initialize variables
 	double d;
 	angle = 0;
@@ -194,49 +194,49 @@ int CRobot::getJointAngle(robotJointId_t id, double &angle, int numReadings) {
 	return 0;
 }
 
-int CRobot::getJointAngleInstant(robotJointId_t id, double &angle) {
+int Robot::getJointAngleInstant(robotJointId_t id, double &angle) {
 	angle = RAD2DEG(_motor[id].theta);
 
 	// success
 	return 0;
 }
 
-int CRobot::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
+int Robot::getJointMaxSpeed(robotJointId_t id, double &maxSpeed) {
 	maxSpeed = RAD2DEG(_motor[id].omega_max);
 
 	// success
 	return 0;
 }
 
-int CRobot::getJointSafetyAngle(double &angle) {
+int Robot::getJointSafetyAngle(double &angle) {
 	angle = _motor[JOINT1].safety_angle;
 
 	// success
 	return 0;
 }
 
-int CRobot::getJointSafetyAngleTimeout(double &seconds) {
+int Robot::getJointSafetyAngleTimeout(double &seconds) {
 	seconds = _motor[JOINT1].safety_timeout;
 
 	// success
 	return 0;
 }
 
-int CRobot::getJointSpeed(robotJointId_t id, double &speed) {
+int Robot::getJointSpeed(robotJointId_t id, double &speed) {
 	speed = RAD2DEG(_motor[id].omega);
 
 	// success
 	return 0;
 }
 
-int CRobot::getJointSpeedRatio(robotJointId_t id, double &ratio) {
+int Robot::getJointSpeedRatio(robotJointId_t id, double &ratio) {
 	ratio = _motor[id].omega/_motor[id].omega_max;
 
 	// success
 	return 0;
 }
 
-int CRobot::getxy(double &x, double &y) {
+int Robot::getxy(double &x, double &y) {
 	// return x and y positions
 	x = (g_sim->getUnits()) ? 39.37*this->getCenter(0) : 100*this->getCenter(0);
 	y = (g_sim->getUnits()) ? 39.37*this->getCenter(1) : 100*this->getCenter(1);
@@ -245,14 +245,14 @@ int CRobot::getxy(double &x, double &y) {
 	return 0;
 }
 
-int CRobot::holdJoint(robotJointId_t id) {
+int Robot::holdJoint(robotJointId_t id) {
 	this->setJointSpeed(id, 0);
 
 	// success
 	return 0;
 }
 
-int CRobot::holdJoints(void) {
+int Robot::holdJoints(void) {
 	// set joints to zero speed
 	for (int i = 0; i < _dof; i++) {
 		this->setJointSpeed(static_cast<robotJointId_t>(i), 0);
@@ -262,7 +262,7 @@ int CRobot::holdJoints(void) {
 	return 0;
 }
 
-int CRobot::holdJointsAtExit(void) {
+int Robot::holdJointsAtExit(void) {
 	// set joint speeds to zero
 	this->holdJoints();
 
@@ -273,12 +273,12 @@ int CRobot::holdJointsAtExit(void) {
 	return 0;
 }
 
-int CRobot::isConnected(void) {
+int Robot::isConnected(void) {
 	// return connected status
 	return _connected;
 }
 
-int CRobot::isMoving(void) {
+int Robot::isMoving(void) {
 	for (int i = 0; i < _dof; i++) {
 		if (_motor[i].state == POSITIVE || _motor[i].state == NEGATIVE) {
 			return 1;
@@ -289,12 +289,12 @@ int CRobot::isMoving(void) {
 	return 0;
 }
 
-int CRobot::isNotMoving(void) {
+int Robot::isNotMoving(void) {
 	// oppositve of ismoving
 	return !(this->isMoving());
 }
 
-int CRobot::jumpJointTo(robotJointId_t id, double angle) {
+int Robot::jumpJointTo(robotJointId_t id, double angle) {
 	this->jumpJointToNB(id, angle);
 	this->moveJointWait(id);
 
@@ -302,14 +302,14 @@ int CRobot::jumpJointTo(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CRobot::jumpJointToNB(robotJointId_t id, double angle) {
+int Robot::jumpJointToNB(robotJointId_t id, double angle) {
 	this->moveJointToNB(id, angle);
 
 	// success
 	return 0;
 }
 
-int CRobot::moveForeverNB(void) {
+int Robot::moveForeverNB(void) {
 	// set joint movements
 	for (int i = 0; i < _dof; i++) {
 		this->moveJointForeverNB(static_cast<robotJointId_t>(i));
@@ -319,7 +319,7 @@ int CRobot::moveForeverNB(void) {
 	return 0;
 }
 
-int CRobot::moveJoint(robotJointId_t id, double angle) {
+int Robot::moveJoint(robotJointId_t id, double angle) {
 	this->moveJointNB(id, angle);
 	this->moveJointWait(id);
 
@@ -327,7 +327,7 @@ int CRobot::moveJoint(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CRobot::moveJointNB(robotJointId_t id, double angle) {
+int Robot::moveJointNB(robotJointId_t id, double angle) {
 	// lock goal
 	MUTEX_LOCK(&_goal_mutex);
 
@@ -357,7 +357,7 @@ int CRobot::moveJointNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CRobot::moveJointForeverNB(robotJointId_t id) {
+int Robot::moveJointForeverNB(robotJointId_t id) {
 	// lock mutexes
 	MUTEX_LOCK(&_motor[id].success_mutex);
 	// enable motor
@@ -384,7 +384,7 @@ int CRobot::moveJointForeverNB(robotJointId_t id) {
 	return 0;
 }
 
-int CRobot::moveJointTime(robotJointId_t id, double seconds) {
+int Robot::moveJointTime(robotJointId_t id, double seconds) {
 	// move joint
 	this->moveJointForeverNB(id);
 
@@ -398,7 +398,7 @@ int CRobot::moveJointTime(robotJointId_t id, double seconds) {
 	return 0;
 }
 
-int CRobot::moveJointTimeNB(robotJointId_t id, double seconds) {
+int Robot::moveJointTimeNB(robotJointId_t id, double seconds) {
 	// set up threading
 	THREAD_T moving;
 	recArg_t *rArg = new recArg_t;
@@ -410,13 +410,13 @@ int CRobot::moveJointTimeNB(robotJointId_t id, double seconds) {
 	this->moveJointForeverNB(id);
 
 	// create thread to wait
-	THREAD_CREATE(&moving, (void* (*)(void *))&CRobot::moveJointTimeNBThread, (void *)rArg);
+	THREAD_CREATE(&moving, (void* (*)(void *))&Robot::moveJointTimeNBThread, (void *)rArg);
 
 	// success
 	return 0;
 }
 
-int CRobot::moveJointTo(robotJointId_t id, double angle) {
+int Robot::moveJointTo(robotJointId_t id, double angle) {
 	this->moveJointToNB(id, angle);
 	this->moveJointWait(id);
 
@@ -424,7 +424,7 @@ int CRobot::moveJointTo(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CRobot::moveJointToNB(robotJointId_t id, double angle) {
+int Robot::moveJointToNB(robotJointId_t id, double angle) {
 	// lock goal
 	MUTEX_LOCK(&_goal_mutex);
 
@@ -453,7 +453,7 @@ int CRobot::moveJointToNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int CRobot::moveJointWait(robotJointId_t id) {
+int Robot::moveJointWait(robotJointId_t id) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_motor[id].success_mutex);
 	while ( !_motor[id].success ) { COND_WAIT(&_motor[id].success_cond, &_motor[id].success_mutex); }
@@ -463,7 +463,7 @@ int CRobot::moveJointWait(robotJointId_t id) {
 	return 0;
 }
 
-int CRobot::moveTime(double seconds) {
+int Robot::moveTime(double seconds) {
 	// move joint
 	this->moveForeverNB();
 
@@ -477,7 +477,7 @@ int CRobot::moveTime(double seconds) {
 	return 0;
 }
 
-int CRobot::moveTimeNB(double seconds) {
+int Robot::moveTimeNB(double seconds) {
 	// set up threading
 	THREAD_T moving;
 	recArg_t *rArg = new recArg_t;
@@ -488,13 +488,13 @@ int CRobot::moveTimeNB(double seconds) {
 	this->moveForeverNB();
 
 	// create thread to wait
-	THREAD_CREATE(&moving, (void* (*)(void *))&CRobot::moveTimeNBThread, (void *)rArg);
+	THREAD_CREATE(&moving, (void* (*)(void *))&Robot::moveTimeNBThread, (void *)rArg);
 
 	// success
 	return 0;
 }
 
-int CRobot::moveToZero(void) {
+int Robot::moveToZero(void) {
 	this->moveToZeroNB();
 	this->moveWait();
 
@@ -502,7 +502,7 @@ int CRobot::moveToZero(void) {
 	return 0;
 }
 
-int CRobot::moveToZeroNB(void) {
+int Robot::moveToZeroNB(void) {
 	// move joints to zero
 	for (int i = 0; i < _dof; i++) {
 		this->moveJointToNB(static_cast<robotJointId_t>(i), 0);
@@ -512,7 +512,7 @@ int CRobot::moveToZeroNB(void) {
 	return 0;
 }
 
-int CRobot::moveWait(void) {
+int Robot::moveWait(void) {
 	// lock
 	MUTEX_LOCK(&_success_mutex);
 	// get number of successes
@@ -537,7 +537,7 @@ int CRobot::moveWait(void) {
 	return 0;
 }
 
-int CRobot::recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData) {
+int Robot::recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData) {
 	// check if recording already
 	if (_recording[id]) { return -1; }
 
@@ -561,13 +561,13 @@ int CRobot::recordAngle(robotJointId_t id, double time[], double angle[], int nu
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CRobot::recordAngleThread, (void *)rArg);
+	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordAngleThread, (void *)rArg);
 
 	// success
 	return 0;
 }
 
-int CRobot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData) {
+int Robot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData) {
 	// check if recording already
 	if (_recording[id]) { return -1; }
 
@@ -596,13 +596,13 @@ int CRobot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRe
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CRobot::recordAngleBeginThread, (void *)rArg);
+	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordAngleBeginThread, (void *)rArg);
 
 	// success
 	return 0;
 }
 
-int CRobot::recordAngleEnd(robotJointId_t id, int &num) {
+int Robot::recordAngleEnd(robotJointId_t id, int &num) {
 	// sleep to capture last data point on ending time
 	this->doze(150);
 
@@ -625,7 +625,7 @@ int CRobot::recordAngleEnd(robotJointId_t id, int &num) {
 	return 0;
 }
 
-int CRobot::recordAnglesEnd(int &num) {
+int Robot::recordAnglesEnd(int &num) {
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
 	for (int i = 0; i < _dof; i++) {
@@ -653,7 +653,7 @@ int CRobot::recordAnglesEnd(int &num) {
 	return 0;
 }
 
-int CRobot::recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData) {
+int Robot::recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, int shiftData) {
 	// record angle of desired joint
 	this->recordAngleBegin(id, time, distance, seconds, shiftData);
 
@@ -661,7 +661,7 @@ int CRobot::recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robo
 	return 0;
 }
 
-int CRobot::recordDistanceEnd(robotJointId_t id, int &num) {
+int Robot::recordDistanceEnd(robotJointId_t id, int &num) {
 	// end recording of angles
 	this->recordAngleEnd(id, num);
 
@@ -677,7 +677,7 @@ int CRobot::recordDistanceEnd(robotJointId_t id, int &num) {
 	return 0;
 }
 
-int CRobot::recordDistanceOffset(double distance) {
+int Robot::recordDistanceOffset(double distance) {
 	// get current position
 	double x0, y0;
 	this->getxy(x0, y0);
@@ -702,7 +702,7 @@ int CRobot::recordDistanceOffset(double distance) {
 	return 0;
 }
 
-int CRobot::recordDistancesEnd(int &num) {
+int Robot::recordDistancesEnd(int &num) {
 	// end recording of angles
 	this->recordAnglesEnd(num);
 
@@ -720,7 +720,7 @@ int CRobot::recordDistancesEnd(int &num) {
 	return 0;
 }
 
-int CRobot::recordWait(void) {
+int Robot::recordWait(void) {
 	// lock
 	MUTEX_LOCK(&_recording_mutex);
 	// get number of joints recording
@@ -739,7 +739,7 @@ int CRobot::recordWait(void) {
 	return 0;
 }
 
-int CRobot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData) {
+int Robot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
 		if (_recording[i]) { return -1; }
@@ -772,13 +772,13 @@ int CRobot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double sec
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CRobot::recordxyBeginThread, (void *)rArg);
+	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordxyBeginThread, (void *)rArg);
 
 	// success
 	return 0;
 }
 
-int CRobot::recordxyEnd(int &num) {
+int Robot::recordxyEnd(int &num) {
 	// sleep to capture last data point on ending time
 	this->doze(150);
 
@@ -809,14 +809,14 @@ int CRobot::recordxyEnd(int &num) {
 	return 0;
 }
 
-int CRobot::relaxJoint(robotJointId_t id) {
+int Robot::relaxJoint(robotJointId_t id) {
 	dJointDisable(_motor[id].id);
 
 	// success
 	return 0;
 }
 
-int CRobot::relaxJoints(void) {
+int Robot::relaxJoints(void) {
 	for (int i = 0; i < _dof; i++) {
 		this->relaxJoint(static_cast<robotJointId_t>(i));
 	}
@@ -825,7 +825,7 @@ int CRobot::relaxJoints(void) {
 	return 0;
 }
 
-int CRobot::resetToZero(void) {
+int Robot::resetToZero(void) {
 	this->resetToZeroNB();
 	this->moveWait();
 
@@ -833,7 +833,7 @@ int CRobot::resetToZero(void) {
 	return 0;
 }
 
-int CRobot::resetToZeroNB(void) {
+int Robot::resetToZeroNB(void) {
 	// reset absolute counter to 0 -> 2M_PI
 	MUTEX_LOCK(&_theta_mutex);
 	for (int i = 0; i < _dof; i++) {
@@ -852,28 +852,28 @@ int CRobot::resetToZeroNB(void) {
 	return 0;
 }
 
-int CRobot::setBuzzerFrequency(int frequency, double time) {
+int Robot::setBuzzerFrequency(int frequency, double time) {
 	printf("::setBuzzerFrequency not implemented.\n");
 
 	// success
 	return 0;
 }
 
-int CRobot::setBuzzerFrequencyOff(void) {
+int Robot::setBuzzerFrequencyOff(void) {
 	printf("::setBuzzerFrequencyOff not implemented.\n");
 
 	// success
 	return 0;
 }
 
-int CRobot::setBuzzerFrequencyOn(int frequency) {
+int Robot::setBuzzerFrequencyOn(int frequency) {
 	printf("::setBuzzerFrequencyOn not implemented.\n");
 
 	// success
 	return 0;
 }
 
-int CRobot::setLEDColor(char *color) {
+int Robot::setLEDColor(char *color) {
 	int getRGB[3] = {0};
 	rgbHashTable *rgbTable = HT_Create();
 	int htRetval = HT_Get(rgbTable, color, getRGB);
@@ -896,7 +896,7 @@ int CRobot::setLEDColor(char *color) {
 	}
 }
 
-int CRobot::setLEDColorRGB(int r, int g, int b) {
+int Robot::setLEDColorRGB(int r, int g, int b) {
 	_rgb[0] = r/255.0;
 	_rgb[1] = g/255.0;
 	_rgb[2] = b/255.0;
@@ -908,14 +908,14 @@ int CRobot::setLEDColorRGB(int r, int g, int b) {
 	return 0;
 }
 
-int CRobot::setJointPower(robotJointId_t id, int power) {
+int Robot::setJointPower(robotJointId_t id, int power) {
 	_motor[id].omega = (power/100.0)*_motor[id].omega_max;
 
 	// success
 	return 0;
 }
 
-int CRobot::setJointSafetyAngle(double angle) {
+int Robot::setJointSafetyAngle(double angle) {
 	for (int i = 0; i < _dof; i++) {
 		_motor[i].safety_angle = angle;
 	}
@@ -924,7 +924,7 @@ int CRobot::setJointSafetyAngle(double angle) {
 	return 0;
 }
 
-int CRobot::setJointSafetyAngleTimeout(double seconds) {
+int Robot::setJointSafetyAngleTimeout(double seconds) {
 	for (int i = 0; i < _dof; i++) {
 		_motor[i].safety_timeout = seconds;
 	}
@@ -933,7 +933,7 @@ int CRobot::setJointSafetyAngleTimeout(double seconds) {
 	return 0;
 }
 
-int CRobot::setJointSpeed(robotJointId_t id, double speed) {
+int Robot::setJointSpeed(robotJointId_t id, double speed) {
 	if (speed > RAD2DEG(_motor[id].omega_max)) {
 		fprintf(stderr, "Warning: Setting the speed for joint %d to %.2lf degrees per second is "
 			"beyond the hardware limit of %.2lf degrees per second.\n",
@@ -945,14 +945,14 @@ int CRobot::setJointSpeed(robotJointId_t id, double speed) {
 	return 0;
 }
 
-int CRobot::setJointSpeedRatio(robotJointId_t id, double ratio) {
+int Robot::setJointSpeedRatio(robotJointId_t id, double ratio) {
 	if ( ratio < 0 || ratio > 1 ) {
 		return -1;
 	}
 	return this->setJointSpeed(id, ratio * RAD2DEG(_motor[(int)id].omega_max));
 }
 
-int CRobot::systemTime(double &time) {
+int Robot::systemTime(double &time) {
 	// get time
 	time = g_sim->getClock();
 
@@ -960,14 +960,14 @@ int CRobot::systemTime(double &time) {
 	return 0;
 }
 
-int CRobot::traceOff(void) {
+int Robot::traceOff(void) {
 	_trace = 0;
 
 	// success
 	return 0;
 }
 
-int CRobot::traceOn(void) {
+int Robot::traceOn(void) {
 #ifdef ENABLE_GRAPHICS
 	// show trace
 	osg::Geode *trace = dynamic_cast<osg::Geode *>(_robot->getChild(1));
@@ -984,7 +984,7 @@ int CRobot::traceOn(void) {
 /**********************************************************
 	protected functions for variable DOF
  **********************************************************/
-int CRobot::moveNB(double *angles) {
+int Robot::moveNB(double *angles) {
 	for (int i = 0; i < _dof; i++) {
 		this->moveJointNB(static_cast<robotJointId_t>(i), angles[i]);
 	}
@@ -993,7 +993,7 @@ int CRobot::moveNB(double *angles) {
 	return 0;
 }
 
-int CRobot::moveToNB(double *angles) {
+int Robot::moveToNB(double *angles) {
 	for (int i = 0; i < _dof; i++) {
 		this->moveJointToNB(static_cast<robotJointId_t>(i), angles[i]);
 	}
@@ -1002,7 +1002,7 @@ int CRobot::moveToNB(double *angles) {
 	return 0;
 }
 
-int CRobot::recordAngles(double *time, double **angle, int num, double seconds, int shiftData) {
+int Robot::recordAngles(double *time, double **angle, int num, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
 		if (_recording[i]) { return -1; }
@@ -1030,13 +1030,13 @@ int CRobot::recordAngles(double *time, double **angle, int num, double seconds, 
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CRobot::recordAnglesThread, (void *)rArg);
+	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordAnglesThread, (void *)rArg);
 
 	// success
 	return 0;
 }
 
-int CRobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle, double seconds, int shiftData) {
+int Robot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
 		if (_recording[i]) { return -1; }
@@ -1074,7 +1074,7 @@ int CRobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&CRobot::recordAnglesBeginThread, (void *)rArg);
+	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordAnglesBeginThread, (void *)rArg);
 
 	// success
 	return 0;
@@ -1083,7 +1083,7 @@ int CRobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle
 /**********************************************************
 	protected functions for inherited classes
  **********************************************************/
-int CRobot::addToSim(dWorldID &world, dSpaceID &space, int id) {
+int Robot::addToSim(dWorldID &world, dSpaceID &space, int id) {
 	_world = world;
 	_space = dHashSpaceCreate(space);
 	_id = id;
@@ -1092,7 +1092,7 @@ int CRobot::addToSim(dWorldID &world, dSpaceID &space, int id) {
 	return 0;
 }
 
-int CRobot::doze(double ms) {
+int Robot::doze(double ms) {
 #ifdef _WIN32
 	Sleep(ms);
 #else
@@ -1102,7 +1102,7 @@ int CRobot::doze(double ms) {
 	return 0;
 }
 
-int CRobot::fixBodyToGround(dBodyID cbody) {
+int Robot::fixBodyToGround(dBodyID cbody) {
 	// fixed joint
 	dJointID joint = dJointCreateFixed(_world, 0);
 
@@ -1116,11 +1116,11 @@ int CRobot::fixBodyToGround(dBodyID cbody) {
 	return 0;
 }
 
-dBodyID CRobot::getBodyID(int id) {
+dBodyID Robot::getBodyID(int id) {
 	return _body[id];
 }
 
-double CRobot::getCenter(int i) {
+double Robot::getCenter(int i) {
 	const double *pos = dBodyGetPosition(_body[0]);
 	const double *R = dBodyGetRotation(_body[0]);
 	double p[3] = {	R[0]*_center[0] + R[1]*_center[1] + R[2]*_center[2],
@@ -1129,7 +1129,7 @@ double CRobot::getCenter(int i) {
 	return pos[i] + p[i];
 }
 
-dBodyID CRobot::getConnectorBodyID(int face) {
+dBodyID Robot::getConnectorBodyID(int face) {
 	conn_t ctmp = _conn;
 	while (ctmp) {
 		if (ctmp->face == face) {
@@ -1140,7 +1140,7 @@ dBodyID CRobot::getConnectorBodyID(int face) {
 	return NULL;
 }
 
-dBodyID CRobot::getConnectorBodyIDs(int num) {
+dBodyID Robot::getConnectorBodyIDs(int num) {
 	conn_t ctmp = _conn;
 	int i = 0;
 	while (ctmp && i++ < num)
@@ -1151,7 +1151,7 @@ dBodyID CRobot::getConnectorBodyIDs(int num) {
 	return NULL;
 }
 
-double CRobot::getRotation(int body, int i) {
+double Robot::getRotation(int body, int i) {
 	const double *R = dBodyGetRotation(_body[body]);
 	double angles[3] = {0};
     if ( fabs(R[8]-1) < DBL_EPSILON ) {         // R_31 == 1; theta = M_PI/2
@@ -1172,7 +1172,7 @@ double CRobot::getRotation(int body, int i) {
 	return angles[i];
 }
 
-double CRobot::mod_angle(double past_ang, double cur_ang, double ang_rate) {
+double Robot::mod_angle(double past_ang, double cur_ang, double ang_rate) {
     double new_ang = 0;
     int stp = (int)( fabs(past_ang) / M_PI );
     double past_ang_mod = fabs(past_ang) - stp*M_PI;
@@ -1228,7 +1228,7 @@ double CRobot::mod_angle(double past_ang, double cur_ang, double ang_rate) {
     return new_ang;
 }
 
-int CRobot::noisy(double *a, int length, double sigma) {
+int Robot::noisy(double *a, int length, double sigma) {
 	// initialize variables
 	double *rand = new double[length];
 	double sum = 0;
@@ -1256,14 +1256,14 @@ int CRobot::noisy(double *a, int length, double sigma) {
 	return 0;
 }
 
-void* CRobot::simPreCollisionThreadEntry(void *arg) {
-	CRobot *p = (CRobot *)arg;
+void* Robot::simPreCollisionThreadEntry(void *arg) {
+	Robot *p = (Robot *)arg;
 	p->simPreCollisionThread();
 	return arg;
 }
 
-void* CRobot::simPostCollisionThreadEntry(void *arg) {
-	CRobot *p = (CRobot *)arg;
+void* Robot::simPostCollisionThreadEntry(void *arg) {
+	Robot *p = (Robot *)arg;
 	p->simPostCollisionThread();
 	return arg;
 }
@@ -1271,7 +1271,7 @@ void* CRobot::simPostCollisionThreadEntry(void *arg) {
 /**********************************************************
 	private functions
  **********************************************************/
-bool CRobot::is_shift_enabled(void) {
+bool Robot::is_shift_enabled(void) {
 	if(_shift_data && !_g_shift_data_en)
 		return 1;
 	else if (_g_shift_data_en && _g_shift_data)
@@ -1280,7 +1280,7 @@ bool CRobot::is_shift_enabled(void) {
 		return 0;
 }
 
-double CRobot::normal(double sigma) {
+double Robot::normal(double sigma) {
 	// compute pair of random uniform data
 	double u1 = this->uniform();
 	double u2 = this->uniform();
@@ -1289,7 +1289,7 @@ double CRobot::normal(double sigma) {
 	return sigma*(sqrt(-2.0*log(u1))*cos(2*M_PI*u2));
 }
 
-double CRobot::uniform(void) {
+double Robot::uniform(void) {
 	int k = _seed/127773;
 	_seed = 16807 * (_seed - k*127773) - k*2836;
 	if (_seed < 0)
@@ -1297,12 +1297,12 @@ double CRobot::uniform(void) {
 	return ((double)(_seed) * 4.656612875E-10);
 }
 
-void* CRobot::moveJointTimeNBThread(void *arg) {
+void* Robot::moveJointTimeNBThread(void *arg) {
 	// cast argument
 	recArg_t *rArg = (recArg_t *)arg;
 
 	// get robot
-	CRobot *robot = dynamic_cast<CRobot *>(rArg->robot);
+	Robot *robot = dynamic_cast<Robot *>(rArg->robot);
 	// sleep
 	robot->doze(rArg->msecs);
 	// hold all robot motion
@@ -1315,12 +1315,12 @@ void* CRobot::moveJointTimeNBThread(void *arg) {
 	return NULL;
 }
 
-void* CRobot::moveTimeNBThread(void *arg) {
+void* Robot::moveTimeNBThread(void *arg) {
 	// cast argument
 	recArg_t *rArg = (recArg_t *)arg;
 
 	// get robot
-	CRobot *robot = dynamic_cast<CRobot *>(rArg->robot);
+	Robot *robot = dynamic_cast<Robot *>(rArg->robot);
 	// sleep
 	robot->doze(rArg->msecs);
 	// hold all robot motion
@@ -1333,7 +1333,7 @@ void* CRobot::moveTimeNBThread(void *arg) {
 	return NULL;
 }
 
-void* CRobot::recordAngleThread(void *arg) {
+void* Robot::recordAngleThread(void *arg) {
 	// cast arg struct
 	recArg_t *rArg = (recArg_t *)arg;
 
@@ -1398,7 +1398,7 @@ void* CRobot::recordAngleThread(void *arg) {
 	return NULL;
 }
 
-void* CRobot::recordAngleBeginThread(void *arg) {
+void* Robot::recordAngleBeginThread(void *arg) {
 	// cast arg struct
 	recArg_t *rArg = (recArg_t *)arg;
 
@@ -1470,7 +1470,7 @@ void* CRobot::recordAngleBeginThread(void *arg) {
 	return NULL;
 }
 
-void* CRobot::recordAnglesThread(void *arg) {
+void* Robot::recordAnglesThread(void *arg) {
 	// cast arg struct
     recArg_t *rArg = (recArg_t *)arg;
 
@@ -1547,7 +1547,7 @@ void* CRobot::recordAnglesThread(void *arg) {
 	return NULL;
 }
 
-void* CRobot::recordAnglesBeginThread(void *arg) {
+void* Robot::recordAnglesBeginThread(void *arg) {
 	// cast arg struct
 	recArg_t *rArg = (recArg_t *)arg;
 
@@ -1617,7 +1617,7 @@ void* CRobot::recordAnglesBeginThread(void *arg) {
 	return NULL;
 }
 
-void* CRobot::recordxyBeginThread(void *arg) {
+void* Robot::recordxyBeginThread(void *arg) {
 	// cast arg struct
 	recArg_t *rArg = (recArg_t *)arg;
 

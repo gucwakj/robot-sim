@@ -1012,7 +1012,7 @@ int RoboSim::init_viz(void) {
 /**********************************************************
 	Public member functions
  **********************************************************/
-int RoboSim::addRobot(CRobot *robot) {
+int RoboSim::addRobot(Robot *robot) {
 	// lock robot data to insert a new one into simulation
 	MUTEX_LOCK(&_robot_mutex);
 
@@ -1114,7 +1114,7 @@ int RoboSim::addRobot(CRobot *robot) {
 	return 0;
 }
 
-int RoboSim::deleteRobot(CRobot *robot) {
+int RoboSim::deleteRobot(Robot *robot) {
 #ifdef ENABLE_GRAPHICS
 	// pause simulation to view results only on first delete
 	MUTEX_LOCK(&(_pause_mutex));
@@ -1344,7 +1344,7 @@ void* RoboSim::simulation_thread(void *arg) {
 			MUTEX_LOCK(&(sim->_robot_mutex));
 			robots_t rtmp = sim->_robots;
 			while (rtmp) {
-				THREAD_CREATE(&(rtmp->thread), (void* (*)(void *))&CRobot::simPreCollisionThreadEntry, (void *)rtmp->robot);
+				THREAD_CREATE(&(rtmp->thread), (void* (*)(void *))&Robot::simPreCollisionThreadEntry, (void *)rtmp->robot);
 				rtmp = rtmp->next;
 			}
 			rtmp = sim->_robots;
@@ -1364,7 +1364,7 @@ void* RoboSim::simulation_thread(void *arg) {
 			// perform post-collision updates
 			rtmp = sim->_robots;
 			while (rtmp) {
-				THREAD_CREATE(&(rtmp->thread), (void* (*)(void *))&CRobot::simPostCollisionThreadEntry, (void *)rtmp->robot);
+				THREAD_CREATE(&(rtmp->thread), (void* (*)(void *))&Robot::simPostCollisionThreadEntry, (void *)rtmp->robot);
 				rtmp = rtmp->next;
 			}
 			rtmp = sim->_robots;

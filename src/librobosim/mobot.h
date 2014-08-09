@@ -7,7 +7,7 @@
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
 
-class DLLIMPORT CMobot : virtual public CRobot {
+class DLLIMPORT CMobot : virtual public Robot {
 		friend class mobotNodeCallback;
 
 	// public api
@@ -80,7 +80,7 @@ class DLLIMPORT CMobot : virtual public CRobot {
 	// inherited functions
     private:
 		virtual int build(xml_robot_t);
-		virtual int build(xml_robot_t, CRobot*, xml_conn_t);
+		virtual int build(xml_robot_t, Robot*, xml_conn_t);
 		virtual int buildIndividual(double, double, double, dMatrix3, double*);
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group*, int);

@@ -40,13 +40,13 @@ typedef struct conn_s {
 // forward declare friends
 class RoboSim;
 
-class DLLIMPORT CRobot {
+class DLLIMPORT Robot {
 		friend class RoboSim;
 
 	// common public api
 	public:
-		CRobot(void);
-		~CRobot(void);
+		Robot(void);
+		~Robot(void);
 
 		int blinkLED(double, int);
 		int connect(char* = NULL, int = 3);
@@ -146,7 +146,7 @@ class DLLIMPORT CRobot {
 	// virual functions for inherited classes
 	protected:
 		virtual int build(xml_robot_t) = 0;
-		virtual int build(xml_robot_t, CRobot*, xml_conn_t) = 0;
+		virtual int build(xml_robot_t, Robot*, xml_conn_t) = 0;
 		virtual int buildIndividual(double, double, double, dMatrix3, double*) = 0;
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group*, int) = 0;
@@ -177,7 +177,7 @@ class DLLIMPORT CRobot {
 
 		// recording
 		typedef struct recArg_s {
-			CRobot *robot;			// robot
+			Robot *robot;			// robot
 			robotJointId_t id;		// joint to record
 			int num;				// number of points
 			int msecs;				// ms between data points

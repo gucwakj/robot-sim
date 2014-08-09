@@ -921,7 +921,7 @@ int CMobot::moveNB(double angle1, double angle2, double angle3, double angle4) {
 	angles[JOINT4] = angle4;
 
 	// call base class recording function
-	int retval = CRobot::moveNB(angles);
+	int retval = Robot::moveNB(angles);
 
 	// clean up
 	delete angles;
@@ -947,7 +947,7 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
 	angles[JOINT4] = angle4;
 
 	// call base class recording function
-	int retval = CRobot::moveToNB(angles);
+	int retval = Robot::moveToNB(angles);
 
 	// clean up
 	delete angles;
@@ -970,7 +970,7 @@ int CMobot::recordAngles(double *time, double *angle1, double *angle2, double *a
 	angles[JOINT4] = angle4;
 
 	// call base class recording function
-	return CRobot::recordAngles(time, angles, num, seconds, shiftData);
+	return Robot::recordAngles(time, angles, num, seconds, shiftData);
 }
 
 int CMobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, int shiftData) {
@@ -987,7 +987,7 @@ int CMobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1
 	angles[JOINT4] = angle4;
 
 	// call base class recording function
-	return CRobot::recordAnglesBegin(time, angles, seconds, shiftData);
+	return Robot::recordAnglesBegin(time, angles, seconds, shiftData);
 }
 
 int CMobot::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, robotRecordData_t &distance4, double radius, double seconds, int shiftData) {
@@ -1004,7 +1004,7 @@ int CMobot::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &dis
 	angles[JOINT4] = distance4;
 
 	// call base class recording function
-	return CRobot::recordAnglesBegin(time, angles, seconds, shiftData);
+	return Robot::recordAnglesBegin(time, angles, seconds, shiftData);
 }
 
 int CMobot::reset(void) {
@@ -1168,7 +1168,7 @@ int CMobot::build(xml_robot_t robot) {
 	return 0;
 }
 
-int CMobot::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
+int CMobot::build(xml_robot_t robot, Robot *base, xml_conn_t conn) {
 	// initialize new variables
 	int i = 1;
 	double m[3] = {0}, offset[3] = {0};

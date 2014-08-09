@@ -760,7 +760,7 @@ int CNXT::moveNB(double angle1, double angle2) {
 	angles[JOINT2] = angle2;
 
 	// call base class recording function
-	int retval = CRobot::moveNB(angles);
+	int retval = Robot::moveNB(angles);
 
 	// clean up
 	delete angles;
@@ -784,7 +784,7 @@ int CNXT::moveToNB(double angle1, double angle2) {
 	angles[JOINT2] = angle2;
 
 	// call base class recording function
-	int retval = CRobot::moveToNB(angles);
+	int retval = Robot::moveToNB(angles);
 
 	// clean up
 	delete angles;
@@ -805,7 +805,7 @@ int CNXT::recordAngles(double *time, double *angle1, double *angle2, int num, do
 	angles[JOINT2] = angle2;
 
 	// call base class recording function
-	return CRobot::recordAngles(time, angles, num, seconds, shiftData);
+	return Robot::recordAngles(time, angles, num, seconds, shiftData);
 }
 
 int CNXT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, double seconds, int shiftData) {
@@ -820,7 +820,7 @@ int CNXT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, 
 	angles[JOINT2] = angle2;
 
 	// call base class recording function
-	return CRobot::recordAnglesBegin(time, angles, seconds, shiftData);
+	return Robot::recordAnglesBegin(time, angles, seconds, shiftData);
 }
 
 int CNXT::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, double radius, double seconds, int shiftData) {
@@ -835,7 +835,7 @@ int CNXT::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &dista
 	angles[JOINT2] = distance2;
 
 	// call base class recording function
-	return CRobot::recordAnglesBegin(time, angles, seconds, shiftData);
+	return Robot::recordAnglesBegin(time, angles, seconds, shiftData);
 }
 
 int CNXT::setJointSpeeds(double speed1, double speed2) {
@@ -943,7 +943,7 @@ int CNXT::build(xml_robot_t robot) {
 	return 0;
 }
 
-int CNXT::build(xml_robot_t robot, CRobot *base, xml_conn_t conn) {
+int CNXT::build(xml_robot_t robot, Robot *base, xml_conn_t conn) {
 	// UNIMPLEMENTED
 	// success
 	return 0;

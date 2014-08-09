@@ -23,8 +23,8 @@ class DLLIMPORT RoboSim {
 		RoboSim(char*, int);
 		virtual ~RoboSim(void);
 
-		int addRobot(CRobot*);
-		int deleteRobot(CRobot*);
+		int addRobot(Robot*);
+		int deleteRobot(Robot*);
 		double getClock(void);
 		int getCOR(double&, double&);
 		int getMu(double&, double&);
@@ -53,7 +53,7 @@ class DLLIMPORT RoboSim {
 	private:
 		// robots struct
 		typedef struct robots_s {
-			CRobot *robot;
+			Robot *robot;
 			int node;
 			THREAD_T thread;
 			struct robots_s *next;
