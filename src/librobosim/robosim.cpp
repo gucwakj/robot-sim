@@ -1189,6 +1189,22 @@ double RoboSim::getClock(void) {
 	return clock;
 }
 
+int RoboSim::getCOR(double &robot, double &ground) {
+	robot = _cor[0];
+	ground = _cor[1];
+
+	// success
+	return 0;
+}
+
+int RoboSim::getMu(double &robot, double &ground) {
+	robot = _mu[0];
+	ground = _mu[1];
+
+	// success
+	return 0;
+}
+
 int RoboSim::getPause(void) {
 	MUTEX_LOCK(&_pause_mutex);
 	int pause = _pause;
@@ -1230,6 +1246,22 @@ int RoboSim::setCollisions(int mode) {
 			_collision = _collision ? false : true;
 			break;
 	}
+
+	// success
+	return 0;
+}
+
+int RoboSim::setCOR(double robot, double ground) {
+	_cor[0] = robot;
+	_cor[1] = ground;
+
+	// success
+	return 0;
+}
+
+int RoboSim::setMu(double robot, double ground) {
+	_mu[0] = robot;
+	_mu[1] = ground;
 
 	// success
 	return 0;
