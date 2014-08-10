@@ -943,12 +943,6 @@ int CNXT::build(xml_robot_t robot) {
 	return 0;
 }
 
-int CNXT::build(xml_robot_t robot, Robot *base, xml_conn_t conn) {
-	// UNIMPLEMENTED
-	// success
-	return 0;
-}
-
 int CNXT::buildIndividual(double x, double y, double z, dMatrix3 R, double *rot) {
 	// init body parts
 	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
@@ -1173,12 +1167,6 @@ double CNXT::getAngle(int id) {
     return _motor[id].theta;
 }
 
-int CNXT::getConnectionParams(int face, dMatrix3 R, double *p) {
-	// UNIMPLEMENTED
-	// success
-	return 0;
-}
-
 int CNXT::initParams(int disabled, int type) {
 	_dof = 2;
 
@@ -1221,7 +1209,6 @@ int CNXT::initParams(int disabled, int type) {
 		_rec_num[i] = 0;
 		_recording[i] = false;
 	}
-	_conn = NULL;
 	_connected = 0;
 	_distOffset = 0;
 	_id = -1;
@@ -1244,8 +1231,6 @@ int CNXT::initDims(void) {
 	_body_width = 0.07835;
 	_body_height = 0.07250;
 	_body_radius = 0.03625;
-	_conn_depth = 0.00380;
-	_conn_height = 0.03715;
 	_radius = _body_height/2;
 	_wheel_depth = 0.00140;
 	_wheel_radius = 0.04445;
@@ -1274,14 +1259,8 @@ void CNXT::simPreCollisionThread(void) {
 		_motor[i].theta = getAngle(i);
 		// set rotation axis
 		dVector3 axis;
-		conn_t ctmp = _conn;
 		dJointGetHingeAxis(_joint[i], axis);
 		dBodySetFiniteRotationAxis(_body[i+1], axis[0], axis[1], axis[2]);
-		while (ctmp) {
-			if (ctmp->face == i+1)
-				dBodySetFiniteRotationAxis(ctmp->body, axis[0], axis[1], axis[2]);
-			ctmp = ctmp->next;
-		}
 		// set motor angle to current angle
 		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
 		// engage motor depending upon motor mode

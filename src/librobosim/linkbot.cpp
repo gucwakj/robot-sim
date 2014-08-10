@@ -1086,7 +1086,7 @@ int CLinkbotT::build(xml_robot_t robot) {
 	return 0;
 }
 
-int CLinkbotT::build(xml_robot_t robot, Robot *base, xml_conn_t conn) {
+int CLinkbotT::build(xml_robot_t robot, ModularRobot *base, xml_conn_t conn) {
 	// initialize new variables
 	double m[3] = {0}, offset[3] = {0};
 	dMatrix3 R, R1, R2, R3, R4, R5, R6;
@@ -1535,7 +1535,6 @@ int CLinkbotT::initParams(int disabled, int type) {
 		_rec_num[i] = 0;
 		_recording[i] = false;
 	}
-	_conn = NULL;
 	_connected = 0;
 	_disabled = disabled;
 	_distOffset = 0;

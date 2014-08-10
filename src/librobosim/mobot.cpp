@@ -1168,7 +1168,7 @@ int CMobot::build(xml_robot_t robot) {
 	return 0;
 }
 
-int CMobot::build(xml_robot_t robot, Robot *base, xml_conn_t conn) {
+int CMobot::build(xml_robot_t robot, ModularRobot *base, xml_conn_t conn) {
 	// initialize new variables
 	int i = 1;
 	double m[3] = {0}, offset[3] = {0};
@@ -1836,7 +1836,6 @@ int CMobot::initParams(int disabled, int type) {
 		_rec_num[i] = 0;
 		_recording[i] = false;
 	}
-	_conn = NULL;
 	_disabled = disabled;
 	_distOffset = 0;
 	_id = -1;

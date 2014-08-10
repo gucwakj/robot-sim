@@ -1,13 +1,13 @@
 #ifndef LINKBOT_H_
 #define LINKBOT_H_
 
-#include "robosim.h"
 #include "config.h"
+#include "robosim.h"
 #ifdef ENABLE_GRAPHICS
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
 
-class DLLIMPORT CLinkbotT : virtual public Robot {
+class DLLIMPORT CLinkbotT : public ModularRobot {
 		friend class linkbotNodeCallback;
 
 	// public api
@@ -77,7 +77,7 @@ class DLLIMPORT CLinkbotT : virtual public Robot {
 	// inherited functions
 	private:
 		virtual int build(xml_robot_t);
-		virtual int build(xml_robot_t, Robot*, xml_conn_t);
+		virtual int build(xml_robot_t, ModularRobot*, xml_conn_t);
 		virtual int buildIndividual(double, double, double, dMatrix3, double*);
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group*, int);

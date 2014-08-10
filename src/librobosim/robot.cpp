@@ -17,15 +17,6 @@ Robot::Robot(void) {
 }
 
 Robot::~Robot(void) {
-	// destroy connectors array
-	conn_t ctmp = _conn;
-	while (ctmp) {
-		conn_t tmp = ctmp->next;
-		delete [] ctmp->geom;
-		delete ctmp;
-		ctmp = tmp;
-	}
-
 	// delete all arrays
 	delete [] _body;
 	delete [] _enabled;
@@ -1127,28 +1118,6 @@ double Robot::getCenter(int i) {
 					R[4]*_center[0] + R[5]*_center[1] + R[6]*_center[2],
 					R[8]*_center[0] + R[9]*_center[1] + R[10]*_center[2]};
 	return pos[i] + p[i];
-}
-
-dBodyID Robot::getConnectorBodyID(int face) {
-	conn_t ctmp = _conn;
-	while (ctmp) {
-		if (ctmp->face == face) {
-			return ctmp->body;
-		}
-		ctmp = ctmp->next;
-	}
-	return NULL;
-}
-
-dBodyID Robot::getConnectorBodyIDs(int num) {
-	conn_t ctmp = _conn;
-	int i = 0;
-	while (ctmp && i++ < num)
-		ctmp = ctmp->next;
-	if (ctmp) {
-		return ctmp->body;
-	}
-	return NULL;
 }
 
 double Robot::getRotation(int body, int i) {

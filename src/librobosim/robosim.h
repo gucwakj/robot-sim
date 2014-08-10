@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "robot.h"
+#include "modularrobot.h"
 #include <iostream>
 #include <tinyxml2.h>
 #ifdef ENABLE_GRAPHICS
@@ -24,6 +25,7 @@ class DLLIMPORT RoboSim {
 		virtual ~RoboSim(void);
 
 		int addRobot(Robot*);
+		int addRobot(ModularRobot*);
 		int deleteRobot(Robot*);
 		double getClock(void);
 		int getCOR(double&, double&);

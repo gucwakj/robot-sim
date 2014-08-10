@@ -1078,6 +1078,87 @@ int RoboSim::addRobot(Robot *robot) {
 	// give simulation data to robot
 	robot->addToSim(_world, _space, btmp->id);
 
+	// build robot
+	robot->build(btmp);
+
+#ifdef ENABLE_GRAPHICS
+	// draw robot
+	nr->node = robot->draw(_staging, btmp->tracking);
+#endif // ENABLE_GRAPHICS
+
+	// unlock robot data
+	MUTEX_UNLOCK(&_robot_mutex);
+
+	// success
+	return 0;
+}
+
+int RoboSim::addRobot(ModularRobot *robot) {
+	// lock robot data to insert a new one into simulation
+	MUTEX_LOCK(&_robot_mutex);
+
+	// create new robot struct
+	robots_t nr = new struct robots_s;
+	nr->robot = robot;
+	nr->next = NULL;
+
+	// add to ll
+	robots_t rtmp = _robots;
+	int connected = 0;
+	if ( _robots == NULL )
+		_robots = nr;
+	else {
+		while (rtmp->next) {
+			connected++;
+			rtmp = rtmp->next;
+		}
+		connected++;
+		rtmp->next = nr;
+	}
+	connected++;
+
+	// find specs about new robot
+	xml_robot_t btmp = _bot;
+	int num = 0;
+	while (btmp) {
+		if (++num != connected) {
+			btmp = btmp->next;
+			continue;
+		}
+		break;
+	}
+
+	// no robot found
+	int form = 0;
+	robot->getFormFactor(form);
+	if (btmp == NULL || btmp->type != form) {
+		switch (form) {
+			case LINKBOTI:
+				fprintf(stderr, "Error: Could not find LinkbotI in RoboSim GUI.\n");
+				break;
+			case LINKBOTL:
+				fprintf(stderr, "Error: Could not find LinkbotL in RoboSim GUI.\n");
+				break;
+			case LINKBOTT:
+				fprintf(stderr, "Error: Could not find LinkbotT in RoboSim GUI.\n");
+				break;
+			case MOBOT:
+				fprintf(stderr, "Error: Could not find Mobot in RoboSim GUI.\n");
+				break;
+			case NXT:
+				fprintf(stderr, "Error: Could not find NXT in RoboSim GUI.\n");
+				break;
+		}
+		if (_preconfig) {
+			fprintf(stderr, "       Preconfigured Robot Configuration selected.\n");
+			fprintf(stderr, "       Please uncheck if you want to use the Individual Robot List.\n");
+		}
+		exit(-1);
+	}
+
+	// give simulation data to robot
+	robot->addToSim(_world, _space, btmp->id);
+
 	// find if robot is connected to another one
 	xml_conn_t ctmp = btmp->conn;
 	while (ctmp) {
@@ -1092,7 +1173,7 @@ int RoboSim::addRobot(Robot *robot) {
 		rtmp = _robots;
 		while (rtmp) {
 			if (rtmp->robot->getID() == ctmp->robot) {
-				robot->build(btmp, rtmp->robot, ctmp);
+				robot->build(btmp, dynamic_cast<ModularRobot *>(rtmp->robot), ctmp);
 				break;
 			}
 			rtmp = rtmp->next;

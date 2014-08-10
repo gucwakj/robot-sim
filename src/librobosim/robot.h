@@ -28,15 +28,6 @@
 #include "graphics.h"
 #endif // ENABLE_GRAPHICS
 
-// connector
-typedef struct conn_s {
-	int face, type;
-	int d_side, d_type;
-	dBodyID body;
-	dGeomID *geom;
-	struct conn_s *next;
-} *conn_t;
-
 // forward declare friends
 class RoboSim;
 
@@ -118,9 +109,6 @@ class DLLIMPORT Robot {
 		int systemTime(double&);
 		int traceOff(void);
 		int traceOn(void);
-		// TODO: make private-ish functions protected
-		dBodyID getConnectorBodyID(int);
-		virtual int getConnectionParams(int, dMatrix3, double*) = 0;
 
 	// condensed argument versions of function calls
 	protected:
@@ -136,7 +124,6 @@ class DLLIMPORT Robot {
 		int fixBodyToGround(dBodyID);
 		dBodyID getBodyID(int);
 		double getCenter(int);
-		dBodyID getConnectorBodyIDs(int);
 		double getRotation(int, int);
 		double mod_angle(double, double, double);
 		int noisy(double*, int, double);
@@ -146,7 +133,6 @@ class DLLIMPORT Robot {
 	// virual functions for inherited classes
 	protected:
 		virtual int build(xml_robot_t) = 0;
-		virtual int build(xml_robot_t, Robot*, xml_conn_t) = 0;
 		virtual int buildIndividual(double, double, double, dMatrix3, double*) = 0;
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group*, int) = 0;
@@ -217,7 +203,6 @@ class DLLIMPORT Robot {
 			COND_T success_cond;	// motion successful condition
 		} *motor_t;
 
-		conn_t _conn;				// connectors
 		dBodyID *_body;				// body parts
 		dGeomID **_geom;			// geometries of each body part
 		dJointID *_joint;			// joints between body parts
@@ -234,14 +219,10 @@ class DLLIMPORT Robot {
 		double _body_radius;		// dimension: body radius
 		double _body_width;			// dimension: body width
 		double _center[3];			// offset of body from initial (x,y,z)
-		double _conn_depth;			// dimension: connector depth
-		double _conn_height;		// dimension: connector height
-		double _conn_radius;		// dimension: connector radius
 		double _distOffset;			// offset for recorded distance
 		double _radius;				// wheel radius
 		double ***_rec_angles;		// recorded angles from thread
 		double _rgb[3];				// rgb of 'led'
-		double _smallwheel_radius;	// dimension: small wheel radius
 		double _trackwidth;			// trackwidth of robot
 		double _wheel_depth;		// dimension: wheel depth
 		double _wheel_radius;		// dimension: custom wheel radius
@@ -274,16 +255,16 @@ class DLLIMPORT Robot {
 
 	// private functions
 	private:
-		bool is_shift_enabled(void);					// is recorded data shift enabled
-		double normal(double);							// get random value from normal distribution
-		double uniform(void);							// get random value from uniform distribution
-		static void* moveJointTimeNBThread(void*);		// thread to move a joint
-		static void* moveTimeNBThread(void*);			// thread to move all joints
-		static void* recordAngleThread(void*);			// thread to record an angle
-		static void* recordAngleBeginThread(void*);		// thread to record an angle indefinitely
-		static void* recordAnglesThread(void*);			// thread to record all angles
-		static void* recordAnglesBeginThread(void*);	// thread to record all angles indefinitely
-		static void* recordxyBeginThread(void*);		// thread to record (x,y) positions
+		bool is_shift_enabled(void);
+		double normal(double);
+		double uniform(void);
+		static void* moveJointTimeNBThread(void*);
+		static void* moveTimeNBThread(void*);
+		static void* recordAngleThread(void*);
+		static void* recordAngleBeginThread(void*);
+		static void* recordAnglesThread(void*);
+		static void* recordAnglesBeginThread(void*);
+		static void* recordxyBeginThread(void*);
 };
 
 /*class DLLIMPORT RobotGroup {
