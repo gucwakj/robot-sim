@@ -366,15 +366,18 @@ class DLLIMPORT RobotGroup {
 		int turnRightNB(double, double, double);
 
 	// data members
+	protected:
+		double _d;
+		int _i;
+		THREAD_T *_thread;
+
+	// private data
 	private:
 		typedef struct robots_s {
 			Robot *robot;
 			struct robots_s *next;
 		} *robots_t;
-		double _d;
-		int _i;
 		robots_t _robots;
-		THREAD_T *_thread;
 };
 
 // global structs for threading

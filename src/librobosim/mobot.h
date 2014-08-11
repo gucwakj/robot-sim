@@ -149,32 +149,14 @@ class DLLIMPORT CMobot : public ModularRobot {
 				_tank_depth;
 };
 
-class CMobotGroup {
+class CMobotGroup : virtual public RobotGroup {
 	// public api
 	public:
-		CMobotGroup();
-		virtual ~CMobotGroup();
+		CMobotGroup(void);
+		virtual ~CMobotGroup(void);
 		int addRobot(CMobot&);
 		int addRobots(CMobot[], int);
 
-		int blinkLED(double, int);
-		int connect(void);
-		int driveBackward(double);
-		int driveBackwardNB(double);
-		int driveDistance(double, double);
-		int driveDistanceNB(double, double);
-		int driveForeverNB(void);
-		int driveForward(double);
-		int driveForwardNB(double);
-		int driveTime(double);
-		int driveTimeNB(double);
-		int holdJoint(robotJointId_t);
-		int holdJoints(void);
-		int holdJointsAtExit(void);
-		int isMoving(void);
-		int isNotMoving(void);
-		int jumpJointTo(robotJointId_t, double);
-		int jumpJointToNB(robotJointId_t, double);
 		int jumpTo(double, double, double, double);
 		int jumpToNB(double, double, double, double);
 		int motionArch(double);
@@ -206,41 +188,11 @@ class CMobotGroup {
 		int motionWait(void);
 		int move(double, double, double, double);
 		int moveNB(double, double, double, double);
-		int moveForeverNB(void);
-		int moveJoint(robotJointId_t, double);
-		int moveJointNB(robotJointId_t, double);
-		int moveJointForeverNB(robotJointId_t);
-		int moveJointTime(robotJointId_t, double);
-		int moveJointTimeNB(robotJointId_t, double);
-		int moveJointTo(robotJointId_t, double);
-		int moveJointToNB(robotJointId_t, double);
-		int moveJointWait(robotJointId_t);
-		int moveTime(double);
-		int moveTimeNB(double);
 		int moveTo(double, double, double, double);
 		int moveToNB(double, double, double, double);
-		int moveToZero(void);
-		int moveToZeroNB(void);
-		int moveWait(void);
-		int relaxJoint(robotJointId_t);
 		int reset(void);
-		int relaxJoints(void);
-		int resetToZero(void);
-		int resetToZeroNB(void);
-		int setJointPower(robotJointId_t, int);
-		int setJointSafetyAngle(double);
-		int setJointSafetyAngleTimeout(double);
-		int setJointSpeed(robotJointId_t, double);
 		int setJointSpeeds(double, double, double, double);
-		int setJointSpeedRatio(robotJointId_t, double);
 		int setJointSpeedRatios(double, double, double, double);
-		int setSpeed(double, double);
-		int traceOff(void);
-		int traceOn(void);
-		int turnLeft(double, double, double);
-		int turnLeftNB(double, double, double);
-		int turnRight(double, double, double);
-		int turnRightNB(double, double, double);
 
 	// private functions
 	private:
@@ -264,12 +216,8 @@ class CMobotGroup {
 			CMobot *robot;
 			struct robots_s *next;
 		} *robots_t;
-
 		robots_t _robots;
-		int _i;
 		int _motion;
-		double _d;
-		THREAD_T *_thread;
 };
 
 // global structs for threading
