@@ -278,10 +278,6 @@ typedef struct mobotMotionArg_s {
 	double d;
 	CMobot *robot;
 } mobotMotionArg_t;
-typedef struct mobotMoveArg_s {
-	double x, y, radius, trackwidth;
-	CMobot *robot;
-} mobotMoveArg_t;
 
 // simulation
 extern RoboSim *g_sim;

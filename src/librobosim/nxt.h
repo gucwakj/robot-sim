@@ -146,15 +146,6 @@ class DLLIMPORT CNXTGroup {
 		THREAD_T *_thread;
 };
 
-// global structs for threading
-typedef struct nxtMoveArg_s {
-	double x, y, radius, trackwidth;
-	int i;
-	double (*func)(double x);
-	char *expr;
-	CNXT *robot;
-} nxtMoveArg_t;
-
 // simulation
 extern RoboSim *g_sim;
 
