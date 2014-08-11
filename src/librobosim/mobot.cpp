@@ -1,6 +1,6 @@
 #include "mobot.h"
 
-CMobot::CMobot(void) {
+CMobot::CMobot(void) : Robot(JOINT1, JOINT4) {
 	// initialize parameters
 	this->initParams(0, MOBOT);
 

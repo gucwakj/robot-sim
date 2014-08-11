@@ -223,11 +223,11 @@ class DLLIMPORT CLinkbotTGroup {
 
 class DLLIMPORT CLinkbotI : public CLinkbotT {
 	public:
-		CLinkbotI(void) : CLinkbotT(1, LINKBOTI) {}
+		CLinkbotI(void) : Robot(JOINT1, JOINT3), CLinkbotT(1, LINKBOTI) {}
 };
 class DLLIMPORT CLinkbotL : public CLinkbotT {
 	public:
-		CLinkbotL(void) : CLinkbotT(2, LINKBOTL) {}
+		CLinkbotL(void) : Robot(JOINT1, JOINT2), CLinkbotT(2, LINKBOTL) {}
 };
 class DLLIMPORT CLinkbotIGroup : public CLinkbotTGroup {};
 class DLLIMPORT CLinkbotLGroup : public CLinkbotTGroup {};

@@ -1,7 +1,10 @@
 #include "robot.h"
 #include "robosim.h"
 
-Robot::Robot(void) {
+Robot::Robot(robotJointId_t leftWheel, robotJointId_t rightWheel) {
+	_leftWheel = leftWheel;
+	_rightWheel = rightWheel;
+
 	MUTEX_INIT(&_active_mutex);
 	COND_INIT(&_active_cond);
 	MUTEX_INIT(&_goal_mutex);
@@ -156,8 +159,8 @@ int Robot::driveForever(void) {
 }
 
 int Robot::driveForeverNB(void) {
-	this->moveJointForeverNB(static_cast<robotJointId_t>(0));
-	this->moveJointForeverNB(static_cast<robotJointId_t>(_dof - 1));
+	this->moveJointForeverNB(_leftWheel);
+	this->moveJointForeverNB(_rightWheel);
 
 	// success
 	return 0;
@@ -172,8 +175,8 @@ int Robot::driveForward(double angle) {
 }
 
 int Robot::driveForwardNB(double angle) {
-	this->moveJointNB(static_cast<robotJointId_t>(0), angle);
-	this->moveJointNB(static_cast<robotJointId_t>(_dof - 1), angle);
+	this->moveJointNB(_leftWheel, angle);
+	this->moveJointNB(_rightWheel, angle);
 
 	// success
 	return 0;
@@ -1268,8 +1271,8 @@ int Robot::setSpeed(double speed, double radius) {
 		fprintf(stderr, "Warning: Speed %.2lf corresponds to joint speeds of %.2lf degrees/second.\n",
 			speed, RAD2DEG(speed/radius));
 	}
-	this->setJointSpeed(static_cast<robotJointId_t>(0), RAD2DEG(speed/radius));
-	this->setJointSpeed(static_cast<robotJointId_t>(_dof - 1), RAD2DEG(speed/radius));
+	this->setJointSpeed(_leftWheel, RAD2DEG(speed/radius));
+	this->setJointSpeed(_rightWheel, RAD2DEG(speed/radius));
 
 	// success
 	return 0;
@@ -1320,9 +1323,9 @@ int Robot::turnLeftNB(double angle, double radius, double trackwidth) {
 	angle = (angle*width)/(2*radius);
 
 	// move left joint backward
-	this->moveJointNB(static_cast<robotJointId_t>(0), -angle);
+	this->moveJointNB(_leftWheel, -angle);
 	// move right joint forward
-	this->moveJointNB(static_cast<robotJointId_t>(_dof - 1), angle);
+	this->moveJointNB(_rightWheel, angle);
 
 	// success
 	return 0;
@@ -1344,9 +1347,9 @@ int Robot::turnRightNB(double angle, double radius, double trackwidth) {
 	angle = (angle*width)/(2*radius);
 
 	// move left joint forward
-	this->moveJointNB(static_cast<robotJointId_t>(0), angle);
+	this->moveJointNB(_leftWheel, angle);
 	// move right joint backward
-	this->moveJointNB(static_cast<robotJointId_t>(_dof - 1), -angle);
+	this->moveJointNB(_rightWheel, -angle);
 
 	// success
 	return 0;

@@ -1,6 +1,6 @@
 #include "linkbot.h"
 
-CLinkbotT::CLinkbotT(int disabled, int type) {
+CLinkbotT::CLinkbotT(int disabled, int type) : Robot(JOINT1, JOINT3) {
 	// initialize parameters
 	this->initParams(disabled, type);
 

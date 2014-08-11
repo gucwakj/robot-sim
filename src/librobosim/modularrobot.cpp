@@ -1,7 +1,7 @@
 #include "modularrobot.h"
 #include "robosim.h"
 
-ModularRobot::ModularRobot(void) {
+ModularRobot::ModularRobot(void) : Robot(JOINT1, JOINT1) {
 	_conn = NULL;
 }
 

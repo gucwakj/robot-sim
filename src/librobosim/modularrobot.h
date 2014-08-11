@@ -54,6 +54,7 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 	// data members
 	protected:
 		conn_t _conn;				// connectors
+		double _bigwheel_radius;	// dimension: big wheel radius
 		double _conn_depth;			// dimension: connector depth
 		double _conn_height;		// dimension: connector height
 		double _conn_radius;		// dimension: connector radius

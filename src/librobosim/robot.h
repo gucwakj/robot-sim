@@ -36,7 +36,7 @@ class DLLIMPORT Robot {
 
 	// common public api
 	public:
-		Robot(void);
+		Robot(robotJointId_t, robotJointId_t);
 		virtual ~Robot(void);
 
 		int blinkLED(double, int);
@@ -236,7 +236,6 @@ class DLLIMPORT Robot {
 		bool *_recording;			// recording in progress
 		bool *_rec_active;			// actively recording a new value
 		double _accel[3];			// accelerometer data
-		double _bigwheel_radius;	// dimension: big wheel radius
 		double _body_length;		// dimension: body length
 		double _body_height;		// dimension: body height
 		double _body_radius;		// dimension: body radius
@@ -292,6 +291,11 @@ class DLLIMPORT Robot {
 		static void* recordAnglesThread(void*);
 		static void* recordAnglesBeginThread(void*);
 		static void* recordxyBeginThread(void*);
+
+	// private data
+	private:
+		robotJointId_t _leftWheel;		// joint for left wheel
+		robotJointId_t _rightWheel;		// joint for right wheel
 };
 
 class DLLIMPORT RobotGroup {
