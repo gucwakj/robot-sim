@@ -1177,7 +1177,7 @@ int RoboSim::addRobot(ModularRobot *robot) {
 				dBodyID body = r->getConnectorBodyID(ctmp->face1);
 				dMatrix3 R;
 				double m[3] = {0};
-				r->getConnectionParams(ctmp->face1, R, m);
+				r->getFaceParams(ctmp->face1, R, m);
 				robot->build(btmp, R, m, body, ctmp);
 				break;
 			}

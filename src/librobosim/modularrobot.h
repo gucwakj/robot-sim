@@ -28,8 +28,13 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 
 	// virual functions for inherited classes
 	protected:
+		virtual int addConnector(int, int, double) = 0;
 		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, xml_conn_t) = 0;
-		virtual int getConnectionParams(int, dMatrix3, double*) = 0;
+		virtual int drawConnector(conn_t, osg::Group*) = 0;
+		virtual int fixBodyToConnector(dBodyID, int) = 0;
+		virtual int fixConnectorToBody(int, dBodyID, int = -1) = 0;
+		virtual int getConnectorParams(int, int, dMatrix3, double*) = 0;
+		virtual int getFaceParams(int, dMatrix3, double*) = 0;
 
 	// virtual functions from base class
 	protected:

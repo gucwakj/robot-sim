@@ -998,6 +998,82 @@ int CLinkbotT::turnRightNB(double angle, double radius, double trackwidth) {
 /**********************************************************
 	inherited functions
  **********************************************************/
+int CLinkbotT::addConnector(int type, int face, double size) {
+	// create new connector
+	conn_t nc = new struct conn_s;
+	nc->d_side = -1;
+	nc->d_type = -1;
+	nc->face = face;
+	nc->type = type;
+	nc->next = NULL;
+
+	// add to list of connectors
+	conn_t ctmp = _conn;
+	if ( _conn == NULL )
+		_conn = nc;
+	else {
+		while (ctmp->next)
+			ctmp = ctmp->next;
+		ctmp->next = nc;
+	}
+
+	// build connector
+	switch (type) {
+		case BIGWHEEL:
+			this->build_bigwheel(nc, face);
+			break;
+		case BRIDGE:
+			this->build_bridge(nc, face);
+			break;
+		case CASTER:
+			this->build_caster(nc, face);
+			break;
+		case CUBE:
+			this->build_cube(nc, face);
+			break;
+		case FACEPLATE:
+			this->build_faceplate(nc, face);
+			break;
+		case GRIPPER:
+			this->build_gripper(nc, 1);
+			break;
+		case OMNIDRIVE:
+			this->build_omnidrive(nc, face);
+			break;
+		case SIMPLE:
+			this->build_simple(nc, face);
+			break;
+		case SMALLWHEEL:
+			this->build_smallwheel(nc, face);
+			break;
+		case TINYWHEEL:
+			this->build_tinywheel(nc, face);
+			break;
+		case WHEEL:
+			this->build_wheel(nc, face, size);
+			break;
+	}
+
+	if (type == GRIPPER) {
+		conn_t nc2 = new struct conn_s;
+		nc2->face = 3;
+		nc2->type = GRIPPER;
+		nc2->next = NULL;
+
+		// add to list of connectors
+		conn_t ctmp = _conn;
+		while (ctmp->next)
+			ctmp = ctmp->next;
+		ctmp->next = nc2;
+
+		// build
+		this->build_gripper(nc2, 3);
+	}
+
+	// success
+	return 0;
+}
+
 int CLinkbotT::build(xml_robot_t robot) {
 	// check for wheels
 	xml_conn_t ctmp = robot->conn;
@@ -1050,7 +1126,7 @@ int CLinkbotT::build(xml_robot_t robot) {
 	while (ctmp) {
 		if (ctmp->robot == _id) {
 			if (ctmp->conn == -1)
-				this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
+				this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
 			else
 				this->add_connector_daisy(ctmp->conn, ctmp->face1, ctmp->size, ctmp->side, ctmp->type);
 		}
@@ -1092,7 +1168,7 @@ int CLinkbotT::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml
 	dMatrix3 R1, R2, R3, R4, R5, R6;
 
 	// generate parameters for connector
-	this->get_connector_params(conn->type, conn->side, R, m);
+	this->getConnectorParams(conn->type, conn->side, R, m);
 
 	// rotate about connection joint
 	dRFromAxisAndAngle(R1, R[0], R[4], R[8], robot->psi);
@@ -1129,19 +1205,19 @@ int CLinkbotT::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml
 	this->buildIndividual(m[0], m[1], m[2], R6, rot);
 
     // add fixed joint to attach two modules
-	this->fix_body_to_connector(base, conn->face2);
+	this->fixBodyToConnector(base, conn->face2);
 
 	// add connectors
 	xml_conn_t ctmp = robot->conn;
 	while (ctmp) {
 		if (ctmp->robot == _id) {
 			if (ctmp->conn == -1)
-				this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
+				this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
 			else
 				this->add_connector_daisy(ctmp->conn, ctmp->face1, ctmp->size, ctmp->side, ctmp->type);
 		}
 		else if (ctmp->face2 != conn->face2) {
-			this->fix_connector_to_body(this->getBodyID(ctmp->face2), base);
+			this->fixConnectorToBody(ctmp->face2, base);
 		}
 		ctmp = ctmp->next;
 	}
@@ -1378,7 +1454,7 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	// add connectors
 	conn_t ctmp = _conn;
 	while (ctmp) {
-		this->draw_connector(ctmp, _robot);
+		this->drawConnector(ctmp, _robot);
 		ctmp = ctmp->next;
 	}
 
@@ -1445,7 +1521,123 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	// return position of robot in root node
 	return (root->getChildIndex(_robot));
 }
+
+int CLinkbotT::drawConnector(conn_t conn, osg::Group *robot) {
+	// initialize variables
+	dMatrix3 R;
+	dQuaternion Q;
+	double p[3] = {0};
+
+	// get connection parameters
+	this->getFaceParams(conn->face, R, p);
+	dRtoQ(R, Q);
+	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
+
+	// PAT to transform mesh
+	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
+	transform->setPosition(osg::Vec3d(p[0], p[1], p[2]));
+	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
+
+	// create node to hold mesh
+	osg::ref_ptr<osg::Node> geode;
+	switch (conn->type) {
+		case BIGWHEEL:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bigwheel.stl));
+			break;
+		case BRIDGE:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bridge.stl));
+			break;
+		case CASTER:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/caster.stl));
+			break;
+		case CUBE:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/cube.stl));
+			break;
+		case FACEPLATE:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/faceplate.stl));
+			break;
+		case GRIPPER:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/gripper.stl));
+			break;
+		case OMNIDRIVE:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/omnidrive.stl));
+			break;
+		case SIMPLE:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/simple.stl));
+			break;
+		case SMALLWHEEL:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/smallwheel.stl));
+			break;
+		case TINYWHEEL:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.stl));
+			break;
+		case WHEEL:
+			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.stl));
+			transform->setScale(osg::Vec3d(1, _wheel_radius/_tinywheel_radius, _wheel_radius/_tinywheel_radius));
+			break;
+	}
+	geode->setCullingActive(false);
+
+	// apply texture
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
+	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
+	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
+	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
+	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
+	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+
+	// set rendering
+	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+	// add body to pat
+	transform->addChild(geode);
+
+	// set user properties of node
+	geode->setName("connector");
+
+	// add to scenegraph
+	robot->addChild(transform);
+
+	// success
+	return 0;
+}
 #endif // ENABLE_GRAPHICS
+
+int CLinkbotT::fixBodyToConnector(dBodyID cBody, int face) {
+	// fixed joint
+	dJointID joint = dJointCreateFixed(_world, 0);
+
+	// attach to correct body
+	dJointAttach(joint, cBody, this->getBodyID(face));
+
+	// set joint params
+	dJointSetFixed(joint);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::fixConnectorToBody(int face, dBodyID cBody, int conn) {
+	// fixed joint
+	dJointID joint = dJointCreateFixed(_world, 0);
+
+	// connector or body part
+	dBodyID body;
+	if (conn != -1)
+		body = this->getConnectorBodyID(face);
+	else
+		body = this->getBodyID(face);
+
+	// attach to correct body
+	dJointAttach(joint, body, cBody);
+
+	// set joint params
+	dJointSetFixed(joint);
+
+	// success
+	return 0;
+}
 
 double CLinkbotT::getAngle(int id) {
 	if (id == _disabled)
@@ -1456,7 +1648,69 @@ double CLinkbotT::getAngle(int id) {
     return _motor[id].theta;
 }
 
-int CLinkbotT::getConnectionParams(int face, dMatrix3 R, double *p) {
+int CLinkbotT::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
+	double offset[3] = {0};
+	dMatrix3 R1, R2, R3, R4, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
+
+	switch (type) {
+		case BRIDGE:
+			offset[1] = -_bridge_length + 2*_face_radius;
+			dRFromAxisAndAngle(R1, R[1], R[5], R[9], M_PI);
+			break;
+		case CUBE:
+			if (side == 2) {
+				offset[0] = _cubic_length/2;
+				offset[1] = _cubic_length/2;
+				dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI/2);
+			}
+			else if (side == 3) {
+				offset[0] = _cubic_length;
+				dRSetIdentity(R1);
+			}
+			else if (side == 4) {
+				offset[0] = _cubic_length/2;
+				offset[1] = -_cubic_length/2;
+				dRFromAxisAndAngle(R1, R[2], R[6], R[10], -M_PI/2);
+			}
+			else if (side == 5) {
+				offset[0] = _cubic_length/2;
+				offset[2] = _cubic_length/2;
+				dRFromAxisAndAngle(R2, R[1], R[5], R[9], -M_PI/2);
+				dMultiply0(R3, R2, R, 3, 3, 3);
+				dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -M_PI/2);
+				dMultiply0(R1, R4, R2, 3, 3, 3);
+			}
+			break;
+		case OMNIDRIVE:
+			if (side == 2) {
+				offset[2] = -_omni_length + 2*_face_radius;
+			}
+			else if (side == 3) {
+				offset[1] = +_omni_length - 2*_face_radius;
+			}
+			else if (side == 4) {
+				offset[1] = _omni_length - 2*_face_radius;
+				offset[2] = -_omni_length + 2*_face_radius;
+			}
+			dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI);
+			break;
+		case SIMPLE:
+			offset[0] = _conn_depth;
+			dRSetIdentity(R1);
+			break;
+	}
+
+	// set output parameters
+	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
+	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
+	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
+	dMultiply0(R, R1, Rtmp, 3, 3, 3);
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::getFaceParams(int face, dMatrix3 R, double *p) {
 	double offset[3] = {0};
 	const double *pos = dBodyGetPosition(_body[face]);
 	const double *R1 = dBodyGetRotation(_body[face]);
@@ -1786,82 +2040,6 @@ void CLinkbotT::simPostCollisionThread(void) {
 /**********************************************************
 	private functions
  **********************************************************/
-int CLinkbotT::add_connector(int type, int face, double size) {
-	// create new connector
-	conn_t nc = new struct conn_s;
-	nc->d_side = -1;
-	nc->d_type = -1;
-	nc->face = face;
-	nc->type = type;
-	nc->next = NULL;
-
-	// add to list of connectors
-	conn_t ctmp = _conn;
-	if ( _conn == NULL )
-		_conn = nc;
-	else {
-		while (ctmp->next)
-			ctmp = ctmp->next;
-		ctmp->next = nc;
-	}
-
-	// build connector
-	switch (type) {
-		case BIGWHEEL:
-			this->build_bigwheel(nc, face);
-			break;
-		case BRIDGE:
-			this->build_bridge(nc, face);
-			break;
-		case CASTER:
-			this->build_caster(nc, face);
-			break;
-		case CUBE:
-			this->build_cube(nc, face);
-			break;
-		case FACEPLATE:
-			this->build_faceplate(nc, face);
-			break;
-		case GRIPPER:
-			this->build_gripper(nc, 1);
-			break;
-		case OMNIDRIVE:
-			this->build_omnidrive(nc, face);
-			break;
-		case SIMPLE:
-			this->build_simple(nc, face);
-			break;
-		case SMALLWHEEL:
-			this->build_smallwheel(nc, face);
-			break;
-		case TINYWHEEL:
-			this->build_tinywheel(nc, face);
-			break;
-		case WHEEL:
-			this->build_wheel(nc, face, size);
-			break;
-	}
-
-	if (type == GRIPPER) {
-		conn_t nc2 = new struct conn_s;
-		nc2->face = 3;
-		nc2->type = GRIPPER;
-		nc2->next = NULL;
-
-		// add to list of connectors
-		conn_t ctmp = _conn;
-		while (ctmp->next)
-			ctmp = ctmp->next;
-		ctmp->next = nc2;
-
-		// build
-		this->build_gripper(nc2, 3);
-	}
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::add_connector_daisy(int conn, int face, double size, int side, int type) {
 	// create new connector
 	conn_t nc = new struct conn_s;
@@ -1930,8 +2108,8 @@ int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
 	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->get_connector_params(type, side, R, p);
+	this->getFaceParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -1963,10 +2141,7 @@ int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+	this->fixConnectorToBody(face, conn->body, side);
 
 	// success
 	return 0;
@@ -2029,8 +2204,8 @@ int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
 	if (face == 3) offset[1] = _bridge_length/2 - _face_radius;
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->get_connector_params(type, side, R, p);
+	this->getFaceParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
 	p[0] += R[0]*offset[0] + R[1]*offset[1];
 	p[1] += R[4]*offset[0] + R[5]*offset[1];
 	p[2] += R[8]*offset[0] + R[9]*offset[1];
@@ -2058,10 +2233,7 @@ int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+	this->fixConnectorToBody(face, conn->body, side);
 
 	// success
 	return 0;
@@ -2078,8 +2250,8 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
 	double p[3] = {0}, offset[3] = {_conn_depth/2, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->get_connector_params(type, side, R, p);
+	this->getFaceParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2126,10 +2298,6 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
 
 	// success
 	return 0;
@@ -2146,8 +2314,8 @@ int CLinkbotT::build_cube(conn_t conn, int face, int side, int type) {
 	double p[3] = {0}, offset[3] = {_cubic_length/2, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->get_connector_params(type, side, R, p);
+	this->getFaceParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2175,10 +2343,7 @@ int CLinkbotT::build_cube(conn_t conn, int face, int side, int type) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+	this->fixConnectorToBody(face, conn->body, side);
 
 	// success
 	return 0;
@@ -2238,8 +2403,8 @@ int CLinkbotT::build_faceplate(conn_t conn, int face, int side, int type) {
 	double p[3] = {0}, offset[3] = {_conn_depth/2, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->get_connector_params(type, side, R, p);
+	this->getFaceParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2267,10 +2432,7 @@ int CLinkbotT::build_faceplate(conn_t conn, int face, int side, int type) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+	this->fixConnectorToBody(face, conn->body, side);
 
 	// success
 	return 0;
@@ -2288,7 +2450,7 @@ int CLinkbotT::build_gripper(conn_t conn, int face) {
 	int i = (face == 1) ? 1 : -1;
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
+	this->getFaceParams(face, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2331,7 +2493,7 @@ int CLinkbotT::build_gripper(conn_t conn, int face) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(this->getBodyID(face), conn->body);
+	this->fixConnectorToBody(face, conn->body);
 
 	// success
 	return 0;
@@ -2348,8 +2510,8 @@ int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
 	double p[3] = {0}, offset[3] = {_conn_depth/2, _omni_length/2 - _face_radius, -_omni_length/2 + _face_radius};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->get_connector_params(type, side, R, p);
+	this->getFaceParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
 	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
 	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
 	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
@@ -2377,10 +2539,7 @@ int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+	this->fixConnectorToBody(face, conn->body, side);
 
 	// success
 	return 0;
@@ -2397,8 +2556,8 @@ int CLinkbotT::build_simple(conn_t conn, int face, int side, int type) {
 	double p[3] = {0}, offset[3] = {_conn_depth/2, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->get_connector_params(type, side, R, p);
+	this->getFaceParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2426,10 +2585,7 @@ int CLinkbotT::build_simple(conn_t conn, int face, int side, int type) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+	this->fixConnectorToBody(face, conn->body, side);
 
 	// success
 	return 0;
@@ -2446,8 +2602,8 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
 	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->get_connector_params(type, side, R, p);
+	this->getFaceParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2479,10 +2635,7 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+	this->fixConnectorToBody(face, conn->body, side);
 
 	// success
 	return 0;
@@ -2499,8 +2652,8 @@ int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
 	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->get_connector_params(type, side, R, p);
+	this->getFaceParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2532,10 +2685,7 @@ int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
+	this->fixConnectorToBody(face, conn->body, side);
 
 	// success
 	return 0;
@@ -2555,8 +2705,8 @@ int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int typ
 	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
-	if (side != -1) this->get_connector_params(type, side, R, p);
+	this->getFaceParams(face, R, p);
+	if (side != -1) this->getConnectorParams(type, side, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2588,180 +2738,7 @@ int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int typ
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	if (side != -1)
-		this->fix_connector_to_body(this->getConnectorBodyID(face), conn->body);
-	else
-		this->fix_connector_to_body(this->getBodyID(face), conn->body);
-
-	// success
-	return 0;
-}
-
-#ifdef ENABLE_GRAPHICS
-void CLinkbotT::draw_connector(conn_t conn, osg::Group *robot) {
-	// initialize variables
-	dMatrix3 R;
-	dQuaternion Q;
-	double p[3] = {0};
-
-	// get connection parameters
-	this->getConnectionParams(conn->face, R, p);
-	dRtoQ(R, Q);
-	if (conn->d_side != -1) this->get_connector_params(conn->d_type, conn->d_side, R, p);
-
-	// PAT to transform mesh
-	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
-	transform->setPosition(osg::Vec3d(p[0], p[1], p[2]));
-	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
-
-	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode;
-	switch (conn->type) {
-		case BIGWHEEL:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bigwheel.stl));
-			break;
-		case BRIDGE:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bridge.stl));
-			break;
-		case CASTER:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/caster.stl));
-			break;
-		case CUBE:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/cube.stl));
-			break;
-		case FACEPLATE:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/faceplate.stl));
-			break;
-		case GRIPPER:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/gripper.stl));
-			break;
-		case OMNIDRIVE:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/omnidrive.stl));
-			break;
-		case SIMPLE:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/simple.stl));
-			break;
-		case SMALLWHEEL:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/smallwheel.stl));
-			break;
-		case TINYWHEEL:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.stl));
-			break;
-		case WHEEL:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.stl));
-			transform->setScale(osg::Vec3d(1, _wheel_radius/_tinywheel_radius, _wheel_radius/_tinywheel_radius));
-			break;
-	}
-	geode->setCullingActive(false);
-
-	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
-	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
-
-	// set rendering
-	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// add body to pat
-	transform->addChild(geode);
-
-	// set user properties of node
-	geode->setName("connector");
-
-	// add to scenegraph
-	robot->addChild(transform);
-}
-#endif // ENABLE_GRAPHICS
-
-int CLinkbotT::fix_body_to_connector(dBodyID cBody, int face) {
-	// fixed joint
-	dJointID joint = dJointCreateFixed(_world, 0);
-
-	// attach to correct body
-	dJointAttach(joint, cBody, this->getBodyID(face));
-
-	// set joint params
-	dJointSetFixed(joint);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::fix_connector_to_body(dBodyID rBody, dBodyID cBody) {
-	// fixed joint
-	dJointID joint = dJointCreateFixed(_world, 0);
-
-	// attach to correct body
-	dJointAttach(joint, rBody, cBody);
-
-	// set joint params
-	dJointSetFixed(joint);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::get_connector_params(int type, int side, dMatrix3 R, double *p) {
-	double offset[3] = {0};
-	dMatrix3 R1, R2, R3, R4, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
-
-	switch (type) {
-		case BRIDGE:
-			offset[1] = -_bridge_length + 2*_face_radius;
-			dRFromAxisAndAngle(R1, R[1], R[5], R[9], M_PI);
-			break;
-		case CUBE:
-			if (side == 2) {
-				offset[0] = _cubic_length/2;
-				offset[1] = _cubic_length/2;
-				dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI/2);
-			}
-			else if (side == 3) {
-				offset[0] = _cubic_length;
-				dRSetIdentity(R1);
-			}
-			else if (side == 4) {
-				offset[0] = _cubic_length/2;
-				offset[1] = -_cubic_length/2;
-				dRFromAxisAndAngle(R1, R[2], R[6], R[10], -M_PI/2);
-			}
-			else if (side == 5) {
-				offset[0] = _cubic_length/2;
-				offset[2] = _cubic_length/2;
-				dRFromAxisAndAngle(R2, R[1], R[5], R[9], -M_PI/2);
-				dMultiply0(R3, R2, R, 3, 3, 3);
-				dRFromAxisAndAngle(R4, R3[0], R3[4], R3[8], -M_PI/2);
-				dMultiply0(R1, R4, R2, 3, 3, 3);
-			}
-			break;
-		case OMNIDRIVE:
-			if (side == 2) {
-				offset[2] = -_omni_length + 2*_face_radius;
-			}
-			else if (side == 3) {
-				offset[1] = +_omni_length - 2*_face_radius;
-			}
-			else if (side == 4) {
-				offset[1] = _omni_length - 2*_face_radius;
-				offset[2] = -_omni_length + 2*_face_radius;
-			}
-			dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI);
-			break;
-		case SIMPLE:
-			offset[0] = _conn_depth;
-			dRSetIdentity(R1);
-			break;
-	}
-
-	// set output parameters
-	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
-	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
-	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
-	dMultiply0(R, R1, Rtmp, 3, 3, 3);
+	this->fixConnectorToBody(face, conn->body, side);
 
 	// success
 	return 0;

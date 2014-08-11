@@ -76,14 +76,19 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 
 	// inherited functions
 	private:
+		virtual int addConnector(int, int, double);
 		virtual int build(xml_robot_t);
 		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, xml_conn_t);
 		virtual int buildIndividual(double, double, double, dMatrix3, double*);
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group*, int);
+		virtual int drawConnector(conn_t, osg::Group*);
 #endif // ENABLE_GRAPHICS
+		virtual int fixBodyToConnector(dBodyID, int);
+		virtual int fixConnectorToBody(int, dBodyID, int = -1);
 		virtual double getAngle(int);
-		virtual int getConnectionParams(int, dMatrix3, double*);
+		virtual int getConnectorParams(int, int, dMatrix3, double*);
+		virtual int getFaceParams(int, dMatrix3, double*);
 		virtual int initParams(int, int);
 		virtual int initDims(void);
 		virtual void simPreCollisionThread(void);
@@ -91,7 +96,6 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 
 	// private functions
 	private:
-		int add_connector(int, int, double);							// add connector
 		int add_connector_daisy(int, int, double, int, int);			// add daisy chained connector
 		int build_bigwheel(conn_t, int, int = -1, int = -1);			// build big wheel connector
 		int build_body(double, double, double, dMatrix3, double);		// build body of linkbot
@@ -106,12 +110,6 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 		int build_smallwheel(conn_t, int, int = -1, int = -1);			// build small wheel connector
 		int build_tinywheel(conn_t, int, int = -1, int = -1);			// build tiny wheel connector
 		int build_wheel(conn_t, int, double, int = -1, int = -1);		// build custom wheel connector
-#ifdef ENABLE_GRAPHICS
-		void draw_connector(conn_t, osg::Group*);						// load connector stl
-#endif // ENABLE_GRAPHICS
-		int fix_body_to_connector(dBodyID, int);						// fix body onto connector
-		int fix_connector_to_body(dBodyID, dBodyID);					// fix connector onto body
-		int get_connector_params(int, int, dMatrix3, double*);			// get params of connector face
 		static void* closeGripperNBThread(void*);						// thread to close gripper
 		static void* driveTimeNBThread(void*);							// thread to drive robot
 		static void* drivexyThread(void*);								// thread to run drivexy

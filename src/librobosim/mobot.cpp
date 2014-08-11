@@ -1096,6 +1096,54 @@ int CMobot::turnRightNB(double angle, double radius, double trackwidth) {
 /**********************************************************
 	inherited functions
  **********************************************************/
+int CMobot::addConnector(int type, int face, double size) {
+	// create new connector
+	conn_t nc = new struct conn_s;
+	nc->d_side = -1;
+	nc->d_type = -1;
+	nc->face = face;
+	nc->type = type;
+	nc->next = NULL;
+
+	// add to list of connectors
+	conn_t ctmp = _conn;
+	if ( _conn == NULL )
+		_conn = nc;
+	else {
+		while (ctmp->next)
+			ctmp = ctmp->next;
+		ctmp->next = nc;
+	}
+
+	// build connector
+	switch (type) {
+		case BIGWHEEL:
+			this->build_bigwheel(nc, face);
+			break;
+		case CASTER:
+			this->build_caster(nc, face);
+			break;
+		case SIMPLE:
+			this->build_simple(nc, face);
+			break;
+		case SMALLWHEEL:
+			this->build_smallwheel(nc, face);
+			break;
+		case SQUARE:
+			this->build_square(nc, face);
+			break;
+		case TANK:
+			this->build_tank(nc, face);
+			break;
+		case WHEEL:
+			this->build_wheel(nc, face, size);
+			break;
+	}
+
+	// success
+	return 0;
+}
+
 int CMobot::build(xml_robot_t robot) {
 	// create rotation matrix
 	double	sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
@@ -1135,7 +1183,7 @@ int CMobot::build(xml_robot_t robot) {
 	ctmp = robot->conn;
 	while (ctmp) {
 		if ( ctmp->robot == _id )
-			this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
+			this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
 		ctmp = ctmp->next;
 	}
 
@@ -1175,7 +1223,7 @@ int CMobot::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml_co
 	dMatrix3 R1, R2, R3, R4, R5, R6;
 
 	// generate parameters for connector
-	this->get_connector_params(conn->type, conn->side, R, m);
+	this->getConnectorParams(conn->type, conn->side, R, m);
 
 	// collect data from struct
 	double r_le = robot->angle1;
@@ -1258,13 +1306,13 @@ int CMobot::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml_co
 	this->buildIndividual(m[0], m[1], m[2], R6, rot);
 
     // add fixed joint to attach two modules
-	this->fix_body_to_connector(base, conn->face2);
+	this->fixBodyToConnector(base, conn->face2);
 
 	// add connectors
 	xml_conn_t ctmp = robot->conn;
 	while (ctmp) {
 		if ( ctmp->robot == _id )
-			this->add_connector(ctmp->type, ctmp->face1, ctmp->size);
+			this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
 		ctmp = ctmp->next;
 	}
 
@@ -1630,29 +1678,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	// add connectors
 	conn_t ctmp = _conn;
 	while (ctmp) {
-		switch (ctmp->type) {
-			case BIGWHEEL:
-				this->draw_bigwheel(ctmp, _robot);
-				break;
-			case CASTER:
-				this->draw_caster(ctmp, _robot);
-				break;
-			case SIMPLE:
-				this->draw_simple(ctmp, _robot);
-				break;
-			case SMALLWHEEL:
-				this->draw_smallwheel(ctmp, _robot);
-				break;
-			case SQUARE:
-				this->draw_square(ctmp, _robot);
-				break;
-			case TANK:
-				this->draw_tank(ctmp, _robot);
-				break;
-			case WHEEL:
-				this->draw_wheel(ctmp, _robot);
-				break;
-		}
+		this->drawConnector(ctmp, _robot);
 		ctmp = ctmp->next;
 	}
 
@@ -1719,7 +1745,102 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	// return position of robot in root node
 	return (root->getChildIndex(_robot));
 }
+
+int CMobot::drawConnector(conn_t conn, osg::Group *robot) {
+	// draw each connector
+	switch (conn->type) {
+		case BIGWHEEL:
+			this->draw_bigwheel(conn, robot);
+			break;
+		case CASTER:
+			this->draw_caster(conn, robot);
+			break;
+		case SIMPLE:
+			this->draw_simple(conn, robot);
+			break;
+		case SMALLWHEEL:
+			this->draw_smallwheel(conn, robot);
+			break;
+		case SQUARE:
+			this->draw_square(conn, robot);
+			break;
+		case TANK:
+			this->draw_tank(conn, robot);
+			break;
+		case WHEEL:
+			this->draw_wheel(conn, robot);
+			break;
+	}
+
+	// success
+	return 0;
+}
+
 #endif // ENABLE_GRAPHICS
+
+int CMobot::fixBodyToConnector(dBodyID cBody, int face) {
+	// fixed joint
+	dJointID joint = dJointCreateFixed(_world, 0);
+
+	// attach to correct body
+	switch (face) {
+		case 1:
+			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_L));
+			break;
+		case 2: case 5:
+			dJointAttach(joint, cBody, this->getBodyID(BODY_L));
+			break;
+		case 3: case 6:
+			dJointAttach(joint, cBody, this->getBodyID(BODY_L));
+			dJointAttach(joint, cBody, this->getBodyID(BODY_R));
+			break;
+		case 4: case 7:
+			dJointAttach(joint, cBody, this->getBodyID(BODY_R));
+			break;
+		case 8:
+			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_R));
+			break;
+	}
+
+	// set joint params
+	dJointSetFixed(joint);
+
+	// success
+	return 0;
+}
+
+int CMobot::fixConnectorToBody(int face, dBodyID cBody, int conn) {
+	// fixed joint
+	dJointID joint = dJointCreateFixed(_world, 0);
+	dJointID joint2 = dJointCreateFixed(_world, 0);
+
+	// attach to correct body
+	switch (face) {
+		case 1:
+			dJointAttach(joint, this->getBodyID(ENDCAP_L), cBody);
+			break;
+		case 2: case 5:
+			dJointAttach(joint, this->getBodyID(BODY_L), cBody);
+			break;
+		case 3: case 6:
+			dJointAttach(joint, this->getBodyID(BODY_L), cBody);
+			dJointAttach(joint2, this->getBodyID(BODY_R), cBody);
+			dJointSetFixed(joint2);
+			break;
+		case 4: case 7:
+			dJointAttach(joint, this->getBodyID(BODY_R), cBody);
+			break;
+		case 8:
+			dJointAttach(joint, this->getBodyID(ENDCAP_R), cBody);
+			break;
+	}
+
+	// set joint params
+	dJointSetFixed(joint);
+
+	// success
+	return 0;
+}
 
 double CMobot::getAngle(int id) {
 	if (id == JOINT2 || id == JOINT3)
@@ -1730,7 +1851,55 @@ double CMobot::getAngle(int id) {
     return _motor[id].theta;
 }
 
-int CMobot::getConnectionParams(int face, dMatrix3 R, double *p) {
+int CMobot::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
+	double offset[3] = {0};
+	dMatrix3 R1, R2, R3, R4, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
+
+	switch (type) {
+		case SIMPLE:
+			offset[0] = _conn_depth;
+			dRSetIdentity(R1);
+			break;
+		case SQUARE:
+			if (side == 2) {
+				offset[0] = _end_width/2;
+				offset[1] = _end_width/2;
+				dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI/2);
+			}
+			else if (side == 3) {
+				offset[0] = _end_width;
+				dRSetIdentity(R1);
+			}
+			else if (side == 4) {
+				offset[0] = _end_width/2;
+				offset[1] = -_end_width/2;
+				dRFromAxisAndAngle(R1, R[2], R[6], R[10], -M_PI/2);
+			}
+			break;
+		case TANK:
+			if (side == 2) {
+				offset[0] = _tank_depth;
+				dRSetIdentity(R1);
+			}
+			else if (side == 3) {
+				offset[0] = _tank_depth/2;
+				offset[2] = _tank_height - _conn_height/2;
+				dRFromAxisAndAngle(R1, R[1], R[5], R[9], -M_PI/2);
+			}
+			break;
+	}
+
+	// set output parameters
+	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
+	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
+	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
+	dMultiply0(R, R1, Rtmp, 3, 3, 3);
+
+	// success
+	return 0;
+}
+
+int CMobot::getFaceParams(int face, dMatrix3 R, double *p) {
 	const double *pos, *R1;
 	dMatrix3 R2;
 	double offset[3] = {0};
@@ -1966,58 +2135,11 @@ void CMobot::simPostCollisionThread(void) {
 /**********************************************************
 	private functions
  **********************************************************/
-int CMobot::add_connector(int type, int face, double size) {
-	// create new connector
-	conn_t nc = new struct conn_s;
-	nc->d_side = -1;
-	nc->d_type = -1;
-	nc->face = face;
-	nc->type = type;
-	nc->next = NULL;
-
-	// add to list of connectors
-	conn_t ctmp = _conn;
-	if ( _conn == NULL )
-		_conn = nc;
-	else {
-		while (ctmp->next)
-			ctmp = ctmp->next;
-		ctmp->next = nc;
-	}
-
-	// build connector
-	switch (type) {
-		case BIGWHEEL:
-			this->build_bigwheel(nc, face);
-			break;
-		case CASTER:
-			this->build_caster(nc, face);
-			break;
-		case SIMPLE:
-			this->build_simple(nc, face);
-			break;
-		case SMALLWHEEL:
-			this->build_smallwheel(nc, face);
-			break;
-		case SQUARE:
-			this->build_square(nc, face);
-			break;
-		case TANK:
-			this->build_tank(nc, face);
-			break;
-		case WHEEL:
-			this->build_wheel(nc, face, size);
-			break;
-	}
-
-	// success
-	return 0;
-}
-
 int CMobot::build_bigwheel(conn_t conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[1];
+
 
     // define parameters
     dMass m;
@@ -2025,7 +2147,7 @@ int CMobot::build_bigwheel(conn_t conn, int face) {
 	double p[3] = {0}, offset[3] = {_conn_depth/3, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
+	this->getFaceParams(face, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2056,7 +2178,7 @@ int CMobot::build_bigwheel(conn_t conn, int face) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	this->fixConnectorToBody(face, conn->body);
 
 	// success
 	return 0;
@@ -2146,7 +2268,7 @@ int CMobot::build_caster(conn_t conn, int face) {
 			offset[3] = {depth/2, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
+	this->getFaceParams(face, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2225,7 +2347,7 @@ int CMobot::build_caster(conn_t conn, int face) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	this->fixConnectorToBody(face, conn->body);
 
 	// success
 	return 0;
@@ -2361,7 +2483,7 @@ int CMobot::build_simple(conn_t conn, int face) {
 			offset[3] = {depth/2, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
+	this->getFaceParams(face, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2425,7 +2547,7 @@ int CMobot::build_simple(conn_t conn, int face) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	this->fixConnectorToBody(face, conn->body);
 
 	// success
 	return 0;
@@ -2442,7 +2564,7 @@ int CMobot::build_smallwheel(conn_t conn, int face) {
 	double p[3] = {0}, offset[3] = {_conn_depth/3, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
+	this->getFaceParams(face, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2473,7 +2595,7 @@ int CMobot::build_smallwheel(conn_t conn, int face) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	this->fixConnectorToBody(face, conn->body);
 
 	// success
 	return 0;
@@ -2490,7 +2612,7 @@ int CMobot::build_square(conn_t conn, int face) {
 	double p[3] = {0}, offset[3] = {_conn_depth/2, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
+	this->getFaceParams(face, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2532,7 +2654,7 @@ int CMobot::build_square(conn_t conn, int face) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	this->fixConnectorToBody(face, conn->body);
 
 	// success
 	return 0;
@@ -2553,7 +2675,7 @@ int CMobot::build_tank(conn_t conn, int face) {
 			offset[3] = {depth/2, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
+	this->getFaceParams(face, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2580,7 +2702,7 @@ int CMobot::build_tank(conn_t conn, int face) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	this->fixConnectorToBody(face, conn->body);
 
 	// success
 	return 0;
@@ -2600,7 +2722,7 @@ int CMobot::build_wheel(conn_t conn, int face, double size) {
 	double p[3] = {0}, offset[3] = {_conn_depth/3, 0, 0};
 
 	// position center of connector
-	this->getConnectionParams(face, R, p);
+	this->getFaceParams(face, R, p);
 	p[0] += R[0]*offset[0];
 	p[1] += R[4]*offset[0];
 	p[2] += R[8]*offset[0];
@@ -2631,7 +2753,7 @@ int CMobot::build_wheel(conn_t conn, int face, double size) {
     dBodySetMass(conn->body, &m);
 
 	// fix connector to body
-	this->fix_connector_to_body(face, conn->body);
+	this->fixConnectorToBody(face, conn->body);
 
 	// success
 	return 0;
@@ -2991,116 +3113,4 @@ void CMobot::draw_wheel(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 #endif // ENABLE_GRAPHICS
-
-int CMobot::fix_body_to_connector(dBodyID cBody, int face) {
-	// fixed joint
-	dJointID joint = dJointCreateFixed(_world, 0);
-
-	// attach to correct body
-	switch (face) {
-		case 1:
-			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_L));
-			break;
-		case 2: case 5:
-			dJointAttach(joint, cBody, this->getBodyID(BODY_L));
-			break;
-		case 3: case 6:
-			dJointAttach(joint, cBody, this->getBodyID(BODY_L));
-			dJointAttach(joint, cBody, this->getBodyID(BODY_R));
-			break;
-		case 4: case 7:
-			dJointAttach(joint, cBody, this->getBodyID(BODY_R));
-			break;
-		case 8:
-			dJointAttach(joint, cBody, this->getBodyID(ENDCAP_R));
-			break;
-	}
-
-	// set joint params
-	dJointSetFixed(joint);
-
-	// success
-	return 0;
-}
-
-int CMobot::fix_connector_to_body(int face, dBodyID cBody) {
-	// fixed joint
-	dJointID joint = dJointCreateFixed(_world, 0);
-	dJointID joint2 = dJointCreateFixed(_world, 0);
-
-	// attach to correct body
-	switch (face) {
-		case 1:
-			dJointAttach(joint, this->getBodyID(ENDCAP_L), cBody);
-			break;
-		case 2: case 5:
-			dJointAttach(joint, this->getBodyID(BODY_L), cBody);
-			break;
-		case 3: case 6:
-			dJointAttach(joint, this->getBodyID(BODY_L), cBody);
-			dJointAttach(joint2, this->getBodyID(BODY_R), cBody);
-			dJointSetFixed(joint2);
-			break;
-		case 4: case 7:
-			dJointAttach(joint, this->getBodyID(BODY_R), cBody);
-			break;
-		case 8:
-			dJointAttach(joint, this->getBodyID(ENDCAP_R), cBody);
-			break;
-	}
-
-	// set joint params
-	dJointSetFixed(joint);
-
-	// success
-	return 0;
-}
-
-int CMobot::get_connector_params(int type, int side, dMatrix3 R, double *p) {
-	double offset[3] = {0};
-	dMatrix3 R1, R2, R3, R4, Rtmp = {R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11]};
-
-	switch (type) {
-		case SIMPLE:
-			offset[0] = _conn_depth;
-			dRSetIdentity(R1);
-			break;
-		case SQUARE:
-			if (side == 2) {
-				offset[0] = _end_width/2;
-				offset[1] = _end_width/2;
-				dRFromAxisAndAngle(R1, R[2], R[6], R[10], M_PI/2);
-			}
-			else if (side == 3) {
-				offset[0] = _end_width;
-				dRSetIdentity(R1);
-			}
-			else if (side == 4) {
-				offset[0] = _end_width/2;
-				offset[1] = -_end_width/2;
-				dRFromAxisAndAngle(R1, R[2], R[6], R[10], -M_PI/2);
-			}
-			break;
-		case TANK:
-			if (side == 2) {
-				offset[0] = _tank_depth;
-				dRSetIdentity(R1);
-			}
-			else if (side == 3) {
-				offset[0] = _tank_depth/2;
-				offset[2] = _tank_height - _conn_height/2;
-				dRFromAxisAndAngle(R1, R[1], R[5], R[9], -M_PI/2);
-			}
-			break;
-	}
-
-	// set output parameters
-	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
-	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
-	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
-	dMultiply0(R, R1, Rtmp, 3, 3, 3);
-
-	// success
-	return 0;
-}
 

@@ -79,14 +79,19 @@ class DLLIMPORT CMobot : public ModularRobot {
 
 	// inherited functions
     private:
+		virtual int addConnector(int, int, double);
 		virtual int build(xml_robot_t);
 		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, xml_conn_t);
 		virtual int buildIndividual(double, double, double, dMatrix3, double*);
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group*, int);
+		virtual int drawConnector(conn_t, osg::Group*);
 #endif // ENABLE_GRAPHICS
+		virtual int fixBodyToConnector(dBodyID, int);
+		virtual int fixConnectorToBody(int, dBodyID, int = -1);
 		virtual double getAngle(int);
-		virtual int getConnectionParams(int, dMatrix3, double*);
+		virtual int getConnectorParams(int, int, dMatrix3, double*);
+		virtual int getFaceParams(int, dMatrix3, double*);
 		virtual int initParams(int, int);
 		virtual int initDims(void);
 		virtual void simPreCollisionThread(void);
@@ -94,7 +99,6 @@ class DLLIMPORT CMobot : public ModularRobot {
 
 	// private functions
 	private:
-		int add_connector(int, int, double);							// add connector
 		int build_bigwheel(conn_t, int);								// build big wheel connector
 		int build_body(int, double, double, double, dMatrix3, double);	// build body of mobot
 		int build_caster(conn_t, int);									// build caster connector
@@ -114,9 +118,6 @@ class DLLIMPORT CMobot : public ModularRobot {
 		void draw_tank(conn_t, osg::Group*);							// draw tank
 		void draw_wheel(conn_t, osg::Group*);							// draw custom wheel
 #endif // ENABLE_GRAPHICS
-		int fix_body_to_connector(dBodyID, int);						// fix second body to connector
-		int fix_connector_to_body(int, dBodyID);						// fix connector to robot body
-		int get_connector_params(int, int, dMatrix3, double*);			// get params of connector face
 		static void* drivexyThread(void*);								// thread for driving
 		static void* drivexyToThread(void*);							// thread for driving to a global point
 		static void* motionArchThread(void*);							// thread for arching
