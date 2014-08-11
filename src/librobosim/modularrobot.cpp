@@ -36,6 +36,9 @@ int ModularRobot::connect(char *name, int pause) {
 	return 0;
 }
 
+/**********************************************************
+	protected functions for inherited classes
+ **********************************************************/
 dBodyID ModularRobot::getConnectorBodyID(int face) {
 	conn_t ctmp = _conn;
 	while (ctmp) {

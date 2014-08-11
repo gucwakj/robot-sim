@@ -1173,7 +1173,12 @@ int RoboSim::addRobot(ModularRobot *robot) {
 		rtmp = _robots;
 		while (rtmp) {
 			if (rtmp->robot->getID() == ctmp->robot) {
-				robot->build(btmp, dynamic_cast<ModularRobot *>(rtmp->robot), ctmp);
+				ModularRobot *r = dynamic_cast<ModularRobot *>(rtmp->robot);
+				dBodyID body = r->getConnectorBodyID(ctmp->face1);
+				dMatrix3 R;
+				double m[3] = {0};
+				r->getConnectionParams(ctmp->face1, R, m);
+				robot->build(btmp, R, m, body, ctmp);
 				break;
 			}
 			rtmp = rtmp->next;

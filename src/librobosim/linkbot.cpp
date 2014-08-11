@@ -1086,13 +1086,10 @@ int CLinkbotT::build(xml_robot_t robot) {
 	return 0;
 }
 
-int CLinkbotT::build(xml_robot_t robot, ModularRobot *base, xml_conn_t conn) {
+int CLinkbotT::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml_conn_t conn) {
 	// initialize new variables
-	double m[3] = {0}, offset[3] = {0};
-	dMatrix3 R, R1, R2, R3, R4, R5, R6;
-
-	// generate parameters for base robot
-	base->getConnectionParams(conn->face1, R, m);
+	double offset[3] = {0};
+	dMatrix3 R1, R2, R3, R4, R5, R6;
 
 	// generate parameters for connector
 	this->get_connector_params(conn->type, conn->side, R, m);
@@ -1132,7 +1129,7 @@ int CLinkbotT::build(xml_robot_t robot, ModularRobot *base, xml_conn_t conn) {
 	this->buildIndividual(m[0], m[1], m[2], R6, rot);
 
     // add fixed joint to attach two modules
-	this->fix_body_to_connector(base->getConnectorBodyID(conn->face1), conn->face2);
+	this->fix_body_to_connector(base, conn->face2);
 
 	// add connectors
 	xml_conn_t ctmp = robot->conn;
@@ -1144,7 +1141,7 @@ int CLinkbotT::build(xml_robot_t robot, ModularRobot *base, xml_conn_t conn) {
 				this->add_connector_daisy(ctmp->conn, ctmp->face1, ctmp->size, ctmp->side, ctmp->type);
 		}
 		else if (ctmp->face2 != conn->face2) {
-			this->fix_connector_to_body(this->getBodyID(ctmp->face2), base->getConnectorBodyID(ctmp->face1));
+			this->fix_connector_to_body(this->getBodyID(ctmp->face2), base);
 		}
 		ctmp = ctmp->next;
 	}

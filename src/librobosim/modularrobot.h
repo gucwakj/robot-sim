@@ -14,6 +14,7 @@ typedef struct conn_s {
 
 class DLLIMPORT ModularRobot : virtual public Robot {
 		friend class RoboSim;
+
 	// common public api
 	public:
 		ModularRobot(void);
@@ -21,18 +22,19 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 
 		int connect(char* = NULL, int = 3);
 
-		// TODO: make private-ish functions protected
-		dBodyID getConnectorBodyID(int);
-		virtual int getConnectionParams(int, dMatrix3, double*) = 0;
-
 	// utility functions for inherited and friend classes
 	protected:
+		dBodyID getConnectorBodyID(int);
 		dBodyID getConnectorBodyIDs(int);
 
 	// virual functions for inherited classes
 	protected:
+		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, xml_conn_t) = 0;
+		virtual int getConnectionParams(int, dMatrix3, double*) = 0;
+
+	// virtual functions from base class
+	protected:
 		virtual int build(xml_robot_t) = 0;
-		virtual int build(xml_robot_t, ModularRobot*, xml_conn_t) = 0;
 		virtual int buildIndividual(double, double, double, dMatrix3, double*) = 0;
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group*, int) = 0;

@@ -77,7 +77,7 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 	// inherited functions
 	private:
 		virtual int build(xml_robot_t);
-		virtual int build(xml_robot_t, ModularRobot*, xml_conn_t);
+		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, xml_conn_t);
 		virtual int buildIndividual(double, double, double, dMatrix3, double*);
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group*, int);
