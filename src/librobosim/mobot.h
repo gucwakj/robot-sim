@@ -15,19 +15,6 @@ class DLLIMPORT CMobot : public ModularRobot {
 		CMobot();
 		~CMobot();
 
-		int driveBackward(double);
-		int driveBackwardNB(double);
-		int driveDistance(double, double);
-		int driveDistanceNB(double, double);
-		int driveForeverNB(void);
-		int driveForward(double);
-		int driveForwardNB(double);
-		int driveTime(double);
-		int driveTimeNB(double);
-		int drivexy(double, double, double, double);
-		int drivexyNB(double, double, double, double);
-		int drivexyTo(double, double, double, double);
-		int drivexyToNB(double, double, double, double);
 		int getJointAngles(double&, double&, double&, double&, int = 10);
 		int getJointAnglesInstant(double&, double&, double&, double&);
 		int getJointSpeeds(double&, double&, double&, double&);
@@ -72,10 +59,6 @@ class DLLIMPORT CMobot : public ModularRobot {
 		int setJointSpeeds(double, double, double, double);
 		int setJointSpeedRatios(double, double, double, double);
 		int setSpeed(double, double);
-		int turnLeft(double, double, double);
-		int turnLeftNB(double, double, double);
-		int turnRight(double, double, double);
-		int turnRightNB(double, double, double);
 
 	// inherited functions from ModularRobot class
 	private:
@@ -123,8 +106,6 @@ class DLLIMPORT CMobot : public ModularRobot {
 		void draw_tank(conn_t, osg::Group*);							// draw tank
 		void draw_wheel(conn_t, osg::Group*);							// draw custom wheel
 #endif // ENABLE_GRAPHICS
-		static void* drivexyThread(void*);								// thread for driving
-		static void* drivexyToThread(void*);							// thread for driving to a global point
 		static void* motionArchThread(void*);							// thread for arching
 		static void* motionDistanceThread(void*);						// thread for driving a distance
 		static void* motionInchwormLeftThread(void*);					// thread for inchworming left

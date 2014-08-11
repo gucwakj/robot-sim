@@ -31,23 +31,9 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 		int driveAccelTimeNB(double, double, double);
 		int driveAccelToMaxSpeedNB(double, double);
 		int driveAccelToVelocityNB(double, double, double);
-		int driveBackward(double);
-		int driveBackwardNB(double);
-		int driveDistance(double, double);
-		int driveDistanceNB(double, double);
 		int driveForeverNB(void);
-		int driveForward(double);
 		int driveForwardNB(double);
-		int driveTime(double);
-		int driveTimeNB(double);
-		int drivexy(double, double, double, double);
-		int drivexyNB(double, double, double, double);
 		int drivexyTo(double, double, double, double);
-		int drivexyToNB(double, double, double, double);
-		int drivexyToFunc(double, double, int, double (*func)(double), double, double);
-		int drivexyToFuncNB(double, double, int, double (*func)(double), double, double);
-		int drivexyToPoly(double, double, int, char*, double, double);
-		int drivexyToPolyNB(double, double, int, char*, double, double);
 		int getAccelerometerData(double&, double&, double&);
 		int getLEDColorName(char[]);
 		int getLEDColorRGB(int&, int&, int&);
@@ -69,9 +55,7 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 		int setJointSpeeds(double, double, double);
 		int setJointSpeedRatios(double, double, double);
 		int setSpeed(double, double);
-		int turnLeft(double, double, double);
 		int turnLeftNB(double, double, double);
-		int turnRight(double, double, double);
 		int turnRightNB(double, double, double);
 
 	// inherited functions from ModularRobot class
@@ -116,11 +100,6 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 		int build_tinywheel(conn_t, int, int = -1, int = -1);			// build tiny wheel connector
 		int build_wheel(conn_t, int, double, int = -1, int = -1);		// build custom wheel connector
 		static void* closeGripperNBThread(void*);						// thread to close gripper
-		static void* driveTimeNBThread(void*);							// thread to drive robot
-		static void* drivexyThread(void*);								// thread to run drivexy
-		static void* drivexyToThread(void*);							// thread to run drivexyTo
-		static void* drivexyToFuncThread(void*);						// thread to run drivexyFunc
-		static void* drivexyToPolyThread(void*);						// thread to run drivexyPoly
 
 	// private data
 	private:

@@ -117,6 +117,318 @@ int Robot::disconnect(void) {
 	return 0;
 }
 
+int Robot::driveBackward(double angle) {
+	this->driveForwardNB(-angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int Robot::driveBackwardNB(double angle) {
+	this->driveForwardNB(-angle);
+
+	// success
+	return 0;
+}
+
+int Robot::driveDistance(double distance, double radius) {
+	this->driveForwardNB(RAD2DEG(distance/radius));
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int Robot::driveDistanceNB(double distance, double radius) {
+	this->driveForwardNB(RAD2DEG(distance/radius));
+
+	// success
+	return 0;
+}
+
+int Robot::driveForeverNB(void) {
+	this->moveJointForeverNB(static_cast<robotJointId_t>(0));
+	this->moveJointForeverNB(static_cast<robotJointId_t>(_dof - 1));
+
+	// success
+	return 0;
+}
+
+int Robot::driveForward(double angle) {
+	this->driveForwardNB(angle);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int Robot::driveForwardNB(double angle) {
+	this->moveJointNB(static_cast<robotJointId_t>(0), angle);
+	this->moveJointNB(static_cast<robotJointId_t>(_dof - 1), angle);
+
+	// success
+	return 0;
+}
+
+int Robot::driveTime(double seconds) {
+	// move joint
+	this->driveForeverNB();
+
+	// sleep
+	this->doze(seconds*1000);
+
+	// stop joint
+	this->holdJoints();
+
+	// success
+	return 0;
+}
+
+int Robot::driveTimeNB(double seconds) {
+	// set up threading
+	THREAD_T moving;
+	recArg_t *rArg = new recArg_t;
+	rArg->robot = this;
+	rArg->msecs = 1000*seconds;
+
+	// set joint movements
+	this->driveForeverNB();
+
+	// create thread to wait
+	THREAD_CREATE(&moving, (void* (*)(void *))&Robot::driveTimeNBThread, (void *)rArg);
+
+	// success
+	return 0;
+}
+
+int Robot::drivexy(double x, double y, double radius, double trackwidth) {
+	this->drivexyNB(x, y, radius, trackwidth);
+	this->drivexyWait();
+
+	// success
+	return 0;
+}
+
+int Robot::drivexyNB(double x, double y, double radius, double trackwidth) {
+	// get current position
+	double x0, y0;
+	this->getxy(x0, y0);
+
+	// move to new global coordinates
+	return this->drivexyToNB(x + x0, y + y0, radius, trackwidth);
+}
+
+int Robot::drivexyTo(double x, double y, double radius, double trackwidth) {
+	// get current position
+	double x0, y0;
+	this->getxy(x0, y0);
+
+	// if movement is too small, just call it good
+	if (fabs(x-x0) < 0.1 && fabs(y-y0) < 0.1) {
+		return 1;
+	}
+
+	// get current rotation
+	double r0 = this->getRotation(0, 2);
+
+	// compute rotation matrix for body frame
+	dMatrix3 R;
+	dRFromAxisAndAngle(R, 0, 0, 1, r0);
+
+	// get angle to turn in body coordinates (transform of R)
+	double angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
+
+	// turn toward new postition until pointing correctly
+	while (fabs(angle) > 0.01) {
+		// turn in shortest path
+		if (angle > 0.01)
+			this->turnRight(RAD2DEG(angle), radius, trackwidth);
+		else if (angle < -0.01)
+			this->turnLeft(RAD2DEG(-angle), radius, trackwidth);
+
+		// calculate new rotation from error
+		this->getxy(x0, y0);
+		r0 = this->getRotation(0, 2);
+		dRSetIdentity(R);
+		dRFromAxisAndAngle(R, 0, 0, 1, r0);
+		angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
+	}
+
+	// move along length of line
+	this->getxy(x0, y0);
+	this->driveDistance(sqrt(x*x - 2*x*x0 + x0*x0 + y*y - 2*y*y0 + y0*y0), radius);
+
+	// success
+	return 0;
+}
+
+int Robot::drivexyToNB(double x, double y, double radius, double trackwidth) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	moveArg_t *mArg = new moveArg_t;
+	mArg->robot = this;
+	mArg->x = x;
+	mArg->y = y;
+	mArg->radius = radius;
+	mArg->trackwidth = trackwidth;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, drivexyToThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
+int Robot::drivexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
+	// number of steps necessary
+	double step = (xf-x0)/(n-1);
+
+	// drivexy to sequence of (x,y) values
+	for (int i = 0; i < n; i++) {
+		double x = x0 + i*step;
+		double y = func(x);
+		this->drivexyTo(x, y, radius, trackwidth);
+	}
+
+	// success
+	return 0;
+}
+
+int Robot::drivexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	moveArg_t *mArg = new moveArg_t;
+	mArg->robot = this;
+	mArg->x = x0;
+	mArg->y = xf;
+	mArg->i = n;
+	mArg->func = func;
+	mArg->radius = radius;
+	mArg->trackwidth = trackwidth;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, drivexyToFuncThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
+int Robot::drivexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
+	// init variables
+	double *coeff;
+	int *power, order = 0;
+	char str[5];
+	char input[100];
+	std::strcpy(input, poly);
+
+	// parse 'fcn' into usable format
+	char *var = std::strchr(input, '^');
+	if (var != NULL) {
+		order = atoi(++var);
+		coeff = new double[order+1]();
+		power = new int[order+1]();
+		for (int i = 0; i < order+1; i++) {
+			coeff[i] = 1;
+			power[i] = order-i;
+		}
+		for (int i = 0; i < order; i++) {
+			sprintf(str, "^%d", power[i]);
+			var = std::strstr(input, str);
+			if (var != NULL) {
+				if (var[-2] == '*')
+					coeff[i] = atof(var-=3);
+				else if (var[-2] == ' ' || var[-2] == '=')
+					coeff[i] = 1;
+				else
+					coeff[i] = atof(var-=2);
+			}
+			else {
+				coeff[i] = 0;
+			}
+		}
+		var = std::strrchr(input, 'x');
+		var = std::strpbrk(input, "+-");
+		if (var != NULL) {
+			if (var[1] == ' ')
+				var[1] = var[0];
+			coeff[order] = atof(++var);
+		}
+		else {
+			coeff[order] = 0;
+		}
+	}
+	else {
+		order = 1;
+		coeff = new double[order+1];
+		power = new int[order+1];
+		power[0] = 1;
+		var = std::strchr(input, 'x');
+		if (var != NULL) {
+			if (var[-1] == '*')
+				coeff[0] = atof(var-=2);
+			else
+				coeff[0] = atof(--var);
+		}
+		var = std::strpbrk(input, "+-");
+		if (var != NULL) {
+			if (var[1] == ' ')
+				var[1] = var[0];
+			coeff[1] = atof(++var);
+			power[1] = 0;
+		}
+	}
+
+	// number of steps necessary
+	double step = (xf-x0)/(n-1);
+
+	// drivexy to sequence of (x,y) values
+	for (int i = 0; i < n; i++) {
+		double x = x0 + i*step;
+		double y = 0;
+		for (int j = 0; j <= order; j++) {
+			y += coeff[j]*pow(x, power[j]);
+		}
+		this->drivexyTo(x, y, radius, 0);
+	}
+
+	return 0;
+}
+
+int Robot::drivexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
+	// create thread
+	THREAD_T move;
+
+	// store args
+	moveArg_t *mArg = new moveArg_t;
+	mArg->robot = this;
+	mArg->x = x0;
+	mArg->y = xf;
+	mArg->i = n;
+	mArg->expr = poly;
+	mArg->radius = radius;
+	mArg->trackwidth = trackwidth;
+
+	// motion in progress
+	_motion = true;
+
+	// start thread
+	THREAD_CREATE(&move, drivexyToPolyThread, (void *)mArg);
+
+	// success
+	return 0;
+}
+
 int Robot::drivexyWait(void) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_motion_mutex);
@@ -972,6 +1284,54 @@ int Robot::traceOn(void) {
 	return 0;
 }
 
+int Robot::turnLeft(double angle, double radius, double trackwidth) {
+	this->turnLeftNB(angle, radius, trackwidth);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int Robot::turnLeftNB(double angle, double radius, double trackwidth) {
+	// use internally calculated track width
+	double width = (g_sim->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
+
+	// calculate joint angle from global turn angle
+	angle = (angle*width)/(2*radius);
+
+	// move left joint backward
+	this->moveJointNB(static_cast<robotJointId_t>(0), -angle);
+	// move right joint forward
+	this->moveJointNB(static_cast<robotJointId_t>(_dof - 1), angle);
+
+	// success
+	return 0;
+}
+
+int Robot::turnRight(double angle, double radius, double trackwidth) {
+	this->turnRightNB(angle, radius, trackwidth);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int Robot::turnRightNB(double angle, double radius, double trackwidth) {
+	// use internally calculated track width
+	double width = (g_sim->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
+
+	// calculate joint angle from global turn angle
+	angle = (angle*width)/(2*radius);
+
+	// move left joint forward
+	this->moveJointNB(static_cast<robotJointId_t>(0), angle);
+	// move right joint backward
+	this->moveJointNB(static_cast<robotJointId_t>(_dof - 1), -angle);
+
+	// success
+	return 0;
+}
+
 /**********************************************************
 	protected functions for variable DOF
  **********************************************************/
@@ -1264,6 +1624,75 @@ double Robot::uniform(void) {
 	if (_seed < 0)
 		_seed = _seed + 2147483647;
 	return ((double)(_seed) * 4.656612875E-10);
+}
+
+void* Robot::driveTimeNBThread(void *arg) {
+	// cast argument
+	recArg_t *rArg = (recArg_t *)arg;
+
+	// get robot
+	Robot *robot = dynamic_cast<Robot *>(rArg->robot);
+	// sleep
+	robot->doze(rArg->msecs);
+	// hold all robot motion
+	robot->holdJoints();
+
+	// cleanup
+	delete rArg;
+
+	// success
+	return NULL;
+}
+
+void* Robot::drivexyToThread(void *arg) {
+	// cast arg
+	moveArg_t *mArg = (moveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->drivexyTo(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+void* Robot::drivexyToFuncThread(void *arg) {
+	// cast arg
+	moveArg_t *mArg = (moveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->drivexyToFunc(mArg->x, mArg->y, mArg->i, mArg->func, mArg->radius, mArg->trackwidth);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
+}
+
+void* Robot::drivexyToPolyThread(void *arg) {
+	// cast arg
+	moveArg_t *mArg = (moveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->drivexyToPoly(mArg->x, mArg->y, mArg->i, mArg->expr, mArg->radius, mArg->trackwidth);
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
 }
 
 void* Robot::moveJointTimeNBThread(void *arg) {

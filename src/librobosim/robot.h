@@ -45,6 +45,23 @@ class DLLIMPORT Robot {
 		int delaySeconds(double);
 		int disableRecordDataShift(void);
 		int disconnect(void);
+		int driveBackward(double);
+		int driveBackwardNB(double);
+		int driveDistance(double, double);
+		int driveDistanceNB(double, double);
+		int driveForeverNB(void);
+		int driveForward(double);
+		int driveForwardNB(double);
+		int driveTime(double);
+		int driveTimeNB(double);
+		int drivexy(double, double, double, double);
+		int drivexyNB(double, double, double, double);
+		int drivexyTo(double, double, double, double);
+		int drivexyToNB(double, double, double, double);
+		int drivexyToFunc(double, double, int, double (*func)(double), double, double);
+		int drivexyToFuncNB(double, double, int, double (*func)(double), double, double);
+		int drivexyToPoly(double, double, int, char*, double, double);
+		int drivexyToPolyNB(double, double, int, char*, double, double);
 		int drivexyWait(void);
 		int enableRecordDataShift(void);
 		int getBatteryVoltage(double&);
@@ -109,6 +126,10 @@ class DLLIMPORT Robot {
 		int systemTime(double&);
 		int traceOff(void);
 		int traceOn(void);
+		int turnLeft(double, double, double);
+		int turnLeftNB(double, double, double);
+		int turnRight(double, double, double);
+		int turnRightNB(double, double, double);
 
 	// condensed argument versions of function calls
 	protected:
@@ -258,6 +279,10 @@ class DLLIMPORT Robot {
 		bool is_shift_enabled(void);
 		double normal(double);
 		double uniform(void);
+		static void* driveTimeNBThread(void*);
+		static void* drivexyToThread(void*);
+		static void* drivexyToFuncThread(void*);
+		static void* drivexyToPolyThread(void*);
 		static void* moveJointTimeNBThread(void*);
 		static void* moveTimeNBThread(void*);
 		static void* recordAngleThread(void*);
@@ -329,6 +354,15 @@ class DLLIMPORT RobotGroup {
 		robots_t _robots;
 		THREAD_T *_thread;
 };
+
+// global structs for threading
+typedef struct moveArg_s {
+	double x, y, radius, trackwidth;
+	int i;
+	double (*func)(double x);
+	char *expr;
+	Robot *robot;
+} moveArg_t;
 
 #endif // ROBOT_H_
 

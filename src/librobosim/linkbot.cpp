@@ -292,156 +292,21 @@ int CLinkbotT::driveAccelToVelocityNB(double radius, double a, double v) {
 	return 0;
 }
 
-int CLinkbotT::driveBackward(double angle) {
-	this->driveBackwardNB(angle);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::driveBackwardNB(double angle) {
-	this->moveNB(-angle, 0, angle);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::driveDistance(double distance, double radius) {
-	this->driveForwardNB(RAD2DEG(distance/radius));
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::driveDistanceNB(double distance, double radius) {
-	this->driveForwardNB(RAD2DEG(distance/radius));
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::driveForeverNB(void) {
 	// negate speed to act as a car
 	_motor[JOINT3].omega = -_motor[JOINT3].omega;
 
 	// set joint movements
 	this->moveJointForeverNB(JOINT1);
-	this->moveJointForeverNB(JOINT2);
 	this->moveJointForeverNB(JOINT3);
 
 	// success
 	return 0;
 }
 
-int CLinkbotT::driveForward(double angle) {
-	this->driveForwardNB(angle);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::driveForwardNB(double angle) {
-	this->moveNB(angle, 0, -angle);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::driveTime(double seconds) {
-	// move joint
-	this->driveForeverNB();
-
-	// sleep
-	this->doze(seconds*1000);
-
-	// stop joint
-	this->holdJoints();
-
-	// success
-	return 0;
-}
-
-void* CLinkbotT::driveTimeNBThread(void *arg) {
-	// cast argument
-	recArg_t *rArg = (recArg_t *)arg;
-
-	// get robot
-	CLinkbotT *robot = dynamic_cast<CLinkbotT *>(rArg->robot);
-	// sleep
-	robot->doze(rArg->msecs);
-	// hold all robot motion
-	robot->holdJoints();
-
-	// cleanup
-	delete rArg;
-
-	// success
-	return NULL;
-}
-
-int CLinkbotT::driveTimeNB(double seconds) {
-	// set up threading
-	THREAD_T moving;
-	recArg_t *rArg = new recArg_t;
-	rArg->robot = this;
-	rArg->msecs = 1000*seconds;
-
-	// set joint movements
-	this->driveForeverNB();
-
-	// create thread to wait
-	THREAD_CREATE(&moving, (void* (*)(void *))&CLinkbotT::driveTimeNBThread, (void *)rArg);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::drivexy(double x, double y, double radius, double trackwidth) {
-	// get current position
-	double x0, y0;
-	this->getxy(x0, y0);
-
-	// move to new global coordinates
-	return this->drivexyTo(x + x0, y + y0, radius, trackwidth);
-}
-
-void* CLinkbotT::drivexyThread(void *arg) {
-	// cast arg
-	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
-
-	// perform motion
-	mArg->robot->drivexy(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
-
-	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
-
-	// cleanup
-	delete mArg;
-
-	// success
-	return NULL;
-}
-
-int CLinkbotT::drivexyNB(double x, double y, double radius, double trackwidth) {
-	// create thread
-	THREAD_T move;
-
-	// store args
-	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
-	mArg->robot = this;
-	mArg->x = x;
-	mArg->y = y;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
-
-	// motion in progress
-	_motion = true;
-
-	// start thread
-	THREAD_CREATE(&move, drivexyThread, (void *)mArg);
+	this->moveJointNB(JOINT1, angle);
+	this->moveJointNB(JOINT3, -angle);
 
 	// success
 	return 0;
@@ -503,223 +368,6 @@ int CLinkbotT::drivexyTo(double x, double y, double radius, double trackwidth) {
 
 	// clean up
 	delete speed;
-
-	// success
-	return 0;
-}
-
-void* CLinkbotT::drivexyToThread(void *arg) {
-	// cast arg
-	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
-
-	// perform motion
-	mArg->robot->drivexyTo(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
-
-	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
-
-	// cleanup
-	delete mArg;
-
-	// success
-	return NULL;
-}
-
-int CLinkbotT::drivexyToNB(double x, double y, double radius, double trackwidth) {
-	// create thread
-	THREAD_T move;
-
-	// store args
-	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
-	mArg->robot = this;
-	mArg->x = x;
-	mArg->y = y;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
-
-	// motion in progress
-	_motion = true;
-
-	// start thread
-	THREAD_CREATE(&move, drivexyToThread, (void *)mArg);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::drivexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
-	// number of steps necessary
-	double step = (xf-x0)/(n-1);
-
-	// drivexy to sequence of (x,y) values
-	for (int i = 0; i < n; i++) {
-		double x = x0 + i*step;
-		double y = func(x);
-		this->drivexyTo(x, y, radius, trackwidth);
-	}
-
-	// success
-	return 0;
-}
-
-void* CLinkbotT::drivexyToFuncThread(void *arg) {
-	// cast arg
-	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
-
-	// perform motion
-	mArg->robot->drivexyToFunc(mArg->x, mArg->y, mArg->i, mArg->func, mArg->radius, mArg->trackwidth);
-
-	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
-
-	// cleanup
-	delete mArg;
-
-	// success
-	return NULL;
-}
-
-int CLinkbotT::drivexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
-	// create thread
-	THREAD_T move;
-
-	// store args
-	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
-	mArg->robot = this;
-	mArg->x = x0;
-	mArg->y = xf;
-	mArg->i = n;
-	mArg->func = func;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
-
-	// motion in progress
-	_motion = true;
-
-	// start thread
-	THREAD_CREATE(&move, drivexyToFuncThread, (void *)mArg);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::drivexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
-	// init variables
-	double *coeff;
-	int *power, order = 0;
-	char str[5];
-	char input[100];
-	std::strcpy(input, poly);
-
-	// parse 'fcn' into usable format
-	char *var = std::strchr(input, '^');
-	if (var != NULL) {
-		order = atoi(++var);
-		coeff = new double[order+1]();
-		power = new int[order+1]();
-		for (int i = 0; i < order+1; i++) {
-			coeff[i] = 1;
-			power[i] = order-i;
-		}
-		for (int i = 0; i < order; i++) {
-			sprintf(str, "^%d", power[i]);
-			var = std::strstr(input, str);
-			if (var != NULL) {
-				if (var[-2] == '*')
-					coeff[i] = atof(var-=3);
-				else if (var[-2] == ' ' || var[-2] == '=')
-					coeff[i] = 1;
-				else
-					coeff[i] = atof(var-=2);
-			}
-			else {
-				coeff[i] = 0;
-			}
-		}
-		var = std::strrchr(input, 'x');
-		var = std::strpbrk(input, "+-");
-		if (var != NULL) {
-			if (var[1] == ' ')
-				var[1] = var[0];
-			coeff[order] = atof(++var);
-		}
-		else {
-			coeff[order] = 0;
-		}
-	}
-	else {
-		order = 1;
-		coeff = new double[order+1];
-		power = new int[order+1];
-		power[0] = 1;
-		var = std::strchr(input, 'x');
-		if (var != NULL) {
-			if (var[-1] == '*')
-				coeff[0] = atof(var-=2);
-			else
-				coeff[0] = atof(--var);
-		}
-		var = std::strpbrk(input, "+-");
-		if (var != NULL) {
-			if (var[1] == ' ')
-				var[1] = var[0];
-			coeff[1] = atof(++var);
-			power[1] = 0;
-		}
-	}
-
-	// number of steps necessary
-	double step = (xf-x0)/(n-1);
-
-	// drivexy to sequence of (x,y) values
-	for (int i = 0; i < n; i++) {
-		double x = x0 + i*step;
-		double y = 0;
-		for (int j = 0; j <= order; j++) {
-			y += coeff[j]*pow(x, power[j]);
-		}
-		this->drivexyTo(x, y, radius, 0);
-	}
-
-	return 0;
-}
-
-void* CLinkbotT::drivexyToPolyThread(void *arg) {
-	// cast arg
-	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
-
-	// perform motion
-	mArg->robot->drivexyToPoly(mArg->x, mArg->y, mArg->i, mArg->expr, mArg->radius, mArg->trackwidth);
-
-	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
-
-	// cleanup
-	delete mArg;
-
-	// success
-	return NULL;
-}
-
-int CLinkbotT::drivexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
-	// create thread
-	THREAD_T move;
-
-	// store args
-	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
-	mArg->robot = this;
-	mArg->x = x0;
-	mArg->y = xf;
-	mArg->i = n;
-	mArg->expr = poly;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
-
-	// motion in progress
-	_motion = true;
-
-	// start thread
-	THREAD_CREATE(&move, drivexyToPolyThread, (void *)mArg);
 
 	// success
 	return 0;
@@ -951,14 +599,6 @@ int CLinkbotT::setSpeed(double speed, double radius) {
 	return 0;
 }
 
-int CLinkbotT::turnLeft(double angle, double radius, double trackwidth) {
-	this->turnLeftNB(angle, radius, trackwidth);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::turnLeftNB(double angle, double radius, double trackwidth) {
 	// use internally calculated track width
 	double width = (g_sim->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
@@ -968,14 +608,6 @@ int CLinkbotT::turnLeftNB(double angle, double radius, double trackwidth) {
 
 	// move
 	this->moveNB(-angle, 0, -angle);
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::turnRight(double angle, double radius, double trackwidth) {
-	this->turnRightNB(angle, radius, trackwidth);
-	this->moveWait();
 
 	// success
 	return 0;
