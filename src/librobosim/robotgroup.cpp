@@ -20,7 +20,7 @@ RobotGroup::~RobotGroup(void) {
 
 int RobotGroup::addRobot(Robot &robot) {
 	// create new robot
-	robots_t nr = new robots_t;
+	robots_t nr = new struct robots_s;
 	nr->robot = &robot;
 	nr->next = NULL;
 
@@ -417,17 +417,6 @@ int RobotGroup::setJointSpeedRatio(robotJointId_t id, double ratio) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setJointSpeedRatio(id, ratio);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int RobotGroup::setSpeed(double speed, double radius) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setSpeed(speed, radius);
 		rtmp = rtmp->next;
 	}
 

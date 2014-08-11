@@ -18,7 +18,7 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 	// common public api
 	public:
 		ModularRobot(void);
-		~ModularRobot(void);
+		virtual ~ModularRobot(void);
 
 		int connect(char* = NULL, int = 3);
 
@@ -30,24 +30,26 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 	protected:
 		virtual int addConnector(int, int, double) = 0;
 		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, xml_conn_t) = 0;
+#ifdef ENABLE_GRAPHICS
 		virtual int drawConnector(conn_t, osg::Group*) = 0;
+#endif // ENABLE_GRAPHICS
 		virtual int fixBodyToConnector(dBodyID, int) = 0;
 		virtual int fixConnectorToBody(int, dBodyID, int = -1) = 0;
 		virtual int getConnectorParams(int, int, dMatrix3, double*) = 0;
 		virtual int getFaceParams(int, dMatrix3, double*) = 0;
 
-	// virtual functions from base class
+	// virtual functions from Robot class
 	protected:
-		virtual int build(xml_robot_t) = 0;
-		virtual int buildIndividual(double, double, double, dMatrix3, double*) = 0;
+		virtual int build(xml_robot_t) {};
+		virtual int buildIndividual(double, double, double, dMatrix3, double*) {};
 #ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group*, int) = 0;
+		virtual int draw(osg::Group*, int) {};
 #endif // ENABLE_GRAPHICS
-		virtual double getAngle(int) = 0;
-		virtual int initParams(int, int) = 0;
-		virtual int initDims(void) = 0;
-		virtual void simPreCollisionThread(void) = 0;
-		virtual void simPostCollisionThread(void) = 0;
+		virtual double getAngle(int) {};
+		virtual int initParams(int, int) {};
+		virtual int initDims(void) {};
+		virtual void simPreCollisionThread(void) {};
+		virtual void simPostCollisionThread(void) {};
 
 	// data members
 	protected:

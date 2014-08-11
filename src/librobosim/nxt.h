@@ -70,18 +70,18 @@ class DLLIMPORT CNXT : virtual public Robot {
 		int turnRight(double, double, double);
 		int turnRightNB(double, double, double);
 
-	// inherited functions
+	// inherited functions from Robot class
     private:
-		virtual int build(xml_robot_t);
-		virtual int buildIndividual(double, double, double, dMatrix3, double*);
+		int build(xml_robot_t);
+		int buildIndividual(double, double, double, dMatrix3, double*);
 #ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group*, int);
+		int draw(osg::Group*, int);
 #endif // ENABLE_GRAPHICS
-		virtual double getAngle(int);
-		virtual int initParams(int, int);
-		virtual int initDims(void);
-		virtual void simPreCollisionThread(void);
-		virtual void simPostCollisionThread(void);
+		double getAngle(int);
+		int initParams(int, int);
+		int initDims(void);
+		void simPreCollisionThread(void);
+		void simPostCollisionThread(void);
 
 	// private functions
     private:

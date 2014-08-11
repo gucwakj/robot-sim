@@ -37,7 +37,7 @@ class DLLIMPORT Robot {
 	// common public api
 	public:
 		Robot(void);
-		~Robot(void);
+		virtual ~Robot(void);
 
 		int blinkLED(double, int);
 		int connect(char* = NULL, int = 3);
@@ -132,16 +132,16 @@ class DLLIMPORT Robot {
 
 	// virual functions for inherited classes
 	protected:
-		virtual int build(xml_robot_t) = 0;
-		virtual int buildIndividual(double, double, double, dMatrix3, double*) = 0;
+		virtual int build(xml_robot_t) {};
+		virtual int buildIndividual(double, double, double, dMatrix3, double*) {};
 #ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group*, int) = 0;
+		virtual int draw(osg::Group*, int) {};
 #endif // ENABLE_GRAPHICS
-		virtual double getAngle(int) = 0;
-		virtual int initParams(int, int) = 0;
-		virtual int initDims(void) = 0;
-		virtual void simPreCollisionThread(void) = 0;
-		virtual void simPostCollisionThread(void) = 0;
+		virtual double getAngle(int) {};
+		virtual int initParams(int, int) {};
+		virtual int initDims(void) {};
+		virtual void simPreCollisionThread(void) {};
+		virtual void simPostCollisionThread(void) {};
 
 	// data members
 	protected:
@@ -267,7 +267,7 @@ class DLLIMPORT Robot {
 		static void* recordxyBeginThread(void*);
 };
 
-/*class DLLIMPORT RobotGroup {
+class DLLIMPORT RobotGroup {
 	// public api
 	public:
 		RobotGroup(void);
@@ -311,7 +311,6 @@ class DLLIMPORT Robot {
 		int setJointSafetyAngleTimeout(double);
 		int setJointSpeed(robotJointId_t, double);
 		int setJointSpeedRatio(robotJointId_t, double);
-		int setSpeed(double, double);
 		int traceOff(void);
 		int traceOn(void);
 		int turnLeft(double, double, double);
@@ -322,14 +321,14 @@ class DLLIMPORT Robot {
 	// data members
 	private:
 		typedef struct robots_s {
-			//Robot *robot;
+			Robot *robot;
 			struct robots_s *next;
 		} *robots_t;
 		double _d;
 		int _i;
 		robots_t _robots;
 		THREAD_T *_thread;
-};*/
+};
 
 #endif // ROBOT_H_
 

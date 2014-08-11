@@ -77,21 +77,26 @@ class DLLIMPORT CMobot : public ModularRobot {
 		int turnRight(double, double, double);
 		int turnRightNB(double, double, double);
 
-	// inherited functions
-    private:
+	// inherited functions from ModularRobot class
+	private:
 		virtual int addConnector(int, int, double);
-		virtual int build(xml_robot_t);
 		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, xml_conn_t);
-		virtual int buildIndividual(double, double, double, dMatrix3, double*);
 #ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group*, int);
 		virtual int drawConnector(conn_t, osg::Group*);
 #endif // ENABLE_GRAPHICS
 		virtual int fixBodyToConnector(dBodyID, int);
 		virtual int fixConnectorToBody(int, dBodyID, int = -1);
-		virtual double getAngle(int);
 		virtual int getConnectorParams(int, int, dMatrix3, double*);
 		virtual int getFaceParams(int, dMatrix3, double*);
+
+	// inherited functions from Robot class
+	private:
+		virtual int build(xml_robot_t);
+		virtual int buildIndividual(double, double, double, dMatrix3, double*);
+#ifdef ENABLE_GRAPHICS
+		virtual int draw(osg::Group*, int);
+#endif // ENABLE_GRAPHICS
+		virtual double getAngle(int);
 		virtual int initParams(int, int);
 		virtual int initDims(void);
 		virtual void simPreCollisionThread(void);
