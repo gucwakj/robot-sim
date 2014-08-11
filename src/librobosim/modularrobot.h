@@ -25,7 +25,6 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 	// utility functions for inherited and friend classes
 	protected:
 		dBodyID getConnectorBodyID(int);
-		dBodyID getConnectorBodyIDs(int);
 
 	// virual functions for inherited classes
 	protected:

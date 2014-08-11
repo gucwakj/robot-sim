@@ -50,14 +50,3 @@ dBodyID ModularRobot::getConnectorBodyID(int face) {
 	return NULL;
 }
 
-dBodyID ModularRobot::getConnectorBodyIDs(int num) {
-	conn_t ctmp = _conn;
-	int i = 0;
-	while (ctmp && i++ < num)
-		ctmp = ctmp->next;
-	if (ctmp) {
-		return ctmp->body;
-	}
-	return NULL;
-}
-
