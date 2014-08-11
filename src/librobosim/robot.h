@@ -49,6 +49,7 @@ class DLLIMPORT Robot {
 		int driveBackwardNB(double);
 		int driveDistance(double, double);
 		int driveDistanceNB(double, double);
+		int driveForever(void);
 		int driveForeverNB(void);
 		int driveForward(double);
 		int driveForwardNB(double);

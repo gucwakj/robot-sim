@@ -147,6 +147,14 @@ int Robot::driveDistanceNB(double distance, double radius) {
 	return 0;
 }
 
+int Robot::driveForever(void) {
+	this->driveForeverNB();
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
 int Robot::driveForeverNB(void) {
 	this->moveJointForeverNB(static_cast<robotJointId_t>(0));
 	this->moveJointForeverNB(static_cast<robotJointId_t>(_dof - 1));
