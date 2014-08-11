@@ -15,20 +15,6 @@ class DLLIMPORT CNXT : virtual public Robot {
 		CNXT();
 		virtual ~CNXT();
 
-		int accelJointAngleNB(robotJointId_t, double, double);
-		int accelJointCycloidalNB(robotJointId_t, double, double);
-		int accelJointHarmonicNB(robotJointId_t, double, double);
-		int accelJointSmoothNB(robotJointId_t, double, double, double, double);
-		int accelJointTimeNB(robotJointId_t, double, double);
-		int accelJointToMaxSpeedNB(robotJointId_t, double);
-		int accelJointToVelocityNB(robotJointId_t, double, double);
-		int driveAccelCycloidalNB(double, double, double);
-		int driveAccelDistanceNB(double, double, double);
-		int driveAccelHarmonicNB(double, double, double);
-		int driveAccelSmoothNB(double, double, double, double, double);
-		int driveAccelTimeNB(double, double, double);
-		int driveAccelToMaxSpeedNB(double, double);
-		int driveAccelToVelocityNB(double, double, double);
 		int getAccelerometerData(double&, double&, double&);
 		int getLEDColorName(char[]);
 		int getLEDColorRGB(int&, int&, int&);
@@ -85,22 +71,8 @@ class DLLIMPORT CNXTGroup {
 		int addRobot(CNXT&);
 		int addRobots(CNXT[], int);
 
-		int accelJointAngleNB(robotJointId_t, double, double);
-		int accelJointCycloidalNB(robotJointId_t, double, double);
-		int accelJointHarmonicNB(robotJointId_t, double, double);
-		int accelJointSmoothNB(robotJointId_t, double, double, double, double);
-		int accelJointTimeNB(robotJointId_t, double, double);
-		int accelJointToMaxSpeedNB(robotJointId_t, double);
-		int accelJointToVelocityNB(robotJointId_t, double, double);
 		int blinkLED(double, int);
 		int connect(void);
-		int driveAccelCycloidalNB(double, double, double);
-		int driveAccelDistanceNB(double, double, double);
-		int driveAccelHarmonicNB(double, double, double);
-		int driveAccelSmoothNB(double, double, double, double, double);
-		int driveAccelTimeNB(double, double, double);
-		int driveAccelToMaxSpeedNB(double, double);
-		int driveAccelToVelocityNB(double, double, double);
 		int driveBackward(double);
 		int driveBackwardNB(double);
 		int driveDistance(double, double);
