@@ -58,7 +58,6 @@ class DLLIMPORT CMobot : public ModularRobot {
 		int reset(void);
 		int setJointSpeeds(double, double, double, double);
 		int setJointSpeedRatios(double, double, double, double);
-		int setSpeed(double, double);
 
 	// inherited functions from ModularRobot class
 	private:

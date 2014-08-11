@@ -425,18 +425,6 @@ int CNXT::setJointSpeedRatios(double ratio1, double ratio2) {
 	return 0;
 }
 
-int CNXT::setSpeed(double speed, double radius) {
-	if (RAD2DEG(speed/radius) > RAD2DEG(_motor[JOINT1].omega_max)) {
-		fprintf(stderr, "Warning: Speed %.2lf corresponds to joint speeds of %.2lf degrees/second.\n",
-			speed, RAD2DEG(speed/radius));
-	}
-	this->setJointSpeed(JOINT1, RAD2DEG(speed/radius));
-	this->setJointSpeed(JOINT2, RAD2DEG(speed/radius));
-
-	// success
-	return 0;
-}
-
 /**********************************************************
 	inherited functions
  **********************************************************/

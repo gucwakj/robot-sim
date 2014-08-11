@@ -124,6 +124,7 @@ class DLLIMPORT Robot {
 		int setJointSafetyAngleTimeout(double);
 		int setJointSpeed(robotJointId_t, double);
 		int setJointSpeedRatio(robotJointId_t, double);
+		int setSpeed(double, double);
 		int systemTime(double&);
 		int traceOff(void);
 		int traceOn(void);

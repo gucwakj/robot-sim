@@ -840,14 +840,6 @@ int CMobot::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, dou
 	return 0;
 }
 
-int CMobot::setSpeed(double speed, double radius) {
-	this->setJointSpeed(JOINT1, RAD2DEG(speed/radius));
-	this->setJointSpeed(JOINT4, RAD2DEG(speed/radius));
-
-	// success
-	return 0;
-}
-
 /**********************************************************
 	inherited functions
  **********************************************************/

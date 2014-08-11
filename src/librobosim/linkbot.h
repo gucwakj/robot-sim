@@ -54,7 +54,6 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 		int recordDistancesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
 		int setJointSpeeds(double, double, double);
 		int setJointSpeedRatios(double, double, double);
-		int setSpeed(double, double);
 		int turnLeftNB(double, double, double);
 		int turnRightNB(double, double, double);
 

@@ -1263,6 +1263,18 @@ int Robot::setJointSpeedRatio(robotJointId_t id, double ratio) {
 	return this->setJointSpeed(id, ratio * RAD2DEG(_motor[(int)id].omega_max));
 }
 
+int Robot::setSpeed(double speed, double radius) {
+	if (RAD2DEG(speed/radius) > RAD2DEG(_motor[JOINT1].omega_max)) {
+		fprintf(stderr, "Warning: Speed %.2lf corresponds to joint speeds of %.2lf degrees/second.\n",
+			speed, RAD2DEG(speed/radius));
+	}
+	this->setJointSpeed(static_cast<robotJointId_t>(0), RAD2DEG(speed/radius));
+	this->setJointSpeed(static_cast<robotJointId_t>(_dof - 1), RAD2DEG(speed/radius));
+
+	// success
+	return 0;
+}
+
 int Robot::systemTime(double &time) {
 	// get time
 	time = g_sim->getClock();

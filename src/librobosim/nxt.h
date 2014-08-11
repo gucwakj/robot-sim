@@ -47,7 +47,6 @@ class DLLIMPORT CNXT : virtual public Robot {
 		int recordDistancesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
 		int setJointSpeeds(double, double);
 		int setJointSpeedRatios(double, double);
-		int setSpeed(double, double);
 
 	// inherited functions from Robot class
     private:
