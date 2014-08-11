@@ -12,8 +12,8 @@ class DLLIMPORT CMobot : public ModularRobot {
 
 	// public api
 	public:
-		CMobot();
-		~CMobot();
+		CMobot(void);
+		virtual ~CMobot(void);
 
 		int getJointAngles(double&, double&, double&, double&, int = 10);
 		int getJointAnglesInstant(double&, double&, double&, double&);

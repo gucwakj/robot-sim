@@ -12,12 +12,9 @@ class DLLIMPORT CNXT : virtual public Robot {
 
 	// public api
 	public:
-		CNXT();
-		virtual ~CNXT();
+		CNXT(void);
+		virtual ~CNXT(void);
 
-		int getAccelerometerData(double&, double&, double&);
-		int getLEDColorName(char[]);
-		int getLEDColorRGB(int&, int&, int&);
 		int getJointAngles(double&, double&, int = 10);
 		int getJointAnglesInstant(double&, double&);
 		int getJointSpeeds(double&, double&);

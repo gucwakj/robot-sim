@@ -34,9 +34,6 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 		int driveForeverNB(void);
 		int driveForwardNB(double);
 		int drivexyTo(double, double, double, double);
-		int getAccelerometerData(double&, double&, double&);
-		int getLEDColorName(char[]);
-		int getLEDColorRGB(int&, int&, int&);
 		int getJointAngles(double&, double&, double&, int = 10);
 		int getJointAnglesInstant(double&, double&, double&);
 		int getJointSpeeds(double&, double&, double&);

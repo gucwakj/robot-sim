@@ -460,6 +460,16 @@ int Robot::enableRecordDataShift(void) {
 	return 0;
 }
 
+int Robot::getAccelerometerData(double &accel_x, double &accel_y, double &accel_z) {
+	// output current accel data
+	accel_x = _accel[0];
+	accel_y = _accel[1];
+	accel_z = _accel[2];
+
+	// success
+	return 0;
+}
+
 int Robot::getBatteryVoltage(double &voltage) {
 	voltage = 100;
 
@@ -545,6 +555,25 @@ int Robot::getJointSpeed(robotJointId_t id, double &speed) {
 
 int Robot::getJointSpeedRatio(robotJointId_t id, double &ratio) {
 	ratio = _motor[id].omega/_motor[id].omega_max;
+
+	// success
+	return 0;
+}
+
+int Robot::getLEDColorName(char color[]) {
+	rgbHashTable *rgbTable = HT_Create();
+	int getRGB[3] = {(int)(255*_rgb[0]), (int)(255*_rgb[1]), (int)(255*_rgb[2])};
+	int retval = HT_GetKey(rgbTable, getRGB, color);
+	HT_Destroy(rgbTable);
+
+	// success
+	return retval;
+}
+
+int Robot::getLEDColorRGB(int &r, int &g, int &b) {
+	r = (int)(255*_rgb[0]);
+	g = (int)(255*_rgb[1]);
+	b = (int)(255*_rgb[2]);
 
 	// success
 	return 0;

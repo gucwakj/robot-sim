@@ -65,6 +65,7 @@ class DLLIMPORT Robot {
 		int drivexyToPolyNB(double, double, int, char*, double, double);
 		int drivexyWait(void);
 		int enableRecordDataShift(void);
+		int getAccelerometerData(double&, double&, double&);
 		int getBatteryVoltage(double&);
 		int getDistance(double&, double);
 		int getFormFactor(int&);
@@ -76,6 +77,8 @@ class DLLIMPORT Robot {
 		int getJointSafetyAngleTimeout(double&);
 		int getJointSpeed(robotJointId_t, double&);
 		int getJointSpeedRatio(robotJointId_t, double&);
+		int getLEDColorName(char[]);
+		int getLEDColorRGB(int&, int&, int&);
 		int getxy(double&, double&);
 		int holdJoint(robotJointId_t);
 		int holdJoints(void);
