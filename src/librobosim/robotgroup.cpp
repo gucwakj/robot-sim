@@ -80,6 +80,106 @@ int RobotGroup::disconnect(void) {
 	return 0;
 }
 
+int RobotGroup::driveBackward(double angle) {
+	driveBackwardNB(angle);
+	return moveWait();
+}
+
+int RobotGroup::driveBackwardNB(double angle) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveBackwardNB(angle);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int RobotGroup::driveDistance(double distance, double radius) {
+	driveDistanceNB(distance, radius);
+	return moveWait();
+}
+
+int RobotGroup::driveDistanceNB(double distance, double radius) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveDistanceNB(distance, radius);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int RobotGroup::driveForever(void) {
+	driveForeverNB();
+	return moveWait();
+}
+
+int RobotGroup::driveForeverNB(void) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveForeverNB();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int RobotGroup::driveForward(double angle) {
+	driveForwardNB(angle);
+	return moveWait();
+}
+
+int RobotGroup::driveForwardNB(double angle) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveForwardNB(angle);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int RobotGroup::driveTime(double seconds) {
+	int msecs = seconds * 1000.0;
+
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveForeverNB();
+		rtmp = rtmp->next;
+	}
+
+#ifdef _WIN32
+	Sleep(msecs);
+#else
+	usleep(msecs*1000);
+#endif
+
+	rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->holdJoints();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int RobotGroup::driveTimeNB(double seconds) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->driveTimeNB(seconds);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int RobotGroup::holdJoint(robotJointId_t id) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -369,6 +469,28 @@ int RobotGroup::setBuzzerFrequencyOn(int frequency) {
 	return 0;
 }
 
+int RobotGroup::setLEDColor(char *color) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->setLEDColor(color);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int RobotGroup::setLEDColorRGB(int r, int g, int b) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->setLEDColorRGB(r, g, b);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int RobotGroup::setJointPower(robotJointId_t id, int power) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -424,6 +546,17 @@ int RobotGroup::setJointSpeedRatio(robotJointId_t id, double ratio) {
 	return 0;
 }
 
+int RobotGroup::setSpeed(double speed, double radius) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->setSpeed(speed, radius);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int RobotGroup::traceOff(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -439,6 +572,38 @@ int RobotGroup::traceOn(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->traceOn();
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int RobotGroup::turnLeft(double angle, double radius, double trackwidth) {
+	this->turnLeftNB(angle, radius, trackwidth);
+	return moveWait();
+}
+
+int RobotGroup::turnLeftNB(double angle, double radius, double trackwidth) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->turnLeftNB(angle, radius, trackwidth);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int RobotGroup::turnRight(double angle, double radius, double trackwidth) {
+	this->turnRightNB(angle, radius, trackwidth);
+	return moveWait();
+}
+
+int RobotGroup::turnRightNB(double angle, double radius, double trackwidth) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->turnRightNB(angle, radius, trackwidth);
 		rtmp = rtmp->next;
 	}
 
