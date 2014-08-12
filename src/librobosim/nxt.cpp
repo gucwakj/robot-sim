@@ -261,8 +261,8 @@ int CNXT::buildIndividual(double x, double y, double z, dMatrix3 R, double *rot)
 	dJointSetHingeAnchor(_joint[1], R[0]*f2[3] + R[1]*f2[4] + R[2]*f2[5] + x,
 									R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y,
 									R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
-	dJointSetHingeAxis(_joint[1], -R[0], -R[4], -R[8]);
-	dBodySetFiniteRotationAxis(_body[WHEEL2], -R[0], -R[4], -R[8]);
+	dJointSetHingeAxis(_joint[1], R[0], R[4], R[8]);
+	dBodySetFiniteRotationAxis(_body[WHEEL2], R[0], R[4], R[8]);
 
     // create rotation matrices for each body part
     dMatrix3 R_f, R_f1, R_f2;
@@ -294,7 +294,7 @@ int CNXT::buildIndividual(double x, double y, double z, dMatrix3 R, double *rot)
 	dJointAttach(_motor[JOINT2].id, _body[BODY], _body[WHEEL2]);
 	dJointSetAMotorMode(_motor[JOINT2].id, dAMotorUser);
 	dJointSetAMotorNumAxes(_motor[JOINT2].id, 1);
-	dJointSetAMotorAxis(_motor[JOINT2].id, 0, 1, -R[0], -R[4], -R[8]);
+	dJointSetAMotorAxis(_motor[JOINT2].id, 0, 1, R[0], R[4], R[8]);
 	dJointSetAMotorAngle(_motor[JOINT2].id, 0, 0);
 	dJointSetAMotorParam(_motor[JOINT2].id, dParamFMax, _motor[JOINT2].tau_max);
 	dJointSetAMotorParam(_motor[JOINT2].id, dParamFudgeFactor, 0.3);
