@@ -273,6 +273,17 @@ int RobotGroup::moveJointNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
+int RobotGroup::moveJointByPowerNB(robotJointId_t id, int power) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->moveJointByPowerNB(id, power);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
 int RobotGroup::moveJointForeverNB(robotJointId_t id) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -484,17 +495,6 @@ int RobotGroup::setLEDColorRGB(int r, int g, int b) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setLEDColorRGB(r, g, b);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
-int RobotGroup::setJointPower(robotJointId_t id, int power) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setJointPower(id, power);
 		rtmp = rtmp->next;
 	}
 

@@ -1049,6 +1049,19 @@ int CMobot::moveJoint(int id, double angle) {
     return retval;
 }
 
+int CMobot::moveJointByPowerNB(int id, int power) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_moveJointByPowerNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointByPowerNB, this, id, power);
+    return retval;
+}
+
 int CMobot::moveJointForeverNB(int id) {
     void *fptr;
     int retval;
@@ -1544,16 +1557,11 @@ int CMobot::resetToZeroNB(void) {
 }
 
 int CMobot::setJointPower(int id, int power) {
-    void *fptr;
-    int retval;
+	DEPRECATED("setJointPower", "moveJointByPowerNB");
+	moveJointByPowerNB(id, power);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_setJointPower_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setJointPower, this, id, power);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobot::setJointSafetyAngle(double angle) {
@@ -2388,6 +2396,19 @@ int CMobotGroup::moveJointNB(int id, double angle) {
     return retval;
 }
 
+int CMobotGroup::moveJointByPowerNB(int id, int power) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLMG_moveJointByPowerNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointByPowerNB, this, id, power);
+    return retval;
+}
+
 int CMobotGroup::moveJointForeverNB(int id) {
     void *fptr;
     int retval;
@@ -2623,16 +2644,11 @@ int CMobotGroup::resetToZeroNB(void) {
 }
 
 int CMobotGroup::setJointPower(int id, int power) {
-    void *fptr;
-    int retval;
+	DEPRECATED("setJointPower", "moveJointByPowerNB");
+	moveJointByPowerNB(id, power);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMG_setJointPower_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setJointPower, this, id, power);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobotGroup::setJointSafetyAngle(double angle) {

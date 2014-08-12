@@ -872,6 +872,23 @@ EXPORTCH int CLinkbotL_moveJointNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLinkbotL_moveJointByPowerNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+    robotJointId_t id;
+    int power;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    power = Ch_VaArg(interp, ap, int);
+    retval = robot->moveJointByPowerNB(id, power);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLinkbotL_moveJointForeverNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -1545,23 +1562,6 @@ EXPORTCH int CLinkbotL_setLEDColorRGB_chdl(void *varg) {
     g = Ch_VaArg(interp, ap, int);
     b = Ch_VaArg(interp, ap, int);
     retval = robot->setLEDColorRGB(r, g, b);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotL_setJointPower_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotL *robot;
-    robotJointId_t id;
-    int power;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    power = Ch_VaArg(interp, ap, int);
-    retval = robot->setJointPower(id, power);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2273,6 +2273,23 @@ EXPORTCH int CLLG_moveJointNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CLLG_moveJointByPowerNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotLGroup *robot;
+    robotJointId_t id;
+    int power;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    power = Ch_VaArg(interp, ap, int);
+    retval = robot->moveJointByPowerNB(id, power);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CLLG_moveJointForeverNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2635,23 +2652,6 @@ EXPORTCH int CLLG_setLEDColorRGB_chdl(void *varg) {
     g = Ch_VaArg(interp, ap, int);
     b = Ch_VaArg(interp, ap, int);
     retval = robot->setLEDColorRGB(r, g, b);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLLG_setJointPower_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotLGroup *robot;
-    robotJointId_t id;
-    int power;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    power = Ch_VaArg(interp, ap, int);
-    retval = robot->setJointPower(id, power);
     Ch_VaEnd(interp, ap);
     return retval;
 }

@@ -700,6 +700,13 @@ int Robot::moveJointNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
+int Robot::moveJointByPowerNB(robotJointId_t id, int power) {
+	_motor[id].omega = (power/100.0)*_motor[id].omega_max;
+
+	// success
+	return 0;
+}
+
 int Robot::moveJointForeverNB(robotJointId_t id) {
 	// lock mutexes
 	MUTEX_LOCK(&_motor[id].success_mutex);
@@ -1246,13 +1253,6 @@ int Robot::setLEDColorRGB(int r, int g, int b) {
 #ifdef ENABLE_GRAPHICS
 	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
 #endif // ENABLE_GRAPHICS
-
-	// success
-	return 0;
-}
-
-int Robot::setJointPower(robotJointId_t id, int power) {
-	_motor[id].omega = (power/100.0)*_motor[id].omega_max;
 
 	// success
 	return 0;

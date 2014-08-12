@@ -121,6 +121,7 @@ class DLLIMPORT CMobot {
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
+		int moveJointByPowerNB(robotJointId_t id, int power);
 		int moveJointForeverNB(robotJointId_t id);
 		int moveJointTime(robotJointId_t id, double seconds);
 		int moveJointTimeNB(robotJointId_t id, double seconds);
@@ -154,7 +155,7 @@ class DLLIMPORT CMobot {
 		int reset(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
-		int setJointPower(robotJointId_t id, int power);
+		int setJointPower(robotJointId_t id, int power);		// deprecated
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -238,6 +239,7 @@ class CMobotGroup {
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
+		int moveJointByPowerNB(robotJointId_t id, int power);
 		int moveJointForeverNB(robotJointId_t id);
 		int moveJointTime(robotJointId_t id, double seconds);
 		int moveJointTimeNB(robotJointId_t id, double seconds);
@@ -256,7 +258,7 @@ class CMobotGroup {
 		int reset(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
-		int setJointPower(robotJointId_t id, int power);
+		int setJointPower(robotJointId_t id, int power);		// deprecated
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double angle);
 		int setJointSpeed(robotJointId_t id, double speed);

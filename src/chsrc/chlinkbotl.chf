@@ -794,6 +794,19 @@ int CLinkbotL::moveJointNB(int id, double angle) {
     return retval;
 }
 
+int CLinkbotL::moveJointByPowerNB(int id, int power) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_moveJointByPowerNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointByPowerNB, this, id, power);
+    return retval;
+}
+
 int CLinkbotL::moveJointForeverNB(int id) {
     void *fptr;
     int retval;
@@ -1482,16 +1495,11 @@ int CLinkbotL::setJointMovementStateTimeNB(int id, int dir, double seconds) {
 }
 
 int CLinkbotL::setJointPower(int id, int power) {
-    void *fptr;
-    int retval;
+	DEPRECATED("setJointPower", "moveJointByPowerNB");
+	moveJointByPowerNB(id, power);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotL_setJointPower_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setJointPower, this, id, power);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotL::setJointSafetyAngle(double angle) {
@@ -2188,6 +2196,19 @@ int CLinkbotLGroup::moveJointNB(int id, double angle) {
     return retval;
 }
 
+int CLinkbotLGroup::moveJointByPowerNB(int id, int power) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLLG_moveJointByPowerNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointByPowerNB, this, id, power);
+    return retval;
+}
+
 int CLinkbotLGroup::moveJointForeverNB(int id) {
     void *fptr;
     int retval;
@@ -2591,16 +2612,11 @@ int CLinkbotLGroup::setJointMovementStateTimeNB(int id, int dir, double seconds)
 }
 
 int CLinkbotLGroup::setJointPower(int id, int power) {
-    void *fptr;
-    int retval;
+	DEPRECATED("setJointPower", "moveJointByPowerNB");
+	moveJointByPowerNB(id, power);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLLG_setJointPower_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setJointPower, this, id, power);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotLGroup::setJointSafetyAngle(double angle) {

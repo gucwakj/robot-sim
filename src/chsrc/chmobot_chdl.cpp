@@ -1253,6 +1253,23 @@ EXPORTCH int CMobot_moveJointNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMobot_moveJointByPower_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobot *robot;
+    robotJointId_t id;
+    int power;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobot *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    power = Ch_VaArg(interp, ap, int);
+    retval = robot->moveJointByPowerNB(id, power);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMobot_moveJointForeverNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -1842,23 +1859,6 @@ EXPORTCH int CMobot_resetToZeroNB_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     robot = Ch_VaArg(interp, ap, class CMobot *);
     retval = robot->resetToZeroNB();
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CMobot_setJointPower_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobot *robot;
-    robotJointId_t id;
-    int power;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CMobot *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    power = Ch_VaArg(interp, ap, int);
-    retval = robot->setJointPower(id, power);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2955,6 +2955,23 @@ EXPORTCH int CMG_moveJointNB_chdl(void *varg) {
     return retval;
 }
 
+EXPORTCH int CMG_moveJointByPowerNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CMobotGroup *robot;
+    robotJointId_t id;
+    int power;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CMobotGroup *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    power = Ch_VaArg(interp, ap, int);
+    retval = robot->moveJointByPowerNB(id, power);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
 EXPORTCH int CMG_moveJointForeverNB_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3227,23 +3244,6 @@ EXPORTCH int CMG_resetToZeroNB_chdl(void *varg) {
     Ch_VaStart(interp, ap, varg);
     group = Ch_VaArg(interp, ap, class CMobotGroup *);
     retval = group->resetToZeroNB();
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CMG_setJointPower_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CMobotGroup *robot;
-    robotJointId_t id;
-    int power;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CMobotGroup *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    power = Ch_VaArg(interp, ap, int);
-    retval = robot->setJointPower(id, power);
     Ch_VaEnd(interp, ap);
     return retval;
 }

@@ -1088,6 +1088,19 @@ int CLinkbotT::moveJointNB(int id, double angle) {
     return retval;
 }
 
+int CLinkbotT::moveJointByPowerNB(int id, int power) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_moveJointByPowerNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointByPowerNB, this, id, power);
+    return retval;
+}
+
 int CLinkbotT::moveJointForeverNB(int id) {
     void *fptr;
     int retval;
@@ -1654,19 +1667,6 @@ int CLinkbotT::setLEDColorRGB(int r, int g, int b) {
         return -1;
     }
     dlrunfun(fptr, &retval, setLEDColorRGB, this, r, g, b);
-    return retval;
-}
-
-int CLinkbotT::setJointPower(int id, int power) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_setJointPower_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setJointPower, this, id, power);
     return retval;
 }
 
@@ -2458,6 +2458,19 @@ int CLinkbotTGroup::moveJointNB(int id, double angle) {
     return retval;
 }
 
+int CLinkbotTGroup::moveJointByPowerNB(int id, int power) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLTG_moveJointByPowerNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointByPowerNB, this, id, power);
+    return retval;
+}
+
 int CLinkbotTGroup::moveJointForeverNB(int id) {
     void *fptr;
     int retval;
@@ -2767,19 +2780,6 @@ int CLinkbotTGroup::setLEDColorRGB(int r, int g, int b) {
         return -1;
     }
     dlrunfun(fptr, &retval, setLEDColorRGB, this, r, g, b);
-    return retval;
-}
-
-int CLinkbotTGroup::setJointPower(int id, int power) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_setJointPower_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, setJointPower, this, id, power);
     return retval;
 }
 

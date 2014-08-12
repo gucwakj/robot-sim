@@ -91,6 +91,7 @@ class DLLIMPORT Robot {
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t, double);
 		int moveJointNB(robotJointId_t, double);
+		int moveJointByPowerNB(robotJointId_t, int);
 		int moveJointForeverNB(robotJointId_t);
 		int moveJointTime(robotJointId_t, double);
 		int moveJointTimeNB(robotJointId_t, double);
@@ -122,7 +123,6 @@ class DLLIMPORT Robot {
 		int setBuzzerFrequencyOn(int);
 		int setLEDColor(char*);
 		int setLEDColorRGB(int, int, int);
-		int setJointPower(robotJointId_t, int);
 		int setJointSafetyAngle(double);
 		int setJointSafetyAngleTimeout(double);
 		int setJointSpeed(robotJointId_t, double);
@@ -332,6 +332,7 @@ class DLLIMPORT RobotGroup {
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t, double);
 		int moveJointNB(robotJointId_t, double);
+		int moveJointByPowerNB(robotJointId_t, int);
 		int moveJointForeverNB(robotJointId_t);
 		int moveJointTime(robotJointId_t, double);
 		int moveJointTimeNB(robotJointId_t, double);
@@ -352,7 +353,6 @@ class DLLIMPORT RobotGroup {
 		int setBuzzerFrequencyOn(int);
 		int setLEDColor(char*);
 		int setLEDColorRGB(int, int, int);
-		int setJointPower(robotJointId_t, int);
 		int setJointSafetyAngle(double);
 		int setJointSafetyAngleTimeout(double);
 		int setJointSpeed(robotJointId_t, double);

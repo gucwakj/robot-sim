@@ -120,6 +120,7 @@ class DLLIMPORT CLinkbotT {
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
+		int moveJointByPowerNB(robotJointId_t id, int power);
 		int moveJointForeverNB(robotJointId_t id);
 		int moveJointTime(robotJointId_t id, double seconds);
 		int moveJointTimeNB(robotJointId_t id, double seconds);
@@ -159,7 +160,6 @@ class DLLIMPORT CLinkbotT {
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
-		int setJointPower(robotJointId_t id, int power);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -225,6 +225,7 @@ class DLLIMPORT CLinkbotTGroup {
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
+		int moveJointByPowerNB(robotJointId_t id, int power);
 		int moveJointForeverNB(robotJointId_t id);
 		int moveJointTime(robotJointId_t id, double seconds);
 		int moveJointTimeNB(robotJointId_t id, double seconds);
@@ -249,7 +250,6 @@ class DLLIMPORT CLinkbotTGroup {
 		int setBuzzerFrequencyOn(int frequency);
 		int setLEDColor(char *color);
 		int setLEDColorRGB(int r, int g, int b);
-		int setJointPower(robotJointId_t id, int power);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -363,6 +363,7 @@ class DLLIMPORT CLinkbotI {
 		int moveForwardNB(double angle);		// deprecated
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
+		int moveJointByPowerNB(robotJointId_t id, int power);
 		int moveJointForeverNB(robotJointId_t id);
 		int moveJointTime(robotJointId_t id, double seconds);
 		int moveJointTimeNB(robotJointId_t id, double seconds);
@@ -420,7 +421,7 @@ class DLLIMPORT CLinkbotI {
 		int setJointMovementStateNB(int id, int dir);		// deprecated
 		int setJointMovementStateTime(int id, int dir, double seconds);		// deprecated
 		int setJointMovementStateTimeNB(int id, int dir, double seconds);		// deprecated
-		int setJointPower(robotJointId_t id, int power);
+		int setJointPower(robotJointId_t id, int power);		// deprecated
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -505,6 +506,7 @@ class DLLIMPORT CLinkbotIGroup {
 		int moveForwardNB(double angle);		// deprecated
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
+		int moveJointByPowerNB(robotJointId_t id, int power);
 		int moveJointForeverNB(robotJointId_t id);
 		int moveJointTime(robotJointId_t id, double seconds);
 		int moveJointTimeNB(robotJointId_t id, double seconds);
@@ -536,7 +538,7 @@ class DLLIMPORT CLinkbotIGroup {
 		int setJointMovementStateNB(int id, int dir);		// deprecated
 		int setJointMovementStateTime(int id, int dir, double seconds);		// deprecated
 		int setJointMovementStateTimeNB(int id, int dir, double seconds);		// deprecated
-		int setJointPower(robotJointId_t id, int power);
+		int setJointPower(robotJointId_t id, int power);		// deprecated
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -627,6 +629,7 @@ class DLLIMPORT CLinkbotL {
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
+		int moveJointByPowerNB(robotJointId_t id, int power);
 		int moveJointForeverNB(robotJointId_t id);
 		int moveJointTime(robotJointId_t id, double seconds);
 		int moveJointTimeNB(robotJointId_t id, double seconds);
@@ -673,7 +676,7 @@ class DLLIMPORT CLinkbotL {
 		int setJointMovementStateNB(int id, int dir);		// deprecated
 		int setJointMovementStateTime(int id, int dir, double seconds);		// deprecated
 		int setJointMovementStateTimeNB(int id, int dir, double seconds);		// deprecated
-		int setJointPower(robotJointId_t id, int power);
+		int setJointPower(robotJointId_t id, int power);		// deprecated
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -735,6 +738,7 @@ class DLLIMPORT CLinkbotLGroup {
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t id, double angle);
 		int moveJointNB(robotJointId_t id, double angle);
+		int moveJointByPowerNB(robotJointId_t id, int power);
 		int moveJointForeverNB(robotJointId_t id);
 		int moveJointTime(robotJointId_t id, double seconds);
 		int moveJointTimeNB(robotJointId_t id, double seconds);
@@ -766,7 +770,7 @@ class DLLIMPORT CLinkbotLGroup {
 		int setJointMovementStateNB(int id, int dir);		// deprecated
 		int setJointMovementStateTime(int id, int dir, double seconds);		// deprecated
 		int setJointMovementStateTimeNB(int id, int dir, double seconds);		// deprecated
-		int setJointPower(robotJointId_t id, int power);
+		int setJointPower(robotJointId_t id, int power);		// deprecated
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
