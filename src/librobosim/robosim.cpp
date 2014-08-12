@@ -578,6 +578,7 @@ int RoboSim::init_xml(char *name) {
 		else if ( !strcmp(node->Value(), "mobot") ) {
 			xml_robot_t nr = new struct xml_robot_s;
 			nr->type = MOBOT;
+			nr->connected = 0;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0; nr->angle4 = 0;
@@ -618,6 +619,7 @@ int RoboSim::init_xml(char *name) {
 		else if ( !strcmp(node->Value(), "linkboti") ) {
 			xml_robot_t nr = new struct xml_robot_s;
 			nr->type = LINKBOTI;
+			nr->connected = 0;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
@@ -668,6 +670,7 @@ int RoboSim::init_xml(char *name) {
 		else if ( !strcmp(node->Value(), "linkbotl") ) {
 			xml_robot_t nr = new struct xml_robot_s;
 			nr->type = LINKBOTL;
+			nr->connected = 0;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
@@ -718,6 +721,7 @@ int RoboSim::init_xml(char *name) {
 		else if ( !strcmp(node->Value(), "linkbott") ) {
 			xml_robot_t nr = new struct xml_robot_s;
 			nr->type = LINKBOTT;
+			nr->connected = 0;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
@@ -768,6 +772,7 @@ int RoboSim::init_xml(char *name) {
 		else if ( !strcmp(node->Value(), "nxt") ) {
 			xml_robot_t nr = new struct xml_robot_s;
 			nr->type = NXT;
+			nr->connected = 0;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
 			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0; nr->angle4 = 0;
@@ -1023,33 +1028,29 @@ int RoboSim::addRobot(Robot *robot) {
 
 	// add to ll
 	robots_t rtmp = _robots;
-	int connected = 0;
-	if ( _robots == NULL )
+	if (_robots == NULL)
 		_robots = nr;
 	else {
-		while (rtmp->next) {
-			connected++;
+		while (rtmp->next)
 			rtmp = rtmp->next;
-		}
-		connected++;
 		rtmp->next = nr;
 	}
-	connected++;
 
 	// find specs about new robot
 	xml_robot_t btmp = _bot;
-	int num = 0;
-	while (btmp) {
-		if (++num != connected) {
-			btmp = btmp->next;
-			continue;
-		}
-		break;
-	}
-
-	// no robot found
 	int form = 0;
 	robot->getFormFactor(form);
+	while (btmp) {
+		if (btmp->type != form)
+			btmp = btmp->next;
+		else if (btmp->connected)
+			btmp = btmp->next;
+		else
+			break;
+	}
+
+
+	// no robot found
 	if (btmp == NULL || btmp->type != form) {
 		switch (form) {
 			case LINKBOTI:
@@ -1081,6 +1082,9 @@ int RoboSim::addRobot(Robot *robot) {
 	// build robot
 	robot->build(btmp);
 
+	// robot now connected
+	btmp->connected = 1;
+
 #ifdef ENABLE_GRAPHICS
 	// draw robot
 	nr->node = robot->draw(_staging, btmp->tracking);
@@ -1104,33 +1108,28 @@ int RoboSim::addRobot(ModularRobot *robot) {
 
 	// add to ll
 	robots_t rtmp = _robots;
-	int connected = 0;
-	if ( _robots == NULL )
+	if (_robots == NULL)
 		_robots = nr;
 	else {
-		while (rtmp->next) {
-			connected++;
+		while (rtmp->next)
 			rtmp = rtmp->next;
-		}
-		connected++;
 		rtmp->next = nr;
 	}
-	connected++;
 
 	// find specs about new robot
 	xml_robot_t btmp = _bot;
-	int num = 0;
+	int form = 0;
+	robot->getFormFactor(form);
 	while (btmp) {
-		if (++num != connected) {
+		if (btmp->type != form)
 			btmp = btmp->next;
-			continue;
-		}
-		break;
+		else if (btmp->connected)
+			btmp = btmp->next;
+		else
+			break;
 	}
 
 	// no robot found
-	int form = 0;
-	robot->getFormFactor(form);
 	if (btmp == NULL || btmp->type != form) {
 		switch (form) {
 			case LINKBOTI:
@@ -1187,6 +1186,9 @@ int RoboSim::addRobot(ModularRobot *robot) {
 	else {
 		robot->build(btmp);
 	}
+
+	// robot now connected
+	btmp->connected = 1;
 
 #ifdef ENABLE_GRAPHICS
 	// draw robot

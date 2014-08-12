@@ -128,10 +128,11 @@ typedef struct xml_conn_s {
 } *xml_conn_t;
 // robot
 typedef struct xml_robot_s {
-	int type;
+	int connected;
 	int id;
-	int tracking;
 	int ground;
+	int tracking;
+	int type;
 	double x, y, z;
 	double psi, theta, phi;
 	double angle1, angle2, angle3, angle4;
