@@ -54,6 +54,13 @@ else (MSVC)
 endif (MSVC)
 set(EXTRA_LIBS ${EXTRA_LIBS} optimized ode debug oded)
 
+# Add base source files to library
+SET(SRCS ${SRCS}
+	robot.cpp
+	robotgroup.cpp
+	robosim.cpp
+)
+
 # Option to enable double precision
 add_definitions(-DdDOUBLE)
 
@@ -78,6 +85,7 @@ if (ENABLE_GRAPHICS)
 	set(EXTRA_LIBS ${EXTRA_LIBS} optimized osgUtil debug osgUtild)
 	set(EXTRA_LIBS ${EXTRA_LIBS} optimized osgViewer debug osgViewerd)
 	set(EXTRA_LIBS ${EXTRA_LIBS} optimized OpenThreads debug OpenThreadsd)
+	set(SRCS ${SRCS} graphics.cpp rgbhashtable.c)
 	# Add openGL
 	find_package(OpenGL REQUIRED)
 	if (OPENGL_FOUND)
@@ -85,6 +93,24 @@ if (ENABLE_GRAPHICS)
 		set (EXTRA_LIBS ${EXTRA_LIBS} ${OPENGL_LIBRARIES})
 	endif (OPENGL_FOUND)
 endif (ENABLE_GRAPHICS)
+
+# Option for Linkbots
+option (ENABLE_LINKBOTS "Enable Linkbots." ON)
+if (ENABLE_LINKBOTS)
+	set(SRCS ${SRCS} modularrobot.cpp linkbot.cpp linkbotgroup.cpp)
+endif (ENABLE_LINKBOTS)
+
+# Option for Mobots
+option (ENABLE_MOBOTS "Enable Mobots." ON)
+if (ENABLE_MOBOTS)
+	set(SRCS ${SRCS} modularrobot.cpp mobot.cpp mobotgroup.cpp)
+endif (ENABLE_MOBOTS)
+
+# Option for Mobots
+option (ENABLE_NXT "Enable NXT." ON)
+if (ENABLE_NXT)
+	set(SRCS ${SRCS} nxt.cpp nxtgroup.cpp)
+endif (ENABLE_NXT)
 
 # Add pthreads
 find_package(Threads)
@@ -104,36 +130,8 @@ else ()
 endif ()
 
 # Add the library
-if (ENABLE_GRAPHICS)
-add_library( robosim SHARED
-	robot.cpp
-	robotgroup.cpp
-	modularrobot.cpp
-	graphics.cpp
-	robosim.cpp
-	linkbot.cpp
-	linkbotgroup.cpp
-	mobot.cpp
-	mobotgroup.cpp
-	nxt.cpp
-	nxtgroup.cpp
-	rgbhashtable.c
-)
-else (ENABLE_GRAPHICS)
-add_library( robosim SHARED
-	robot.cpp
-	robotgroup.cpp
-	modularrobot.cpp
-	robosim.cpp
-	linkbot.cpp
-	linkbotgroup.cpp
-	mobot.cpp
-	mobotgroup.cpp
-	nxt.cpp
-	nxtgroup.cpp
-	rgbhashtable.c
-)
-endif (ENABLE_GRAPHICS)
+add_library(robosim SHARED ${SRCS})
 
 # Link library against dependencies
 target_link_libraries(robosim ${EXTRA_LIBS})
+
