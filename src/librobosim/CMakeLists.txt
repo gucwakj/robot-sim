@@ -106,11 +106,17 @@ if (ENABLE_MOBOTS)
 	set(SRCS ${SRCS} modularrobot.cpp mobot.cpp mobotgroup.cpp)
 endif (ENABLE_MOBOTS)
 
-# Option for Mobots
+# Option for NXT
 option (ENABLE_NXT "Enable NXT." ON)
 if (ENABLE_NXT)
 	set(SRCS ${SRCS} nxt.cpp nxtgroup.cpp)
 endif (ENABLE_NXT)
+
+# Option for Cubus
+option (ENABLE_CUBUS "Enable Cubus." ON)
+if (ENABLE_CUBUS)
+	set(SRCS ${SRCS} cubus.cpp cubusgroup.cpp)
+endif (ENABLE_CUBUS)
 
 # Add pthreads
 find_package(Threads)

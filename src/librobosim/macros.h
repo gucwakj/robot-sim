@@ -85,13 +85,16 @@ typedef enum robot_type_e {
 	LINKBOTL,
 	LINKBOTT,
 	NXT,
+	CUBUS,
 	NUM_TYPES
 } robotType_t;
 typedef enum robot_joint_id_e {
 	JOINT1,
 	JOINT2,
 	JOINT3,
-	JOINT4
+	JOINT4,
+	JOINT5,
+	JOINT6
 } robotJointId_t;
 typedef enum robot_connector_e {
 	BIGWHEEL,

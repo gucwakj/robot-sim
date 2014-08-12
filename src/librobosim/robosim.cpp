@@ -808,6 +808,47 @@ int RoboSim::init_xml(char *name) {
 				rtmp->next = nr;
 			}
 		}
+		else if ( !strcmp(node->Value(), "cubus") ) {
+			xml_robot_t nr = new struct xml_robot_s;
+			nr->type = CUBUS;
+			nr->connected = 0;
+			nr->x = 0; nr->y = 0; nr->z = 0;
+			nr->psi = 0; nr->theta = 0; nr->phi = 0;
+			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0; nr->angle4 = 0;
+			nr->tracking = tracking;
+			node->QueryIntAttribute("id", &(nr->id));
+			if ( (ele = node->FirstChildElement("position")) ) {
+				ele->QueryDoubleAttribute("x", &(nr->x));
+				ele->QueryDoubleAttribute("y", &(nr->y));
+				ele->QueryDoubleAttribute("z", &(nr->z));
+			}
+			if ( (ele = node->FirstChildElement("rotation")) ) {
+				ele->QueryDoubleAttribute("psi", &(nr->psi));
+				ele->QueryDoubleAttribute("theta", &(nr->theta));
+				ele->QueryDoubleAttribute("phi", &(nr->phi));
+			}
+			if ( (ele = node->FirstChildElement("joint")) ) {
+				ele->QueryDoubleAttribute("a1", &(nr->angle1));
+				ele->QueryDoubleAttribute("a2", &(nr->angle2));
+				ele->QueryDoubleAttribute("a3", &(nr->angle3));
+				ele->QueryDoubleAttribute("a4", &(nr->angle4));
+			}
+			if (node->QueryIntAttribute("ground", &(nr->ground))) {
+				nr->ground = -1;
+			}
+			nr->conn = NULL;
+			nr->next = NULL;
+
+			// put new bot at end of list
+			xml_robot_t rtmp = _bot;
+			if ( _bot == NULL )
+				_bot = nr;
+			else {
+				while (rtmp->next)
+					rtmp = rtmp->next;
+				rtmp->next = nr;
+			}
+		}
 		else {
 			if ( !strcmp(node->Value(), "bigwheel") ) {
 				ctype = BIGWHEEL;

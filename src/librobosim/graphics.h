@@ -136,6 +136,19 @@ class nxtNodeCallback : public osg::NodeCallback {
 };
 
 /**********************************************************
+	Cubus Node Callback
+ **********************************************************/
+class Cubus;
+class cubusNodeCallback : public osg::NodeCallback {
+	public:
+		cubusNodeCallback(Cubus *robot);
+		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+	private:
+		Cubus *_robot;
+		int _count;
+};
+
+/**********************************************************
 	Ground Node Callback
  **********************************************************/
 class groundNodeCallback : public osg::NodeCallback {
