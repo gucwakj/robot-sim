@@ -1171,11 +1171,15 @@ int CLinkbotT::drawConnector(conn_t conn, osg::Group *robot) {
 
 	// apply texture
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
+	tex->setDataVariance(osg::Object::DYNAMIC);
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
 	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-	transform->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+	tex->setWrap(osg::Texture::WRAP_R, osg::Texture::REPEAT);
+	geode->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex, osg::StateAttribute::ON);
+	osg::ref_ptr<osg::TexEnv> texEnv = new osg::TexEnv(osg::TexEnv::DECAL);
+	geode->getOrCreateStateSet()->setTextureAttribute(0, texEnv, osg::StateAttribute::ON);
 
 	// set rendering
 	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
