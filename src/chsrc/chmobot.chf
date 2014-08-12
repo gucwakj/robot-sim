@@ -614,29 +614,19 @@ int CMobot::isNotMoving(void) {
 }
 
 int CMobot::jumpJointTo(robotJointId_t id, double angle) {
-	void *fptr;
-	int retval;
+	DEPRECATED("jumpJointTo", "moveJointToByTrackPos");
+	moveJointToByTrackPos(id, angle);
 
-	fptr = dlsym(RoboSim::_dlhandle, "CMobot_jumpJointTo_chdl");
-	if(fptr == NULL) {
-		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-		return -1;
-	}
-	dlrunfun(fptr, &retval, jumpJointTo, this, id, angle);
-	return retval;
+	// success
+	return 0;
 }
 
 int CMobot::jumpJointToNB(robotJointId_t id, double angle) {
-	void *fptr;
-	int retval;
+	DEPRECATED("jumpJointToNB", "moveJointToByTrackPosNB");
+	moveJointToByTrackPosNB(id, angle);
 
-	fptr = dlsym(RoboSim::_dlhandle, "CMobot_jumpJointToNB_chdl");
-	if(fptr == NULL) {
-		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-		return -1;
-	}
-	dlrunfun(fptr, &retval, jumpJointToNB, this, id, angle);
-	return retval;
+	// success
+	return 0;
 }
 
 int CMobot::jumpTo(double angle1, double angle2, double angle3, double angle4) {
@@ -1137,6 +1127,32 @@ int CMobot::moveJointToNB(int id, double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveJointToNB, this, id, angle);
+    return retval;
+}
+
+int CMobot::moveJointToByTrackPos(robotJointId_t id, double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_moveJointToByTrackPos_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointToByTrackPos, this, id, angle);
+    return retval;
+}
+
+int CMobot::moveJointTyByTrackPosNB(robotJointId_t id, double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_moveJointToByTrackPosNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointToByTrackPosNB, this, id, angle);
     return retval;
 }
 
@@ -2085,29 +2101,19 @@ int CMobotGroup::isNotMoving(void) {
 }
 
 int CMobotGroup::jumpJointTo(int id, double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("jumpTo", "moveJointToByTrackPos");
+	moveJointToByTrackPos(id, angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMG_jumpJointTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpJointTo, this, id, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobotGroup::jumpJointToNB(int id, double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("jumpToNB", "moveJointToByTrackPosNB");
+	moveJointToByTrackPosNB(id, angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMG_jumpJointToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpJointToNB, this, id, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobotGroup::jumpTo(double angle1, double angle2, double angle3, double angle4) {
@@ -2471,6 +2477,32 @@ int CMobotGroup::moveJointToNB(int id, double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveJointToNB, this, id, angle);
+    return retval;
+}
+
+int CMobotGroup::moveJointToByTrackPos(int id, double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMG_moveJointToByTrackPos_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointToByTrackPos, this, id, angle);
+    return retval;
+}
+
+int CMobotGroup::moveJointToByTrackPosNB(int id, double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMG_moveJointToByTrackPosNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointToByTrackPosNB, this, id, angle);
     return retval;
 }
 

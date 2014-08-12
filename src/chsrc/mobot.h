@@ -84,8 +84,8 @@ class DLLIMPORT CMobot {
 		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int jumpJointTo(robotJointId_t id, double angle);
-		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
+		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
 		int jumpTo(double angle1, double angle2, double angle3, double angle4);
 		int jumpToNB(double angle1, double angle2, double angle3, double angle4);
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
@@ -127,6 +127,8 @@ class DLLIMPORT CMobot {
 		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
+		int moveJointToByTrackPos(robotJointId_t id, double angle);
+		int moveJointToByTrackPosNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
 		int moveTimeNB(double seconds);
@@ -203,8 +205,8 @@ class CMobotGroup {
 		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int jumpJointTo(robotJointId_t id, double angle);
-		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
+		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
 		int jumpTo(double angle1, double angle2, double angle3, double angle4);
 		int jumpToNB(double angle1, double angle2, double angle3, double angle4);
 		int motionArch(double angle);
@@ -245,6 +247,8 @@ class CMobotGroup {
 		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
+		int moveJointToByTrackPos(robotJointId_t id, double angle);
+		int moveJointToByTrackPosNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
 		int moveTimeNB(double seconds);

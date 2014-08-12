@@ -110,8 +110,8 @@ class DLLIMPORT CLinkbotT {
 		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int jumpJointTo(robotJointId_t id, double angle);
-		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
+		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
 		int jumpTo(double angle1, double angle2, double angle3);
 		int jumpToNB(double angle1, double angle2, double angle3);
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
@@ -126,6 +126,8 @@ class DLLIMPORT CLinkbotT {
 		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
+		int moveJointToByTrackPos(robotJointId_t id, double angle);
+		int moveJointToByTrackPosNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
 		int moveTimeNB(double seconds);
@@ -216,8 +218,8 @@ class DLLIMPORT CLinkbotTGroup {
 		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int jumpJointTo(robotJointId_t id, double angle);
-		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
+		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
 		int jumpTo(double angle1, double angle2, double angle3);
 		int jumpToNB(double angle1, double angle2, double angle3);
 		int move(double angle1, double angle2, double angle3);
@@ -231,6 +233,8 @@ class DLLIMPORT CLinkbotTGroup {
 		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
+		int moveJointToByTrackPos(robotJointId_t id, double angle);
+		int moveJointToByTrackPosNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
 		int moveTimeNB(double seconds);
@@ -347,8 +351,8 @@ class DLLIMPORT CLinkbotI {
 		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int jumpJointTo(robotJointId_t id, double angle);
-		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
+		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
 		int jumpTo(double angle1, double angle2, double angle3);
 		int jumpToNB(double angle1, double angle2, double angle3);
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
@@ -369,6 +373,8 @@ class DLLIMPORT CLinkbotI {
 		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
+		int moveJointToByTrackPos(robotJointId_t id, double angle);
+		int moveJointToByTrackPosNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
 		int moveTimeNB(double seconds);
@@ -491,8 +497,8 @@ class DLLIMPORT CLinkbotIGroup {
 		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int jumpJointTo(robotJointId_t id, double angle);
-		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
+		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
 		int jumpTo(double angle1, double angle2, double angle3);
 		int jumpToNB(double angle1, double angle2, double angle3);
 		int move(double angle1, double angle2, double angle3);
@@ -512,6 +518,8 @@ class DLLIMPORT CLinkbotIGroup {
 		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
+		int moveJointToByTrackPos(robotJointId_t id, double angle);
+		int moveJointToByTrackPosNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
 		int moveTimeNB(double seconds);
@@ -619,8 +627,8 @@ class DLLIMPORT CLinkbotL {
 		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int jumpJointTo(robotJointId_t id, double angle);
-		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
+		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
 		int jumpTo(double angle1, double angle2, double angle3);
 		int jumpToNB(double angle1, double angle2, double angle3);
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
@@ -635,6 +643,8 @@ class DLLIMPORT CLinkbotL {
 		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
+		int moveJointToByTrackPos(robotJointId_t id, double angle);
+		int moveJointToByTrackPosNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
 		int moveTimeNB(double seconds);
@@ -729,8 +739,8 @@ class DLLIMPORT CLinkbotLGroup {
 		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int jumpJointTo(robotJointId_t id, double angle);
-		int jumpJointToNB(robotJointId_t id, double angle);
+		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
+		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
 		int jumpTo(double angle1, double angle2, double angle3);
 		int jumpToNB(double angle1, double angle2, double angle3);
 		int move(double angle1, double angle2, double angle3);
@@ -744,6 +754,8 @@ class DLLIMPORT CLinkbotLGroup {
 		int moveJointTimeNB(robotJointId_t id, double seconds);
 		int moveJointTo(robotJointId_t id, double angle);
 		int moveJointToNB(robotJointId_t id, double angle);
+		int moveJointToByTrackPos(robotJointId_t id, double angle);
+		int moveJointToByTrackPosNB(robotJointId_t id, double angle);
 		int moveJointWait(robotJointId_t id);
 		int moveTime(double seconds);
 		int moveTimeNB(double seconds);

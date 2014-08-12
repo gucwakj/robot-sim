@@ -715,40 +715,6 @@ EXPORTCH int CLinkbotL_isNotMoving_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotL_jumpJointTo_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotL *robot;
-    robotJointId_t id;
-    double angle;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    angle = Ch_VaArg(interp, ap, double);
-    retval = robot->jumpJointTo(id, angle);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotL_jumpJointToNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotL *robot;
-    robotJointId_t id;
-    double angle;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    angle = Ch_VaArg(interp, ap, double);
-    retval = robot->jumpJointToNB(id, angle);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLinkbotL_jumpTo_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -968,6 +934,40 @@ EXPORTCH int CLinkbotL_moveJointToNB_chdl(void *varg) {
     id = Ch_VaArg(interp, ap, robotJointId_t);
     angle = Ch_VaArg(interp, ap, double);
     retval = robot->moveJointToNB(id, angle);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotL_moveJointToByTrackPos_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+    robotJointId_t id;
+    double angle;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    angle = Ch_VaArg(interp, ap, double);
+    retval = robot->moveJointToByTrackPos(id, angle);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotL_moveJointToByTrackPosNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotL *robot;
+    robotJointId_t id;
+    double angle;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotL *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    angle = Ch_VaArg(interp, ap, double);
+    retval = robot->moveJointToByTrackPosNB(id, angle);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2116,40 +2116,6 @@ EXPORTCH int CLLG_isNotMoving_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLLG_jumpJointTo_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotLGroup *robot;
-    robotJointId_t id;
-    double angle;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    angle = Ch_VaArg(interp, ap, double);
-    retval = robot->jumpJointTo(id, angle);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLLG_jumpJointToNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotLGroup *robot;
-    robotJointId_t id;
-    double angle;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
-    id = Ch_VaArg(interp, ap, robotJointId_t);
-    angle = Ch_VaArg(interp, ap, double);
-    retval = robot->jumpJointToNB(id, angle);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLLG_jumpTo_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -2369,6 +2335,40 @@ EXPORTCH int CLLG_moveJointToNB_chdl(void *varg) {
     id = Ch_VaArg(interp, ap, robotJointId_t);
     angle = Ch_VaArg(interp, ap, double);
     retval = robot->moveJointToNB(id, angle);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLLG_moveJointToByTrackPos_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotLGroup *robot;
+    robotJointId_t id;
+    double angle;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    angle = Ch_VaArg(interp, ap, double);
+    retval = robot->moveJointToByTrackPos(id, angle);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLLG_moveJointToByTrackPosNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotLGroup *robot;
+    robotJointId_t id;
+    double angle;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotLGroup *);
+    id = Ch_VaArg(interp, ap, robotJointId_t);
+    angle = Ch_VaArg(interp, ap, double);
+    retval = robot->moveJointToByTrackPosNB(id, angle);
     Ch_VaEnd(interp, ap);
     return retval;
 }

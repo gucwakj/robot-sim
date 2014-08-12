@@ -637,21 +637,6 @@ int Robot::isNotMoving(void) {
 	return !(this->isMoving());
 }
 
-int Robot::jumpJointTo(robotJointId_t id, double angle) {
-	this->jumpJointToNB(id, angle);
-	this->moveJointWait(id);
-
-	// success
-	return 0;
-}
-
-int Robot::jumpJointToNB(robotJointId_t id, double angle) {
-	this->moveJointToNB(id, angle);
-
-	// success
-	return 0;
-}
-
 int Robot::moveForeverNB(void) {
 	// set joint movements
 	for (int i = 0; i < _dof; i++) {
@@ -798,6 +783,21 @@ int Robot::moveJointToNB(robotJointId_t id, double angle) {
 
 	// unlock goal
 	MUTEX_UNLOCK(&_goal_mutex);
+
+	// success
+	return 0;
+}
+
+int Robot::moveJointToByTrackPos(robotJointId_t id, double angle) {
+	this->moveJointToByTrackPosNB(id, angle);
+	this->moveJointWait(id);
+
+	// success
+	return 0;
+}
+
+int Robot::moveJointToByTrackPosNB(robotJointId_t id, double angle) {
+	this->moveJointToNB(id, angle);
 
 	// success
 	return 0;

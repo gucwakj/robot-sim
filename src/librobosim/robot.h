@@ -86,8 +86,6 @@ class DLLIMPORT Robot {
 		int isConnected(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int jumpJointTo(robotJointId_t, double);
-		int jumpJointToNB(robotJointId_t, double);
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t, double);
 		int moveJointNB(robotJointId_t, double);
@@ -97,6 +95,8 @@ class DLLIMPORT Robot {
 		int moveJointTimeNB(robotJointId_t, double);
 		int moveJointTo(robotJointId_t, double);
 		int moveJointToNB(robotJointId_t, double);
+		int moveJointToByTrackPos(robotJointId_t, double);
+		int moveJointToByTrackPosNB(robotJointId_t, double);
 		int moveJointWait(robotJointId_t);
 		int moveTime(double);
 		int moveTimeNB(double);
@@ -327,8 +327,6 @@ class DLLIMPORT RobotGroup {
 		int holdJointsAtExit(void);
 		int isMoving(void);
 		int isNotMoving(void);
-		int jumpJointTo(robotJointId_t, double);
-		int jumpJointToNB(robotJointId_t, double);
 		int moveForeverNB(void);
 		int moveJoint(robotJointId_t, double);
 		int moveJointNB(robotJointId_t, double);
@@ -338,6 +336,8 @@ class DLLIMPORT RobotGroup {
 		int moveJointTimeNB(robotJointId_t, double);
 		int moveJointTo(robotJointId_t, double);
 		int moveJointToNB(robotJointId_t, double);
+		int moveJointToByTrackPos(robotJointId_t, double);
+		int moveJointToByTrackPosNB(robotJointId_t, double);
 		int moveJointWait(robotJointId_t);
 		int moveTime(double);
 		int moveTimeNB(double);

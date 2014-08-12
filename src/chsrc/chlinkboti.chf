@@ -1013,29 +1013,19 @@ int CLinkbotI::isNotMoving(void) {
 }
 
 int CLinkbotI::jumpJointTo(robotJointId_t id, double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("jumpJointTo", "moveJointToByTrackPos");
+	moveJointToByTrackPos(id, angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_jumpJointTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpJointTo, this, id, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::jumpJointToNB(robotJointId_t id, double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("jumpJointToNB", "moveJointToByTrackPosNB");
+	moveJointToByTrackPosNB(id, angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_jumpJointToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpJointToNB, this, id, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::jumpTo(double angle1, double angle2, double angle3) {
@@ -1259,6 +1249,32 @@ int CLinkbotI::moveJointToNB(int id, double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveJointToNB, this, id, angle);
+    return retval;
+}
+
+int CLinkbotI::moveJointToByTrackPos(robotJointId_t id, double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveJointToByTrackPos_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointToByTrackPos, this, id, angle);
+    return retval;
+}
+
+int CLinkbotI::moveJointTyByTrackPosNB(robotJointId_t id, double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveJointToByTrackPosNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointToByTrackPosNB, this, id, angle);
     return retval;
 }
 
@@ -2807,29 +2823,19 @@ int CLinkbotIGroup::isNotMoving(void) {
 }
 
 int CLinkbotIGroup::jumpJointTo(int id, double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("jumpTo", "moveJointToByTrackPos");
+	moveJointToByTrackPos(id, angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_jumpJointTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpJointTo, this, id, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::jumpJointToNB(int id, double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("jumpToNB", "moveJointToByTrackPosNB");
+	moveJointToByTrackPosNB(id, angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_jumpJointToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpJointToNB, this, id, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::jumpTo(double angle1, double angle2, double angle3) {
@@ -3046,6 +3052,32 @@ int CLinkbotIGroup::moveJointToNB(int id, double angle) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveJointToNB, this, id, angle);
+    return retval;
+}
+
+int CLinkbotIGroup::moveJointToByTrackPos(int id, double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_moveJointToByTrackPos_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointToByTrackPos, this, id, angle);
+    return retval;
+}
+
+int CLinkbotIGroup::moveJointToByTrackPosNB(int id, double angle) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_moveJointToByTrackPosNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveJointToByTrackPosNB, this, id, angle);
     return retval;
 }
 

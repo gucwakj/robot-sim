@@ -230,22 +230,6 @@ int RobotGroup::isNotMoving(void) {
 	return !(this->isMoving());
 }
 
-int RobotGroup::jumpJointTo(robotJointId_t id, double angle) {
-	moveJointToNB(id, angle);
-	return moveJointWait(id);
-}
-
-int RobotGroup::jumpJointToNB(robotJointId_t id, double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->jumpJointToNB(id, angle);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int RobotGroup::moveForeverNB(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
@@ -328,6 +312,22 @@ int RobotGroup::moveJointToNB(robotJointId_t id, double angle) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveJointToNB(id, angle);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int RobotGroup::moveJointToByTrackPos(robotJointId_t id, double angle) {
+	moveJointToNB(id, angle);
+	return moveJointWait(id);
+}
+
+int RobotGroup::moveJointToByTrackPosNB(robotJointId_t id, double angle) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->moveJointToByTrackPosNB(id, angle);
 		rtmp = rtmp->next;
 	}
 
