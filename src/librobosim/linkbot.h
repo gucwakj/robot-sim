@@ -85,7 +85,7 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 		int build_bigwheel(conn_t, int, int = -1, int = -1);			// build big wheel connector
 		int build_body(double, double, double, dMatrix3, double);		// build body of linkbot
 		int build_bridge(conn_t, int, int = -1, int = -1);				// build bridge connector
-		int build_caster(conn_t, int, int = -1, int = -1);				// build caster connector
+		int build_caster(conn_t, int, int, int = -1, int = -1);			// build caster connector
 		int build_cube(conn_t, int, int = -1, int = -1);				// build cube connector
 		int build_face(int, double, double, double, dMatrix3, double);	// build face of linkbot
 		int build_faceplate(conn_t, int, int = -1, int = -1);			// build faceplate connector
@@ -95,6 +95,9 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 		int build_smallwheel(conn_t, int, int = -1, int = -1);			// build small wheel connector
 		int build_tinywheel(conn_t, int, int = -1, int = -1);			// build tiny wheel connector
 		int build_wheel(conn_t, int, double, int = -1, int = -1);		// build custom wheel connector
+#ifdef ENABLE_GRAPHICS
+		int draw_custom_caster(conn_t conn, osg::Group *robot);			// draw custom sized caster
+#endif // ENABLE_GRAPHICS
 		static void* closeGripperNBThread(void*);						// thread to close gripper
 
 	// private data

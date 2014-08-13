@@ -145,6 +145,7 @@ int RoboSim::init_xml(char *name) {
 	// initialize variables
 	int *rtmp, *ftmp, *ntmp, *atmp, ctype = 0, cnum = 0;
 	int tracking = 0;
+	int custom = 0;
 	double size = 0;
 	_bot = NULL;
 	_robots = NULL;
@@ -860,6 +861,7 @@ int RoboSim::init_xml(char *name) {
 			else if ( !strcmp(node->Value(), "caster") ) {
 				ctype = CASTER;
 				cnum = 1;
+				node->QueryIntAttribute("custom", &custom);
 			}
 			else if ( !strcmp(node->Value(), "cube") ) {
 				ctype = CUBE;
@@ -919,7 +921,6 @@ int RoboSim::init_xml(char *name) {
 				atmp[0] = -1;
 				node->QueryIntAttribute("robot", &rtmp[0]);
 				node->QueryIntAttribute("face", &ftmp[0]);
-
 			}
 			else {
 				side = node->FirstChildElement();
@@ -933,7 +934,10 @@ int RoboSim::init_xml(char *name) {
 					else {
 						ftmp[i] = ntmp[i];
 						side->QueryIntAttribute("conn", &atmp[i]);
-						side->QueryDoubleAttribute("radius", &size);
+						if (atmp[i] == CASTER)
+							side->QueryDoubleAttribute("custom", &size);
+						else if (atmp[i] == WHEEL)
+							side->QueryDoubleAttribute("radius", &size);
 					}
 					i++;
 					side = side->NextSiblingElement();

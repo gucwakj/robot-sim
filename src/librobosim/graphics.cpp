@@ -235,13 +235,21 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		// draw connectors
 		conn_t ctmp = _robot->_conn;
-		while(ctmp) {
+		while (ctmp) {
 			dMatrix3 R;
 			dQuaternion Q;
 			double p[3] = {0};
-			_robot->getFaceParams(ctmp->face, R, p);
-			if (ctmp->d_side != -1) _robot->getConnectorParams(ctmp->d_type, ctmp->d_side, R, p);
-			dRtoQ(R, Q);
+			if (ctmp->d_side < -10) {
+				const double *pos = dBodyGetPosition(ctmp->body);
+				p[0] = pos[0]; p[1] = pos[1]; p[2] = pos[2];
+				const double *rot = dBodyGetQuaternion(ctmp->body);
+				Q[0] = rot[0]; Q[1] = rot[1]; Q[2] = rot[2]; Q[3] = rot[3];
+			}
+			else {
+				_robot->getFaceParams(ctmp->face, R, p);
+				if (ctmp->d_side != -1) _robot->getConnectorParams(ctmp->d_type, ctmp->d_side, R, p);
+				dRtoQ(R, Q);
+			}
 			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i + k++));
 			pat->setPosition(osg::Vec3d(p[0], p[1], p[2]));
 			pat->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));

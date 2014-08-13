@@ -197,23 +197,6 @@ int CLinkbotT::closeGripper(void) {
 	return retval;
 }
 
-void* CLinkbotT::closeGripperNBThread(void *arg) {
-	// cast arg
-	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
-
-	// perform motion
-	mArg->robot->closeGripper();
-
-	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
-
-	// cleanup
-	delete mArg;
-
-	// success
-	return NULL;
-}
-
 int CLinkbotT::closeGripperNB(void) {
 	// create thread
 	THREAD_T move;
@@ -617,7 +600,7 @@ int CLinkbotT::addConnector(int type, int face, double size) {
 			this->build_bridge(nc, face);
 			break;
 		case CASTER:
-			this->build_caster(nc, face);
+			this->build_caster(nc, face, static_cast<int>(size));
 			break;
 		case CUBE:
 			this->build_cube(nc, face);
@@ -694,7 +677,7 @@ int CLinkbotT::build(xml_robot_t robot) {
 	}
 	ctmp = robot->conn;
 	while (ctmp) {
-		if (ctmp->conn == CASTER) {
+		if (ctmp->conn == CASTER && !static_cast<int>(ctmp->size)) {
 			robot->psi += RAD2DEG(atan2(_radius - _smallwheel_radius, 0.08575));
 		}
 		ctmp = ctmp->next;
@@ -1122,7 +1105,11 @@ int CLinkbotT::drawConnector(conn_t conn, osg::Group *robot) {
 	// get connection parameters
 	this->getFaceParams(conn->face, R, p);
 	dRtoQ(R, Q);
-	if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
+	if (conn->d_side <= -10) {
+		this->draw_custom_caster(conn, robot);
+		return 0;
+	}
+	else if (conn->d_side != -1) this->getConnectorParams(conn->d_type, conn->d_side, R, p);
 
 	// PAT to transform mesh
 	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform();
@@ -1663,7 +1650,8 @@ int CLinkbotT::add_connector_daisy(int conn, int face, double size, int side, in
 			this->build_bridge(nc, face, side, type);
 			break;
 		case CASTER:
-			this->build_caster(nc, face, side, type);
+			nc->d_side = -10*side;
+			this->build_caster(nc, face, static_cast<int>(size), side, type);
 			break;
 		case CUBE:
 			this->build_cube(nc, face, side, type);
@@ -1834,7 +1822,7 @@ int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
 	return 0;
 }
 
-int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
+int CLinkbotT::build_caster(conn_t conn, int face, int custom, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[4];
@@ -1873,26 +1861,47 @@ int CLinkbotT::build_caster(conn_t conn, int face, int side, int type) {
 	dGeomSetBody(conn->geom[0], conn->body);
 	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
-	// set geometry 2 - horizontal support
-	conn->geom[1] = dCreateBox(_space, 0.0368, 0.022, 0.0032);
-	dGeomSetBody(conn->geom[1], conn->body);
-	dGeomSetOffsetPosition(conn->geom[1], _conn_depth/2 + 0.01 - m.c[0], -m.c[1], -_body_height/2 + 0.0016 - m.c[2]);
+	// default stl caster
+	if (!custom) {
+		// set geometry 2 - horizontal support
+		conn->geom[1] = dCreateBox(_space, 0.0368, 0.022, 0.0032);
+		dGeomSetBody(conn->geom[1], conn->body);
+		dGeomSetOffsetPosition(conn->geom[1], _conn_depth/2 + 0.01 - m.c[0], -m.c[1], -_body_height/2 + 0.0016 - m.c[2]);
 
-	// set geometry 3 - ball support
-	conn->geom[2] = dCreateCylinder(_space, 0.011, 0.003);
-	dGeomSetBody(conn->geom[2], conn->body);
-	dGeomSetOffsetPosition(conn->geom[2], _conn_depth/2 + 0.0368 - m.c[0], -m.c[1], -_body_height/2 + 0.0001 - m.c[2]);
+		// set geometry 3 - ball support
+		conn->geom[2] = dCreateCylinder(_space, 0.011, 0.003);
+		dGeomSetBody(conn->geom[2], conn->body);
+		dGeomSetOffsetPosition(conn->geom[2], _conn_depth/2 + 0.0368 - m.c[0], -m.c[1], -_body_height/2 + 0.0001 - m.c[2]);
 
-	// set geometry 4 - sphere
-	conn->geom[3] = dCreateSphere(_space, 0.006);
-	dGeomSetBody(conn->geom[3], conn->body);
-	dGeomSetOffsetPosition(conn->geom[3], _conn_depth/2 + 0.0368 - m.c[0], -m.c[1], -_body_height/2 - 0.005 - m.c[2]);
+		// set geometry 4 - sphere
+		conn->geom[3] = dCreateSphere(_space, 0.006);
+		dGeomSetBody(conn->geom[3], conn->body);
+		dGeomSetOffsetPosition(conn->geom[3], _conn_depth/2 + 0.0368 - m.c[0], -m.c[1], -_body_height/2 - 0.005 - m.c[2]);
+	}
+	// custom drawn one for mathematics
+	else {
+		// set geometry 2 - horizontal support
+		conn->geom[1] = dCreateBox(_space, 0.02, 0.022, 0.0032);
+		dGeomSetBody(conn->geom[1], conn->body);
+		dGeomSetOffsetPosition(conn->geom[1], _conn_depth/2 + 0.01 - m.c[0], -m.c[1], -_body_height/2 + 0.0016 - m.c[2]);
+
+		// set geometry 3 - ball support
+		conn->geom[2] = dCreateCylinder(_space, 0.011, _radius -_face_radius - 0.006 + 0.0032);
+		dGeomSetBody(conn->geom[2], conn->body);
+		dGeomSetOffsetPosition(conn->geom[2], _conn_depth/2 + 0.02 - m.c[0], -m.c[1], -_body_height/2 - (_radius -_face_radius - 0.006)/2 + 0.0016 - m.c[2]);
+
+		// set geometry 4 - sphere
+		conn->geom[3] = dCreateSphere(_space, 0.006);
+		dGeomSetBody(conn->geom[3], conn->body);
+		dGeomSetOffsetPosition(conn->geom[3], _conn_depth/2 + 0.02 - m.c[0], -m.c[1], -_body_height/2 + _face_radius - _radius + 0.006 - m.c[2]);
+	}
 
 	// set mass center to (0,0,0) of _bodyID
 	dMassTranslate(&m, -m.c[0], -m.c[1], -m.c[2]);
 	dBodySetMass(conn->body, &m);
 
 	// fix connector to body
+	this->fixConnectorToBody(face, conn->body, side);
 
 	// success
 	return 0;
@@ -2337,5 +2346,80 @@ int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int typ
 
 	// success
 	return 0;
+}
+
+#ifdef ENABLE_GRAPHICS
+int CLinkbotT::draw_custom_caster(conn_t conn, osg::Group *robot) {
+	// initialize variables
+	osg::ref_ptr<osg::Geode> body = new osg::Geode;
+	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
+	const double *pos;
+	dQuaternion quat;
+	osg::Box *box;
+	osg::Cylinder *cyl;
+	osg::Sphere *sph;
+	double	depth = _conn_depth,
+			width = 1.5*_face_radius,
+			height = _body_height;
+
+	pos = dGeomGetOffsetPosition(conn->geom[0]);
+	dGeomGetOffsetQuaternion(conn->geom[0], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), depth, width, height);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(conn->geom[1]);
+	dGeomGetOffsetQuaternion(conn->geom[1], quat);
+	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), 0.02, 0.022, 0.0032);
+	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body->addDrawable(new osg::ShapeDrawable(box));
+	pos = dGeomGetOffsetPosition(conn->geom[2]);
+	dGeomGetOffsetQuaternion(conn->geom[2], quat);
+	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), 0.011, _radius -_face_radius - 0.006 + 0.0032);
+	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	body->addDrawable(new osg::ShapeDrawable(cyl));
+	pos = dGeomGetOffsetPosition(conn->geom[3]);
+	dGeomGetOffsetQuaternion(conn->geom[3], quat);
+	sph = new osg::Sphere(osg::Vec3d(pos[0], pos[1], pos[2]), 0.006);
+	body->addDrawable(new osg::ShapeDrawable(sph));
+
+	// apply texture
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
+	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
+	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
+	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
+	pat->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
+
+	// set rendering
+	body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+	body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+	// add body to pat
+	pat->addChild(body.get());
+	// set user properties of node
+	body->setName("connector");
+	// add to scenegraph
+	robot->addChild(pat);
+
+	// success
+	return 0;
+}
+#endif // ENABLE_GRAPHICS
+
+void* CLinkbotT::closeGripperNBThread(void *arg) {
+	// cast arg
+	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
+
+	// perform motion
+	mArg->robot->closeGripper();
+
+	// signal successful completion
+	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+
+	// cleanup
+	delete mArg;
+
+	// success
+	return NULL;
 }
 
