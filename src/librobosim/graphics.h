@@ -97,6 +97,17 @@ class pickHandler : public osgGA::GUIEventHandler {
 };
 
 /**********************************************************
+	Ground Node Callback
+ **********************************************************/
+class groundNodeCallback : public osg::NodeCallback {
+	public:
+		groundNodeCallback(struct ground_s *ground);
+		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+	private:
+		struct ground_s *_ground;
+};
+
+/**********************************************************
 	Linkbot Node Callback
  **********************************************************/
 class CLinkbotT;
@@ -148,15 +159,4 @@ class cubusNodeCallback : public osg::NodeCallback {
 		int _count;
 };
 
-/**********************************************************
-	Ground Node Callback
- **********************************************************/
-class groundNodeCallback : public osg::NodeCallback {
-	public:
-		groundNodeCallback(struct ground_s *ground);
-		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
-	private:
-		struct ground_s *_ground;
-};
-
-#endif /* GRAPHICS_H_ */
+#endif // GRAPHICS_H_

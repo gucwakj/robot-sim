@@ -206,6 +206,26 @@ void pickHandler::pick(const osgGA::GUIEventAdapter &ea, osgViewer::Viewer *view
 }
 
 /**********************************************************
+	Ground Node Callback
+ **********************************************************/
+groundNodeCallback::groundNodeCallback(struct ground_s *ground) {
+	_ground = ground;
+}
+
+void groundNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
+	osg::Group *group = dynamic_cast<osg::Group *>(node);
+	if (group) {
+		const double *pos = dBodyGetPosition(_ground->body);
+		const double *quat = dBodyGetQuaternion(_ground->body);
+		osg::PositionAttitudeTransform *pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(0));
+		pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
+		pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+	}
+	traverse(node, nv);
+}
+
+#ifdef ENABLE_LINKBOT
+/**********************************************************
 	Linkbot Node Callback
  **********************************************************/
 linkbotNodeCallback::linkbotNodeCallback(CLinkbotT *robot) {
@@ -287,7 +307,9 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	}
 	traverse(node, nv);
 }
+#endif // ENABLE_LINKBOT
 
+#ifdef ENABLE_MOBOT
 /**********************************************************
 	Mobot Node Callback
  **********************************************************/
@@ -348,7 +370,9 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	}
 	traverse(node, nv);
 }
+#endif // ENABLE_MOBOT
 
+#ifdef ENABLE_NXT
 /**********************************************************
 	NXT Node Callback
  **********************************************************/
@@ -406,7 +430,9 @@ void nxtNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	}
 	traverse(node, nv);
 }
+#endif // ENABLE_NXT
 
+#ifdef ENABLE_CUBUS
 /**********************************************************
 	Cubus Node Callback
  **********************************************************/
@@ -481,23 +507,5 @@ void cubusNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	}
 	traverse(node, nv);
 }
-
-/**********************************************************
-	Ground Node Callback
- **********************************************************/
-groundNodeCallback::groundNodeCallback(struct ground_s *ground) {
-	_ground = ground;
-}
-
-void groundNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
-	osg::Group *group = dynamic_cast<osg::Group *>(node);
-	if (group) {
-		const double *pos = dBodyGetPosition(_ground->body);
-		const double *quat = dBodyGetQuaternion(_ground->body);
-		osg::PositionAttitudeTransform *pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(0));
-		pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
-		pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	}
-	traverse(node, nv);
-}
+#endif // ENABLE_CUBUS
 

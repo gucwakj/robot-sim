@@ -95,16 +95,16 @@ if (ENABLE_GRAPHICS)
 endif (ENABLE_GRAPHICS)
 
 # Option for Linkbots
-option (ENABLE_LINKBOTS "Enable Linkbots." ON)
-if (ENABLE_LINKBOTS)
+option (ENABLE_LINKBOT "Enable Linkbots." ON)
+if (ENABLE_LINKBOT)
 	set(SRCS ${SRCS} modularrobot.cpp linkbot.cpp linkbotgroup.cpp)
-endif (ENABLE_LINKBOTS)
+endif (ENABLE_LINKBOT)
 
 # Option for Mobots
-option (ENABLE_MOBOTS "Enable Mobots." ON)
-if (ENABLE_MOBOTS)
+option (ENABLE_MOBOT "Enable Mobots." ON)
+if (ENABLE_MOBOT)
 	set(SRCS ${SRCS} modularrobot.cpp mobot.cpp mobotgroup.cpp)
-endif (ENABLE_MOBOTS)
+endif (ENABLE_MOBOT)
 
 # Option for NXT
 option (ENABLE_NXT "Enable NXT." ON)
