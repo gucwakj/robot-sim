@@ -15,20 +15,6 @@ class DLLIMPORT Cubus : public ModularRobot {
 		Cubus(void);
 		virtual ~Cubus(void);
 
-		int accelJointAngleNB(robotJointId_t, double, double);
-		int accelJointCycloidalNB(robotJointId_t, double, double);
-		int accelJointHarmonicNB(robotJointId_t, double, double);
-		int accelJointSmoothNB(robotJointId_t, double, double, double, double);
-		int accelJointTimeNB(robotJointId_t, double, double);
-		int accelJointToMaxSpeedNB(robotJointId_t, double);
-		int accelJointToVelocityNB(robotJointId_t, double, double);
-		int driveAccelCycloidalNB(double, double, double);
-		int driveAccelDistanceNB(double, double, double);
-		int driveAccelHarmonicNB(double, double, double);
-		int driveAccelSmoothNB(double, double, double, double, double);
-		int driveAccelTimeNB(double, double, double);
-		int driveAccelToMaxSpeedNB(double, double);
-		int driveAccelToVelocityNB(double, double, double);
 		int driveForeverNB(void);
 		int driveForwardNB(double);
 		int drivexyTo(double, double, double, double);
@@ -40,8 +26,6 @@ class DLLIMPORT Cubus : public ModularRobot {
 		int moveNB(double, double, double);
 		int moveTo(double, double, double);
 		int moveToNB(double, double, double);
-		int moveToByTrackPos(double, double, double);
-		int moveToByTrackPosNB(double, double, double);
 		int recordAngles(double[], double[], double[], double[], int, double, int = 1);
 		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, int = 1);
 		int recordDistancesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
@@ -108,26 +92,10 @@ class DLLIMPORT CubusGroup : virtual public RobotGroup {
 		int addRobot(Cubus&);
 		int addRobots(Cubus[], int);
 
-		int accelJointAngleNB(robotJointId_t, double, double);
-		int accelJointCycloidalNB(robotJointId_t, double, double);
-		int accelJointHarmonicNB(robotJointId_t, double, double);
-		int accelJointSmoothNB(robotJointId_t, double, double, double, double);
-		int accelJointTimeNB(robotJointId_t, double, double);
-		int accelJointToMaxSpeedNB(robotJointId_t, double);
-		int accelJointToVelocityNB(robotJointId_t, double, double);
-		int driveAccelCycloidalNB(double, double, double);
-		int driveAccelDistanceNB(double, double, double);
-		int driveAccelHarmonicNB(double, double, double);
-		int driveAccelSmoothNB(double, double, double, double, double);
-		int driveAccelTimeNB(double, double, double);
-		int driveAccelToMaxSpeedNB(double, double);
-		int driveAccelToVelocityNB(double, double, double);
 		int move(double, double, double);
 		int moveNB(double, double, double);
 		int moveTo(double, double, double);
 		int moveToNB(double, double, double);
-		int moveToByTrackPos(double, double, double);
-		int moveToByTrackPosNB(double, double, double);
 		int setJointSpeeds(double, double, double);
 		int setJointSpeedRatios(double, double, double);
 
