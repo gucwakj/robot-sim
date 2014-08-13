@@ -18,19 +18,16 @@ class DLLIMPORT Cubus : public ModularRobot {
 		int driveForeverNB(void);
 		int driveForwardNB(double);
 		int drivexyTo(double, double, double, double);
-		int getJointAngles(double&, double&, double&, int = 10);
-		int getJointAnglesInstant(double&, double&, double&);
-		int getJointSpeeds(double&, double&, double&);
-		int getJointSpeedRatios(double&, double&, double&);
-		int move(double, double, double);
-		int moveNB(double, double, double);
-		int moveTo(double, double, double);
-		int moveToNB(double, double, double);
-		int recordAngles(double[], double[], double[], double[], int, double, int = 1);
-		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, int = 1);
-		int recordDistancesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
-		int setJointSpeeds(double, double, double);
-		int setJointSpeedRatios(double, double, double);
+		int getJointAngles(double&, double&, double&, double&, double&, double&, int = 10);
+		int getJointAnglesInstant(double&, double&, double&, double&, double&, double&);
+		int getJointSpeeds(double&, double&, double&, double&, double&, double&);
+		int getJointSpeedRatios(double&, double&, double&, double&, double&, double&);
+		int move(double, double, double, double, double, double);
+		int moveNB(double, double, double, double, double, double);
+		int moveTo(double, double, double, double, double, double);
+		int moveToNB(double, double, double, double, double, double);
+		int setJointSpeeds(double, double, double, double, double, double);
+		int setJointSpeedRatios(double, double, double, double, double, double);
 		int turnLeftNB(double, double, double);
 		int turnRightNB(double, double, double);
 
@@ -92,12 +89,12 @@ class DLLIMPORT CubusGroup : virtual public RobotGroup {
 		int addRobot(Cubus&);
 		int addRobots(Cubus[], int);
 
-		int move(double, double, double);
-		int moveNB(double, double, double);
-		int moveTo(double, double, double);
-		int moveToNB(double, double, double);
-		int setJointSpeeds(double, double, double);
-		int setJointSpeedRatios(double, double, double);
+		int move(double, double, double, double, double, double);
+		int moveNB(double, double, double, double, double, double);
+		int moveTo(double, double, double, double, double, double);
+		int moveToNB(double, double, double, double, double, double);
+		int setJointSpeeds(double, double, double, double, double, double);
+		int setJointSpeedRatios(double, double, double, double, double, double);
 
 	// private data
 	private:

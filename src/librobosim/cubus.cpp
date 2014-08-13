@@ -67,10 +67,10 @@ int Cubus::drivexyTo(double x, double y, double radius, double trackwidth) {
 
 	// get speed of robot
 	double *speed = new double[_dof]();
-	this->getJointSpeeds(speed[0], speed[1], speed[2]);
+	this->getJointSpeeds(speed[0], speed[1], speed[2], speed[3], speed[4], speed[5]);
 
 	if (fabs(speed[0]) > 120) {
-		this->setJointSpeeds(45, 45, 45);
+		this->setJointSpeeds(45, 45, 45, 45, 45, 45);
 	}
 
 	// turn toward new postition until pointing correctly
@@ -89,11 +89,11 @@ int Cubus::drivexyTo(double x, double y, double radius, double trackwidth) {
 		angle = atan2(R[0]*(x-x0) + R[4]*(y-y0), R[1]*(x-x0) + R[5]*(y-y0));
 
 		// move slowly
-		this->setJointSpeeds(45, 45, 45);
+		this->setJointSpeeds(45, 45, 45, 45, 45, 45);
 	}
 
 	// reset to original speed after turning
-	this->setJointSpeeds(speed[0], speed[1], speed[2]);
+	this->setJointSpeeds(speed[0], speed[1], speed[2], speed[3], speed[4], speed[5]);
 
 	// move along length of line
 	this->getxy(x0, y0);
@@ -106,56 +106,71 @@ int Cubus::drivexyTo(double x, double y, double radius, double trackwidth) {
 	return 0;
 }
 
-int Cubus::getJointAngles(double &angle1, double &angle2, double &angle3, int numReadings) {
+int Cubus::getJointAngles(double &angle1, double &angle2, double &angle3, double &angle4, double &angle5, double &angle6, int numReadings) {
 	this->getJointAngle(JOINT1, angle1, numReadings);
 	this->getJointAngle(JOINT2, angle2, numReadings);
 	this->getJointAngle(JOINT3, angle3, numReadings);
+	this->getJointAngle(JOINT4, angle4, numReadings);
+	this->getJointAngle(JOINT5, angle5, numReadings);
+	this->getJointAngle(JOINT6, angle6, numReadings);
 
 	// success
 	return 0;
 }
 
-int Cubus::getJointAnglesInstant(double &angle1, double &angle2, double &angle3) {
+int Cubus::getJointAnglesInstant(double &angle1, double &angle2, double &angle3, double &angle4, double &angle5, double &angle6) {
 	this->getJointAngleInstant(JOINT1, angle1);
 	this->getJointAngleInstant(JOINT2, angle2);
 	this->getJointAngleInstant(JOINT3, angle3);
+	this->getJointAngleInstant(JOINT4, angle4);
+	this->getJointAngleInstant(JOINT5, angle5);
+	this->getJointAngleInstant(JOINT6, angle6);
 
 	// success
 	return 0;
 }
 
-int Cubus::getJointSpeeds(double &speed1, double &speed2, double &speed3) {
+int Cubus::getJointSpeeds(double &speed1, double &speed2, double &speed3, double &speed4, double &speed5, double &speed6) {
 	speed1 = RAD2DEG(_motor[JOINT1].omega);
 	speed2 = RAD2DEG(_motor[JOINT2].omega);
 	speed3 = RAD2DEG(_motor[JOINT3].omega);
+	speed4 = RAD2DEG(_motor[JOINT4].omega);
+	speed5 = RAD2DEG(_motor[JOINT5].omega);
+	speed6 = RAD2DEG(_motor[JOINT6].omega);
 
 	// success
 	return 0;
 }
 
-int Cubus::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3) {
+int Cubus::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, double &ratio4, double &ratio5, double &ratio6) {
 	ratio1 = _motor[JOINT1].omega/_motor[JOINT1].omega_max;
 	ratio2 = _motor[JOINT2].omega/_motor[JOINT2].omega_max;
 	ratio3 = _motor[JOINT3].omega/_motor[JOINT3].omega_max;
+	ratio4 = _motor[JOINT4].omega/_motor[JOINT4].omega_max;
+	ratio5 = _motor[JOINT5].omega/_motor[JOINT5].omega_max;
+	ratio6 = _motor[JOINT6].omega/_motor[JOINT6].omega_max;
 
 	// success
 	return 0;
 }
 
-int Cubus::move(double angle1, double angle2, double angle3) {
-	this->moveNB(angle1, angle2, angle3);
+int Cubus::move(double angle1, double angle2, double angle3, double angle4, double angle5, double angle6) {
+	this->moveNB(angle1, angle2, angle3, angle4, angle5, angle6);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int Cubus::moveNB(double angle1, double angle2, double angle3) {
+int Cubus::moveNB(double angle1, double angle2, double angle3, double angle4, double angle5, double angle6) {
 	// store angles
 	double *angles = new double[_dof];
 	angles[JOINT1] = angle1;
 	angles[JOINT2] = angle2;
 	angles[JOINT3] = angle3;
+	angles[JOINT4] = angle4;
+	angles[JOINT5] = angle5;
+	angles[JOINT6] = angle6;
 
 	// call base class recording function
 	int retval = Robot::moveNB(angles);
@@ -167,20 +182,23 @@ int Cubus::moveNB(double angle1, double angle2, double angle3) {
 	return retval;
 }
 
-int Cubus::moveTo(double angle1, double angle2, double angle3) {
-	this->moveToNB(angle1, angle2, angle3);
+int Cubus::moveTo(double angle1, double angle2, double angle3, double angle4, double angle5, double angle6) {
+	this->moveToNB(angle1, angle2, angle3, angle4, angle5, angle6);
 	this->moveWait();
 
 	// success
 	return 0;
 }
 
-int Cubus::moveToNB(double angle1, double angle2, double angle3) {
+int Cubus::moveToNB(double angle1, double angle2, double angle3, double angle4, double angle5, double angle6) {
 	// store angles
 	double *angles = new double[_dof];
 	angles[JOINT1] = angle1;
 	angles[JOINT2] = angle2;
 	angles[JOINT3] = angle3;
+	angles[JOINT4] = angle4;
+	angles[JOINT5] = angle5;
+	angles[JOINT6] = angle6;
 
 	// call base class recording function
 	int retval = Robot::moveToNB(angles);
@@ -192,67 +210,25 @@ int Cubus::moveToNB(double angle1, double angle2, double angle3) {
 	return retval;
 }
 
-int Cubus::recordAngles(double *time, double *angle1, double *angle2, double *angle3, int num, double seconds, int shiftData) {
-	// check if recording already
-	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
-	}
-
-	// store angles
-	double **angles = new double * [_dof];
-	angles[JOINT1] = angle1;
-	angles[JOINT2] = angle2;
-	angles[JOINT3] = angle3;
-
-	// call base class recording function
-	return Robot::recordAngles(time, angles, num, seconds, shiftData);
-}
-
-int Cubus::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, double seconds, int shiftData) {
-	// check if recording already
-	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
-	}
-
-	// store angles
-	double **angles = new double * [_dof];
-	angles[JOINT1] = angle1;
-	angles[JOINT2] = angle2;
-	angles[JOINT3] = angle3;
-
-	// call base class recording function
-	return Robot::recordAnglesBegin(time, angles, seconds, shiftData);
-}
-
-int Cubus::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, double radius, double seconds, int shiftData) {
-	// check if recording already
-	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
-	}
-
-	// store angles
-	double **angles = new double * [_dof];
-	angles[JOINT1] = distance1;
-	angles[JOINT2] = distance2;
-	angles[JOINT3] = distance3;
-
-	// call base class recording function
-	return Robot::recordAnglesBegin(time, angles, seconds, shiftData);
-}
-
-int Cubus::setJointSpeeds(double speed1, double speed2, double speed3) {
+int Cubus::setJointSpeeds(double speed1, double speed2, double speed3, double speed4, double speed5, double speed6) {
 	this->setJointSpeed(JOINT1, speed1);
 	this->setJointSpeed(JOINT2, speed2);
 	this->setJointSpeed(JOINT3, speed3);
+	this->setJointSpeed(JOINT4, speed4);
+	this->setJointSpeed(JOINT5, speed5);
+	this->setJointSpeed(JOINT6, speed6);
 
 	// success
 	return 0;
 }
 
-int Cubus::setJointSpeedRatios(double ratio1, double ratio2, double ratio3) {
+int Cubus::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4, double ratio5, double ratio6) {
 	this->setJointSpeedRatio(JOINT1, ratio1);
 	this->setJointSpeedRatio(JOINT2, ratio2);
 	this->setJointSpeedRatio(JOINT3, ratio3);
+	this->setJointSpeedRatio(JOINT4, ratio4);
+	this->setJointSpeedRatio(JOINT5, ratio5);
+	this->setJointSpeedRatio(JOINT6, ratio6);
 
 	// success
 	return 0;
@@ -266,7 +242,7 @@ int Cubus::turnLeftNB(double angle, double radius, double trackwidth) {
 	angle = (angle*width)/(2*radius);
 
 	// move
-	this->moveNB(-angle, 0, -angle);
+	this->moveNB(-angle, 0, -angle, 0, 0, 0);
 
 	// success
 	return 0;
@@ -280,7 +256,7 @@ int Cubus::turnRightNB(double angle, double radius, double trackwidth) {
 	angle = (angle*width)/(2*radius);
 
 	// move
-	this->moveNB(angle, 0, angle);
+	this->moveNB(angle, 0, angle, 0, 0, 0);
 
 	// success
 	return 0;
@@ -1172,7 +1148,7 @@ void Cubus::simPostCollisionThread(void) {
 	}
 
 	// all joints have completed their motions
-	if (_motor[JOINT1].success && _motor[JOINT2].success && _motor[JOINT3].success)
+	if (_motor[JOINT1].success && _motor[JOINT2].success && _motor[JOINT3].success && _motor[JOINT4].success && _motor[JOINT5].success && _motor[JOINT6].success)
 		COND_SIGNAL(&_success_cond);
 
 	// unlock angle and goal
