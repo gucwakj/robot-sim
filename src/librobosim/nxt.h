@@ -19,12 +19,12 @@ class DLLIMPORT CNXT : virtual public Robot {
 		int getJointAnglesInstant(double&, double&);
 		int getJointSpeeds(double&, double&);
 		int getJointSpeedRatios(double&, double&);
-		int jumpTo(double, double);
-		int jumpToNB(double, double);
 		int move(double, double);
 		int moveNB(double, double);
 		int moveTo(double, double);
 		int moveToNB(double, double);
+		int moveToByTrackPos(double, double);
+		int moveToByTrackPosNB(double, double);
 		int recordAngles(double[], double[], double[], int, double, int = 1);
 		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, int = 1);
 		int recordDistancesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
@@ -68,12 +68,12 @@ class DLLIMPORT CNXTGroup : virtual public RobotGroup {
 		int addRobot(CNXT&);
 		int addRobots(CNXT[], int);
 
-		int jumpTo(double, double);
-		int jumpToNB(double, double);
 		int move(double, double);
 		int moveNB(double, double);
 		int moveTo(double, double);
 		int moveToNB(double, double);
+		int moveToByTrackPos(double, double);
+		int moveToByTrackPosNB(double, double);
 		int setJointSpeeds(double, double);
 		int setJointSpeedRatios(double, double);
 

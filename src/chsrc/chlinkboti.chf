@@ -1029,29 +1029,19 @@ int CLinkbotI::jumpJointToNB(robotJointId_t id, double angle) {
 }
 
 int CLinkbotI::jumpTo(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
+	DEPRECATED("jumpTo", "moveToByTrackPos");
+	moveToByTrackPos(angle1, angle2, angle3);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_jumpTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpTo, this, angle1, angle2, angle3);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::jumpToNB(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
+	DEPRECATED("jumpToNB", "moveToByTrackPosNB");
+	moveToByTrackPosNB(angle1, angle2, angle3);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_jumpToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpToNB, this, angle1, angle2, angle3);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotI::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
@@ -1340,6 +1330,32 @@ int CLinkbotI::moveToNB(double angle1, double angle2, double angle3) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveToNB, this, angle1, angle2, angle3);
+    return retval;
+}
+
+int CLinkbotI::moveToByTrackPos(double angle1, double angle2, double angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveToByTrackPos_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveToByTrackPos, this, angle1, angle2, angle3);
+    return retval;
+}
+
+int CLinkbotI::moveToByTrackPosNB(double angle1, double angle2, double angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotI_moveToByTrackPosNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveToByTrackPosNB, this, angle1, angle2, angle3);
     return retval;
 }
 
@@ -2823,7 +2839,7 @@ int CLinkbotIGroup::isNotMoving(void) {
 }
 
 int CLinkbotIGroup::jumpJointTo(int id, double angle) {
-	DEPRECATED("jumpTo", "moveJointToByTrackPos");
+	DEPRECATED("jumpJointTo", "moveJointToByTrackPos");
 	moveJointToByTrackPos(id, angle);
 
 	// success
@@ -2831,7 +2847,7 @@ int CLinkbotIGroup::jumpJointTo(int id, double angle) {
 }
 
 int CLinkbotIGroup::jumpJointToNB(int id, double angle) {
-	DEPRECATED("jumpToNB", "moveJointToByTrackPosNB");
+	DEPRECATED("jumpToJointNB", "moveJointToByTrackPosNB");
 	moveJointToByTrackPosNB(id, angle);
 
 	// success
@@ -2839,29 +2855,19 @@ int CLinkbotIGroup::jumpJointToNB(int id, double angle) {
 }
 
 int CLinkbotIGroup::jumpTo(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
+	DEPRECATED("jumpTo", "moveToByTrackPos");
+	moveToByTrackPos(angle1, angle2, angle3);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_jumpTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpTo, this, angle1, angle2, angle3);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::jumpToNB(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
+	DEPRECATED("jumpToNB", "moveToByTrackPosNB");
+	moveToByTrackPosNB(angle1, angle2, angle3);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_jumpToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpToNB, this, angle1, angle2, angle3);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotIGroup::move(double angle1, double angle2, double angle3) {
@@ -3143,6 +3149,32 @@ int CLinkbotIGroup::moveToNB(double angle1, double angle2, double angle3) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveToNB, this, angle1, angle2, angle3);
+    return retval;
+}
+
+int CLinkbotIGroup::moveToByTrackPos(double angle1, double angle2, double angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_moveToByTrackPos_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveToByTrackPos, this, angle1, angle2, angle3);
+    return retval;
+}
+
+int CLinkbotIGroup::moveToByTrackPosNB(double angle1, double angle2, double angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_moveToByTrackPosNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveToByTrackPosNB, this, angle1, angle2, angle3);
     return retval;
 }
 

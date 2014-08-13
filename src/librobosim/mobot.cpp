@@ -65,21 +65,6 @@ int CMobot::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3, 
 	return 0;
 }
 
-int CMobot::jumpTo(double angle1, double angle2, double angle3, double angle4) {
-	this->jumpToNB(angle1, angle2, angle3, angle4);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CMobot::jumpToNB(double angle1, double angle2, double angle3, double angle4) {
-	this->moveToNB(angle1, angle2, angle3, angle4);
-
-	// success
-	return 0;
-}
-
 int CMobot::motionArch(double angle) {
 	this->moveJointToNB(JOINT2, -angle/2.0);
 	this->moveJointToNB(JOINT3, angle/2.0);
@@ -753,6 +738,21 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
 
 	// success
 	return retval;
+}
+
+int CMobot::moveToByTrackPos(double angle1, double angle2, double angle3, double angle4) {
+	this->moveToByTrackPosNB(angle1, angle2, angle3, angle4);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CMobot::moveToByTrackPosNB(double angle1, double angle2, double angle3, double angle4) {
+	this->moveToNB(angle1, angle2, angle3, angle4);
+
+	// success
+	return 0;
 }
 
 int CMobot::recordAngles(double *time, double *angle1, double *angle2, double *angle3, double *angle4, int num, double seconds, int shiftData) {

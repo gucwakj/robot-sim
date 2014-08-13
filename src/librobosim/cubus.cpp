@@ -357,21 +357,6 @@ int Cubus::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio3) {
 	return 0;
 }
 
-int Cubus::jumpTo(double angle1, double angle2, double angle3) {
-	this->jumpToNB(angle1, angle2, angle3);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int Cubus::jumpToNB(double angle1, double angle2, double angle3) {
-	this->moveToNB(angle1, angle2, angle3);
-
-	// success
-	return 0;
-}
-
 int Cubus::move(double angle1, double angle2, double angle3) {
 	this->moveNB(angle1, angle2, angle3);
 	this->moveWait();
@@ -420,6 +405,21 @@ int Cubus::moveToNB(double angle1, double angle2, double angle3) {
 
 	// success
 	return retval;
+}
+
+int Cubus::moveToByTrackPos(double angle1, double angle2, double angle3) {
+	this->moveToByTrackPosNB(angle1, angle2, angle3);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int Cubus::moveToByTrackPosNB(double angle1, double angle2, double angle3) {
+	this->moveToNB(angle1, angle2, angle3);
+
+	// success
+	return 0;
 }
 
 int Cubus::recordAngles(double *time, double *angle1, double *angle2, double *angle3, int num, double seconds, int shiftData) {

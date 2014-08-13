@@ -1171,44 +1171,6 @@ EXPORTCH int CLinkbotI_isNotMoving_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLinkbotI_jumpTo_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotI *robot;
-    double angle1;
-    double angle2;
-    double angle3;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    angle1 = Ch_VaArg(interp, ap, double);
-    angle2 = Ch_VaArg(interp, ap, double);
-    angle3 = Ch_VaArg(interp, ap, double);
-    retval = robot->jumpTo(angle1, angle2, angle3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLinkbotI_jumpToNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotI *robot;
-    double angle1;
-    double angle2;
-    double angle3;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
-    angle1 = Ch_VaArg(interp, ap, double);
-    angle2 = Ch_VaArg(interp, ap, double);
-    angle3 = Ch_VaArg(interp, ap, double);
-    retval = robot->jumpToNB(angle1, angle2, angle3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLinkbotI_move_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -1507,6 +1469,44 @@ EXPORTCH int CLinkbotI_moveToNB_chdl(void *varg) {
     angle2 = Ch_VaArg(interp, ap, double);
     angle3 = Ch_VaArg(interp, ap, double);
     retval = robot->moveToNB(angle1, angle2, angle3);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotI_moveToByTrackPos_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    double angle1;
+    double angle2;
+    double angle3;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    angle1 = Ch_VaArg(interp, ap, double);
+    angle2 = Ch_VaArg(interp, ap, double);
+    angle3 = Ch_VaArg(interp, ap, double);
+    retval = robot->moveToByTrackPos(angle1, angle2, angle3);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLinkbotI_moveToByTrackPosNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotI *robot;
+    double angle1;
+    double angle2;
+    double angle3;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotI *);
+    angle1 = Ch_VaArg(interp, ap, double);
+    angle2 = Ch_VaArg(interp, ap, double);
+    angle3 = Ch_VaArg(interp, ap, double);
+    retval = robot->moveToByTrackPosNB(angle1, angle2, angle3);
     Ch_VaEnd(interp, ap);
     return retval;
 }
@@ -2844,44 +2844,6 @@ EXPORTCH int CLIG_isNotMoving_chdl(void *varg) {
     return retval;
 }
 
-EXPORTCH int CLIG_jumpTo_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotIGroup *robot;
-    double angle1;
-    double angle2;
-    double angle3;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
-    angle1 = Ch_VaArg(interp, ap, double);
-    angle2 = Ch_VaArg(interp, ap, double);
-    angle3 = Ch_VaArg(interp, ap, double);
-    retval = robot->jumpTo(angle1, angle2, angle3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
-EXPORTCH int CLIG_jumpToNB_chdl(void *varg) {
-    ChInterp_t interp;
-    ChVaList_t ap;
-    class CLinkbotIGroup *robot;
-    double angle1;
-    double angle2;
-    double angle3;
-    int retval;
-
-    Ch_VaStart(interp, ap, varg);
-    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
-    angle1 = Ch_VaArg(interp, ap, double);
-    angle2 = Ch_VaArg(interp, ap, double);
-    angle3 = Ch_VaArg(interp, ap, double);
-    retval = robot->jumpToNB(angle1, angle2, angle3);
-    Ch_VaEnd(interp, ap);
-    return retval;
-}
-
 EXPORTCH int CLIG_move_chdl(void *varg) {
     ChInterp_t interp;
     ChVaList_t ap;
@@ -3180,6 +3142,44 @@ EXPORTCH int CLIG_moveToNB_chdl(void *varg) {
     angle2 = Ch_VaArg(interp, ap, double);
     angle3 = Ch_VaArg(interp, ap, double);
     retval = robot->moveToNB(angle1, angle2, angle3);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLIG_moveToByTrackPos_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotIGroup *robot;
+    double angle1;
+    double angle2;
+    double angle3;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
+    angle1 = Ch_VaArg(interp, ap, double);
+    angle2 = Ch_VaArg(interp, ap, double);
+    angle3 = Ch_VaArg(interp, ap, double);
+    retval = robot->moveToByTrackPos(angle1, angle2, angle3);
+    Ch_VaEnd(interp, ap);
+    return retval;
+}
+
+EXPORTCH int CLIG_moveToByTrackPosNB_chdl(void *varg) {
+    ChInterp_t interp;
+    ChVaList_t ap;
+    class CLinkbotIGroup *robot;
+    double angle1;
+    double angle2;
+    double angle3;
+    int retval;
+
+    Ch_VaStart(interp, ap, varg);
+    robot = Ch_VaArg(interp, ap, class CLinkbotIGroup *);
+    angle1 = Ch_VaArg(interp, ap, double);
+    angle2 = Ch_VaArg(interp, ap, double);
+    angle3 = Ch_VaArg(interp, ap, double);
+    retval = robot->moveToByTrackPosNB(angle1, angle2, angle3);
     Ch_VaEnd(interp, ap);
     return retval;
 }

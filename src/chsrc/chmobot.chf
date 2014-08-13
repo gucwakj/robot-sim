@@ -630,29 +630,19 @@ int CMobot::jumpJointToNB(robotJointId_t id, double angle) {
 }
 
 int CMobot::jumpTo(double angle1, double angle2, double angle3, double angle4) {
-	void *fptr;
-	int retval;
+	DEPRECATED("jumpTo", "moveToByTrackPos");
+	moveToByTrackPos(angle1, angle2, angle3, angle4);
 
-	fptr = dlsym(RoboSim::_dlhandle, "CMobot_jumpTo_chdl");
-	if(fptr == NULL) {
-		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-		return -1;
-	}
-	dlrunfun(fptr, &retval, jumpTo, this, angle1, angle2, angle3, angle4);
-	return retval;
+	// success
+	return 0;
 }
 
 int CMobot::jumpToNB(double angle1, double angle2, double angle3, double angle4) {
-	void *fptr;
-	int retval;
+	DEPRECATED("jumpToNB", "moveToByTrackPosNB");
+	moveToByTrackPosNB(angle1, angle2, angle3, angle4);
 
-	fptr = dlsym(RoboSim::_dlhandle, "CMobot_jumpToNB_chdl");
-	if(fptr == NULL) {
-		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-		return -1;
-	}
-	dlrunfun(fptr, &retval, jumpToNB, this, angle1, angle2, angle3, angle4);
-	return retval;
+	// success
+	return 0;
 }
 
 int CMobot::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
@@ -1218,6 +1208,32 @@ int CMobot::moveToNB(double angle1, double angle2, double angle3, double angle4)
         return -1;
     }
     dlrunfun(fptr, &retval, moveToNB, this, angle1, angle2, angle3, angle4);
+    return retval;
+}
+
+int CMobot::moveToByTrackPos(double angle1, double angle2, double angle3, double angle4) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_moveToByTrackPos_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveToByTrackPos, this, angle1, angle2, angle3, angle4);
+    return retval;
+}
+
+int CMobot::moveToByTrackPosNB(double angle1, double angle2, double angle3, double angle4) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_moveToByTrackPosNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveToByTrackPosNB, this, angle1, angle2, angle3, angle4);
     return retval;
 }
 
@@ -2101,7 +2117,7 @@ int CMobotGroup::isNotMoving(void) {
 }
 
 int CMobotGroup::jumpJointTo(int id, double angle) {
-	DEPRECATED("jumpTo", "moveJointToByTrackPos");
+	DEPRECATED("jumpJointTo", "moveJointToByTrackPos");
 	moveJointToByTrackPos(id, angle);
 
 	// success
@@ -2109,7 +2125,7 @@ int CMobotGroup::jumpJointTo(int id, double angle) {
 }
 
 int CMobotGroup::jumpJointToNB(int id, double angle) {
-	DEPRECATED("jumpToNB", "moveJointToByTrackPosNB");
+	DEPRECATED("jumpJointToNB", "moveJointToByTrackPosNB");
 	moveJointToByTrackPosNB(id, angle);
 
 	// success
@@ -2117,29 +2133,19 @@ int CMobotGroup::jumpJointToNB(int id, double angle) {
 }
 
 int CMobotGroup::jumpTo(double angle1, double angle2, double angle3, double angle4) {
-    void *fptr;
-    int retval;
+	DEPRECATED("jumpTo", "moveToByTrackPos");
+	moveToByTrackPos(angle1, angle2, angle3, angle4);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMG_jumpTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpTo, this, angle1, angle2, angle3, angle4);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobotGroup::jumpToNB(double angle1, double angle2, double angle3, double angle4) {
-    void *fptr;
-    int retval;
+	DEPRECATED("jumpToNB", "moveToByTrackPosNB");
+	moveToByTrackPosNB(angle1, angle2, angle3, angle4);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMG_jumpToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpToNB, this, angle1, angle2, angle3, angle4);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobotGroup::motionDistance(double distance, double radius) {
@@ -2568,6 +2574,32 @@ int CMobotGroup::moveToNB(double angle1, double angle2, double angle3, double an
         return -1;
     }
     dlrunfun(fptr, &retval, moveToNB, this, angle1, angle2, angle3, angle4);
+    return retval;
+}
+
+int CMobotGroup::moveToByTrackPos(double angle1, double angle2, double angle3, double angle4) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMG_moveToByTrackPos_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveToByTrackPos, this, angle1, angle2, angle3, angle4);
+    return retval;
+}
+
+int CMobotGroup::moveToByTrackPosNB(double angle1, double angle2, double angle3, double angle4) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CMG_moveToByTrackPosNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveToByTrackPosNB, this, angle1, angle2, angle3, angle4);
     return retval;
 }
 

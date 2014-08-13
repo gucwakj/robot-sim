@@ -112,8 +112,8 @@ class DLLIMPORT CLinkbotT {
 		int isNotMoving(void);
 		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
 		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
-		int jumpTo(double angle1, double angle2, double angle3);
-		int jumpToNB(double angle1, double angle2, double angle3);
+		int jumpTo(double angle1, double angle2, double angle3);		// deprecated
+		int jumpToNB(double angle1, double angle2, double angle3);		// deprecated
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
@@ -133,6 +133,8 @@ class DLLIMPORT CLinkbotT {
 		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
+		int moveToByTrackPos(double angle1, double angle2, double angle3);
+		int moveToByTrackPosNB(double angle1, double angle2, double angle3);
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
@@ -220,8 +222,8 @@ class DLLIMPORT CLinkbotTGroup {
 		int isNotMoving(void);
 		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
 		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
-		int jumpTo(double angle1, double angle2, double angle3);
-		int jumpToNB(double angle1, double angle2, double angle3);
+		int jumpTo(double angle1, double angle2, double angle3);		// deprecated
+		int jumpToNB(double angle1, double angle2, double angle3);		// deprecated
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveForeverNB(void);
@@ -240,6 +242,8 @@ class DLLIMPORT CLinkbotTGroup {
 		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
+		int moveToByTrackPos(double angle1, double angle2, double angle3);
+		int moveToByTrackPosNB(double angle1, double angle2, double angle3);
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
@@ -353,8 +357,8 @@ class DLLIMPORT CLinkbotI {
 		int isNotMoving(void);
 		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
 		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
-		int jumpTo(double angle1, double angle2, double angle3);
-		int jumpToNB(double angle1, double angle2, double angle3);
+		int jumpTo(double angle1, double angle2, double angle3);		// deprecated
+		int jumpToNB(double angle1, double angle2, double angle3);		// deprecated
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
@@ -380,6 +384,8 @@ class DLLIMPORT CLinkbotI {
 		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
+		int moveToByTrackPos(double angle1, double angle2, double angle3);
+		int moveToByTrackPosNB(double angle1, double angle2, double angle3);
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
@@ -499,8 +505,8 @@ class DLLIMPORT CLinkbotIGroup {
 		int isNotMoving(void);
 		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
 		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
-		int jumpTo(double angle1, double angle2, double angle3);
-		int jumpToNB(double angle1, double angle2, double angle3);
+		int jumpTo(double angle1, double angle2, double angle3);		// deprecated
+		int jumpToNB(double angle1, double angle2, double angle3);		// deprecated
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveBackward(double angle);		// deprecated
@@ -525,6 +531,8 @@ class DLLIMPORT CLinkbotIGroup {
 		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
+		int moveToByTrackPos(double angle1, double angle2, double angle3);
+		int moveToByTrackPosNB(double angle1, double angle2, double angle3);
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
@@ -629,8 +637,8 @@ class DLLIMPORT CLinkbotL {
 		int isNotMoving(void);
 		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
 		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
-		int jumpTo(double angle1, double angle2, double angle3);
-		int jumpToNB(double angle1, double angle2, double angle3);
+		int jumpTo(double angle1, double angle2, double angle3);		// deprecated
+		int jumpToNB(double angle1, double angle2, double angle3);		// deprecated
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
@@ -650,6 +658,8 @@ class DLLIMPORT CLinkbotL {
 		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
+		int moveToByTrackPos(double angle1, double angle2, double angle3);
+		int moveToByTrackPosNB(double angle1, double angle2, double angle3);
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
@@ -741,8 +751,8 @@ class DLLIMPORT CLinkbotLGroup {
 		int isNotMoving(void);
 		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
 		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
-		int jumpTo(double angle1, double angle2, double angle3);
-		int jumpToNB(double angle1, double angle2, double angle3);
+		int jumpTo(double angle1, double angle2, double angle3);		// deprecated
+		int jumpToNB(double angle1, double angle2, double angle3);		// deprecated
 		int move(double angle1, double angle2, double angle3);
 		int moveNB(double angle1, double angle2, double angle3);
 		int moveForeverNB(void);
@@ -761,6 +771,8 @@ class DLLIMPORT CLinkbotLGroup {
 		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3);
 		int moveToNB(double angle1, double angle2, double angle3);
+		int moveToByTrackPos(double angle1, double angle2, double angle3);
+		int moveToByTrackPosNB(double angle1, double angle2, double angle3);
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);

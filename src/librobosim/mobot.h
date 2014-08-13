@@ -19,8 +19,6 @@ class DLLIMPORT CMobot : public ModularRobot {
 		int getJointAnglesInstant(double&, double&, double&, double&);
 		int getJointSpeeds(double&, double&, double&, double&);
 		int getJointSpeedRatios(double&, double&, double&, double&);
-		int jumpTo(double, double, double, double);
-		int jumpToNB(double, double, double, double);
 		int motionArch(double);
 		int motionArchNB(double);
 		int motionDistance(double, double);
@@ -52,6 +50,8 @@ class DLLIMPORT CMobot : public ModularRobot {
 		int moveNB(double, double, double, double);
 		int moveTo(double, double, double, double);
 		int moveToNB(double, double, double, double);
+		int moveToByTrackPos(double, double, double, double);
+		int moveToByTrackPosNB(double, double, double, double);
 		int recordAngles(double[], double[], double[], double[], double[], int, double, int = 1);
 		int recordAnglesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, int = 1);
 		int recordDistancesBegin(robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, robotRecordData_t&, double, double, int = 1);
@@ -157,8 +157,6 @@ class CMobotGroup : virtual public RobotGroup {
 		int addRobot(CMobot&);
 		int addRobots(CMobot[], int);
 
-		int jumpTo(double, double, double, double);
-		int jumpToNB(double, double, double, double);
 		int motionArch(double);
 		int motionArchNB(double);
 		int motionDistance(double, double);
@@ -190,6 +188,8 @@ class CMobotGroup : virtual public RobotGroup {
 		int moveNB(double, double, double, double);
 		int moveTo(double, double, double, double);
 		int moveToNB(double, double, double, double);
+		int moveToByTrackPos(double, double, double, double);
+		int moveToByTrackPosNB(double, double, double, double);
 		int reset(void);
 		int setJointSpeeds(double, double, double, double);
 		int setJointSpeedRatios(double, double, double, double);

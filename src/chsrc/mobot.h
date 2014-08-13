@@ -86,8 +86,8 @@ class DLLIMPORT CMobot {
 		int isNotMoving(void);
 		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
 		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
-		int jumpTo(double angle1, double angle2, double angle3, double angle4);
-		int jumpToNB(double angle1, double angle2, double angle3, double angle4);
+		int jumpTo(double angle1, double angle2, double angle3, double angle4);		// deprecated
+		int jumpToNB(double angle1, double angle2, double angle3, double angle4);		// deprecated
 		int line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color);
 		int motionArch(double angle);
 		int motionArchNB(double angle);
@@ -134,6 +134,8 @@ class DLLIMPORT CMobot {
 		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3, double angle4);
 		int moveToNB(double angle1, double angle2, double angle3, double angle4);
+		int moveToByTrackPos(double angle1, double angle2, double angle3, double angle4);
+		int moveToByTrackPosNB(double angle1, double angle2, double angle3, double angle4);
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);
@@ -207,8 +209,8 @@ class CMobotGroup {
 		int isNotMoving(void);
 		int jumpJointTo(robotJointId_t id, double angle);		// deprecated
 		int jumpJointToNB(robotJointId_t id, double angle);		// deprecated
-		int jumpTo(double angle1, double angle2, double angle3, double angle4);
-		int jumpToNB(double angle1, double angle2, double angle3, double angle4);
+		int jumpTo(double angle1, double angle2, double angle3, double angle4);		// deprecated
+		int jumpToNB(double angle1, double angle2, double angle3, double angle4);		// deprecated
 		int motionArch(double angle);
 		int motionArchNB(double angle);
 		int motionDistance(double distance, double radius);
@@ -254,6 +256,8 @@ class CMobotGroup {
 		int moveTimeNB(double seconds);
 		int moveTo(double angle1, double angle2, double angle3, double angle4);
 		int moveToNB(double angle1, double angle2, double angle3, double angle4);
+		int moveToByTrackPos(double angle1, double angle2, double angle3, double angle4);
+		int moveToByTrackPosNB(double angle1, double angle2, double angle3, double angle4);
 		int moveToZero(void);
 		int moveToZeroNB(void);
 		int moveWait(void);

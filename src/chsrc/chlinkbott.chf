@@ -964,32 +964,6 @@ int CLinkbotT::isNotMoving(void) {
     return retval;
 }
 
-int CLinkbotT::jumpTo(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_jumpTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpTo, this, angle1, angle2, angle3);
-    return retval;
-}
-
-int CLinkbotT::jumpToNB(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_jumpToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpToNB, this, angle1, angle2, angle3);
-    return retval;
-}
-
 int CLinkbotT::line(double x1, double y1, double z1, double x2, double y2, double z2, int linewidth, char *color) {
 	DEPRECATED("line", "the RoboSim GUI");
 
@@ -1228,6 +1202,32 @@ int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveToNB, this, angle1, angle2, angle3);
+    return retval;
+}
+
+int CLinkbotT::moveToByTrackPos(double angle1, double angle2, double angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_moveToByTrackPos_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveToByTrackPos, this, angle1, angle2, angle3);
+    return retval;
+}
+
+int CLinkbotT::moveToByTrackPosNB(double angle1, double angle2, double angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_moveToByTrackPosNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveToByTrackPosNB, this, angle1, angle2, angle3);
     return retval;
 }
 
@@ -2341,32 +2341,6 @@ int CLinkbotTGroup::isNotMoving(void) {
     return retval;
 }
 
-int CLinkbotTGroup::jumpTo(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_jumpTo_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpTo, this, angle1, angle2, angle3);
-    return retval;
-}
-
-int CLinkbotTGroup::jumpToNB(double angle1, double angle2, double angle3) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_jumpToNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, jumpToNB, this, angle1, angle2, angle3);
-    return retval;
-}
-
 int CLinkbotTGroup::move(double angle1, double angle2, double angle3) {
     void *fptr;
     int retval;
@@ -2598,6 +2572,32 @@ int CLinkbotTGroup::moveToNB(double angle1, double angle2, double angle3) {
         return -1;
     }
     dlrunfun(fptr, &retval, moveToNB, this, angle1, angle2, angle3);
+    return retval;
+}
+
+int CLinkbotTGroup::moveToByTrackPos(double angle1, double angle2, double angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLTG_moveToByTrackPos_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveToByTrackPos, this, angle1, angle2, angle3);
+    return retval;
+}
+
+int CLinkbotTGroup::moveToByTrackPosNB(double angle1, double angle2, double angle3) {
+    void *fptr;
+    int retval;
+
+    fptr = dlsym(RoboSim::_dlhandle, "CLTG_moveToByTrackPosNB_chdl");
+    if(fptr == NULL) {
+        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+        return -1;
+    }
+    dlrunfun(fptr, &retval, moveToByTrackPosNB, this, angle1, angle2, angle3);
     return retval;
 }
 

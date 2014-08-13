@@ -409,21 +409,6 @@ int CLinkbotT::getJointSpeedRatios(double &ratio1, double &ratio2, double &ratio
 	return 0;
 }
 
-int CLinkbotT::jumpTo(double angle1, double angle2, double angle3) {
-	this->jumpToNB(angle1, angle2, angle3);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CLinkbotT::jumpToNB(double angle1, double angle2, double angle3) {
-	this->moveToNB(angle1, angle2, angle3);
-
-	// success
-	return 0;
-}
-
 int CLinkbotT::move(double angle1, double angle2, double angle3) {
 	this->moveNB(angle1, angle2, angle3);
 	this->moveWait();
@@ -472,6 +457,21 @@ int CLinkbotT::moveToNB(double angle1, double angle2, double angle3) {
 
 	// success
 	return retval;
+}
+
+int CLinkbotT::moveToByTrackPos(double angle1, double angle2, double angle3) {
+	this->moveToByTrackPosNB(angle1, angle2, angle3);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CLinkbotT::moveToByTrackPosNB(double angle1, double angle2, double angle3) {
+	this->moveToNB(angle1, angle2, angle3);
+
+	// success
+	return 0;
 }
 
 int CLinkbotT::openGripper(double angle) {

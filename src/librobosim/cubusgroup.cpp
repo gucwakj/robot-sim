@@ -197,22 +197,6 @@ int CubusGroup::driveAccelToVelocityNB(double radius, double a, double v) {
 	return 0;
 }
 
-int CubusGroup::jumpTo(double angle1, double angle2, double angle3) {
-	moveToNB(angle1, angle2, angle3);
-	return moveWait();
-}
-
-int CubusGroup::jumpToNB(double angle1, double angle2, double angle3) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->jumpToNB(angle1, angle2, angle3);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CubusGroup::move(double angle1, double angle2, double angle3) {
 	moveNB(angle1, angle2, angle3);
 	return moveWait();
@@ -238,6 +222,22 @@ int CubusGroup::moveToNB(double angle1, double angle2, double angle3) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveToNB(angle1, angle2, angle3);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CubusGroup::moveToByTrackPos(double angle1, double angle2, double angle3) {
+	moveToNB(angle1, angle2, angle3);
+	return moveWait();
+}
+
+int CubusGroup::moveToByTrackPosNB(double angle1, double angle2, double angle3) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->moveToByTrackPosNB(angle1, angle2, angle3);
 		rtmp = rtmp->next;
 	}
 

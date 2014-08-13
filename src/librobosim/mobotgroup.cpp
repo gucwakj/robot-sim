@@ -47,22 +47,6 @@ int CMobotGroup::addRobots(CMobot robots[], int num) {
 	return 0;
 }
 
-int CMobotGroup::jumpTo(double angle1, double angle2, double angle3, double angle4) {
-	jumpToNB(angle1, angle2, angle3, angle4);
-	return moveWait();
-}
-
-int CMobotGroup::jumpToNB(double angle1, double angle2, double angle3, double angle4) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->jumpToNB(angle1, angle2, angle3, angle4);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CMobotGroup::motionArch(double angle) {
 	_d = angle;
 	_motion++;
@@ -331,6 +315,22 @@ int CMobotGroup::moveToNB(double angle1, double angle2, double angle3, double an
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveToNB(angle1, angle2, angle3, angle4);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CMobotGroup::moveToByTrackPos(double angle1, double angle2, double angle3, double angle4) {
+	moveToByTrackPosNB(angle1, angle2, angle3, angle4);
+	return moveWait();
+}
+
+int CMobotGroup::moveToByTrackPosNB(double angle1, double angle2, double angle3, double angle4) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->moveToByTrackPosNB(angle1, angle2, angle3, angle4);
 		rtmp = rtmp->next;
 	}
 

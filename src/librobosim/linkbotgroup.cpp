@@ -220,22 +220,6 @@ int CLinkbotTGroup::driveAccelToVelocityNB(double radius, double a, double v) {
 	return 0;
 }
 
-int CLinkbotTGroup::jumpTo(double angle1, double angle2, double angle3) {
-	moveToNB(angle1, angle2, angle3);
-	return moveWait();
-}
-
-int CLinkbotTGroup::jumpToNB(double angle1, double angle2, double angle3) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->jumpToNB(angle1, angle2, angle3);
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CLinkbotTGroup::move(double angle1, double angle2, double angle3) {
 	moveNB(angle1, angle2, angle3);
 	return moveWait();
@@ -261,6 +245,22 @@ int CLinkbotTGroup::moveToNB(double angle1, double angle2, double angle3) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveToNB(angle1, angle2, angle3);
+		rtmp = rtmp->next;
+	}
+
+	// success
+	return 0;
+}
+
+int CLinkbotTGroup::moveToByTrackPos(double angle1, double angle2, double angle3) {
+	moveToNB(angle1, angle2, angle3);
+	return moveWait();
+}
+
+int CLinkbotTGroup::moveToByTrackPosNB(double angle1, double angle2, double angle3) {
+	robots_t rtmp = _robots;
+	while (rtmp) {
+		rtmp->robot->moveToByTrackPosNB(angle1, angle2, angle3);
 		rtmp = rtmp->next;
 	}
 

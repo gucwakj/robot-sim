@@ -57,21 +57,6 @@ int CNXT::getJointSpeedRatios(double &ratio1, double &ratio2) {
 	return 0;
 }
 
-int CNXT::jumpTo(double angle1, double angle2) {
-	this->jumpToNB(angle1, angle2);
-	this->moveWait();
-
-	// success
-	return 0;
-}
-
-int CNXT::jumpToNB(double angle1, double angle2) {
-	this->moveToNB(angle1, angle2);
-
-	// success
-	return 0;
-}
-
 int CNXT::move(double angle1, double angle2) {
 	this->moveNB(angle1, angle2);
 	this->moveWait();
@@ -118,6 +103,21 @@ int CNXT::moveToNB(double angle1, double angle2) {
 
 	// success
 	return retval;
+}
+
+int CNXT::moveToByTrackPos(double angle1, double angle2) {
+	this->moveToByTrackPosNB(angle1, angle2);
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
+int CNXT::moveToByTrackPosNB(double angle1, double angle2) {
+	this->moveToNB(angle1, angle2);
+
+	// success
+	return 0;
 }
 
 int CNXT::recordAngles(double *time, double *angle1, double *angle2, int num, double seconds, int shiftData) {
