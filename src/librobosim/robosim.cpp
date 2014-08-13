@@ -184,41 +184,6 @@ int RoboSim::init_xml(char *name) {
 		exit(-1);
 	}
 
-#ifdef ENABLE_GRAPHICS
-	// read in grid line configuration
-	if ( (node = doc.FirstChildElement("graphics")->FirstChildElement("grid")) ) {
-		node->QueryIntAttribute("units", &_us);
-		node->QueryDoubleAttribute("tics", &_grid[0]);
-		node->QueryDoubleAttribute("major", &_grid[1]);
-		node->QueryDoubleAttribute("minx", &_grid[2]);
-		node->QueryDoubleAttribute("maxx", &_grid[3]);
-		node->QueryDoubleAttribute("miny", &_grid[4]);
-		node->QueryDoubleAttribute("maxy", &_grid[5]);
-		node->QueryDoubleAttribute("enabled", &_grid[6]);
-	}
-	else {
-		_us = 1;			// customary units
-		_grid[0] = 1;		// 1 inch per tic
-		_grid[1] = 12;		// 12 inches per hash
-		_grid[2] = -24;		// min x
-		_grid[3] = 24;		// max x
-		_grid[4] = -24;		// min y
-		_grid[5] = 24;		// max y
-		_grid[6] = 1;		// enabled or not
-	}
-	for (int i = 0; i < 6; i++) {
-		if (_us)
-			_grid[i] /= 39.37;
-		else
-			_grid[i] /= 100;
-	}
-
-	// check if robot tracking is enabled
-	if ( (node = doc.FirstChildElement("graphics")->FirstChildElement("tracking")) ) {
-		node->QueryIntAttribute("val", &tracking);
-	}
-#endif
-
 	// check for custom mu params
 	if ( (node = doc.FirstChildElement("config")->FirstChildElement("mu")) ) {
 		node->QueryDoubleAttribute("ground", &(_mu[0]));
@@ -460,7 +425,36 @@ int RoboSim::init_xml(char *name) {
 		node = node->FirstChildElement();
 	}
 
-	// loop over all graphics nodes
+#ifdef ENABLE_GRAPHICS
+	// read in grid line configuration
+	if ( (node = doc.FirstChildElement("graphics")->FirstChildElement("grid")) ) {
+		node->QueryIntAttribute("units", &_us);
+		node->QueryDoubleAttribute("tics", &_grid[0]);
+		node->QueryDoubleAttribute("major", &_grid[1]);
+		node->QueryDoubleAttribute("minx", &_grid[2]);
+		node->QueryDoubleAttribute("maxx", &_grid[3]);
+		node->QueryDoubleAttribute("miny", &_grid[4]);
+		node->QueryDoubleAttribute("maxy", &_grid[5]);
+		node->QueryDoubleAttribute("enabled", &_grid[6]);
+	}
+	else {
+		_us = 1;			// customary units
+		_grid[0] = 1;		// 1 inch per tic
+		_grid[1] = 12;		// 12 inches per hash
+		_grid[2] = -24;		// min x
+		_grid[3] = 24;		// max x
+		_grid[4] = -24;		// min y
+		_grid[5] = 24;		// max y
+		_grid[6] = 1;		// enabled or not
+	}
+	for (int i = 0; i < 6; i++) {
+		if (_us)
+			_grid[i] /= 39.37;
+		else
+			_grid[i] /= 100;
+	}
+
+	// loop over all graphics nodes ignoring grids and tracking nodes
 	while (node) {
 		if ( !strcmp(node->Value(), "line") ) {
 			// store default variables
@@ -531,6 +525,10 @@ int RoboSim::init_xml(char *name) {
 				dtmp->next = nd;
 			}
 		}
+		else if ( !strcmp(node->Value(), "grid") ) {}
+		else if ( !strcmp(node->Value(), "tracking") ) {
+			node->QueryIntAttribute("val", &tracking);
+		}
 		else {
 			// store default variables
 			drawing_t nd = new struct drawing_s;
@@ -565,6 +563,7 @@ int RoboSim::init_xml(char *name) {
 		// go to next node
 		node = node->NextSiblingElement();
 	}
+#endif
 
 	// get root node of xml file
 	node = doc.FirstChildElement("sim")->FirstChildElement();
