@@ -61,6 +61,7 @@ class DLLIMPORT Robot {
 		int drivexyToNB(double, double, double, double);
 		int drivexyToFunc(double, double, int, double (*func)(double), double, double);
 		int drivexyToFuncNB(double, double, int, double (*func)(double), double, double);
+		int drivexyToFuncSmooth(double, double, int, double (*func)(double), double, double);
 		int drivexyToPoly(double, double, int, char*, double, double);
 		int drivexyToPolyNB(double, double, int, char*, double, double);
 		virtual int drivexyToSmooth(double, double, double, double, double, double, double, double);
@@ -249,6 +250,7 @@ class DLLIMPORT Robot {
 		double _radius;				// wheel radius
 		double ***_rec_angles;		// recorded angles from thread
 		double _rgb[3];				// rgb of 'led'
+		double _speed;				// linear velocity of the robot
 		double _trackwidth;			// trackwidth of robot
 		double _wheel_depth;		// dimension: wheel depth
 		double _wheel_radius;		// dimension: custom wheel radius

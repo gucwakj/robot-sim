@@ -1751,6 +1751,8 @@ int CMobot::initParams(int disabled, int type) {
 	}
 	_disabled = disabled;
 	_distOffset = 0;
+	_g_shift_data = 0;
+	_g_shift_data_en = 0;
 	_id = -1;
 	_motor[JOINT1].tau_max = 0.260;
 	_motor[JOINT2].tau_max = 1.059;
@@ -1761,8 +1763,7 @@ int CMobot::initParams(int disabled, int type) {
 	_rgb[1] = 0;
 	_rgb[2] = 1;
 	_shift_data = 0;
-	_g_shift_data = 0;
-	_g_shift_data_en = 0;
+	_speed = 2;
 	_trace = 1;
 	_type = type;
 

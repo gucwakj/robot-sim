@@ -378,9 +378,8 @@ int CLinkbotT::drivexyToSmooth(double x1, double y1, double x2, double y2, doubl
 	double s2 = theta*(rho - trackwidth/2);
 
 	// move joints the proper amount
-	double omega = _motor[JOINT1].omega;
-	this->setJointSpeed(JOINT1, RAD2DEG(s1/theta/rho*omega));
-	this->setJointSpeed(JOINT3, RAD2DEG(s2/theta/rho*omega));
+	this->setJointSpeed(JOINT1, RAD2DEG(s1/theta/rho/radius*_speed));
+	this->setJointSpeed(JOINT3, RAD2DEG(s2/theta/rho/radius*_speed));
 	this->moveJointNB(JOINT1, RAD2DEG(s1/radius));
 	this->moveJointNB(JOINT3, -RAD2DEG(s2/radius));
 	this->moveWait();
@@ -1404,14 +1403,15 @@ int CLinkbotT::initParams(int disabled, int type) {
 	_connected = 0;
 	_disabled = disabled;
 	_distOffset = 0;
+	_g_shift_data = 0;
+	_g_shift_data_en = 0;
 	_id = -1;
 	_motion = false;
 	_rgb[0] = 0;
 	_rgb[1] = 0;
 	_rgb[2] = 1;
 	_shift_data = 0;
-	_g_shift_data = 0;
-	_g_shift_data_en = 0;
+	_speed = 2;
 	_trace = 1;
 	_type = type;
 

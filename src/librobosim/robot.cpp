@@ -335,6 +335,28 @@ int Robot::drivexyToFuncNB(double x0, double xf, int n, double (*func)(double x)
 	return 0;
 }
 
+int Robot::drivexyToFuncSmooth(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
+	// number of steps necessary
+	double step = (xf-x0)/(n-1);
+
+	// save current linear speed of robot
+	_speed = _motor[_leftWheel].omega*radius;
+
+	// drive to starting location
+	this->drivexyTo(x0, func(x0), radius, trackwidth);
+
+	// drivexy to sequence of (x,y) values
+	for (int i = 0; i < n; i+=3) {
+		double x1 = x0 + i*step;
+		double x2 = x0 + (i+1)*step;
+		double x3 = x0 + (i+2)*step;
+		this->drivexyToSmooth(x1, func(x1), x2, func(x2), x3, func(x3), radius, trackwidth);
+	}
+
+	// success
+	return 0;
+}
+
 int Robot::drivexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
 	// init variables
 	double *coeff;
@@ -462,9 +484,8 @@ int Robot::drivexyToSmooth(double x1, double y1, double x2, double y2, double x3
 	double s2 = theta*(rho - trackwidth/2);
 
 	// move joints the proper amount
-	double omega = _motor[_leftWheel].omega;
-	this->setJointSpeed(_leftWheel, RAD2DEG(s1/theta/rho*omega));
-	this->setJointSpeed(_rightWheel, RAD2DEG(s2/theta/rho*omega));
+	this->setJointSpeed(_leftWheel, RAD2DEG(s1/theta/rho/radius*_speed));
+	this->setJointSpeed(_rightWheel, RAD2DEG(s2/theta/rho/radius*_speed));
 	this->moveJointNB(_leftWheel, RAD2DEG(s1/radius));
 	this->moveJointNB(_rightWheel, RAD2DEG(s2/radius));
 	this->moveWait();
@@ -1333,6 +1354,7 @@ int Robot::setSpeed(double speed, double radius) {
 		fprintf(stderr, "Warning: Speed %.2lf corresponds to joint speeds of %.2lf degrees/second.\n",
 			speed, RAD2DEG(speed/radius));
 	}
+	_speed = speed;
 	this->setJointSpeed(_leftWheel, RAD2DEG(speed/radius));
 	this->setJointSpeed(_rightWheel, RAD2DEG(speed/radius));
 
