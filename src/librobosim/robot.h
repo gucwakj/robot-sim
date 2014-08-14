@@ -63,6 +63,7 @@ class DLLIMPORT Robot {
 		int drivexyToFuncNB(double, double, int, double (*func)(double), double, double);
 		int drivexyToPoly(double, double, int, char*, double, double);
 		int drivexyToPolyNB(double, double, int, char*, double, double);
+		virtual int drivexyToSmooth(double, double, double, double, double, double, double, double);
 		int drivexyWait(void);
 		int enableRecordDataShift(void);
 		int getAccelerometerData(double&, double&, double&);

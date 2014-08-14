@@ -440,6 +440,39 @@ int Robot::drivexyToPolyNB(double x0, double xf, int n, char *poly, double radiu
 	return 0;
 }
 
+int Robot::drivexyToSmooth(double x1, double y1, double x2, double y2, double x3, double y3, double radius, double trackwidth) {
+	// get midpoints
+	double p[2] = {(x1 + x2)/2, (y1 + y2)/2};
+	double q[2] = {(x2 + x3)/2, (y2 + y3)/2};
+
+	// calculate equations of bisecting lines
+	double m1 = -1/((y1 - y2)/(x1 - x2));
+	double m2 = -1/((y2 - y3)/(x2 - x3));
+	double b1 = -m1*p[0] + p[1];
+	double b2 = -m2*q[0] + q[1];
+
+	// circle parameters that passes through these points
+	double c[2] = {(b2 - b1)/(m1 - m2), m1*(b2 - b1)/(m1 - m2) + b1};
+	double rho = sqrt((c[0] - x2)*(c[0] - x2) + (c[1] - y2)*(c[1] - y2));
+	double theta = 2*fabs(atan((m1 - m2)/(1 + m1*m2)));
+
+	// distance to travel for each wheel
+	trackwidth = (g_sim->getUnits()) ? 39.37*_trackwidth : 100*_trackwidth;
+	double s1 = theta*(rho + trackwidth/2);
+	double s2 = theta*(rho - trackwidth/2);
+
+	// move joints the proper amount
+	double omega = _motor[_leftWheel].omega;
+	this->setJointSpeed(_leftWheel, RAD2DEG(s1/theta/rho*omega));
+	this->setJointSpeed(_rightWheel, RAD2DEG(s2/theta/rho*omega));
+	this->moveJointNB(_leftWheel, RAD2DEG(s1/radius));
+	this->moveJointNB(_rightWheel, RAD2DEG(s2/radius));
+	this->moveWait();
+
+	// success
+	return 0;
+}
+
 int Robot::drivexyWait(void) {
 	// wait for motion to complete
 	MUTEX_LOCK(&_motion_mutex);
