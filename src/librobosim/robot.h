@@ -283,6 +283,7 @@ class DLLIMPORT Robot {
 
 	// private functions
 	private:
+		double convert(double value, int tometer);
 		bool is_shift_enabled(void);
 		double normal(double);
 		double uniform(void);

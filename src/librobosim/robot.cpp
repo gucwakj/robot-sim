@@ -479,7 +479,7 @@ int Robot::drivexyToSmooth(double x1, double y1, double x2, double y2, double x3
 	double theta = 2*fabs(atan((m1 - m2)/(1 + m1*m2)));
 
 	// distance to travel for each wheel
-	trackwidth = (g_sim->getUnits()) ? 39.37*_trackwidth : 100*_trackwidth;
+	trackwidth = convert(_trackwidth, 0);
 	double s1 = theta*(rho + trackwidth/2);
 	double s2 = theta*(rho - trackwidth/2);
 
@@ -635,8 +635,8 @@ int Robot::getLEDColorRGB(int &r, int &g, int &b) {
 
 int Robot::getxy(double &x, double &y) {
 	// return x and y positions
-	x = (g_sim->getUnits()) ? 39.37*this->getCenter(0) : 100*this->getCenter(0);
-	y = (g_sim->getUnits()) ? 39.37*this->getCenter(1) : 100*this->getCenter(1);
+	x = convert(this->getCenter(0), 0);
+	y = convert(this->getCenter(1), 0);
 
 	// success
 	return 0;
@@ -1070,7 +1070,7 @@ int Robot::recordDistanceEnd(robotJointId_t id, int &num) {
 	this->recordAngleEnd(id, num);
 
 	// convert radius to output units
-	double radius = (g_sim->getUnits()) ? _radius*39.37 : _radius*100;
+	double radius = convert(_radius, 0);
 
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
@@ -1111,7 +1111,7 @@ int Robot::recordDistancesEnd(int &num) {
 	this->recordAnglesEnd(num);
 
 	// convert radius to output units
-	double radius = (g_sim->getUnits()) ? _radius*39.37 : _radius*100;
+	double radius = convert(_radius, 0);
 
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
@@ -1203,7 +1203,7 @@ int Robot::recordxyEnd(int &num) {
 	num = _rec_num[0];
 
 	// convert recorded values into in/cm
-	double m2x = (g_sim->getUnits()) ? 39.37 : 100;
+	double m2x = (1, 0);
 	for (int i = 0; i < num; i++) {
 		(*_rec_angles[0])[i] = ((*_rec_angles[0])[i]) * m2x;
 		(*_rec_angles[1])[i] = ((*_rec_angles[1])[i]) * m2x;
@@ -1401,7 +1401,7 @@ int Robot::turnLeft(double angle, double radius, double trackwidth) {
 
 int Robot::turnLeftNB(double angle, double radius, double trackwidth) {
 	// use internally calculated track width
-	double width = (g_sim->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
+	double width = convert(_trackwidth, 0);
 
 	// calculate joint angle from global turn angle
 	angle = (angle*width)/(2*radius);
@@ -1425,7 +1425,7 @@ int Robot::turnRight(double angle, double radius, double trackwidth) {
 
 int Robot::turnRightNB(double angle, double radius, double trackwidth) {
 	// use internally calculated track width
-	double width = (g_sim->getUnits()) ? _trackwidth*39.37 : _trackwidth*100;
+	double width = convert(_trackwidth, 0);
 
 	// calculate joint angle from global turn angle
 	angle = (angle*width)/(2*radius);
@@ -1707,6 +1707,17 @@ void* Robot::simPostCollisionThreadEntry(void *arg) {
 /**********************************************************
 	private functions
  **********************************************************/
+double convert(double value, int tometer) {
+	double tmp = 0;
+
+	if (tometer)
+		tmp = ((g_sim->getUnits()) ? value/39.370 : value/100);
+	else
+		tmp = ((g_sim->getUnits()) ? value*39.370 : value*100);
+
+	return tmp;
+}
+
 bool Robot::is_shift_enabled(void) {
 	if(_shift_data && !_g_shift_data_en)
 		return 1;
