@@ -50,14 +50,14 @@ class DLLIMPORT Robot {
 		int driveDistance(double, double);
 		int driveDistanceNB(double, double);
 		int driveForever(void);
-		int driveForeverNB(void);
+		virtual int driveForeverNB(void);
 		int driveForward(double);
-		int driveForwardNB(double);
+		virtual int driveForwardNB(double);
 		int driveTime(double);
 		int driveTimeNB(double);
 		int drivexy(double, double, double, double);
 		int drivexyNB(double, double, double, double);
-		int drivexyTo(double, double, double, double);
+		virtual int drivexyTo(double, double, double, double);
 		int drivexyToNB(double, double, double, double);
 		int drivexyToFunc(double, double, int, double (*func)(double), double, double);
 		int drivexyToFuncNB(double, double, int, double (*func)(double), double, double);
@@ -132,9 +132,9 @@ class DLLIMPORT Robot {
 		int traceOff(void);
 		int traceOn(void);
 		int turnLeft(double, double, double);
-		int turnLeftNB(double, double, double);
+		virtual int turnLeftNB(double, double, double);
 		int turnRight(double, double, double);
-		int turnRightNB(double, double, double);
+		virtual int turnRightNB(double, double, double);
 
 	// condensed argument versions of function calls
 	protected:

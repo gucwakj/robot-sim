@@ -1650,7 +1650,7 @@ int CLinkbotT::add_connector_daisy(int conn, int face, double size, int side, in
 			this->build_bridge(nc, face, side, type);
 			break;
 		case CASTER:
-			nc->d_side = -10*side;
+			nc->d_side = -10*size;
 			this->build_caster(nc, face, static_cast<int>(size), side, type);
 			break;
 		case CUBE:

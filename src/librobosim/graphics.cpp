@@ -224,7 +224,6 @@ void groundNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	traverse(node, nv);
 }
 
-#ifdef ENABLE_LINKBOT
 /**********************************************************
 	Linkbot Node Callback
  **********************************************************/
@@ -259,7 +258,7 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 			dMatrix3 R;
 			dQuaternion Q;
 			double p[3] = {0};
-			if (ctmp->d_side < -10) {
+			if (ctmp->d_side <= -10) {
 				const double *pos = dBodyGetPosition(ctmp->body);
 				p[0] = pos[0]; p[1] = pos[1]; p[2] = pos[2];
 				const double *rot = dBodyGetQuaternion(ctmp->body);
@@ -307,9 +306,7 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	}
 	traverse(node, nv);
 }
-#endif // ENABLE_LINKBOT
 
-#ifdef ENABLE_MOBOT
 /**********************************************************
 	Mobot Node Callback
  **********************************************************/
@@ -370,9 +367,7 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	}
 	traverse(node, nv);
 }
-#endif // ENABLE_MOBOT
 
-#ifdef ENABLE_NXT
 /**********************************************************
 	NXT Node Callback
  **********************************************************/
@@ -430,9 +425,7 @@ void nxtNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	}
 	traverse(node, nv);
 }
-#endif // ENABLE_NXT
 
-#ifdef ENABLE_CUBUS
 /**********************************************************
 	Cubus Node Callback
  **********************************************************/
@@ -507,5 +500,4 @@ void cubusNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	}
 	traverse(node, nv);
 }
-#endif // ENABLE_CUBUS
 
