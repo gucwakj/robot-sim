@@ -1,5 +1,5 @@
 *.o
-ch*/
+chrobosim*/
 *.zip
 *.dl
 *.obj

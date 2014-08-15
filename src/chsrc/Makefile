@@ -7,6 +7,7 @@ VERSION = linux-1.7.70
 PKGDIR = $(PACKAGE)-$(VERSION)/$(PACKAGE)
 
 SRC = ../librobosim
+CHDL = ./chdl
 HEADERS = $(SRC)/macros.h $(SRC)/robosim.h $(SRC)/graphics.h $(SRC)/robot.h $(SRC)/modularrobot.h $(SRC)/mobot.h $(SRC)/linkbot.h $(SRC)/nxt.h
 CPPFLAGS = -DdDOUBLE -fPIC
 INCLUDES = -I../librobosim/build/ -I../opende/sys/include/ -I../osg/include/ -I../osg/build/include/ -I../tinyxml2/
@@ -65,20 +66,20 @@ nxtgroup.o: $(SRC)/nxtgroup.cpp $(HEADERS)
 rgbhashtable.o: $(SRC)/rgbhashtable.c $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/rgbhashtable.c $(CPPFLAGS) $(INCLUDES)
 
-robotgroup_chdl.o: robotgroup_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus robotgroup_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+robotgroup_chdl.o: $(CHDL)/robotgroup_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(CHDL)/robotgroup_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-clinkboti_chdl.o: clinkboti_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus clinkboti_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+clinkboti_chdl.o: $(CHDL)/clinkboti_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(CHDL)/clinkboti_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-clinkbotl_chdl.o: clinkbotl_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus clinkbotl_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+clinkbotl_chdl.o: $(CHDL)/clinkbotl_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(CHDL)/clinkbotl_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-cmobot_chdl.o: cmobot_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus cmobot_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+cmobot_chdl.o: $(CHDL)/cmobot_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(CHDL)/cmobot_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-cnxt_chdl.o: cnxt_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus cnxt_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+cnxt_chdl.o: $(CHDL)/cnxt_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(CHDL)/cnxt_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
 librobosim.dl: $(OBJS)
 	ch dllink librobosim.dl cplusplus $(OBJS) $(LIBPATHS) $(LIBS)
@@ -111,19 +112,19 @@ createpkg: librobosim.dl
 	cp ../../docs/robosim.pdf $(PKGDIR)/docs
 	cp ../../docs/images/robosim.png $(PKGDIR)/docs
 	mkdir $(PKGDIR)/include
-	cp robot.h $(PKGDIR)/include
-	cp linkbot.h $(PKGDIR)/include
-	cp mobot.h $(PKGDIR)/include
-	cp nxt.h $(PKGDIR)/include
+	cp ./include/robot.h $(PKGDIR)/include
+	cp ./include/linkbot.h $(PKGDIR)/include
+	cp ./include/mobot.h $(PKGDIR)/include
+	cp ./include/nxt.h $(PKGDIR)/include
 	cp $(SRC)/macros.h $(PKGDIR)/include
 	mkdir $(PKGDIR)/lib
-	cp robotgroup.chf $(PKGDIR)/lib
-	cp clinkboti.chf $(PKGDIR)/lib
-	cp clinkbotl.chf $(PKGDIR)/lib
-	cp cmobot.chf $(PKGDIR)/lib
-	cp cnxt.chf $(PKGDIR)/lib
-	cp delay.chf $(PKGDIR)/lib
-	cp systemTime.chf $(PKGDIR)/lib
+	cp ./chf/robotgroup.chf $(PKGDIR)/lib
+	cp ./chf/clinkboti.chf $(PKGDIR)/lib
+	cp ./chf/clinkbotl.chf $(PKGDIR)/lib
+	cp ./chf/cmobot.chf $(PKGDIR)/lib
+	cp ./chf/cnxt.chf $(PKGDIR)/lib
+	cp ./chf/delay.chf $(PKGDIR)/lib
+	cp ./chf/systemTime.chf $(PKGDIR)/lib
 	mkdir $(PKGDIR)/so
 	cp ../opende/sys/lib/libode.so.1 $(PKGDIR)/so
 	cp ../osg/build/lib/libosg.so.100 $(PKGDIR)/so
