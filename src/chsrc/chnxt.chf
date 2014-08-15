@@ -1,0 +1,2448 @@
+#include <nxt.h>
+#include <dlfcn.h>
+#include <stdarg.h>
+#include <array.h>
+
+CNXT::CNXT(void) {
+	if (RoboSim::_dlhandle == NULL || RoboSim::_dlcount == 0) {
+		RoboSim::_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
+		if (RoboSim::_dlhandle == NULL) {
+			printf("Error: %s(): dlopen(): %s\n", __class_func__, dlerror());
+			return;
+		}
+	}
+	void *fptr = dlsym(RoboSim::_dlhandle, "CNXT_CNXT_chdl");
+	if (fptr == NULL) {
+		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
+		return;
+	}
+	dlrunfun(fptr, NULL, NULL);
+	RoboSim::_dlcount++;
+}
+
+CNXT::~CNXT(void) {
+	void *fptr = dlsym(RoboSim::_dlhandle, "CNXT_dCNXT_chdl");
+	if(fptr == NULL) {
+		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
+		return;
+	}
+	dlrunfun(fptr, NULL, NULL, this);
+	RoboSim::_dlcount--;
+	if (RoboSim::_dlcount <= 0 && RoboSim::_dlhandle != NULL) {
+		if (dlclose(RoboSim::_dlhandle) != 0)
+			printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
+	}
+}
+
+int CNXT::blinkLED(double delay, int numBlinks) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_blinkLED_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, delay, numBlinks);
+	return retval;
+}
+
+int CNXT::connect(...) {
+	void *fptr;
+	int retval;
+	va_list ap;
+	char *name;
+	va_start(ap, VA_NOARG);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_connect_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+
+	if (va_count(ap) == 1) {
+		name = va_arg(ap, char *);
+		dlrunfun(fptr, &retval, NULL, this, name);
+	}
+	else {
+		dlrunfun(fptr, &retval, NULL, this, NULL);
+	}
+
+	va_end(ap);
+	return retval;
+}
+
+int CNXT::delay(double milliseconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_delay_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, milliseconds);
+	return retval;
+}
+
+int CNXT::delaySeconds(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_delaySeconds_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, seconds);
+	return retval;
+}
+
+int CNXT::disableRecordDataShift(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_disableRecordDataShift_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this);
+	return retval;
+}
+
+int CNXT::disconnect(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_disconnect_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, disconnect, this);
+	return retval;
+}
+
+int CNXT::driveBackward(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_driveBackward_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveBackward, this, angle);
+	return retval;
+}
+
+int CNXT::driveBackwardNB(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_driveBackwardNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveBackwardNB, this, angle);
+	return retval;
+}
+
+int CNXT::driveDistance(double distance, double radius) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_driveDistance_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveDistance, this, distance, radius);
+	return retval;
+}
+
+int CNXT::driveDistanceNB(double distance, double radius) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_driveDistanceNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveDistanceNB, this, distance, radius);
+	return retval;
+}
+
+int CNXT::driveForeverNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_driveForeverNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveForeverNB, this);
+	return retval;
+}
+
+int CNXT::driveForward(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_driveForward_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveForward, this, angle);
+	return retval;
+}
+
+int CNXT::driveForwardNB(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_driveForwardNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveForwardNB, this, angle);
+	return retval;
+}
+
+int CNXT::driveTime(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_driveTime_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveTime, this, seconds);
+	return retval;
+}
+
+int CNXT::driveTimeNB(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_driveTimeNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveTimeNB, this, seconds);
+	return retval;
+}
+
+int CNXT::drivexy(double x, double y, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_drivexy_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, drivexy, this, x, y, radius, trackwidth);
+	return retval;
+}
+
+int CNXT::drivexyNB(double x, double y, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_drivexyNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, drivexyNB, this, x, y, radius, trackwidth);
+	return retval;
+}
+
+int CNXT::drivexyTo(double x, double y, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_drivexyTo_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, drivexyTo, this, x, y, radius, trackwidth);
+	return retval;
+}
+
+int CNXT::drivexyToNB(double x, double y, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_drivexyToNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, drivexyToNB, this, x, y, radius, trackwidth);
+	return retval;
+}
+
+int CNXT::drivexyToExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth) {
+	// number of steps necessary
+	double step = (xf-x0)/(n-1);
+
+	// drivexy to sequence of (x,y) values
+	int i = 0;
+	for (i = 0; i < n; i++) {
+		double x = x0 + i*step;
+		double y = streval(expr);
+		drivexyTo(x, y, radius, trackwidth);
+	}
+
+	// success
+	return 0;
+}
+
+int CNXT::drivexyToExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth) {
+	fprintf(_stderr, "Error: drivexyToExprNB() is not implemented.\n");
+
+	// success
+	return 0;
+}
+
+int CNXT::drivexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_drivexyToFunc_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, drivexyToFunc, this, x0, xf, n, func, radius, trackwidth);
+	return retval;
+}
+
+int CNXT::drivexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
+	fprintf(_stderr, "Error: drivexyToFuncNB() is not implemented.\n");
+
+	// success
+	return 0;
+}
+
+int CNXT::drivexyToPoly(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_drivexyToPoly_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, drivexyToPoly, this, x0, xf, n, poly, radius, trackwidth);
+	return retval;
+}
+
+int CNXT::drivexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_drivexyToPolyNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, drivexyToPolyNB, this, x0, xf, n, poly, radius, trackwidth);
+	return retval;
+}
+
+int CNXT::drivexyWait(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_drivexyWait_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, drivexyWait, this);
+	return retval;
+}
+
+int CNXT::enableRecordDataShift(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_enableRecordDataShift_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this);
+	return retval;
+}
+
+int CNXT::getAccelerometerData(double &x, double &y, double &z) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getAccelerometerData_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &x, &y, &z);
+	return retval;
+}
+
+int CNXT::getBatteryVoltage(double &voltage) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getBatteryVoltage_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &voltage);
+	return retval;
+}
+
+int CNXT::getLEDColor(string_t &color) {
+	int retval;
+	char color1[25];
+
+	retval = getLEDColorName(color1);
+	color = color1;
+	return retval;
+}
+
+int CNXT::getLEDColorName(char color[]) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getLEDColorName_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, color);
+	return retval;
+}
+
+int CNXT::getLEDColorRGB(int &r, int &g, int &b) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getLEDColorRGB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &r, &g, &b);
+	return retval;
+}
+
+int CNXT::getDistance(double &distance, double radius) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getDistance_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &distance, radius);
+	return retval;
+}
+
+int CNXT::getFormFactor(int &formFactor) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getFormFactor_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &formFactor);
+	return retval;
+}
+
+int CNXT::getID(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getID_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this);
+	return retval;
+}
+
+int CNXT::getJointAngle(int id, double & angle, ...) {
+	void *fptr;
+	int retval;
+	int numReadings;
+	va_list ap;
+	va_start(ap, angle);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getJointAngle_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	if(va_count(ap) == 1) {
+	  numReadings = va_arg(ap, int);
+	  dlrunfun(fptr, &retval, NULL, this, id, &angle, numReadings);
+	} else {
+	  dlrunfun(fptr, &retval, NULL, this, id, &angle);
+	}
+	va_end(ap);
+	return retval;
+}
+
+int CNXT::getJointAngleInstant(int id, double & angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getJointAngleInstant_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, id, &angle);
+	return retval;
+}
+
+int CNXT::getJointAngles(double &angle1, double &angle2, ...) {
+	void *fptr;
+	int retval;
+	va_list ap;
+	int numReadings;
+	va_start(ap, angle2);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getJointAngles_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	if(va_count(ap) == 1) {
+	  numReadings = va_arg(ap, int);
+	  dlrunfun(fptr, &retval, NULL, this, &angle1, &angle2, numReadings);
+	} else {
+	  dlrunfun(fptr, &retval, NULL, this, &angle1, &angle2);
+	}
+	va_end(ap);
+	return retval;
+}
+
+int CNXT::getJointAnglesInstant(double &angle1, double &angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getJointAnglesInstant_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &angle1, &angle2);
+	return retval;
+}
+
+int CNXT::getJointMaxSpeed(int id, double & speed) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getJointMaxSpeed_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, id, &speed);
+	return retval;
+}
+
+int CNXT::getJointSafetyAngle(double & angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getJointSafetyAngle_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &angle);
+	return retval;
+}
+
+int CNXT::getJointSafetyAngleTimeout(double & seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getJointSafetyAngleTimeout_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &seconds);
+	return retval;
+}
+
+int CNXT::getJointSpeed(int id, double & speed) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getJointSpeed_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, id, &speed);
+	return retval;
+}
+
+int CNXT::getJointSpeeds(double &speed1, double &speed2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getJointSpeeds_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &speed1, &speed2);
+	return retval;
+}
+
+int CNXT::getJointSpeedRatio(int id, double & ratio) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getJointSpeedRatio_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, id, &ratio);
+	return retval;
+}
+
+int CNXT::getJointSpeedRatios(double &ratio1, double &ratio2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getJointSpeedRatios_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &ratio1, &ratio2);
+	return retval;
+}
+
+int CNXT::getxy(double &x, double &y) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_getxy_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &x, &y);
+	return retval;
+}
+
+int CNXT::holdJoint(robotJointId_t id) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_holdJoint_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, holdJoint, this, id);
+	return retval;
+}
+
+int CNXT::holdJoints(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_holdJoints_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, holdJoints, this);
+	return retval;
+}
+
+int CNXT::holdJointsAtExit(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_holdJointsAtExit_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, holdJointsAtExit, this);
+	return retval;
+}
+
+int CNXT::isConnected(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_isConnected_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, isConnected, this);
+	return retval;
+}
+
+int CNXT::isMoving(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_isMoving_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, isMoving, this);
+	return retval;
+}
+
+int CNXT::isNotMoving(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_isNotMoving_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, isNotMoving, this);
+	return retval;
+}
+
+int CNXT::move(double angle1, double angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_move_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, move, this, angle1, angle2);
+	return retval;
+}
+
+int CNXT::moveNB(double angle1, double angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveNB, this, angle1, angle2);
+	return retval;
+}
+
+int CNXT::moveForeverNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveForeverNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveForeverNB, this);
+	return retval;
+}
+
+int CNXT::moveJoint(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveJoint_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJoint, this, id, angle);
+	return retval;
+}
+
+int CNXT::moveJointNB(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveJointNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointNB, this, id, angle);
+	return retval;
+}
+
+int CNXT::moveJointByPowerNB(int id, int power) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveJointByPowerNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointByPowerNB, this, id, power);
+	return retval;
+}
+
+int CNXT::moveJointForeverNB(int id) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveJointForeverNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointForeverNB, this, id);
+	return retval;
+}
+
+int CNXT::moveJointTime(int id, double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveJointTime_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointTime, this, id, seconds);
+	return retval;
+}
+
+int CNXT::moveJointTimeNB(int id, double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveJointTimeNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointTimeNB, this, id, seconds);
+	return retval;
+}
+
+int CNXT::moveJointTo(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveJointTo_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointTo, this, id, angle);
+	return retval;
+}
+
+int CNXT::moveJointToNB(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveJointToNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointToNB, this, id, angle);
+	return retval;
+}
+
+int CNXT::moveJointToByTrackPos(robotJointId_t id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveJointToByTrackPos_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointToByTrackPos, this, id, angle);
+	return retval;
+}
+
+int CNXT::moveJointTyByTrackPosNB(robotJointId_t id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveJointToByTrackPosNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointToByTrackPosNB, this, id, angle);
+	return retval;
+}
+
+int CNXT::moveJointWait(int id) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveJointWait_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointWait, this, id);
+	return retval;
+}
+
+int CNXT::moveTime(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveTime_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveTime, this, seconds);
+	return retval;
+}
+
+int CNXT::moveTimeNB(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveTimeNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveTimeNB, this, seconds);
+	return retval;
+}
+
+int CNXT::moveTo(double angle1, double angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveTo_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveTo, this, angle1, angle2);
+	return retval;
+}
+
+int CNXT::moveToNB(double angle1, double angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveToNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveToNB, this, angle1, angle2);
+	return retval;
+}
+
+int CNXT::moveToByTrackPos(double angle1, double angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveToByTrackPos_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveToByTrackPos, this, angle1, angle2);
+	return retval;
+}
+
+int CNXT::moveToByTrackPosNB(double angle1, double angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveToByTrackPosNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveToByTrackPosNB, this, angle1, angle2);
+	return retval;
+}
+
+int CNXT::moveToZero(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveToZero_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveToZero, this);
+	return retval;
+}
+
+int CNXT::moveToZeroNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveToZeroNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveToZeroNB, this);
+	return retval;
+}
+
+int CNXT::moveWait(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_moveWait_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveWait, this);
+	return retval;
+}
+
+int CNXT::recordAngle(int id, double time[:], double angle[:], int num, double seconds, ...) {
+	void *fptr;
+	int retval;
+	va_list ap;
+	int shiftData;
+	va_start(ap, seconds);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordAngle_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	if(va_count(ap) == 1) {
+		shiftData = va_arg(ap, int);
+		dlrunfun(fptr, &retval, recordAngle, this, id, time, angle, num, seconds, shiftData);
+	} else {
+		dlrunfun(fptr, &retval, recordAngle, this, id, time, angle, num, seconds);
+	}
+	va_end(ap);
+	return retval;
+}
+
+int CNXT::recordAngleBegin(int id, double* &time, double* &angle, double seconds, ...) {
+	void *fptr;
+	int retval;
+	va_list ap;
+	int shiftData = 1;
+	va_start(ap, seconds);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordAngleBegin_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	if(va_count(ap) == 1) {
+		shiftData = va_arg(ap, int);
+		dlrunfun(fptr, &retval, NULL, this, id, &time, &angle, seconds, shiftData);
+	} else {
+		dlrunfun(fptr, &retval, NULL, this, id, &time, &angle, seconds);
+	}
+	va_end(ap);
+	return retval;
+}
+
+int CNXT::recordAngleEnd(int id, int &num) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordAngleEnd_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, id, &num);
+	return retval;
+}
+
+int CNXT::recordAngles(double time[:], double angle1[:], double angle2[:], int num, double seconds, ...) {
+	void *fptr;
+	int retval;
+	va_list ap;
+	int shiftData;
+	va_start(ap, seconds);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordAngles_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	if(va_count(ap) == 1) {
+		shiftData = va_arg(ap, int);
+		dlrunfun(fptr, &retval, recordAngles, this, time, angle1, angle2, num, seconds, shiftData);
+	}
+	else {
+		dlrunfun(fptr, &retval, recordAngles, this, time, angle1, angle2, num, seconds);
+	}
+	return retval;
+}
+
+int CNXT::recordAnglesBegin(double* &time, double* &angle1, double* &angle2, double seconds, ...) {
+	void *fptr;
+	int retval;
+	int shiftData;
+	va_list ap;
+	va_start(ap, seconds);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordAnglesBegin_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	if(va_count(ap) == 1) {
+		shiftData = va_arg(ap, int);
+		dlrunfun(fptr, &retval, NULL, this, &time, &angle1, &angle2, seconds, shiftData);
+	}
+	else {
+		dlrunfun(fptr, &retval, NULL, this, &time, &angle1, &angle2, seconds);
+	}
+	va_end(ap);
+	return retval;
+}
+
+int CNXT::recordAnglesEnd(int &num) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordAnglesEnd_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &num);
+	return retval;
+}
+
+int CNXT::recordDistanceBegin(int id, double* &time, double* &distance, double radius, double seconds, ...) {
+	void *fptr;
+	int retval;
+	va_list ap;
+	int shiftData = 1;
+	va_start(ap, seconds);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordDistanceBegin_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	if(va_count(ap) == 1) {
+		shiftData = va_arg(ap, int);
+		dlrunfun(fptr, &retval, NULL, this, id, &time, &distance, radius, seconds, shiftData);
+	} else {
+		dlrunfun(fptr, &retval, NULL, this, id, &time, &distance, radius, seconds);
+	}
+	va_end(ap);
+	return retval;
+}
+
+int CNXT::recordDistanceEnd(int id, int &num) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordDistanceEnd_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, id, &num);
+	return retval;
+}
+
+int CNXT::recordDistanceOffset(double distance) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordDistanceOffset_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, distance);
+	return retval;
+}
+
+int CNXT::recordDistancesBegin(double* &time, double* &d1, double* &d2, double radius, double seconds, ...) {
+	void *fptr;
+	int retval;
+	int shiftData;
+	va_list ap;
+	va_start(ap, seconds);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordDistancesBegin_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	if(va_count(ap) == 1) {
+		shiftData = va_arg(ap, int);
+		dlrunfun(fptr, &retval, NULL, this, &time, &d1, &d2, &d3, radius, seconds, shiftData);
+	}
+	else {
+		dlrunfun(fptr, &retval, NULL, this, &time, &d1, &d2, radius, seconds);
+	}
+	va_end(ap);
+	return retval;
+}
+
+int CNXT::recordDistancesEnd(int &num) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordDistancesEnd_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &num);
+	return retval;
+}
+
+int CNXT::recordWait(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordWait_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, recordWait, this);
+	return retval;
+}
+
+int CNXT::recordxyBegin(double* &x, double* &y, double seconds, ...) {
+	void *fptr;
+	int retval;
+	va_list ap;
+	int shiftData = 1;
+	va_start(ap, seconds);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordxyBegin_chdl");
+	if (fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+
+	if (va_count(ap) == 1) {
+		shiftData = va_arg(ap, int);
+		dlrunfun(fptr, &retval, NULL, this, &x, &y, seconds, shiftData);
+	}
+	else {
+		dlrunfun(fptr, &retval, NULL, this, &x, &y, seconds);
+	}
+
+	va_end(ap);
+	return retval;
+}
+
+int CNXT::recordxyEnd(int &num) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_recordxyEnd_chdl");
+	if (fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &num);
+	return retval;
+}
+
+int CNXT::relaxJoint(robotJointId_t id) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_relaxJoint_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, relaxJoint, this, id);
+	return retval;
+}
+
+int CNXT::relaxJoints(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_relaxJoints_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, relaxJoints, this);
+	return retval;
+}
+
+int CNXT::resetToZero(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_resetToZero_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, resetToZero, this);
+	return retval;
+}
+
+int CNXT::resetToZeroNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_resetToZeroNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, resetToZeroNB, this);
+	return retval;
+}
+
+int CNXT::setBuzzerFrequency(int frequency, double time) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_setBuzzerFrequency_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setBuzzerFrequency, this, frequency, time);
+	return retval;
+}
+
+int CNXT::setBuzzerFrequencyOn(int frequency) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_setBuzzerFrequencyOn_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setBuzzerFrequencyOn, this, frequency);
+	return retval;
+}
+
+int CNXT::setBuzzerFrequencyOff(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_setBuzzerFrequencyOff_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setBuzzerFrequencyOff, this);
+	return retval;
+}
+
+int CNXT::setLEDColor(char *color) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_setLEDColor_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setLEDColor, this, color);
+	return retval;
+}
+
+int CNXT::setLEDColorRGB(int r, int g, int b) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_setLEDColorRGB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setLEDColorRGB, this, r, g, b);
+	return retval;
+}
+
+int CNXT::setJointSafetyAngle(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_setJointSafetyAngle_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSafetyAngle, this, angle);
+	return retval;
+}
+
+int CNXT::setJointSafetyAngleTimeout(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_setJointSafetyAngleTimeout_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSafetyAngleTimeout, this, seconds);
+	return retval;
+}
+
+int CNXT::setJointSpeed(int id, double speed) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_setJointSpeed_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSpeed, this, id, speed);
+	return retval;
+}
+
+int CNXT::setJointSpeeds(double speed1, double speed2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_setJointSpeeds_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSpeeds, this, speed1, speed2);
+	return retval;
+}
+
+int CNXT::setJointSpeedRatio(int id, double speed) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_setJointSpeedRatio_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSpeedRatio, this, id, speed);
+	return retval;
+}
+
+int CNXT::setJointSpeedRatios(double ratio1, double ratio2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_setJointSpeedRatios_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, ratio1, ratio2);
+	return retval;
+}
+
+int CNXT::setSpeed(double speed, double radius) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_setSpeed_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setSpeed, this, speed, radius);
+	return retval;
+}
+
+int CNXT::systemTime(double &systemTime) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_systemTime_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &systemTime);
+	return retval;
+}
+
+int CNXT::traceOff(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_traceOff_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this);
+	return retval;
+}
+
+int CNXT::traceOn(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_traceOn_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this);
+	return retval;
+}
+
+int CNXT::turnLeft(double angle, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_turnLeft_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, turnLeft, this, angle, radius, trackwidth);
+	return retval;
+}
+
+int CNXT::turnLeftNB(double angle, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_turnLeftNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, trackwidth);
+	return retval;
+}
+
+int CNXT::turnRight(double angle, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_turnRight_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, turnRight, this, angle, radius, trackwidth);
+	return retval;
+}
+
+int CNXT::turnRightNB(double angle, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXT_turnRightNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, trackwidth);
+	return retval;
+}
+
+CNXTGroup::CNXTGroup(void) {
+	if (RoboSim::_dlhandle == NULL || RoboSim::_dlcount == 0) {
+		RoboSim::_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
+		if (RoboSim::_dlhandle == NULL) {
+			printf("Error: %s(): dlopen(): %s\n", __class_func__, dlerror());
+			return;
+		}
+	}
+	void *fptr = dlsym(RoboSim::_dlhandle, "CNXTG_CNXTGroup_chdl");
+	if (fptr == NULL) {
+		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
+		return;
+	}
+	dlrunfun(fptr, NULL, NULL);
+	RoboSim::_dlcount++;
+}
+
+CNXTGroup::~CNXTGroup(void) {
+	void *fptr = dlsym(RoboSim::_dlhandle, "CNXTG_dCNXTGroup_chdl");
+	if(fptr == NULL) {
+		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
+		return;
+	}
+	dlrunfun(fptr, NULL, NULL, this);
+	RoboSim::_dlcount--;
+	if (RoboSim::_dlcount <= 0 && RoboSim::_dlhandle != NULL) {
+		if (dlclose(RoboSim::_dlhandle) != 0)
+			printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
+	}
+}
+
+int CNXTGroup::addRobot(CNXT &robot) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_addRobot_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &robot);
+	return retval;
+}
+
+int CNXTGroup::addRobots(array CNXT robots[], ...) {
+	void *fptr;
+	int retval;
+	int numRobots;
+	va_list ap;
+	va_start(ap, robots);
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_addRobots_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	if(va_count(ap) == 1) {
+		numRobots = va_arg(ap, int);
+	} else {
+		numRobots = (int)shape(robots);
+	}
+	dlrunfun(fptr, &retval, NULL, this, robots, numRobots);
+	va_end(ap);
+	return retval;
+}
+
+int CNXTGroup::blinkLED(double delay, int numBlinks) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_blinkLED_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, delay, numBlinks);
+	return retval;
+}
+
+int CNXTGroup::connect(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_connect_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this);
+	return retval;
+}
+
+int CNXTGroup::driveBackward(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_driveBackward_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveBackward, this, angle);
+	return retval;
+}
+
+int CNXTGroup::driveBackwardNB(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_driveBackwardNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveBackwardNB, this, angle);
+	return retval;
+}
+
+int CNXTGroup::driveDistance(double distance, double radius) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_driveDistance_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveDistance, this, distance, radius);
+	return retval;
+}
+
+int CNXTGroup::driveDistanceNB(double distance, double radius) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_driveDistanceNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveDistanceNB, this, distance, radius);
+	return retval;
+}
+
+int CNXTGroup::driveForeverNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_driveForeverNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveForeverNB, this);
+	return retval;
+}
+
+int CNXTGroup::driveForward(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_driveForward_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveForward, this, angle);
+	return retval;
+}
+
+int CNXTGroup::driveForwardNB(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_driveForwardNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveForwardNB, this, angle);
+	return retval;
+}
+
+int CNXTGroup::driveTime(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_driveTime_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveTime, this, seconds);
+	return retval;
+}
+
+int CNXTGroup::driveTimeNB(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_driveTimeNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveTimeNB, this, seconds);
+	return retval;
+}
+
+int CNXTGroup::holdJoint(robotJointId_t id) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_holdJoint_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, holdJoint, this, id);
+	return retval;
+}
+
+int CNXTGroup::holdJoints(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_holdJoints_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, holdJoints, this);
+	return retval;
+}
+
+int CNXTGroup::holdJointsAtExit(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_holdJointsAtExit_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, holdJointsAtExit, this);
+	return retval;
+}
+
+int CNXTGroup::isMoving(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_isMoving_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, isMoving, this);
+	return retval;
+}
+
+int CNXTGroup::isNotMoving(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_isNotMoving_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, isNotMoving, this);
+	return retval;
+}
+
+int CNXTGroup::move(double angle1, double angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_move_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, move, this, angle1, angle2);
+	return retval;
+}
+
+int CNXTGroup::moveNB(double angle1, double angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveNB, this, angle1, angle2);
+	return retval;
+}
+
+int CNXTGroup::moveForeverNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveForeverNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveForeverNB, this);
+	return retval;
+}
+
+int CNXTGroup::moveJoint(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveJoint_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJoint, this, id, angle);
+	return retval;
+}
+
+int CNXTGroup::moveJointNB(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveJointNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointNB, this, id, angle);
+	return retval;
+}
+
+int CNXTGroup::moveJointByPowerNB(int id, int power) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveJointByPowerNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointByPowerNB, this, id, power);
+	return retval;
+}
+
+int CNXTGroup::moveJointForeverNB(int id) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveJointForeverNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointForeverNB, this, id);
+	return retval;
+}
+
+int CNXTGroup::moveJointTime(int id, double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveJointTime_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointTime, this, id, seconds);
+	return retval;
+}
+
+int CNXTGroup::moveJointTimeNB(int id, double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveJointTimeNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointTimeNB, this, id, seconds);
+	return retval;
+}
+
+int CNXTGroup::moveJointTo(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveJointTo_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointTo, this, id, angle);
+	return retval;
+}
+
+int CNXTGroup::moveJointToNB(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveJointToNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointToNB, this, id, angle);
+	return retval;
+}
+
+int CNXTGroup::moveJointToByTrackPos(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveJointToByTrackPos_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointToByTrackPos, this, id, angle);
+	return retval;
+}
+
+int CNXTGroup::moveJointToByTrackPosNB(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveJointToByTrackPosNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointToByTrackPosNB, this, id, angle);
+	return retval;
+}
+
+int CNXTGroup::moveJointWait(int id) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveJointWait_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointWait, this, id);
+	return retval;
+}
+
+int CNXTGroup::moveTime(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveTime_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveTime, this, seconds);
+	return retval;
+}
+
+int CNXTGroup::moveTimeNB(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveTimeNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveTimeNB, this, seconds);
+	return retval;
+}
+
+int CNXTGroup::moveTo(double angle1, double angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveTo_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveTo, this, angle1, angle2);
+	return retval;
+}
+
+int CNXTGroup::moveToNB(double angle1, double angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveToNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveToNB, this, angle1, angle2);
+	return retval;
+}
+
+int CNXTGroup::moveToByTrackPos(double angle1, double angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveToByTrackPos_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveToByTrackPos, this, angle1, angle2);
+	return retval;
+}
+
+int CNXTGroup::moveToByTrackPosNB(double angle1, double angle2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveToByTrackPosNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveToByTrackPosNB, this, angle1, angle2);
+	return retval;
+}
+
+int CNXTGroup::moveToZero(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveToZero_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveToZero, this);
+	return retval;
+}
+
+int CNXTGroup::moveToZeroNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveToZeroNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveToZeroNB, this);
+	return retval;
+}
+
+int CNXTGroup::moveWait(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_moveWait_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveWait, this);
+	return retval;
+}
+
+int CNXTGroup::relaxJoint(robotJointId_t id) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_relaxJoint_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, relaxJoint, this, id);
+	return retval;
+}
+
+int CNXTGroup::relaxJoints(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_relaxJoints_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, relaxJoints, this);
+	return retval;
+}
+
+int CNXTGroup::resetToZero(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_resetToZero_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, resetToZero, this);
+	return retval;
+}
+
+int CNXTGroup::resetToZeroNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_resetToZeroNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, resetToZeroNB, this);
+	return retval;
+}
+
+int CNXTGroup::setBuzzerFrequency(int frequency, double time) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_setBuzzerFrequency_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setBuzzerFrequency, this, frequency, time);
+	return retval;
+}
+
+int CNXTGroup::setBuzzerFrequencyOff(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_setBuzzerFrequencyOff_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setBuzzerFrequencyOff, this);
+	return retval;
+}
+
+int CNXTGroup::setBuzzerFrequencyOn(int frequency) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_setBuzzerFrequencyOn_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setBuzzerFrequencyOn, this, frequency);
+	return retval;
+}
+
+int CNXTGroup::setLEDColor(char *color) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_setLEDColor_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setLEDColor, this, color);
+	return retval;
+}
+
+int CNXTGroup::setLEDColorRGB(int r, int g, int b) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_setLEDColor_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setLEDColorRGB, this, r, g, b);
+	return retval;
+}
+
+int CNXTGroup::setJointSafetyAngle(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_setJointSafetyAngle_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSafetyAngle, this, angle);
+	return retval;
+}
+
+int CNXTGroup::setJointSafetyAngleTimeout(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_setJointSafetyAngleTimeout_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSafetyAngleTimeout, this, seconds);
+	return retval;
+}
+
+int CNXTGroup::setJointSpeed(int id, double speed) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_setJointSpeed_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSpeed, this, id, speed);
+	return retval;
+}
+
+int CNXTGroup::setJointSpeeds(double speed1, double speed2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_setJointSpeeds_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSpeeds, this, speed1, speed2);
+	return retval;
+}
+
+int CNXTGroup::setJointSpeedRatio(int id, double speed) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_setJointSpeedRatio_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSpeedRatio, this, id, speed);
+	return retval;
+}
+
+int CNXTGroup::setJointSpeedRatios(double ratio1, double ratio2) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_setJointSpeedRatios_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSpeedRatios, this, ratio1, ratio2);
+	return retval;
+}
+
+int CNXTGroup::setSpeed(double speed, double radius) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_setSpeed_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setSpeed, this, speed, radius);
+	return retval;
+}
+
+int CNXTGroup::traceOff(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_traceOff_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, traceOff, this);
+	return retval;
+}
+
+int CNXTGroup::traceOn(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_traceOn_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, traceOn, this);
+	return retval;
+}
+
+int CNXTGroup::turnLeft(double angle, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_turnLeft_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, turnLeft, this, angle, radius, trackwidth);
+	return retval;
+}
+
+int CNXTGroup::turnLeftNB(double angle, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_turnLeftNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, trackwidth);
+	return retval;
+}
+
+int CNXTGroup::turnRight(double angle, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_turnRight_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, turnRight, this, angle, radius, trackwidth);
+	return retval;
+}
+
+int CNXTGroup::turnRightNB(double angle, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CNXTG_turnRightNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, trackwidth);
+	return retval;
+}

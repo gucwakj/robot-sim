@@ -1,0 +1,759 @@
+#include <robot.h>
+#include <dlfcn.h>
+#include <stdarg.h>
+#include <array.h>
+
+RobotGroup::RobotGroup(void) {
+	if (RoboSim::_dlhandle == NULL || RoboSim::_dlcount == 0) {
+		RoboSim::_dlhandle = dlopen("librobosim.dl", RTLD_LAZY);
+		if (RoboSim::_dlhandle == NULL) {
+			printf("Error: %s(): dlopen(): %s\n", __class_func__, dlerror());
+			return;
+		}
+	}
+	void *fptr = dlsym(RoboSim::_dlhandle, "RG_RobotGroup_chdl");
+	if (fptr == NULL) {
+		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
+		return;
+	}
+	dlrunfun(fptr, NULL, NULL);
+	RoboSim::_dlcount++;
+}
+
+RobotGroup::~RobotGroup(void) {
+	void *fptr = dlsym(RoboSim::_dlhandle, "RG_dRobotGroup_chdl");
+	if(fptr == NULL) {
+		printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
+		return;
+	}
+	dlrunfun(fptr, NULL, NULL, this);
+	RoboSim::_dlcount--;
+	if (RoboSim::_dlcount <= 0 && RoboSim::_dlhandle != NULL) {
+		if (dlclose(RoboSim::_dlhandle) != 0)
+			printf("Error: %s(): dlsym(): %s\n", __class_func__, dlerror());
+	}
+}
+
+int RobotGroup::addRobot(Robot &robot) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_addRobot_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, &robot);
+	return retval;
+}
+
+int RobotGroup::addRobots(array Robot robots[], ...) {
+	void *fptr;
+	int retval;
+	int numRobots;
+	va_list ap;
+	va_start(ap, robots);
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_addRobots_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	if(va_count(ap) == 1) {
+		numRobots = va_arg(ap, int);
+	} else {
+		numRobots = (int)shape(robots);
+	}
+	dlrunfun(fptr, &retval, NULL, this, robots, numRobots);
+	va_end(ap);
+	return retval;
+}
+
+int RobotGroup::blinkLED(double delay, int numBlinks) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_blinkLED_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this, delay, numBlinks);
+	return retval;
+}
+
+int RobotGroup::connect(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_connect_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this);
+	return retval;
+}
+
+int RobotGroup::driveBackward(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_driveBackward_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveBackward, this, angle);
+	return retval;
+}
+
+int RobotGroup::driveBackwardNB(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_driveBackwardNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveBackwardNB, this, angle);
+	return retval;
+}
+
+int RobotGroup::driveDistance(double distance, double radius) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_driveDistance_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveDistance, this, distance, radius);
+	return retval;
+}
+
+int RobotGroup::driveDistanceNB(double distance, double radius) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_driveDistanceNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveDistanceNB, this, distance, radius);
+	return retval;
+}
+
+int RobotGroup::driveForeverNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_driveForeverNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveForeverNB, this);
+	return retval;
+}
+
+int RobotGroup::driveForward(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_driveForward_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveForward, this, angle);
+	return retval;
+}
+
+int RobotGroup::driveForwardNB(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_driveForwardNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveForwardNB, this, angle);
+	return retval;
+}
+
+int RobotGroup::driveTime(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_driveTime_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveTime, this, seconds);
+	return retval;
+}
+
+int RobotGroup::driveTimeNB(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_driveTimeNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, driveTimeNB, this, seconds);
+	return retval;
+}
+
+int RobotGroup::holdJoint(robotJointId_t id) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_holdJoint_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, holdJoint, this, id);
+	return retval;
+}
+
+int RobotGroup::holdJoints(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_holdJoints_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, holdJoints, this);
+	return retval;
+}
+
+int RobotGroup::holdJointsAtExit(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_holdJointsAtExit_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, holdJointsAtExit, this);
+	return retval;
+}
+
+int RobotGroup::isMoving(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_isMoving_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, isMoving, this);
+	return retval;
+}
+
+int RobotGroup::isNotMoving(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_isNotMoving_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, isNotMoving, this);
+	return retval;
+}
+
+int RobotGroup::moveForeverNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveForeverNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveForeverNB, this);
+	return retval;
+}
+
+int RobotGroup::moveJoint(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveJoint_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJoint, this, id, angle);
+	return retval;
+}
+
+int RobotGroup::moveJointNB(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveJointNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointNB, this, id, angle);
+	return retval;
+}
+
+int RobotGroup::moveJointByPowerNB(int id, int power) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveJointByPowerNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointByPowerNB, this, id, power);
+	return retval;
+}
+
+int RobotGroup::moveJointForeverNB(int id) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveJointForeverNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointForeverNB, this, id);
+	return retval;
+}
+
+int RobotGroup::moveJointTime(int id, double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveJointTime_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointTime, this, id, seconds);
+	return retval;
+}
+
+int RobotGroup::moveJointTimeNB(int id, double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveJointTimeNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointTimeNB, this, id, seconds);
+	return retval;
+}
+
+int RobotGroup::moveJointTo(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveJointTo_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointTo, this, id, angle);
+	return retval;
+}
+
+int RobotGroup::moveJointToNB(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveJointToNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointToNB, this, id, angle);
+	return retval;
+}
+
+int RobotGroup::moveJointToByTrackPos(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveJointToByTrackPos_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointToByTrackPos, this, id, angle);
+	return retval;
+}
+
+int RobotGroup::moveJointToByTrackPosNB(int id, double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveJointToByTrackPosNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointToByTrackPosNB, this, id, angle);
+	return retval;
+}
+
+int RobotGroup::moveJointWait(int id) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveJointWait_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveJointWait, this, id);
+	return retval;
+}
+
+int RobotGroup::moveTime(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveTime_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveTime, this, seconds);
+	return retval;
+}
+
+int RobotGroup::moveTimeNB(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveTimeNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveTimeNB, this, seconds);
+	return retval;
+}
+
+int RobotGroup::moveToZero(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveToZero_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveToZero, this);
+	return retval;
+}
+
+int RobotGroup::moveToZeroNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveToZeroNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveToZeroNB, this);
+	return retval;
+}
+
+int RobotGroup::moveWait(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_moveWait_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, moveWait, this);
+	return retval;
+}
+
+int RobotGroup::relaxJoint(robotJointId_t id) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_relaxJoint_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, relaxJoint, this, id);
+	return retval;
+}
+
+int RobotGroup::relaxJoints(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_relaxJoints_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, relaxJoints, this);
+	return retval;
+}
+
+int RobotGroup::resetToZero(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_resetToZero_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, resetToZero, this);
+	return retval;
+}
+
+int RobotGroup::resetToZeroNB(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_resetToZeroNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, resetToZeroNB, this);
+	return retval;
+}
+
+int RobotGroup::setBuzzerFrequency(int frequency, double time) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_setBuzzerFrequency_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setBuzzerFrequency, this, frequency, time);
+	return retval;
+}
+
+int RobotGroup::setBuzzerFrequencyOff(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_setBuzzerFrequencyOff_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setBuzzerFrequencyOff, this);
+	return retval;
+}
+
+int RobotGroup::setBuzzerFrequencyOn(int frequency) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_setBuzzerFrequencyOn_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setBuzzerFrequencyOn, this, frequency);
+	return retval;
+}
+
+int RobotGroup::setLEDColor(char *color) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_setLEDColor_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setLEDColor, this, color);
+	return retval;
+}
+
+int RobotGroup::setLEDColorRGB(int r, int g, int b) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_setLEDColor_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setLEDColorRGB, this, r, g, b);
+	return retval;
+}
+
+int RobotGroup::setJointSafetyAngle(double angle) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_setJointSafetyAngle_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSafetyAngle, this, angle);
+	return retval;
+}
+
+int RobotGroup::setJointSafetyAngleTimeout(double seconds) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_setJointSafetyAngleTimeout_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSafetyAngleTimeout, this, seconds);
+	return retval;
+}
+
+int RobotGroup::setJointSpeed(int id, double speed) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_setJointSpeed_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSpeed, this, id, speed);
+	return retval;
+}
+
+int RobotGroup::setJointSpeedRatio(int id, double speed) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_setJointSpeedRatio_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setJointSpeedRatio, this, id, speed);
+	return retval;
+}
+
+int RobotGroup::setSpeed(double speed, double radius) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_setSpeed_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, setSpeed, this, speed, radius);
+	return retval;
+}
+
+int RobotGroup::traceOff(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_traceOff_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, traceOff, this);
+	return retval;
+}
+
+int RobotGroup::traceOn(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_traceOn_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, traceOn, this);
+	return retval;
+}
+
+int RobotGroup::turnLeft(double angle, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_turnLeft_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, turnLeft, this, angle, radius, trackwidth);
+	return retval;
+}
+
+int RobotGroup::turnLeftNB(double angle, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_turnLeftNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, turnLeftNB, this, angle, radius, trackwidth);
+	return retval;
+}
+
+int RobotGroup::turnRight(double angle, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_turnRight_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, turnRight, this, angle, radius, trackwidth);
+	return retval;
+}
+
+int RobotGroup::turnRightNB(double angle, double radius, double trackwidth) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "RG_turnRightNB_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, turnRightNB, this, angle, radius, trackwidth);
+	return retval;
+}

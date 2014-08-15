@@ -3,6 +3,7 @@
 
 #include <array.h>
 #include "macros.h"
+#include "robot.h"
 
 #define NUM_DOF 4
 
