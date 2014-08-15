@@ -26,23 +26,23 @@ OBJS =	robosim.o \
 		nxt.o \
 		nxtgroup.o \
 		rgbhashtable.o \
-		chrobotgroup_chdl.o \
-		chlinkboti_chdl.o \
-		chlinkbotl_chdl.o \
-		chmobot_chdl.o \
-		chnxt_chdl.o
+		robotgroup_chdl.o \
+		clinkboti_chdl.o \
+		clinkbotl_chdl.o \
+		cmobot_chdl.o \
+		cnxt_chdl.o
 
 robosim.o: $(SRC)/robosim.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/robosim.cpp $(CPPFLAGS) $(INCLUDES)
+
+graphics.o: $(SRC)/graphics.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
 
 robot.o: $(SRC)/robot.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/robot.cpp $(CPPFLAGS) $(INCLUDES)
 
 robotgroup.o: $(SRC)/robotgroup.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/robotgroup.cpp $(CPPFLAGS) $(INCLUDES)
-
-graphics.o: $(SRC)/graphics.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
 
 linkbot.o: $(SRC)/linkbot.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbot.cpp $(CPPFLAGS) $(INCLUDES)
@@ -65,20 +65,20 @@ nxtgroup.o: $(SRC)/nxtgroup.cpp $(HEADERS)
 rgbhashtable.o: $(SRC)/rgbhashtable.c $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/rgbhashtable.c $(CPPFLAGS) $(INCLUDES)
 
-chrobotgroup_chdl.o: chrobotgroup_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus chrobotgroup_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+robotgroup_chdl.o: robotgroup_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus robotgroup_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-chlinkboti_chdl.o: chlinkboti_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus chlinkboti_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+clinkboti_chdl.o: clinkboti_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus clinkboti_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-chlinkbotl_chdl.o: chlinkbotl_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus chlinkbotl_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+clinkbotl_chdl.o: clinkbotl_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus clinkbotl_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-chmobot_chdl.o: chmobot_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus chmobot_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+cmobot_chdl.o: cmobot_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus cmobot_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-chnxt_chdl.o: chnxt_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus chnxt_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+cnxt_chdl.o: cnxt_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus cnxt_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
 librobosim.dl: $(OBJS)
 	ch dllink librobosim.dl cplusplus $(OBJS) $(LIBPATHS) $(LIBS)
@@ -117,11 +117,11 @@ createpkg: librobosim.dl
 	cp nxt.h $(PKGDIR)/include
 	cp $(SRC)/macros.h $(PKGDIR)/include
 	mkdir $(PKGDIR)/lib
-	cp chrobotgroup.chf $(PKGDIR)/lib
-	cp chlinkboti.chf $(PKGDIR)/lib
-	cp chlinkbotl.chf $(PKGDIR)/lib
-	cp chmobot.chf $(PKGDIR)/lib
-	cp chnxt.chf $(PKGDIR)/lib
+	cp robotgroup.chf $(PKGDIR)/lib
+	cp clinkboti.chf $(PKGDIR)/lib
+	cp clinkbotl.chf $(PKGDIR)/lib
+	cp cmobot.chf $(PKGDIR)/lib
+	cp cnxt.chf $(PKGDIR)/lib
 	cp delay.chf $(PKGDIR)/lib
 	cp systemTime.chf $(PKGDIR)/lib
 	mkdir $(PKGDIR)/so

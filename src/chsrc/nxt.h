@@ -209,6 +209,6 @@ class CNXTGroup {
 
 void* RoboSim::_dlhandle = NULL;
 int RoboSim::_dlcount = 0;
-#pragma importf "chnxt.chf"
+#pragma importf "cnxt.chf"
 
 #endif  // NXT_H_

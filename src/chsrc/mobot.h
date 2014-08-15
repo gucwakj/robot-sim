@@ -290,6 +290,6 @@ class CMobotGroup {
 
 void* RoboSim::_dlhandle = NULL;
 int RoboSim::_dlcount = 0;
-#pragma importf "chmobot.chf"
+#pragma importf "cmobot.chf"
 
 #endif  // MOBOT_H_

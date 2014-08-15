@@ -62,6 +62,6 @@ class RobotGroup {
 
 void* RoboSim::_dlhandle = NULL;
 int RoboSim::_dlcount = 0;
-#pragma importf "chrobotgroup.chf"
+#pragma importf "robotgroup.chf"
 
 #endif  // MOBOT_H_
