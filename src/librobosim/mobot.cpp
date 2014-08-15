@@ -806,20 +806,6 @@ int CMobot::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &dis
 	return Robot::recordAnglesBegin(time, angles, seconds, shiftData);
 }
 
-int CMobot::reset(void) {
-	MUTEX_LOCK(&_theta_mutex);
-	for (int i = 0; i < _dof; i++) {
-		_motor[i].offset = _motor[i].theta;
-		_motor[i].theta = 0;
-		_motor[i].goal -= _motor[i].offset;
-		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
-	}
-	MUTEX_UNLOCK(&_theta_mutex);
-
-	// success
-	return 0;
-}
-
 int CMobot::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
 	this->setJointSpeed(JOINT1, speed1);
 	this->setJointSpeed(JOINT2, speed2);

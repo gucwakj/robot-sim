@@ -338,17 +338,6 @@ int CMobotGroup::moveToByTrackPosNB(double angle1, double angle2, double angle3,
 	return 0;
 }
 
-int CMobotGroup::reset(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->reset();
-		rtmp = rtmp->next;
-	}
-
-	// success
-	return 0;
-}
-
 int CMobotGroup::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
 	robots_t rtmp = _robots;
 	while (rtmp) {

@@ -157,7 +157,7 @@ class DLLIMPORT CMobot {
 		int recordxyEnd(int &num);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset(void);
+		int reset(void);		// deprecated
 		int resetToZero(void);
 		int resetToZeroNB(void);
 		int setJointPower(robotJointId_t id, int power);		// deprecated
@@ -264,7 +264,7 @@ class CMobotGroup {
 		int moveWait(void);
 		int relaxJoint(robotJointId_t id);
 		int relaxJoints(void);
-		int reset(void);
+		int reset(void);		// deprecated
 		int resetToZero(void);
 		int resetToZeroNB(void);
 		int setJointPower(robotJointId_t id, int power);		// deprecated

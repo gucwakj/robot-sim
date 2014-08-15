@@ -1550,16 +1550,11 @@ int CMobot::relaxJoints(void) {
 }
 
 int CMobot::reset(void) {
-	void *fptr;
-	int retval;
+	DEPRECATED("reset", "resetToZero");
+	resetToZero();
 
-	fptr = dlsym(RoboSim::_dlhandle, "CMobot_reset_chdl");
-	if(fptr == NULL) {
-		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-		return -1;
-	}
-	dlrunfun(fptr, &retval, reset, this);
-	return retval;
+	// success
+	return 0;
 }
 
 int CMobot::resetToZero(void) {
@@ -2669,16 +2664,11 @@ int CMobotGroup::relaxJoints(void) {
 }
 
 int CMobotGroup::reset(void) {
-	void *fptr;
-	int retval;
+	DEPRECATED("reset", "resetToZero");
+	resetToZero();
 
-	fptr = dlsym(RoboSim::_dlhandle, "CMG_reset_chdl");
-	if(fptr == NULL) {
-		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-		return -1;
-	}
-	dlrunfun(fptr, &retval, reset, this);
-	return retval;
+	// success
+	return 0;
 }
 
 int CMobotGroup::resetToZero(void) {
