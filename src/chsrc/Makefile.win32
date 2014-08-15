@@ -5,10 +5,9 @@
 PACKAGE = chrobosim
 VERSION = win32-1.7.70
 PKGDIR = $(PACKAGE)-$(VERSION)/$(PACKAGE)
-ARCH = x86
 
 SRC = ../librobosim
-HEADERS = $(SRC)/robosim.h $(SRC)/mobot.h $(SRC)/linkbot.h $(SRC)/graphics.h $(SRC)/base.h $(SRC)/macros.h
+HEADERS = $(SRC)/macros.h $(SRC)/robosim.h $(SRC)/graphics.h $(SRC)/robot.h $(SRC)/modularrobot.h $(SRC)/mobot.h $(SRC)/linkbot.h $(SRC)/nxt.h
 CPPFLAGS = -DdDOUBLE /EHsc
 INCLUDES = /I ../librobosim/build /I ../opende/include /I ../tinyxml2 /I ../osg/include /I ../osg/build/include
 LIBPATHS = /LIBPATH:../opende/lib/Release/ /LIBPATH:../tinyxml2/build/Release/ /LIBPATH:../osg/build/lib/
@@ -17,26 +16,33 @@ LIBS = osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osg
 target: librobosim.dl
 
 OBJS =	robosim.obj \
-		base.obj \
 		graphics.obj \
+		robot.obj \
+		robotgroup.obj \
 		linkbot.obj \
 		linkbotgroup.obj \
 		mobot.obj \
 		mobotgroup.obj \
+		nxt.obj \
+		nxtgroup.obj \
 		rgbhashtable.obj \
-		chlinkboti_chdl.obj \
-		chlinkbotl_chdl.obj \
-		chlinkbott_chdl.obj \
-		chmobot_chdl.obj
+		robotgroup_chdl.obj \
+		clinkboti_chdl.obj \
+		clinkbotl_chdl.obj \
+		cmobot_chdl.obj \
+		cnxt_chdl.obj
 
 robosim.obj: $(SRC)/robosim.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/robosim.cpp $(CPPFLAGS) $(INCLUDES)
 
-base.obj: $(SRC)/base.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/base.cpp $(CPPFLAGS) $(INCLUDES)
-
 graphics.obj: $(SRC)/graphics.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/graphics.cpp $(CPPFLAGS) $(INCLUDES)
+
+robot.obj: $(SRC)/robot.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/robot.cpp $(CPPFLAGS) $(INCLUDES)
+
+robotgroup.obj: $(SRC)/robotgroup.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/robotgroup.cpp $(CPPFLAGS) $(INCLUDES)
 
 linkbot.obj: $(SRC)/linkbot.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbot.cpp $(CPPFLAGS) $(INCLUDES)
@@ -50,20 +56,29 @@ mobot.obj: $(SRC)/mobot.cpp $(HEADERS)
 mobotgroup.obj: $(SRC)/mobotgroup.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotgroup.cpp $(CPPFLAGS) $(INCLUDES)
 
+nxt.obj: $(SRC)/nxt.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/nxt.cpp $(CPPFLAGS) $(INCLUDES)
+
+nxtgroup.obj: $(SRC)/nxtgroup.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/nxtgroup.cpp $(CPPFLAGS) $(INCLUDES)
+
 rgbhashtable.obj: $(SRC)/rgbhashtable.c $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/rgbhashtable.c $(CPPFLAGS) $(INCLUDES)
 
-chlinkboti_chdl.obj: chlinkboti_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus chlinkboti_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+robotgroup_chdl.obj: robotgroup_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus robotgroup_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-chlinkbotl_chdl.obj: chlinkbotl_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus chlinkbotl_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+clinkboti_chdl.obj: clinkboti_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus clinkboti_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-chlinkbott_chdl.obj: chlinkbott_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus chlinkbott_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+clinkbotl_chdl.obj: clinkbotl_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus clinkbotl_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
-chmobot_chdl.obj: chmobot_chdl.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus chmobot_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+cmobot_chdl.obj: cmobot_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus cmobot_chdl.cpp $(CPPFLAGS) $(INCLUDES)
+
+cnxt_chdl.obj: cnxt_chdl.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus cnxt_chdl.cpp $(CPPFLAGS) $(INCLUDES)
 
 librobosim.dl: $(OBJS)
 	ch dllink librobosim.dl cplusplus $(OBJS) $(LIBPATHS) $(LIBS)
@@ -91,9 +106,9 @@ createpkg: librobosim.dl
 	cp ../osg/build/bin/osg80-osgUtil.dll $(PKGDIR)/bin
 	cp ../osg/build/bin/osg80-osgViewer.dll $(PKGDIR)/bin
 	cp ../osg/build/bin/ot12-OpenThreads.dll $(PKGDIR)/bin
-	cp ../osg/third_party/$(ARCH)/bin/glut32.dll $(PKGDIR)/bin
-	cp ../osg/third_party/$(ARCH)/bin/libpng13.dll $(PKGDIR)/bin
-	cp ../osg/third_party/$(ARCH)/bin/zlib1.dll $(PKGDIR)/bin
+	cp ../osg/third_party/x86/bin/glut32.dll $(PKGDIR)/bin
+	cp ../osg/third_party/x86/bin/libpng13.dll $(PKGDIR)/bin
+	cp ../osg/third_party/x86/bin/zlib1.dll $(PKGDIR)/bin
 	cp ../tinyxml2/build/Release/tinyxml2.dll $(PKGDIR)/bin
 	mkdir $(PKGDIR)/bin/gui
 	cp ../configurator/build/Release/robosim.exe $(PKGDIR)/bin/gui
@@ -136,14 +151,17 @@ createpkg: librobosim.dl
 	cp ../../docs/robosim.pdf $(PKGDIR)/docs
 	cp ../../docs/images/robosim.png $(PKGDIR)/docs
 	mkdir $(PKGDIR)/include
-	cp mobot.h $(PKGDIR)/include
+	cp robot.h $(PKGDIR)/include
 	cp linkbot.h $(PKGDIR)/include
+	cp mobot.h $(PKGDIR)/include
+	cp nxt.h $(PKGDIR)/include
 	cp $(SRC)/macros.h $(PKGDIR)/include
 	mkdir $(PKGDIR)/lib
-	cp chmobot.chf $(PKGDIR)/lib
-	cp chlinkboti.chf $(PKGDIR)/lib
-	cp chlinkbotl.chf $(PKGDIR)/lib
-	cp chlinkbott.chf $(PKGDIR)/lib
+	cp robotgroup.chf $(PKGDIR)/lib
+	cp clinkboti.chf $(PKGDIR)/lib
+	cp clinkbotl.chf $(PKGDIR)/lib
+	cp cmobot.chf $(PKGDIR)/lib
+	cp cnxt.chf $(PKGDIR)/lib
 	cp delay.chf $(PKGDIR)/lib
 	cp systemTime.chf $(PKGDIR)/lib
 	cp Makefile.win32 $(PACKAGE)-$(VERSION)/Makefile
