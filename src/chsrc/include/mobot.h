@@ -3,7 +3,6 @@
 
 #include <array.h>
 #include "macros.h"
-#include "robot.h"
 
 #define NUM_DOF 4
 
@@ -22,20 +21,10 @@
 #define ROBOT_JOINT1 0
 #define ROBOT_JOINT2 1
 #define ROBOT_JOINT3 2
+#define ROBOT_JOINT4 3
 #endif // MACROS
 
-#ifndef ROBOSIM
-#define ROBOSIM
-class DLLIMPORT RoboSim {
-	public:
-		RoboSim(char *name, int pause);
-		virtual ~RoboSim();
-
-		static void *_dlhandle;
-		static int _dlcount;
-
-};
-#endif // ROBOSIM
+#include "robot.h"
 
 class DLLIMPORT CMobot {
 	public:
@@ -185,7 +174,7 @@ class DLLIMPORT CMobot {
 		int turnRightNB(double angle, double radius, double trackwidth);
 };
 
-class CMobotGroup {
+class DLLIMPORT CMobotGroup {
 	public:
 		CMobotGroup();
 		virtual ~CMobotGroup();
@@ -288,8 +277,7 @@ class CMobotGroup {
 		int turnRightNB(double angle, double radius, double trackwidth);
 };
 
-void* RoboSim::_dlhandle = NULL;
-int RoboSim::_dlcount = 0;
 #pragma importf "cmobot.chf"
 
 #endif  // MOBOT_H_
+

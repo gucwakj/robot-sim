@@ -251,12 +251,12 @@ int main(int argc, char **argv) {
 
    if(!access(chpackageinstallpkg, R_OK))
    {
-      printf("\nPackage '%s' was already installed.\n"
+      /*printf("\nPackage '%s' was already installed.\n"
              "Uninstall package '%s'(Y or N)?: ", pkgname, pkgname);
       check = getchar();
       if( check != 'y' && check != 'Y' )
          exit(0);
-      while(getchar() != '\n');
+      while(getchar() != '\n');*/
       ./pkginstall.ch -u $pkgname
       ./pkginstall.ch $pkgname
       exit(0);

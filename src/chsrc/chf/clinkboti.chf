@@ -1255,7 +1255,7 @@ int CLinkbotI::moveJointToByTrackPos(robotJointId_t id, double angle) {
 	return retval;
 }
 
-int CLinkbotI::moveJointTyByTrackPosNB(robotJointId_t id, double angle) {
+int CLinkbotI::moveJointToByTrackPosNB(robotJointId_t id, double angle) {
 	void *fptr;
 	int retval;
 

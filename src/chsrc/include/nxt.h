@@ -3,7 +3,6 @@
 
 #include <array.h>
 #include "macros.h"
-#include "nxt.h"
 
 #define NUM_DOF 2
 
@@ -23,18 +22,7 @@
 #define ROBOT_JOINT2 1
 #endif // MACROS
 
-#ifndef ROBOSIM
-#define ROBOSIM
-class DLLIMPORT RoboSim {
-	public:
-		RoboSim(char *name, int pause);
-		virtual ~RoboSim();
-
-		static void *_dlhandle;
-		static int _dlcount;
-
-};
-#endif // ROBOSIM
+#include "robot.h"
 
 class DLLIMPORT CNXT {
 	public:
@@ -144,7 +132,7 @@ class DLLIMPORT CNXT {
 		int turnRightNB(double angle, double radius, double trackwidth);
 };
 
-class CNXTGroup {
+class DLLIMPORT CNXTGroup {
 	public:
 		CNXTGroup();
 		virtual ~CNXTGroup();
@@ -207,8 +195,7 @@ class CNXTGroup {
 		int turnRightNB(double angle, double radius, double trackwidth);
 };
 
-void* RoboSim::_dlhandle = NULL;
-int RoboSim::_dlcount = 0;
 #pragma importf "cnxt.chf"
 
 #endif  // NXT_H_
+

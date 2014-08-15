@@ -20,6 +20,7 @@ OBJS =	robosim.o \
 		graphics.o \
 		robot.o \
 		robotgroup.o \
+		modularrobot.o \
 		linkbot.o \
 		linkbotgroup.o \
 		mobot.o \
@@ -44,6 +45,9 @@ robot.o: $(SRC)/robot.cpp $(HEADERS)
 
 robotgroup.o: $(SRC)/robotgroup.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/robotgroup.cpp $(CPPFLAGS) $(INCLUDES)
+
+modularrobot.o: $(SRC)/modularrobot.cpp $(HEADERS)
+	ch dlcomp librobosim.dl cplusplus $(SRC)/modularrobot.cpp $(CPPFLAGS) $(INCLUDES)
 
 linkbot.o: $(SRC)/linkbot.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbot.cpp $(CPPFLAGS) $(INCLUDES)
