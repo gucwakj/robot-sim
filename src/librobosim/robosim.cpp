@@ -455,7 +455,12 @@ int RoboSim::init_xml(char *name) {
 			_grid[i] /= 100;
 	}
 
-	// loop over all graphics nodes ignoring grids and tracking nodes
+	// check for existence of ground node
+	if ( (node = doc.FirstChildElement("graphics")) ) {
+		node = node->FirstChildElement();
+	}
+
+	// loop over all graphics nodes ignoring grid
 	while (node) {
 		if ( !strcmp(node->Value(), "line") ) {
 			// store default variables

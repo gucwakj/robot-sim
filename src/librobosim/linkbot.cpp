@@ -1580,7 +1580,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 					_motor[i].state = POSITIVE;
 					dJointSetAMotorParam(_motor[i].id, dParamVel, fabs(_motor[i].omega)/2);
 				}
-				else if ((_motor[i].goal - _motor[i].encoder - _motor[i].theta) > EPSILON) {
+				else if ((_motor[i].goal - _motor[i].encoder/2 - _motor[i].theta) > EPSILON) {
 					_motor[i].state = POSITIVE;
 					dJointSetAMotorParam(_motor[i].id, dParamVel, fabs(_motor[i].omega)/4);
 				}
@@ -1599,7 +1599,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 					_motor[i].state = NEGATIVE;
 					dJointSetAMotorParam(_motor[i].id, dParamVel, -fabs(_motor[i].omega)/2);
 				}
-				else if ((_motor[i].theta - _motor[i].goal - _motor[i].encoder) > EPSILON) {
+				else if ((_motor[i].theta - _motor[i].goal - _motor[i].encoder/2) > EPSILON) {
 					_motor[i].state = NEGATIVE;
 					dJointSetAMotorParam(_motor[i].id, dParamVel, -fabs(_motor[i].omega)/4);
 				}
@@ -1624,8 +1624,7 @@ void CLinkbotT::simPostCollisionThread(void) {
 	MUTEX_LOCK(&_success_mutex);
 
 	// check if joint speed is zero -> joint has completed step
-	for (int j = 0; j < ((_disabled == -1) ? 3 : 2); j++) {
-		int i = _enabled[j];
+	for (int i = 0; i < _dof; i++) {
 		// lock mutex
 		MUTEX_LOCK(&_motor[i].success_mutex);
 		// zero velocity == stopped

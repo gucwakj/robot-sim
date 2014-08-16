@@ -479,7 +479,7 @@ int Robot::drivexyToSmooth(double x1, double y1, double x2, double y2, double x3
 	double theta = 2*fabs(atan((m1 - m2)/(1 + m1*m2)));
 
 	// distance to travel for each wheel
-	trackwidth = convert(_trackwidth, 0);
+	trackwidth = this->convert(_trackwidth, 0);
 	double s1 = theta*(rho + trackwidth/2);
 	double s2 = theta*(rho - trackwidth/2);
 
@@ -635,8 +635,8 @@ int Robot::getLEDColorRGB(int &r, int &g, int &b) {
 
 int Robot::getxy(double &x, double &y) {
 	// return x and y positions
-	x = convert(this->getCenter(0), 0);
-	y = convert(this->getCenter(1), 0);
+	x = this->convert(this->getCenter(0), 0);
+	y = this->convert(this->getCenter(1), 0);
 
 	// success
 	return 0;
@@ -1070,7 +1070,8 @@ int Robot::recordDistanceEnd(robotJointId_t id, int &num) {
 	this->recordAngleEnd(id, num);
 
 	// convert radius to output units
-	double radius = convert(_radius, 0);
+	double radius = this->convert(_radius, 0);
+	//double radius = _radius;
 
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
@@ -1111,7 +1112,7 @@ int Robot::recordDistancesEnd(int &num) {
 	this->recordAnglesEnd(num);
 
 	// convert radius to output units
-	double radius = convert(_radius, 0);
+	double radius = this->convert(_radius, 0);
 
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
@@ -1401,7 +1402,7 @@ int Robot::turnLeft(double angle, double radius, double trackwidth) {
 
 int Robot::turnLeftNB(double angle, double radius, double trackwidth) {
 	// use internally calculated track width
-	double width = convert(_trackwidth, 0);
+	double width = this->convert(_trackwidth, 0);
 
 	// calculate joint angle from global turn angle
 	angle = (angle*width)/(2*radius);
@@ -1425,7 +1426,7 @@ int Robot::turnRight(double angle, double radius, double trackwidth) {
 
 int Robot::turnRightNB(double angle, double radius, double trackwidth) {
 	// use internally calculated track width
-	double width = convert(_trackwidth, 0);
+	double width = this->convert(_trackwidth, 0);
 
 	// calculate joint angle from global turn angle
 	angle = (angle*width)/(2*radius);
@@ -1707,7 +1708,7 @@ void* Robot::simPostCollisionThreadEntry(void *arg) {
 /**********************************************************
 	private functions
  **********************************************************/
-double convert(double value, int tometer) {
+double Robot::convert(double value, int tometer) {
 	double tmp = 0;
 
 	if (tometer)
@@ -1941,13 +1942,13 @@ void* Robot::recordAngleBeginThread(void *arg) {
 			rArg->num += RECORD_ANGLE_ALLOC_SIZE;
 			// create larger array for time
 			double *newbuf = new double[rArg->num];
-			memcpy(newbuf, *rArg->ptime, sizeof(double)*i);
-			delete *(rArg->ptime);
+			memcpy(newbuf, *(rArg->ptime), sizeof(double)*i);
+			delete [] *(rArg->ptime);
 			*(rArg->ptime) = newbuf;
 			// create larger array for angle
 			newbuf = new double[rArg->num];
-			memcpy(newbuf, *(rArg->pangle), sizeof(double)*i);
-			delete (*(rArg->pangle));
+			memcpy(newbuf, *(rArg->pangle[0]), sizeof(double)*i);
+			delete [] *(rArg->pangle[0]);
 			*(rArg->pangle[0]) = newbuf;
 		}
 
@@ -2090,12 +2091,12 @@ void* Robot::recordAnglesBeginThread(void *arg) {
 			// create larger array for time
 			double *newbuf = new double[rArg->num];
 			memcpy(newbuf, *rArg->ptime, sizeof(double)*i);
-			delete *(rArg->ptime);
+			delete [] *(rArg->ptime);
 			*(rArg->ptime) = newbuf;
 			for (int j = 0; j < rArg->robot->_dof; j++) {
 				newbuf = new double[rArg->num];
 				memcpy(newbuf, *(rArg->pangle[j]), sizeof(double)*i);
-				delete (*(rArg->pangle[j]));
+				delete [] *(rArg->pangle[j]);
 				*(rArg->pangle[j]) = newbuf;
 			}
 		}

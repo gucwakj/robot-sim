@@ -283,8 +283,8 @@ class DLLIMPORT Robot {
 
 	// private functions
 	private:
-		double convert(double value, int tometer);
 		bool is_shift_enabled(void);
+		double convert(double, int);
 		double normal(double);
 		double uniform(void);
 		static void* driveTimeNBThread(void*);
