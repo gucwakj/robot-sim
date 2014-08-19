@@ -1,10 +1,10 @@
-#ifndef CUBUS_H_
-#define CUBUS_H_
+#ifndef CUBUS_HPP_
+#define CUBUS_HPP_
 
 #include "config.h"
-#include "robosim.h"
+#include "robosim.hpp"
 #ifdef ENABLE_GRAPHICS
-#include "graphics.h"
+#include "graphics.hpp"
 #endif // ENABLE_GRAPHICS
 
 class DLLIMPORT Cubus : public ModularRobot {
@@ -98,5 +98,5 @@ class DLLIMPORT CubusGroup : public Group<Cubus> {
 // simulation
 extern RoboSim *g_sim;
 
-#endif // CUBUS_H_
+#endif // CUBUS_HPP_
 

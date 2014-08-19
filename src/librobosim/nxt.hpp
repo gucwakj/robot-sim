@@ -1,10 +1,10 @@
-#ifndef NXT_H_
-#define NXT_H_
+#ifndef NXT_HPP_
+#define NXT_HPP_
 
-#include "robosim.h"
 #include "config.h"
+#include "robosim.hpp"
 #ifdef ENABLE_GRAPHICS
-#include "graphics.h"
+#include "graphics.hpp"
 #endif // ENABLE_GRAPHICS
 
 class DLLIMPORT CNXT : virtual public Robot {
@@ -79,5 +79,5 @@ class DLLIMPORT CNXTGroup : public Group<CNXT> {
 // simulation
 extern RoboSim *g_sim;
 
-#endif // NXT_H_
+#endif // NXT_HPP_
 

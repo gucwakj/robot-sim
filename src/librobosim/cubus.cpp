@@ -1,4 +1,4 @@
-#include "cubus.h"
+#include "cubus.hpp"
 
 Cubus::Cubus(void) : Robot(JOINT1, JOINT3) {
 	// initialize parameters

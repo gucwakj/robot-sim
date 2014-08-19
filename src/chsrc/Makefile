@@ -8,7 +8,7 @@ PKGDIR = $(PACKAGE)-$(VERSION)/$(PACKAGE)
 
 SRC = ../librobosim
 CHDL = ./chdl
-HEADERS = $(SRC)/macros.h $(SRC)/robosim.h $(SRC)/graphics.h $(SRC)/robot.h $(SRC)/modularrobot.h $(SRC)/mobot.h $(SRC)/linkbot.h $(SRC)/nxt.h
+HEADERS = $(SRC)/macros.hpp $(SRC)/robosim.hpp $(SRC)/graphics.hpp $(SRC)/robot.hpp $(SRC)/modularrobot.hpp $(SRC)/linkbot.hpp $(SRC)/mobot.hpp $(SRC)/nxt.hpp
 CPPFLAGS = -DdDOUBLE -fPIC -Wno-write-strings
 INCLUDES = -I../librobosim/build/ -I../opende/sys/include/ -I../osg/include/ -I../osg/build/include/ -I../tinyxml2/
 LIBPATHS = -L../opende/sys/lib/ -L../osg/build/lib/ -L../tinyxml2/build/
@@ -104,7 +104,7 @@ createpkg: librobosim.dl
 	cp ./include/linkbot.h $(PKGDIR)/include
 	cp ./include/mobot.h $(PKGDIR)/include
 	cp ./include/nxt.h $(PKGDIR)/include
-	cp $(SRC)/macros.h $(PKGDIR)/include
+	cp $(SRC)/macros.hpp $(PKGDIR)/include
 	mkdir $(PKGDIR)/lib
 	cp ./chf/robotgroup.chf $(PKGDIR)/lib
 	cp ./chf/clinkboti.chf $(PKGDIR)/lib

@@ -1,10 +1,10 @@
-#ifndef LINKBOT_H_
-#define LINKBOT_H_
+#ifndef LINKBOT_HPP_
+#define LINKBOT_HPP_
 
 #include "config.h"
-#include "robosim.h"
+#include "robosim.hpp"
 #ifdef ENABLE_GRAPHICS
-#include "graphics.h"
+#include "graphics.hpp"
 #endif // ENABLE_GRAPHICS
 
 class DLLIMPORT CLinkbotT : public ModularRobot {
@@ -180,5 +180,5 @@ typedef struct linkbotMoveArg_s {
 // simulation
 extern RoboSim *g_sim;
 
-#endif // LINKBOT_H_
+#endif // LINKBOT_HPP_
 

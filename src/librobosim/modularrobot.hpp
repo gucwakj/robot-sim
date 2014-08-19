@@ -1,7 +1,8 @@
-#ifndef MODULARROBOT_H_
-#define MODULARROBOT_H_
+#ifndef MODULARROBOT_HPP_
+#define MODULARROBOT_HPP_
 
-#include "robot.h"
+#include "config.h"
+#include "robot.hpp"
 
 // connector
 typedef struct conn_s {
@@ -61,5 +62,5 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 		double _smallwheel_radius;	// dimension: small wheel radius
 };
 
-#endif // MODULARROBOT_H_
+#endif // MODULARROBOT_HPP_
 

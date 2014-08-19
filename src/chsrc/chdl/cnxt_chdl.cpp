@@ -1,4 +1,4 @@
-#include "../librobosim/nxt.h"
+#include "../librobosim/nxt.hpp"
 #ifdef _WIN32
 #include <windows.h>
 #endif

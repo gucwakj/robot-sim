@@ -1,5 +1,5 @@
-#ifndef ROBOT_H_
-#define ROBOT_H_
+#ifndef ROBOT_HPP_
+#define ROBOT_HPP_
 
 #ifdef _WIN32
 #include <windows.h>
@@ -9,7 +9,6 @@
 #include <pthread.h>
 #include <unistd.h>
 #endif // _WIN32
-
 #include <ode/ode.h>
 #include <cctype>
 #include <climits>
@@ -19,14 +18,16 @@
 #include <cstdarg>
 #include <ctime>
 #include <vector>
-#include "config.h"
-#include "macros.h"
-#include "rgbhashtable.h"
-
 #ifdef ENABLE_GRAPHICS
 #include <osg/Group>
 #include <osg/ShapeDrawable>
-#include "graphics.h"
+#endif // ENABLE_GRAPHICS
+
+#include "config.h"
+#include "macros.hpp"
+#include "rgbhashtable.h"
+#ifdef ENABLE_GRAPHICS
+#include "graphics.hpp"
 #endif // ENABLE_GRAPHICS
 
 // forward declare friends
@@ -388,5 +389,5 @@ typedef struct moveArg_s {
 	Robot *robot;
 } moveArg_t;
 
-#endif // ROBOT_H_
+#endif // ROBOT_HPP_
 

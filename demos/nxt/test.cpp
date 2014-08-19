@@ -1,5 +1,5 @@
 #include <iostream>
-#include "nxt.h"
+#include "nxt.hpp"
 using namespace std;
 
 int main(int argc, char *argv[]) {

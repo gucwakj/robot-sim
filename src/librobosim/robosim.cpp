@@ -1,4 +1,4 @@
-#include "robosim.h"
+#include "robosim.hpp"
 using namespace std;
 
 // global robot simulation object

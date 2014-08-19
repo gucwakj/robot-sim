@@ -1,9 +1,9 @@
-#include "graphics.h"
-#include "robosim.h"
-#include "linkbot.h"
-#include "mobot.h"
-#include "nxt.h"
-#include "cubus.h"
+#include "graphics.hpp"
+#include "robosim.hpp"
+#include "linkbot.hpp"
+#include "mobot.hpp"
+#include "nxt.hpp"
+#include "cubus.hpp"
 
 osg::Node::NodeMask NOT_VISIBLE_MASK = 0x0;
 osg::Node::NodeMask RECEIVES_SHADOW_MASK = 0x1;

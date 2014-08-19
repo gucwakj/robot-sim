@@ -1,5 +1,5 @@
-#include "robot.h"
-#include "robosim.h"
+#include "robot.hpp"
+#include "robosim.hpp"
 
 Robot::Robot(robotJointId_t leftWheel, robotJointId_t rightWheel) {
 	_leftWheel = leftWheel;

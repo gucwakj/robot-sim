@@ -1,4 +1,4 @@
-#include "nxt.h"
+#include "nxt.hpp"
 
 CNXT::CNXT(void) : Robot(JOINT1, JOINT2) {
 	// initialize parameters

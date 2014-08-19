@@ -1,10 +1,10 @@
-#ifndef MOBOT_H_
-#define MOBOT_H_
+#ifndef MOBOT_HPP_
+#define MOBOT_HPP_
 
 #include "config.h"
-#include "robosim.h"
+#include "robosim.hpp"
 #ifdef ENABLE_GRAPHICS
-#include "graphics.h"
+#include "graphics.hpp"
 #endif // ENABLE_GRAPHICS
 
 class DLLIMPORT CMobot : public ModularRobot {
@@ -223,5 +223,5 @@ typedef struct mobotMotionArg_s {
 // simulation
 extern RoboSim *g_sim;
 
-#endif  // MOBOT_H_
+#endif  // MOBOT_HPP_
 

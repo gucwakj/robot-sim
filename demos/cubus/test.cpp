@@ -1,5 +1,5 @@
 #include <iostream>
-#include "cubus.h"
+#include "cubus.hpp"
 using namespace std;
 
 int main(int argc, char *argv[]) {

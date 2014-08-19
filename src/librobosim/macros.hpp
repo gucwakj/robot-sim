@@ -1,5 +1,5 @@
-#ifndef MACROS_H_
-#define MACROS_H_
+#ifndef MACROS_HPP_
+#define MACROS_HPP_
 
 #define EPSILON DBL_EPSILON
 #define RECORD_ANGLE_ALLOC_SIZE 16
@@ -145,4 +145,4 @@ typedef struct xml_robot_s {
 
 typedef double* robotRecordData_t;
 
-#endif // MACROS_H_
+#endif // MACROS_HPP_

@@ -1,13 +1,14 @@
-#ifndef ROBOSIM_H_
-#define ROBOSIM_H_
+#ifndef ROBOSIM_HPP_
+#define ROBOSIM_HPP_
 
-#include "config.h"
-#include "robot.h"
-#include "modularrobot.h"
 #include <iostream>
 #include <tinyxml2.h>
+
+#include "config.h"
+#include "robot.hpp"
+#include "modularrobot.hpp"
 #ifdef ENABLE_GRAPHICS
-#include "graphics.h"
+#include "graphics.hpp"
 #endif // ENABLE_GRAPHICS
 
 // ground struct
@@ -115,5 +116,5 @@ class DLLIMPORT RoboSim {
 #endif // ENABLE_GRAPHICS
 };
 
-#endif	// ROBOSIM_H_
+#endif	// ROBOSIM_HPP_
 

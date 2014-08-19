@@ -2,7 +2,7 @@
 #define NXT_H_
 
 #include <array.h>
-#include "macros.h"
+#include "macros.hpp"
 
 #define NUM_DOF 2
 

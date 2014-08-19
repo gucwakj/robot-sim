@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_H_
-#define GRAPHICS_H_
+#ifndef GRAPHICS_HPP_
+#define GRAPHICS_HPP_
 
 #include <ode/ode.h>
 #include <OpenThreads/Thread>
@@ -40,7 +40,7 @@
 #include <osgViewer/ViewerEventHandlers>
 
 #include "config.h"
-#include "robot.h"
+#include "robot.hpp"
 
 extern osg::Node::NodeMask NOT_VISIBLE_MASK;
 extern osg::Node::NodeMask RECEIVES_SHADOW_MASK;
@@ -159,4 +159,4 @@ class cubusNodeCallback : public osg::NodeCallback {
 		int _count;
 };
 
-#endif // GRAPHICS_H_
+#endif // GRAPHICS_HPP_

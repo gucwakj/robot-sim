@@ -1,4 +1,4 @@
-#include "mobot.h"
+#include "mobot.hpp"
 
 CMobot::CMobot(void) : Robot(JOINT1, JOINT4) {
 	// initialize parameters
