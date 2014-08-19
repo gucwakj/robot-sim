@@ -19,14 +19,10 @@ target: librobosim.dl
 OBJS =	robosim.o \
 		graphics.o \
 		robot.o \
-		robotgroup.o \
 		modularrobot.o \
 		linkbot.o \
-		linkbotgroup.o \
 		mobot.o \
-		mobotgroup.o \
 		nxt.o \
-		nxtgroup.o \
 		rgbhashtable.o \
 		robotgroup_chdl.o \
 		clinkboti_chdl.o \
@@ -43,29 +39,17 @@ graphics.o: $(SRC)/graphics.cpp $(HEADERS)
 robot.o: $(SRC)/robot.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/robot.cpp $(CPPFLAGS) $(INCLUDES)
 
-robotgroup.o: $(SRC)/robotgroup.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/robotgroup.cpp $(CPPFLAGS) $(INCLUDES)
-
 modularrobot.o: $(SRC)/modularrobot.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/modularrobot.cpp $(CPPFLAGS) $(INCLUDES)
 
 linkbot.o: $(SRC)/linkbot.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbot.cpp $(CPPFLAGS) $(INCLUDES)
 
-linkbotgroup.o: $(SRC)/linkbotgroup.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/linkbotgroup.cpp $(CPPFLAGS) $(INCLUDES)
-
 mobot.o: $(SRC)/mobot.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/mobot.cpp $(CPPFLAGS) $(INCLUDES)
 
-mobotgroup.o: $(SRC)/mobotgroup.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/mobotgroup.cpp $(CPPFLAGS) $(INCLUDES)
-
 nxt.o: $(SRC)/nxt.cpp $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/nxt.cpp $(CPPFLAGS) $(INCLUDES)
-
-nxtgroup.o: $(SRC)/nxtgroup.cpp $(HEADERS)
-	ch dlcomp librobosim.dl cplusplus $(SRC)/nxtgroup.cpp $(CPPFLAGS) $(INCLUDES)
 
 rgbhashtable.o: $(SRC)/rgbhashtable.c $(HEADERS)
 	ch dlcomp librobosim.dl cplusplus $(SRC)/rgbhashtable.c $(CPPFLAGS) $(INCLUDES)

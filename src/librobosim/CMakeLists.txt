@@ -57,7 +57,6 @@ set(EXTRA_LIBS ${EXTRA_LIBS} optimized ode debug oded)
 # Add base source files to library
 SET(SRCS ${SRCS}
 	robot.cpp
-	robotgroup.cpp
 	robosim.cpp
 )
 
@@ -97,25 +96,25 @@ endif (ENABLE_GRAPHICS)
 # Option for Linkbots
 option (ENABLE_LINKBOT "Enable Linkbots." ON)
 if (ENABLE_LINKBOT)
-	set(SRCS ${SRCS} modularrobot.cpp linkbot.cpp linkbotgroup.cpp)
+	set(SRCS ${SRCS} modularrobot.cpp linkbot.cpp)
 endif (ENABLE_LINKBOT)
 
 # Option for Mobots
 option (ENABLE_MOBOT "Enable Mobots." ON)
 if (ENABLE_MOBOT)
-	set(SRCS ${SRCS} modularrobot.cpp mobot.cpp mobotgroup.cpp)
+	set(SRCS ${SRCS} modularrobot.cpp mobot.cpp)
 endif (ENABLE_MOBOT)
 
 # Option for NXT
 option (ENABLE_NXT "Enable NXT." ON)
 if (ENABLE_NXT)
-	set(SRCS ${SRCS} nxt.cpp nxtgroup.cpp)
+	set(SRCS ${SRCS} nxt.cpp)
 endif (ENABLE_NXT)
 
 # Option for Cubus
 option (ENABLE_CUBUS "Enable Cubus." ON)
 if (ENABLE_CUBUS)
-	set(SRCS ${SRCS} cubus.cpp cubusgroup.cpp)
+	set(SRCS ${SRCS} cubus.cpp)
 endif (ENABLE_CUBUS)
 
 # Add pthreads

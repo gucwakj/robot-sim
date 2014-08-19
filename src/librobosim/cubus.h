@@ -81,29 +81,19 @@ class DLLIMPORT Cubus : public ModularRobot {
 				_face_radius;
 };
 
-class DLLIMPORT CubusGroup : virtual public RobotGroup {
-	// public api
+class DLLIMPORT CubusGroup : public Group<Cubus> {
 	public:
-		CubusGroup(void);
-		virtual ~CubusGroup(void);
-		int addRobot(Cubus&);
-		int addRobots(Cubus[], int);
+		CubusGroup(void) : Group<Cubus>() {};
+		virtual ~CubusGroup(void) {};
 
-		int move(double, double, double, double, double, double);
-		int moveNB(double, double, double, double, double, double);
-		int moveTo(double, double, double, double, double, double);
-		int moveToNB(double, double, double, double, double, double);
-		int setJointSpeeds(double, double, double, double, double, double);
-		int setJointSpeedRatios(double, double, double, double, double, double);
-
-	// private data
-	private:
-		typedef struct robots_s {
-			Cubus *robot;
-			struct robots_s *next;
-		} *robots_t;
-		robots_t _robots;
+		inline int move(double, double, double, double, double, double);
+		inline int moveNB(double, double, double, double, double, double);
+		inline int moveTo(double, double, double, double, double, double);
+		inline int moveToNB(double, double, double, double, double, double);
+		inline int setJointSpeeds(double, double, double, double, double, double);
+		inline int setJointSpeedRatios(double, double, double, double, double, double);
 };
+#include "cubusgroup.cpp"
 
 // simulation
 extern RoboSim *g_sim;

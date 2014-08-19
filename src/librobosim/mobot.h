@@ -148,75 +148,70 @@ class DLLIMPORT CMobot : public ModularRobot {
 				_tank_depth;
 };
 
-class CMobotGroup : virtual public RobotGroup {
+class DLLIMPORT CMobotGroup : public Group<CMobot> {
 	// public api
 	public:
-		CMobotGroup(void);
-		virtual ~CMobotGroup(void);
-		int addRobot(CMobot&);
-		int addRobots(CMobot[], int);
+		inline CMobotGroup(void);
+		inline virtual ~CMobotGroup(void);
 
-		int motionArch(double);
-		int motionArchNB(double);
-		int motionDistance(double, double);
-		int motionDistanceNB(double, double);
-		int motionInchwormLeftNB(int);
-		int motionInchwormRight(int);
-		int motionInchwormRightNB(int);
-		int motionRollBackward(double);
-		int motionRollBackwardNB(double);
-		int motionRollForwardNB(double);
-		int motionSkinny(double);
-		int motionSkinnyNB(double);
-		int motionRollForward(double);
-		int motionInchwormLeft(int);
-		int motionStand(void);
-		int motionStandNB(void);
-		int motionTurnLeft(double);
-		int motionTurnLeftNB(double);
-		int motionTurnRight(double);
-		int motionTurnRightNB(double);
-		int motionTumbleRight(int);
-		int motionTumbleRightNB(int);
-		int motionTumbleLeft(int);
-		int motionTumbleLeftNB(int);
-		int motionUnstand(void);
-		int motionUnstandNB(void);
-		int motionWait(void);
-		int move(double, double, double, double);
-		int moveNB(double, double, double, double);
-		int moveTo(double, double, double, double);
-		int moveToNB(double, double, double, double);
-		int moveToByTrackPos(double, double, double, double);
-		int moveToByTrackPosNB(double, double, double, double);
-		int setJointSpeeds(double, double, double, double);
-		int setJointSpeedRatios(double, double, double, double);
+		inline int motionArch(double);
+		inline int motionArchNB(double);
+		inline int motionDistance(double, double);
+		inline int motionDistanceNB(double, double);
+		inline int motionInchwormLeftNB(int);
+		inline int motionInchwormRight(int);
+		inline int motionInchwormRightNB(int);
+		inline int motionRollBackward(double);
+		inline int motionRollBackwardNB(double);
+		inline int motionRollForwardNB(double);
+		inline int motionSkinny(double);
+		inline int motionSkinnyNB(double);
+		inline int motionRollForward(double);
+		inline int motionInchwormLeft(int);
+		inline int motionStand(void);
+		inline int motionStandNB(void);
+		inline int motionTurnLeft(double);
+		inline int motionTurnLeftNB(double);
+		inline int motionTurnRight(double);
+		inline int motionTurnRightNB(double);
+		inline int motionTumbleRight(int);
+		inline int motionTumbleRightNB(int);
+		inline int motionTumbleLeft(int);
+		inline int motionTumbleLeftNB(int);
+		inline int motionUnstand(void);
+		inline int motionUnstandNB(void);
+		inline int motionWait(void);
+		inline int move(double, double, double, double);
+		inline int moveNB(double, double, double, double);
+		inline int moveTo(double, double, double, double);
+		inline int moveToNB(double, double, double, double);
+		inline int moveToByTrackPos(double, double, double, double);
+		inline int moveToByTrackPosNB(double, double, double, double);
+		inline int setJointSpeeds(double, double, double, double);
+		inline int setJointSpeedRatios(double, double, double, double);
 
 	// private functions
 	private:
-		static void* motionArchThread(void*);
-		static void* motionDistanceThread(void*);
-		static void* motionInchwormLeftThread(void*);
-		static void* motionInchwormRightThread(void*);
-		static void* motionRollBackwardThread(void*);
-		static void* motionRollForwardThread(void*);
-		static void* motionSkinnyThread(void*);
-		static void* motionStandThread(void*);
-		static void* motionTurnLeftThread(void*);
-		static void* motionTurnRightThread(void*);
-		static void* motionTumbleRightThread(void*);
-		static void* motionTumbleLeftThread(void*);
-		static void* motionUnstandThread(void*);
+		inline static void* motionArchThread(void*);
+		inline static void* motionDistanceThread(void*);
+		inline static void* motionInchwormLeftThread(void*);
+		inline static void* motionInchwormRightThread(void*);
+		inline static void* motionRollBackwardThread(void*);
+		inline static void* motionRollForwardThread(void*);
+		inline static void* motionSkinnyThread(void*);
+		inline static void* motionStandThread(void*);
+		inline static void* motionTurnLeftThread(void*);
+		inline static void* motionTurnRightThread(void*);
+		inline static void* motionTumbleRightThread(void*);
+		inline static void* motionTumbleLeftThread(void*);
+		inline static void* motionUnstandThread(void*);
 
 	// private data
 	private:
-		typedef struct robots_s {
-			CMobot *robot;
-			struct robots_s *next;
-		} *robots_t;
-		robots_t _robots;
+		THREAD_T *_thread;
 		int _motion;
 };
+#include "mobotgroup.cpp"
 
 // global structs for threading
 typedef struct mobotMotionArg_s {

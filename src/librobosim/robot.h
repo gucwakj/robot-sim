@@ -305,84 +305,82 @@ class DLLIMPORT Robot {
 		robotJointId_t _rightWheel;		// joint for right wheel
 };
 
-class DLLIMPORT RobotGroup {
+template<class T> class Group {
 	// public api
 	public:
-		RobotGroup(void);
-		virtual ~RobotGroup(void);
-		int addRobot(Robot&);
-		int addRobots(Robot[], int);
+		inline Group(void);
+		inline virtual ~Group(void);
+		inline virtual int addRobot(T&);
+		inline virtual int addRobots(T[], int);
 
-		int blinkLED(double, int);
-		int connect(void);
-		int disconnect(void);
-		int driveBackward(double);
-		int driveBackwardNB(double);
-		int driveDistance(double, double);
-		int driveDistanceNB(double, double);
-		int driveForever(void);
-		int driveForeverNB(void);
-		int driveForward(double);
-		int driveForwardNB(double);
-		int driveTime(double);
-		int driveTimeNB(double);
-		int holdJoint(robotJointId_t);
-		int holdJoints(void);
-		int holdJointsAtExit(void);
-		int isMoving(void);
-		int isNotMoving(void);
-		int moveForeverNB(void);
-		int moveJoint(robotJointId_t, double);
-		int moveJointNB(robotJointId_t, double);
-		int moveJointByPowerNB(robotJointId_t, int);
-		int moveJointForeverNB(robotJointId_t);
-		int moveJointTime(robotJointId_t, double);
-		int moveJointTimeNB(robotJointId_t, double);
-		int moveJointTo(robotJointId_t, double);
-		int moveJointToNB(robotJointId_t, double);
-		int moveJointToByTrackPos(robotJointId_t, double);
-		int moveJointToByTrackPosNB(robotJointId_t, double);
-		int moveJointWait(robotJointId_t);
-		int moveTime(double);
-		int moveTimeNB(double);
-		int moveToZero(void);
-		int moveToZeroNB(void);
-		int moveWait(void);
-		int relaxJoint(robotJointId_t id);
-		int relaxJoints(void);
-		int resetToZero(void);
-		int resetToZeroNB(void);
-		int setBuzzerFrequency(int, double);
-		int setBuzzerFrequencyOff(void);
-		int setBuzzerFrequencyOn(int);
-		int setLEDColor(char*);
-		int setLEDColorRGB(int, int, int);
-		int setJointSafetyAngle(double);
-		int setJointSafetyAngleTimeout(double);
-		int setJointSpeed(robotJointId_t, double);
-		int setJointSpeedRatio(robotJointId_t, double);
-		int setSpeed(double, double);
-		int traceOff(void);
-		int traceOn(void);
-		int turnLeft(double, double, double);
-		int turnLeftNB(double, double, double);
-		int turnRight(double, double, double);
-		int turnRightNB(double, double, double);
+		inline int blinkLED(double, int);
+		inline int connect(void);
+		inline int disconnect(void);
+		inline int driveBackward(double);
+		inline int driveBackwardNB(double);
+		inline int driveDistance(double, double);
+		inline int driveDistanceNB(double, double);
+		inline int driveForever(void);
+		inline int driveForeverNB(void);
+		inline int driveForward(double);
+		inline int driveForwardNB(double);
+		inline int driveTime(double);
+		inline int driveTimeNB(double);
+		inline int holdJoint(robotJointId_t);
+		inline int holdJoints(void);
+		inline int holdJointsAtExit(void);
+		inline int isMoving(void);
+		inline int isNotMoving(void);
+		inline int moveForeverNB(void);
+		inline int moveJoint(robotJointId_t, double);
+		inline int moveJointNB(robotJointId_t, double);
+		inline int moveJointByPowerNB(robotJointId_t, int);
+		inline int moveJointForeverNB(robotJointId_t);
+		inline int moveJointTime(robotJointId_t, double);
+		inline int moveJointTimeNB(robotJointId_t, double);
+		inline int moveJointTo(robotJointId_t, double);
+		inline int moveJointToNB(robotJointId_t, double);
+		inline int moveJointToByTrackPos(robotJointId_t, double);
+		inline int moveJointToByTrackPosNB(robotJointId_t, double);
+		inline int moveJointWait(robotJointId_t);
+		inline int moveTime(double);
+		inline int moveTimeNB(double);
+		inline int moveToZero(void);
+		inline int moveToZeroNB(void);
+		inline int moveWait(void);
+		inline int relaxJoint(robotJointId_t id);
+		inline int relaxJoints(void);
+		inline int resetToZero(void);
+		inline int resetToZeroNB(void);
+		inline int setBuzzerFrequency(int, double);
+		inline int setBuzzerFrequencyOff(void);
+		inline int setBuzzerFrequencyOn(int);
+		inline int setLEDColor(char*);
+		inline int setLEDColorRGB(int, int, int);
+		inline int setJointSafetyAngle(double);
+		inline int setJointSafetyAngleTimeout(double);
+		inline int setJointSpeed(robotJointId_t, double);
+		inline int setJointSpeedRatio(robotJointId_t, double);
+		inline int setSpeed(double, double);
+		inline int traceOff(void);
+		inline int traceOn(void);
+		inline int turnLeft(double, double, double);
+		inline int turnLeftNB(double, double, double);
+		inline int turnRight(double, double, double);
+		inline int turnRightNB(double, double, double);
 
 	// data members
 	protected:
-		double _d;
-		int _i;
-		THREAD_T *_thread;
-
-	// private data
-	private:
 		typedef struct robots_s {
-			Robot *robot;
+			T *robot;
 			struct robots_s *next;
 		} *robots_t;
+		double _d;
+		int _i;
 		robots_t _robots;
 };
+class DLLIMPORT RobotGroup : public Group<Robot> {};
+#include "robotgroup.cpp"
 
 // global structs for threading
 typedef struct moveArg_s {

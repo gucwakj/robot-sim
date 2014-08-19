@@ -60,31 +60,21 @@ class DLLIMPORT CNXT : virtual public Robot {
 		};
 };
 
-class DLLIMPORT CNXTGroup : virtual public RobotGroup {
-	// public api
+class DLLIMPORT CNXTGroup : public Group<CNXT> {
 	public:
-		CNXTGroup(void);
-		virtual ~CNXTGroup(void);
-		int addRobot(CNXT&);
-		int addRobots(CNXT[], int);
+		CNXTGroup(void) : Group<CNXT>() {};
+		virtual ~CNXTGroup(void) {};
 
-		int move(double, double);
-		int moveNB(double, double);
-		int moveTo(double, double);
-		int moveToNB(double, double);
-		int moveToByTrackPos(double, double);
-		int moveToByTrackPosNB(double, double);
-		int setJointSpeeds(double, double);
-		int setJointSpeedRatios(double, double);
-
-	// private data
-	private:
-		typedef struct robots_s {
-			CNXT *robot;
-			struct robots_s *next;
-		} *robots_t;
-		robots_t _robots;
+		inline int move(double, double);
+		inline int moveNB(double, double);
+		inline int moveTo(double, double);
+		inline int moveToNB(double, double);
+		inline int moveToByTrackPos(double, double);
+		inline int moveToByTrackPosNB(double, double);
+		inline int setJointSpeeds(double, double);
+		inline int setJointSpeedRatios(double, double);
 };
+#include "nxtgroup.cpp"
 
 // simulation
 extern RoboSim *g_sim;

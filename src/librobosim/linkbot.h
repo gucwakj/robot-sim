@@ -121,60 +121,52 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 				_tinywheel_radius;
 };
 
-class DLLIMPORT CLinkbotTGroup : virtual public RobotGroup {
-	// public api
-	public:
-		CLinkbotTGroup(void);
-		virtual ~CLinkbotTGroup(void);
-		int addRobot(CLinkbotT&);
-		int addRobots(CLinkbotT[], int);
-
-		int accelJointAngleNB(robotJointId_t, double, double);
-		int accelJointCycloidalNB(robotJointId_t, double, double);
-		int accelJointHarmonicNB(robotJointId_t, double, double);
-		int accelJointSmoothNB(robotJointId_t, double, double, double, double);
-		int accelJointTimeNB(robotJointId_t, double, double);
-		int accelJointToMaxSpeedNB(robotJointId_t, double);
-		int accelJointToVelocityNB(robotJointId_t, double, double);
-		int closeGripper(void);
-		int closeGripperNB(void);
-		int driveAccelCycloidalNB(double, double, double);
-		int driveAccelDistanceNB(double, double, double);
-		int driveAccelHarmonicNB(double, double, double);
-		int driveAccelSmoothNB(double, double, double, double, double);
-		int driveAccelTimeNB(double, double, double);
-		int driveAccelToMaxSpeedNB(double, double);
-		int driveAccelToVelocityNB(double, double, double);
-		int move(double, double, double);
-		int moveNB(double, double, double);
-		int moveTo(double, double, double);
-		int moveToNB(double, double, double);
-		int moveToByTrackPos(double, double, double);
-		int moveToByTrackPosNB(double, double, double);
-		int openGripper(double);
-		int openGripperNB(double);
-		int setJointSpeeds(double, double, double);
-		int setJointSpeedRatios(double, double, double);
-
-	// private data
-	private:
-		typedef struct robots_s {
-			CLinkbotT *robot;
-			struct robots_s *next;
-		} *robots_t;
-		robots_t _robots;
-};
-
 class DLLIMPORT CLinkbotI : public CLinkbotT {
 	public:
 		CLinkbotI(void) : Robot(JOINT1, JOINT3), CLinkbotT(1, LINKBOTI) {}
 };
+
 class DLLIMPORT CLinkbotL : public CLinkbotT {
 	public:
 		CLinkbotL(void) : Robot(JOINT1, JOINT2), CLinkbotT(2, LINKBOTL) {}
 };
+
+class DLLIMPORT CLinkbotTGroup : public Group<CLinkbotT> {
+	// public api
+	public:
+		CLinkbotTGroup(void) : Group<CLinkbotT>() {};
+		virtual ~CLinkbotTGroup(void) {};
+
+		inline int accelJointAngleNB(robotJointId_t, double, double);
+		inline int accelJointCycloidalNB(robotJointId_t, double, double);
+		inline int accelJointHarmonicNB(robotJointId_t, double, double);
+		inline int accelJointSmoothNB(robotJointId_t, double, double, double, double);
+		inline int accelJointTimeNB(robotJointId_t, double, double);
+		inline int accelJointToMaxSpeedNB(robotJointId_t, double);
+		inline int accelJointToVelocityNB(robotJointId_t, double, double);
+		inline int closeGripper(void);
+		inline int closeGripperNB(void);
+		inline int driveAccelCycloidalNB(double, double, double);
+		inline int driveAccelDistanceNB(double, double, double);
+		inline int driveAccelHarmonicNB(double, double, double);
+		inline int driveAccelSmoothNB(double, double, double, double, double);
+		inline int driveAccelTimeNB(double, double, double);
+		inline int driveAccelToMaxSpeedNB(double, double);
+		inline int driveAccelToVelocityNB(double, double, double);
+		inline int move(double, double, double);
+		inline int moveNB(double, double, double);
+		inline int moveTo(double, double, double);
+		inline int moveToNB(double, double, double);
+		inline int moveToByTrackPos(double, double, double);
+		inline int moveToByTrackPosNB(double, double, double);
+		inline int openGripper(double);
+		inline int openGripperNB(double);
+		inline int setJointSpeeds(double, double, double);
+		inline int setJointSpeedRatios(double, double, double);
+};
 class DLLIMPORT CLinkbotIGroup : public CLinkbotTGroup {};
 class DLLIMPORT CLinkbotLGroup : public CLinkbotTGroup {};
+#include "linkbotgroup.cpp"
 
 // global structs for threading
 typedef struct linkbotMoveArg_s {

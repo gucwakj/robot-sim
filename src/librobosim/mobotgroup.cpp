@@ -1,50 +1,10 @@
-#include <stdlib.h>
-#include "mobot.h"
-
-CMobotGroup::CMobotGroup(void) {
+CMobotGroup::CMobotGroup(void) : Group<CMobot>() {
 	_motion = 0;
-	_robots = NULL;
+	_thread = new THREAD_T;
 }
 
 CMobotGroup::~CMobotGroup(void) {
-	// remove robots from group
-	while (_robots != NULL) {
-		robots_t tmp = _robots->next;
-		free(_robots);
-		_robots = tmp;
-	}
-
-	// kill thread
 	THREAD_CANCEL(*_thread);
-}
-
-int CMobotGroup::addRobot(CMobot &robot) {
-	// create new robot
-	robots_t nr = (robots_t)malloc(sizeof(struct robots_s));
-	nr->robot = &robot;
-	nr->next = NULL;
-
-	// store new robot
-	robots_t rtmp = _robots;
-	if ( _robots == NULL )
-		_robots = nr;
-	else {
-		while (rtmp->next)
-			rtmp = rtmp->next;
-		rtmp->next = nr;
-	}
-
-	// success
-	return 0;
-}
-
-int CMobotGroup::addRobots(CMobot robots[], int num) {
-	for (int i = 0; i < num; i++) {
-		this->addRobot(robots[i]);
-	}
-
-	// success
-	return 0;
 }
 
 int CMobotGroup::motionArch(double angle) {

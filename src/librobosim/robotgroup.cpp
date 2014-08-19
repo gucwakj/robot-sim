@@ -1,24 +1,21 @@
-#include <stdlib.h>
-#include "linkbot.h"
-
-RobotGroup::RobotGroup(void) {
-	_thread = new THREAD_T;
+template<class T>
+Group<T>::Group(void) {
+	// create robots
 	_robots = NULL;
 }
 
-RobotGroup::~RobotGroup(void) {
-	// remove robots from group
+template<class T>
+Group<T>::~Group(void) {
+	// delete robots
 	while (_robots != NULL) {
 		robots_t tmp = _robots->next;
-		free(_robots);
+		delete _robots;
 		_robots = tmp;
 	}
-
-	// kill thread
-	THREAD_CANCEL(*_thread);
 }
 
-int RobotGroup::addRobot(Robot &robot) {
+template<class T>
+int Group<T>::addRobot(T &robot) {
 	// create new robot
 	robots_t nr = new struct robots_s;
 	nr->robot = &robot;
@@ -38,7 +35,8 @@ int RobotGroup::addRobot(Robot &robot) {
 	return 0;
 }
 
-int RobotGroup::addRobots(Robot robots[], int num) {
+template<class T>
+int Group<T>::addRobots(T robots[], int num) {
 	for (int i = 0; i < num; i++) {
 		this->addRobot(robots[i]);
 	}
@@ -47,7 +45,8 @@ int RobotGroup::addRobots(Robot robots[], int num) {
 	return 0;
 }
 
-int RobotGroup::blinkLED(double delay, int num) {
+template<class T>
+int Group<T>::blinkLED(double delay, int num) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->blinkLED(delay, num);
@@ -58,7 +57,8 @@ int RobotGroup::blinkLED(double delay, int num) {
 	return 0;
 }
 
-int RobotGroup::connect(void) {
+template<class T>
+int Group<T>::connect(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->connect();
@@ -69,7 +69,8 @@ int RobotGroup::connect(void) {
 	return 0;
 }
 
-int RobotGroup::disconnect(void) {
+template<class T>
+int Group<T>::disconnect(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->disconnect();
@@ -80,12 +81,14 @@ int RobotGroup::disconnect(void) {
 	return 0;
 }
 
-int RobotGroup::driveBackward(double angle) {
+template<class T>
+int Group<T>::driveBackward(double angle) {
 	driveBackwardNB(angle);
 	return moveWait();
 }
 
-int RobotGroup::driveBackwardNB(double angle) {
+template<class T>
+int Group<T>::driveBackwardNB(double angle) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->driveBackwardNB(angle);
@@ -96,12 +99,14 @@ int RobotGroup::driveBackwardNB(double angle) {
 	return 0;
 }
 
-int RobotGroup::driveDistance(double distance, double radius) {
+template<class T>
+int Group<T>::driveDistance(double distance, double radius) {
 	driveDistanceNB(distance, radius);
 	return moveWait();
 }
 
-int RobotGroup::driveDistanceNB(double distance, double radius) {
+template<class T>
+int Group<T>::driveDistanceNB(double distance, double radius) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->driveDistanceNB(distance, radius);
@@ -112,12 +117,14 @@ int RobotGroup::driveDistanceNB(double distance, double radius) {
 	return 0;
 }
 
-int RobotGroup::driveForever(void) {
+template<class T>
+int Group<T>::driveForever(void) {
 	driveForeverNB();
 	return moveWait();
 }
 
-int RobotGroup::driveForeverNB(void) {
+template<class T>
+int Group<T>::driveForeverNB(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->driveForeverNB();
@@ -128,12 +135,14 @@ int RobotGroup::driveForeverNB(void) {
 	return 0;
 }
 
-int RobotGroup::driveForward(double angle) {
+template<class T>
+int Group<T>::driveForward(double angle) {
 	driveForwardNB(angle);
 	return moveWait();
 }
 
-int RobotGroup::driveForwardNB(double angle) {
+template<class T>
+int Group<T>::driveForwardNB(double angle) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->driveForwardNB(angle);
@@ -144,7 +153,8 @@ int RobotGroup::driveForwardNB(double angle) {
 	return 0;
 }
 
-int RobotGroup::driveTime(double seconds) {
+template<class T>
+int Group<T>::driveTime(double seconds) {
 	int msecs = seconds * 1000.0;
 
 	robots_t rtmp = _robots;
@@ -169,7 +179,8 @@ int RobotGroup::driveTime(double seconds) {
 	return 0;
 }
 
-int RobotGroup::driveTimeNB(double seconds) {
+template<class T>
+int Group<T>::driveTimeNB(double seconds) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->driveTimeNB(seconds);
@@ -180,7 +191,8 @@ int RobotGroup::driveTimeNB(double seconds) {
 	return 0;
 }
 
-int RobotGroup::holdJoint(robotJointId_t id) {
+template<class T>
+int Group<T>::holdJoint(robotJointId_t id) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->holdJoint(id);
@@ -191,7 +203,8 @@ int RobotGroup::holdJoint(robotJointId_t id) {
 	return 0;
 }
 
-int RobotGroup::holdJoints(void) {
+template<class T>
+int Group<T>::holdJoints(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->holdJoints();
@@ -202,7 +215,8 @@ int RobotGroup::holdJoints(void) {
 	return 0;
 }
 
-int RobotGroup::holdJointsAtExit(void) {
+template<class T>
+int Group<T>::holdJointsAtExit(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->holdJointsAtExit();
@@ -213,7 +227,8 @@ int RobotGroup::holdJointsAtExit(void) {
 	return 0;
 }
 
-int RobotGroup::isMoving(void) {
+template<class T>
+int Group<T>::isMoving(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		if (rtmp->robot->isMoving()) {
@@ -226,11 +241,13 @@ int RobotGroup::isMoving(void) {
 	return 0;
 }
 
-int RobotGroup::isNotMoving(void) {
+template<class T>
+int Group<T>::isNotMoving(void) {
 	return !(this->isMoving());
 }
 
-int RobotGroup::moveForeverNB(void) {
+template<class T>
+int Group<T>::moveForeverNB(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveForeverNB();
@@ -241,12 +258,14 @@ int RobotGroup::moveForeverNB(void) {
 	return 0;
 }
 
-int RobotGroup::moveJoint(robotJointId_t id, double angle) {
+template<class T>
+int Group<T>::moveJoint(robotJointId_t id, double angle) {
 	moveJointNB(id, angle);
 	return moveWait();
 }
 
-int RobotGroup::moveJointNB(robotJointId_t id, double angle) {
+template<class T>
+int Group<T>::moveJointNB(robotJointId_t id, double angle) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveJointNB(id, angle);
@@ -257,7 +276,8 @@ int RobotGroup::moveJointNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int RobotGroup::moveJointByPowerNB(robotJointId_t id, int power) {
+template<class T>
+int Group<T>::moveJointByPowerNB(robotJointId_t id, int power) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveJointByPowerNB(id, power);
@@ -268,7 +288,8 @@ int RobotGroup::moveJointByPowerNB(robotJointId_t id, int power) {
 	return 0;
 }
 
-int RobotGroup::moveJointForeverNB(robotJointId_t id) {
+template<class T>
+int Group<T>::moveJointForeverNB(robotJointId_t id) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveJointForeverNB(id);
@@ -279,7 +300,8 @@ int RobotGroup::moveJointForeverNB(robotJointId_t id) {
 	return 0;
 }
 
-int RobotGroup::moveJointTime(robotJointId_t id, double seconds) {
+template<class T>
+int Group<T>::moveJointTime(robotJointId_t id, double seconds) {
 	this->moveJointTimeNB(id, seconds);
 
 #ifdef _WIN32
@@ -292,7 +314,8 @@ int RobotGroup::moveJointTime(robotJointId_t id, double seconds) {
 	return 0;
 }
 
-int RobotGroup::moveJointTimeNB(robotJointId_t id, double seconds) {
+template<class T>
+int Group<T>::moveJointTimeNB(robotJointId_t id, double seconds) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveJointForeverNB(id);
@@ -303,12 +326,14 @@ int RobotGroup::moveJointTimeNB(robotJointId_t id, double seconds) {
 	return 0;
 }
 
-int RobotGroup::moveJointTo(robotJointId_t id, double angle) {
+template<class T>
+int Group<T>::moveJointTo(robotJointId_t id, double angle) {
 	moveJointToNB(id, angle);
 	return moveWait();
 }
 
-int RobotGroup::moveJointToNB(robotJointId_t id, double angle) {
+template<class T>
+int Group<T>::moveJointToNB(robotJointId_t id, double angle) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveJointToNB(id, angle);
@@ -319,12 +344,14 @@ int RobotGroup::moveJointToNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int RobotGroup::moveJointToByTrackPos(robotJointId_t id, double angle) {
+template<class T>
+int Group<T>::moveJointToByTrackPos(robotJointId_t id, double angle) {
 	moveJointToNB(id, angle);
 	return moveJointWait(id);
 }
 
-int RobotGroup::moveJointToByTrackPosNB(robotJointId_t id, double angle) {
+template<class T>
+int Group<T>::moveJointToByTrackPosNB(robotJointId_t id, double angle) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveJointToByTrackPosNB(id, angle);
@@ -335,7 +362,8 @@ int RobotGroup::moveJointToByTrackPosNB(robotJointId_t id, double angle) {
 	return 0;
 }
 
-int RobotGroup::moveJointWait(robotJointId_t id) {
+template<class T>
+int Group<T>::moveJointWait(robotJointId_t id) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveJointWait(id);
@@ -346,7 +374,8 @@ int RobotGroup::moveJointWait(robotJointId_t id) {
 	return 0;
 }
 
-int RobotGroup::moveTime(double seconds) {
+template<class T>
+int Group<T>::moveTime(double seconds) {
 	int msecs = seconds * 1000.0;
 
 	robots_t rtmp = _robots;
@@ -371,7 +400,8 @@ int RobotGroup::moveTime(double seconds) {
 	return 0;
 }
 
-int RobotGroup::moveTimeNB(double seconds) {
+template<class T>
+int Group<T>::moveTimeNB(double seconds) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveTimeNB(seconds);
@@ -382,12 +412,14 @@ int RobotGroup::moveTimeNB(double seconds) {
 	return 0;
 }
 
-int RobotGroup::moveToZero(void) {
+template<class T>
+int Group<T>::moveToZero(void) {
 	moveToZeroNB();
 	return moveWait();
 }
 
-int RobotGroup::moveToZeroNB(void) {
+template<class T>
+int Group<T>::moveToZeroNB(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveToZeroNB();
@@ -398,7 +430,8 @@ int RobotGroup::moveToZeroNB(void) {
 	return 0;
 }
 
-int RobotGroup::moveWait(void) {
+template<class T>
+int Group<T>::moveWait(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->moveWait();
@@ -409,7 +442,8 @@ int RobotGroup::moveWait(void) {
 	return 0;
 }
 
-int RobotGroup::relaxJoint(robotJointId_t id) {
+template<class T>
+int Group<T>::relaxJoint(robotJointId_t id) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->relaxJoint(id);
@@ -420,7 +454,8 @@ int RobotGroup::relaxJoint(robotJointId_t id) {
 	return 0;
 }
 
-int RobotGroup::relaxJoints(void) {
+template<class T>
+int Group<T>::relaxJoints(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->relaxJoints();
@@ -431,12 +466,14 @@ int RobotGroup::relaxJoints(void) {
 	return 0;
 }
 
-int RobotGroup::resetToZero(void) {
+template<class T>
+int Group<T>::resetToZero(void) {
 	resetToZeroNB();
 	return moveWait();
 }
 
-int RobotGroup::resetToZeroNB(void) {
+template<class T>
+int Group<T>::resetToZeroNB(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->resetToZeroNB();
@@ -447,7 +484,8 @@ int RobotGroup::resetToZeroNB(void) {
 	return 0;
 }
 
-int RobotGroup::setBuzzerFrequency(int frequency, double time) {
+template<class T>
+int Group<T>::setBuzzerFrequency(int frequency, double time) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setBuzzerFrequency(frequency, time);
@@ -458,7 +496,8 @@ int RobotGroup::setBuzzerFrequency(int frequency, double time) {
 	return 0;
 }
 
-int RobotGroup::setBuzzerFrequencyOff(void) {
+template<class T>
+int Group<T>::setBuzzerFrequencyOff(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setBuzzerFrequencyOff();
@@ -469,7 +508,8 @@ int RobotGroup::setBuzzerFrequencyOff(void) {
 	return 0;
 }
 
-int RobotGroup::setBuzzerFrequencyOn(int frequency) {
+template<class T>
+int Group<T>::setBuzzerFrequencyOn(int frequency) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setBuzzerFrequencyOn(frequency);
@@ -480,7 +520,8 @@ int RobotGroup::setBuzzerFrequencyOn(int frequency) {
 	return 0;
 }
 
-int RobotGroup::setLEDColor(char *color) {
+template<class T>
+int Group<T>::setLEDColor(char *color) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setLEDColor(color);
@@ -491,7 +532,8 @@ int RobotGroup::setLEDColor(char *color) {
 	return 0;
 }
 
-int RobotGroup::setLEDColorRGB(int r, int g, int b) {
+template<class T>
+int Group<T>::setLEDColorRGB(int r, int g, int b) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setLEDColorRGB(r, g, b);
@@ -502,7 +544,8 @@ int RobotGroup::setLEDColorRGB(int r, int g, int b) {
 	return 0;
 }
 
-int RobotGroup::setJointSafetyAngle(double angle) {
+template<class T>
+int Group<T>::setJointSafetyAngle(double angle) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setJointSafetyAngle(angle);
@@ -513,7 +556,8 @@ int RobotGroup::setJointSafetyAngle(double angle) {
 	return 0;
 }
 
-int RobotGroup::setJointSafetyAngleTimeout(double seconds) {
+template<class T>
+int Group<T>::setJointSafetyAngleTimeout(double seconds) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setJointSafetyAngleTimeout(seconds);
@@ -524,7 +568,8 @@ int RobotGroup::setJointSafetyAngleTimeout(double seconds) {
 	return 0;
 }
 
-int RobotGroup::setJointSpeed(robotJointId_t id, double speed) {
+template<class T>
+int Group<T>::setJointSpeed(robotJointId_t id, double speed) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setJointSpeed(id, speed);
@@ -535,7 +580,8 @@ int RobotGroup::setJointSpeed(robotJointId_t id, double speed) {
 	return 0;
 }
 
-int RobotGroup::setJointSpeedRatio(robotJointId_t id, double ratio) {
+template<class T>
+int Group<T>::setJointSpeedRatio(robotJointId_t id, double ratio) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setJointSpeedRatio(id, ratio);
@@ -546,7 +592,8 @@ int RobotGroup::setJointSpeedRatio(robotJointId_t id, double ratio) {
 	return 0;
 }
 
-int RobotGroup::setSpeed(double speed, double radius) {
+template<class T>
+int Group<T>::setSpeed(double speed, double radius) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->setSpeed(speed, radius);
@@ -557,7 +604,8 @@ int RobotGroup::setSpeed(double speed, double radius) {
 	return 0;
 }
 
-int RobotGroup::traceOff(void) {
+template<class T>
+int Group<T>::traceOff(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->traceOff();
@@ -568,7 +616,8 @@ int RobotGroup::traceOff(void) {
 	return 0;
 }
 
-int RobotGroup::traceOn(void) {
+template<class T>
+int Group<T>::traceOn(void) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->traceOn();
@@ -579,12 +628,14 @@ int RobotGroup::traceOn(void) {
 	return 0;
 }
 
-int RobotGroup::turnLeft(double angle, double radius, double trackwidth) {
+template<class T>
+int Group<T>::turnLeft(double angle, double radius, double trackwidth) {
 	this->turnLeftNB(angle, radius, trackwidth);
 	return moveWait();
 }
 
-int RobotGroup::turnLeftNB(double angle, double radius, double trackwidth) {
+template<class T>
+int Group<T>::turnLeftNB(double angle, double radius, double trackwidth) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->turnLeftNB(angle, radius, trackwidth);
@@ -595,12 +646,14 @@ int RobotGroup::turnLeftNB(double angle, double radius, double trackwidth) {
 	return 0;
 }
 
-int RobotGroup::turnRight(double angle, double radius, double trackwidth) {
+template<class T>
+int Group<T>::turnRight(double angle, double radius, double trackwidth) {
 	this->turnRightNB(angle, radius, trackwidth);
 	return moveWait();
 }
 
-int RobotGroup::turnRightNB(double angle, double radius, double trackwidth) {
+template<class T>
+int Group<T>::turnRightNB(double angle, double radius, double trackwidth) {
 	robots_t rtmp = _robots;
 	while (rtmp) {
 		rtmp->robot->turnRightNB(angle, radius, trackwidth);
