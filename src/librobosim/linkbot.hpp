@@ -166,7 +166,7 @@ class DLLIMPORT CLinkbotTGroup : public Group<CLinkbotT> {
 };
 class DLLIMPORT CLinkbotIGroup : public CLinkbotTGroup {};
 class DLLIMPORT CLinkbotLGroup : public CLinkbotTGroup {};
-#include "linkbotgroup.cpp"
+#include "linkbotgroup.tpp"
 
 // global structs for threading
 typedef struct linkbotMoveArg_s {

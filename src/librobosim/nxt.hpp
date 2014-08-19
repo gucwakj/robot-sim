@@ -74,7 +74,7 @@ class DLLIMPORT CNXTGroup : public Group<CNXT> {
 		inline int setJointSpeeds(double, double);
 		inline int setJointSpeedRatios(double, double);
 };
-#include "nxtgroup.cpp"
+#include "nxtgroup.tpp"
 
 // simulation
 extern RoboSim *g_sim;

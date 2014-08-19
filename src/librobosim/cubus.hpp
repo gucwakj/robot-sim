@@ -93,7 +93,7 @@ class DLLIMPORT CubusGroup : public Group<Cubus> {
 		inline int setJointSpeeds(double, double, double, double, double, double);
 		inline int setJointSpeedRatios(double, double, double, double, double, double);
 };
-#include "cubusgroup.cpp"
+#include "cubusgroup.tpp"
 
 // simulation
 extern RoboSim *g_sim;

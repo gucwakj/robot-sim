@@ -211,7 +211,7 @@ class DLLIMPORT CMobotGroup : public Group<CMobot> {
 		THREAD_T *_thread;
 		int _motion;
 };
-#include "mobotgroup.cpp"
+#include "mobotgroup.tpp"
 
 // global structs for threading
 typedef struct mobotMotionArg_s {

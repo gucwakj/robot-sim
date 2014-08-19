@@ -378,7 +378,7 @@ template<class T> class Group {
 		int _i;
 };
 class DLLIMPORT RobotGroup : public Group<Robot> {};
-#include "robotgroup.cpp"
+#include "robotgroup.tpp"
 
 // global structs for threading
 typedef struct moveArg_s {
