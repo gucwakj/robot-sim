@@ -18,6 +18,7 @@
 #include <cstring>
 #include <cstdarg>
 #include <ctime>
+#include <vector>
 #include "config.h"
 #include "macros.h"
 #include "rgbhashtable.h"
@@ -308,8 +309,8 @@ class DLLIMPORT Robot {
 template<class T> class Group {
 	// public api
 	public:
-		inline Group(void);
-		inline virtual ~Group(void);
+		Group(void) {};
+		virtual ~Group(void) {};
 		inline virtual int addRobot(T&);
 		inline virtual int addRobots(T[], int);
 
@@ -371,13 +372,9 @@ template<class T> class Group {
 
 	// data members
 	protected:
-		typedef struct robots_s {
-			T *robot;
-			struct robots_s *next;
-		} *robots_t;
+		std::vector<T*> _robots;
 		double _d;
 		int _i;
-		robots_t _robots;
 };
 class DLLIMPORT RobotGroup : public Group<Robot> {};
 #include "robotgroup.cpp"

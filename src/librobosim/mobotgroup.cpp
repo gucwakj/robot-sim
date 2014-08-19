@@ -256,13 +256,9 @@ int CMobotGroup::move(double angle1, double angle2, double angle3, double angle4
 }
 
 int CMobotGroup::moveNB(double angle1, double angle2, double angle3, double angle4) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveNB(angle1, angle2, angle3, angle4);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveNB(angle1, angle2, angle3, angle4);
 	}
-
-	// success
 	return 0;
 }
 
@@ -272,13 +268,9 @@ int CMobotGroup::moveTo(double angle1, double angle2, double angle3, double angl
 }
 
 int CMobotGroup::moveToNB(double angle1, double angle2, double angle3, double angle4) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveToNB(angle1, angle2, angle3, angle4);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveToNB(angle1, angle2, angle3, angle4);
 	}
-
-	// success
 	return 0;
 }
 
@@ -288,35 +280,23 @@ int CMobotGroup::moveToByTrackPos(double angle1, double angle2, double angle3, d
 }
 
 int CMobotGroup::moveToByTrackPosNB(double angle1, double angle2, double angle3, double angle4) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveToByTrackPosNB(angle1, angle2, angle3, angle4);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveToByTrackPosNB(angle1, angle2, angle3, angle4);
 	}
-
-	// success
 	return 0;
 }
 
 int CMobotGroup::setJointSpeeds(double speed1, double speed2, double speed3, double speed4) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setJointSpeeds(speed1, speed2, speed3, speed4);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setJointSpeeds(speed1, speed2, speed3, speed4);
 	}
-
-	// success
 	return 0;
 }
 
 int CMobotGroup::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, double ratio4) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setJointSpeedRatios(ratio1, ratio2, ratio3, ratio4);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setJointSpeedRatios(ratio1, ratio2, ratio3, ratio4);
 	}
-
-	// success
 	return 0;
 }
 

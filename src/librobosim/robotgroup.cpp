@@ -1,83 +1,38 @@
 template<class T>
-Group<T>::Group(void) {
-	// create robots
-	_robots = NULL;
-}
-
-template<class T>
-Group<T>::~Group(void) {
-	// delete robots
-	while (_robots != NULL) {
-		robots_t tmp = _robots->next;
-		delete _robots;
-		_robots = tmp;
-	}
-}
-
-template<class T>
 int Group<T>::addRobot(T &robot) {
-	// create new robot
-	robots_t nr = new struct robots_s;
-	nr->robot = &robot;
-	nr->next = NULL;
-
-	// store new robot
-	robots_t rtmp = _robots;
-	if ( _robots == NULL )
-		_robots = nr;
-	else {
-		while (rtmp->next)
-			rtmp = rtmp->next;
-		rtmp->next = nr;
-	}
-
-	// success
+	_robots.push_back(&robot);
 	return 0;
 }
 
 template<class T>
 int Group<T>::addRobots(T robots[], int num) {
 	for (int i = 0; i < num; i++) {
-		this->addRobot(robots[i]);
+		_robots.push_back(&robots[i]);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::blinkLED(double delay, int num) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->blinkLED(delay, num);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->blinkLED(delay, num);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::connect(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->connect();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->connect();
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::disconnect(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->disconnect();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->disconnect();
 	}
-
-	// success
 	return 0;
 }
 
@@ -89,13 +44,9 @@ int Group<T>::driveBackward(double angle) {
 
 template<class T>
 int Group<T>::driveBackwardNB(double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->driveBackwardNB(angle);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->driveBackwardNB(angle);
 	}
-
-	// success
 	return 0;
 }
 
@@ -107,13 +58,9 @@ int Group<T>::driveDistance(double distance, double radius) {
 
 template<class T>
 int Group<T>::driveDistanceNB(double distance, double radius) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->driveDistanceNB(distance, radius);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->driveDistanceNB(distance, radius);
 	}
-
-	// success
 	return 0;
 }
 
@@ -125,13 +72,9 @@ int Group<T>::driveForever(void) {
 
 template<class T>
 int Group<T>::driveForeverNB(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->driveForeverNB();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->driveForeverNB();
 	}
-
-	// success
 	return 0;
 }
 
@@ -143,118 +86,81 @@ int Group<T>::driveForward(double angle) {
 
 template<class T>
 int Group<T>::driveForwardNB(double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->driveForwardNB(angle);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->driveForwardNB(angle);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::driveTime(double seconds) {
-	int msecs = seconds * 1000.0;
-
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->driveForeverNB();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->driveTimeNB(seconds);
 	}
-
 #ifdef _WIN32
-	Sleep(msecs);
+	Sleep(seconds * 1000);
 #else
-	usleep(msecs*1000);
+	usleep(seconds * 1000000);
 #endif
-
-	rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->holdJoints();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->holdJoints();
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::driveTimeNB(double seconds) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->driveTimeNB(seconds);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->driveTimeNB(seconds);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::holdJoint(robotJointId_t id) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->holdJoint(id);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->holdJoint(id);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::holdJoints(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->holdJoints();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->holdJoints();
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::holdJointsAtExit(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->holdJointsAtExit();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->holdJointsAtExit();
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::isMoving(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		if (rtmp->robot->isMoving()) {
-			return 1;
-		}
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		if(_robots[i]->isMoving()) return 1;
 	}
-
-	// not moving
 	return 0;
 }
 
 template<class T>
 int Group<T>::isNotMoving(void) {
-	return !(this->isMoving());
+	for (int i = 0; i < _robots.size(); i++) {
+		if(_robots[i]->isNotMoving()) return 1;
+	}
+	return 0;
 }
 
 template<class T>
 int Group<T>::moveForeverNB(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveForeverNB();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveForeverNB();
 	}
-
-	// success
 	return 0;
 }
 
@@ -266,37 +172,25 @@ int Group<T>::moveJoint(robotJointId_t id, double angle) {
 
 template<class T>
 int Group<T>::moveJointNB(robotJointId_t id, double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveJointNB(id, angle);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveJointNB(id, angle);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::moveJointByPowerNB(robotJointId_t id, int power) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveJointByPowerNB(id, power);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveJointByPowerNB(id, power);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::moveJointForeverNB(robotJointId_t id) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveJointForeverNB(id);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveJointForeverNB(id);
 	}
-
-	// success
 	return 0;
 }
 
@@ -316,13 +210,9 @@ int Group<T>::moveJointTime(robotJointId_t id, double seconds) {
 
 template<class T>
 int Group<T>::moveJointTimeNB(robotJointId_t id, double seconds) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveJointForeverNB(id);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveJointTimeNB(id, seconds);
 	}
-
-	// success
 	return 0;
 }
 
@@ -334,81 +224,55 @@ int Group<T>::moveJointTo(robotJointId_t id, double angle) {
 
 template<class T>
 int Group<T>::moveJointToNB(robotJointId_t id, double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveJointToNB(id, angle);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveJointToNB(id, angle);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::moveJointToByTrackPos(robotJointId_t id, double angle) {
-	moveJointToNB(id, angle);
+	moveJointToByTrackPosNB(id, angle);
 	return moveJointWait(id);
 }
 
 template<class T>
 int Group<T>::moveJointToByTrackPosNB(robotJointId_t id, double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveJointToByTrackPosNB(id, angle);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveJointToByTrackPosNB(id, angle);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::moveJointWait(robotJointId_t id) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveJointWait(id);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveJointWait(id);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::moveTime(double seconds) {
-	int msecs = seconds * 1000.0;
-
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveForeverNB();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveForeverNB();
 	}
-
 #ifdef _WIN32
-	Sleep(msecs);
+	Sleep(seconds * 1000);
 #else
-	usleep(msecs*1000);
+	usleep(seconds * 1000000);
 #endif
-
-	rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->holdJoints();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->holdJoints();
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::moveTimeNB(double seconds) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveTimeNB(seconds);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveTimeNB(seconds);
 	}
-
-	// success
 	return 0;
 }
 
@@ -420,49 +284,33 @@ int Group<T>::moveToZero(void) {
 
 template<class T>
 int Group<T>::moveToZeroNB(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveToZeroNB();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveToZeroNB();
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::moveWait(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveWait();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveWait();
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::relaxJoint(robotJointId_t id) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->relaxJoint(id);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->relaxJoint(id);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::relaxJoints(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->relaxJoints();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->relaxJoints();
 	}
-
-	// success
 	return 0;
 }
 
@@ -474,157 +322,105 @@ int Group<T>::resetToZero(void) {
 
 template<class T>
 int Group<T>::resetToZeroNB(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->resetToZeroNB();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->resetToZeroNB();
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::setBuzzerFrequency(int frequency, double time) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setBuzzerFrequency(frequency, time);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setBuzzerFrequency(frequency, time);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::setBuzzerFrequencyOff(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setBuzzerFrequencyOff();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setBuzzerFrequencyOff();
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::setBuzzerFrequencyOn(int frequency) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setBuzzerFrequencyOn(frequency);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setBuzzerFrequencyOn(frequency);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::setLEDColor(char *color) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setLEDColor(color);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setLEDColor(color);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::setLEDColorRGB(int r, int g, int b) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setLEDColorRGB(r, g, b);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setLEDColorRGB(r, g, b);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::setJointSafetyAngle(double angle) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setJointSafetyAngle(angle);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setJointSafetyAngle(angle);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::setJointSafetyAngleTimeout(double seconds) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setJointSafetyAngleTimeout(seconds);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setJointSafetyAngleTimeout(seconds);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::setJointSpeed(robotJointId_t id, double speed) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setJointSpeed(id, speed);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setJointSpeed(id, speed);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::setJointSpeedRatio(robotJointId_t id, double ratio) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setJointSpeedRatio(id, ratio);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setJointSpeedRatio(id, ratio);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::setSpeed(double speed, double radius) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setSpeed(speed, radius);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setSpeed(speed, radius);
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::traceOff(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->traceOff();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->traceOff();
 	}
-
-	// success
 	return 0;
 }
 
 template<class T>
 int Group<T>::traceOn(void) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->traceOn();
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->traceOn();
 	}
-
-	// success
 	return 0;
 }
 
@@ -636,13 +432,9 @@ int Group<T>::turnLeft(double angle, double radius, double trackwidth) {
 
 template<class T>
 int Group<T>::turnLeftNB(double angle, double radius, double trackwidth) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->turnLeftNB(angle, radius, trackwidth);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->turnLeftNB(angle, radius, trackwidth);
 	}
-
-	// success
 	return 0;
 }
 
@@ -654,13 +446,9 @@ int Group<T>::turnRight(double angle, double radius, double trackwidth) {
 
 template<class T>
 int Group<T>::turnRightNB(double angle, double radius, double trackwidth) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->turnRightNB(angle, radius, trackwidth);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->turnRightNB(angle, radius, trackwidth);
 	}
-
-	// success
 	return 0;
 }
 

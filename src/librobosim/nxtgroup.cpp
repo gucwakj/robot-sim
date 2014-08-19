@@ -4,13 +4,9 @@ int CNXTGroup::move(double angle1, double angle2) {
 }
 
 int CNXTGroup::moveNB(double angle1, double angle2) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveNB(angle1, angle2);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveNB(angle1, angle2);
 	}
-
-	// success
 	return 0;
 }
 
@@ -20,13 +16,9 @@ int CNXTGroup::moveTo(double angle1, double angle2) {
 }
 
 int CNXTGroup::moveToNB(double angle1, double angle2) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveToNB(angle1, angle2);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveToNB(angle1, angle2);
 	}
-
-	// success
 	return 0;
 }
 
@@ -36,35 +28,23 @@ int CNXTGroup::moveToByTrackPos(double angle1, double angle2) {
 }
 
 int CNXTGroup::moveToByTrackPosNB(double angle1, double angle2) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->moveToByTrackPosNB(angle1, angle2);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->moveToByTrackPosNB(angle1, angle2);
 	}
-
-	// success
 	return 0;
 }
 
 int CNXTGroup::setJointSpeeds(double speed1, double speed2) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setJointSpeeds(speed1, speed2);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setJointSpeeds(speed1, speed2);
 	}
-
-	// success
 	return 0;
 }
 
 int CNXTGroup::setJointSpeedRatios(double ratio1, double ratio2) {
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		rtmp->robot->setJointSpeedRatios(ratio1, ratio2);
-		rtmp = rtmp->next;
+	for (int i = 0; i < _robots.size(); i++) {
+		_robots[i]->setJointSpeedRatios(ratio1, ratio2);
 	}
-
-	// success
 	return 0;
 }
 
