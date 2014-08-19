@@ -6,11 +6,12 @@ PACKAGE = chrobosim
 VERSION = linux-1.7.70
 PKGDIR = $(PACKAGE)-$(VERSION)/$(PACKAGE)
 
-SRC = ../librobosim
+SRC = ../librobosim/src
+INC = ../librobosim/inc
 CHDL = ./chdl
-HEADERS = $(SRC)/macros.hpp $(SRC)/robosim.hpp $(SRC)/graphics.hpp $(SRC)/robot.hpp $(SRC)/modularrobot.hpp $(SRC)/linkbot.hpp $(SRC)/mobot.hpp $(SRC)/nxt.hpp
+HEADERS = $(INC)/macros.hpp $(INC)/robosim.hpp $(INC)/graphics.hpp $(INC)/robot.hpp $(INC)/modularrobot.hpp $(INC)/linkbot.hpp $(INC)/mobot.hpp $(INC)/nxt.hpp
 CPPFLAGS = -DdDOUBLE -fPIC -Wno-write-strings
-INCLUDES = -I../librobosim/build/ -I../opende/sys/include/ -I../osg/include/ -I../osg/build/include/ -I../tinyxml2/
+INCLUDES = -I../librobosim/inc/ -I../librobosim/build/ -I../librobosim/tpl/ -I../opende/sys/include/ -I../osg/include/ -I../osg/build/include/ -I../tinyxml2/
 LIBPATHS = -L../opende/sys/lib/ -L../osg/build/lib/ -L../tinyxml2/build/
 LIBS = -losg -losgViewer -losgUtil -lOpenThreads -losgGA -losgDB -losgShadow -lode -ltinyxml2
 
@@ -104,7 +105,7 @@ createpkg: librobosim.dl
 	cp ./include/linkbot.h $(PKGDIR)/include
 	cp ./include/mobot.h $(PKGDIR)/include
 	cp ./include/nxt.h $(PKGDIR)/include
-	cp $(SRC)/macros.hpp $(PKGDIR)/include
+	cp $(INC)/macros.hpp $(PKGDIR)/include
 	mkdir $(PKGDIR)/lib
 	cp ./chf/robotgroup.chf $(PKGDIR)/lib
 	cp ./chf/clinkboti.chf $(PKGDIR)/lib

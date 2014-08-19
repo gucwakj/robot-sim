@@ -1,43 +1,59 @@
+# build nxt demos
+project(nxtdemos)
+
+# set minimum cmake version
 cmake_minimum_required(VERSION 2.8)
-project(robosim_nxt_demos)
 
-# Set the version number
-set (ROBOSIM_NXT_DEMOS_VERSION_MAJOR 0)
-set (ROBOSIM_NXT_DEMOS_VERSION_MINOR 1)
+# set the version number
+set(nxtdemos_VERSION_MAJOR 0)
+set(nxtdemos_VERSION_MINOR 1)
+set(nxtdemos_VERSION_PATCH 0)
 
-# Supress developer warnings
+# supress developer warnings
 cmake_policy(SET CMP0015 NEW)
 
-# Set developer warnings
+# verbose ouptut
+set(CMAKE_VERBOSE_MAKEFILE off)
+
+# set build type
+set(CMAKE_BUILD_TYPE "Release")
+
+# set developer warnings
 set(CMAKE_CXX_FLAGS "-Wno-write-strings")
 
-# Set up a configure file
-configure_file (
-	"${PROJECT_SOURCE_DIR}/config.h.in"
-	"${PROJECT_BINARY_DIR}/config.h"
+# include directories
+include_directories(
+	"${nxtdemos_SOURCE_DIR}"
+	"${nxtdemos_BINARY_DIR}"
 )
 
-# Add the binary directory to include file search path
-include_directories("${PROJECT_BINARY_DIR}")
+# set up a configure file
+configure_file(
+	"${nxtdemos_SOURCE_DIR}/config.h.in"
+	"${nxtdemos_BINARY_DIR}/config.h"
+)
 
-# Add ODE headers
-include_directories("../../src/opende/include")
+# disable windows warnings
+if(MSVC)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif(MSVC)
 
-# Add tinyxml2 headers
-include_directories("../../src/tinyxml2")
-
-# Add OSG headers
-option (ENABLE_GRAPHICS "Enable graphics for simulation." ON)
-if (ENABLE_GRAPHICS)
-	include_directories("../../src/osg/include")
-	include_directories("../../src/osg/build/include")
-endif (ENABLE_GRAPHICS)
-
-# Double precision
+# double precision
 add_definitions(-DdDOUBLE)
 
-# Add crobotsim library subdirectory
-include_directories("../../src/librobosim")
+# include directories
+include_directories("../../src/opende/include")
+include_directories("../../src/tinyxml2")
+
+option(ENABLE_GRAPHICS "Enable graphics for simulation." ON)
+if(ENABLE_GRAPHICS)
+	include_directories("../../src/osg/include")
+	include_directories("../../src/osg/build/include")
+endif(ENABLE_GRAPHICS)
+
+# add librobosim library subdirectory
+include_directories("../../src/librobosim/inc")
+include_directories("../../src/librobosim/tpl")
 if (MSVC)
 	link_directories("../../src/librobosim/build/Debug")
 	link_directories("../../src/librobosim/build/Release")
@@ -49,3 +65,4 @@ set(EXTRA_LIBS ${EXTRA_LIBS} optimized robosim debug robosimd)
 # nxt demos
 add_executable(test test.cpp)
 target_link_libraries(test ${EXTRA_LIBS})
+

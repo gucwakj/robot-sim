@@ -6,11 +6,12 @@ PACKAGE = chrobosim
 VERSION = win64-1.7.70
 PKGDIR = $(PACKAGE)-$(VERSION)/$(PACKAGE)
 
-SRC = ../librobosim
+SRC = ../librobosim/src
+INC = ../librobosim/inc
 CHDL = ./chdl
-HEADERS = $(SRC)/macros.hpp $(SRC)/robosim.hpp $(SRC)/graphics.hpp $(SRC)/robot.hpp $(SRC)/modularrobot.hpp $(SRC)/linkbot.hpp $(SRC)/mobot.hpp $(SRC)/nxt.hpp
+HEADERS = $(INC)/macros.hpp $(INC)/robosim.hpp $(INC)/graphics.hpp $(INC)/robot.hpp $(INC)/modularrobot.hpp $(INC)/linkbot.hpp $(INC)/mobot.hpp $(INC)/nxt.hpp
 CPPFLAGS = -DdDOUBLE /EHsc -Wno-write-strings
-INCLUDES = /I ../librobosim/build /I ../opende/include /I ../tinyxml2 /I ../osg/include /I ../osg/build/include
+INCLUDES = /I../librobosim/inc /I../librobosim/build /I../librobosim/tpl /I ../opende/include /I ../tinyxml2 /I ../osg/include /I ../osg/build/include
 LIBPATHS = /LIBPATH:../opende/lib/Release/ /LIBPATH:../tinyxml2/build/Release/ /LIBPATH:../osg/build/lib/
 LIBS = osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgShadow.lib osgText.lib ode.lib tinyxml2.lib Shell32.lib
 
@@ -143,7 +144,7 @@ createpkg: librobosim.dl
 	cp ./include/linkbot.h $(PKGDIR)/include
 	cp ./include/mobot.h $(PKGDIR)/include
 	cp ./include/nxt.h $(PKGDIR)/include
-	cp $(SRC)/macros.h $(PKGDIR)/include
+	cp $(INC)/macros.h $(PKGDIR)/include
 	mkdir $(PKGDIR)/lib
 	cp ./chf/robotgroup.chf $(PKGDIR)/lib
 	cp ./chf/clinkboti.chf $(PKGDIR)/lib
