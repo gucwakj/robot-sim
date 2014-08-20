@@ -1928,17 +1928,13 @@ int CMobot::build_body(int id, double x, double y, double z, dMatrix3 R, double 
     dMatrix3 R1, R2, R3;
 
     // set mass of body
-    dMassSetZero(&m);
-    // create mass 1
-    dMassSetBox(&m1, 2700, _body_end_depth, _center_height, _body_width );
+    dMassSetBox(&m1, 1000, _body_end_depth, _center_height, _body_width);
     dMassAdd(&m, &m1);
-    // create mass 2
-    dMassSetBox(&m2, 2700, _body_inner_width_left, _end_depth, _body_width );
-    dMassTranslate(&m2, 0.01524*i, -0.0346, 0 );
+    dMassSetBox(&m2, 1000, _body_inner_width_left, _end_depth, _body_width);
+    dMassTranslate(&m2, 0.01524*i, -0.0346, 0);
     dMassAdd(&m, &m2);
-    // create mass 3
-    dMassSetBox(&m3, 2700, _body_inner_width_right, _end_depth, _body_width );
-    dMassTranslate(&m3, 0.01524*i, 0.0346, 0 );
+    dMassSetBox(&m3, 1000, _body_inner_width_right, _end_depth, _body_width);
+    dMassTranslate(&m3, 0.01524*i, 0.0346, 0);
     dMassAdd(&m, &m3);
 
     // adjsut x,y,z to position center of mass correctly
@@ -2008,7 +2004,8 @@ int CMobot::build_caster(conn_t conn, int face) {
 	p[2] += R[8]*offset[0];
 
 	// set mass of body
-	dMassSetBox(&m, 500, 0.0667, width, height/2);
+	dMassSetBox(&m, 1000, 2*_conn_depth, width, height);
+	dMassTranslate(&m, 12*_conn_depth, 0, -height);
 
     // adjust x,y,z to position center of mass correctly
 	p[0] += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -2093,9 +2090,7 @@ int CMobot::build_center(double x, double y, double z, dMatrix3 R) {
     dMatrix3 R1;
 
     // set mass of body
-    dMassSetZero(&m);
-    dMassSetCapsule(&m, 2700, 1, _center_radius, _center_length );
-    dMassAdjust(&m, 0.24);
+    dMassSetCapsule(&m, 270, 1, _center_radius, _center_length);
 
     // adjsut x,y,z to position center of mass correctly
     x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
@@ -2140,7 +2135,7 @@ int CMobot::build_endcap(int id, double x, double y, double z, dMatrix3 R) {
     dMatrix3 R1;
 
     // set mass of body
-    dMassSetBox(&m, 2700, _end_depth, _end_width, _end_height );
+    dMassSetBox(&m, 1000, _end_depth, _end_width, _end_height);
 
     // adjust x,y,z to position center of mass correctly
     x += R[0]*m.c[0] + R[1]*m.c[1] + R[2]*m.c[2];
