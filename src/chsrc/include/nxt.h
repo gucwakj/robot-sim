@@ -54,8 +54,14 @@ class DLLIMPORT CNXT {
 		int drivexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth);
 		int drivexyWait(void);
 		int enableRecordDataShift(void);
+		int getAccelerometerData(double &accel_x, double &accel_y, double &accel_z);
+		int getBatteryVoltage(double &voltage);
+		int getLEDColor(string_t &color);
+		int getLEDColorName(char color[]);
+		int getLEDColorRGB(int &r, int &g, int &b);
 		int getDistance(double &distance, double radius);
 		int getFormFactor(int &formFactor);
+		int getID(void);
 		int getJointAngle(robotJointId_t id, double &angle, ...);
 		int getJointAngleInstant(robotJointId_t id, double &angle);
 		int getJointAngles(double &angle1, double &angle2, ...);
@@ -116,6 +122,11 @@ class DLLIMPORT CNXT {
 		int reset(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
+		int setBuzzerFrequency(int frequency, double time);
+		int setBuzzerFrequencyOff(void);
+		int setBuzzerFrequencyOn(int frequency);
+		int setLEDColor(char *color);
+		int setLEDColorRGB(int r, int g, int b);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double seconds);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -182,6 +193,11 @@ class DLLIMPORT CNXTGroup {
 		int relaxJoints(void);
 		int resetToZero(void);
 		int resetToZeroNB(void);
+		int setBuzzerFrequency(int frequency, double time);
+		int setBuzzerFrequencyOff(void);
+		int setBuzzerFrequencyOn(int frequency);
+		int setLEDColor(char *color);
+		int setLEDColorRGB(int r, int g, int b);
 		int setJointSafetyAngle(double angle);
 		int setJointSafetyAngleTimeout(double angle);
 		int setJointSpeed(robotJointId_t id, double speed);
@@ -189,6 +205,8 @@ class DLLIMPORT CNXTGroup {
 		int setJointSpeedRatio(robotJointId_t id, double ratio);
 		int setJointSpeedRatios(double ratio1, double ratio2);
 		int setSpeed(double speed, double radius);
+		int traceOff(void);
+		int traceOn(void);
 		int turnLeft(double angle, double radius, double trackwidth);
 		int turnLeftNB(double angle, double radius, double trackwidth);
 		int turnRight(double angle, double radius, double trackwidth);

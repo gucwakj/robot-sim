@@ -293,29 +293,6 @@ int CNXT::drivexyToNB(double x, double y, double radius, double trackwidth) {
 	return retval;
 }
 
-int CNXT::drivexyToExpr(double x0, double xf, int n, char *expr, double radius, double trackwidth) {
-	// number of steps necessary
-	double step = (xf-x0)/(n-1);
-
-	// drivexy to sequence of (x,y) values
-	int i = 0;
-	for (i = 0; i < n; i++) {
-		double x = x0 + i*step;
-		double y = streval(expr);
-		drivexyTo(x, y, radius, trackwidth);
-	}
-
-	// success
-	return 0;
-}
-
-int CNXT::drivexyToExprNB(double x0, double xf, int n, char *expr, double radius, double trackwidth) {
-	fprintf(_stderr, "Error: drivexyToExprNB() is not implemented.\n");
-
-	// success
-	return 0;
-}
-
 int CNXT::drivexyToFunc(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
 	void *fptr;
 	int retval;
@@ -896,7 +873,7 @@ int CNXT::moveJointToByTrackPos(robotJointId_t id, double angle) {
 	return retval;
 }
 
-int CNXT::moveJointTyByTrackPosNB(robotJointId_t id, double angle) {
+int CNXT::moveJointToByTrackPosNB(robotJointId_t id, double angle) {
 	void *fptr;
 	int retval;
 
@@ -1216,7 +1193,7 @@ int CNXT::recordDistancesBegin(double* &time, double* &d1, double* &d2, double r
 	}
 	if(va_count(ap) == 1) {
 		shiftData = va_arg(ap, int);
-		dlrunfun(fptr, &retval, NULL, this, &time, &d1, &d2, &d3, radius, seconds, shiftData);
+		dlrunfun(fptr, &retval, NULL, this, &time, &d1, &d2, radius, seconds, shiftData);
 	}
 	else {
 		dlrunfun(fptr, &retval, NULL, this, &time, &d1, &d2, radius, seconds);
