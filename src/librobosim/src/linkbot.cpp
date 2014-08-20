@@ -975,14 +975,14 @@ int CLinkbotT::buildIndividual(double x, double y, double z, dMatrix3 R, double 
 int CLinkbotT::draw(osg::Group *root, int tracking) {
 	// initialize variables
 	_robot = new osg::Group();
-	osg::ref_ptr<osg::Geode> body[NUM_PARTS+1];
-	osg::ref_ptr<osg::PositionAttitudeTransform> pat[NUM_PARTS+1];
+	osg::ref_ptr<osg::Geode> body[NUM_PARTS];
+	osg::ref_ptr<osg::PositionAttitudeTransform> pat[NUM_PARTS];
 	osg::ref_ptr<osg::Texture2D> tex[2];
 	const double *pos;
 	dQuaternion quat;
 	osg::Box *box;
 	osg::Cylinder *cyl;
-	for (int i = 0; i < NUM_PARTS+1; i++) {
+	for (int i = 0; i < NUM_PARTS; i++) {
 		body[i] = new osg::Geode;
 	}
 
@@ -996,7 +996,7 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 		cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]+0.0001), 0.01, _body_height);
 		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		_led = new osg::ShapeDrawable(cyl);
-		body[4]->addDrawable(_led);
+		body[BODY]->addDrawable(_led);
 		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1));
 	}
 	pos = dGeomGetOffsetPosition(_geom[BODY][1]);
@@ -1039,19 +1039,18 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
     body[1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
     body[2]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
     body[3]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[1].get(), osg::StateAttribute::ON);
-    body[4]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
 	if (_disabled > 0) {
 		body[_disabled+1]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex[0].get(), osg::StateAttribute::ON);
 	}
 
 	// set rendering properties
-	for (int i = 0; i < NUM_PARTS+1; i++) {
+	for (int i = 0; i < NUM_PARTS; i++) {
 		body[i]->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
 		body[i]->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 	}
 
 	// position each body within robot
-	for (int i = 0; i < NUM_PARTS+1; i++) {
+	for (int i = 0; i < NUM_PARTS; i++) {
 		pat[i] = new osg::PositionAttitudeTransform;
 		pat[i]->addChild(body[i].get());
 		_robot->addChild(pat[i].get());
