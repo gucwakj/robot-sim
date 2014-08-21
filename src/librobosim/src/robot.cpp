@@ -488,7 +488,7 @@ int Robot::drivexyToSmooth(double x1, double y1, double x2, double y2, double x3
 	this->setJointSpeed(_rightWheel, RAD2DEG(s2/theta/rho/radius*_speed));
 	this->moveJointNB(_leftWheel, RAD2DEG(s1/radius));
 	this->moveJointNB(_rightWheel, RAD2DEG(s2/radius));
-	this->moveWait();
+	this->delay(theta*rho/_speed*1000);
 
 	// success
 	return 0;
