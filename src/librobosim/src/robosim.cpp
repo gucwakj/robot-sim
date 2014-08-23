@@ -421,11 +421,6 @@ int RoboSim::init_xml(char *name) {
 		node = node->NextSiblingElement();
 	}
 
-	// check for existence of graphics node
-	if ( (node = doc.FirstChildElement("graphics")) ) {
-		node = node->FirstChildElement();
-	}
-
 #ifdef ENABLE_GRAPHICS
 	// read in grid line configuration
 	if ( (node = doc.FirstChildElement("graphics")->FirstChildElement("grid")) ) {
@@ -502,7 +497,7 @@ int RoboSim::init_xml(char *name) {
 		else if ( !strcmp(node->Value(), "point") ) {
 			// store default variables
 			drawing_t nd = new struct drawing_s;
-			nd->type = POINT;
+			nd->type = DOT;
 			nd->next = NULL;
 
 			// get user defined values from xml
@@ -2213,7 +2208,7 @@ void* RoboSim::graphics_thread(void *arg) {
 			// add to scenegraph
 			shadowedScene->addChild(line);
 		}
-		else if (dtmp->type == POINT) {
+		else if (dtmp->type == DOT) {
 			// create sphere
 			osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(dtmp->p1[0], dtmp->p1[1], dtmp->p1[2]), dtmp->i/500.0);
 			osg::Geode *point = new osg::Geode;

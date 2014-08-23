@@ -262,7 +262,7 @@ int main(int argc, char **argv) {
       exit(0);
    }
    
-   if(!access(chpackagename, R_OK))
+/*   if(!access(chpackagename, R_OK))
    {
       fprintf(stderr, "\nIt appears that the %s package was installed by manually without running\n"
                       "pkginstall.ch or the package directory was not completely removed\n" 
@@ -276,7 +276,7 @@ int main(int argc, char **argv) {
       while(getchar() != '\n');
 	  printf("\n");
    }
-
+*/
    printf("Install package '%s' to %s now, please wait...\n", pkgname, chpackage);
 #ifdef _WIN32_
       tar cf $(pkgname).tar $(pkgname)
@@ -302,33 +302,17 @@ int main(int argc, char **argv) {
 			exit(1);
 		}
 
-      //fprintf(fptr_installed, "%s\n", chpackagename);
-      //cd $chpackagenameinc
-      //headerfiles = `ls`;
-      //foreach(token; headerfiles)
-      //{
-#ifdef _WIN32_
-//cp -rf $token "$chtoolkitinc"
-#else
-//cp -rfp $token $chtoolkitinc
-#endif
-//fprintf(fptr_installed, "%s\n", stradd(chtoolkitinc, "/",token));
-      //}
-      //fclose( fptr_installed);
-
+#ifndef _WIN32_
 		// install libraries to extern/lib
 		fprintf(fptr_installed, "%s\n", chpackagename);
 		cd $chpackagenameso
 		sofiles = `ls`;
 		foreach (token; sofiles) {
-#ifdef _WIN32_
-			cp -rf $token "$chexternlib"
-#else
 			cp -rfp $token $chexternlib
-#endif
 			fprintf(fptr_installed, "%s\n", stradd(chexternlib, "/",token));
 		}
 		fclose( fptr_installed);
+#endif
 	}
    else
    {

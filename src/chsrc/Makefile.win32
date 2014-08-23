@@ -10,7 +10,7 @@ SRC = ../librobosim/src
 INC = ../librobosim/inc
 CHDL = ./chdl
 HEADERS = $(INC)/macros.hpp $(INC)/robosim.hpp $(INC)/graphics.hpp $(INC)/robot.hpp $(INC)/modularrobot.hpp $(INC)/linkbot.hpp $(INC)/mobot.hpp $(INC)/nxt.hpp
-CPPFLAGS = -DdDOUBLE /EHsc -Wno-write-strings
+CPPFLAGS = -DdDOUBLE /EHsc
 INCLUDES = /I../librobosim/inc /I../librobosim/build /I../librobosim/tpl /I ../opende/include /I ../tinyxml2 /I ../osg/include /I ../osg/build/include
 LIBPATHS = /LIBPATH:../opende/lib/Release/ /LIBPATH:../tinyxml2/build/Release/ /LIBPATH:../osg/build/lib/
 LIBS = osg.lib osgViewer.lib osgUtil.lib OpenThreads.lib osgGA.lib osgDB.lib osgShadow.lib osgText.lib ode.lib tinyxml2.lib Shell32.lib
@@ -88,14 +88,14 @@ createpkg: librobosim.dl
 	cp ../../CHANGELOG $(PKGDIR)
 	mkdir $(PKGDIR)/bin
 	cp ../opende/lib/Release/ode.dll $(PKGDIR)/bin
-	cp ../osg/build/bin/osg80-osg.dll $(PKGDIR)/bin
-	cp ../osg/build/bin/osg80-osgDB.dll $(PKGDIR)/bin
-	cp ../osg/build/bin/osg80-osgGA.dll $(PKGDIR)/bin
-	cp ../osg/build/bin/osg80-osgShadow.dll $(PKGDIR)/bin
-	cp ../osg/build/bin/osg80-osgText.dll $(PKGDIR)/bin
-	cp ../osg/build/bin/osg80-osgUtil.dll $(PKGDIR)/bin
-	cp ../osg/build/bin/osg80-osgViewer.dll $(PKGDIR)/bin
-	cp ../osg/build/bin/ot12-OpenThreads.dll $(PKGDIR)/bin
+	cp ../osg/build/bin/osg100-osg.dll $(PKGDIR)/bin
+	cp ../osg/build/bin/osg100-osgDB.dll $(PKGDIR)/bin
+	cp ../osg/build/bin/osg100-osgGA.dll $(PKGDIR)/bin
+	cp ../osg/build/bin/osg100-osgShadow.dll $(PKGDIR)/bin
+	cp ../osg/build/bin/osg100-osgText.dll $(PKGDIR)/bin
+	cp ../osg/build/bin/osg100-osgUtil.dll $(PKGDIR)/bin
+	cp ../osg/build/bin/osg100-osgViewer.dll $(PKGDIR)/bin
+	cp ../osg/build/bin/ot13-OpenThreads.dll $(PKGDIR)/bin
 	cp ../osg/third_party/x86/bin/glut32.dll $(PKGDIR)/bin
 	cp ../osg/third_party/x86/bin/libpng13.dll $(PKGDIR)/bin
 	cp ../osg/third_party/x86/bin/zlib1.dll $(PKGDIR)/bin
@@ -145,7 +145,7 @@ createpkg: librobosim.dl
 	cp ./include/linkbot.h $(PKGDIR)/include
 	cp ./include/mobot.h $(PKGDIR)/include
 	cp ./include/nxt.h $(PKGDIR)/include
-	cp $(INC)/macros.h $(PKGDIR)/include
+	cp $(INC)/macros.hpp $(PKGDIR)/include
 	mkdir $(PKGDIR)/lib
 	cp ./chf/robotgroup.chf $(PKGDIR)/lib
 	cp ./chf/clinkboti.chf $(PKGDIR)/lib

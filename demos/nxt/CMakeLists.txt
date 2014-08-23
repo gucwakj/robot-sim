@@ -19,7 +19,11 @@ set(CMAKE_VERBOSE_MAKEFILE off)
 set(CMAKE_BUILD_TYPE "Release")
 
 # set developer warnings
-set(CMAKE_CXX_FLAGS "-Wno-write-strings")
+if(MSVC)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+else(MSVC)
+	set(CMAKE_CXX_FLAGS "-Wno-write-strings")
+endif(MSVC)
 
 # include directories
 include_directories(
@@ -32,11 +36,6 @@ configure_file(
 	"${nxtdemos_SOURCE_DIR}/config.h.in"
 	"${nxtdemos_BINARY_DIR}/config.h"
 )
-
-# disable windows warnings
-if(MSVC)
-	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-endif(MSVC)
 
 # double precision
 add_definitions(-DdDOUBLE)

@@ -1148,44 +1148,44 @@ int CLinkbotT::drawConnector(conn_t conn, osg::Group *robot) {
 	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
 
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode;
+	osg::ref_ptr<osg::Node> node;
 	switch (conn->type) {
 		case BIGWHEEL:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bigwheel.stl));
+			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bigwheel.3ds));
 			break;
 		case BRIDGE:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bridge.stl));
+			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bridge.3ds));
 			break;
 		case CASTER:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/caster.stl));
+			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/caster.3ds));
 			break;
 		case CUBE:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/cube.stl));
+			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/cube.3ds));
 			break;
 		case FACEPLATE:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/faceplate.stl));
+			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/faceplate.3ds));
 			break;
 		case GRIPPER:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/gripper.stl));
+			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/gripper.3ds));
 			break;
 		case OMNIDRIVE:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/omnidrive.stl));
+			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/omnidrive.3ds));
 			break;
 		case SIMPLE:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/simple.stl));
+			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/simple.3ds));
 			break;
 		case SMALLWHEEL:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/smallwheel.stl));
+			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/smallwheel.3ds));
 			break;
 		case TINYWHEEL:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.stl));
+			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.3ds));
 			break;
 		case WHEEL:
-			geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.stl));
+			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.3ds));
 			transform->setScale(osg::Vec3d(1, _wheel_radius/_tinywheel_radius, _wheel_radius/_tinywheel_radius));
 			break;
 	}
-	geode->setCullingActive(false);
+	node->setCullingActive(false);
 
 	// apply texture
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
@@ -1195,19 +1195,19 @@ int CLinkbotT::drawConnector(conn_t conn, osg::Group *robot) {
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
 	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
 	tex->setWrap(osg::Texture::WRAP_R, osg::Texture::REPEAT);
-	geode->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex, osg::StateAttribute::ON);
+	node->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex, osg::StateAttribute::ON);
 	osg::ref_ptr<osg::TexEnv> texEnv = new osg::TexEnv(osg::TexEnv::DECAL);
-	geode->getOrCreateStateSet()->setTextureAttribute(0, texEnv, osg::StateAttribute::ON);
+	node->getOrCreateStateSet()->setTextureAttribute(0, texEnv, osg::StateAttribute::ON);
 
 	// set rendering
-	geode->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	node->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+	node->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 
 	// add body to pat
-	transform->addChild(geode);
+	transform->addChild(node);
 
 	// set user properties of node
-	geode->setName("connector");
+	node->setName("connector");
 
 	// add to scenegraph
 	robot->addChild(transform);
@@ -1892,7 +1892,7 @@ int CLinkbotT::build_caster(conn_t conn, int face, int custom, int side, int typ
 	dGeomSetBody(conn->geom[0], conn->body);
 	dGeomSetOffsetPosition(conn->geom[0], -m.c[0], -m.c[1], -m.c[2]);
 
-	// default stl caster
+	// default 3ds caster
 	if (!custom) {
 		// set geometry 2 - horizontal support
 		conn->geom[1] = dCreateBox(_space, 0.0368, 0.022, 0.0032);

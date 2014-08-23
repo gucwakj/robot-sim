@@ -116,8 +116,8 @@ typedef enum robot_connector_e {
 typedef enum obstacle_type_e {
 	BOX,
 	CYLINDER,
+	DOT,
 	LINE,
-	POINT,
 	SPHERE,
 	TEXT,
 	NUM_OBSTACLES

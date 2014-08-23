@@ -1,8 +1,10 @@
 #ifndef GRAPHICS_HPP_
 #define GRAPHICS_HPP_
 
+#include "config.h"
+#include "robot.hpp"
+
 #include <ode/ode.h>
-#include <OpenThreads/Thread>
 #include <osg/Billboard>
 #include <osg/ClearNode>
 #include <osg/CullFace>
@@ -38,9 +40,7 @@
 #include <osgUtil/SmoothingVisitor>
 #include <osgViewer/Viewer>
 #include <osgViewer/ViewerEventHandlers>
-
-#include "config.h"
-#include "robot.hpp"
+#include <OpenThreads/Thread>
 
 extern osg::Node::NodeMask NOT_VISIBLE_MASK;
 extern osg::Node::NodeMask RECEIVES_SHADOW_MASK;

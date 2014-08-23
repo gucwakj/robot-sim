@@ -19,7 +19,11 @@ set(CMAKE_VERBOSE_MAKEFILE off)
 set(CMAKE_BUILD_TYPE "Release")
 
 # Set developer warnings
-set(CMAKE_CXX_FLAGS "-Wno-write-strings")
+if(MSVC)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+else(MSVC)
+	set(CMAKE_CXX_FLAGS "-Wno-write-strings")
+endif(MSVC)
 
 # include directory
 include_directories(
@@ -33,11 +37,6 @@ configure_file(
 	"${librobosim_SOURCE_DIR}/config.h.in"
 	"${librobosim_BINARY_DIR}/config.h"
 )
-
-# Disable windows warnings
-if(MSVC)
-	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-endif(MSVC)
 
 # Add tinyxml2 library
 include_directories("../tinyxml2")

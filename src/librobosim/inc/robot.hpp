@@ -162,16 +162,16 @@ class DLLIMPORT Robot {
 
 	// virual functions for inherited classes
 	protected:
-		virtual int build(xml_robot_t) {};
-		virtual int buildIndividual(double, double, double, dMatrix3, double*) {};
+		virtual int build(xml_robot_t) { return 0; };
+		virtual int buildIndividual(double, double, double, dMatrix3, double*) { return 0; };
 #ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group*, int) {};
+		virtual int draw(osg::Group*, int) { return 0; };
 #endif // ENABLE_GRAPHICS
-		virtual double getAngle(int) {};
-		virtual int initParams(int, int) {};
-		virtual int initDims(void) {};
-		virtual void simPreCollisionThread(void) {};
-		virtual void simPostCollisionThread(void) {};
+		virtual double getAngle(int) { return 0; };
+		virtual int initParams(int, int) { return 0; };
+		virtual int initDims(void) { return 0; };
+		virtual void simPreCollisionThread(void) { return; };
+		virtual void simPostCollisionThread(void) { return; };
 
 	// data members
 	protected:

@@ -64,8 +64,8 @@ class DLLIMPORT RoboSim {
 #ifdef ENABLE_GRAPHICS
 		// enumeration of drawing objects
 		typedef enum drawing_objects_e {
+			DOT,
 			LINE,
-			POINT,
 			TEXT,
 			NUM_TYPES
 		} drawingObjects_t;
