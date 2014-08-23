@@ -113,15 +113,6 @@ typedef enum robot_connector_e {
 	WHEEL,
 	NUM_CONNECTORS
 } robotConnector_t;
-typedef enum obstacle_type_e {
-	BOX,
-	CYLINDER,
-	DOT,
-	LINE,
-	SPHERE,
-	TEXT,
-	NUM_OBSTACLES
-} obstacleType_t;
 
 // connector
 typedef struct xml_conn_s {

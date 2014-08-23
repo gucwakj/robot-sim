@@ -2177,7 +2177,26 @@ void* RoboSim::graphics_thread(void *arg) {
 	// drawing objects
 	drawing_t dtmp = sim->_drawings;
 	while (dtmp) {
-		if (dtmp->type == LINE) {
+		if (dtmp->type == DOT) {
+			// create sphere
+			osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(dtmp->p1[0], dtmp->p1[1], dtmp->p1[2]), dtmp->i/500.0);
+			osg::Geode *point = new osg::Geode;
+			osg::ShapeDrawable *pointDrawable = new osg::ShapeDrawable(sphere);
+			point->addDrawable(pointDrawable);
+			pointDrawable->setColor(osg::Vec4(dtmp->c[0], dtmp->c[1], dtmp->c[2], dtmp->c[3]));
+
+			// set rendering properties
+			point->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+			point->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+			// optimize object
+			osgUtil::Optimizer optimizer;
+			optimizer.optimize(point);
+
+			// add to scenegraph
+			shadowedScene->addChild(point);
+		}
+		else if (dtmp->type == LINE) {
 			// draw line
 			osg::Geode *line = new osg::Geode();
 			osg::Geometry *geom = new osg::Geometry();
@@ -2207,25 +2226,6 @@ void* RoboSim::graphics_thread(void *arg) {
 
 			// add to scenegraph
 			shadowedScene->addChild(line);
-		}
-		else if (dtmp->type == DOT) {
-			// create sphere
-			osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(dtmp->p1[0], dtmp->p1[1], dtmp->p1[2]), dtmp->i/500.0);
-			osg::Geode *point = new osg::Geode;
-			osg::ShapeDrawable *pointDrawable = new osg::ShapeDrawable(sphere);
-			point->addDrawable(pointDrawable);
-			pointDrawable->setColor(osg::Vec4(dtmp->c[0], dtmp->c[1], dtmp->c[2], dtmp->c[3]));
-
-			// set rendering properties
-			point->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-			point->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-			// optimize object
-			osgUtil::Optimizer optimizer;
-			optimizer.optimize(point);
-
-			// add to scenegraph
-			shadowedScene->addChild(point);
 		}
 		else if (dtmp->type == TEXT) {
 			// generate text node
