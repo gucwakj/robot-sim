@@ -145,7 +145,7 @@ typedef struct xml_robot_s {
 	int type;
 	double x, y, z;
 	double psi, theta, phi;
-	double angle1, angle2, angle3, angle4;
+	double angle1, angle2, angle3, angle4, angle5, angle6;
 	struct xml_conn_s *conn;
 	struct xml_robot_s *next;
 } *xml_robot_t;

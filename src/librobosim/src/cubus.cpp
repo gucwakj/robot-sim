@@ -328,7 +328,7 @@ int Cubus::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml_con
 			dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], DEG2RAD(robot->angle1));
 			break;
 		case 2:
-			offset[0] = _face_depth + _body_length;
+			offset[0] = _body_length/2 + _face_depth;
 			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], -M_PI/2);
 			dMultiply0(R4, R3, R2, 3, 3, 3);
 			dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -DEG2RAD(robot->angle2));
@@ -338,6 +338,24 @@ int Cubus::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml_con
 			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], M_PI);
 			dMultiply0(R4, R3, R2, 3, 3, 3);
 			dRFromAxisAndAngle(R5, R4[0], R4[4], R4[8], DEG2RAD(robot->angle3));
+			break;
+		case 4:
+			offset[0] = _body_length/2 + _face_depth;
+			dRFromAxisAndAngle(R3, R2[2], R2[6], R2[10], M_PI/2);
+			dMultiply0(R4, R3, R2, 3, 3, 3);
+			dRFromAxisAndAngle(R5, R4[1], R4[5], R4[9], -DEG2RAD(robot->angle4));
+			break;
+		case 5:
+			offset[0] = _body_height/2 + _face_depth;
+			dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], M_PI/2);
+			dMultiply0(R4, R3, R2, 3, 3, 3);
+			dRFromAxisAndAngle(R5, R4[2], R4[6], R4[10], DEG2RAD(robot->angle5));
+			break;
+		case 6:
+			offset[0] = _body_height/2 + _face_depth;
+			dRFromAxisAndAngle(R3, R2[1], R2[5], R2[9], -M_PI/2);
+			dMultiply0(R4, R3, R2, 3, 3, 3);
+			dRFromAxisAndAngle(R5, R4[2], R4[6], R4[10], DEG2RAD(robot->angle6));
 			break;
 	}
 	m[0] += R[0]*offset[0];
@@ -381,7 +399,7 @@ int Cubus::buildIndividual(double x, double y, double z, dMatrix3 R, double *rot
 	_geom[FACE6] = new dGeomID[1];
 
 	// adjust input height by body height
-	if (fabs(z) < (_body_height-EPSILON)) {z += _body_height/2; }
+	if (fabs(z) < (_body_height/2 - EPSILON)) { z += _body_height/2; }
 
     // convert input angles to radians
 	for (int i = 0; i < _dof; i++) {
@@ -882,6 +900,7 @@ int Cubus::initParams(int disabled, int type) {
 	_rec_angles = new double ** [_dof];
 	_rec_num = new int[_dof];
 	_recording = new bool[_dof];
+	_neighbor.resize(_dof);
 
 	// fill with default data
 	for (int i = 0, j = 0; i < _dof; i++) {
@@ -959,6 +978,13 @@ void Cubus::simPreCollisionThread(void) {
 	_accel[2] = R[10];
 	// add gaussian noise to accel
 	this->noisy(_accel, 3, 0.005);
+
+	/**************/
+	std::cout << _id << ": ";
+	for (int i = 0; i < _dof; i++)
+		std::cout << this->getNeighborData(i) << " ";
+	std::cout << std::endl;
+	/**************/
 
 	// update angle values for each degree of freedom
 	for (int i = 0; i < _dof; i++) {

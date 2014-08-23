@@ -810,7 +810,7 @@ int RoboSim::init_xml(char *name) {
 			nr->connected = 0;
 			nr->x = 0; nr->y = 0; nr->z = 0;
 			nr->psi = 0; nr->theta = 0; nr->phi = 0;
-			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0; nr->angle4 = 0;
+			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0; nr->angle4 = 0; nr->angle5 = 0; nr->angle6 = 0;
 			nr->tracking = tracking;
 			node->QueryIntAttribute("id", &(nr->id));
 			if ( (ele = node->FirstChildElement("position")) ) {
@@ -828,6 +828,8 @@ int RoboSim::init_xml(char *name) {
 				ele->QueryDoubleAttribute("a2", &(nr->angle2));
 				ele->QueryDoubleAttribute("a3", &(nr->angle3));
 				ele->QueryDoubleAttribute("a4", &(nr->angle4));
+				ele->QueryDoubleAttribute("a5", &(nr->angle5));
+				ele->QueryDoubleAttribute("a6", &(nr->angle6));
 			}
 			if (node->QueryIntAttribute("ground", &(nr->ground))) {
 				nr->ground = -1;
@@ -1078,7 +1080,6 @@ int RoboSim::addRobot(Robot *robot) {
 			break;
 	}
 
-
 	// no robot found
 	if (btmp == NULL || btmp->type != form) {
 		switch (form) {
@@ -1195,6 +1196,8 @@ int RoboSim::addRobot(ModularRobot *robot) {
 				double m[3] = {0};
 				r->getFaceParams(ctmp->face1, R, m);
 				robot->build(btmp, R, m, body, ctmp);
+				robot->addNeighbor(r, ctmp->face2-1, ctmp->face1-1);
+				r->addNeighbor(robot, ctmp->face1-1, ctmp->face2-1);
 				break;
 			}
 		}
@@ -2252,4 +2255,3 @@ void* RoboSim::graphics_thread(void *arg) {
 	return arg;
 }
 #endif // ENABLE_GRAPHICS
-

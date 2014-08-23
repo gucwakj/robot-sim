@@ -25,7 +25,9 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 
 	// utility functions for inherited and friend classes
 	protected:
+		int addNeighbor(ModularRobot *, int, int);
 		dBodyID getConnectorBodyID(int);
+		int getNeighborData(int = -1, int = 0);
 
 	// virual functions for inherited classes
 	protected:
@@ -54,12 +56,19 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 
 	// data members
 	protected:
-		std::vector<Connector*> _conn;	// connectors
-		double _bigwheel_radius;		// dimension: big wheel radius
-		double _conn_depth;				// dimension: connector depth
-		double _conn_height;			// dimension: connector height
-		double _conn_radius;			// dimension: connector radius
-		double _smallwheel_radius;		// dimension: small wheel radius
+		// neighbor robots
+		typedef struct neighbor_s {
+			ModularRobot *robot;
+			int face;
+		} Neighbor;
+
+		std::vector<Connector*> _conn;		// connectors
+		std::vector<Neighbor> _neighbor;	// connected robots
+		double _bigwheel_radius;			// dimension: big wheel radius
+		double _conn_depth;					// dimension: connector depth
+		double _conn_height;				// dimension: connector height
+		double _conn_radius;				// dimension: connector radius
+		double _smallwheel_radius;			// dimension: small wheel radius
 };
 
 #endif // MODULARROBOT_HPP_

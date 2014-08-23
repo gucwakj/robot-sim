@@ -1698,6 +1698,7 @@ int CMobot::initParams(int disabled, int type) {
 	_rec_angles = new double ** [_dof];
 	_rec_num = new int[_dof];
 	_recording = new bool[_dof];
+	_neighbor.resize(_dof);
 
 	// fill with default data
 	for (int i = 0; i < _dof; i++) {

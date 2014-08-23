@@ -4,7 +4,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 	CLinkbotI robot;
-	robot.connect();
+	robot.connect("testrc");
 
 	return 0;
 }
