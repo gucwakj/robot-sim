@@ -27,7 +27,7 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 	protected:
 		int addNeighbor(ModularRobot *, int, int);
 		dBodyID getConnectorBodyID(int);
-		int getNeighborData(int = -1, int = 0);
+		int getNeighborCount(int = -1, int = 0);
 
 	// virual functions for inherited classes
 	protected:

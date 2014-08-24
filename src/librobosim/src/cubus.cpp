@@ -982,7 +982,7 @@ void Cubus::simPreCollisionThread(void) {
 	/**************/
 	std::cout << _id << ": ";
 	for (int i = 0; i < _dof; i++)
-		std::cout << this->getNeighborData(i) << " ";
+		std::cout << this->getNeighborCount(i) << " ";
 	std::cout << std::endl;
 	/**************/
 

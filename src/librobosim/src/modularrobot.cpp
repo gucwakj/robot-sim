@@ -45,16 +45,16 @@ dBodyID ModularRobot::getConnectorBodyID(int face) {
 	return NULL;
 }
 
-int ModularRobot::getNeighborData(int face, int back) {
+int ModularRobot::getNeighborCount(int face, int back) {
 	int val = 0;
 	if (face != -1) {
-		if (_neighbor[face].robot) val += _neighbor[face].robot->getNeighborData(-1, _neighbor[face].face);
+		if (_neighbor[face].robot) val += _neighbor[face].robot->getNeighborCount(-1, _neighbor[face].face);
 	}
 	else {
 		for (int i = 0; i < _neighbor.size(); i++)
 			if (_neighbor[i].robot) {
 				if (i != back)
-					val += _neighbor[i].robot->getNeighborData(-1, _neighbor[i].face);
+					val += _neighbor[i].robot->getNeighborCount(-1, _neighbor[i].face);
 				else
 					val += 1;
 			}
