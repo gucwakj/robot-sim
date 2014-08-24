@@ -60,7 +60,7 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 		virtual int addConnector(int, int, double);
 		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, xml_conn_t);
 #ifdef ENABLE_GRAPHICS
-		virtual int drawConnector(conn_t, osg::Group*);
+		virtual int drawConnector(Connector*, osg::Group*);
 #endif // ENABLE_GRAPHICS
 		virtual int fixBodyToConnector(dBodyID, int);
 		virtual int fixConnectorToBody(int, dBodyID, int = -1);
@@ -83,21 +83,21 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 	// private functions
 	private:
 		int add_connector_daisy(int, int, double, int, int);			// add daisy chained connector
-		int build_bigwheel(conn_t, int, int = -1, int = -1);			// build big wheel connector
+		int build_bigwheel(Connector*, int, int = -1, int = -1);		// build big wheel connector
 		int build_body(double, double, double, dMatrix3, double);		// build body of linkbot
-		int build_bridge(conn_t, int, int = -1, int = -1);				// build bridge connector
-		int build_caster(conn_t, int, int, int = -1, int = -1);			// build caster connector
-		int build_cube(conn_t, int, int = -1, int = -1);				// build cube connector
+		int build_bridge(Connector*, int, int = -1, int = -1);			// build bridge connector
+		int build_caster(Connector*, int, int, int = -1, int = -1);		// build caster connector
+		int build_cube(Connector*, int, int = -1, int = -1);			// build cube connector
 		int build_face(int, double, double, double, dMatrix3, double);	// build face of linkbot
-		int build_faceplate(conn_t, int, int = -1, int = -1);			// build faceplate connector
-		int build_gripper(conn_t, int);									// build gripper connector
-		int build_omnidrive(conn_t, int, int = -1, int = -1);			// build omnidrive connector
-		int build_simple(conn_t, int face, int = -1, int = -1);			// build simple connector
-		int build_smallwheel(conn_t, int, int = -1, int = -1);			// build small wheel connector
-		int build_tinywheel(conn_t, int, int = -1, int = -1);			// build tiny wheel connector
-		int build_wheel(conn_t, int, double, int = -1, int = -1);		// build custom wheel connector
+		int build_faceplate(Connector*, int, int = -1, int = -1);		// build faceplate connector
+		int build_gripper(Connector*, int);								// build gripper connector
+		int build_omnidrive(Connector*, int, int = -1, int = -1);		// build omnidrive connector
+		int build_simple(Connector*, int face, int = -1, int = -1);		// build simple connector
+		int build_smallwheel(Connector*, int, int = -1, int = -1);		// build small wheel connector
+		int build_tinywheel(Connector*, int, int = -1, int = -1);		// build tiny wheel connector
+		int build_wheel(Connector*, int, double, int = -1, int = -1);	// build custom wheel connector
 #ifdef ENABLE_GRAPHICS
-		int draw_custom_caster(conn_t conn, osg::Group *robot);			// draw custom sized caster
+		int draw_custom_caster(Connector* conn, osg::Group *robot);		// draw custom sized caster
 #endif // ENABLE_GRAPHICS
 		static void* closeGripperNBThread(void*);						// thread to close gripper
 

@@ -247,26 +247,24 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		}
 		// draw connectors
-		conn_t ctmp = _robot->_conn;
-		while (ctmp) {
+		for (int j = 0; j < _robot->_conn.size(); j++) {
 			dMatrix3 R;
 			dQuaternion Q;
 			double p[3] = {0};
-			if (ctmp->d_side <= -10) {
-				const double *pos = dBodyGetPosition(ctmp->body);
+			if (_robot->_conn[j]->d_side <= -10) {
+				const double *pos = dBodyGetPosition(_robot->_conn[j]->body);
 				p[0] = pos[0]; p[1] = pos[1]; p[2] = pos[2];
-				const double *rot = dBodyGetQuaternion(ctmp->body);
+				const double *rot = dBodyGetQuaternion(_robot->_conn[j]->body);
 				Q[0] = rot[0]; Q[1] = rot[1]; Q[2] = rot[2]; Q[3] = rot[3];
 			}
 			else {
-				_robot->getFaceParams(ctmp->face, R, p);
-				if (ctmp->d_side != -1) _robot->getConnectorParams(ctmp->d_type, ctmp->d_side, R, p);
+				_robot->getFaceParams(_robot->_conn[j]->face, R, p);
+				if (_robot->_conn[j]->d_side != -1) _robot->getConnectorParams(_robot->_conn[j]->d_type, _robot->_conn[j]->d_side, R, p);
 				dRtoQ(R, Q);
 			}
 			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i + k++));
 			pat->setPosition(osg::Vec3d(p[0], p[1], p[2]));
 			pat->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
-			ctmp = ctmp->next;
 		}
 		// draw hud
 		osg::Geode *geode = dynamic_cast<osg::Geode *>(group->getChild(0));
@@ -324,14 +322,12 @@ void mobotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		}
 		// draw connectors
-		conn_t ctmp = _robot->_conn;
-		while (ctmp) {
-			pos = dBodyGetPosition(ctmp->body);
-			quat = dBodyGetQuaternion(ctmp->body);
+		for (int j = 0; j < _robot->_conn.size(); j++) {
+			pos = dBodyGetPosition(_robot->_conn[j]->body);
+			quat = dBodyGetQuaternion(_robot->_conn[j]->body);
 			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i + k++));
 			pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
 			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-			ctmp = ctmp->next;
 		}
 		// draw hud
 		osg::Geode *geode = dynamic_cast<osg::Geode *>(group->getChild(0));
@@ -450,18 +446,16 @@ void cubusNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 		pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]+0.00001));
 		pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		// draw connectors
-		conn_t ctmp = _robot->_conn;
-		while(ctmp) {
+		for (int j = 0; j < _robot->_conn.size(); j++) {
 			dMatrix3 R;
 			dQuaternion Q;
 			double p[3] = {0};
-			_robot->getFaceParams(ctmp->face, R, p);
-			if (ctmp->d_side != -1) _robot->getConnectorParams(ctmp->d_type, ctmp->d_side, R, p);
+			_robot->getFaceParams(_robot->_conn[j]->face, R, p);
+			if (_robot->_conn[j]->d_side != -1) _robot->getConnectorParams(_robot->_conn[j]->d_type, _robot->_conn[j]->d_side, R, p);
 			dRtoQ(R, Q);
 			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i + k++));
 			pat->setPosition(osg::Vec3d(p[0], p[1], p[2]));
 			pat->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
-			ctmp = ctmp->next;
 		}
 		// draw hud
 		osg::Geode *geode = dynamic_cast<osg::Geode *>(group->getChild(0));

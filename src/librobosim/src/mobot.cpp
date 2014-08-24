@@ -831,45 +831,34 @@ int CMobot::setJointSpeedRatios(double ratio1, double ratio2, double ratio3, dou
  **********************************************************/
 int CMobot::addConnector(int type, int face, double size) {
 	// create new connector
-	conn_t nc = new struct conn_s;
-	nc->d_side = -1;
-	nc->d_type = -1;
-	nc->face = face;
-	nc->type = type;
-	nc->next = NULL;
-
-	// add to list of connectors
-	conn_t ctmp = _conn;
-	if ( _conn == NULL )
-		_conn = nc;
-	else {
-		while (ctmp->next)
-			ctmp = ctmp->next;
-		ctmp->next = nc;
-	}
+	_conn.push_back(new Connector());
+	_conn.back()->d_side = -1;
+	_conn.back()->d_type = -1;
+	_conn.back()->face = face;
+	_conn.back()->type = type;
 
 	// build connector
 	switch (type) {
 		case BIGWHEEL:
-			this->build_bigwheel(nc, face);
+			this->build_bigwheel(_conn.back(), face);
 			break;
 		case CASTER:
-			this->build_caster(nc, face);
+			this->build_caster(_conn.back(), face);
 			break;
 		case SIMPLE:
-			this->build_simple(nc, face);
+			this->build_simple(_conn.back(), face);
 			break;
 		case SMALLWHEEL:
-			this->build_smallwheel(nc, face);
+			this->build_smallwheel(_conn.back(), face);
 			break;
 		case SQUARE:
-			this->build_square(nc, face);
+			this->build_square(_conn.back(), face);
 			break;
 		case TANK:
-			this->build_tank(nc, face);
+			this->build_tank(_conn.back(), face);
 			break;
 		case WHEEL:
-			this->build_wheel(nc, face, size);
+			this->build_wheel(_conn.back(), face, size);
 			break;
 	}
 
@@ -924,21 +913,19 @@ int CMobot::build(xml_robot_t robot) {
 	double wheel[4] = {0};
 	const double *pos;
 	int i = 0;
-	conn_t c2tmp = _conn;
-	while (c2tmp) {
-		switch (c2tmp->type) {
+	for (int i = 0; i < _conn.size(); i++) {
+		switch (_conn[i]->type) {
 			case BIGWHEEL:
 			case SMALLWHEEL:
 			case TINYWHEEL:
 			case WHEEL:
-				pos = dBodyGetPosition(c2tmp->body);
+				pos = dBodyGetPosition(_conn[i]->body);
 				wheel[i++] = pos[0];
 				wheel[i++] = pos[1];
 				break;
 			default:
 				break;
 		}
-		c2tmp = c2tmp->next;
 	}
 	_trackwidth = sqrt(pow(wheel[0] - wheel[2], 2) + pow(wheel[1] - wheel[3], 2));
 
@@ -1409,10 +1396,8 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	}
 
 	// add connectors
-	conn_t ctmp = _conn;
-	while (ctmp) {
-		this->drawConnector(ctmp, _robot);
-		ctmp = ctmp->next;
+	for (int i = 0; i < _conn.size(); i++) {
+		this->drawConnector(_conn[i], _robot);
 	}
 
 	// set update callback for robot
@@ -1479,7 +1464,7 @@ int CMobot::draw(osg::Group *root, int tracking) {
 	return (root->getChildIndex(_robot));
 }
 
-int CMobot::drawConnector(conn_t conn, osg::Group *robot) {
+int CMobot::drawConnector(Connector *conn, osg::Group *robot) {
 	// draw each connector
 	switch (conn->type) {
 		case BIGWHEEL:
@@ -1869,7 +1854,7 @@ void CMobot::simPostCollisionThread(void) {
 /**********************************************************
 	private functions
  **********************************************************/
-int CMobot::build_bigwheel(conn_t conn, int face) {
+int CMobot::build_bigwheel(Connector *conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[1];
@@ -1982,7 +1967,7 @@ int CMobot::build_body(int id, double x, double y, double z, dMatrix3 R, double 
 	return 0;
 }
 
-int CMobot::build_caster(conn_t conn, int face) {
+int CMobot::build_caster(Connector *conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[10];
@@ -2196,7 +2181,7 @@ int CMobot::build_endcap(int id, double x, double y, double z, dMatrix3 R) {
 	return 0;
 }
 
-int CMobot::build_simple(conn_t conn, int face) {
+int CMobot::build_simple(Connector *conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[7];
@@ -2282,7 +2267,7 @@ int CMobot::build_simple(conn_t conn, int face) {
 	return 0;
 }
 
-int CMobot::build_smallwheel(conn_t conn, int face) {
+int CMobot::build_smallwheel(Connector *conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[1];
@@ -2330,7 +2315,7 @@ int CMobot::build_smallwheel(conn_t conn, int face) {
 	return 0;
 }
 
-int CMobot::build_square(conn_t conn, int face) {
+int CMobot::build_square(Connector *conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[4];
@@ -2389,7 +2374,7 @@ int CMobot::build_square(conn_t conn, int face) {
 	return 0;
 }
 
-int CMobot::build_tank(conn_t conn, int face) {
+int CMobot::build_tank(Connector *conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[1];
@@ -2437,7 +2422,7 @@ int CMobot::build_tank(conn_t conn, int face) {
 	return 0;
 }
 
-int CMobot::build_wheel(conn_t conn, int face, double size) {
+int CMobot::build_wheel(Connector *conn, int face, double size) {
 	// create body
 	conn->body = dBodyCreate(_world);
     conn->geom = new dGeomID[1];
@@ -2489,7 +2474,7 @@ int CMobot::build_wheel(conn_t conn, int face, double size) {
 }
 
 #ifdef ENABLE_GRAPHICS
-void CMobot::draw_bigwheel(conn_t conn, osg::Group *robot) {
+void CMobot::draw_bigwheel(Connector *conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
@@ -2525,7 +2510,7 @@ void CMobot::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 
-void CMobot::draw_caster(conn_t conn, osg::Group *robot) {
+void CMobot::draw_caster(Connector *conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
@@ -2610,7 +2595,7 @@ void CMobot::draw_caster(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 
-void CMobot::draw_simple(conn_t conn, osg::Group *robot) {
+void CMobot::draw_simple(Connector *conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
@@ -2680,7 +2665,7 @@ void CMobot::draw_simple(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 
-void CMobot::draw_smallwheel(conn_t conn, osg::Group *robot) {
+void CMobot::draw_smallwheel(Connector *conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
@@ -2716,7 +2701,7 @@ void CMobot::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 
-void CMobot::draw_square(conn_t conn, osg::Group *robot) {
+void CMobot::draw_square(Connector *conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
@@ -2767,7 +2752,7 @@ void CMobot::draw_square(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 
-void CMobot::draw_tank(conn_t conn, osg::Group *robot) {
+void CMobot::draw_tank(Connector *conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
@@ -2806,7 +2791,7 @@ void CMobot::draw_tank(conn_t conn, osg::Group *robot) {
 	robot->addChild(pat);
 }
 
-void CMobot::draw_wheel(conn_t conn, osg::Group *robot) {
+void CMobot::draw_wheel(Connector *conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;

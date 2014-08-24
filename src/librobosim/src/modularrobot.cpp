@@ -1,18 +1,12 @@
 #include "modularrobot.hpp"
 #include "robosim.hpp"
 
-ModularRobot::ModularRobot(void) : Robot(JOINT1, JOINT1) {
-	_conn = NULL;
-}
+ModularRobot::ModularRobot(void) : Robot(JOINT1, JOINT1) { }
 
 ModularRobot::~ModularRobot(void) {
 	// destroy connectors array
-	conn_t ctmp = _conn;
-	while (ctmp) {
-		conn_t tmp = ctmp->next;
-		delete [] ctmp->geom;
-		delete ctmp;
-		ctmp = tmp;
+	for (int i = 0; i < _conn.size(); i++) {
+		delete _conn[i];
 	}
 }
 
@@ -40,12 +34,8 @@ int ModularRobot::connect(char *name, int pause) {
 	protected functions for inherited classes
  **********************************************************/
 dBodyID ModularRobot::getConnectorBodyID(int face) {
-	conn_t ctmp = _conn;
-	while (ctmp) {
-		if (ctmp->face == face) {
-			return ctmp->body;
-		}
-		ctmp = ctmp->next;
+	for (int i = 0; i < _conn.size(); i++) {
+		if (_conn[i]->face == face) return _conn[i]->body;
 	}
 	return NULL;
 }

@@ -267,25 +267,14 @@ int Cubus::turnRightNB(double angle, double radius, double trackwidth) {
  **********************************************************/
 int Cubus::addConnector(int type, int face, double size) {
 	// create new connector
-	conn_t nc = new struct conn_s;
-	nc->d_side = -1;
-	nc->d_type = -1;
-	nc->face = face;
-	nc->type = type;
-	nc->next = NULL;
-
-	// add to list of connectors
-	conn_t ctmp = _conn;
-	if ( _conn == NULL )
-		_conn = nc;
-	else {
-		while (ctmp->next)
-			ctmp = ctmp->next;
-		ctmp->next = nc;
-	}
+	_conn.push_back(new Connector());
+	_conn.back()->d_side = -1;
+	_conn.back()->d_type = -1;
+	_conn.back()->face = face;
+	_conn.back()->type = type;
 
 	// build connector
-	this->build_simple(nc, face);
+	this->build_simple(_conn.back(), face);
 
 	// success
 	return 0;
@@ -669,10 +658,8 @@ int Cubus::draw(osg::Group *root, int tracking) {
 	}
 
 	// add connectors
-	conn_t ctmp = _conn;
-	while (ctmp) {
-		this->drawConnector(ctmp, _robot);
-		ctmp = ctmp->next;
+	for (int i = 0; i < _conn.size(); i++) {
+		this->drawConnector(_conn[i], _robot);
 	}
 
 	// set update callback for robot
@@ -739,7 +726,7 @@ int Cubus::draw(osg::Group *root, int tracking) {
 	return (root->getChildIndex(_robot));
 }
 
-int Cubus::drawConnector(conn_t conn, osg::Group *robot) {
+int Cubus::drawConnector(Connector *conn, osg::Group *robot) {
 	// initialize variables
 	dMatrix3 R;
 	dQuaternion Q;
@@ -1245,7 +1232,7 @@ int Cubus::build_face(int id, double x, double y, double z, dMatrix3 R, double t
 	return 0;
 }
 
-int Cubus::build_simple(conn_t conn, int face, int side, int type) {
+int Cubus::build_simple(Connector *conn, int face, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[1];

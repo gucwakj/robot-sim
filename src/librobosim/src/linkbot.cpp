@@ -606,74 +606,56 @@ int CLinkbotT::turnRightNB(double angle, double radius, double trackwidth) {
  **********************************************************/
 int CLinkbotT::addConnector(int type, int face, double size) {
 	// create new connector
-	conn_t nc = new struct conn_s;
-	nc->d_side = -1;
-	nc->d_type = -1;
-	nc->face = face;
-	nc->type = type;
-	nc->next = NULL;
-
-	// add to list of connectors
-	conn_t ctmp = _conn;
-	if ( _conn == NULL )
-		_conn = nc;
-	else {
-		while (ctmp->next)
-			ctmp = ctmp->next;
-		ctmp->next = nc;
-	}
+	_conn.push_back(new Connector());
+	_conn.back()->d_side = -1;
+	_conn.back()->d_type = -1;
+	_conn.back()->face = face;
+	_conn.back()->type = type;
 
 	// build connector
 	switch (type) {
 		case BIGWHEEL:
-			this->build_bigwheel(nc, face);
+			this->build_bigwheel(_conn.back(), face);
 			break;
 		case BRIDGE:
-			this->build_bridge(nc, face);
+			this->build_bridge(_conn.back(), face);
 			break;
 		case CASTER:
-			this->build_caster(nc, face, static_cast<int>(size));
+			this->build_caster(_conn.back(), face, static_cast<int>(size));
 			break;
 		case CUBE:
-			this->build_cube(nc, face);
+			this->build_cube(_conn.back(), face);
 			break;
 		case FACEPLATE:
-			this->build_faceplate(nc, face);
+			this->build_faceplate(_conn.back(), face);
 			break;
 		case GRIPPER:
-			this->build_gripper(nc, 1);
+			this->build_gripper(_conn.back(), 1);
 			break;
 		case OMNIDRIVE:
-			this->build_omnidrive(nc, face);
+			this->build_omnidrive(_conn.back(), face);
 			break;
 		case SIMPLE:
-			this->build_simple(nc, face);
+			this->build_simple(_conn.back(), face);
 			break;
 		case SMALLWHEEL:
-			this->build_smallwheel(nc, face);
+			this->build_smallwheel(_conn.back(), face);
 			break;
 		case TINYWHEEL:
-			this->build_tinywheel(nc, face);
+			this->build_tinywheel(_conn.back(), face);
 			break;
 		case WHEEL:
-			this->build_wheel(nc, face, size);
+			this->build_wheel(_conn.back(), face, size);
 			break;
 	}
 
 	if (type == GRIPPER) {
-		conn_t nc2 = new struct conn_s;
-		nc2->face = 3;
-		nc2->type = GRIPPER;
-		nc2->next = NULL;
-
-		// add to list of connectors
-		conn_t ctmp = _conn;
-		while (ctmp->next)
-			ctmp = ctmp->next;
-		ctmp->next = nc2;
-
-		// build
-		this->build_gripper(nc2, 3);
+		_conn.push_back(new Connector());
+		_conn.back()->d_side = -1;
+		_conn.back()->d_type = -1;
+		_conn.back()->face = face;
+		_conn.back()->type = type;
+		this->build_gripper(_conn.back(), 3);
 	}
 
 	// success
@@ -743,21 +725,19 @@ int CLinkbotT::build(xml_robot_t robot) {
 	double wheel[4] = {0};
 	const double *pos;
 	int i = 0;
-	conn_t c2tmp = _conn;
-	while (c2tmp) {
-		switch (c2tmp->type) {
+	for (int i = 0; i < _conn.size(); i++) {
+		switch (_conn[i]->type) {
 			case BIGWHEEL:
 			case SMALLWHEEL:
 			case TINYWHEEL:
 			case WHEEL:
-				pos = dBodyGetPosition(c2tmp->body);
+				pos = dBodyGetPosition(_conn[i]->body);
 				wheel[i++] = pos[0];
 				wheel[i++] = pos[1];
 				break;
 			default:
 				break;
 		}
-		c2tmp = c2tmp->next;
 	}
 	_trackwidth = sqrt(pow(wheel[0] - wheel[2], 2) + pow(wheel[1] - wheel[3], 2));
 
@@ -1057,10 +1037,8 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	}
 
 	// add connectors
-	conn_t ctmp = _conn;
-	while (ctmp) {
-		this->drawConnector(ctmp, _robot);
-		ctmp = ctmp->next;
+	for (int i = 0; i < _conn.size(); i++) {
+		this->drawConnector(_conn[i], _robot);
 	}
 
 	// set update callback for robot
@@ -1127,7 +1105,7 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	return (root->getChildIndex(_robot));
 }
 
-int CLinkbotT::drawConnector(conn_t conn, osg::Group *robot) {
+int CLinkbotT::drawConnector(Connector *conn, osg::Group *robot) {
 	// initialize variables
 	dMatrix3 R;
 	dQuaternion Q;
@@ -1462,13 +1440,11 @@ void CLinkbotT::simPreCollisionThread(void) {
 		_motor[i].theta = getAngle(i);
 		// set rotation axis
 		dVector3 axis;
-		conn_t ctmp = _conn;
 		dJointGetHingeAxis(_joint[i], axis);
 		dBodySetFiniteRotationAxis(_body[i+1], axis[0], axis[1], axis[2]);
-		while (ctmp) {
-			if (ctmp->face == i+1)
-				dBodySetFiniteRotationAxis(ctmp->body, axis[0], axis[1], axis[2]);
-			ctmp = ctmp->next;
+		for (int k = 0; k < _conn.size(); k++) {
+			if (_conn[k]->face == i+1)
+				dBodySetFiniteRotationAxis(_conn[i]->body, axis[0], axis[1], axis[2]);
 		}
 		// set motor angle to current angle
 		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
@@ -1655,55 +1631,44 @@ void CLinkbotT::simPostCollisionThread(void) {
  **********************************************************/
 int CLinkbotT::add_connector_daisy(int conn, int face, double size, int side, int type) {
 	// create new connector
-	conn_t nc = new struct conn_s;
-	nc->d_side = side;
-	nc->d_type = type;
-	nc->face = face;
-	nc->type = conn;
-	nc->next = NULL;
-
-	// add to list of connectors
-	conn_t ctmp = _conn;
-	if ( _conn == NULL )
-		_conn = nc;
-	else {
-		while (ctmp->next)
-			ctmp = ctmp->next;
-		ctmp->next = nc;
-	}
+	_conn.push_back(new Connector());
+	_conn.back()->d_side = side;
+	_conn.back()->d_type = type;
+	_conn.back()->face = face;
+	_conn.back()->type = conn;
 
 	// build connector
 	switch (conn) {
 		case BIGWHEEL:
-			this->build_bigwheel(nc, face, side, type);
+			this->build_bigwheel(_conn.back(), face, side, type);
 			break;
 		case BRIDGE:
-			this->build_bridge(nc, face, side, type);
+			this->build_bridge(_conn.back(), face, side, type);
 			break;
 		case CASTER:
-			nc->d_side = -10*size;
-			this->build_caster(nc, face, static_cast<int>(size), side, type);
+			_conn.back()->d_side = -10*size;
+			this->build_caster(_conn.back(), face, static_cast<int>(size), side, type);
 			break;
 		case CUBE:
-			this->build_cube(nc, face, side, type);
+			this->build_cube(_conn.back(), face, side, type);
 			break;
 		case FACEPLATE:
-			this->build_faceplate(nc, face, side, type);
+			this->build_faceplate(_conn.back(), face, side, type);
 			break;
 		case OMNIDRIVE:
-			this->build_omnidrive(nc, face, side, type);
+			this->build_omnidrive(_conn.back(), face, side, type);
 			break;
 		case SIMPLE:
-			this->build_simple(nc, face, side, type);
+			this->build_simple(_conn.back(), face, side, type);
 			break;
 		case SMALLWHEEL:
-			this->build_smallwheel(nc, face, side, type);
+			this->build_smallwheel(_conn.back(), face, side, type);
 			break;
 		case TINYWHEEL:
-			this->build_tinywheel(nc, face, side, type);
+			this->build_tinywheel(_conn.back(), face, side, type);
 			break;
 		case WHEEL:
-			this->build_wheel(nc, face, size, side, type);
+			this->build_wheel(_conn.back(), face, size, side, type);
 			break;
 	}
 
@@ -1711,7 +1676,7 @@ int CLinkbotT::add_connector_daisy(int conn, int face, double size, int side, in
 	return 0;
 }
 
-int CLinkbotT::build_bigwheel(conn_t conn, int face, int side, int type) {
+int CLinkbotT::build_bigwheel(Connector *conn, int face, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[1];
@@ -1806,7 +1771,7 @@ int CLinkbotT::build_body(double x, double y, double z, dMatrix3 R, double theta
 	return 0;
 }
 
-int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
+int CLinkbotT::build_bridge(Connector *conn, int face, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[1];
@@ -1853,7 +1818,7 @@ int CLinkbotT::build_bridge(conn_t conn, int face, int side, int type) {
 	return 0;
 }
 
-int CLinkbotT::build_caster(conn_t conn, int face, int custom, int side, int type) {
+int CLinkbotT::build_caster(Connector *conn, int face, int custom, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[4];
@@ -1938,7 +1903,7 @@ int CLinkbotT::build_caster(conn_t conn, int face, int custom, int side, int typ
 	return 0;
 }
 
-int CLinkbotT::build_cube(conn_t conn, int face, int side, int type) {
+int CLinkbotT::build_cube(Connector *conn, int face, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[1];
@@ -2027,7 +1992,7 @@ int CLinkbotT::build_face(int id, double x, double y, double z, dMatrix3 R, doub
 	return 0;
 }
 
-int CLinkbotT::build_faceplate(conn_t conn, int face, int side, int type) {
+int CLinkbotT::build_faceplate(Connector *conn, int face, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[1];
@@ -2073,7 +2038,7 @@ int CLinkbotT::build_faceplate(conn_t conn, int face, int side, int type) {
 	return 0;
 }
 
-int CLinkbotT::build_gripper(conn_t conn, int face) {
+int CLinkbotT::build_gripper(Connector *conn, int face) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[3];
@@ -2134,7 +2099,7 @@ int CLinkbotT::build_gripper(conn_t conn, int face) {
 	return 0;
 }
 
-int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
+int CLinkbotT::build_omnidrive(Connector *conn, int face, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[1];
@@ -2180,7 +2145,7 @@ int CLinkbotT::build_omnidrive(conn_t conn, int face, int side, int type) {
 	return 0;
 }
 
-int CLinkbotT::build_simple(conn_t conn, int face, int side, int type) {
+int CLinkbotT::build_simple(Connector *conn, int face, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[1];
@@ -2226,7 +2191,7 @@ int CLinkbotT::build_simple(conn_t conn, int face, int side, int type) {
 	return 0;
 }
 
-int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
+int CLinkbotT::build_smallwheel(Connector *conn, int face, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[1];
@@ -2276,7 +2241,7 @@ int CLinkbotT::build_smallwheel(conn_t conn, int face, int side, int type) {
 	return 0;
 }
 
-int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
+int CLinkbotT::build_tinywheel(Connector *conn, int face, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[1];
@@ -2326,7 +2291,7 @@ int CLinkbotT::build_tinywheel(conn_t conn, int face, int side, int type) {
 	return 0;
 }
 
-int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int type) {
+int CLinkbotT::build_wheel(Connector *conn, int face, double size, int side, int type) {
 	// create body
 	conn->body = dBodyCreate(_world);
 	conn->geom = new dGeomID[1];
@@ -2380,7 +2345,7 @@ int CLinkbotT::build_wheel(conn_t conn, int face, double size, int side, int typ
 }
 
 #ifdef ENABLE_GRAPHICS
-int CLinkbotT::draw_custom_caster(conn_t conn, osg::Group *robot) {
+int CLinkbotT::draw_custom_caster(Connector *conn, osg::Group *robot) {
 	// initialize variables
 	osg::ref_ptr<osg::Geode> body = new osg::Geode;
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;

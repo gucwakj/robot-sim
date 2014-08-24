@@ -5,13 +5,13 @@
 #include "robot.hpp"
 
 // connector
-typedef struct conn_s {
+struct Connector {
 	int face, type;
 	int d_side, d_type;
 	dBodyID body;
 	dGeomID *geom;
 	struct conn_s *next;
-} *conn_t;
+};
 
 class DLLIMPORT ModularRobot : virtual public Robot {
 		friend class RoboSim;
@@ -32,7 +32,7 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 		virtual int addConnector(int, int, double) = 0;
 		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, xml_conn_t) = 0;
 #ifdef ENABLE_GRAPHICS
-		virtual int drawConnector(conn_t, osg::Group*) = 0;
+		virtual int drawConnector(Connector*, osg::Group*) = 0;
 #endif // ENABLE_GRAPHICS
 		virtual int fixBodyToConnector(dBodyID, int) = 0;
 		virtual int fixConnectorToBody(int, dBodyID, int = -1) = 0;
@@ -54,12 +54,12 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 
 	// data members
 	protected:
-		conn_t _conn;				// connectors
-		double _bigwheel_radius;	// dimension: big wheel radius
-		double _conn_depth;			// dimension: connector depth
-		double _conn_height;		// dimension: connector height
-		double _conn_radius;		// dimension: connector radius
-		double _smallwheel_radius;	// dimension: small wheel radius
+		std::vector<Connector*> _conn;	// connectors
+		double _bigwheel_radius;		// dimension: big wheel radius
+		double _conn_depth;				// dimension: connector depth
+		double _conn_height;			// dimension: connector height
+		double _conn_radius;			// dimension: connector radius
+		double _smallwheel_radius;		// dimension: small wheel radius
 };
 
 #endif // MODULARROBOT_HPP_

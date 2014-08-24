@@ -63,7 +63,7 @@ class DLLIMPORT CMobot : public ModularRobot {
 		virtual int addConnector(int, int, double);
 		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, xml_conn_t);
 #ifdef ENABLE_GRAPHICS
-		virtual int drawConnector(conn_t, osg::Group*);
+		virtual int drawConnector(Connector*, osg::Group*);
 #endif // ENABLE_GRAPHICS
 		virtual int fixBodyToConnector(dBodyID, int);
 		virtual int fixConnectorToBody(int, dBodyID, int = -1);
@@ -85,24 +85,24 @@ class DLLIMPORT CMobot : public ModularRobot {
 
 	// private functions
 	private:
-		int build_bigwheel(conn_t, int);								// build big wheel connector
+		int build_bigwheel(Connector*, int);							// build big wheel connector
 		int build_body(int, double, double, double, dMatrix3, double);	// build body of mobot
-		int build_caster(conn_t, int);									// build caster connector
+		int build_caster(Connector*, int);								// build caster connector
 		int build_center(double, double, double, dMatrix3);				// build center body of mobot
 		int build_endcap(int, double, double, double, dMatrix3);		// build endcap of mobot
-		int build_simple(conn_t, int);									// build simple connector
-		int build_smallwheel(conn_t, int);								// build small wheel connector
-		int build_square(conn_t, int);									// build square connector
-		int build_tank(conn_t, int);									// build tank connector
-		int build_wheel(conn_t, int, double);							// build custom wheel connector
+		int build_simple(Connector*, int);								// build simple connector
+		int build_smallwheel(Connector*, int);							// build small wheel connector
+		int build_square(Connector*, int);								// build square connector
+		int build_tank(Connector*, int);								// build tank connector
+		int build_wheel(Connector*, int, double);						// build custom wheel connector
 #ifdef ENABLE_GRAPHICS
-		void draw_bigwheel(conn_t, osg::Group*);						// draw big wheel
-		void draw_caster(conn_t, osg::Group*);							// draw caster
-		void draw_simple(conn_t, osg::Group*);							// draw simple
-		void draw_smallwheel(conn_t, osg::Group*);						// draw small wheel
-		void draw_square(conn_t, osg::Group*);							// draw square
-		void draw_tank(conn_t, osg::Group*);							// draw tank
-		void draw_wheel(conn_t, osg::Group*);							// draw custom wheel
+		void draw_bigwheel(Connector*, osg::Group*);					// draw big wheel
+		void draw_caster(Connector*, osg::Group*);						// draw caster
+		void draw_simple(Connector*, osg::Group*);						// draw simple
+		void draw_smallwheel(Connector*, osg::Group*);					// draw small wheel
+		void draw_square(Connector*, osg::Group*);						// draw square
+		void draw_tank(Connector*, osg::Group*);						// draw tank
+		void draw_wheel(Connector*, osg::Group*);						// draw custom wheel
 #endif // ENABLE_GRAPHICS
 		static void* motionArchThread(void*);							// thread for arching
 		static void* motionDistanceThread(void*);						// thread for driving a distance

@@ -36,7 +36,7 @@ class DLLIMPORT Cubus : public ModularRobot {
 		virtual int addConnector(int, int, double);
 		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, xml_conn_t);
 #ifdef ENABLE_GRAPHICS
-		virtual int drawConnector(conn_t, osg::Group*);
+		virtual int drawConnector(Connector*, osg::Group*);
 #endif // ENABLE_GRAPHICS
 		virtual int fixBodyToConnector(dBodyID, int);
 		virtual int fixConnectorToBody(int, dBodyID, int = -1);
@@ -60,7 +60,7 @@ class DLLIMPORT Cubus : public ModularRobot {
 	private:
 		int build_body(double, double, double, dMatrix3, double);
 		int build_face(int, double, double, double, dMatrix3, double);
-		int build_simple(conn_t, int face, int = -1, int = -1);
+		int build_simple(Connector*, int face, int = -1, int = -1);
 
 	// private data
 	private:
