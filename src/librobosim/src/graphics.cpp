@@ -384,12 +384,6 @@ void nxtNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 			pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
 			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		}
-		// draw 'led'
-		pos = dBodyGetPosition(_robot->getBodyID(0));
-		quat = dBodyGetQuaternion(_robot->getBodyID(0));
-		pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i++));
-		pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]+0.00001));
-		pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		// draw hud
 		osg::Geode *geode = dynamic_cast<osg::Geode *>(group->getChild(0));
 		osgText::Text *label = dynamic_cast<osgText::Text *>(geode->getDrawable(0));
