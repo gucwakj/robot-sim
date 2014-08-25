@@ -61,11 +61,8 @@ RoboSim::~RoboSim(void) {
 	}
 
 	// remove robots
-	robots_t rtmp = _robots;
-	while (rtmp) {
-		robots_t tmp = rtmp->next;
-		delete rtmp;
-		rtmp = tmp;
+	for (int i = 0; i < _robots.size(); i++) {
+		delete _robots[i];
 	}
 
 	// remove bot+connector list
@@ -148,7 +145,6 @@ int RoboSim::init_xml(char *name) {
 	int custom = 0;
 	double size = 0;
 	_bot = NULL;
-	_robots = NULL;
 	_preconfig = 0;
 	_pause = 3;
 	_rt = 1;
@@ -1066,19 +1062,8 @@ int RoboSim::addRobot(Robot *robot) {
 	MUTEX_LOCK(&_robot_mutex);
 
 	// create new robot struct
-	robots_t nr = new struct robots_s;
-	nr->robot = robot;
-	nr->next = NULL;
-
-	// add to ll
-	robots_t rtmp = _robots;
-	if (_robots == NULL)
-		_robots = nr;
-	else {
-		while (rtmp->next)
-			rtmp = rtmp->next;
-		rtmp->next = nr;
-	}
+	_robots.push_back(new Robots());
+	_robots.back()->robot = robot;
 
 	// find specs about new robot
 	xml_robot_t btmp = _bot;
@@ -1121,7 +1106,7 @@ int RoboSim::addRobot(Robot *robot) {
 	}
 
 	// give simulation data to robot
-	robot->addToSim(_world, _space, btmp->id);
+	robot->addToSim(_world, _space, btmp->id, _robots.size()-1);
 
 	// build robot
 	robot->build(btmp);
@@ -1131,7 +1116,7 @@ int RoboSim::addRobot(Robot *robot) {
 
 #ifdef ENABLE_GRAPHICS
 	// draw robot
-	nr->node = robot->draw(_staging, btmp->tracking);
+	_robots.back()->node = robot->draw(_staging, btmp->tracking);
 #endif // ENABLE_GRAPHICS
 
 	// unlock robot data
@@ -1146,19 +1131,8 @@ int RoboSim::addRobot(ModularRobot *robot) {
 	MUTEX_LOCK(&_robot_mutex);
 
 	// create new robot struct
-	robots_t nr = new struct robots_s;
-	nr->robot = robot;
-	nr->next = NULL;
-
-	// add to ll
-	robots_t rtmp = _robots;
-	if (_robots == NULL)
-		_robots = nr;
-	else {
-		while (rtmp->next)
-			rtmp = rtmp->next;
-		rtmp->next = nr;
-	}
+	_robots.push_back(new Robots());
+	_robots.back()->robot = robot;
 
 	// find specs about new robot
 	xml_robot_t btmp = _bot;
@@ -1200,7 +1174,7 @@ int RoboSim::addRobot(ModularRobot *robot) {
 	}
 
 	// give simulation data to robot
-	robot->addToSim(_world, _space, btmp->id);
+	robot->addToSim(_world, _space, btmp->id, _robots.size()-1);
 
 	// find if robot is connected to another one
 	xml_conn_t ctmp = btmp->conn;
@@ -1213,10 +1187,9 @@ int RoboSim::addRobot(ModularRobot *robot) {
 
 	// if robot is connected to another one
 	if (ctmp) {
-		rtmp = _robots;
-		while (rtmp) {
-			if (rtmp->robot->getID() == ctmp->robot) {
-				ModularRobot *r = dynamic_cast<ModularRobot *>(rtmp->robot);
+		for (int i = 0; i < _robots.size(); i++) {
+			if (_robots[i]->robot->getID() == ctmp->robot) {
+				ModularRobot *r = dynamic_cast<ModularRobot *>(_robots[i]->robot);
 				dBodyID body = r->getConnectorBodyID(ctmp->face1);
 				dMatrix3 R;
 				double m[3] = {0};
@@ -1224,7 +1197,6 @@ int RoboSim::addRobot(ModularRobot *robot) {
 				robot->build(btmp, R, m, body, ctmp);
 				break;
 			}
-			rtmp = rtmp->next;
 		}
 	}
 	else {
@@ -1236,7 +1208,7 @@ int RoboSim::addRobot(ModularRobot *robot) {
 
 #ifdef ENABLE_GRAPHICS
 	// draw robot
-	nr->node = robot->draw(_staging, btmp->tracking);
+	_robots.back()->node = robot->draw(_staging, btmp->tracking);
 #endif // ENABLE_GRAPHICS
 
 	// unlock robot data
@@ -1246,7 +1218,7 @@ int RoboSim::addRobot(ModularRobot *robot) {
 	return 0;
 }
 
-int RoboSim::deleteRobot(Robot *robot) {
+int RoboSim::deleteRobot(int loc) {
 #ifdef ENABLE_GRAPHICS
 	// pause simulation to view results only on first delete
 	MUTEX_LOCK(&(_pause_mutex));
@@ -1279,36 +1251,19 @@ int RoboSim::deleteRobot(Robot *robot) {
 	// lock robot data to delete
 	MUTEX_LOCK(&_robot_mutex);
 
-	// remove robots
-	robots_t rtmp = _robots, tmp = NULL;
-	if (rtmp->robot == robot) {
-		_robots = rtmp->next;
-		tmp = rtmp;
-	}
-	else {
-		while (rtmp->next) {
-			if (rtmp->next->robot == robot) {
-				tmp = rtmp->next;
-				rtmp->next = rtmp->next->next;
-				break;
-			}
-			rtmp = rtmp->next;
-		}
-	}
-
 #ifdef ENABLE_GRAPHICS
 	// save node location to delete later
-	_ending = tmp->node;
+	_ending = _robots[loc]->node;
 #endif
 
-	// delete struct
-	delete tmp;
+	// remove robot
+	_robots.erase(_robots.begin()+loc);
 
 	// unlock robot data
 	MUTEX_UNLOCK(&_robot_mutex);
 
 	// success
-	if (_robots == NULL)
+	if (!_robots.size())
 		return 0;
 	else
 		return 1;
@@ -1474,15 +1429,11 @@ void* RoboSim::simulation_thread(void *arg) {
 
 			// perform pre-collision updates
 			MUTEX_LOCK(&(sim->_robot_mutex));
-			robots_t rtmp = sim->_robots;
-			while (rtmp) {
-				THREAD_CREATE(&(rtmp->thread), (void* (*)(void *))&Robot::simPreCollisionThreadEntry, (void *)rtmp->robot);
-				rtmp = rtmp->next;
+			for (int j = 0; j < sim->_robots.size(); j++) {
+				THREAD_CREATE(&(sim->_robots[j]->thread), (void* (*)(void *))&Robot::simPreCollisionThreadEntry, (void *)sim->_robots[j]->robot);
 			}
-			rtmp = sim->_robots;
-			while (rtmp) {
-				THREAD_JOIN(rtmp->thread);
-				rtmp = rtmp->next;
+			for (int j = 0; j < sim->_robots.size(); j++) {
+				THREAD_JOIN(sim->_robots[j]->thread);
 			}
 
 			// perform ode update
@@ -1494,15 +1445,11 @@ void* RoboSim::simulation_thread(void *arg) {
 			dJointGroupEmpty(sim->_group);
 
 			// perform post-collision updates
-			rtmp = sim->_robots;
-			while (rtmp) {
-				THREAD_CREATE(&(rtmp->thread), (void* (*)(void *))&Robot::simPostCollisionThreadEntry, (void *)rtmp->robot);
-				rtmp = rtmp->next;
+			for (int j = 0; j < sim->_robots.size(); j++) {
+				THREAD_CREATE(&(sim->_robots[j]->thread), (void* (*)(void *))&Robot::simPostCollisionThreadEntry, (void *)sim->_robots[j]->robot);
 			}
-			rtmp = sim->_robots;
-			while (rtmp) {
-				THREAD_JOIN(rtmp->thread);
-				rtmp = rtmp->next;
+			for (int j = 0; j < sim->_robots.size(); j++) {
+				THREAD_JOIN(sim->_robots[j]->thread);
 			}
 			MUTEX_UNLOCK(&(sim->_robot_mutex));
 

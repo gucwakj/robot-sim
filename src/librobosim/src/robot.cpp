@@ -1542,10 +1542,11 @@ int Robot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle,
 /**********************************************************
 	protected functions for inherited classes
  **********************************************************/
-int Robot::addToSim(dWorldID &world, dSpaceID &space, int id) {
+int Robot::addToSim(dWorldID &world, dSpaceID &space, int id, int pos) {
 	_world = world;
 	_space = dHashSpaceCreate(space);
 	_id = id;
+	_pos = pos;
 
 	// success
 	return 0;

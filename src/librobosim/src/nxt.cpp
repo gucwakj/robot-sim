@@ -10,7 +10,7 @@ CNXT::CNXT(void) : Robot(JOINT1, JOINT2) {
 
 CNXT::~CNXT(void) {
 	// remove robot from simulation
-	if ( g_sim != NULL && !(g_sim->deleteRobot(this)) )
+	if ( g_sim != NULL && !(g_sim->deleteRobot(_pos)) )
 		delete g_sim;
 
 	// delete mutexes

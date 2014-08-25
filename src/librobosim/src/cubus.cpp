@@ -10,7 +10,7 @@ Cubus::Cubus(void) : Robot(JOINT1, JOINT3) {
 
 Cubus::~Cubus(void) {
 	// remove robot from simulation
-	if ( g_sim != NULL && !(g_sim->deleteRobot(this)) )
+	if ( g_sim != NULL && !(g_sim->deleteRobot(_pos)) )
 		delete g_sim;
 
 	// delete mutexes

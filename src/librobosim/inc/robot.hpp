@@ -149,7 +149,7 @@ class DLLIMPORT Robot {
 
 	// utility functions for inherited and friend classes
 	protected:
-		int addToSim(dWorldID&, dSpaceID&, int);
+		int addToSim(dWorldID&, dSpaceID&, int, int);
 		int doze(double);
 		int fixBodyToGround(dBodyID);
 		dBodyID getBodyID(int);
@@ -261,6 +261,7 @@ class DLLIMPORT Robot {
 		int _dof;					// number of DOF
 		int *_enabled;				// list of enabled motors
 		int _id;					// robot id
+		int _pos;					// position in simulation
 		int *_rec_num;				// recording data points
 		int _seed;					// seed for random number generation
 		int _shift_data;			// shift recorded data or not
