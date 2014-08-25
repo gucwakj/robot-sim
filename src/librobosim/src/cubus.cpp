@@ -936,7 +936,7 @@ int Cubus::initDims(void) {
 	_body_height = 0.07835;
 	_face_depth = 0.00200;
 	_face_radius = 0.03060;
-	_conn_depth = 0.00380;
+	_conn_depth = 0.00570;
 	_conn_height = 0.03715;
 	_radius = _body_height/2;
 	_wheel_depth = 0.00140;
@@ -1239,14 +1239,19 @@ int Cubus::build_simple(Connector *conn, int face, int side, int type) {
 	// define parameters
 	dMass m;
 	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_conn_depth/2, 0, 0};
+	double p[3] = {0};
+
+	// store body offset of connector
+	conn->o[0] = _conn_depth/2;
+	conn->o[1] = 0;
+	conn->o[2] = 0;
 
 	// position center of connector
 	this->getFaceParams(face, R, p);
 	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
+	p[0] += R[0]*conn->o[0];
+	p[1] += R[4]*conn->o[0];
+	p[2] += R[8]*conn->o[0];
 
 	// set mass of body
 	dMassSetBox(&m, 270, _conn_depth, 2*_face_radius, _conn_height);

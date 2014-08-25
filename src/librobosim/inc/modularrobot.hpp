@@ -6,10 +6,11 @@
 
 // connector
 struct Connector {
-	int face, type;
-	int d_side, d_type;
 	dBodyID body;
 	dGeomID *geom;
+	double o[3];
+	int face, type;
+	int d_side, d_type;
 };
 
 class DLLIMPORT ModularRobot : virtual public Robot {

@@ -724,7 +724,7 @@ int CLinkbotT::build(xml_robot_t robot) {
 	// set trackwidth
 	double wheel[4] = {0};
 	const double *pos;
-	int i = 0;
+	int j = 0;
 	for (int i = 0; i < _conn.size(); i++) {
 		switch (_conn[i]->type) {
 			case BIGWHEEL:
@@ -732,8 +732,8 @@ int CLinkbotT::build(xml_robot_t robot) {
 			case TINYWHEEL:
 			case WHEEL:
 				pos = dBodyGetPosition(_conn[i]->body);
-				wheel[i++] = pos[0];
-				wheel[i++] = pos[1];
+				wheel[j++] = pos[0];
+				wheel[j++] = pos[1];
 				break;
 			default:
 				break;
@@ -1403,7 +1403,8 @@ int CLinkbotT::initDims(void) {
 	_body_radius = 0.03625;
 	_face_depth = 0.00200;
 	_face_radius = 0.03060;
-	_conn_depth = 0.00380;
+	//_conn_depth = 0.00380;
+	_conn_depth = 0.00570;
 	_conn_height = 0.03715;
 	_bigwheel_radius = 0.05080;
 	_bridge_length = 0.14025;
@@ -1444,7 +1445,7 @@ void CLinkbotT::simPreCollisionThread(void) {
 		dBodySetFiniteRotationAxis(_body[i+1], axis[0], axis[1], axis[2]);
 		for (int k = 0; k < _conn.size(); k++) {
 			if (_conn[k]->face == i+1)
-				dBodySetFiniteRotationAxis(_conn[i]->body, axis[0], axis[1], axis[2]);
+				dBodySetFiniteRotationAxis(_conn[k]->body, axis[0], axis[1], axis[2]);
 		}
 		// set motor angle to current angle
 		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
@@ -1684,14 +1685,19 @@ int CLinkbotT::build_bigwheel(Connector *conn, int face, int side, int type) {
 	// define parameters
 	dMass m;
 	dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
+	double p[3] = {0};
+
+	// store body offset of connector
+	conn->o[0] = _wheel_depth/2;
+	conn->o[1] = 0;
+	conn->o[2] = 0;
 
 	// position center of connector
 	this->getFaceParams(face, R, p);
 	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
+	p[0] += R[0]*conn->o[0];
+	p[1] += R[4]*conn->o[0];
+	p[2] += R[8]*conn->o[0];
 
 	// set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_bigwheel_radius, _wheel_depth);
@@ -1779,15 +1785,20 @@ int CLinkbotT::build_bridge(Connector *conn, int face, int side, int type) {
 	// define parameters
 	dMass m;
 	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_conn_depth/2, -_bridge_length/2 + _face_radius, 0};
-	if (face == 3) offset[1] = _bridge_length/2 - _face_radius;
+	double p[3] = {0};
+
+	// store body offset of connector
+	conn->o[0] = _conn_depth/2;
+	conn->o[1] = -_bridge_length/2 + _face_radius;
+	conn->o[2] = 0;
+	if (face == 3) conn->o[1] = _bridge_length/2 - _face_radius;
 
 	// position center of connector
 	this->getFaceParams(face, R, p);
 	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0] + R[1]*offset[1];
-	p[1] += R[4]*offset[0] + R[5]*offset[1];
-	p[2] += R[8]*offset[0] + R[9]*offset[1];
+	p[0] += R[0]*conn->o[0] + R[1]*conn->o[1];
+	p[1] += R[4]*conn->o[0] + R[5]*conn->o[1];
+	p[2] += R[8]*conn->o[0] + R[9]*conn->o[1];
 
 	// set mass of body
 	dMassSetBox(&m, 270, _conn_depth, _bridge_length, _conn_height);
@@ -1826,14 +1837,19 @@ int CLinkbotT::build_caster(Connector *conn, int face, int custom, int side, int
 	// define parameters
 	dMass m;
 	dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_conn_depth/2, 0, 0};
+	double p[3] = {0};
+
+	// store body offset of connector
+	conn->o[0] = _conn_depth/4;
+	conn->o[1] = 0;
+	conn->o[2] = 0;
 
 	// position center of connector
 	this->getFaceParams(face, R, p);
 	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
+	p[0] += R[0]*conn->o[0];
+	p[1] += R[4]*conn->o[0];
+	p[2] += R[8]*conn->o[0];
 
 	// set mass of body
 	dMassSetBox(&m, 1000, 2*_conn_depth, 1.5*_face_radius, _body_height);
@@ -1911,14 +1927,19 @@ int CLinkbotT::build_cube(Connector *conn, int face, int side, int type) {
 	// define parameters
 	dMass m;
 	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_cubic_length/2, 0, 0};
+	double p[3] = {0};
+
+	// store body offset of connector
+	conn->o[0] = _cubic_length/2;
+	conn->o[1] = 0;
+	conn->o[2] = 0;
 
 	// position center of connector
 	this->getFaceParams(face, R, p);
 	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
+	p[0] += R[0]*conn->o[0];
+	p[1] += R[4]*conn->o[0];
+	p[2] += R[8]*conn->o[0];
 
 	// set mass of body
 	dMassSetBox(&m, 270, _cubic_length, _cubic_length, _cubic_length);
@@ -2000,14 +2021,19 @@ int CLinkbotT::build_faceplate(Connector *conn, int face, int side, int type) {
 	// define parameters
 	dMass m;
 	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_conn_depth/2, 0, 0};
+	double p[3] = {0};
+
+	// store body offset of connector
+	conn->o[0] = _conn_depth/2;
+	conn->o[1] = 0;
+	conn->o[2] = 0;
 
 	// position center of connector
 	this->getFaceParams(face, R, p);
 	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
+	p[0] += R[0]*conn->o[0];
+	p[1] += R[4]*conn->o[0];
+	p[2] += R[8]*conn->o[0];
 
 	// set mass of body
 	dMassSetBox(&m, 270, _conn_depth, _body_height, _body_height);
@@ -2046,14 +2072,19 @@ int CLinkbotT::build_gripper(Connector *conn, int face) {
 	// define parameters
 	dMass m;
 	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_conn_depth/2, 0, 0};
+	double p[3] = {0};
 	int i = (face == 1) ? 1 : -1;
+
+	// store body offset of connector
+	conn->o[0] = _conn_depth/2;
+	conn->o[1] = 0;
+	conn->o[2] = 0;
 
 	// position center of connector
 	this->getFaceParams(face, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
+	p[0] += R[0]*conn->o[0];
+	p[1] += R[4]*conn->o[0];
+	p[2] += R[8]*conn->o[0];
 
 	// set mass of body
 	dMassSetBox(&m, 270, _conn_depth, 2*_face_radius, _conn_height);
@@ -2107,14 +2138,19 @@ int CLinkbotT::build_omnidrive(Connector *conn, int face, int side, int type) {
 	// define parameters
 	dMass m;
 	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_conn_depth/2, _omni_length/2 - _face_radius, -_omni_length/2 + _face_radius};
+	double p[3] = {0};
+
+	// store body offset of connector
+	conn->o[0] = _conn_depth/2;
+	conn->o[1] = _omni_length/2 - _face_radius;
+	conn->o[2] = -_omni_length/2 + _face_radius;
 
 	// position center of connector
 	this->getFaceParams(face, R, p);
 	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0] + R[1]*offset[1] + R[2]*offset[2];
-	p[1] += R[4]*offset[0] + R[5]*offset[1] + R[6]*offset[2];
-	p[2] += R[8]*offset[0] + R[9]*offset[1] + R[10]*offset[2];
+	p[0] += R[0]*conn->o[0] + R[1]*conn->o[1] + R[2]*conn->o[2];
+	p[1] += R[4]*conn->o[0] + R[5]*conn->o[1] + R[6]*conn->o[2];
+	p[2] += R[8]*conn->o[0] + R[9]*conn->o[1] + R[10]*conn->o[2];
 
 	// set mass of body
 	dMassSetBox(&m, 270, _omni_length, _omni_length, _conn_depth);
@@ -2153,14 +2189,19 @@ int CLinkbotT::build_simple(Connector *conn, int face, int side, int type) {
 	// define parameters
 	dMass m;
 	dMatrix3 R;
-	double p[3] = {0}, offset[3] = {_conn_depth/2, 0, 0};
+	double p[3] = {0};
+
+	// store body offset of connector
+	conn->o[0] = _conn_depth/2;
+	conn->o[1] = 0;
+	conn->o[2] = 0;
 
 	// position center of connector
 	this->getFaceParams(face, R, p);
 	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
+	p[0] += R[0]*conn->o[0];
+	p[1] += R[4]*conn->o[0];
+	p[2] += R[8]*conn->o[0];
 
 	// set mass of body
 	dMassSetBox(&m, 270, _conn_depth, 2*_face_radius, _conn_height);
@@ -2199,14 +2240,19 @@ int CLinkbotT::build_smallwheel(Connector *conn, int face, int side, int type) {
 	// define parameters
 	dMass m;
 	dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
+	double p[3] = {0};
+
+	// store body offset of connector
+	conn->o[0] = _wheel_depth/2;
+	conn->o[1] = 0;
+	conn->o[2] = 0;
 
 	// position center of connector
 	this->getFaceParams(face, R, p);
 	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
+	p[0] += R[0]*conn->o[0];
+	p[1] += R[4]*conn->o[0];
+	p[2] += R[8]*conn->o[0];
 
 	// set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_smallwheel_radius, _wheel_depth);
@@ -2249,14 +2295,19 @@ int CLinkbotT::build_tinywheel(Connector *conn, int face, int side, int type) {
 	// define parameters
 	dMass m;
 	dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
+	double p[3] = {0};
+
+	// store body offset of connector
+	conn->o[0] = _wheel_depth/2;
+	conn->o[1] = 0;
+	conn->o[2] = 0;
 
 	// position center of connector
 	this->getFaceParams(face, R, p);
 	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
+	p[0] += R[0]*conn->o[0];
+	p[1] += R[4]*conn->o[0];
+	p[2] += R[8]*conn->o[0];
 
 	// set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_tinywheel_radius, _wheel_depth);
@@ -2302,14 +2353,19 @@ int CLinkbotT::build_wheel(Connector *conn, int face, double size, int side, int
 	// define parameters
 	dMass m;
 	dMatrix3 R, R1;
-	double p[3] = {0}, offset[3] = {_wheel_depth/2, 0, 0};
+	double p[3] = {0};
+
+	// store body offset of connector
+	conn->o[0] = _wheel_depth/2;
+	conn->o[1] = 0;
+	conn->o[2] = 0;
 
 	// position center of connector
 	this->getFaceParams(face, R, p);
 	if (side != -1) this->getConnectorParams(type, side, R, p);
-	p[0] += R[0]*offset[0];
-	p[1] += R[4]*offset[0];
-	p[2] += R[8]*offset[0];
+	p[0] += R[0]*conn->o[0];
+	p[1] += R[4]*conn->o[0];
+	p[2] += R[8]*conn->o[0];
 
 	// set mass of body
 	dMassSetCylinder(&m, 270, 1, 2*_wheel_radius, _wheel_depth);

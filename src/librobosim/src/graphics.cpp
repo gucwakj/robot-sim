@@ -251,16 +251,19 @@ void linkbotNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 			dMatrix3 R;
 			dQuaternion Q;
 			double p[3] = {0};
-			if (_robot->_conn[j]->d_side <= -10) {
+			if (_robot->_conn[j]->d_side != -1) {
+				_robot->getFaceParams(_robot->_conn[j]->face, R, p);
+				_robot->getConnectorParams(_robot->_conn[j]->d_type, _robot->_conn[j]->d_side, R, p);
+				p[0] += R[0]*_robot->_conn[j]->o[0] + R[1]*_robot->_conn[j]->o[1] + R[2]*_robot->_conn[j]->o[2];
+				p[1] += R[4]*_robot->_conn[j]->o[0] + R[5]*_robot->_conn[j]->o[1] + R[6]*_robot->_conn[j]->o[2];
+				p[2] += R[8]*_robot->_conn[j]->o[0] + R[9]*_robot->_conn[j]->o[1] + R[10]*_robot->_conn[j]->o[2];
+				dRtoQ(R, Q);
+			}
+			else {
 				const double *pos = dBodyGetPosition(_robot->_conn[j]->body);
 				p[0] = pos[0]; p[1] = pos[1]; p[2] = pos[2];
 				const double *rot = dBodyGetQuaternion(_robot->_conn[j]->body);
 				Q[0] = rot[0]; Q[1] = rot[1]; Q[2] = rot[2]; Q[3] = rot[3];
-			}
-			else {
-				_robot->getFaceParams(_robot->_conn[j]->face, R, p);
-				if (_robot->_conn[j]->d_side != -1) _robot->getConnectorParams(_robot->_conn[j]->d_type, _robot->_conn[j]->d_side, R, p);
-				dRtoQ(R, Q);
 			}
 			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i + k++));
 			pat->setPosition(osg::Vec3d(p[0], p[1], p[2]));
@@ -446,6 +449,9 @@ void cubusNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 			double p[3] = {0};
 			_robot->getFaceParams(_robot->_conn[j]->face, R, p);
 			if (_robot->_conn[j]->d_side != -1) _robot->getConnectorParams(_robot->_conn[j]->d_type, _robot->_conn[j]->d_side, R, p);
+			p[0] += R[0]*_robot->_conn[j]->o[0] + R[1]*_robot->_conn[j]->o[1] + R[2]*_robot->_conn[j]->o[2];
+			p[1] += R[4]*_robot->_conn[j]->o[0] + R[5]*_robot->_conn[j]->o[1] + R[6]*_robot->_conn[j]->o[2];
+			p[2] += R[8]*_robot->_conn[j]->o[0] + R[9]*_robot->_conn[j]->o[1] + R[10]*_robot->_conn[j]->o[2];
 			dRtoQ(R, Q);
 			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i + k++));
 			pat->setPosition(osg::Vec3d(p[0], p[1], p[2]));
