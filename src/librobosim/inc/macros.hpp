@@ -79,6 +79,7 @@
 	}
 #endif
 
+// robot types
 typedef enum robot_type_e {
 	MOBOT,
 	LINKBOTI,
@@ -88,6 +89,8 @@ typedef enum robot_type_e {
 	CUBUS,
 	NUM_TYPES
 } robotType_t;
+
+// robot joints
 typedef enum robot_joint_id_e {
 	JOINT1,
 	JOINT2,
@@ -96,6 +99,8 @@ typedef enum robot_joint_id_e {
 	JOINT5,
 	JOINT6
 } robotJointId_t;
+
+// all robot connectors
 typedef enum robot_connector_e {
 	BIGWHEEL,
 	BRIDGE,
@@ -114,13 +119,24 @@ typedef enum robot_connector_e {
 	NUM_CONNECTORS
 } robotConnector_t;
 
-// connector
+// drawing objects (ground and graphic)
+enum drawing_objects_e {
+	BOX,
+	CYLINDER,
+	DOT,
+	LINE,
+	SPHERE,
+	TEXT
+};
+
+// xml config connectors
 typedef struct xml_conn_s {
 	int robot, type, side, face1, face2, conn;
 	double size;
 	struct xml_conn_s *next;
 } *xml_conn_t;
-// robot
+
+// xml config robots
 typedef struct xml_robot_s {
 	int connected;
 	int id;
@@ -134,6 +150,7 @@ typedef struct xml_robot_s {
 	struct xml_robot_s *next;
 } *xml_robot_t;
 
+// recorded data
 typedef double* robotRecordData_t;
 
 #endif // MACROS_HPP_

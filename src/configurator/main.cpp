@@ -9,7 +9,7 @@
 #endif
 #include <gtk/gtk.h>
 #include <tinyxml2.h>
-#include "../librobosim/macros.h"
+#include "../librobosim/inc/macros.hpp"
 
 #define XML_VERSION 3
 
@@ -41,6 +41,8 @@ typedef struct obstacles_s {
 	double l1, l2, l3;
 	double psi, theta, phi;
 	double mass;
+	double r, g, b, a;
+	std::string str;
 	struct obstacles_s *next;
 } *obstacles_t;
 
@@ -120,14 +122,17 @@ G_MODULE_EXPORT void on_stand_toggled(GtkWidget *widget, gpointer data);
 
 // obstacle settings
 G_MODULE_EXPORT void on_ob_type_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_ob_x_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_ob_y_value_changed(GtkWidget *widget, gpointer data);
-G_MODULE_EXPORT void on_ob_z_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_color_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_ob_l1_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_ob_l2_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_ob_l3_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_ob_mass_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_orientation_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_ob_size_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_text_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_x_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_y_value_changed(GtkWidget *widget, gpointer data);
+G_MODULE_EXPORT void on_ob_z_value_changed(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_button_add_obstacle_clicked(GtkWidget *widget, gpointer data);
 G_MODULE_EXPORT void on_button_remove_obstacle_clicked(GtkWidget* widget, gpointer data);
 
@@ -2763,12 +2768,13 @@ G_MODULE_EXPORT void on_tracking_toggled(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_ob_type_changed(GtkWidget *widget, gpointer data) {
 	// cast id
-	gint id = GPOINTER_TO_INT(data);
+	int id = *(static_cast<int*>(data));
 
 	// scan to find id
-	robots_t tmp = g_robots;
-	while (tmp && tmp->id != id)
+	obstacles_t tmp = g_obstacles;
+	while (tmp && tmp->id != id) {
 		tmp = tmp->next;
+	}
 
 	// if found, change its type
 	if (tmp) {
@@ -2778,22 +2784,50 @@ G_MODULE_EXPORT void on_ob_type_changed(GtkWidget *widget, gpointer data) {
 #else
 		const gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget));
 #endif
+
 		// store into database
-		if (!strcmp(type, "BOX"))
+		if (!strcmp(type, "Box"))
 			tmp->type = BOX;
-		else if (!strcmp(type, "CYLINDER"))
+		else if (!strcmp(type, "Cylinder"))
 			tmp->type = CYLINDER;
-		else if (!strcmp(type, "LINE"))
+		else if (!strcmp(type, "Dot"))
+			tmp->type = DOT;
+		else if (!strcmp(type, "Line"))
 			tmp->type = LINE;
-		else if (!strcmp(type, "POINT"))
-			tmp->type = POINT;
-		else if (!strcmp(type, "SPHERE"))
+		else if (!strcmp(type, "Sphere"))
 			tmp->type = SPHERE;
-		else if (!strcmp(type, "TEXT"))
+		else if (!strcmp(type, "Text"))
 			tmp->type = TEXT;
 
 		// refresh table
-		//refreshObstacleList();
+		refreshObstacleList();
+
+		// save configuration
+		saveObstacleList();
+	}
+}
+
+/*
+ * When robot's color is changed
+ */
+G_MODULE_EXPORT void on_ob_color_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
+	int id = *(static_cast<int*>(data));
+
+	// scan through robots to find id
+	obstacles_t tmp = g_obstacles;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if the robot is found, change its x value
+	if (tmp) {
+		// store new value
+		GdkColor *color;
+		gtk_color_button_get_color(GTK_COLOR_BUTTON(widget), color);
+		tmp->r = (double)(color->red)/65535;
+		tmp->g = (double)(color->green)/65535;
+		tmp->b = (double)(color->blue)/65535;
+		tmp->a = (double)(gtk_color_button_get_alpha(GTK_COLOR_BUTTON(widget)))/65535;
 
 		// save configuration
 		saveObstacleList();
@@ -2805,10 +2839,10 @@ G_MODULE_EXPORT void on_ob_type_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_ob_x_value_changed(GtkWidget *widget, gpointer data) {
 	// cast id of robot
-	gint id = GPOINTER_TO_INT(data);
+	int id = *(static_cast<int*>(data));
 
 	// scan through robots to find id
-	robots_t tmp = g_robots;
+	obstacles_t tmp = g_obstacles;
 	while (tmp && tmp->id != id)
 		tmp = tmp->next;
 
@@ -2827,10 +2861,10 @@ G_MODULE_EXPORT void on_ob_x_value_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_ob_y_value_changed(GtkWidget *widget, gpointer data) {
 	// cast id of robot
-	gint id = GPOINTER_TO_INT(data);
+	int id = *(static_cast<int*>(data));
 
 	// scan through robots to find id
-	robots_t tmp = g_robots;
+	obstacles_t tmp = g_obstacles;
 	while (tmp && tmp->id != id)
 		tmp = tmp->next;
 
@@ -2849,10 +2883,10 @@ G_MODULE_EXPORT void on_ob_y_value_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_ob_z_value_changed(GtkWidget *widget, gpointer data) {
 	// cast id of robot
-	gint id = GPOINTER_TO_INT(data);
+	int id = *(static_cast<int*>(data));
 
 	// scan through robots to find id
-	robots_t tmp = g_robots;
+	obstacles_t tmp = g_obstacles;
 	while (tmp && tmp->id != id)
 		tmp = tmp->next;
 
@@ -2871,7 +2905,7 @@ G_MODULE_EXPORT void on_ob_z_value_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_ob_l1_value_changed(GtkWidget *widget, gpointer data) {
 	// cast id of robot
-	gint id = GPOINTER_TO_INT(data);
+	int id = *(static_cast<int*>(data));
 
 	// scan through robots to find id
 	obstacles_t tmp = g_obstacles;
@@ -2893,7 +2927,7 @@ G_MODULE_EXPORT void on_ob_l1_value_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_ob_l2_value_changed(GtkWidget *widget, gpointer data) {
 	// cast id of robot
-	gint id = GPOINTER_TO_INT(data);
+	int id = *(static_cast<int*>(data));
 
 	// scan through robots to find id
 	obstacles_t tmp = g_obstacles;
@@ -2915,7 +2949,29 @@ G_MODULE_EXPORT void on_ob_l2_value_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_ob_l3_value_changed(GtkWidget *widget, gpointer data) {
 	// cast id of robot
-	gint id = GPOINTER_TO_INT(data);
+	int id = *(static_cast<int*>(data));
+
+	// scan through robots to find id
+	obstacles_t tmp = g_obstacles;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if the robot is found, change its y value
+	if (tmp) {
+		// store new value
+		tmp->l3 = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+
+		// save configuration
+		saveObstacleList();
+	}
+}
+
+/*
+ * When obstacle's orientation value is changed
+ */
+G_MODULE_EXPORT void on_ob_orientation_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
+	int id = *(static_cast<int*>(data));
 
 	// scan through robots to find id
 	obstacles_t tmp = g_obstacles;
@@ -2937,7 +2993,7 @@ G_MODULE_EXPORT void on_ob_l3_value_changed(GtkWidget *widget, gpointer data) {
  */
 G_MODULE_EXPORT void on_ob_mass_value_changed(GtkWidget *widget, gpointer data) {
 	// cast id of robot
-	gint id = GPOINTER_TO_INT(data);
+	int id = *(static_cast<int*>(data));
 
 	// scan through robots to find id
 	obstacles_t tmp = g_obstacles;
@@ -2959,7 +3015,7 @@ G_MODULE_EXPORT void on_ob_mass_value_changed(GtkWidget *widget, gpointer data) 
  */
 G_MODULE_EXPORT void on_ob_size_value_changed(GtkWidget *widget, gpointer data) {
 	// cast id of robot
-	gint id = GPOINTER_TO_INT(data);
+	int id = *(static_cast<int*>(data));
 
 	// scan through robots to find id
 	obstacles_t tmp = g_obstacles;
@@ -2970,6 +3026,29 @@ G_MODULE_EXPORT void on_ob_size_value_changed(GtkWidget *widget, gpointer data) 
 	if (tmp) {
 		// store new value
 		tmp->size = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget));
+
+		// save configuration
+		saveObstacleList();
+	}
+}
+
+/*
+ * When obstacle's text value is changed
+ */
+G_MODULE_EXPORT void on_ob_text_value_changed(GtkWidget *widget, gpointer data) {
+	// cast id of robot
+	int id = *(static_cast<int*>(data));
+
+	// scan through robots to find id
+	obstacles_t tmp = g_obstacles;
+	while (tmp && tmp->id != id)
+		tmp = tmp->next;
+
+	// if the robot is found, change its y value
+	if (tmp) {
+		// store new value
+		const gchar *chars = gtk_entry_get_text(GTK_ENTRY(widget));
+		tmp->str = chars;
 
 		// save configuration
 		saveObstacleList();
@@ -2997,6 +3076,10 @@ G_MODULE_EXPORT void on_button_add_obstacle_clicked(GtkWidget *widget, gpointer 
 	no->psi = 0;
 	no->theta = 0;
 	no->phi = 0;
+	no->r = 1;
+	no->g = 0;
+	no->b = 0;
+	no->a = 1;
 	no->next = NULL;
 
 	// add robot to linked list
@@ -3012,7 +3095,7 @@ G_MODULE_EXPORT void on_button_add_obstacle_clicked(GtkWidget *widget, gpointer 
 		tmp->next = no;
 	}
 
-	// increase total number of robots
+	// increase total number
 	g_num_ob++;
 
 	// refresh gui list with new robot
@@ -3040,7 +3123,7 @@ G_MODULE_EXPORT void on_button_add_obstacle_clicked(GtkWidget *widget, gpointer 
  */
 G_MODULE_EXPORT void on_button_remove_obstacle_clicked(GtkWidget* widget, gpointer data) {
 	// cast id of robot
-	gint id = GPOINTER_TO_INT(data);
+	int id = *(static_cast<int*>(data));
 
 	// find and remove ndoe
 	obstacles_t tmp = g_obstacles;
@@ -3108,7 +3191,7 @@ void printRoboSimPath(void) {
  */
 void readXMLConfig(void) {
 	// check if config file exists
-	if ( g_doc.LoadFile(g_xml) ) {
+	if (g_doc.LoadFile(g_xml)) {
 		// set declaration
 		tinyxml2::XMLDeclaration *dec = g_doc.NewDeclaration();
 		g_doc.InsertFirstChild(dec);
@@ -3444,89 +3527,107 @@ void readXMLConfig(void) {
 		g_doc.InsertAfterChild(g_doc.FirstChildElement("config"), node);
 	}
 
-	// check grid settings
-	if ( (node = g_doc.FirstChildElement("graphics")->FirstChildElement("grid")) ) {
-		node->QueryIntAttribute("units", &g_units);
-
-		// enabled grid
-		int enabled = 1;
-		node->QueryIntAttribute("enabled", &enabled);
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "grid_on")), 1);
-
-		// set grid line variables
-		double major, tics, minx, maxx, miny, maxy;
-		node->QueryDoubleAttribute("major", &major);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
-		node->QueryDoubleAttribute("tics", &tics);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
-		if (XML_VERSION == 1) {
-			double dist;
-			node->QueryDoubleAttribute("dist", &dist);
-			minx = -dist/2;
-			maxx = dist/2;
-			miny = -dist/2;
-			maxy = dist/2;
-		}
-		else {
-			node->QueryDoubleAttribute("minx", &minx);
-			node->QueryDoubleAttribute("maxx", &maxx);
-			node->QueryDoubleAttribute("miny", &miny);
-			node->QueryDoubleAttribute("maxy", &maxy);
-		}
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), minx);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")), maxx);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), miny);
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), maxy);
-
-		// set labels
-		if (g_units) {
-			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "us")), 1);
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_minx")), "Min X (in): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxx")), "Max X (in): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_miny")), "Min Y (in): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxy")), "Max Y (in): ");
-		}
-		else {
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (cm): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (cm): ");
-			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "metric")), 1);
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_minx")), "Min X (cm): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxx")), "Max X (cm): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_miny")), "Min Y (cm): ");
-			gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxy")), "Max Y (cm): ");
-		}
+	// graphics objects
+	tinyxml2::XMLElement *graphics = g_doc.FirstChildElement("graphics");
+	if (graphics == NULL) {
+		graphics = g_doc.NewElement("graphics");
+		g_doc.InsertAfterChild(g_doc.FirstChildElement("config"), graphics);
 	}
 	else {
-		tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
-		grid->SetAttribute("enabled", 1);
-		grid->SetAttribute("units", 1);
-		double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
-		grid->SetAttribute("major", major);
-		double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
-		grid->SetAttribute("tics", tics);
-		double minx = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")));
-		grid->SetAttribute("minx", minx);
-		double maxx = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")));
-		grid->SetAttribute("maxx", maxx);
-		double miny = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")));
-		grid->SetAttribute("miny", miny);
-		double maxy = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")));
-		grid->SetAttribute("maxy", maxy);
-		g_doc.FirstChildElement("graphics")->InsertFirstChild(grid);
+		// check grid settings
+		if ( (node = graphics->FirstChildElement("grid")) ) {
+			node->QueryIntAttribute("units", &g_units);
+
+			// enabled grid
+			int enabled = 1;
+			node->QueryIntAttribute("enabled", &enabled);
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "grid_on")), 1);
+
+			// set grid line variables
+			double major, tics, minx, maxx, miny, maxy;
+			node->QueryDoubleAttribute("major", &major);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")), major);
+			node->QueryDoubleAttribute("tics", &tics);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")), tics);
+			if (XML_VERSION == 1) {
+				double dist;
+				node->QueryDoubleAttribute("dist", &dist);
+				minx = -dist/2;
+				maxx = dist/2;
+				miny = -dist/2;
+				maxy = dist/2;
+			}
+			else {
+				node->QueryDoubleAttribute("minx", &minx);
+				node->QueryDoubleAttribute("maxx", &maxx);
+				node->QueryDoubleAttribute("miny", &miny);
+				node->QueryDoubleAttribute("maxy", &maxy);
+			}
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")), minx);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")), maxx);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")), miny);
+			gtk_spin_button_set_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")), maxy);
+
+			// set labels
+			if (g_units) {
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "us")), 1);
+				gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (in): ");
+				gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (in): ");
+				gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_minx")), "Min X (in): ");
+				gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxx")), "Max X (in): ");
+				gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_miny")), "Min Y (in): ");
+				gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxy")), "Max Y (in): ");
+			}
+			else {
+				gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_major")), "Distance Between Hashmarks (cm): ");
+				gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_tics")), "Distance Between Tics (cm): ");
+				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "metric")), 1);
+				gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_minx")), "Min X (cm): ");
+				gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxx")), "Max X (cm): ");
+				gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_miny")), "Min Y (cm): ");
+				gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(g_builder, "label_maxy")), "Max Y (cm): ");
+			}
+		}
+		else {
+			tinyxml2::XMLElement *grid = g_doc.NewElement("grid");
+			grid->SetAttribute("enabled", 1);
+			grid->SetAttribute("units", 1);
+			double major = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "major")));
+			grid->SetAttribute("major", major);
+			double tics = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "tics")));
+			grid->SetAttribute("tics", tics);
+			double minx = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "minx")));
+			grid->SetAttribute("minx", minx);
+			double maxx = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxx")));
+			grid->SetAttribute("maxx", maxx);
+			double miny = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "miny")));
+			grid->SetAttribute("miny", miny);
+			double maxy = gtk_spin_button_get_value(GTK_SPIN_BUTTON(gtk_builder_get_object(g_builder, "maxy")));
+			grid->SetAttribute("maxy", maxy);
+			g_doc.FirstChildElement("graphics")->InsertFirstChild(grid);
+		}
+
+		// check if tracking is enabled
+		if ( (node = graphics->FirstChildElement("tracking")) ) {
+			int tracking = 1;
+			node->QueryIntAttribute("val", &tracking);
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "tracking")), tracking);
+		}
+		else {
+			tinyxml2::XMLElement *tracking = g_doc.NewElement("tracking");
+			tracking->SetAttribute("val", 1);
+			g_doc.FirstChildElement("graphics")->InsertFirstChild(tracking);
+		}
 	}
 
-	// check if tracking is enabled
-	if ( (node = g_doc.FirstChildElement("graphics")->FirstChildElement("tracking")) ) {
-		int tracking = 1;
-		node->QueryIntAttribute("val", &tracking);
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(g_builder, "tracking")), tracking);
+	// ground objects
+	tinyxml2::XMLElement *ground = g_doc.FirstChildElement("ground");
+	if (ground == NULL) {
+		ground = g_doc.NewElement("ground");
+		g_doc.InsertAfterChild(g_doc.FirstChildElement("graphics"), ground);
 	}
 	else {
-		tinyxml2::XMLElement *tracking = g_doc.NewElement("tracking");
-		tracking->SetAttribute("val", 1);
-		g_doc.FirstChildElement("graphics")->InsertFirstChild(tracking);
+		// PARSE GROUND OBJECTS HERE
 	}
 
 	// convert meters into gui units
@@ -3574,22 +3675,22 @@ void refreshObstacleList(void) {
 #ifdef _WIN32
 		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Box");
 		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Cylinder");
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Dot");
 		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Line");
-		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Point");
 		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Sphere");
 		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "Text");
 #else
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "0", "Box");
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "Cylinder");
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "Line");
-		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "Point");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "Dot");
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "3", "Line");
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "4", "Sphere");
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "5", "Text");
 #endif
 		gtk_combo_box_set_active(GTK_COMBO_BOX(w), tmp->type);
 		gtk_widget_show(w);
-		gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 1, 2, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_ob_type_changed), (void *)(&(tmp->id)));
+		gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 0, 1, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+		g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_ob_type_changed), (void *)&((tmp->id)));
 		if (tmp->type == BOX || tmp->type == CYLINDER | tmp->type == SPHERE) {
 			// x position
 			w = ((g_units) ? gtk_label_new(" X [in]:") : gtk_label_new(" X [cm]:"));
@@ -3628,11 +3729,15 @@ void refreshObstacleList(void) {
 			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_mass_value_changed), (void *)(&(tmp->id)));
 			// color
+			w = gtk_label_new(" Color:");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 			GdkColor color;
 			gdk_color_parse("red", &color);
 			w = gtk_color_button_new_with_color(&color);
 			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			//g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_color_changed), (void *)(&(tmp->id)));
 			// dimension 1
 			if (tmp->type == BOX)
 					w = ((g_units) ? gtk_label_new(" Length [in]:") : gtk_label_new(" Length [cm]:"));
@@ -3641,11 +3746,11 @@ void refreshObstacleList(void) {
 			else if (tmp->type == SPHERE)
 					w = ((g_units) ? gtk_label_new(" Radius [in]:") : gtk_label_new(" Radius [cm]:"));
 			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 			l1_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->l1, -500, 500, 0.1, 0.1, 1));
 			w = gtk_spin_button_new(l1_adj, 0.0, 1);
 			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 12, 13, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_l1_value_changed), (void *)(&(tmp->id)));
 			// dimension 2
 			if ( tmp->type == BOX || tmp->type == CYLINDER ) {
@@ -3654,29 +3759,29 @@ void refreshObstacleList(void) {
 				else if (tmp->type == CYLINDER)
 						w = ((g_units) ? gtk_label_new(" Radius [in]:") : gtk_label_new(" Radius [cm]:"));
 				gtk_widget_show(w);
-				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 12, 13, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 13, 14, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 				l2_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->l2, -500, 500, 0.1, 0.1, 1));
 				w = gtk_spin_button_new(l2_adj, 0.0, 1);
 				gtk_widget_show(w);
-				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 13, 14, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 14, 15, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 				g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_l2_value_changed), (void *)(&(tmp->id)));
 			}
 			// dimension 3
 			if (tmp->type == BOX) {
 				w = ((g_units) ? gtk_label_new(" Height [in]:") : gtk_label_new(" Height [cm]:"));
 				gtk_widget_show(w);
-				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 14, 15, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 15, 16, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 				l3_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->l3, -500, 500, 0.1, 0.1, 1));
 				w = gtk_spin_button_new(l3_adj, 0.0, 1);
 				gtk_widget_show(w);
-				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 15, 16, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 16, 17, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 				g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_l3_value_changed), (void *)(&(tmp->id)));
 			}
 			// orientation
 			if (tmp->type == CYLINDER) {
 				w = gtk_label_new(" Axis:");
 				gtk_widget_show(w);
-				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 16, 17, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 15, 16, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 				w = gtk_combo_box_text_new();
 	#ifdef _WIN32
 				gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(w), "X");
@@ -3687,15 +3792,68 @@ void refreshObstacleList(void) {
 				gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "1", "Y");
 				gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(w), "2", "Z");
 	#endif
-				gtk_combo_box_set_active(GTK_COMBO_BOX(w), tmp->type);
+				gtk_combo_box_set_active(GTK_COMBO_BOX(w), 0);
 				gtk_widget_show(w);
-				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 17, 18, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-				g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_ob_type_changed), (void *)(&(tmp->id)));
+				gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 16, 17, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+				g_signal_connect(G_OBJECT(w), "changed", G_CALLBACK(on_ob_orientation_value_changed), (void *)(&(tmp->id)));
 			}
 			// remove button
 			w = gtk_button_new_with_label("Remove");
 			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 18, 19, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 17, 18, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_obstacle_clicked), (void *)(&(tmp->id)));
+		}
+		else if (tmp->type == DOT) {
+			// x1 position
+			w = ((g_units) ? gtk_label_new(" X [in]:") : gtk_label_new(" X [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 1, 2, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->x, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(x_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 2, 3, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_x_value_changed), (void *)(&(tmp->id)));
+			// y1 position
+			w = ((g_units) ? gtk_label_new(" Y [in]:") : gtk_label_new(" Y [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 3, 4, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->y, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(y_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 4, 5, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_y_value_changed), (void *)(&(tmp->id)));
+			// z1 position
+			w = ((g_units) ? gtk_label_new(" Z [in]:") : gtk_label_new(" Z [cm]:"));
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 5, 6, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			z_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->z, -500, 500, 0.1, 0.1, 1));
+			w = gtk_spin_button_new(z_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 6, 7, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_z_value_changed), (void *)(&(tmp->id)));
+			// size
+			w = gtk_label_new(" Size:");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 7, 8, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			int_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->size, -500, 500, 1, 1, 1));
+			w = gtk_spin_button_new(int_adj, 0.0, 1);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_size_value_changed), (void *)(&(tmp->id)));
+			// color
+			w = gtk_label_new(" Color:");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			GdkColor color;
+			gdk_color_parse("red", &color);
+			w = gtk_color_button_new_with_color(&color);
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			//g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_color_changed), (void *)(&(tmp->id)));
+			// remove button
+			w = gtk_button_new_with_label("Remove");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 			g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_obstacle_clicked), (void *)(&(tmp->id)));
 		}
 		else if (tmp->type == LINE) {
@@ -3763,64 +3921,19 @@ void refreshObstacleList(void) {
 			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 14, 15, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_size_value_changed), (void *)(&(tmp->id)));
 			// color
-			GdkColor color;
-			gdk_color_parse("red", &color);
-			w = gtk_color_button_new_with_color(&color);
+			w = gtk_label_new(" Color:");
 			gtk_widget_show(w);
 			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 15, 16, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			// remove button
-			w = gtk_button_new_with_label("Remove");
-			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 16, 17, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_obstacle_clicked), (void *)(&(tmp->id)));
-		}
-		else if (tmp->type == POINT) {
-			// x1 position
-			w = ((g_units) ? gtk_label_new(" X [in]:") : gtk_label_new(" X [cm]:"));
-			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 1, 2, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			x_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->x, -500, 500, 0.1, 0.1, 1));
-			w = gtk_spin_button_new(x_adj, 0.0, 1);
-			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 2, 3, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_x_value_changed), (void *)(&(tmp->id)));
-			// y1 position
-			w = ((g_units) ? gtk_label_new(" Y [in]:") : gtk_label_new(" Y [cm]:"));
-			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 3, 4, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			y_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->y, -500, 500, 0.1, 0.1, 1));
-			w = gtk_spin_button_new(y_adj, 0.0, 1);
-			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 4, 5, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_y_value_changed), (void *)(&(tmp->id)));
-			// z1 position
-			w = ((g_units) ? gtk_label_new(" Z [in]:") : gtk_label_new(" Z [cm]:"));
-			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 5, 6, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			z_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->z, -500, 500, 0.1, 0.1, 1));
-			w = gtk_spin_button_new(z_adj, 0.0, 1);
-			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 6, 7, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_z_value_changed), (void *)(&(tmp->id)));
-			// width
-			w = gtk_label_new(" Size:");
-			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 7, 8, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			int_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->size, -500, 500, 1, 1, 1));
-			w = gtk_spin_button_new(int_adj, 0.0, 1);
-			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_size_value_changed), (void *)(&(tmp->id)));
-			// color
 			GdkColor color;
 			gdk_color_parse("red", &color);
 			w = gtk_color_button_new_with_color(&color);
 			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 16, 17, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			//g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_color_changed), (void *)(&(tmp->id)));
 			// remove button
 			w = gtk_button_new_with_label("Remove");
 			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 17, 18, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 			g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_obstacle_clicked), (void *)(&(tmp->id)));
 		}
 		else if (tmp->type == TEXT) {
@@ -3855,21 +3968,24 @@ void refreshObstacleList(void) {
 			w = gtk_label_new(" Text:");
 			gtk_widget_show(w);
 			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 7, 8, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			z_adj = GTK_ADJUSTMENT(gtk_adjustment_new(tmp->z, -500, 500, 0.1, 0.1, 1));
-			w = gtk_spin_button_new(z_adj, 0.0, 1);
+			w = gtk_entry_new();
 			gtk_widget_show(w);
 			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 8, 9, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
-			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_value_changed), (void *)(&(tmp->id)));
+			g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_text_value_changed), (void *)(&(tmp->id)));
 			// color
+			w = gtk_label_new(" Color:");
+			gtk_widget_show(w);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 			GdkColor color;
 			gdk_color_parse("red", &color);
 			w = gtk_color_button_new_with_color(&color);
 			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 9, 10, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			//g_signal_connect(G_OBJECT(w), "value-changed", G_CALLBACK(on_ob_color_changed), (void *)(&(tmp->id)));
 			// remove button
 			w = gtk_button_new_with_label("Remove");
 			gtk_widget_show(w);
-			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 10, 11, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
+			gtk_table_attach(GTK_TABLE(rootObstacleTable), w, 11, 12, i*3, (i*3)+2, GTK_FILL, GTK_FILL, 2, 2);
 			g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(on_button_remove_obstacle_clicked), (void *)(&(tmp->id)));
 		}
 
@@ -3902,70 +4018,142 @@ void refreshObstacleList(void) {
  * When the save button is clicked
  */
 void saveObstacleList(void) {
-	obstacles_t tmp = g_obstacles;
-	while (tmp) {
-		printf("%d object %d \n", tmp->id, tmp->type);
-		tmp = tmp->next;
+	// clean out graphics node (minus grid and tracking)
+	tinyxml2::XMLElement *graphics = g_doc.FirstChildElement("graphics");
+	tinyxml2::XMLElement *child = graphics->FirstChildElement();
+	while (child) {
+		if (!strcmp(child->Value(), "grid")) {}
+		else if (!strcmp(child->Value(), "tracking")) {}
+		else { graphics->DeleteChild(child); }
+		child = child->NextSiblingElement();
 	}
 
 	// clean out ground node
 	tinyxml2::XMLElement *ground = g_doc.FirstChildElement("ground");
 	ground->DeleteChildren();
 
-	// clean out graphics node
-	tinyxml2::XMLElement *graphics = g_doc.FirstChildElement("graphics");
-	graphics->DeleteChildren();
-
-	// add each robot in list
-	//obstacles_t tmp = g_obstacles;
-	tmp = g_obstacles;
+	// add each objstacle in list
+	obstacles_t tmp = g_obstacles;
 	while (tmp) {
-		tinyxml2::XMLElement *out;
-		if ( tmp->type == BOX || tmp->type == CYLINDER || tmp->type == SPHERE)
-			out = ground;
-		else
-			out = graphics;
+		if (tmp->type == BOX || tmp->type == CYLINDER || tmp->type == SPHERE) {
+			// set type
+			tinyxml2::XMLElement *obstacle;
+			if (tmp->type == BOX)
+				obstacle = g_doc.NewElement("box");
+			else if (tmp->type == CYLINDER)
+				obstacle = g_doc.NewElement("cylinder");
+			else if (tmp->type == SPHERE)
+				obstacle = g_doc.NewElement("sphere");
 
-		// set type
-		tinyxml2::XMLElement *obstacle;
-		if (tmp->type == BOX)
-			obstacle = g_doc.NewElement("box");
-		else if (tmp->type == CYLINDER)
-			obstacle = g_doc.NewElement("cylinder");
-		else if (tmp->type == LINE)
-			obstacle = g_doc.NewElement("line");
-		else if (tmp->type == POINT)
-			obstacle = g_doc.NewElement("point");
-		else if (tmp->type == SPHERE)
-			obstacle = g_doc.NewElement("sphere");
-		else if (tmp->type == TEXT)
-			obstacle = g_doc.NewElement("text");
+			// set output
+			tinyxml2::XMLElement *ground;
+			if (!(tmp->id))
+				ground->InsertFirstChild(obstacle);
+			else
+				ground->InsertEndChild(obstacle);
 
-		if (!(tmp->id))
-			out->InsertFirstChild(obstacle);
-		else
-			out->InsertEndChild(obstacle);
+			// set attributes
+			obstacle->SetAttribute("mass", convert(tmp->mass, 1));
+			if (tmp->type == CYLINDER)
+				obstacle->SetAttribute("axis", tmp->l3);
 
-		// set position
-		tinyxml2::XMLElement *pos = g_doc.NewElement("position");
-		pos->SetAttribute("x", convert(tmp->x, 1));
-		pos->SetAttribute("y", convert(tmp->y, 1));
-		pos->SetAttribute("z", convert(tmp->z, 1));
-		obstacle->InsertFirstChild(pos);
+			// set position
+			tinyxml2::XMLElement *pos = g_doc.NewElement("position");
+			pos->SetAttribute("x", convert(tmp->x, 1));
+			pos->SetAttribute("y", convert(tmp->y, 1));
+			pos->SetAttribute("z", convert(tmp->z, 1));
+			obstacle->InsertFirstChild(pos);
 
-		// set rotation
-		tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
-		rot->SetAttribute("psi", tmp->psi);
-		rot->SetAttribute("theta", tmp->theta);
-		rot->SetAttribute("phi", tmp->phi);
-		obstacle->InsertAfterChild(pos, rot);
+			// set rotation
+			tinyxml2::XMLElement *rot = g_doc.NewElement("rotation");
+			rot->SetAttribute("psi", tmp->psi);
+			rot->SetAttribute("theta", tmp->theta);
+			rot->SetAttribute("phi", tmp->phi);
+			obstacle->InsertAfterChild(pos, rot);
+
+			// set size
+			tinyxml2::XMLElement *size = g_doc.NewElement("size");
+			if (tmp->type == BOX) {
+				size->SetAttribute("x", convert(tmp->l1, 1));
+				size->SetAttribute("y", convert(tmp->l2, 1));
+				size->SetAttribute("z", convert(tmp->l2, 1));
+			}
+			else if (tmp->type == CYLINDER) {
+				size->SetAttribute("length", convert(tmp->l1, 1));
+				size->SetAttribute("radius", convert(tmp->l2, 1));
+			}
+			else if (tmp->type == SPHERE) {
+				size->SetAttribute("radius", convert(tmp->l1, 1));
+			}
+			obstacle->InsertAfterChild(rot, size);
+
+			// set color
+			tinyxml2::XMLElement *color = g_doc.NewElement("color");
+			color->SetAttribute("r", tmp->r);
+			color->SetAttribute("g", tmp->g);
+			color->SetAttribute("b", tmp->b);
+			color->SetAttribute("alpha", tmp->a);
+			obstacle->InsertAfterChild(size, color);
+		}
+		else {
+			// set type
+			tinyxml2::XMLElement *obstacle;
+			if (tmp->type == DOT)
+				obstacle = g_doc.NewElement("point");
+			else if (tmp->type == LINE)
+				obstacle = g_doc.NewElement("line");
+			else if (tmp->type == TEXT)
+				obstacle = g_doc.NewElement(tmp->str.c_str());
+
+			// set output
+			tinyxml2::XMLElement *graphics;
+			if (!(tmp->id))
+				graphics->InsertFirstChild(obstacle);
+			else
+				graphics->InsertEndChild(obstacle);
+
+			// set attributes
+			if (tmp->type == DOT)
+				obstacle->SetAttribute("size", tmp->size);
+			else if (tmp->type == LINE)
+				obstacle->SetAttribute("width", tmp->size);
+
+			// set position
+			tinyxml2::XMLElement *pos;
+			if (tmp->type == LINE)
+				pos = g_doc.NewElement("start");
+			else
+				pos = g_doc.NewElement("position");
+			pos->SetAttribute("x", convert(tmp->x, 1));
+			pos->SetAttribute("y", convert(tmp->y, 1));
+			pos->SetAttribute("z", convert(tmp->z, 1));
+			obstacle->InsertFirstChild(pos);
+
+			// set end point
+			tinyxml2::XMLElement *rot;
+			if (tmp->type == LINE) {
+				rot = g_doc.NewElement("end");
+				rot->SetAttribute("x", tmp->l1);
+				rot->SetAttribute("y", tmp->l2);
+				rot->SetAttribute("z", tmp->l3);
+				obstacle->InsertAfterChild(pos, rot);
+			}
+
+			// set color
+			tinyxml2::XMLElement *color = g_doc.NewElement("color");
+			color->SetAttribute("r", tmp->r);
+			color->SetAttribute("g", tmp->g);
+			color->SetAttribute("b", tmp->b);
+			color->SetAttribute("alpha", tmp->a);
+			obstacle->InsertAfterChild(rot, color);
+		}
 
 		// go to next obstacle
 		tmp = tmp->next;
 	}
 
 	// save file
-	g_doc.SaveFile(stdout);
+	g_doc.SaveFile(g_xml);
 }
 
 /*
@@ -4136,13 +4324,13 @@ void refreshRobotList(void) {
 void saveRobotList(int force) {
 	tinyxml2::XMLElement *node;
 	int type = 0;
-	if ( (node = g_doc.FirstChildElement("config")->FirstChildElement("type")) ) {
-		node->QueryIntAttribute("val", &type);
+	if ( (node = g_doc.FirstChildElement("sim")) ) {
+		node->QueryIntAttribute("type", &type);
 	}
 
 	if (!type || force) {
 		// set configuration options
-		tinyxml2::XMLElement *type = g_doc.FirstChildElement("config")->FirstChildElement("type");
+		tinyxml2::XMLElement *type = g_doc.FirstChildElement("sim");
 		type->SetAttribute("val", 0);
 
 		// clean out sim node
