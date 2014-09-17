@@ -237,6 +237,7 @@ class DLLIMPORT Robot {
 		dGeomID **_geom;			// geometries of each body part
 		dJointID *_joint;			// joints between body parts
 		dSpaceID _space;			// space for this robot
+		dSpaceID _wspace;
 		dWorldID _world;			// world for all robots
 		motor_t _motor;				// motors
 		bool _motion;				// motion in progress

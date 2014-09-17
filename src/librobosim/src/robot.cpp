@@ -1545,6 +1545,7 @@ int Robot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle,
 int Robot::addToSim(dWorldID &world, dSpaceID &space, int id, int pos) {
 	_world = world;
 	_space = dHashSpaceCreate(space);
+	_wspace = space;
 	_id = id;
 	_pos = pos;
 

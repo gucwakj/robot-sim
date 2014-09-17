@@ -426,7 +426,7 @@ void cubusNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 	osg::Group *group = dynamic_cast<osg::Group *>(node);
 	if (group) {
 		const double *pos, *quat;
-		int i, k = 0;
+		int i, j, k;
 		osg::PositionAttitudeTransform *pat;
 		// draw body parts
 		for (i = 2; i < 2+7; i++) {
@@ -437,7 +437,7 @@ void cubusNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		}
 		// draw connectors
-		for (int j = 0; j < _robot->_conn.size(); j++) {
+		for (j = 0; j < _robot->_conn.size(); j++) {
 			dMatrix3 R;
 			dQuaternion Q;
 			double p[3] = {0};
@@ -447,9 +447,17 @@ void cubusNodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv) {
 			p[1] += R[4]*_robot->_conn[j]->o[0] + R[5]*_robot->_conn[j]->o[1] + R[6]*_robot->_conn[j]->o[2];
 			p[2] += R[8]*_robot->_conn[j]->o[0] + R[9]*_robot->_conn[j]->o[1] + R[10]*_robot->_conn[j]->o[2];
 			dRtoQ(R, Q);
-			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i + k++));
+			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i+j));
 			pat->setPosition(osg::Vec3d(p[0], p[1], p[2]));
 			pat->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
+		}
+		// draw sensors
+		for (k = 0; k < _robot->_sensor.size(); k++) {
+			pos = dGeomGetOffsetPosition(_robot->_sensor[k]->geom);
+			quat= dGeomGetOffsetRotation(_robot->_sensor[k]->geom);
+			pat = dynamic_cast<osg::PositionAttitudeTransform *>(group->getChild(i+j+k));
+			pat->setPosition(osg::Vec3d(pos[0], pos[1], pos[2]));
+			pat->setAttitude(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 		}
 		// draw hud
 		osg::Geode *geode = dynamic_cast<osg::Geode *>(group->getChild(0));

@@ -25,7 +25,10 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 
 	// utility functions for inherited and friend classes
 	protected:
-		int addNeighbor(ModularRobot *, int, int);
+		int addNeighbor(ModularRobot*, int, int);
+		int addSensor(int, int);
+		static void collideSensor(void*, dGeomID, dGeomID);
+		int drawSensor(int, osg::Group*);
 		dBodyID getConnectorBodyID(int);
 		int getNeighborCount(int = -1, int = 0);
 
@@ -61,9 +64,18 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 			ModularRobot *robot;
 			int face;
 		} Neighbor;
+		// sensors
+		struct Sensor {
+			dSpaceID space;
+			dBodyID body;
+			dGeomID geom;
+			int face;
+			int type;
+		};
 
 		std::vector<Connector*> _conn;		// connectors
 		std::vector<Neighbor> _neighbor;	// connected robots
+		std::vector<Sensor*> _sensor;		// connected sensors
 		double _bigwheel_radius;			// dimension: big wheel radius
 		double _conn_depth;					// dimension: connector depth
 		double _conn_height;				// dimension: connector height

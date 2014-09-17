@@ -282,9 +282,12 @@ int Cubus::addConnector(int type, int face, double size) {
 
 int Cubus::build(xml_robot_t robot) {
 	// create rotation matrix
-	double	sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
-			stheta = sin(DEG2RAD(robot->theta)),	ctheta = cos(DEG2RAD(robot->theta)),
-			spsi = sin(DEG2RAD(robot->psi)),		cpsi = cos(DEG2RAD(robot->psi));
+	double	sphi = sin(DEG2RAD(robot->phi)),
+			cphi = cos(DEG2RAD(robot->phi)),
+			stheta = sin(DEG2RAD(robot->theta)),
+			ctheta = cos(DEG2RAD(robot->theta)),
+			spsi = sin(DEG2RAD(robot->psi)),
+			cpsi = cos(DEG2RAD(robot->psi));
 	dMatrix3 R = {cphi*ctheta,	-cphi*stheta*spsi - sphi*cpsi,	-cphi*stheta*cpsi + sphi*spsi,	0,
 				  sphi*ctheta,	-sphi*stheta*spsi + cphi*cpsi,	-sphi*stheta*cpsi - cphi*spsi,	0,
 				  stheta,		ctheta*spsi,					ctheta*cpsi,					0};
@@ -299,6 +302,9 @@ int Cubus::build(xml_robot_t robot) {
 		this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
 		ctmp = ctmp->next;
 	}
+
+	// add sensors
+	this->addSensor(1, FACE2);
 
 	// fix to ground
 	if (robot->ground != -1) this->fixBodyToGround(_body[robot->ground]);
@@ -379,6 +385,9 @@ int Cubus::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml_con
 			this->fixConnectorToBody(ctmp->face2, base);
 		ctmp = ctmp->next;
 	}
+
+	// add sensors
+	//this->addSensor(1, FACE2);
 
 	// fix to ground
 	if (robot->ground != -1) this->fixBodyToGround(_body[robot->ground]);
@@ -637,7 +646,7 @@ int Cubus::draw(osg::Group *root, int tracking) {
 	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
 	body[FACE5]->addDrawable(new osg::ShapeDrawable(cyl));
 
-	// face 4
+	// face 6
 	pos = dGeomGetOffsetPosition(_geom[FACE6][0]);
 	dGeomGetOffsetQuaternion(_geom[FACE6][0], quat);
 	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _face_radius, _face_depth);
@@ -677,6 +686,11 @@ int Cubus::draw(osg::Group *root, int tracking) {
 	// add connectors
 	for (int i = 0; i < _conn.size(); i++) {
 		this->drawConnector(_conn[i], _robot);
+	}
+
+	// add sensors
+	for (int i = 0; i < _sensor.size(); i++) {
+		this->drawSensor(i, _robot);
 	}
 
 	// set update callback for robot
@@ -874,6 +888,14 @@ int Cubus::getFaceParams(int face, dMatrix3 R, double *p) {
 			offset[1] = _face_depth/2;
 			dRFromAxisAndAngle(R2, R1[2], R1[6], R1[10], M_PI/2);
 			break;
+		case FACE5:
+			offset[2] = -_face_depth/2;
+			dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], -M_PI/2);
+			break;
+		case FACE6:
+			offset[2] = _face_depth/2;
+			dRFromAxisAndAngle(R2, R1[0], R1[4], R1[8], M_PI/2);
+			break;
 	}
 
 	// generate new position
@@ -980,10 +1002,13 @@ void Cubus::simPreCollisionThread(void) {
 	this->noisy(_accel, 3, 0.005);
 
 	/**************/
-	std::cout << _id << ": ";
+	/*std::cout << _id << ": ";
 	for (int i = 0; i < _dof; i++)
 		std::cout << this->getNeighborCount(i) << " ";
-	std::cout << std::endl;
+	std::cout << std::endl;*/
+	for (int i = 0; i < _sensor.size(); i++) {
+		dSpaceCollide2(_sensor[i]->geom, dGeomID(_wspace), (void *)(this), &(this->collideSensor));
+	}
 	/**************/
 
 	// update angle values for each degree of freedom
