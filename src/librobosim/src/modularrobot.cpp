@@ -82,16 +82,13 @@ sprintf(str, "id: %d\t", ptr->_id);
 		dSpaceCollide2(o1, o2, ptr, &ptr->collideSensor);
 	}
 	else {
-	dContact contact[8] = {0};
-	for ( int i = 0; i < dCollide(o1, o2, 8, &contact[0].geom, sizeof(dContact)); i++ ) {
-sprintf(&str[strlen(str)], "%lf %lf %lf\t", contact[i].geom.pos[0], contact[i].geom.pos[1], contact[i].geom.pos[2]);
-sprintf(&str[strlen(str)], "%lf %lf %lf\t", contact[i].geom.normal[0], contact[i].geom.normal[1], contact[i].geom.normal[2]);
-sprintf(&str[strlen(str)], "%lf\t", contact[i].geom.depth);
-	}
-//	const double *p1 = dBodyGetPosition(dGeomGetBody(o1));
-//sprintf(&str[strlen(str)], "p1 %lf %lf %lf\t", p1[0], p1[1], p1[2]);
-
-printf("%s\n\n", str);
+		dContact contact[8] = {0};
+		for (int i = 0; i < dCollide(o1, o2, 8, &contact[0].geom, sizeof(dContact)); i++) {
+			sprintf(&str[strlen(str)], "%lf %lf %lf\t", contact[i].geom.pos[0], contact[i].geom.pos[1], contact[i].geom.pos[2]);
+			sprintf(&str[strlen(str)], "%lf %lf %lf\t", contact[i].geom.normal[0], contact[i].geom.normal[1], contact[i].geom.normal[2]);
+			sprintf(&str[strlen(str)], "%lf\t", contact[i].geom.depth);
+		}
+		//printf("%s\n\n", str);
 	}
 }
 

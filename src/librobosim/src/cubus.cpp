@@ -304,7 +304,7 @@ int Cubus::build(xml_robot_t robot) {
 	}
 
 	// add sensors
-	this->addSensor(1, FACE2);
+	//this->addSensor(1, FACE2);
 
 	// fix to ground
 	if (robot->ground != -1) this->fixBodyToGround(_body[robot->ground]);
@@ -441,54 +441,48 @@ int Cubus::buildIndividual(double x, double y, double z, dMatrix3 R, double *rot
 	// joint for body to face 1
 	_joint[JOINT1] = dJointCreateHinge(_world, 0);
 	dJointAttach(_joint[JOINT1], _body[BODY], _body[FACE1]);
-	dJointSetHingeAnchor(_joint[JOINT1],R[0]*f1[3] + R[1]*f1[4] + R[2]*f1[5] + x,
-										R[4]*f1[3] + R[5]*f1[4] + R[6]*f1[5] + y,
-										R[8]*f1[3] + R[9]*f1[4] + R[10]*f1[5] + z);
+	dJointSetHingeAnchor(_joint[JOINT1], R[0]*f1[3] + R[1]*f1[4] + R[2]*f1[5] + x, R[4]*f1[3] + R[5]*f1[4] + R[6]*f1[5] + y, R[8]*f1[3] + R[9]*f1[4] + R[10]*f1[5] + z);
 	dJointSetHingeAxis(_joint[JOINT1], R[0], R[4], R[8]);
+	dJointSetFeedback(_joint[JOINT1], _fb[JOINT1]);
 	dBodySetFiniteRotationAxis(_body[FACE1], R[0], R[4], R[8]);
 
 	// joint for body to face 2
 	_joint[JOINT2] = dJointCreateHinge(_world, 0);
 	dJointAttach(_joint[JOINT2], _body[BODY], _body[FACE2]);
-	dJointSetHingeAnchor(_joint[JOINT2],R[0]*f2[3] + R[1]*f2[4] + R[2]*f2[5] + x,
-										R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y,
-										R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
+	dJointSetHingeAnchor(_joint[JOINT2], R[0]*f2[3] + R[1]*f2[4] + R[2]*f2[5] + x, R[4]*f2[3] + R[5]*f2[4] + R[6]*f2[5] + y, R[8]*f2[3] + R[9]*f2[4] + R[10]*f2[5] + z);
 	dJointSetHingeAxis(_joint[JOINT2], R[1], R[5], R[9]);
+	dJointSetFeedback(_joint[JOINT2], _fb[JOINT2]);
 	dBodySetFiniteRotationAxis(_body[FACE2], R[1], R[5], R[9]);
 
 	// joint for body to face 3
 	_joint[JOINT3] = dJointCreateHinge(_world, 0);
 	dJointAttach(_joint[JOINT3], _body[BODY], _body[FACE3]);
-	dJointSetHingeAnchor(_joint[JOINT3],R[0]*f3[3] + R[1]*f3[4] + R[2]*f3[5] + x,
-										R[4]*f3[3] + R[5]*f3[4] + R[6]*f3[5] + y,
-										R[8]*f3[3] + R[9]*f3[4] + R[10]*f3[5] + z);
+	dJointSetHingeAnchor(_joint[JOINT3], R[0]*f3[3] + R[1]*f3[4] + R[2]*f3[5] + x, R[4]*f3[3] + R[5]*f3[4] + R[6]*f3[5] + y, R[8]*f3[3] + R[9]*f3[4] + R[10]*f3[5] + z);
 	dJointSetHingeAxis(_joint[JOINT3], -R[0], -R[4], -R[8]);
+	dJointSetFeedback(_joint[JOINT3], _fb[JOINT3]);
 	dBodySetFiniteRotationAxis(_body[FACE3], -R[0], -R[4], -R[8]);
 
 	// joint for body to face 4
 	_joint[JOINT4] = dJointCreateHinge(_world, 0);
 	dJointAttach(_joint[JOINT4], _body[BODY], _body[FACE4]);
-	dJointSetHingeAnchor(_joint[JOINT4],R[0]*f4[3] + R[1]*f4[4] + R[2]*f4[5] + x,
-										R[4]*f4[3] + R[5]*f4[4] + R[6]*f4[5] + y,
-										R[8]*f4[3] + R[9]*f4[4] + R[10]*f4[5] + z);
+	dJointSetHingeAnchor(_joint[JOINT4], R[0]*f4[3] + R[1]*f4[4] + R[2]*f4[5] + x, R[4]*f4[3] + R[5]*f4[4] + R[6]*f4[5] + y, R[8]*f4[3] + R[9]*f4[4] + R[10]*f4[5] + z);
 	dJointSetHingeAxis(_joint[JOINT4], -R[1], -R[5], -R[9]);
+	dJointSetFeedback(_joint[JOINT4], _fb[JOINT4]);
 	dBodySetFiniteRotationAxis(_body[FACE4], -R[1], -R[5], -R[9]);
 
 	// joint for body to face 5
 	_joint[JOINT5] = dJointCreateHinge(_world, 0);
 	dJointAttach(_joint[JOINT5], _body[BODY], _body[FACE5]);
-	dJointSetHingeAnchor(_joint[JOINT5],R[0]*f5[3] + R[1]*f5[4] + R[2]*f5[5] + x,
-										R[4]*f5[3] + R[5]*f5[4] + R[6]*f5[5] + y,
-										R[8]*f5[3] + R[9]*f5[4] + R[10]*f5[5] + z);
+	dJointSetHingeAnchor(_joint[JOINT5], R[0]*f5[3] + R[1]*f5[4] + R[2]*f5[5] + x, R[4]*f5[3] + R[5]*f5[4] + R[6]*f5[5] + y, R[8]*f5[3] + R[9]*f5[4] + R[10]*f5[5] + z);
 	dJointSetHingeAxis(_joint[JOINT5], R[2], R[6], R[10]);
+	dJointSetFeedback(_joint[JOINT5], _fb[JOINT5]);
 	dBodySetFiniteRotationAxis(_body[FACE5], R[2], R[6], R[10]);
 	// joint for body to face 6
 	_joint[JOINT6] = dJointCreateHinge(_world, 0);
 	dJointAttach(_joint[JOINT6], _body[BODY], _body[FACE6]);
-	dJointSetHingeAnchor(_joint[JOINT6],R[0]*f6[3] + R[1]*f6[4] + R[2]*f6[5] + x,
-										R[4]*f6[3] + R[5]*f6[4] + R[6]*f6[5] + y,
-										R[8]*f6[3] + R[9]*f6[4] + R[10]*f6[5] + z);
+	dJointSetHingeAnchor(_joint[JOINT6], R[0]*f6[3] + R[1]*f6[4] + R[2]*f6[5] + x, R[4]*f6[3] + R[5]*f6[4] + R[6]*f6[5] + y, R[8]*f6[3] + R[9]*f6[4] + R[10]*f6[5] + z);
 	dJointSetHingeAxis(_joint[JOINT6], -R[2], -R[6], -R[10]);
+	dJointSetFeedback(_joint[JOINT6], _fb[JOINT6]);
 	dBodySetFiniteRotationAxis(_body[FACE6], -R[2], -R[6], -R[10]);
 
     // create rotation matrices for each body part
@@ -843,7 +837,8 @@ int Cubus::fixConnectorToBody(int face, dBodyID cBody, int conn) {
 }
 
 double Cubus::getAngle(int id) {
-	return _motor[id].theta = mod_angle(_motor[id].theta, dJointGetHingeAngle(_joint[id]), dJointGetHingeAngleRate(_joint[id])) - _motor[id].offset;
+	_motor[id].theta = mod_angle(_motor[id].theta, dJointGetHingeAngle(_joint[id]), dJointGetHingeAngleRate(_joint[id])) - _motor[id].offset;
+	return _motor[id].theta;
 }
 
 int Cubus::getConnectorParams(int type, int side, dMatrix3 R, double *p) {
@@ -925,7 +920,7 @@ int Cubus::initParams(int disabled, int type) {
 	_neighbor.resize(_dof);
 
 	// fill with default data
-	for (int i = 0, j = 0; i < _dof; i++) {
+	for (int i = 0; i < _dof; i++) {
 		_motor[i].accel.init = 0;
 		_motor[i].accel.run = 0;
 		_motor[i].accel.period = 0;
@@ -951,6 +946,7 @@ int Cubus::initParams(int disabled, int type) {
 		_rec_active[i] = false;
 		_rec_num[i] = 0;
 		_recording[i] = false;
+		_fb.push_back(new dJointFeedback());
 	}
 	_connected = 0;
 	_disabled = disabled;
@@ -1002,13 +998,28 @@ void Cubus::simPreCollisionThread(void) {
 	this->noisy(_accel, 3, 0.005);
 
 	/**************/
-	/*std::cout << _id << ": ";
+	/* neighbor data */
+	/**************/
+	char str[300];
+	sprintf(str, "%d: ", _id);
 	for (int i = 0; i < _dof; i++)
-		std::cout << this->getNeighborCount(i) << " ";
-	std::cout << std::endl;*/
-	for (int i = 0; i < _sensor.size(); i++) {
-		dSpaceCollide2(_sensor[i]->geom, dGeomID(_wspace), (void *)(this), &(this->collideSensor));
+		sprintf(&str[strlen(str)], "%d ", this->getNeighborCount(i));
+	//printf("%s\n\n", str);
+	/**************/
+	/* joint feedback */
+	/**************/
+	sprintf(str, "%d:\n", _id);
+	for (int i = 0; i < _dof; i++) {
+		sprintf(&str[strlen(str)], "%5.2lf %5.2lf %5.2lf  ", _fb[i]->f1[0], _fb[i]->f1[1], _fb[i]->f1[2]);
+		sprintf(&str[strlen(str)], "%5.2lf %5.2lf %5.2lf\n", _fb[i]->t1[0], _fb[i]->t1[1], _fb[i]->t1[2]);
 	}
+	//printf("%s\n\n", str);
+	/**************/
+	/* collide sensors */
+	/**************/
+	/*for (int i = 0; i < _sensor.size(); i++) {
+		dSpaceCollide2(_sensor[i]->geom, dGeomID(_wspace), (void *)(this), &(this->collideSensor));
+	}*/
 	/**************/
 
 	// update angle values for each degree of freedom

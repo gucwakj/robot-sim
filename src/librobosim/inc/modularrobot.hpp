@@ -59,11 +59,11 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 
 	// data members
 	protected:
-		// neighbor robots
-		typedef struct neighbor_s {
+		// neighbors
+		struct Neighbor {
 			ModularRobot *robot;
 			int face;
-		} Neighbor;
+		};
 		// sensors
 		struct Sensor {
 			dSpaceID space;
@@ -76,6 +76,7 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 		std::vector<Connector*> _conn;		// connectors
 		std::vector<Neighbor> _neighbor;	// connected robots
 		std::vector<Sensor*> _sensor;		// connected sensors
+		std::vector<dJointFeedback*> _fb;	// feedback forces from joints
 		double _bigwheel_radius;			// dimension: big wheel radius
 		double _conn_depth;					// dimension: connector depth
 		double _conn_height;				// dimension: connector height
