@@ -1000,20 +1000,21 @@ void Cubus::simPreCollisionThread(void) {
 	/**************/
 	/* neighbor data */
 	/**************/
-	char str[300];
+	/*char str[300];
 	sprintf(str, "%d: ", _id);
 	for (int i = 0; i < _dof; i++)
 		sprintf(&str[strlen(str)], "%d ", this->getNeighborCount(i));
-	//printf("%s\n\n", str);
+	printf("%s\n\n", str);*/
 	/**************/
 	/* joint feedback */
 	/**************/
+	/*char str[300];
 	sprintf(str, "%d:\n", _id);
 	for (int i = 0; i < _dof; i++) {
-		sprintf(&str[strlen(str)], "%5.2lf %5.2lf %5.2lf  ", _fb[i]->f1[0], _fb[i]->f1[1], _fb[i]->f1[2]);
-		sprintf(&str[strlen(str)], "%5.2lf %5.2lf %5.2lf\n", _fb[i]->t1[0], _fb[i]->t1[1], _fb[i]->t1[2]);
+		sprintf(&str[strlen(str)], "%5.2lf %5.2lf %5.2lf  ", this->getNeighborForce(i, 0), this->getNeighborForce(i, 1), this->getNeighborForce(i, 2));
+		sprintf(&str[strlen(str)], "%5.2lf %5.2lf %5.2lf\n", this->getNeighborTorque(i, 0), this->getNeighborTorque(i, 1), this->getNeighborTorque(i, 2));
 	}
-	//printf("%s\n\n", str);
+	printf("%s\n\n", str);*/
 	/**************/
 	/* collide sensors */
 	/**************/

@@ -157,3 +157,11 @@ int ModularRobot::getNeighborCount(int face, int back) {
 	return val;
 }
 
+double ModularRobot::getNeighborForce(int face, int dir) {
+	return _fb[face]->f1[dir];
+}
+
+double ModularRobot::getNeighborTorque(int face, int dir) {
+	return _fb[face]->t1[dir];
+}
+

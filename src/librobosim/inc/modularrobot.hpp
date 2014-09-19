@@ -31,6 +31,8 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 		int drawSensor(int, osg::Group*);
 		dBodyID getConnectorBodyID(int);
 		int getNeighborCount(int = -1, int = 0);
+		double getNeighborForce(int, int = 0);
+		double getNeighborTorque(int, int = 0);
 
 	// virual functions for inherited classes
 	protected:
