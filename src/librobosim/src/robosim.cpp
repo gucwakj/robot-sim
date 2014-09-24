@@ -1003,22 +1003,6 @@ int RoboSim::init_xml(char *name) {
 		node = node->NextSiblingElement();
 	}
 
-	// check if any robots are possibly colliding
-	if (!_preconfig) {
-		xml_robot_t btmp = _bot;
-		while (btmp) {
-			xml_robot_t tmp2 = btmp->next;
-			while (tmp2) {
-				if ( (fabs(btmp->x - tmp2->x) < 0.1) && (fabs(btmp->y - tmp2->y) < 0.1) ) {
-					fprintf(stderr, "Warning: Robot %d and Robot %d are possibly colliding.\n", btmp->id + 1, tmp2->id + 1);
-					fprintf(stderr, "         Please check RoboSim GUI for x and y positions that may be too close.\n");
-				}
-				tmp2 = tmp2->next;
-			}
-			btmp = btmp->next;
-		}
-	}
-
 	// success
 	return 0;
 }
@@ -1129,6 +1113,14 @@ int RoboSim::addRobot(Robot *robot) {
 	// give simulation data to robot
 	robot->addToSim(_world, _space, btmp->id, _robots.size()-1);
 
+	// check if robot is colliding with others
+	for (int i = 0; i < _robots.size() - 1; i++) {
+		if ( (fabs(_robots[i]->robot->getCenter(0) - btmp->x) < 0.1) && (fabs(_robots[i]->robot->getCenter(1) - btmp->y) < 0.1) ) {
+			fprintf(stderr, "Warning: Robot %d and Robot %d are possibly colliding.\n", _robots[i]->robot->getID() + 1, btmp->id + 1);
+			fprintf(stderr, "         Please check RoboSim GUI for x and y positions that may be too close.\n");
+		}
+	}
+
 	// build robot
 	robot->build(btmp);
 
@@ -1223,6 +1215,14 @@ int RoboSim::addRobot(ModularRobot *robot) {
 		}
 	}
 	else {
+		// check if robot is colliding with others
+		for (int i = 0; i < _robots.size() - 1; i++) {
+			if ( (fabs(_robots[i]->robot->getCenter(0) - btmp->x) < 0.1) && (fabs(_robots[i]->robot->getCenter(1) - btmp->y) < 0.1) ) {
+				fprintf(stderr, "Warning: Robot %d and Robot %d are possibly colliding.\n", _robots[i]->robot->getID() + 1, btmp->id + 1);
+				fprintf(stderr, "         Please check RoboSim GUI for x and y positions that may be too close.\n");
+			}
+		}
+		// build
 		robot->build(btmp);
 	}
 
