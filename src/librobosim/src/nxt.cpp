@@ -351,7 +351,7 @@ int CNXT::draw(osg::Group *root, int tracking) {
 	body[WHEEL2]->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture to robot
-	tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/body.png)));
+	tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/textures/body.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);

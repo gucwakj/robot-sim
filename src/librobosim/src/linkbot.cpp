@@ -1007,8 +1007,8 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	body[FACE3]->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture to robot
-	tex[0] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/body.png)));
-	tex[1] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/face.png)));
+	tex[0] = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/textures/body.png"));
+	tex[1] = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/textures/face.png"));
 	for (int i = 0; i < 2; i++) {
 		tex[i]->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 		tex[i]->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
@@ -1129,44 +1129,44 @@ int CLinkbotT::drawConnector(Connector *conn, osg::Group *robot) {
 	osg::ref_ptr<osg::Node> node;
 	switch (conn->type) {
 		case BIGWHEEL:
-			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bigwheel.3ds));
+			node = osgDB::readNodeFile(g_sim->_tex_path + "linkbot/models/bigwheel.3ds");
 			break;
 		case BRIDGE:
-			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/bridge.3ds));
+			node = osgDB::readNodeFile(g_sim->_tex_path + "linkbot/models/bridge.3ds");
 			break;
 		case CASTER:
-			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/caster.3ds));
+			node = osgDB::readNodeFile(g_sim->_tex_path + "linkbot/models/caster.3ds");
 			break;
 		case CUBE:
-			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/cube.3ds));
+			node = osgDB::readNodeFile(g_sim->_tex_path + "linkbot/models/cube.3ds");
 			break;
 		case FACEPLATE:
-			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/faceplate.3ds));
+			node = osgDB::readNodeFile(g_sim->_tex_path + "linkbot/models/faceplate.3ds");
 			break;
 		case GRIPPER:
-			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/gripper.3ds));
+			node = osgDB::readNodeFile(g_sim->_tex_path + "linkbot/models/gripper.3ds");
 			break;
 		case OMNIDRIVE:
-			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/omnidrive.3ds));
+			node = osgDB::readNodeFile(g_sim->_tex_path + "linkbot/models/omnidrive.3ds");
 			break;
 		case SIMPLE:
-			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/simple.3ds));
+			node = osgDB::readNodeFile(g_sim->_tex_path + "linkbot/models/simple.3ds");
 			break;
 		case SMALLWHEEL:
-			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/smallwheel.3ds));
+			node = osgDB::readNodeFile(g_sim->_tex_path + "linkbot/models/smallwheel.3ds");
 			break;
 		case TINYWHEEL:
-			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.3ds));
+			node = osgDB::readNodeFile(g_sim->_tex_path + "linkbot/models/tinywheel.3ds");
 			break;
 		case WHEEL:
-			node = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/tinywheel.3ds));
+			node = osgDB::readNodeFile(g_sim->_tex_path + "linkbot/models/tinywheel.3ds");
 			transform->setScale(osg::Vec3d(1, _wheel_radius/_tinywheel_radius, _wheel_radius/_tinywheel_radius));
 			break;
 	}
 	node->setCullingActive(false);
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/textures/conn.png"));
 	tex->setDataVariance(osg::Object::DYNAMIC);
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
@@ -2436,7 +2436,7 @@ int CLinkbotT::draw_custom_caster(Connector *conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(sph));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/conn.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);

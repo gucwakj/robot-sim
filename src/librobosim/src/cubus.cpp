@@ -648,8 +648,8 @@ int Cubus::draw(osg::Group *root, int tracking) {
 	body[FACE6]->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture to robot
-	tex[0] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/body.png)));
-	tex[1] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/face.png)));
+	tex[0] = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/textures/body.png"));
+	tex[1] = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/textures/face.png"));
 	for (int i = 0; i < 2; i++) {
 		tex[i]->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 		tex[i]->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
@@ -768,11 +768,11 @@ int Cubus::drawConnector(Connector *conn, osg::Group *robot) {
 	transform->setAttitude(osg::Quat(Q[1], Q[2], Q[3], Q[0]));
 
 	// create node to hold mesh
-	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(TEXTURE_PATH(linkbot/models/simple.stl));
+	osg::ref_ptr<osg::Node> geode = osgDB::readNodeFile(g_sim->_tex_path + "linkbot/models/simple.3ds");
 	geode->setCullingActive(false);
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/textures/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/textures/conn.png"));
 	tex->setDataVariance(osg::Object::DYNAMIC);
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);

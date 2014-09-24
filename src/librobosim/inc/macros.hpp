@@ -11,7 +11,6 @@
 
 #ifdef _WIN32
 #define DLLIMPORT __declspec(dllexport)
-#define TEXTURE_PATH(end) "C:/Ch/package/chrobosim/data/" #end
 //   THREADS
 #define THREAD_T HANDLE
 #define THREAD_CANCEL(thread_handle) TerminateThread( thread_handle, 0)
@@ -32,7 +31,6 @@
 #define COND_SIGNAL(cond) SetEvent(*cond)
 #else
 #define DLLIMPORT
-#define TEXTURE_PATH(end) "/usr/local/ch/package/chrobosim/data/" #end
 //   THREADS
 #define THREAD_T pthread_t
 #define THREAD_CANCEL(thread_handle) pthread_cancel(thread_handle)
@@ -154,3 +152,4 @@ typedef struct xml_robot_s {
 typedef double* robotRecordData_t;
 
 #endif // MACROS_HPP_
+

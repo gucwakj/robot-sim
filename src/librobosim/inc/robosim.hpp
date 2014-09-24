@@ -40,6 +40,12 @@ class DLLIMPORT RoboSim {
 		int setMu(double, double);
 		int setPause(int);
 
+	// public data
+	public:
+#ifdef ENABLE_GRAPHICS
+		std::string _tex_path;
+#endif // ENABLE_GRAPHICS
+
 	// private functions
 	private:
 		int init_ode(void);								// init function for ode variables
