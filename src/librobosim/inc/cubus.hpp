@@ -34,7 +34,7 @@ class DLLIMPORT Cubus : public ModularRobot {
 	// inherited functions from ModularRobot class
 	private:
 		virtual int addConnector(int, int, double);
-		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, xml_conn_t);
+		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, XMLConn*);
 #ifdef ENABLE_GRAPHICS
 		virtual int drawConnector(Connector*, osg::Group*);
 #endif // ENABLE_GRAPHICS

@@ -297,10 +297,8 @@ int Cubus::build(xml_robot_t robot) {
 	this->buildIndividual(robot->x, robot->y, robot->z, R, rot);
 
 	// add connectors
-	xml_conn_t ctmp = robot->conn;
-	while (ctmp) {
-		this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
-		ctmp = ctmp->next;
+	for (int i = 0; i < robot->conn.size(); i++) {
+		this->addConnector(robot->conn[i]->type, robot->conn[i]->face1, robot->conn[i]->size);
 	}
 
 	// add sensors
@@ -313,7 +311,7 @@ int Cubus::build(xml_robot_t robot) {
 	return 0;
 }
 
-int Cubus::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml_conn_t conn) {
+int Cubus::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, XMLConn *conn) {
 	// initialize new variables
 	double offset[3] = {0};
 	dMatrix3 R1, R2, R3, R4, R5, R6;
@@ -377,13 +375,11 @@ int Cubus::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml_con
 	this->fixBodyToConnector(base, conn->face2);
 
 	// add connectors
-	xml_conn_t ctmp = robot->conn;
-	while (ctmp) {
-		if (ctmp->robot == _id)
-			this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
-		else if (ctmp->face2 != conn->face2)
-			this->fixConnectorToBody(ctmp->face2, base);
-		ctmp = ctmp->next;
+	for (int i = 0; i < robot->conn.size(); i++) {
+		if (robot->conn[i]->robot == _id)
+			this->addConnector(robot->conn[i]->type, robot->conn[i]->face1, robot->conn[i]->size);
+		else if (robot->conn[i]->face2 != conn->face2)
+			this->fixConnectorToBody(robot->conn[i]->face2, base);
 	}
 
 	// add sensors

@@ -876,25 +876,23 @@ int CMobot::build(xml_robot_t robot) {
 				  stheta, ctheta*spsi, ctheta*cpsi, 0};
 
 	// check for wheels
-	xml_conn_t ctmp = robot->conn;
-	while (ctmp) {
-		if (ctmp->type == BIGWHEEL) {
+	for (int i = 0; i < robot->conn.size(); i++) {
+		if (robot->conn[i]->conn == BIGWHEEL) {
 			robot->z += (_bigwheel_radius - _end_height/2);
 			_radius = _bigwheel_radius;
 			break;
 		}
-		else if (ctmp->type == SMALLWHEEL) {
+		else if (robot->conn[i]->conn == SMALLWHEEL) {
 			robot->z += (_smallwheel_radius - _end_height/2);
 			_radius = _smallwheel_radius;
 			break;
 		}
-		else if (ctmp->conn == WHEEL) {
-			robot->z += (ctmp->size - _body_height/2);
-			_radius = ctmp->size;
-			if (fabs(robot->z) > (_body_radius-EPSILON)) {robot->z += _body_height/2; }
+		else if (robot->conn[i]->conn == WHEEL) {
+			robot->z += (robot->conn[i]->size - _body_height/2);
+			_radius = robot->conn[i]->size;
+			if (fabs(robot->z) > (_body_radius-EPSILON)) { robot->z += _body_height/2; }
 			break;
 		}
-		ctmp = ctmp->next;
 	}
 
 	// build robot
@@ -902,11 +900,9 @@ int CMobot::build(xml_robot_t robot) {
 	this->buildIndividual(robot->x, robot->y, robot->z, R, rot);
 
 	// add connectors
-	ctmp = robot->conn;
-	while (ctmp) {
-		if ( ctmp->robot == _id )
-			this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
-		ctmp = ctmp->next;
+	for (int i = 0; i < robot->conn.size(); i++) {
+		if (robot->conn[i]->robot == _id)
+			this->addConnector(robot->conn[i]->type, robot->conn[i]->face1, robot->conn[i]->size);
 	}
 
 	// set trackwidth
@@ -936,7 +932,7 @@ int CMobot::build(xml_robot_t robot) {
 	return 0;
 }
 
-int CMobot::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml_conn_t conn) {
+int CMobot::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, XMLConn *conn) {
 	// initialize new variables
 	int i = 1;
 	double offset[3] = {0};
@@ -1029,11 +1025,9 @@ int CMobot::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml_co
 	this->fixBodyToConnector(base, conn->face2);
 
 	// add connectors
-	xml_conn_t ctmp = robot->conn;
-	while (ctmp) {
-		if ( ctmp->robot == _id )
-			this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
-		ctmp = ctmp->next;
+	for (int i = 0; i < robot->conn.size(); i++) {
+		if (robot->conn[i]->robot == _id)
+			this->addConnector(robot->conn[i]->type, robot->conn[i]->face1, robot->conn[i]->size);
 	}
 
 	// fix to ground

@@ -664,37 +664,33 @@ int CLinkbotT::addConnector(int type, int face, double size) {
 
 int CLinkbotT::build(xml_robot_t robot) {
 	// check for wheels
-	xml_conn_t ctmp = robot->conn;
-	while (ctmp) {
-		if (ctmp->conn == BIGWHEEL) {
+	for (int i = 0; i < robot->conn.size(); i++) {
+		if (robot->conn[i]->conn == BIGWHEEL) {
 			robot->z += (_bigwheel_radius - _body_height/2);
 			_radius = _bigwheel_radius;
 			break;
 		}
-		else if (ctmp->conn == SMALLWHEEL) {
+		else if (robot->conn[i]->conn == SMALLWHEEL) {
 			robot->z += (_smallwheel_radius - _body_height/2);
 			_radius = _smallwheel_radius;
 			break;
 		}
-		else if (ctmp->conn == TINYWHEEL) {
+		else if (robot->conn[i]->conn == TINYWHEEL) {
 			robot->z += (_tinywheel_radius - _body_height/2);
 			_radius = _tinywheel_radius;
 			break;
 		}
-		else if (ctmp->conn == WHEEL) {
-			robot->z += (ctmp->size - _body_height/2);
-			_radius = ctmp->size;
-			if (fabs(robot->z) > (_body_radius-EPSILON)) {robot->z += _body_height/2; }
+		else if (robot->conn[i]->conn == WHEEL) {
+			robot->z += (robot->conn[i]->size - _body_height/2);
+			_radius = robot->conn[i]->size;
+			if (fabs(robot->z) > (_body_radius-EPSILON)) { robot->z += _body_height/2; }
 			break;
 		}
-		ctmp = ctmp->next;
 	}
-	ctmp = robot->conn;
-	while (ctmp) {
-		if (ctmp->conn == CASTER && !static_cast<int>(ctmp->size)) {
+	for (int i = 0; i < robot->conn.size(); i++) {
+		if (robot->conn[i]->conn == CASTER && !static_cast<int>(robot->conn[i]->size)) {
 			robot->psi += RAD2DEG(atan2(_radius - _smallwheel_radius, 0.08575));
 		}
-		ctmp = ctmp->next;
 	}
 
 	// create rotation matrix
@@ -710,15 +706,13 @@ int CLinkbotT::build(xml_robot_t robot) {
 	this->buildIndividual(robot->x, robot->y, robot->z, R, rot);
 
 	// add connectors
-	ctmp = robot->conn;
-	while (ctmp) {
-		if (ctmp->robot == _id) {
-			if (ctmp->conn == -1)
-				this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
+	for (int i = 0; i < robot->conn.size(); i++) {
+		if (robot->conn[i]->robot == _id) {
+			if (robot->conn[i]->conn == -1)
+				this->addConnector(robot->conn[i]->type, robot->conn[i]->face1, robot->conn[i]->size);
 			else
-				this->add_connector_daisy(ctmp->conn, ctmp->face1, ctmp->size, ctmp->side, ctmp->type);
+				this->add_connector_daisy(robot->conn[i]->conn, robot->conn[i]->face1, robot->conn[i]->size, robot->conn[i]->side, robot->conn[i]->type);
 		}
-		ctmp = ctmp->next;
 	}
 
 	// set trackwidth
@@ -748,7 +742,7 @@ int CLinkbotT::build(xml_robot_t robot) {
 	return 0;
 }
 
-int CLinkbotT::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml_conn_t conn) {
+int CLinkbotT::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, XMLConn *conn) {
 	// initialize new variables
 	double offset[3] = {0};
 	dMatrix3 R1, R2, R3, R4, R5, R6;
@@ -794,18 +788,16 @@ int CLinkbotT::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml
 	this->fixBodyToConnector(base, conn->face2);
 
 	// add connectors
-	xml_conn_t ctmp = robot->conn;
-	while (ctmp) {
-		if (ctmp->robot == _id) {
-			if (ctmp->conn == -1)
-				this->addConnector(ctmp->type, ctmp->face1, ctmp->size);
+	for (int i = 0; i < robot->conn.size(); i++) {
+		if (robot->conn[i]->robot == _id) {
+			if (robot->conn[i]->conn == -1)
+				this->addConnector(robot->conn[i]->type, robot->conn[i]->face1, robot->conn[i]->size);
 			else
-				this->add_connector_daisy(ctmp->conn, ctmp->face1, ctmp->size, ctmp->side, ctmp->type);
+				this->add_connector_daisy(robot->conn[i]->conn, robot->conn[i]->face1, robot->conn[i]->size, robot->conn[i]->side, robot->conn[i]->type);
 		}
-		else if (ctmp->face2 != conn->face2) {
-			this->fixConnectorToBody(ctmp->face2, base);
+		else if (robot->conn[i]->face2 != conn->face2) {
+			this->fixConnectorToBody(robot->conn[i]->face2, base);
 		}
-		ctmp = ctmp->next;
 	}
 
 	// fix to ground

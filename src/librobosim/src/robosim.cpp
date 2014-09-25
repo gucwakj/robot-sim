@@ -71,11 +71,8 @@ RoboSim::~RoboSim(void) {
 	xml_robot_t btmp = _bot;
 	while (btmp) {
 		xml_robot_t tmp = btmp->next;
-		xml_conn_t ctmp = btmp->conn;
-		while (ctmp) {
-			xml_conn_t tmp2 = ctmp->next;
-			delete ctmp;
-			ctmp = tmp2;
+		for (int j = 0; j < btmp->conn.size(); j++) {
+			delete btmp->conn[j];
 		}
 		delete btmp;
 		btmp = tmp;
@@ -544,7 +541,6 @@ int RoboSim::init_xml(char *name) {
 			if (node->QueryIntAttribute("ground", &(nr->ground))) {
 				nr->ground = -1;
 			}
-			nr->conn = NULL;
 			nr->next = NULL;
 
 			// put new bot at end of list
@@ -595,7 +591,6 @@ int RoboSim::init_xml(char *name) {
 			if (node->QueryIntAttribute("ground", &(nr->ground))) {
 				nr->ground = -1;
 			}
-			nr->conn = NULL;
 			nr->next = NULL;
 
 			// put new bot at end of list
@@ -646,7 +641,6 @@ int RoboSim::init_xml(char *name) {
 			if (node->QueryIntAttribute("ground", &(nr->ground))) {
 				nr->ground = -1;
 			}
-			nr->conn = NULL;
 			nr->next = NULL;
 
 			// put new bot at end of list
@@ -697,7 +691,6 @@ int RoboSim::init_xml(char *name) {
 			if (node->QueryIntAttribute("ground", &(nr->ground))) {
 				nr->ground = -1;
 			}
-			nr->conn = NULL;
 			nr->next = NULL;
 
 			// put new bot at end of list
@@ -736,7 +729,6 @@ int RoboSim::init_xml(char *name) {
 			if (node->QueryIntAttribute("ground", &(nr->ground))) {
 				nr->ground = -1;
 			}
-			nr->conn = NULL;
 			nr->next = NULL;
 
 			// put new bot at end of list
@@ -779,7 +771,6 @@ int RoboSim::init_xml(char *name) {
 			if (node->QueryIntAttribute("ground", &(nr->ground))) {
 				nr->ground = -1;
 			}
-			nr->conn = NULL;
 			nr->next = NULL;
 
 			// put new bot at end of list
@@ -889,17 +880,8 @@ int RoboSim::init_xml(char *name) {
 
 			// store connectors to each robot
 			xml_robot_t tmp;
-			xml_conn_t ctmp;
 			for (int j = 0; j < i; j++) {
-				xml_conn_t nc = new struct xml_conn_s;
-				nc->robot = rtmp[0];
-				nc->face1 = ftmp[0];
-				nc->conn = atmp[j];
-				nc->face2 = ftmp[j];
-				nc->side = ntmp[j];
-				nc->type = ctype;
-				nc->size = size;
-				nc->next = NULL;
+				// find correct robot
 				tmp = _bot;
 				while (tmp && tmp->id != rtmp[j])
 					tmp = tmp->next;
@@ -907,14 +889,15 @@ int RoboSim::init_xml(char *name) {
 					fprintf(stderr, "Error: Robot %d could not be found in RoboSim config file.\n", rtmp[j]);
 					exit(-1);
 				}
-				ctmp = tmp->conn;
-				if ( tmp->conn == NULL )
-					tmp->conn = nc;
-				else {
-					while (ctmp->next)
-						ctmp = ctmp->next;
-					ctmp->next = nc;
-				}
+				// add connector
+				tmp->conn.push_back(new XMLConn());
+				tmp->conn.back()->robot = rtmp[0];
+				tmp->conn.back()->face1 = ftmp[0];
+				tmp->conn.back()->conn = atmp[j];
+				tmp->conn.back()->face2 = ftmp[j];
+				tmp->conn.back()->side = ntmp[j];
+				tmp->conn.back()->type = ctype;
+				tmp->conn.back()->size = size;
 			}
 
 			// delete temporary arrays
@@ -932,11 +915,9 @@ int RoboSim::init_xml(char *name) {
 			printf("psi = %lf, theta = %lf, phi = %lf\n", rtmp->psi, rtmp->theta, rtmp->phi);
 			printf("angle1 = %lf, angle2 = %lf, angle3 = %lf, angle4 = %lf\n", \
 				rtmp->angle1, rtmp->angle2, rtmp->angle3, rtmp->angle4);
-			xml_conn_t ctmp = rtmp->conn;
-			while (ctmp) {
+			for (int i = 0; i < rtmp->conn.size(); i++) {
 				printf("on face %d connect with robot %d on his face %d with type %d from side %d with conn %d\n", \
-					ctmp->face2, ctmp->robot, ctmp->face1, ctmp->type, ctmp->side, ctmp->conn);
-				ctmp = ctmp->next;
+					rtmp->conn[i]->face2, rtmp->conn[i]->robot, rtmp->conn[i]->face1, rtmp->conn[i]->type, rtmp->conn[i]->side, rtmp->conn[i]->conn);
 			}
 			printf("next = %p\n", rtmp->next);
 			printf("\n");
@@ -957,7 +938,7 @@ int RoboSim::init_viz(void) {
 	// set notification level to no output
 	osg::setNotifyLevel(osg::ALWAYS);
 
-    // construct the viewer
+    // build the viewer
 	MUTEX_INIT(&_viewer_mutex);
 	_viewer = 1;
 
@@ -1012,7 +993,7 @@ int RoboSim::addRobot(Robot *robot) {
 	// lock robot data to insert a new one into simulation
 	MUTEX_LOCK(&_robot_mutex);
 
-	// create new robot struct
+	// create new robot
 	_robots.push_back(new Robots());
 	_robots.back()->robot = robot;
 
@@ -1088,7 +1069,7 @@ int RoboSim::addRobot(ModularRobot *robot) {
 	// lock robot data to insert a new one into simulation
 	MUTEX_LOCK(&_robot_mutex);
 
-	// create new robot struct
+	// create new robot
 	_robots.push_back(new Robots());
 	_robots.back()->robot = robot;
 
@@ -1135,26 +1116,25 @@ int RoboSim::addRobot(ModularRobot *robot) {
 	robot->addToSim(_world, _space, btmp->id, _robots.size()-1);
 
 	// find if robot is connected to another one
-	xml_conn_t ctmp = btmp->conn;
-	while (ctmp) {
-		if ( ctmp->robot != btmp->id ) {
+	int i;
+	for (i = 0; i < btmp->conn.size(); i++) {
+		if (btmp->conn[i]->robot != btmp->id) {
 			break;
 		}
-		ctmp = ctmp->next;
 	}
 
 	// if robot is connected to another one
-	if (ctmp) {
-		for (int i = 0; i < _robots.size(); i++) {
-			if (_robots[i]->robot->getID() == ctmp->robot) {
-				ModularRobot *r = dynamic_cast<ModularRobot *>(_robots[i]->robot);
-				dBodyID body = r->getConnectorBodyID(ctmp->face1);
+	if (i != btmp->conn.size()) {
+		for (int j = 0; j < _robots.size(); j++) {
+			if (_robots[j]->robot->getID() == btmp->conn[j]->robot) {
+				ModularRobot *r = dynamic_cast<ModularRobot *>(_robots[j]->robot);
+				dBodyID body = r->getConnectorBodyID(btmp->conn[i]->face1);
 				dMatrix3 R;
 				double m[3] = {0};
-				r->getFaceParams(ctmp->face1, R, m);
-				robot->build(btmp, R, m, body, ctmp);
-				robot->addNeighbor(r, ctmp->face2-1, ctmp->face1-1);
-				r->addNeighbor(robot, ctmp->face1-1, ctmp->face2-1);
+				r->getFaceParams(btmp->conn[i]->face1, R, m);
+				robot->build(btmp, R, m, body, btmp->conn[i]);
+				robot->addNeighbor(r, btmp->conn[i]->face2-1, btmp->conn[i]->face1-1);
+				r->addNeighbor(robot, btmp->conn[i]->face1-1, btmp->conn[i]->face2-1);
 				break;
 			}
 		}

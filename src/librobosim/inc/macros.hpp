@@ -127,12 +127,11 @@ enum drawing_objects_e {
 	TEXT
 };
 
-// xml config connectors
-typedef struct xml_conn_s {
-	int robot, type, side, face1, face2, conn;
+// xml connectors
+struct XMLConn {
 	double size;
-	struct xml_conn_s *next;
-} *xml_conn_t;
+	int robot, type, side, face1, face2, conn;
+};
 
 // xml config robots
 typedef struct xml_robot_s {
@@ -144,7 +143,7 @@ typedef struct xml_robot_s {
 	double x, y, z;
 	double psi, theta, phi;
 	double angle1, angle2, angle3, angle4, angle5, angle6;
-	struct xml_conn_s *conn;
+	std::vector<XMLConn*> conn;
 	struct xml_robot_s *next;
 } *xml_robot_t;
 
