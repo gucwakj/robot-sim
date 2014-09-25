@@ -212,6 +212,8 @@ class DLLIMPORT Robot {
 		// motor
 		struct Motor {
 			bool success;			// trigger for motion completion
+			bool record;			// recording in progress
+			bool record_active;		// actively recording a new point
 			dJointID id;			// motors
 			double alpha;			// angular acceleration
 			double encoder;			// encoder resolution
@@ -219,15 +221,17 @@ class DLLIMPORT Robot {
 			double offset;			// offset from zero for resetting
 			double omega;			// angular rate
 			double omega_max;		// maximum rate
+			double **record_angle;	// recording angles from thread
 			double safety_angle;	// safety angle
 			double safety_timeout;	// safety timeout
 			double tau_max;			// maximum force
 			double theta;			// theta
 			int mode;				// modes
-			int timeout;			// mode timeout
+			int record_num;			// recording data points
 			int starting;			// starting movement
-			int stopping;			// stopping movement
 			int state;				// state
+			int stopping;			// stopping movement
+			int timeout;			// mode timeout
 			Accel accel;			// acceleration variables
 			MUTEX_T success_mutex;	// motion successful mutex
 			COND_T success_cond;	// motion successful condition
@@ -241,8 +245,6 @@ class DLLIMPORT Robot {
 		dWorldID _world;			// world for all robots
 		std::vector<Motor> _motor;	// motors
 		bool _motion;				// motion in progress
-		bool *_recording;			// recording in progress
-		bool *_rec_active;			// actively recording a new value
 		double _accel[3];			// accelerometer data
 		double _body_length;		// dimension: body length
 		double _body_height;		// dimension: body height
@@ -251,7 +253,6 @@ class DLLIMPORT Robot {
 		double _center[3];			// offset of body from initial (x,y,z)
 		double _distOffset;			// offset for recorded distance
 		double _radius;				// wheel radius
-		double ***_rec_angles;		// recorded angles from thread
 		double _rgb[3];				// rgb of 'led'
 		double _speed;				// linear velocity of the robot
 		double _trackwidth;			// trackwidth of robot
@@ -263,7 +264,6 @@ class DLLIMPORT Robot {
 		int *_enabled;				// list of enabled motors
 		int _id;					// robot id
 		int _pos;					// position in simulation
-		int *_rec_num;				// recording data points
 		int _seed;					// seed for random number generation
 		int _shift_data;			// shift recorded data or not
 		int _g_shift_data;			// globally shift data for robot

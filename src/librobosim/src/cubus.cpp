@@ -912,10 +912,6 @@ int Cubus::initParams(int disabled, int type) {
 	_enabled = new int[_dof];
 	_geom = new dGeomID * [NUM_PARTS];
 	_joint = new dJointID[_dof];
-	_rec_active = new bool[_dof];
-	_rec_angles = new double ** [_dof];
-	_rec_num = new int[_dof];
-	_recording = new bool[_dof];
 	_motor.resize(_dof);
 	_neighbor.resize(_dof);
 
@@ -932,6 +928,10 @@ int Cubus::initParams(int disabled, int type) {
 		_motor[i].offset = 0;
 		_motor[i].omega = 0.7854;			//  45 deg/sec
 		_motor[i].omega_max = 4.1888;		// 240 deg/sec
+		_motor[i].record = false;
+		_motor[i].record_active = false;
+		_motor[i].record_angle = new double * [_dof];
+		_motor[i].record_num = 0;
 		_motor[i].safety_angle = 10;
 		_motor[i].safety_timeout = 4;
 		_motor[i].starting = 0;
@@ -943,9 +943,6 @@ int Cubus::initParams(int disabled, int type) {
 		_motor[i].theta = 0;
 		MUTEX_INIT(&_motor[i].success_mutex);
 		COND_INIT(&_motor[i].success_cond);
-		_rec_active[i] = false;
-		_rec_num[i] = 0;
-		_recording[i] = false;
 		_fb.push_back(new dJointFeedback());
 	}
 	_connected = 0;

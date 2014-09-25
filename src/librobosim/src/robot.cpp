@@ -25,10 +25,6 @@ Robot::~Robot(void) {
 	delete [] _enabled;
 	delete [] _geom;
 	delete [] _joint;
-	delete [] _rec_active;
-	delete [] _rec_angles;
-	delete [] _rec_num;
-	delete [] _recording;
 
 	// destroy mutexes
 	MUTEX_DESTROY(&_active_mutex);
@@ -942,7 +938,7 @@ int Robot::moveWait(void) {
 
 int Robot::recordAngle(robotJointId_t id, double time[], double angle[], int num, double seconds, int shiftData) {
 	// check if recording already
-	if (_recording[id]) { return -1; }
+	if (_motor[id].record) { return -1; }
 
 	// set up recording thread
 	THREAD_T recording;
@@ -958,7 +954,7 @@ int Robot::recordAngle(robotJointId_t id, double time[], double angle[], int num
 	rArg->msecs = 1000*seconds;
 
 	// lock recording for joint id
-	_recording[id] = true;
+	_motor[id].record = true;
 
 	// set shift data
 	_shift_data = shiftData;
@@ -972,7 +968,7 @@ int Robot::recordAngle(robotJointId_t id, double time[], double angle[], int num
 
 int Robot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &angle, double seconds, int shiftData) {
 	// check if recording already
-	if (_recording[id]) { return -1; }
+	if (_motor[id].record) { return -1; }
 
 	// set up recording thread
 	THREAD_T recording;
@@ -983,17 +979,17 @@ int Robot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRec
 	rArg->id = id;
 	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
 	rArg->msecs = seconds * 1000;
-	time = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
-	angle = (double *)malloc(sizeof(double) * RECORD_ANGLE_ALLOC_SIZE);
+	time = new double[RECORD_ANGLE_ALLOC_SIZE];
+	angle = new double[RECORD_ANGLE_ALLOC_SIZE];
 	rArg->ptime = &time;
 	rArg->pangle = new double ** [_dof];
-	rArg->pangle[0] = &angle;
+	rArg->pangle[JOINT1] = &angle;
 
 	// store pointer to recorded angles locally
-	_rec_angles[id] = &angle;
+	_motor[id].record_angle = &angle;
 
 	// lock recording for joint id
-	_recording[id] = true;
+	_motor[id].record = true;
 
 	// set shift data
 	_shift_data = shiftData;
@@ -1011,18 +1007,18 @@ int Robot::recordAngleEnd(robotJointId_t id, int &num) {
 
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
-	_recording[id] = false;
+	_motor[id].record = false;
 	MUTEX_UNLOCK(&_recording_mutex);
 
 	// wait for last recording point to finish
 	MUTEX_LOCK(&_active_mutex);
-	while (_rec_active[id]) {
+	while (_motor[id].record_active) {
 		COND_WAIT(&_active_cond, &_active_mutex);
 	}
 	MUTEX_UNLOCK(&_active_mutex);
 
 	// report number of data points recorded
-	num = _rec_num[id];
+	num = _motor[id].record_num;
 
 	// success
 	return 0;
@@ -1032,25 +1028,25 @@ int Robot::recordAnglesEnd(int &num) {
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
 	for (int i = 0; i < _dof; i++) {
-		_recording[i] = 0;
+		_motor[i].record = 0;
 	}
 	MUTEX_UNLOCK(&_recording_mutex);
 
 	// get number of joints recording
 	int rec = 0;
 	for (int i = 0; i < _dof; i++) {
-		rec += _rec_active[i];
+		rec += _motor[i].record_active;
 	}
 	MUTEX_LOCK(&_active_mutex);
 	while (rec) {
 		COND_WAIT(&_active_cond, &_active_mutex);
 		rec = 0;
-		for (int i = 0; i < _dof; i++) { rec += _rec_active[i]; }
+		for (int i = 0; i < _dof; i++) { rec += _motor[i].record_active; }
 	}
 	MUTEX_UNLOCK(&_active_mutex);
 
 	// report number of data points recorded
-	num = _rec_num[JOINT1];
+	num = _motor[JOINT1].record_num;
 
 	// success
 	return 0;
@@ -1070,11 +1066,10 @@ int Robot::recordDistanceEnd(robotJointId_t id, int &num) {
 
 	// convert radius to output units
 	double radius = this->convert(_radius, 0);
-	//double radius = _radius;
 
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
-		(*_rec_angles[id])[i] = DEG2RAD((*_rec_angles[id])[i]) * radius + _distOffset;
+		(*_motor[id].record_angle)[i] = DEG2RAD((*_motor[id].record_angle)[i]) * radius + _distOffset;
 	}
 
 	// success
@@ -1116,7 +1111,7 @@ int Robot::recordDistancesEnd(int &num) {
 	// convert all angles to distances based upon radius
 	for (int i = 0; i < num; i++) {
 		for (int j = 0; j < _dof; j++) {
-			(*_rec_angles[j])[i] = DEG2RAD((*_rec_angles[j])[i]) * radius + _distOffset;
+			(*_motor[j].record_angle)[i] = DEG2RAD((*_motor[j].record_angle)[i]) * radius + _distOffset;
 		}
 	}
 
@@ -1130,7 +1125,7 @@ int Robot::recordWait(void) {
 	// get number of joints recording
 	int recording = 0;
 	for (int i = 0; i < _dof; i++) {
-		recording += _recording[i];
+		recording += _motor[i].record;
 	}
 	// wait
 	while (recording) {
@@ -1145,8 +1140,8 @@ int Robot::recordWait(void) {
 
 int Robot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, int shiftData) {
 	// check if recording already
-	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
+	for (int i = 0; i < 2; i++) {
+		if (_motor[i].record) { return -1; }
 	}
 
 	// set up recording thread
@@ -1161,16 +1156,15 @@ int Robot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seco
 	y = new double[RECORD_ANGLE_ALLOC_SIZE];
 	rArg->ptime = &x;
 	rArg->pangle = new double ** [1];
-	rArg->pangle[0] = &y;
+	rArg->pangle[JOINT1] = &y;
 
 	// store pointer to recorded angles locally
-	_rec_angles[JOINT1] = &x;
-	_rec_angles[JOINT2] = &y;
+	_motor[JOINT1].record_angle = &x;
+	_motor[JOINT2].record_angle = &y;
 
 	// lock recording for joint id
-	for (int i = 0; i < _dof; i++) {
-		_recording[i] = true;
-	}
+	_motor[JOINT1].record = true;
+	_motor[JOINT2].record = true;
 
 	// set shift data
 	_shift_data = shiftData;
@@ -1188,25 +1182,25 @@ int Robot::recordxyEnd(int &num) {
 
 	// turn off recording
 	MUTEX_LOCK(&_recording_mutex);
-	_recording[0] = 0;
-	_recording[1] = 0;
+	_motor[JOINT1].record = false;
+	_motor[JOINT2].record = false;
 	MUTEX_UNLOCK(&_recording_mutex);
 
 	// wait for last recording point to finish
 	MUTEX_LOCK(&_active_mutex);
-	while (_rec_active[0] && _rec_active[1]) {
+	while (_motor[JOINT1].record_active && _motor[JOINT2].record_active) {
 		COND_WAIT(&_active_cond, &_active_mutex);
 	}
 	MUTEX_UNLOCK(&_active_mutex);
 
 	// report number of data points recorded
-	num = _rec_num[0];
+	num = _motor[JOINT1].record_num;
 
 	// convert recorded values into in/cm
 	double m2x = (1, 0);
 	for (int i = 0; i < num; i++) {
-		(*_rec_angles[0])[i] = ((*_rec_angles[0])[i]) * m2x;
-		(*_rec_angles[1])[i] = ((*_rec_angles[1])[i]) * m2x;
+		(*_motor[JOINT1].record_angle)[i] *= m2x;
+		(*_motor[JOINT2].record_angle)[i] *= m2x;
 	}
 
 	// success
@@ -1463,7 +1457,7 @@ int Robot::moveToNB(double *angles) {
 int Robot::recordAngles(double *time, double **angle, int num, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
+		if (_motor[i].record) { return -1; }
 	}
 
 	// set up recording thread
@@ -1481,7 +1475,7 @@ int Robot::recordAngles(double *time, double **angle, int num, double seconds, i
 	// lock recording for joints
 	for (int i = 0; i < _dof; i++) {
 		rArg->angle[i] = angle[i];
-		_recording[i] = true;
+		_motor[i].record = true;
 	}
 
 	// set shift data
@@ -1497,7 +1491,7 @@ int Robot::recordAngles(double *time, double **angle, int num, double seconds, i
 int Robot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
+		if (_motor[i].record) { return -1; }
 	}
 
 	// set up recording thread
@@ -1520,12 +1514,12 @@ int Robot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle,
 
 	// store pointer to recorded angles locally
 	for (int i = 0; i < _dof; i++) {
-		_rec_angles[i] = &angle[i];
+		_motor[i].record_angle = &angle[i];
 	}
 
 	// lock recording for joint id
 	for (int i = 0; i < _dof; i++) {
-		_recording[i] = true;
+		_motor[i].record = true;
 	}
 
 	// set shift data
@@ -1906,7 +1900,7 @@ void* Robot::recordAngleThread(void *arg) {
 	}
 
 	// signal completion of recording
-	SIGNAL(&rArg->robot->_recording_cond, &rArg->robot->_recording_mutex, rArg->robot->_recording[rArg->id] = false);
+	SIGNAL(&rArg->robot->_recording_cond, &rArg->robot->_recording_mutex, rArg->robot->_motor[rArg->id].record = false);
 
 	// cleanup
 	delete rArg;
@@ -1929,14 +1923,14 @@ void* Robot::recordAngleBeginThread(void *arg) {
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_rec_active[rArg->id] = true;
+	rArg->robot->_motor[rArg->id].record_active = true;
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// loop until recording is no longer needed
-	for (int i = 0; rArg->robot->_recording[rArg->id]; i++) {
+	for (int i = 0; rArg->robot->_motor[rArg->id].record; i++) {
 		// store locally num of data points taken
-		rArg->robot->_rec_num[rArg->id] = i;
+		rArg->robot->_motor[rArg->id].record_num = i;
 
 		// resize array if filled current one
 		if (i >= rArg->num) {
@@ -1977,7 +1971,7 @@ void* Robot::recordAngleBeginThread(void *arg) {
 
 	// signal completion of recording
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_rec_active[rArg->id] = false;
+	rArg->robot->_motor[rArg->id].record_active = false;
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
@@ -2052,7 +2046,7 @@ void* Robot::recordAnglesThread(void *arg) {
 	// signal completion of recording
 	MUTEX_LOCK(&rArg->robot->_recording_mutex);
     for (int i = 0; i < rArg->robot->_dof; i++) {
-        rArg->robot->_recording[i] = false;
+        rArg->robot->_motor[i].record = false;
     }
 	COND_SIGNAL(&rArg->robot->_recording_cond);
 	MUTEX_UNLOCK(&rArg->robot->_recording_mutex);
@@ -2076,15 +2070,15 @@ void* Robot::recordAnglesBeginThread(void *arg) {
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
 	for (int i = 0; i < rArg->robot->_dof; i++) {
-		rArg->robot->_rec_active[i] = true;
+		rArg->robot->_motor[i].record_active = true;
 	}
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// loop until recording is no longer needed
-	for (int i = 0; rArg->robot->_recording[rArg->id]; i++) {
+	for (int i = 0; rArg->robot->_motor[rArg->id].record; i++) {
 		// store locally num of data points taken
-		rArg->robot->_rec_num[JOINT1] = i;
+		rArg->robot->_motor[JOINT1].record_num = i;
 
 		// resize array if filled current one
 		if(i >= rArg->num) {
@@ -2123,7 +2117,7 @@ void* Robot::recordAnglesBeginThread(void *arg) {
 	// signal completion of recording
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
 	for (int i = 0; i < rArg->robot->_dof; i++) {
-		rArg->robot->_rec_active[i] = false;
+		rArg->robot->_motor[i].record_active = false;
 	}
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
@@ -2144,15 +2138,15 @@ void* Robot::recordxyBeginThread(void *arg) {
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_rec_active[0] = true;
-	rArg->robot->_rec_active[1] = true;
+	rArg->robot->_motor[JOINT1].record_active = true;
+	rArg->robot->_motor[JOINT2].record_active = true;
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 
 	// loop until recording is no longer needed
-	for (int i = 0; rArg->robot->_recording[JOINT1]; i++) {
+	for (int i = 0; rArg->robot->_motor[JOINT1].record; i++) {
 		// store locally num of data points taken
-		rArg->robot->_rec_num[0] = i;
+		rArg->robot->_motor[JOINT1].record_num = i;
 
 		// resize array if filled current one
 		if (i >= rArg->num) {
@@ -2188,8 +2182,8 @@ void* Robot::recordxyBeginThread(void *arg) {
 
 	// signal completion of recording
 	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_rec_active[0] = false;
-	rArg->robot->_rec_active[1] = false;
+	rArg->robot->_motor[JOINT1].record_active = false;
+	rArg->robot->_motor[JOINT2].record_active = false;
 	COND_SIGNAL(&rArg->robot->_active_cond);
 	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
 

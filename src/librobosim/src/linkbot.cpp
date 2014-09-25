@@ -510,7 +510,7 @@ int CLinkbotT::openGripperNB(double angle) {
 int CLinkbotT::recordAngles(double *time, double *angle1, double *angle2, double *angle3, int num, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
+		if (_motor[i].record) { return -1; }
 	}
 
 	// store angles
@@ -526,7 +526,7 @@ int CLinkbotT::recordAngles(double *time, double *angle1, double *angle2, double
 int CLinkbotT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
+		if (_motor[i].record) { return -1; }
 	}
 
 	// store angles
@@ -542,7 +542,7 @@ int CLinkbotT::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &ang
 int CLinkbotT::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, double radius, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
+		if (_motor[i].record) { return -1; }
 	}
 
 	// store angles
@@ -1342,10 +1342,6 @@ int CLinkbotT::initParams(int disabled, int type) {
 	_enabled = new int[(disabled == -1) ? 3 : 2];
 	_geom = new dGeomID * [NUM_PARTS];
 	_joint = new dJointID[_dof];
-	_rec_active = new bool[_dof];
-	_rec_angles = new double ** [_dof];
-	_rec_num = new int[_dof];
-	_recording = new bool[_dof];
 	_motor.resize(_dof);
 	_neighbor.resize(_dof);
 
@@ -1362,6 +1358,10 @@ int CLinkbotT::initParams(int disabled, int type) {
 		_motor[i].offset = 0;
 		_motor[i].omega = 0.7854;			//  45 deg/sec
 		_motor[i].omega_max = 4.1888;		// 240 deg/sec
+		_motor[i].record = false;
+		_motor[i].record_active = false;
+		_motor[i].record_angle = new double * [_dof];
+		_motor[i].record_num = 0;
 		_motor[i].safety_angle = 10;
 		_motor[i].safety_timeout = 4;
 		_motor[i].starting = 0;
@@ -1374,9 +1374,6 @@ int CLinkbotT::initParams(int disabled, int type) {
 		MUTEX_INIT(&_motor[i].success_mutex);
 		COND_INIT(&_motor[i].success_cond);
 		if (i != disabled) { _enabled[j++] = i; }
-		_rec_active[i] = false;
-		_rec_num[i] = 0;
-		_recording[i] = false;
 	}
 	_connected = 0;
 	_disabled = disabled;

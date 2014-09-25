@@ -758,7 +758,7 @@ int CMobot::moveToByTrackPosNB(double angle1, double angle2, double angle3, doub
 int CMobot::recordAngles(double *time, double *angle1, double *angle2, double *angle3, double *angle4, int num, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
+		if (_motor[i].record) { return -1; }
 	}
 
 	// store angles
@@ -775,7 +775,7 @@ int CMobot::recordAngles(double *time, double *angle1, double *angle2, double *a
 int CMobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, robotRecordData_t &angle4, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
+		if (_motor[i].record) { return -1; }
 	}
 
 	// store angles
@@ -792,7 +792,7 @@ int CMobot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1
 int CMobot::recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &distance1, robotRecordData_t &distance2, robotRecordData_t &distance3, robotRecordData_t &distance4, double radius, double seconds, int shiftData) {
 	// check if recording already
 	for (int i = 0; i < _dof; i++) {
-		if (_recording[i]) { return -1; }
+		if (_motor[i].record) { return -1; }
 	}
 
 	// store angles
@@ -1693,10 +1693,6 @@ int CMobot::initParams(int disabled, int type) {
 	_enabled = new int[2];
 	_geom = new dGeomID * [NUM_PARTS];
 	_joint = new dJointID[6];
-	_rec_active = new bool[_dof];
-	_rec_angles = new double ** [_dof];
-	_rec_num = new int[_dof];
-	_recording = new bool[_dof];
 	_motor.resize(_dof);
 	_neighbor.resize(_dof);
 
@@ -1709,6 +1705,10 @@ int CMobot::initParams(int disabled, int type) {
 		_motor[i].offset = 0;
 		_motor[i].omega = 0.7854;			//  45 deg/sec
 		_motor[i].omega_max = 2.0943;		// 120 deg/sec
+		_motor[i].record = false;
+		_motor[i].record_active = false;
+		_motor[i].record_angle = new double * [_dof];
+		_motor[i].record_num = 0;
 		_motor[i].safety_angle = 10;
 		_motor[i].safety_timeout = 4;
 		_motor[i].state = NEUTRAL;
@@ -1717,9 +1717,6 @@ int CMobot::initParams(int disabled, int type) {
 		_motor[i].timeout = 0;
 		MUTEX_INIT(&_motor[i].success_mutex);
 		COND_INIT(&_motor[i].success_cond);
-		_rec_active[i] = false;
-		_rec_num[i] = 0;
-		_recording[i] = false;
 	}
 	_disabled = disabled;
 	_distOffset = 0;
