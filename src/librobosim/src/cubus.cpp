@@ -912,11 +912,11 @@ int Cubus::initParams(int disabled, int type) {
 	_enabled = new int[_dof];
 	_geom = new dGeomID * [NUM_PARTS];
 	_joint = new dJointID[_dof];
-	_motor = new struct motor_s[_dof];
 	_rec_active = new bool[_dof];
 	_rec_angles = new double ** [_dof];
 	_rec_num = new int[_dof];
 	_recording = new bool[_dof];
+	_motor.resize(_dof);
 	_neighbor.resize(_dof);
 
 	// fill with default data

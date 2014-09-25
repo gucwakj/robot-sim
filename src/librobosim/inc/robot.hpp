@@ -203,14 +203,14 @@ class DLLIMPORT Robot {
 			double ***pangle;		// point to array of angles
 		} recArg_t;
 		// motor accelerations
-		typedef struct accel_s {
+		struct Accel {
 			double init;			// motion initial angle
 			double start;			// motion start time
 			double period;			// motion period
 			double run;				// number of motions
-		} accel_t;
+		};
 		// motor
-		typedef struct motor_s {
+		struct Motor {
 			bool success;			// trigger for motion completion
 			dJointID id;			// motors
 			double alpha;			// angular acceleration
@@ -228,10 +228,10 @@ class DLLIMPORT Robot {
 			int starting;			// starting movement
 			int stopping;			// stopping movement
 			int state;				// state
-			accel_t accel;			// acceleration variables
+			Accel accel;			// acceleration variables
 			MUTEX_T success_mutex;	// motion successful mutex
 			COND_T success_cond;	// motion successful condition
-		} *motor_t;
+		};
 
 		dBodyID *_body;				// body parts
 		dGeomID **_geom;			// geometries of each body part
@@ -239,7 +239,7 @@ class DLLIMPORT Robot {
 		dSpaceID _space;			// space for this robot
 		dSpaceID _wspace;
 		dWorldID _world;			// world for all robots
-		motor_t _motor;				// motors
+		std::vector<Motor> _motor;	// motors
 		bool _motion;				// motion in progress
 		bool *_recording;			// recording in progress
 		bool *_rec_active;			// actively recording a new value

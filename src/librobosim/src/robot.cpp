@@ -25,7 +25,6 @@ Robot::~Robot(void) {
 	delete [] _enabled;
 	delete [] _geom;
 	delete [] _joint;
-	delete [] _motor;
 	delete [] _rec_active;
 	delete [] _rec_angles;
 	delete [] _rec_num;
