@@ -446,7 +446,7 @@ int RoboSim::init_xml(char *name) {
 			_grid[i] /= 100;
 	}
 
-	// check for existence of ground node
+	// check for existence of graphics node
 	if ( (node = doc.FirstChildElement("graphics")) ) {
 		node = node->FirstChildElement();
 	}
@@ -455,71 +455,49 @@ int RoboSim::init_xml(char *name) {
 	while (node) {
 		if ( !strcmp(node->Value(), "line") ) {
 			// store default variables
-			drawing_t nd = new struct drawing_s;
-			nd->type = LINE;
-			nd->next = NULL;
+			_drawings.push_back(new Drawing());
+			_drawings.back()->type = LINE;
 
 			// get user defined values from xml
-			if (node->QueryIntAttribute("width", &nd->i)) {
-				nd->i = 1;
+			if (node->QueryIntAttribute("width", &_drawings.back()->i)) {
+				_drawings.back()->i = 1;
 			}
 			if ( (ele = node->FirstChildElement("start")) ) {
-				ele->QueryDoubleAttribute("x", &nd->p1[0]);
-				ele->QueryDoubleAttribute("y", &nd->p1[1]);
-				ele->QueryDoubleAttribute("z", &nd->p1[2]);
+				ele->QueryDoubleAttribute("x", &_drawings.back()->p1[0]);
+				ele->QueryDoubleAttribute("y", &_drawings.back()->p1[1]);
+				ele->QueryDoubleAttribute("z", &_drawings.back()->p1[2]);
 			}
 			if ( (ele = node->FirstChildElement("end")) ) {
-				ele->QueryDoubleAttribute("x", &nd->p2[0]);
-				ele->QueryDoubleAttribute("y", &nd->p2[1]);
-				ele->QueryDoubleAttribute("z", &nd->p2[2]);
+				ele->QueryDoubleAttribute("x", &_drawings.back()->p2[0]);
+				ele->QueryDoubleAttribute("y", &_drawings.back()->p2[1]);
+				ele->QueryDoubleAttribute("z", &_drawings.back()->p2[2]);
 			}
 			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryDoubleAttribute("r", &nd->c[0]);
-				ele->QueryDoubleAttribute("g", &nd->c[1]);
-				ele->QueryDoubleAttribute("b", &nd->c[2]);
-				ele->QueryDoubleAttribute("alpha", &nd->c[3]);
-			}
-
-			// add object to linked list
-			drawing_t dtmp = _drawings;
-			if (dtmp == NULL)
-				_drawings = nd;
-			else {
-				while (dtmp->next)
-					dtmp = dtmp->next;
-				dtmp->next = nd;
+				ele->QueryDoubleAttribute("r", &_drawings.back()->c[0]);
+				ele->QueryDoubleAttribute("g", &_drawings.back()->c[1]);
+				ele->QueryDoubleAttribute("b", &_drawings.back()->c[2]);
+				ele->QueryDoubleAttribute("alpha", &_drawings.back()->c[3]);
 			}
 		}
 		else if ( !strcmp(node->Value(), "point") ) {
 			// store default variables
-			drawing_t nd = new struct drawing_s;
-			nd->type = DOT;
-			nd->next = NULL;
+			_drawings.push_back(new Drawing());
+			_drawings.back()->type = DOT;
 
 			// get user defined values from xml
-			if (node->QueryIntAttribute("size", &nd->i)) {
-				nd->i = 1;
+			if (node->QueryIntAttribute("size", &_drawings.back()->i)) {
+				_drawings.back()->i = 1;
 			}
 			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &nd->p1[0]);
-				ele->QueryDoubleAttribute("y", &nd->p1[1]);
-				ele->QueryDoubleAttribute("z", &nd->p1[2]);
+				ele->QueryDoubleAttribute("x", &_drawings.back()->p1[0]);
+				ele->QueryDoubleAttribute("y", &_drawings.back()->p1[1]);
+				ele->QueryDoubleAttribute("z", &_drawings.back()->p1[2]);
 			}
 			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryDoubleAttribute("r", &nd->c[0]);
-				ele->QueryDoubleAttribute("g", &nd->c[1]);
-				ele->QueryDoubleAttribute("b", &nd->c[2]);
-				ele->QueryDoubleAttribute("alpha", &nd->c[3]);
-			}
-
-			// add object to linked list
-			drawing_t dtmp = _drawings;
-			if (dtmp == NULL)
-				_drawings = nd;
-			else {
-				while (dtmp->next)
-					dtmp = dtmp->next;
-				dtmp->next = nd;
+				ele->QueryDoubleAttribute("r", &_drawings.back()->c[0]);
+				ele->QueryDoubleAttribute("g", &_drawings.back()->c[1]);
+				ele->QueryDoubleAttribute("b", &_drawings.back()->c[2]);
+				ele->QueryDoubleAttribute("alpha", &_drawings.back()->c[3]);
 			}
 		}
 		else if ( !strcmp(node->Value(), "grid") ) {}
@@ -528,35 +506,23 @@ int RoboSim::init_xml(char *name) {
 		}
 		else {
 			// store default variables
-			drawing_t nd = new struct drawing_s;
-			nd->type = TEXT;
-			nd->next = NULL;
+			_drawings.push_back(new Drawing());
+			_drawings.back()->type = TEXT;
 
 			// get user defined values from xml
-			nd->str = node->Value();
+			_drawings.back()->str = node->Value();
 			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &nd->p1[0]);
-				ele->QueryDoubleAttribute("y", &nd->p1[1]);
-				ele->QueryDoubleAttribute("z", &nd->p1[2]);
+				ele->QueryDoubleAttribute("x", &_drawings.back()->p1[0]);
+				ele->QueryDoubleAttribute("y", &_drawings.back()->p1[1]);
+				ele->QueryDoubleAttribute("z", &_drawings.back()->p1[2]);
 			}
 			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryDoubleAttribute("r", &nd->c[0]);
-				ele->QueryDoubleAttribute("g", &nd->c[1]);
-				ele->QueryDoubleAttribute("b", &nd->c[2]);
-				ele->QueryDoubleAttribute("alpha", &nd->c[3]);
-			}
-
-			// add object to linked list
-			drawing_t dtmp = _drawings;
-			if (dtmp == NULL)
-				_drawings = nd;
-			else {
-				while (dtmp->next)
-					dtmp = dtmp->next;
-				dtmp->next = nd;
+				ele->QueryDoubleAttribute("r", &_drawings.back()->c[0]);
+				ele->QueryDoubleAttribute("g", &_drawings.back()->c[1]);
+				ele->QueryDoubleAttribute("b", &_drawings.back()->c[2]);
+				ele->QueryDoubleAttribute("alpha", &_drawings.back()->c[3]);
 			}
 		}
-
 		// go to next node
 		node = node->NextSiblingElement();
 	}
@@ -2145,15 +2111,14 @@ void* RoboSim::graphics_thread(void *arg) {
 	}
 
 	// drawing objects
-	drawing_t dtmp = sim->_drawings;
-	while (dtmp) {
-		if (dtmp->type == DOT) {
+	for (int i = 0; i < sim->_drawings.size(); i++) {
+		if (sim->_drawings[i]->type == DOT) {
 			// create sphere
-			osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(dtmp->p1[0], dtmp->p1[1], dtmp->p1[2]), dtmp->i/500.0);
+			osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(sim->_drawings[i]->p1[0], sim->_drawings[i]->p1[1], sim->_drawings[i]->p1[2]), sim->_drawings[i]->i/500.0);
 			osg::Geode *point = new osg::Geode;
 			osg::ShapeDrawable *pointDrawable = new osg::ShapeDrawable(sphere);
 			point->addDrawable(pointDrawable);
-			pointDrawable->setColor(osg::Vec4(dtmp->c[0], dtmp->c[1], dtmp->c[2], dtmp->c[3]));
+			pointDrawable->setColor(osg::Vec4(sim->_drawings[i]->c[0], sim->_drawings[i]->c[1], sim->_drawings[i]->c[2], sim->_drawings[i]->c[3]));
 
 			// set rendering properties
 			point->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
@@ -2166,24 +2131,24 @@ void* RoboSim::graphics_thread(void *arg) {
 			// add to scenegraph
 			shadowedScene->addChild(point);
 		}
-		else if (dtmp->type == LINE) {
+		else if (sim->_drawings[i]->type == LINE) {
 			// draw line
 			osg::Geode *line = new osg::Geode();
 			osg::Geometry *geom = new osg::Geometry();
 			osg::Vec3Array *vert = new osg::Vec3Array();
-			vert->push_back(osg::Vec3(dtmp->p1[0], dtmp->p1[1], dtmp->p1[2]));
-			vert->push_back(osg::Vec3(dtmp->p2[0], dtmp->p2[1], dtmp->p2[2]));
+			vert->push_back(osg::Vec3(sim->_drawings[i]->p1[0], sim->_drawings[i]->p1[1], sim->_drawings[i]->p1[2]));
+			vert->push_back(osg::Vec3(sim->_drawings[i]->p2[0], sim->_drawings[i]->p2[1], sim->_drawings[i]->p2[2]));
 			geom->setVertexArray(vert);
 			geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 2));
 			osg::Vec4Array *colors = new osg::Vec4Array;
-			colors->push_back(osg::Vec4(dtmp->c[0], dtmp->c[1], dtmp->c[2], dtmp->c[3]));
+			colors->push_back(osg::Vec4(sim->_drawings[i]->c[0], sim->_drawings[i]->c[1], sim->_drawings[i]->c[2], sim->_drawings[i]->c[3]));
 			geom->setColorArray(colors);
 			geom->setColorBinding(osg::Geometry::BIND_OVERALL);
 			line->addDrawable(geom);
 
 			// set line width
 			osg::LineWidth *width = new osg::LineWidth();
-			width->setWidth(dtmp->i*3.0f);
+			width->setWidth(sim->_drawings[i]->i*3.0f);
 			line->getOrCreateStateSet()->setAttributeAndModes(width, osg::StateAttribute::ON);
 
 			// set rendering properties
@@ -2197,7 +2162,7 @@ void* RoboSim::graphics_thread(void *arg) {
 			// add to scenegraph
 			shadowedScene->addChild(line);
 		}
-		else if (dtmp->type == TEXT) {
+		else if (sim->_drawings[i]->type == TEXT) {
 			// generate text node
 			osgText::Text *label = new osgText::Text();
 			osg::Geode *label_geode = new osg::Geode();
@@ -2207,10 +2172,10 @@ void* RoboSim::graphics_thread(void *arg) {
 			label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
 			label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 			label->setCharacterSize(25);
-			label->setColor(osg::Vec4(dtmp->c[0], dtmp->c[1], dtmp->c[2], dtmp->c[3]));
+			label->setColor(osg::Vec4(sim->_drawings[i]->c[0], sim->_drawings[i]->c[1], sim->_drawings[i]->c[2], sim->_drawings[i]->c[3]));
 			label->setDrawMode(osgText::Text::TEXT);
-			label->setPosition(osg::Vec3(dtmp->p1[0], dtmp->p1[1], dtmp->p1[2]));
-			label->setText(dtmp->str);
+			label->setPosition(osg::Vec3(sim->_drawings[i]->p1[0], sim->_drawings[i]->p1[1], sim->_drawings[i]->p1[2]));
+			label->setText(sim->_drawings[i]->str);
 
 			// set rendering properties
 			label_geode->getOrCreateStateSet()->setRenderBinDetails(22, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
@@ -2223,8 +2188,6 @@ void* RoboSim::graphics_thread(void *arg) {
 			// add to scenegraph
 			shadowedScene->addChild(label_geode);
 		}
-		// next object
-		dtmp = dtmp->next;
 	}
 
 	// optimize the scene graph, remove redundant nodes and state etc.

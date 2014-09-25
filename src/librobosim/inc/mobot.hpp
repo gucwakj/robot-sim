@@ -213,12 +213,12 @@ class DLLIMPORT CMobotGroup : public Group<CMobot> {
 };
 #include "mobotgroup.tpp"
 
-// global structs for threading
-typedef struct mobotMotionArg_s {
-	int i;
-	double d;
+// motion threading
+struct MobotMove {
 	CMobot *robot;
-} mobotMotionArg_t;
+	double d;
+	int i;
+};
 
 // simulation
 extern RoboSim *g_sim;

@@ -382,14 +382,14 @@ template<class T> class Group {
 class DLLIMPORT RobotGroup : public Group<Robot> {};
 #include "robotgroup.tpp"
 
-// global structs for threading
-typedef struct moveArg_s {
-	double x, y, radius, trackwidth;
-	int i;
-	double (*func)(double x);
-	char *expr;
+// motion threading
+struct RobotMove {
 	Robot *robot;
-} moveArg_t;
+	char *expr;
+	double x, y, radius, trackwidth;
+	double (*func)(double x);
+	int i;
+};
 
 #endif // ROBOT_HPP_
 

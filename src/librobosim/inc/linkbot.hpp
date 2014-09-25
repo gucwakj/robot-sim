@@ -168,14 +168,14 @@ class DLLIMPORT CLinkbotIGroup : public CLinkbotTGroup {};
 class DLLIMPORT CLinkbotLGroup : public CLinkbotTGroup {};
 #include "linkbotgroup.tpp"
 
-// global structs for threading
-typedef struct linkbotMoveArg_s {
-	double x, y, radius, trackwidth;
-	int i;
-	double (*func)(double x);
-	char *expr;
+// motion threading
+struct LinkbotMove {
 	CLinkbotT *robot;
-} linkbotMoveArg_t;
+	char *expr;
+	double x, y, radius, trackwidth;
+	double (*func)(double x);
+	int i;
+};
 
 // simulation
 extern RoboSim *g_sim;

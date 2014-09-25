@@ -199,17 +199,17 @@ int CLinkbotT::closeGripper(void) {
 
 int CLinkbotT::closeGripperNB(void) {
 	// create thread
-	THREAD_T move;
+	THREAD_T moving;
 
 	// store args
-	linkbotMoveArg_t *mArg = new linkbotMoveArg_t;
-	mArg->robot = this;
+	LinkbotMove *move = new LinkbotMove;
+	move->robot = this;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&move, closeGripperNBThread, (void *)mArg);
+	THREAD_CREATE(&moving, closeGripperNBThread, (void *)move);
 
 	// success
 	return 0;
@@ -2458,16 +2458,16 @@ int CLinkbotT::draw_custom_caster(Connector *conn, osg::Group *robot) {
 
 void* CLinkbotT::closeGripperNBThread(void *arg) {
 	// cast arg
-	linkbotMoveArg_t *mArg = (linkbotMoveArg_t *)arg;
+	LinkbotMove *move = (LinkbotMove *)arg;
 
 	// perform motion
-	mArg->robot->closeGripper();
+	move->robot->closeGripper();
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return NULL;

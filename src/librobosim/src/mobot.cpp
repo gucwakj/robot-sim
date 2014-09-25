@@ -77,13 +77,13 @@ int CMobot::motionArch(double angle) {
 
 void* CMobot::motionArchThread(void *arg) {
 	// cast arg
-	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
+	MobotMove *move = (MobotMove *)arg;
 
 	// perform motion
-	mArg->robot->motionArch(mArg->d);
+	move->robot->motionArch(move->d);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// success
 	return NULL;
@@ -94,18 +94,18 @@ int CMobot::motionArchNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	mobotMotionArg_t *mArg = new mobotMotionArg_t;
-	mArg->robot = this;
-	mArg->d = angle;
+	MobotMove *move = new MobotMove;
+	move->robot = this;
+	move->d = angle;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&motion, motionArchThread, (void *)mArg);
+	THREAD_CREATE(&motion, motionArchThread, (void *)move);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return 0;
@@ -143,13 +143,13 @@ int CMobot::motionInchwormLeft(int num) {
 
 void* CMobot::motionInchwormLeftThread(void *arg) {
 	// cast arg
-	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
+	MobotMove *move = (MobotMove *)arg;
 
 	// perform motion
-	mArg->robot->motionInchwormLeft(mArg->i);
+	move->robot->motionInchwormLeft(move->i);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// success
 	return NULL;
@@ -160,18 +160,18 @@ int CMobot::motionInchwormLeftNB(int num) {
 	THREAD_T motion;
 
 	// store args
-	mobotMotionArg_t *mArg = new mobotMotionArg_t;
-	mArg->robot = this;
-	mArg->i = num;
+	MobotMove *move = new MobotMove;
+	move->robot = this;
+	move->i = num;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&motion, motionInchwormLeftThread, (void *)mArg);
+	THREAD_CREATE(&motion, motionInchwormLeftThread, (void *)move);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return 0;
@@ -195,13 +195,13 @@ int CMobot::motionInchwormRight(int num) {
 
 void* CMobot::motionInchwormRightThread(void *arg) {
 	// cast arg
-	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
+	MobotMove *move = (MobotMove *)arg;
 
 	// perform motion
-	mArg->robot->motionInchwormRight(mArg->i);
+	move->robot->motionInchwormRight(move->i);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// success
 	return NULL;
@@ -212,18 +212,18 @@ int CMobot::motionInchwormRightNB(int num) {
 	THREAD_T motion;
 
 	// store args
-	mobotMotionArg_t *mArg = new mobotMotionArg_t;
-	mArg->robot = this;
-	mArg->i = num;
+	MobotMove *move = new MobotMove;
+	move->robot = this;
+	move->i = num;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&motion, motionInchwormRightThread, (void *)mArg);
+	THREAD_CREATE(&motion, motionInchwormRightThread, (void *)move);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return 0;
@@ -239,13 +239,13 @@ int CMobot::motionRollBackward(double angle) {
 
 void* CMobot::motionRollBackwardThread(void *arg) {
 	// cast arg
-	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
+	MobotMove *move = (MobotMove *)arg;
 
 	// perform motion
-	mArg->robot->motionRollBackward(mArg->d);
+	move->robot->motionRollBackward(move->d);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// success
 	return NULL;
@@ -256,18 +256,18 @@ int CMobot::motionRollBackwardNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	mobotMotionArg_t *mArg = new mobotMotionArg_t;
-	mArg->robot = this;
-	mArg->d = angle;
+	MobotMove *move = new MobotMove;
+	move->robot = this;
+	move->d = angle;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&motion, motionRollBackwardThread, (void *)mArg);
+	THREAD_CREATE(&motion, motionRollBackwardThread, (void *)move);
 
 	// cleanup
-	//delete mArg;
+	delete move;
 
 	// success
 	return 0;
@@ -287,13 +287,13 @@ int CMobot::motionRollForward(double angle) {
 
 void* CMobot::motionRollForwardThread(void *arg) {
 	// cast arg
-	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
+	MobotMove *move = (MobotMove *)arg;
 
 	// perform motion
-	mArg->robot->motionRollForward(mArg->d);
+	move->robot->motionRollForward(move->d);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// success
 	return NULL;
@@ -304,18 +304,18 @@ int CMobot::motionRollForwardNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	mobotMotionArg_t *mArg = new mobotMotionArg_t;
-	mArg->robot = this;
-	mArg->d = angle;
+	MobotMove *move = new MobotMove;
+	move->robot = this;
+	move->d = angle;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&motion, motionRollForwardThread, (void *)mArg);
+	THREAD_CREATE(&motion, motionRollForwardThread, (void *)move);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return 0;
@@ -332,13 +332,13 @@ int CMobot::motionSkinny(double angle) {
 
 void* CMobot::motionSkinnyThread(void *arg) {
 	// cast arg
-	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
+	MobotMove *move = (MobotMove *)arg;
 
 	// perform motion
-	mArg->robot->motionSkinny(mArg->d);
+	move->robot->motionSkinny(move->d);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// success
 	return NULL;
@@ -349,18 +349,18 @@ int CMobot::motionSkinnyNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	mobotMotionArg_t *mArg = new mobotMotionArg_t;
-	mArg->robot = this;
-	mArg->d = angle;
+	MobotMove *move = new MobotMove;
+	move->robot = this;
+	move->d = angle;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&motion, motionSkinnyThread, (void *)mArg);
+	THREAD_CREATE(&motion, motionSkinnyThread, (void *)move);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return 0;
@@ -381,13 +381,13 @@ int CMobot::motionStand(void) {
 
 void* CMobot::motionStandThread(void *arg) {
 	// cast arg
-	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
+	MobotMove *move = (MobotMove *)arg;
 
 	// perform motion
-	mArg->robot->motionStand();
+	move->robot->motionStand();
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// success
 	return NULL;
@@ -398,17 +398,17 @@ int CMobot::motionStandNB(void) {
 	THREAD_T motion;
 
 	// store args
-	mobotMotionArg_t *mArg = new mobotMotionArg_t;
-	mArg->robot = this;
+	MobotMove *move = new MobotMove;
+	move->robot = this;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&motion, motionStandThread, (void *)mArg);
+	THREAD_CREATE(&motion, motionStandThread, (void *)move);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return 0;
@@ -444,13 +444,13 @@ int CMobot::motionTumbleLeft(int num) {
 
 void* CMobot::motionTumbleLeftThread(void *arg) {
 	// cast arg
-	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
+	MobotMove *move = (MobotMove *)arg;
 
 	// perform motion
-	mArg->robot->motionTumbleLeft(mArg->i);
+	move->robot->motionTumbleLeft(move->i);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// success
 	return NULL;
@@ -461,18 +461,18 @@ int CMobot::motionTumbleLeftNB(int num) {
 	THREAD_T motion;
 
 	// store args
-	mobotMotionArg_t *mArg = new mobotMotionArg_t;
-	mArg->robot = this;
-	mArg->i = num;
+	MobotMove *move = new MobotMove;
+	move->robot = this;
+	move->i = num;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&motion, motionTumbleLeftThread, (void *)mArg);
+	THREAD_CREATE(&motion, motionTumbleLeftThread, (void *)move);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return 0;
@@ -508,13 +508,13 @@ int CMobot::motionTumbleRight(int num) {
 
 void* CMobot::motionTumbleRightThread(void *arg) {
 	// cast arg
-	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
+	MobotMove *move = (MobotMove *)arg;
 
 	// perform motion
-	mArg->robot->motionTumbleRight(mArg->i);
+	move->robot->motionTumbleRight(move->i);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// success
 	return NULL;
@@ -525,18 +525,18 @@ int CMobot::motionTumbleRightNB(int num) {
 	THREAD_T motion;
 
 	// store args
-	mobotMotionArg_t *mArg = new mobotMotionArg_t;
-	mArg->robot = this;
-	mArg->i = num;
+	MobotMove *move = new MobotMove;
+	move->robot = this;
+	move->i = num;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&motion, motionTumbleRightThread, (void *)mArg);
+	THREAD_CREATE(&motion, motionTumbleRightThread, (void *)move);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return 0;
@@ -552,13 +552,13 @@ int CMobot::motionTurnLeft(double angle) {
 
 void* CMobot::motionTurnLeftThread(void *arg) {
 	// cast arg
-	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
+	MobotMove *move = (MobotMove *)arg;
 
 	// perform motion
-	mArg->robot->motionTurnLeft(mArg->d);
+	move->robot->motionTurnLeft(move->d);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// success
 	return NULL;
@@ -569,18 +569,18 @@ int CMobot::motionTurnLeftNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	mobotMotionArg_t *mArg = new mobotMotionArg_t;
-	mArg->robot = this;
-	mArg->d = angle;
+	MobotMove *move = new MobotMove;
+	move->robot = this;
+	move->d = angle;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&motion, motionTurnLeftThread, (void *)mArg);
+	THREAD_CREATE(&motion, motionTurnLeftThread, (void *)move);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return 0;
@@ -596,13 +596,13 @@ int CMobot::motionTurnRight(double angle) {
 
 void* CMobot::motionTurnRightThread(void *arg) {
 	// cast arg
-	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
+	MobotMove *move = (MobotMove *)arg;
 
 	// perform motion
-	mArg->robot->motionTurnRight(mArg->d);
+	move->robot->motionTurnRight(move->d);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// success
 	return NULL;
@@ -613,18 +613,18 @@ int CMobot::motionTurnRightNB(double angle) {
 	THREAD_T motion;
 
 	// store args
-	mobotMotionArg_t *mArg = new mobotMotionArg_t;
-	mArg->robot = this;
-	mArg->d = angle;
+	MobotMove *move = new MobotMove;
+	move->robot = this;
+	move->d = angle;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&motion, motionTurnRightThread, (void *)mArg);
+	THREAD_CREATE(&motion, motionTurnRightThread, (void *)move);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return 0;
@@ -643,13 +643,13 @@ int CMobot::motionUnstand(void) {
 
 void* CMobot::motionUnstandThread(void *arg) {
 	// cast arg
-	mobotMotionArg_t *mArg = (mobotMotionArg_t *)arg;
+	MobotMove *move = (MobotMove *)arg;
 
 	// perform motion
-	mArg->robot->motionUnstand();
+	move->robot->motionUnstand();
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// success
 	return NULL;
@@ -660,17 +660,17 @@ int CMobot::motionUnstandNB(void) {
 	THREAD_T motion;
 
 	// store args
-	mobotMotionArg_t *mArg = new mobotMotionArg_t;
-	mArg->robot = this;
+	MobotMove *move = new MobotMove;
+	move->robot = this;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&motion, motionUnstandThread, (void *)mArg);
+	THREAD_CREATE(&motion, motionUnstandThread, (void *)move);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return 0;
@@ -945,7 +945,7 @@ int CMobot::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, xml_co
 	// generate parameters for connector
 	this->getConnectorParams(conn->type, conn->side, R, m);
 
-	// collect data from struct
+	// collect data
 	double r_le = robot->angle1;
 	double r_lb = robot->angle2;
 	double r_rb = robot->angle3;

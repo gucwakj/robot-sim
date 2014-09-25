@@ -271,21 +271,21 @@ int Robot::drivexyTo(double x, double y, double radius, double trackwidth) {
 
 int Robot::drivexyToNB(double x, double y, double radius, double trackwidth) {
 	// create thread
-	THREAD_T move;
+	THREAD_T moving;
 
 	// store args
-	moveArg_t *mArg = new moveArg_t;
-	mArg->robot = this;
-	mArg->x = x;
-	mArg->y = y;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
+	RobotMove *move = new RobotMove;
+	move->robot = this;
+	move->x = x;
+	move->y = y;
+	move->radius = radius;
+	move->trackwidth = trackwidth;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&move, drivexyToThread, (void *)mArg);
+	THREAD_CREATE(&moving, drivexyToThread, (void *)move);
 
 	// success
 	return 0;
@@ -308,23 +308,23 @@ int Robot::drivexyToFunc(double x0, double xf, int n, double (*func)(double x), 
 
 int Robot::drivexyToFuncNB(double x0, double xf, int n, double (*func)(double x), double radius, double trackwidth) {
 	// create thread
-	THREAD_T move;
+	THREAD_T moving;
 
 	// store args
-	moveArg_t *mArg = new moveArg_t;
-	mArg->robot = this;
-	mArg->x = x0;
-	mArg->y = xf;
-	mArg->i = n;
-	mArg->func = func;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
+	RobotMove *move = new RobotMove;
+	move->robot = this;
+	move->x = x0;
+	move->y = xf;
+	move->i = n;
+	move->func = func;
+	move->radius = radius;
+	move->trackwidth = trackwidth;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&move, drivexyToFuncThread, (void *)mArg);
+	THREAD_CREATE(&moving, drivexyToFuncThread, (void *)move);
 
 	// success
 	return 0;
@@ -435,23 +435,23 @@ int Robot::drivexyToPoly(double x0, double xf, int n, char *poly, double radius,
 
 int Robot::drivexyToPolyNB(double x0, double xf, int n, char *poly, double radius, double trackwidth) {
 	// create thread
-	THREAD_T move;
+	THREAD_T moving;
 
 	// store args
-	moveArg_t *mArg = new moveArg_t;
-	mArg->robot = this;
-	mArg->x = x0;
-	mArg->y = xf;
-	mArg->i = n;
-	mArg->expr = poly;
-	mArg->radius = radius;
-	mArg->trackwidth = trackwidth;
+	RobotMove *move = new RobotMove;
+	move->robot = this;
+	move->x = x0;
+	move->y = xf;
+	move->i = n;
+	move->expr = poly;
+	move->radius = radius;
+	move->trackwidth = trackwidth;
 
 	// motion in progress
 	_motion = true;
 
 	// start thread
-	THREAD_CREATE(&move, drivexyToPolyThread, (void *)mArg);
+	THREAD_CREATE(&moving, drivexyToPolyThread, (void *)move);
 
 	// success
 	return 0;
@@ -785,6 +785,8 @@ int Robot::moveJointTime(robotJointId_t id, double seconds) {
 int Robot::moveJointTimeNB(robotJointId_t id, double seconds) {
 	// set up threading
 	THREAD_T moving;
+
+	// recording arguments
 	Recording *rec = new Recording;
 	rec->robot = this;
 	rec->msecs = 1000*seconds;
@@ -879,6 +881,8 @@ int Robot::moveTime(double seconds) {
 int Robot::moveTimeNB(double seconds) {
 	// set up threading
 	THREAD_T moving;
+
+	// recording arguments
 	Recording *rec = new Recording;
 	rec->robot = this;
 	rec->msecs = 1000*seconds;
@@ -943,7 +947,7 @@ int Robot::recordAngle(robotJointId_t id, double time[], double angle[], int num
 	// set up recording thread
 	THREAD_T recording;
 
-	// set up recording args struct
+	// set up recording args
 	Recording *rec = new Recording;
 	rec->robot = this;
 	rec->time = time;
@@ -973,7 +977,7 @@ int Robot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRec
 	// set up recording thread
 	THREAD_T recording;
 
-	// set up recording args struct
+	// set up recording args
 	Recording *rec = new Recording;
 	rec->robot = this;
 	rec->id = id;
@@ -1147,7 +1151,7 @@ int Robot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seco
 	// set up recording thread
 	THREAD_T recording;
 
-	// set up recording args struct
+	// set up recording args
 	Recording *rec = new Recording;
 	rec->robot = this;
 	rec->num = RECORD_ANGLE_ALLOC_SIZE;
@@ -1463,7 +1467,7 @@ int Robot::recordAngles(double *time, double **angle, int num, double seconds, i
 	// set up recording thread
 	THREAD_T recording;
 
-	// set up recording args struct
+	// set up recording args
 	Recording *rec = new Recording;
 	rec->robot = this;
 	rec->time = time;
@@ -1497,7 +1501,7 @@ int Robot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle,
 	// set up recording thread
 	THREAD_T recording;
 
-	// set up recording args struct
+	// set up recording args
 	Recording *rec = new Recording;
 	rec->robot = this;
 	rec->num = RECORD_ANGLE_ALLOC_SIZE;
@@ -1760,16 +1764,16 @@ void* Robot::driveTimeNBThread(void *arg) {
 
 void* Robot::drivexyToThread(void *arg) {
 	// cast arg
-	moveArg_t *mArg = (moveArg_t *)arg;
+	RobotMove *move = (RobotMove *)arg;
 
 	// perform motion
-	mArg->robot->drivexyTo(mArg->x, mArg->y, mArg->radius, mArg->trackwidth);
+	move->robot->drivexyTo(move->x, move->y, move->radius, move->trackwidth);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return NULL;
@@ -1777,16 +1781,16 @@ void* Robot::drivexyToThread(void *arg) {
 
 void* Robot::drivexyToFuncThread(void *arg) {
 	// cast arg
-	moveArg_t *mArg = (moveArg_t *)arg;
+	RobotMove *move = (RobotMove *)arg;
 
 	// perform motion
-	mArg->robot->drivexyToFunc(mArg->x, mArg->y, mArg->i, mArg->func, mArg->radius, mArg->trackwidth);
+	move->robot->drivexyToFunc(move->x, move->y, move->i, move->func, move->radius, move->trackwidth);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return NULL;
@@ -1794,16 +1798,16 @@ void* Robot::drivexyToFuncThread(void *arg) {
 
 void* Robot::drivexyToPolyThread(void *arg) {
 	// cast arg
-	moveArg_t *mArg = (moveArg_t *)arg;
+	RobotMove *move = (RobotMove *)arg;
 
 	// perform motion
-	mArg->robot->drivexyToPoly(mArg->x, mArg->y, mArg->i, mArg->expr, mArg->radius, mArg->trackwidth);
+	move->robot->drivexyToPoly(move->x, move->y, move->i, move->expr, move->radius, move->trackwidth);
 
 	// signal successful completion
-	SIGNAL(&mArg->robot->_motion_cond, &mArg->robot->_motion_mutex, mArg->robot->_motion = false);
+	SIGNAL(&move->robot->_motion_cond, &move->robot->_motion_mutex, move->robot->_motion = false);
 
 	// cleanup
-	delete mArg;
+	delete move;
 
 	// success
 	return NULL;

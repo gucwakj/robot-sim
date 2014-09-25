@@ -60,7 +60,7 @@ class DLLIMPORT RoboSim {
 
 	// private data
 	private:
-		// robots struct
+		// robots
 		struct Robots {
 			Robot *robot;
 			int node;
@@ -74,13 +74,12 @@ class DLLIMPORT RoboSim {
 			TEXT,
 			NUM_TYPES
 		} drawingObjects_t;
-		// graphics objects struct
-		typedef struct drawing_s {
+		// graphics objects
+		struct Drawing {
 			double p1[3], p2[3], c[4];
 			int i, type;
 			std::string str;
-			struct drawing_s *next;
-		} *drawing_t;
+		};
 #endif // ENABLE_GRAPHICS
 
 		dWorldID _world;				// world in which simulation occurs
@@ -107,7 +106,7 @@ class DLLIMPORT RoboSim {
 		MUTEX_T _step_mutex;			// mutex for getting the step value
 		THREAD_T _simulation;			// simulation thread
 #ifdef ENABLE_GRAPHICS
-		drawing_t _drawings;				// all graphics objects
+		std::vector<Drawing*> _drawings;	// all graphics objects
 		double _grid[7];					// grid spacing (tics, major, total)
 		int _ending;						// temp variable for deleting robots
 		int _graphics;						// flag for graphics
