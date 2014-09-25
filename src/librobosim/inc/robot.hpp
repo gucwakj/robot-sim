@@ -192,7 +192,7 @@ class DLLIMPORT Robot {
 		} motorMode_t;
 
 		// recording
-		typedef struct recArg_s {
+		struct Recording {
 			Robot *robot;			// robot
 			robotJointId_t id;		// joint to record
 			int num;				// number of points
@@ -201,7 +201,7 @@ class DLLIMPORT Robot {
 			double **ptime;			// pointer to time array
 			double **angle;			// array of angles
 			double ***pangle;		// point to array of angles
-		} recArg_t;
+		};
 		// motor accelerations
 		struct Accel {
 			double init;			// motion initial angle

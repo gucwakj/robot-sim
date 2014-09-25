@@ -194,15 +194,15 @@ int Robot::driveTime(double seconds) {
 int Robot::driveTimeNB(double seconds) {
 	// set up threading
 	THREAD_T moving;
-	recArg_t *rArg = new recArg_t;
-	rArg->robot = this;
-	rArg->msecs = 1000*seconds;
+	Recording *rec = new Recording;
+	rec->robot = this;
+	rec->msecs = 1000*seconds;
 
 	// set joint movements
 	this->driveForeverNB();
 
 	// create thread to wait
-	THREAD_CREATE(&moving, (void* (*)(void *))&Robot::driveTimeNBThread, (void *)rArg);
+	THREAD_CREATE(&moving, (void* (*)(void *))&Robot::driveTimeNBThread, (void *)rec);
 
 	// success
 	return 0;
@@ -785,16 +785,16 @@ int Robot::moveJointTime(robotJointId_t id, double seconds) {
 int Robot::moveJointTimeNB(robotJointId_t id, double seconds) {
 	// set up threading
 	THREAD_T moving;
-	recArg_t *rArg = new recArg_t;
-	rArg->robot = this;
-	rArg->msecs = 1000*seconds;
-	rArg->id = id;
+	Recording *rec = new Recording;
+	rec->robot = this;
+	rec->msecs = 1000*seconds;
+	rec->id = id;
 
 	// set joint movements
 	this->moveJointForeverNB(id);
 
 	// create thread to wait
-	THREAD_CREATE(&moving, (void* (*)(void *))&Robot::moveJointTimeNBThread, (void *)rArg);
+	THREAD_CREATE(&moving, (void* (*)(void *))&Robot::moveJointTimeNBThread, (void *)rec);
 
 	// success
 	return 0;
@@ -879,15 +879,15 @@ int Robot::moveTime(double seconds) {
 int Robot::moveTimeNB(double seconds) {
 	// set up threading
 	THREAD_T moving;
-	recArg_t *rArg = new recArg_t;
-	rArg->robot = this;
-	rArg->msecs = 1000*seconds;
+	Recording *rec = new Recording;
+	rec->robot = this;
+	rec->msecs = 1000*seconds;
 
 	// set joint movements
 	this->moveForeverNB();
 
 	// create thread to wait
-	THREAD_CREATE(&moving, (void* (*)(void *))&Robot::moveTimeNBThread, (void *)rArg);
+	THREAD_CREATE(&moving, (void* (*)(void *))&Robot::moveTimeNBThread, (void *)rec);
 
 	// success
 	return 0;
@@ -944,14 +944,14 @@ int Robot::recordAngle(robotJointId_t id, double time[], double angle[], int num
 	THREAD_T recording;
 
 	// set up recording args struct
-	recArg_t *rArg = new recArg_t;
-	rArg->robot = this;
-	rArg->time = time;
-	rArg->angle = new double * [1];
-	rArg->angle[0] = angle;
-	rArg->id = id;
-	rArg->num = num;
-	rArg->msecs = 1000*seconds;
+	Recording *rec = new Recording;
+	rec->robot = this;
+	rec->time = time;
+	rec->angle = new double * [1];
+	rec->angle[0] = angle;
+	rec->id = id;
+	rec->num = num;
+	rec->msecs = 1000*seconds;
 
 	// lock recording for joint id
 	_motor[id].record = true;
@@ -960,7 +960,7 @@ int Robot::recordAngle(robotJointId_t id, double time[], double angle[], int num
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordAngleThread, (void *)rArg);
+	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordAngleThread, (void *)rec);
 
 	// success
 	return 0;
@@ -974,16 +974,16 @@ int Robot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRec
 	THREAD_T recording;
 
 	// set up recording args struct
-	recArg_t *rArg = new recArg_t;
-	rArg->robot = this;
-	rArg->id = id;
-	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
-	rArg->msecs = seconds * 1000;
+	Recording *rec = new Recording;
+	rec->robot = this;
+	rec->id = id;
+	rec->num = RECORD_ANGLE_ALLOC_SIZE;
+	rec->msecs = seconds * 1000;
 	time = new double[RECORD_ANGLE_ALLOC_SIZE];
 	angle = new double[RECORD_ANGLE_ALLOC_SIZE];
-	rArg->ptime = &time;
-	rArg->pangle = new double ** [_dof];
-	rArg->pangle[JOINT1] = &angle;
+	rec->ptime = &time;
+	rec->pangle = new double ** [_dof];
+	rec->pangle[JOINT1] = &angle;
 
 	// store pointer to recorded angles locally
 	_motor[id].record_angle = &angle;
@@ -995,7 +995,7 @@ int Robot::recordAngleBegin(robotJointId_t id, robotRecordData_t &time, robotRec
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordAngleBeginThread, (void *)rArg);
+	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordAngleBeginThread, (void *)rec);
 
 	// success
 	return 0;
@@ -1148,15 +1148,15 @@ int Robot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seco
 	THREAD_T recording;
 
 	// set up recording args struct
-	recArg_t *rArg = new recArg_t;
-	rArg->robot = this;
-	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
-	rArg->msecs = seconds * 1000;
+	Recording *rec = new Recording;
+	rec->robot = this;
+	rec->num = RECORD_ANGLE_ALLOC_SIZE;
+	rec->msecs = seconds * 1000;
 	x = new double[RECORD_ANGLE_ALLOC_SIZE];
 	y = new double[RECORD_ANGLE_ALLOC_SIZE];
-	rArg->ptime = &x;
-	rArg->pangle = new double ** [1];
-	rArg->pangle[JOINT1] = &y;
+	rec->ptime = &x;
+	rec->pangle = new double ** [1];
+	rec->pangle[JOINT1] = &y;
 
 	// store pointer to recorded angles locally
 	_motor[JOINT1].record_angle = &x;
@@ -1170,7 +1170,7 @@ int Robot::recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seco
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordxyBeginThread, (void *)rArg);
+	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordxyBeginThread, (void *)rec);
 
 	// success
 	return 0;
@@ -1464,17 +1464,17 @@ int Robot::recordAngles(double *time, double **angle, int num, double seconds, i
 	THREAD_T recording;
 
 	// set up recording args struct
-	recArg_t *rArg = new recArg_t;
-	rArg->robot = this;
-	rArg->time = time;
-	rArg->angle = new double * [_dof];
-	rArg->angle = angle;
-	rArg->num = num;
-	rArg->msecs = 1000*seconds;
+	Recording *rec = new Recording;
+	rec->robot = this;
+	rec->time = time;
+	rec->angle = new double * [_dof];
+	rec->angle = angle;
+	rec->num = num;
+	rec->msecs = 1000*seconds;
 
 	// lock recording for joints
 	for (int i = 0; i < _dof; i++) {
-		rArg->angle[i] = angle[i];
+		rec->angle[i] = angle[i];
 		_motor[i].record = true;
 	}
 
@@ -1482,7 +1482,7 @@ int Robot::recordAngles(double *time, double **angle, int num, double seconds, i
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordAnglesThread, (void *)rArg);
+	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordAnglesThread, (void *)rec);
 
 	// success
 	return 0;
@@ -1498,18 +1498,18 @@ int Robot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle,
 	THREAD_T recording;
 
 	// set up recording args struct
-	recArg_t *rArg = new recArg_t;
-	rArg->robot = this;
-	rArg->num = RECORD_ANGLE_ALLOC_SIZE;
-	rArg->msecs = seconds * 1000;
+	Recording *rec = new Recording;
+	rec->robot = this;
+	rec->num = RECORD_ANGLE_ALLOC_SIZE;
+	rec->msecs = seconds * 1000;
 	time = new double[RECORD_ANGLE_ALLOC_SIZE];
 	for (int i = 0; i < _dof; i++) {
 		angle[i] = new double[RECORD_ANGLE_ALLOC_SIZE];
 	}
-	rArg->ptime = &time;
-	rArg->pangle = new double ** [_dof];
+	rec->ptime = &time;
+	rec->pangle = new double ** [_dof];
 	for (int i = 0; i < _dof; i++) {
-		rArg->pangle[i] = &angle[i];
+		rec->pangle[i] = &angle[i];
 	}
 
 	// store pointer to recorded angles locally
@@ -1526,7 +1526,7 @@ int Robot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle,
 	_shift_data = shiftData;
 
 	// create thread
-	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordAnglesBeginThread, (void *)rArg);
+	THREAD_CREATE(&recording, (void* (*)(void *))&Robot::recordAnglesBeginThread, (void *)rec);
 
 	// success
 	return 0;
@@ -1742,17 +1742,17 @@ double Robot::uniform(void) {
 
 void* Robot::driveTimeNBThread(void *arg) {
 	// cast argument
-	recArg_t *rArg = (recArg_t *)arg;
+	Recording *rec = (Recording *)arg;
 
 	// get robot
-	Robot *robot = dynamic_cast<Robot *>(rArg->robot);
+	Robot *robot = dynamic_cast<Robot *>(rec->robot);
 	// sleep
-	robot->doze(rArg->msecs);
+	robot->doze(rec->msecs);
 	// hold all robot motion
 	robot->holdJoints();
 
 	// cleanup
-	delete rArg;
+	delete rec;
 
 	// success
 	return NULL;
@@ -1811,17 +1811,17 @@ void* Robot::drivexyToPolyThread(void *arg) {
 
 void* Robot::moveJointTimeNBThread(void *arg) {
 	// cast argument
-	recArg_t *rArg = (recArg_t *)arg;
+	Recording *rec = (Recording *)arg;
 
 	// get robot
-	Robot *robot = dynamic_cast<Robot *>(rArg->robot);
+	Robot *robot = dynamic_cast<Robot *>(rec->robot);
 	// sleep
-	robot->doze(rArg->msecs);
+	robot->doze(rec->msecs);
 	// hold all robot motion
-	robot->holdJoint(rArg->id);
+	robot->holdJoint(rec->id);
 
 	// cleanup
-	delete rArg;
+	delete rec;
 
 	// success
 	return NULL;
@@ -1829,81 +1829,81 @@ void* Robot::moveJointTimeNBThread(void *arg) {
 
 void* Robot::moveTimeNBThread(void *arg) {
 	// cast argument
-	recArg_t *rArg = (recArg_t *)arg;
+	Recording *rec = (Recording *)arg;
 
 	// get robot
-	Robot *robot = dynamic_cast<Robot *>(rArg->robot);
+	Robot *robot = dynamic_cast<Robot *>(rec->robot);
 	// sleep
-	robot->doze(rArg->msecs);
+	robot->doze(rec->msecs);
 	// hold all robot motion
 	robot->holdJoints();
 
 	// cleanup
-	delete rArg;
+	delete rec;
 
 	// success
 	return NULL;
 }
 
 void* Robot::recordAngleThread(void *arg) {
-	// cast arg struct
-	recArg_t *rArg = (recArg_t *)arg;
+	// cast argument
+	Recording *rec = (Recording *)arg;
 
 	// create initial time points
 	double start_time = 0;
 	int time = (int)(g_sim->getClock()*1000);
 
 	// is robot moving
-	int *moving = new int[rArg->num];
+	int *moving = new int[rec->num];
 
 	// get 'num' data points
-	for (int i = 0; i < rArg->num; i++) {
+	for (int i = 0; i < rec->num; i++) {
 		// store time of data point
-		rArg->time[i] = g_sim->getClock()*1000;
-		if (i == 0) { start_time = rArg->time[i]; }
-		rArg->time[i] = (rArg->time[i] - start_time) / 1000;
+		rec->time[i] = g_sim->getClock()*1000;
+		if (i == 0) { start_time = rec->time[i]; }
+		rec->time[i] = (rec->time[i] - start_time) / 1000;
 
 		// store joint angle
-		rArg->angle[0][i] = RAD2DEG(rArg->robot->_motor[rArg->id].theta);
+		rec->angle[0][i] = RAD2DEG(rec->robot->_motor[rec->id].theta);
 
 		// check if joint is moving
-		moving[i] = (int)(dJointGetAMotorParam(rArg->robot->_motor[rArg->id].id, dParamVel)*1000);
+		moving[i] = (int)(dJointGetAMotorParam(rec->robot->_motor[rec->id].id, dParamVel)*1000);
 
 		// increment time step
-		time += rArg->msecs;
+		time += rec->msecs;
 
 		// pause until next step
 		if ( (int)(g_sim->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
+			rec->robot->doze(time - (int)(g_sim->getClock()*1000));
 	}
 
 	// shift time to start of movement
 	double shiftTime = 0;
 	int shiftTimeIndex = 0;
-	if(rArg->robot->is_shift_enabled()) {
-		for (int i = 0; i < rArg->num; i++) {
+	if(rec->robot->is_shift_enabled()) {
+		for (int i = 0; i < rec->num; i++) {
 			if( moving[i] ) {
-				shiftTime = rArg->time[i];
+				shiftTime = rec->time[i];
 				shiftTimeIndex = i;
 				break;
 			}
 		}
-		for (int i = 0; i < rArg->num; i++) {
+		for (int i = 0; i < rec->num; i++) {
 			if (i < shiftTimeIndex) {
-				rArg->time[i] = 0;
-				rArg->angle[i] = rArg->angle[shiftTimeIndex];
+				rec->time[i] = 0;
+				rec->angle[i] = rec->angle[shiftTimeIndex];
 			}
 			else {
-				rArg->time[i] = rArg->time[i] - shiftTime;
+				rec->time[i] = rec->time[i] - shiftTime;
 			}
 		}
 	}
 
 	// signal completion of recording
-	SIGNAL(&rArg->robot->_recording_cond, &rArg->robot->_recording_mutex, rArg->robot->_motor[rArg->id].record = false);
+	SIGNAL(&rec->robot->_recording_cond, &rec->robot->_recording_mutex, rec->robot->_motor[rec->id].record = false);
 
 	// cleanup
-	delete rArg;
+	delete rec;
 	delete moving;
 
 	// success
@@ -1911,8 +1911,8 @@ void* Robot::recordAngleThread(void *arg) {
 }
 
 void* Robot::recordAngleBeginThread(void *arg) {
-	// cast arg struct
-	recArg_t *rArg = (recArg_t *)arg;
+	// cast argument
+	Recording *rec = (Recording *)arg;
 
 	// create initial time points
 	double start_time = 0;
@@ -1922,137 +1922,137 @@ void* Robot::recordAngleBeginThread(void *arg) {
 	int moving;
 
 	// actively taking a new data point
-	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_motor[rArg->id].record_active = true;
-	COND_SIGNAL(&rArg->robot->_active_cond);
-	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
+	MUTEX_LOCK(&rec->robot->_active_mutex);
+	rec->robot->_motor[rec->id].record_active = true;
+	COND_SIGNAL(&rec->robot->_active_cond);
+	MUTEX_UNLOCK(&rec->robot->_active_mutex);
 
 	// loop until recording is no longer needed
-	for (int i = 0; rArg->robot->_motor[rArg->id].record; i++) {
+	for (int i = 0; rec->robot->_motor[rec->id].record; i++) {
 		// store locally num of data points taken
-		rArg->robot->_motor[rArg->id].record_num = i;
+		rec->robot->_motor[rec->id].record_num = i;
 
 		// resize array if filled current one
-		if (i >= rArg->num) {
-			rArg->num += RECORD_ANGLE_ALLOC_SIZE;
+		if (i >= rec->num) {
+			rec->num += RECORD_ANGLE_ALLOC_SIZE;
 			// create larger array for time
-			double *newbuf = new double[rArg->num];
-			memcpy(newbuf, *(rArg->ptime), sizeof(double)*i);
-			delete [] *(rArg->ptime);
-			*(rArg->ptime) = newbuf;
+			double *newbuf = new double[rec->num];
+			memcpy(newbuf, *(rec->ptime), sizeof(double)*i);
+			delete [] *(rec->ptime);
+			*(rec->ptime) = newbuf;
 			// create larger array for angle
-			newbuf = new double[rArg->num];
-			memcpy(newbuf, *(rArg->pangle[0]), sizeof(double)*i);
-			delete [] *(rArg->pangle[0]);
-			*(rArg->pangle[0]) = newbuf;
+			newbuf = new double[rec->num];
+			memcpy(newbuf, *(rec->pangle[0]), sizeof(double)*i);
+			delete [] *(rec->pangle[0]);
+			*(rec->pangle[0]) = newbuf;
 		}
 
 		// store joint angles
-		(*(rArg->pangle[0]))[i] = RAD2DEG(rArg->robot->_motor[rArg->id].theta);
-		moving = (int)(dJointGetAMotorParam(rArg->robot->_motor[rArg->id].id, dParamVel)*1000);
+		(*(rec->pangle[0]))[i] = RAD2DEG(rec->robot->_motor[rec->id].theta);
+		moving = (int)(dJointGetAMotorParam(rec->robot->_motor[rec->id].id, dParamVel)*1000);
 
 		// store time of data point
-		(*rArg->ptime)[i] = g_sim->getClock()*1000;
-		if (i == 0) { start_time = (*rArg->ptime)[i]; }
-		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
+		(*rec->ptime)[i] = g_sim->getClock()*1000;
+		if (i == 0) { start_time = (*rec->ptime)[i]; }
+		(*rec->ptime)[i] = ((*rec->ptime)[i] - start_time) / 1000;
 
 		// increment time step
-		time += rArg->msecs;
+		time += rec->msecs;
 
 		// pause until next step
 		if ( (int)(g_sim->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
+			rec->robot->doze(time - (int)(g_sim->getClock()*1000));
 
 		// wait until movement to start recording
-		if( !moving && rArg->robot->is_shift_enabled() ) {
+		if( !moving && rec->robot->is_shift_enabled() ) {
 			i--;
 		}
 	}
 
 	// signal completion of recording
-	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_motor[rArg->id].record_active = false;
-	COND_SIGNAL(&rArg->robot->_active_cond);
-	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
+	MUTEX_LOCK(&rec->robot->_active_mutex);
+	rec->robot->_motor[rec->id].record_active = false;
+	COND_SIGNAL(&rec->robot->_active_cond);
+	MUTEX_UNLOCK(&rec->robot->_active_mutex);
 
 	// cleanup
-	delete rArg;
+	delete rec;
 
 	// success
 	return NULL;
 }
 
 void* Robot::recordAnglesThread(void *arg) {
-	// cast arg struct
-    recArg_t *rArg = (recArg_t *)arg;
+	// cast argument
+	Recording *rec = (Recording *)arg;
 
 	// create initial time points
     double start_time = 0;
 	int time = (int)(g_sim->getClock()*1000);
 
 	// is robot moving
-	int *moving = new int[rArg->num];
+	int *moving = new int[rec->num];
 
 	// get 'num' data points
-    for (int i = 0; i < rArg->num; i++) {
+    for (int i = 0; i < rec->num; i++) {
 		// store time of data point
-		rArg->time[i] = g_sim->getClock()*1000;
-        if (i == 0) { start_time = rArg->time[i]; }
-        rArg->time[i] = (rArg->time[i] - start_time) / 1000;
+		rec->time[i] = g_sim->getClock()*1000;
+        if (i == 0) { start_time = rec->time[i]; }
+        rec->time[i] = (rec->time[i] - start_time) / 1000;
 
 		// store joint angles
-		for (int j = 0; j < rArg->robot->_dof; j++) {
-			rArg->angle[j][i] = RAD2DEG(rArg->robot->_motor[j].theta);
+		for (int j = 0; j < rec->robot->_dof; j++) {
+			rec->angle[j][i] = RAD2DEG(rec->robot->_motor[j].theta);
 		}
 
 		// check if joints are moving
 		moving[i] = 0;
-		for (int j = 0; j < rArg->robot->_dof; j++) {
-			moving[i] += (int)(dJointGetAMotorParam(rArg->robot->_motor[j].id, dParamVel)*1000);
+		for (int j = 0; j < rec->robot->_dof; j++) {
+			moving[i] += (int)(dJointGetAMotorParam(rec->robot->_motor[j].id, dParamVel)*1000);
 		}
 
 		// increment time step
-		time += rArg->msecs;
+		time += rec->msecs;
 
 		// pause until next step
 		if ( (int)(g_sim->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
+			rec->robot->doze(time - (int)(g_sim->getClock()*1000));
     }
 
 	// shift time to start of movement
 	double shiftTime = 0;
 	int shiftTimeIndex = 0;
-	if(rArg->robot->is_shift_enabled()) {
-		for (int i = 0; i < rArg->num; i++) {
+	if(rec->robot->is_shift_enabled()) {
+		for (int i = 0; i < rec->num; i++) {
 			if (moving[i]) {
-				shiftTime = rArg->time[i];
+				shiftTime = rec->time[i];
 				shiftTimeIndex = i;
 				break;
 			}
 		}
-		for (int i = 0; i < rArg->num; i++) {
+		for (int i = 0; i < rec->num; i++) {
 			if (i < shiftTimeIndex) {
-				rArg->time[i] = 0;
-				for (int j = 0; j < rArg->robot->_dof; j++) {
-					rArg->angle[j][i] = rArg->angle[j][shiftTimeIndex];
+				rec->time[i] = 0;
+				for (int j = 0; j < rec->robot->_dof; j++) {
+					rec->angle[j][i] = rec->angle[j][shiftTimeIndex];
 				}
 			}
 			else {
-				rArg->time[i] = rArg->time[i] - shiftTime;
+				rec->time[i] = rec->time[i] - shiftTime;
 			}
 		}
 	}
 
 	// signal completion of recording
-	MUTEX_LOCK(&rArg->robot->_recording_mutex);
-    for (int i = 0; i < rArg->robot->_dof; i++) {
-        rArg->robot->_motor[i].record = false;
+	MUTEX_LOCK(&rec->robot->_recording_mutex);
+    for (int i = 0; i < rec->robot->_dof; i++) {
+        rec->robot->_motor[i].record = false;
     }
-	COND_SIGNAL(&rArg->robot->_recording_cond);
-	MUTEX_UNLOCK(&rArg->robot->_recording_mutex);
+	COND_SIGNAL(&rec->robot->_recording_cond);
+	MUTEX_UNLOCK(&rec->robot->_recording_mutex);
 
 	// cleanup
-	delete rArg;
+	delete rec;
 	delete moving;
 
 	// success
@@ -2060,135 +2060,135 @@ void* Robot::recordAnglesThread(void *arg) {
 }
 
 void* Robot::recordAnglesBeginThread(void *arg) {
-	// cast arg struct
-	recArg_t *rArg = (recArg_t *)arg;
+	// cast argument
+	Recording *rec = (Recording *)arg;
 
 	// create initial time points
 	double start_time = 0;
 	int time = (int)((g_sim->getClock())*1000);
 
 	// actively taking a new data point
-	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	for (int i = 0; i < rArg->robot->_dof; i++) {
-		rArg->robot->_motor[i].record_active = true;
+	MUTEX_LOCK(&rec->robot->_active_mutex);
+	for (int i = 0; i < rec->robot->_dof; i++) {
+		rec->robot->_motor[i].record_active = true;
 	}
-	COND_SIGNAL(&rArg->robot->_active_cond);
-	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
+	COND_SIGNAL(&rec->robot->_active_cond);
+	MUTEX_UNLOCK(&rec->robot->_active_mutex);
 
 	// loop until recording is no longer needed
-	for (int i = 0; rArg->robot->_motor[rArg->id].record; i++) {
+	for (int i = 0; rec->robot->_motor[rec->id].record; i++) {
 		// store locally num of data points taken
-		rArg->robot->_motor[JOINT1].record_num = i;
+		rec->robot->_motor[JOINT1].record_num = i;
 
 		// resize array if filled current one
-		if(i >= rArg->num) {
-			rArg->num += RECORD_ANGLE_ALLOC_SIZE;
+		if(i >= rec->num) {
+			rec->num += RECORD_ANGLE_ALLOC_SIZE;
 			// create larger array for time
-			double *newbuf = new double[rArg->num];
-			memcpy(newbuf, *rArg->ptime, sizeof(double)*i);
-			delete [] *(rArg->ptime);
-			*(rArg->ptime) = newbuf;
-			for (int j = 0; j < rArg->robot->_dof; j++) {
-				newbuf = new double[rArg->num];
-				memcpy(newbuf, *(rArg->pangle[j]), sizeof(double)*i);
-				delete [] *(rArg->pangle[j]);
-				*(rArg->pangle[j]) = newbuf;
+			double *newbuf = new double[rec->num];
+			memcpy(newbuf, *rec->ptime, sizeof(double)*i);
+			delete [] *(rec->ptime);
+			*(rec->ptime) = newbuf;
+			for (int j = 0; j < rec->robot->_dof; j++) {
+				newbuf = new double[rec->num];
+				memcpy(newbuf, *(rec->pangle[j]), sizeof(double)*i);
+				delete [] *(rec->pangle[j]);
+				*(rec->pangle[j]) = newbuf;
 			}
 		}
 
 		// store joint angles
-		for (int j = 0; j < rArg->robot->_dof; j++) {
-			(*(rArg->pangle[j]))[i] = RAD2DEG(rArg->robot->_motor[j].theta);
+		for (int j = 0; j < rec->robot->_dof; j++) {
+			(*(rec->pangle[j]))[i] = RAD2DEG(rec->robot->_motor[j].theta);
 		}
 
 		// store time of data point
-		(*rArg->ptime)[i] = g_sim->getClock()*1000;
-		if (i == 0) { start_time = (*rArg->ptime)[i]; }
-		(*rArg->ptime)[i] = ((*rArg->ptime)[i] - start_time) / 1000;
+		(*rec->ptime)[i] = g_sim->getClock()*1000;
+		if (i == 0) { start_time = (*rec->ptime)[i]; }
+		(*rec->ptime)[i] = ((*rec->ptime)[i] - start_time) / 1000;
 
 		// increment time step
-		time += rArg->msecs;
+		time += rec->msecs;
 
 		// pause until next step
 		if ( (int)(g_sim->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
+			rec->robot->doze(time - (int)(g_sim->getClock()*1000));
 	}
 
 	// signal completion of recording
-	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	for (int i = 0; i < rArg->robot->_dof; i++) {
-		rArg->robot->_motor[i].record_active = false;
+	MUTEX_LOCK(&rec->robot->_active_mutex);
+	for (int i = 0; i < rec->robot->_dof; i++) {
+		rec->robot->_motor[i].record_active = false;
 	}
-	COND_SIGNAL(&rArg->robot->_active_cond);
-	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
+	COND_SIGNAL(&rec->robot->_active_cond);
+	MUTEX_UNLOCK(&rec->robot->_active_mutex);
 
 	// cleanup
-	delete rArg;
+	delete rec;
 
 	// success
 	return NULL;
 }
 
 void* Robot::recordxyBeginThread(void *arg) {
-	// cast arg struct
-	recArg_t *rArg = (recArg_t *)arg;
+	// cast argument
+	Recording *rec = (Recording *)arg;
 
 	// create initial time points
 	int time = (int)((g_sim->getClock())*1000);
 
 	// actively taking a new data point
-	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_motor[JOINT1].record_active = true;
-	rArg->robot->_motor[JOINT2].record_active = true;
-	COND_SIGNAL(&rArg->robot->_active_cond);
-	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
+	MUTEX_LOCK(&rec->robot->_active_mutex);
+	rec->robot->_motor[JOINT1].record_active = true;
+	rec->robot->_motor[JOINT2].record_active = true;
+	COND_SIGNAL(&rec->robot->_active_cond);
+	MUTEX_UNLOCK(&rec->robot->_active_mutex);
 
 	// loop until recording is no longer needed
-	for (int i = 0; rArg->robot->_motor[JOINT1].record; i++) {
+	for (int i = 0; rec->robot->_motor[JOINT1].record; i++) {
 		// store locally num of data points taken
-		rArg->robot->_motor[JOINT1].record_num = i;
+		rec->robot->_motor[JOINT1].record_num = i;
 
 		// resize array if filled current one
-		if (i >= rArg->num) {
-			rArg->num += RECORD_ANGLE_ALLOC_SIZE;
+		if (i >= rec->num) {
+			rec->num += RECORD_ANGLE_ALLOC_SIZE;
 			// create larger array for time
-			double *newbuf = new double[rArg->num];
-			memcpy(newbuf, *rArg->ptime, sizeof(double)*i);
-			delete *(rArg->ptime);
-			*(rArg->ptime) = newbuf;
+			double *newbuf = new double[rec->num];
+			memcpy(newbuf, *rec->ptime, sizeof(double)*i);
+			delete *(rec->ptime);
+			*(rec->ptime) = newbuf;
 			// create larger array for angle
-			newbuf = new double[rArg->num];
-			memcpy(newbuf, *(rArg->pangle), sizeof(double)*i);
-			delete (*(rArg->pangle));
-			*(rArg->pangle[0]) = newbuf;
+			newbuf = new double[rec->num];
+			memcpy(newbuf, *(rec->pangle), sizeof(double)*i);
+			delete (*(rec->pangle));
+			*(rec->pangle[0]) = newbuf;
 		}
 
 		// store positions
-		if (rArg->robot->_trace) {
-			(*(rArg->ptime))[i] = rArg->robot->getCenter(0);
-			(*(rArg->pangle[0]))[i] = rArg->robot->getCenter(1);
+		if (rec->robot->_trace) {
+			(*(rec->ptime))[i] = rec->robot->getCenter(0);
+			(*(rec->pangle[0]))[i] = rec->robot->getCenter(1);
 		}
 		else {
 			i--;
 		}
 
 		// increment time step
-		time += rArg->msecs;
+		time += rec->msecs;
 
 		// pause until next step
 		if ( (int)(g_sim->getClock()*1000) < time )
-			rArg->robot->doze(time - (int)(g_sim->getClock()*1000));
+			rec->robot->doze(time - (int)(g_sim->getClock()*1000));
 	}
 
 	// signal completion of recording
-	MUTEX_LOCK(&rArg->robot->_active_mutex);
-	rArg->robot->_motor[JOINT1].record_active = false;
-	rArg->robot->_motor[JOINT2].record_active = false;
-	COND_SIGNAL(&rArg->robot->_active_cond);
-	MUTEX_UNLOCK(&rArg->robot->_active_mutex);
+	MUTEX_LOCK(&rec->robot->_active_mutex);
+	rec->robot->_motor[JOINT1].record_active = false;
+	rec->robot->_motor[JOINT2].record_active = false;
+	COND_SIGNAL(&rec->robot->_active_cond);
+	MUTEX_UNLOCK(&rec->robot->_active_mutex);
 
 	// cleanup
-	delete rArg;
+	delete rec;
 
 	// success
 	return NULL;
