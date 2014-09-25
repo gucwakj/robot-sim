@@ -48,7 +48,7 @@ extern osg::Node::NodeMask CASTS_SHADOW_MASK;
 extern osg::Node::NodeMask IS_PICKABLE_MASK;
 extern osg::Node::NodeMask VISIBLE_MASK;
 
-struct ground_s;
+struct Ground;
 class RoboSim;
 extern RoboSim *g_sim;
 
@@ -101,10 +101,10 @@ class pickHandler : public osgGA::GUIEventHandler {
  **********************************************************/
 class groundNodeCallback : public osg::NodeCallback {
 	public:
-		groundNodeCallback(struct ground_s *ground);
+		groundNodeCallback(Ground *ground);
 		virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 	private:
-		struct ground_s *_ground;
+		Ground *_ground;
 };
 
 /**********************************************************

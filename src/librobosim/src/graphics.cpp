@@ -208,7 +208,7 @@ void pickHandler::pick(const osgGA::GUIEventAdapter &ea, osgViewer::Viewer *view
 /**********************************************************
 	Ground Node Callback
  **********************************************************/
-groundNodeCallback::groundNodeCallback(struct ground_s *ground) {
+groundNodeCallback::groundNodeCallback(Ground *ground) {
 	_ground = ground;
 }
 

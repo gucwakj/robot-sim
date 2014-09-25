@@ -11,13 +11,12 @@
 #include "graphics.hpp"
 #endif // ENABLE_GRAPHICS
 
-// ground struct
-typedef struct ground_s {
+// ground objects
+struct Ground {
 	dBodyID body;
 	dGeomID geom;
 	double r, g, b, alpha;
-	struct ground_s *next;
-} *ground_t;
+};
 
 class DLLIMPORT RoboSim {
 	// public api
@@ -85,7 +84,7 @@ class DLLIMPORT RoboSim {
 		dWorldID _world;				// world in which simulation occurs
 		dSpaceID _space;				// space for robots in which to live
 		dJointGroupID _group;			// group to store joints
-		ground_t _ground;				// ground (static) objects
+		std::vector<Ground*> _ground;	// ground (static) objects
 		std::vector<Robots*> _robots;	// all robots in simulation
 		xml_robot_t _bot;				// robots read from config file
 		bool _collision;				// check to perform collisions
