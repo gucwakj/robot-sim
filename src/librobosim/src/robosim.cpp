@@ -67,15 +67,12 @@ RoboSim::~RoboSim(void) {
 		delete _robots[i];
 	}
 
-	// remove bot+connector list
-	xml_robot_t btmp = _bot;
-	while (btmp) {
-		xml_robot_t tmp = btmp->next;
-		for (int j = 0; j < btmp->conn.size(); j++) {
-			delete btmp->conn[j];
+	// remove bot + connector list
+	for (int i = 0; i < _xmlbot.size(); i++) {
+		for (int j = 0; j < _xmlbot[i]->conn.size(); j++) {
+			delete _xmlbot[i]->conn[j];
 		}
-		delete btmp;
-		btmp = tmp;
+		delete _xmlbot[i];
 	}
 }
 
@@ -141,7 +138,6 @@ int RoboSim::init_xml(char *name) {
 	int tracking = 0;
 	int custom = 0;
 	double size = 0;
-	_bot = NULL;
 	_preconfig = 0;
 	_pause = 3;
 	_rt = 1;
@@ -514,273 +510,213 @@ int RoboSim::init_xml(char *name) {
 	while (node) {
 		if (node->ToComment()) {}
 		else if ( !strcmp(node->Value(), "mobot") ) {
-			xml_robot_t nr = new struct xml_robot_s;
-			nr->type = MOBOT;
-			nr->connected = 0;
-			nr->x = 0; nr->y = 0; nr->z = 0;
-			nr->psi = 0; nr->theta = 0; nr->phi = 0;
-			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0; nr->angle4 = 0;
-			nr->tracking = tracking;
-			node->QueryIntAttribute("id", &(nr->id));
+			_xmlbot.push_back(new XMLRobot());
+			_xmlbot.back()->type = MOBOT;
+			_xmlbot.back()->connected = 0;
+			_xmlbot.back()->x = 0; _xmlbot.back()->y = 0; _xmlbot.back()->z = 0;
+			_xmlbot.back()->psi = 0; _xmlbot.back()->theta = 0; _xmlbot.back()->phi = 0;
+			_xmlbot.back()->angle1 = 0; _xmlbot.back()->angle2 = 0; _xmlbot.back()->angle3 = 0;
+			_xmlbot.back()->angle4 = 0; _xmlbot.back()->angle5 = 0; _xmlbot.back()->angle6 = 0;
+			_xmlbot.back()->tracking = tracking;
+			node->QueryIntAttribute("id", &(_xmlbot.back()->id));
 			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &(nr->x));
-				ele->QueryDoubleAttribute("y", &(nr->y));
-				ele->QueryDoubleAttribute("z", &(nr->z));
+				ele->QueryDoubleAttribute("x", &(_xmlbot.back()->x));
+				ele->QueryDoubleAttribute("y", &(_xmlbot.back()->y));
+				ele->QueryDoubleAttribute("z", &(_xmlbot.back()->z));
 			}
 			if ( (ele = node->FirstChildElement("rotation")) ) {
-				ele->QueryDoubleAttribute("psi", &(nr->psi));
-				ele->QueryDoubleAttribute("theta", &(nr->theta));
-				ele->QueryDoubleAttribute("phi", &(nr->phi));
+				ele->QueryDoubleAttribute("psi", &(_xmlbot.back()->psi));
+				ele->QueryDoubleAttribute("theta", &(_xmlbot.back()->theta));
+				ele->QueryDoubleAttribute("phi", &(_xmlbot.back()->phi));
 			}
 			if ( (ele = node->FirstChildElement("joint")) ) {
-				ele->QueryDoubleAttribute("a1", &(nr->angle1));
-				ele->QueryDoubleAttribute("a2", &(nr->angle2));
-				ele->QueryDoubleAttribute("a3", &(nr->angle3));
-				ele->QueryDoubleAttribute("a4", &(nr->angle4));
+				ele->QueryDoubleAttribute("a1", &(_xmlbot.back()->angle1));
+				ele->QueryDoubleAttribute("a2", &(_xmlbot.back()->angle2));
+				ele->QueryDoubleAttribute("a3", &(_xmlbot.back()->angle3));
+				ele->QueryDoubleAttribute("a4", &(_xmlbot.back()->angle4));
 			}
-			if (node->QueryIntAttribute("ground", &(nr->ground))) {
-				nr->ground = -1;
-			}
-			nr->next = NULL;
-
-			// put new bot at end of list
-			xml_robot_t rtmp = _bot;
-			if ( _bot == NULL )
-				_bot = nr;
-			else {
-				while (rtmp->next)
-					rtmp = rtmp->next;
-				rtmp->next = nr;
+			if (node->QueryIntAttribute("ground", &(_xmlbot.back()->ground))) {
+				_xmlbot.back()->ground = -1;
 			}
 		}
 		else if ( !strcmp(node->Value(), "linkboti") ) {
-			xml_robot_t nr = new struct xml_robot_s;
-			nr->type = LINKBOTI;
-			nr->connected = 0;
-			nr->x = 0; nr->y = 0; nr->z = 0;
-			nr->psi = 0; nr->theta = 0; nr->phi = 0;
-			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
-			nr->tracking = tracking;
-			node->QueryIntAttribute("id", &(nr->id));
+			_xmlbot.push_back(new XMLRobot());
+			_xmlbot.back()->type = LINKBOTI;
+			_xmlbot.back()->connected = 0;
+			_xmlbot.back()->x = 0; _xmlbot.back()->y = 0; _xmlbot.back()->z = 0;
+			_xmlbot.back()->psi = 0; _xmlbot.back()->theta = 0; _xmlbot.back()->phi = 0;
+			_xmlbot.back()->angle1 = 0; _xmlbot.back()->angle2 = 0; _xmlbot.back()->angle3 = 0;
+			_xmlbot.back()->angle4 = 0; _xmlbot.back()->angle5 = 0; _xmlbot.back()->angle6 = 0;
+			_xmlbot.back()->tracking = tracking;
+			node->QueryIntAttribute("id", &(_xmlbot.back()->id));
 			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &(nr->x));
-				ele->QueryDoubleAttribute("y", &(nr->y));
-				ele->QueryDoubleAttribute("z", &(nr->z));
+				ele->QueryDoubleAttribute("x", &(_xmlbot.back()->x));
+				ele->QueryDoubleAttribute("y", &(_xmlbot.back()->y));
+				ele->QueryDoubleAttribute("z", &(_xmlbot.back()->z));
 			}
 			if ( (ele = node->FirstChildElement("rotation")) ) {
-				ele->QueryDoubleAttribute("psi", &(nr->psi));
-				ele->QueryDoubleAttribute("theta", &(nr->theta));
-				ele->QueryDoubleAttribute("phi", &(nr->phi));
+				ele->QueryDoubleAttribute("psi", &(_xmlbot.back()->psi));
+				ele->QueryDoubleAttribute("theta", &(_xmlbot.back()->theta));
+				ele->QueryDoubleAttribute("phi", &(_xmlbot.back()->phi));
 			}
 			if ( (ele = node->FirstChildElement("joint")) ) {
-				ele->QueryDoubleAttribute("f1", &(nr->angle1));
-				ele->QueryDoubleAttribute("f2", &(nr->angle2));
-				ele->QueryDoubleAttribute("f3", &(nr->angle3));
+				ele->QueryDoubleAttribute("f1", &(_xmlbot.back()->angle1));
+				ele->QueryDoubleAttribute("f2", &(_xmlbot.back()->angle2));
+				ele->QueryDoubleAttribute("f3", &(_xmlbot.back()->angle3));
 			}
 			int o;
 			if (!node->QueryIntAttribute("orientation", &o)) {
 				if (o == 1)
-					nr->psi = 0;
+					_xmlbot.back()->psi = 0;
 				else if (o == 2)
-					nr->psi = M_PI/2;
+					_xmlbot.back()->psi = M_PI/2;
 				else if (o == 3)
-					nr->psi = M_PI;
+					_xmlbot.back()->psi = M_PI;
 				else if (o == 4)
-					nr->psi = 3*M_PI/2;
+					_xmlbot.back()->psi = 3*M_PI/2;
 			}
-			if (node->QueryIntAttribute("ground", &(nr->ground))) {
-				nr->ground = -1;
-			}
-			nr->next = NULL;
-
-			// put new bot at end of list
-			xml_robot_t rtmp = _bot;
-			if ( _bot == NULL )
-				_bot = nr;
-			else {
-				while (rtmp->next)
-					rtmp = rtmp->next;
-				rtmp->next = nr;
+			if (node->QueryIntAttribute("ground", &(_xmlbot.back()->ground))) {
+				_xmlbot.back()->ground = -1;
 			}
 		}
 		else if ( !strcmp(node->Value(), "linkbotl") ) {
-			xml_robot_t nr = new struct xml_robot_s;
-			nr->type = LINKBOTL;
-			nr->connected = 0;
-			nr->x = 0; nr->y = 0; nr->z = 0;
-			nr->psi = 0; nr->theta = 0; nr->phi = 0;
-			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
-			nr->tracking = tracking;
-			node->QueryIntAttribute("id", &(nr->id));
+			_xmlbot.push_back(new XMLRobot());
+			_xmlbot.back()->type = LINKBOTL;
+			_xmlbot.back()->connected = 0;
+			_xmlbot.back()->x = 0; _xmlbot.back()->y = 0; _xmlbot.back()->z = 0;
+			_xmlbot.back()->psi = 0; _xmlbot.back()->theta = 0; _xmlbot.back()->phi = 0;
+			_xmlbot.back()->angle1 = 0; _xmlbot.back()->angle2 = 0; _xmlbot.back()->angle3 = 0;
+			_xmlbot.back()->angle4 = 0; _xmlbot.back()->angle5 = 0; _xmlbot.back()->angle6 = 0;
+			_xmlbot.back()->tracking = tracking;
+			node->QueryIntAttribute("id", &(_xmlbot.back()->id));
 			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &(nr->x));
-				ele->QueryDoubleAttribute("y", &(nr->y));
-				ele->QueryDoubleAttribute("z", &(nr->z));
+				ele->QueryDoubleAttribute("x", &(_xmlbot.back()->x));
+				ele->QueryDoubleAttribute("y", &(_xmlbot.back()->y));
+				ele->QueryDoubleAttribute("z", &(_xmlbot.back()->z));
 			}
 			if ( (ele = node->FirstChildElement("rotation")) ) {
-				ele->QueryDoubleAttribute("psi", &(nr->psi));
-				ele->QueryDoubleAttribute("theta", &(nr->theta));
-				ele->QueryDoubleAttribute("phi", &(nr->phi));
+				ele->QueryDoubleAttribute("psi", &(_xmlbot.back()->psi));
+				ele->QueryDoubleAttribute("theta", &(_xmlbot.back()->theta));
+				ele->QueryDoubleAttribute("phi", &(_xmlbot.back()->phi));
 			}
 			if ( (ele = node->FirstChildElement("joint")) ) {
-				ele->QueryDoubleAttribute("f1", &(nr->angle1));
-				ele->QueryDoubleAttribute("f2", &(nr->angle2));
-				ele->QueryDoubleAttribute("f3", &(nr->angle3));
+				ele->QueryDoubleAttribute("f1", &(_xmlbot.back()->angle1));
+				ele->QueryDoubleAttribute("f2", &(_xmlbot.back()->angle2));
+				ele->QueryDoubleAttribute("f3", &(_xmlbot.back()->angle3));
 			}
 			int o;
 			if (!node->QueryIntAttribute("orientation", &o)) {
 				if (o == 1)
-					nr->psi = 0;
+					_xmlbot.back()->psi = 0;
 				else if (o == 2)
-					nr->psi = M_PI/2;
+					_xmlbot.back()->psi = M_PI/2;
 				else if (o == 3)
-					nr->psi = M_PI;
+					_xmlbot.back()->psi = M_PI;
 				else if (o == 4)
-					nr->psi = 3*M_PI/2;
+					_xmlbot.back()->psi = 3*M_PI/2;
 			}
-			if (node->QueryIntAttribute("ground", &(nr->ground))) {
-				nr->ground = -1;
-			}
-			nr->next = NULL;
-
-			// put new bot at end of list
-			xml_robot_t rtmp = _bot;
-			if ( _bot == NULL )
-				_bot = nr;
-			else {
-				while (rtmp->next)
-					rtmp = rtmp->next;
-				rtmp->next = nr;
+			if (node->QueryIntAttribute("ground", &(_xmlbot.back()->ground))) {
+				_xmlbot.back()->ground = -1;
 			}
 		}
 		else if ( !strcmp(node->Value(), "linkbott") ) {
-			xml_robot_t nr = new struct xml_robot_s;
-			nr->type = LINKBOTT;
-			nr->connected = 0;
-			nr->x = 0; nr->y = 0; nr->z = 0;
-			nr->psi = 0; nr->theta = 0; nr->phi = 0;
-			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0;
-			nr->tracking = tracking;
-			node->QueryIntAttribute("id", &(nr->id));
+			_xmlbot.push_back(new XMLRobot());
+			_xmlbot.back()->type = LINKBOTT;
+			_xmlbot.back()->connected = 0;
+			_xmlbot.back()->x = 0; _xmlbot.back()->y = 0; _xmlbot.back()->z = 0;
+			_xmlbot.back()->psi = 0; _xmlbot.back()->theta = 0; _xmlbot.back()->phi = 0;
+			_xmlbot.back()->angle1 = 0; _xmlbot.back()->angle2 = 0; _xmlbot.back()->angle3 = 0;
+			_xmlbot.back()->angle4 = 0; _xmlbot.back()->angle5 = 0; _xmlbot.back()->angle6 = 0;
+			_xmlbot.back()->tracking = tracking;
+			node->QueryIntAttribute("id", &(_xmlbot.back()->id));
 			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &(nr->x));
-				ele->QueryDoubleAttribute("y", &(nr->y));
-				ele->QueryDoubleAttribute("z", &(nr->z));
+				ele->QueryDoubleAttribute("x", &(_xmlbot.back()->x));
+				ele->QueryDoubleAttribute("y", &(_xmlbot.back()->y));
+				ele->QueryDoubleAttribute("z", &(_xmlbot.back()->z));
 			}
 			if ( (ele = node->FirstChildElement("rotation")) ) {
-				ele->QueryDoubleAttribute("psi", &(nr->psi));
-				ele->QueryDoubleAttribute("theta", &(nr->theta));
-				ele->QueryDoubleAttribute("phi", &(nr->phi));
+				ele->QueryDoubleAttribute("psi", &(_xmlbot.back()->psi));
+				ele->QueryDoubleAttribute("theta", &(_xmlbot.back()->theta));
+				ele->QueryDoubleAttribute("phi", &(_xmlbot.back()->phi));
 			}
 			if ( (ele = node->FirstChildElement("joint")) ) {
-				ele->QueryDoubleAttribute("f1", &(nr->angle1));
-				ele->QueryDoubleAttribute("f2", &(nr->angle2));
-				ele->QueryDoubleAttribute("f3", &(nr->angle3));
+				ele->QueryDoubleAttribute("f1", &(_xmlbot.back()->angle1));
+				ele->QueryDoubleAttribute("f2", &(_xmlbot.back()->angle2));
+				ele->QueryDoubleAttribute("f3", &(_xmlbot.back()->angle3));
 			}
 			int o;
 			if (!node->QueryIntAttribute("orientation", &o)) {
 				if (o == 1)
-					nr->psi = 0;
+					_xmlbot.back()->psi = 0;
 				else if (o == 2)
-					nr->psi = M_PI/2;
+					_xmlbot.back()->psi = M_PI/2;
 				else if (o == 3)
-					nr->psi = M_PI;
+					_xmlbot.back()->psi = M_PI;
 				else if (o == 4)
-					nr->psi = 3*M_PI/2;
+					_xmlbot.back()->psi = 3*M_PI/2;
 			}
-			if (node->QueryIntAttribute("ground", &(nr->ground))) {
-				nr->ground = -1;
-			}
-			nr->next = NULL;
-
-			// put new bot at end of list
-			xml_robot_t rtmp = _bot;
-			if ( _bot == NULL )
-				_bot = nr;
-			else {
-				while (rtmp->next)
-					rtmp = rtmp->next;
-				rtmp->next = nr;
+			if (node->QueryIntAttribute("ground", &(_xmlbot.back()->ground))) {
+				_xmlbot.back()->ground = -1;
 			}
 		}
 		else if ( !strcmp(node->Value(), "nxt") ) {
-			xml_robot_t nr = new struct xml_robot_s;
-			nr->type = NXT;
-			nr->connected = 0;
-			nr->x = 0; nr->y = 0; nr->z = 0;
-			nr->psi = 0; nr->theta = 0; nr->phi = 0;
-			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0; nr->angle4 = 0;
-			nr->tracking = tracking;
-			node->QueryIntAttribute("id", &(nr->id));
+			_xmlbot.push_back(new XMLRobot());
+			_xmlbot.back()->type = NXT;
+			_xmlbot.back()->connected = 0;
+			_xmlbot.back()->x = 0; _xmlbot.back()->y = 0; _xmlbot.back()->z = 0;
+			_xmlbot.back()->psi = 0; _xmlbot.back()->theta = 0; _xmlbot.back()->phi = 0;
+			_xmlbot.back()->angle1 = 0; _xmlbot.back()->angle2 = 0; _xmlbot.back()->angle3 = 0;
+			_xmlbot.back()->angle4 = 0; _xmlbot.back()->angle5 = 0; _xmlbot.back()->angle6 = 0;
+			_xmlbot.back()->tracking = tracking;
+			node->QueryIntAttribute("id", &(_xmlbot.back()->id));
 			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &(nr->x));
-				ele->QueryDoubleAttribute("y", &(nr->y));
-				ele->QueryDoubleAttribute("z", &(nr->z));
+				ele->QueryDoubleAttribute("x", &(_xmlbot.back()->x));
+				ele->QueryDoubleAttribute("y", &(_xmlbot.back()->y));
+				ele->QueryDoubleAttribute("z", &(_xmlbot.back()->z));
 			}
 			if ( (ele = node->FirstChildElement("rotation")) ) {
-				ele->QueryDoubleAttribute("psi", &(nr->psi));
-				ele->QueryDoubleAttribute("theta", &(nr->theta));
-				ele->QueryDoubleAttribute("phi", &(nr->phi));
+				ele->QueryDoubleAttribute("psi", &(_xmlbot.back()->psi));
+				ele->QueryDoubleAttribute("theta", &(_xmlbot.back()->theta));
+				ele->QueryDoubleAttribute("phi", &(_xmlbot.back()->phi));
 			}
 			if ( (ele = node->FirstChildElement("joint")) ) {
-				ele->QueryDoubleAttribute("w1", &(nr->angle1));
-				ele->QueryDoubleAttribute("w2", &(nr->angle2));
+				ele->QueryDoubleAttribute("w1", &(_xmlbot.back()->angle1));
+				ele->QueryDoubleAttribute("w2", &(_xmlbot.back()->angle2));
 			}
-			if (node->QueryIntAttribute("ground", &(nr->ground))) {
-				nr->ground = -1;
-			}
-			nr->next = NULL;
-
-			// put new bot at end of list
-			xml_robot_t rtmp = _bot;
-			if ( _bot == NULL )
-				_bot = nr;
-			else {
-				while (rtmp->next)
-					rtmp = rtmp->next;
-				rtmp->next = nr;
+			if (node->QueryIntAttribute("ground", &(_xmlbot.back()->ground))) {
+				_xmlbot.back()->ground = -1;
 			}
 		}
 		else if ( !strcmp(node->Value(), "cubus") ) {
-			xml_robot_t nr = new struct xml_robot_s;
-			nr->type = CUBUS;
-			nr->connected = 0;
-			nr->x = 0; nr->y = 0; nr->z = 0;
-			nr->psi = 0; nr->theta = 0; nr->phi = 0;
-			nr->angle1 = 0; nr->angle2 = 0; nr->angle3 = 0; nr->angle4 = 0; nr->angle5 = 0; nr->angle6 = 0;
-			nr->tracking = tracking;
-			node->QueryIntAttribute("id", &(nr->id));
+			_xmlbot.push_back(new XMLRobot());
+			_xmlbot.back()->type = CUBUS;
+			_xmlbot.back()->connected = 0;
+			_xmlbot.back()->x = 0; _xmlbot.back()->y = 0; _xmlbot.back()->z = 0;
+			_xmlbot.back()->psi = 0; _xmlbot.back()->theta = 0; _xmlbot.back()->phi = 0;
+			_xmlbot.back()->angle1 = 0; _xmlbot.back()->angle2 = 0; _xmlbot.back()->angle3 = 0;
+			_xmlbot.back()->angle4 = 0; _xmlbot.back()->angle5 = 0; _xmlbot.back()->angle6 = 0;
+			_xmlbot.back()->tracking = tracking;
+			node->QueryIntAttribute("id", &(_xmlbot.back()->id));
 			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &(nr->x));
-				ele->QueryDoubleAttribute("y", &(nr->y));
-				ele->QueryDoubleAttribute("z", &(nr->z));
+				ele->QueryDoubleAttribute("x", &(_xmlbot.back()->x));
+				ele->QueryDoubleAttribute("y", &(_xmlbot.back()->y));
+				ele->QueryDoubleAttribute("z", &(_xmlbot.back()->z));
 			}
 			if ( (ele = node->FirstChildElement("rotation")) ) {
-				ele->QueryDoubleAttribute("psi", &(nr->psi));
-				ele->QueryDoubleAttribute("theta", &(nr->theta));
-				ele->QueryDoubleAttribute("phi", &(nr->phi));
+				ele->QueryDoubleAttribute("psi", &(_xmlbot.back()->psi));
+				ele->QueryDoubleAttribute("theta", &(_xmlbot.back()->theta));
+				ele->QueryDoubleAttribute("phi", &(_xmlbot.back()->phi));
 			}
 			if ( (ele = node->FirstChildElement("joint")) ) {
-				ele->QueryDoubleAttribute("a1", &(nr->angle1));
-				ele->QueryDoubleAttribute("a2", &(nr->angle2));
-				ele->QueryDoubleAttribute("a3", &(nr->angle3));
-				ele->QueryDoubleAttribute("a4", &(nr->angle4));
-				ele->QueryDoubleAttribute("a5", &(nr->angle5));
-				ele->QueryDoubleAttribute("a6", &(nr->angle6));
+				ele->QueryDoubleAttribute("a1", &(_xmlbot.back()->angle1));
+				ele->QueryDoubleAttribute("a2", &(_xmlbot.back()->angle2));
+				ele->QueryDoubleAttribute("a3", &(_xmlbot.back()->angle3));
+				ele->QueryDoubleAttribute("a4", &(_xmlbot.back()->angle4));
+				ele->QueryDoubleAttribute("a5", &(_xmlbot.back()->angle5));
+				ele->QueryDoubleAttribute("a6", &(_xmlbot.back()->angle6));
 			}
-			if (node->QueryIntAttribute("ground", &(nr->ground))) {
-				nr->ground = -1;
-			}
-			nr->next = NULL;
-
-			// put new bot at end of list
-			xml_robot_t rtmp = _bot;
-			if ( _bot == NULL )
-				_bot = nr;
-			else {
-				while (rtmp->next)
-					rtmp = rtmp->next;
-				rtmp->next = nr;
+			if (node->QueryIntAttribute("ground", &(_xmlbot.back()->ground))) {
+				_xmlbot.back()->ground = -1;
 			}
 		}
 		else {
@@ -879,25 +815,19 @@ int RoboSim::init_xml(char *name) {
 			}
 
 			// store connectors to each robot
-			xml_robot_t tmp;
 			for (int j = 0; j < i; j++) {
-				// find correct robot
-				tmp = _bot;
-				while (tmp && tmp->id != rtmp[j])
-					tmp = tmp->next;
-				if (tmp == NULL) {
-					fprintf(stderr, "Error: Robot %d could not be found in RoboSim config file.\n", rtmp[j]);
-					exit(-1);
+				for (int k = 0; k < _xmlbot.size(); k++) {
+					if (_xmlbot[k]->id == rtmp[j]) {
+						_xmlbot[k]->conn.push_back(new XMLConn());
+						_xmlbot[k]->conn.back()->robot = rtmp[0];
+						_xmlbot[k]->conn.back()->face1 = ftmp[0];
+						_xmlbot[k]->conn.back()->conn = atmp[j];
+						_xmlbot[k]->conn.back()->face2 = ftmp[j];
+						_xmlbot[k]->conn.back()->side = ntmp[j];
+						_xmlbot[k]->conn.back()->type = ctype;
+						_xmlbot[k]->conn.back()->size = size;
+					}
 				}
-				// add connector
-				tmp->conn.push_back(new XMLConn());
-				tmp->conn.back()->robot = rtmp[0];
-				tmp->conn.back()->face1 = ftmp[0];
-				tmp->conn.back()->conn = atmp[j];
-				tmp->conn.back()->face2 = ftmp[j];
-				tmp->conn.back()->side = ntmp[j];
-				tmp->conn.back()->type = ctype;
-				tmp->conn.back()->size = size;
 			}
 
 			// delete temporary arrays
@@ -908,22 +838,19 @@ int RoboSim::init_xml(char *name) {
 		}
 
 		// debug printing
-		/*xml_robot_t rtmp = _bot;
-		while (rtmp) {
-			printf("type = %d, id = %d\n", rtmp->type, rtmp->id);
-			printf("x = %lf, y = %lf, z = %lf\n", rtmp->x, rtmp->y, rtmp->z);
-			printf("psi = %lf, theta = %lf, phi = %lf\n", rtmp->psi, rtmp->theta, rtmp->phi);
+		/*for (int i = 0; i < _xmlbot.size(); i++) {
+			printf("type = %d, id = %d\n", _xmlbot[i]->type, _xmlbot[i]->id);
+			printf("x = %lf, y = %lf, z = %lf\n", _xmlbot[i]->x, _xmlbot[i]->y, _xmlbot[i]->z);
+			printf("psi = %lf, theta = %lf, phi = %lf\n", _xmlbot[i]->psi, _xmlbot[i]->theta, _xmlbot[i]->phi);
 			printf("angle1 = %lf, angle2 = %lf, angle3 = %lf, angle4 = %lf\n", \
-				rtmp->angle1, rtmp->angle2, rtmp->angle3, rtmp->angle4);
-			for (int i = 0; i < rtmp->conn.size(); i++) {
+				_xmlbot[i]->angle1, _xmlbot[i]->angle2, _xmlbot[i]->angle3, _xmlbot[i]->angle4);
+			for (int j = 0; j < _xmlbot[i]->conn.size(); j++) {
 				printf("on face %d connect with robot %d on his face %d with type %d from side %d with conn %d\n", \
-					rtmp->conn[i]->face2, rtmp->conn[i]->robot, rtmp->conn[i]->face1, rtmp->conn[i]->type, rtmp->conn[i]->side, rtmp->conn[i]->conn);
+					_xmlbot[i]->conn[j]->face2, _xmlbot[i]->conn[j]->robot, _xmlbot[i]->conn[j]->face1, \
+					_xmlbot[i]->conn[j]->type, _xmlbot[i]->conn[j]->side, _xmlbot[i]->conn[j]->conn);
 			}
-			printf("next = %p\n", rtmp->next);
 			printf("\n");
-			rtmp = rtmp->next;
-		}
-		printf("\n\n\n");*/
+		}*/
 
 		// go to next node
 		node = node->NextSiblingElement();
@@ -997,34 +924,20 @@ int RoboSim::addRobot(Robot *robot) {
 	_robots.push_back(new Robots());
 	_robots.back()->robot = robot;
 
-	// find specs about new robot
-	xml_robot_t btmp = _bot;
+	// get form of new robot
 	int form = 0;
 	robot->getFormFactor(form);
-	while (btmp) {
-		if (btmp->type != form)
-			btmp = btmp->next;
-		else if (btmp->connected)
-			btmp = btmp->next;
-		else
+
+	// find next robot in xml list
+	int i = 0;
+	for (i = 0; i < _xmlbot.size(); i++) {
+		if (_xmlbot[i]->type == form && !_xmlbot[i]->connected)
 			break;
 	}
 
 	// no robot found
-	if (btmp == NULL || btmp->type != form) {
+	if (i == _xmlbot.size() || _xmlbot[i]->type != form) {
 		switch (form) {
-			case LINKBOTI:
-				fprintf(stderr, "Error: Could not find LinkbotI in RoboSim GUI.\n");
-				break;
-			case LINKBOTL:
-				fprintf(stderr, "Error: Could not find LinkbotL in RoboSim GUI.\n");
-				break;
-			case LINKBOTT:
-				fprintf(stderr, "Error: Could not find LinkbotT in RoboSim GUI.\n");
-				break;
-			case MOBOT:
-				fprintf(stderr, "Error: Could not find Mobot in RoboSim GUI.\n");
-				break;
 			case NXT:
 				fprintf(stderr, "Error: Could not find NXT in RoboSim GUI.\n");
 				break;
@@ -1037,25 +950,25 @@ int RoboSim::addRobot(Robot *robot) {
 	}
 
 	// give simulation data to robot
-	robot->addToSim(_world, _space, btmp->id, _robots.size()-1);
+	robot->addToSim(_world, _space, _xmlbot[i]->id, _robots.size()-1);
 
 	// check if robot is colliding with others
-	for (int i = 0; i < _robots.size() - 1; i++) {
-		if ( (fabs(_robots[i]->robot->getCenter(0) - btmp->x) < 0.1) && (fabs(_robots[i]->robot->getCenter(1) - btmp->y) < 0.1) ) {
-			fprintf(stderr, "Warning: Robot %d and Robot %d are possibly colliding.\n", _robots[i]->robot->getID() + 1, btmp->id + 1);
+	for (int j = 0; j < _robots.size() - 1; j++) {
+		if ( (fabs(_robots[j]->robot->getCenter(0) - _xmlbot[i]->x) < 0.1) && (fabs(_robots[j]->robot->getCenter(1) - _xmlbot[i]->y) < 0.1) ) {
+			fprintf(stderr, "Warning: Robot %d and Robot %d are possibly colliding.\n", _robots[j]->robot->getID() + 1, _xmlbot[i]->id + 1);
 			fprintf(stderr, "         Please check RoboSim GUI for x and y positions that may be too close.\n");
 		}
 	}
 
 	// build robot
-	robot->build(btmp);
+	robot->build(_xmlbot[i]);
 
 	// robot now connected
-	btmp->connected = 1;
+	_xmlbot[i]->connected = 1;
 
 #ifdef ENABLE_GRAPHICS
 	// draw robot
-	_robots.back()->node = robot->draw(_staging, btmp->tracking);
+	_robots.back()->node = robot->draw(_staging, _xmlbot[i]->tracking);
 #endif // ENABLE_GRAPHICS
 
 	// unlock robot data
@@ -1073,22 +986,23 @@ int RoboSim::addRobot(ModularRobot *robot) {
 	_robots.push_back(new Robots());
 	_robots.back()->robot = robot;
 
-	// find specs about new robot
-	xml_robot_t btmp = _bot;
+	// get form of new robot
 	int form = 0;
 	robot->getFormFactor(form);
-	while (btmp) {
-		if (btmp->type != form)
-			btmp = btmp->next;
-		else if (btmp->connected)
-			btmp = btmp->next;
-		else
+
+	// find next robot in xml list
+	int i;
+	for (i = 0; i < _xmlbot.size(); i++) {
+		if (_xmlbot[i]->type == form && !_xmlbot[i]->connected)
 			break;
 	}
 
 	// no robot found
-	if (btmp == NULL || btmp->type != form) {
+	if (i == _xmlbot.size() || _xmlbot[i]->type != form) {
 		switch (form) {
+			case MOBOT:
+				fprintf(stderr, "Error: Could not find Mobot in RoboSim GUI.\n");
+				break;
 			case LINKBOTI:
 				fprintf(stderr, "Error: Could not find LinkbotI in RoboSim GUI.\n");
 				break;
@@ -1098,11 +1012,8 @@ int RoboSim::addRobot(ModularRobot *robot) {
 			case LINKBOTT:
 				fprintf(stderr, "Error: Could not find LinkbotT in RoboSim GUI.\n");
 				break;
-			case MOBOT:
-				fprintf(stderr, "Error: Could not find Mobot in RoboSim GUI.\n");
-				break;
-			case NXT:
-				fprintf(stderr, "Error: Could not find NXT in RoboSim GUI.\n");
+			case CUBUS:
+				fprintf(stderr, "Error: Could not find CUBUS in RoboSim GUI.\n");
 				break;
 		}
 		if (_preconfig) {
@@ -1113,50 +1024,49 @@ int RoboSim::addRobot(ModularRobot *robot) {
 	}
 
 	// give simulation data to robot
-	robot->addToSim(_world, _space, btmp->id, _robots.size()-1);
+	robot->addToSim(_world, _space, _xmlbot[i]->id, _robots.size()-1);
 
 	// find if robot is connected to another one
-	int i;
-	for (i = 0; i < btmp->conn.size(); i++) {
-		if (btmp->conn[i]->robot != btmp->id) {
+	int j;
+	for (j = 0; j < _xmlbot[i]->conn.size(); j++) {
+		if (_xmlbot[i]->conn[j]->robot != _xmlbot[i]->id)
 			break;
-		}
 	}
 
 	// if robot is connected to another one
-	if (i != btmp->conn.size()) {
-		for (int j = 0; j < _robots.size(); j++) {
-			if (_robots[j]->robot->getID() == btmp->conn[j]->robot) {
-				ModularRobot *r = dynamic_cast<ModularRobot *>(_robots[j]->robot);
-				dBodyID body = r->getConnectorBodyID(btmp->conn[i]->face1);
+	if (j != _xmlbot[i]->conn.size()) {
+		for (int k = 0; k < _robots.size(); k++) {
+			if (_robots[k]->robot->getID() == _xmlbot[i]->conn[j]->robot) {
+				ModularRobot *r = dynamic_cast<ModularRobot *>(_robots[k]->robot);
+				dBodyID body = r->getConnectorBodyID(_xmlbot[i]->conn[j]->face1);
 				dMatrix3 R;
 				double m[3] = {0};
-				r->getFaceParams(btmp->conn[i]->face1, R, m);
-				robot->build(btmp, R, m, body, btmp->conn[i]);
-				robot->addNeighbor(r, btmp->conn[i]->face2-1, btmp->conn[i]->face1-1);
-				r->addNeighbor(robot, btmp->conn[i]->face1-1, btmp->conn[i]->face2-1);
+				r->getFaceParams(_xmlbot[i]->conn[j]->face1, R, m);
+				robot->build(_xmlbot[i], R, m, body, _xmlbot[i]->conn[j]);
+				robot->addNeighbor(r, _xmlbot[i]->conn[j]->face2-1, _xmlbot[i]->conn[j]->face1-1);
+				r->addNeighbor(robot, _xmlbot[i]->conn[j]->face1-1, _xmlbot[i]->conn[j]->face2-1);
 				break;
 			}
 		}
 	}
 	else {
 		// check if robot is colliding with others
-		for (int i = 0; i < _robots.size() - 1; i++) {
-			if ( (fabs(_robots[i]->robot->getCenter(0) - btmp->x) < 0.1) && (fabs(_robots[i]->robot->getCenter(1) - btmp->y) < 0.1) ) {
-				fprintf(stderr, "Warning: Robot %d and Robot %d are possibly colliding.\n", _robots[i]->robot->getID() + 1, btmp->id + 1);
+		for (int k = 0; k < _robots.size() - 1; k++) {
+			if ( (fabs(_robots[k]->robot->getCenter(0) - _xmlbot[i]->x) < 0.1) && (fabs(_robots[k]->robot->getCenter(1) - _xmlbot[i]->y) < 0.1) ) {
+				fprintf(stderr, "Warning: Robot %d and Robot %d are possibly colliding.\n", _robots[k]->robot->getID() + 1, _xmlbot[i]->id + 1);
 				fprintf(stderr, "         Please check RoboSim GUI for x and y positions that may be too close.\n");
 			}
 		}
 		// build
-		robot->build(btmp);
+		robot->build(_xmlbot[i]);
 	}
 
 	// robot now connected
-	btmp->connected = 1;
+	_xmlbot[i]->connected = 1;
 
 #ifdef ENABLE_GRAPHICS
 	// draw robot
-	_robots.back()->node = robot->draw(_staging, btmp->tracking);
+	_robots.back()->node = robot->draw(_staging, _xmlbot[i]->tracking);
 #endif // ENABLE_GRAPHICS
 
 	// unlock robot data

@@ -61,7 +61,7 @@ class DLLIMPORT CMobot : public ModularRobot {
 	// inherited functions from ModularRobot class
 	private:
 		virtual int addConnector(int, int, double);
-		virtual int build(xml_robot_t, dMatrix3, double*, dBodyID, XMLConn*);
+		virtual int build(XMLRobot*, dMatrix3, double*, dBodyID, XMLConn*);
 #ifdef ENABLE_GRAPHICS
 		virtual int drawConnector(Connector*, osg::Group*);
 #endif // ENABLE_GRAPHICS
@@ -72,7 +72,7 @@ class DLLIMPORT CMobot : public ModularRobot {
 
 	// inherited functions from Robot class
 	private:
-		virtual int build(xml_robot_t);
+		virtual int build(XMLRobot*);
 		virtual int buildIndividual(double, double, double, dMatrix3, double*);
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group*, int);

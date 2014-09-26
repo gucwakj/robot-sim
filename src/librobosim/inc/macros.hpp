@@ -133,8 +133,8 @@ struct XMLConn {
 	int robot, type, side, face1, face2, conn;
 };
 
-// xml config robots
-typedef struct xml_robot_s {
+// xml robots
+struct XMLRobot {
 	int connected;
 	int id;
 	int ground;
@@ -144,8 +144,7 @@ typedef struct xml_robot_s {
 	double psi, theta, phi;
 	double angle1, angle2, angle3, angle4, angle5, angle6;
 	std::vector<XMLConn*> conn;
-	struct xml_robot_s *next;
-} *xml_robot_t;
+};
 
 // recorded data
 typedef double* robotRecordData_t;

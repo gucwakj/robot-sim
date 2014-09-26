@@ -662,7 +662,7 @@ int CLinkbotT::addConnector(int type, int face, double size) {
 	return 0;
 }
 
-int CLinkbotT::build(xml_robot_t robot) {
+int CLinkbotT::build(XMLRobot *robot) {
 	// check for wheels
 	for (int i = 0; i < robot->conn.size(); i++) {
 		if (robot->conn[i]->conn == BIGWHEEL) {
@@ -742,7 +742,7 @@ int CLinkbotT::build(xml_robot_t robot) {
 	return 0;
 }
 
-int CLinkbotT::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, XMLConn *conn) {
+int CLinkbotT::build(XMLRobot *robot, dMatrix3 R, double *m, dBodyID base, XMLConn *conn) {
 	// initialize new variables
 	double offset[3] = {0};
 	dMatrix3 R1, R2, R3, R4, R5, R6;

@@ -162,7 +162,7 @@ class DLLIMPORT Robot {
 
 	// virual functions for inherited classes
 	protected:
-		virtual int build(xml_robot_t) { return 0; };
+		virtual int build(XMLRobot*) { return 0; };
 		virtual int buildIndividual(double, double, double, dMatrix3, double*) { return 0; };
 #ifdef ENABLE_GRAPHICS
 		virtual int draw(osg::Group*, int) { return 0; };

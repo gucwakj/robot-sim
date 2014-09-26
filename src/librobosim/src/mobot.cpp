@@ -866,7 +866,7 @@ int CMobot::addConnector(int type, int face, double size) {
 	return 0;
 }
 
-int CMobot::build(xml_robot_t robot) {
+int CMobot::build(XMLRobot *robot) {
 	// create rotation matrix
 	double	sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
 			stheta = sin(DEG2RAD(robot->theta)),	ctheta = cos(DEG2RAD(robot->theta)),
@@ -932,7 +932,7 @@ int CMobot::build(xml_robot_t robot) {
 	return 0;
 }
 
-int CMobot::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, XMLConn *conn) {
+int CMobot::build(XMLRobot *robot, dMatrix3 R, double *m, dBodyID base, XMLConn *conn) {
 	// initialize new variables
 	int i = 1;
 	double offset[3] = {0};

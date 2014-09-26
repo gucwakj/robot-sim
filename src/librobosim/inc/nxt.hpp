@@ -33,7 +33,7 @@ class DLLIMPORT CNXT : virtual public Robot {
 
 	// inherited functions from Robot class
     private:
-		int build(xml_robot_t);
+		int build(XMLRobot*);
 		int buildIndividual(double, double, double, dMatrix3, double*);
 #ifdef ENABLE_GRAPHICS
 		int draw(osg::Group*, int);

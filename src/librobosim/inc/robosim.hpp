@@ -86,7 +86,7 @@ class DLLIMPORT RoboSim {
 		dJointGroupID _group;			// group to store joints
 		std::vector<Ground*> _ground;	// ground (static) objects
 		std::vector<Robots*> _robots;	// all robots in simulation
-		xml_robot_t _bot;				// robots read from config file
+		std::vector<XMLRobot*> _xmlbot;	// robots read from config file
 		bool _collision;				// check to perform collisions
 		double _clock;					// clock time of simulation
 		double _cor[2];					// coefficient of restitution [body/ground, body/body]

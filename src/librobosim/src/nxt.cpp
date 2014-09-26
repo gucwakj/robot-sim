@@ -184,7 +184,7 @@ int CNXT::setJointSpeedRatios(double ratio1, double ratio2) {
 /**********************************************************
 	inherited functions
  **********************************************************/
-int CNXT::build(xml_robot_t robot) {
+int CNXT::build(XMLRobot *robot) {
 	// adjust height for wheels
 	robot->z += (_wheel_radius - _body_height/2);
 	_radius = _wheel_radius;

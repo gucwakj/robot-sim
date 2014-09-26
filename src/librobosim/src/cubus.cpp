@@ -280,7 +280,7 @@ int Cubus::addConnector(int type, int face, double size) {
 	return 0;
 }
 
-int Cubus::build(xml_robot_t robot) {
+int Cubus::build(XMLRobot *robot) {
 	// create rotation matrix
 	double	sphi = sin(DEG2RAD(robot->phi)),
 			cphi = cos(DEG2RAD(robot->phi)),
@@ -311,7 +311,7 @@ int Cubus::build(xml_robot_t robot) {
 	return 0;
 }
 
-int Cubus::build(xml_robot_t robot, dMatrix3 R, double *m, dBodyID base, XMLConn *conn) {
+int Cubus::build(XMLRobot *robot, dMatrix3 R, double *m, dBodyID base, XMLConn *conn) {
 	// initialize new variables
 	double offset[3] = {0};
 	dMatrix3 R1, R2, R3, R4, R5, R6;
