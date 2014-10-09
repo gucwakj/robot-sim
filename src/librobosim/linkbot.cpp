@@ -2890,8 +2890,8 @@ int CLinkbotT::draw(osg::Group *root, int tracking) {
 	body[FACE3]->addDrawable(new osg::ShapeDrawable(cyl));
 
 	// apply texture to robot
-	tex[0] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/body.png)));
-	tex[1] = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/face.png)));
+	tex[0] = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/textures/body.png"));
+	tex[1] = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/textures/face.png"));
 	for (int i = 0; i < 2; i++) {
 		tex[i]->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 		tex[i]->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
@@ -4318,7 +4318,7 @@ void CLinkbotT::draw_bigwheel(conn_t conn, osg::Group *robot) {
 	}
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/conn.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -4351,7 +4351,7 @@ void CLinkbotT::draw_bridge(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/conn.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -4402,7 +4402,7 @@ void CLinkbotT::draw_caster(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(sph));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/conn.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -4435,7 +4435,7 @@ void CLinkbotT::draw_cube(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/conn.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -4470,7 +4470,7 @@ void CLinkbotT::draw_faceplate(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/conn.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -4512,7 +4512,7 @@ void CLinkbotT::draw_gripper(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/conn.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -4544,7 +4544,7 @@ void CLinkbotT::draw_omnidrive(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/conn.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -4576,7 +4576,7 @@ void CLinkbotT::draw_simple(conn_t conn, osg::Group *robot) {
 	body->addDrawable(new osg::ShapeDrawable(box));
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/conn.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
     tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
     tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -4620,7 +4620,7 @@ void CLinkbotT::draw_smallwheel(conn_t conn, osg::Group *robot) {
 	}
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/conn.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -4668,7 +4668,7 @@ void CLinkbotT::draw_tinywheel(conn_t conn, osg::Group *robot) {
 	body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/conn.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -4712,7 +4712,7 @@ void CLinkbotT::draw_wheel(conn_t conn, osg::Group *robot) {
 	body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 
 	// apply texture
-	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(TEXTURE_PATH(linkbot/conn.png)));
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/conn.png"));
 	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
 	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
 	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);

@@ -26,6 +26,10 @@ class DLLIMPORT RoboSim {
 		int point(double x, double y, double z, int pointsize, char *color);
 		int text(double x, double y, double z, char *text);
 #endif // ENABLE_GRAPHICS
+	public:
+#ifdef ENABLE_GRAPHICS
+		std::string _tex_path;
+#endif // ENABLE_GRAPHICS
 	private:
 		// ground struct
 		typedef struct ground_s {
