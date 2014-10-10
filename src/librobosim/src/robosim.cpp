@@ -875,20 +875,21 @@ int RoboSim::init_viz(void) {
 
 	// get texture file path
 #ifdef _WIN32
-	DWORD size;
+	DWORD size = 128;
 	HKEY key;
 #if defined(_WIN64)
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\Wow6432Node\\SoftIntegration"), 0, KEY_QUERY_VALUE, &key);
 #else
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\SoftIntegration"), 0, KEY_QUERY_VALUE, &key);
 #endif
-	char path[1024];
+	char path[128];
 	RegQueryValueEx(key, TEXT("CHHOME"), NULL, NULL, (LPBYTE)path, &size);
 	path[size] = '\0';
 	if (path[0] == '\0')
 		_tex_path = "C:/Ch";
 	else
 		_tex_path = path;
+	_tex_path += "/package/chrobosim/data/";
 #else
 	_tex_path = "/usr/local/ch/package/chrobosim/data/";
 #endif
