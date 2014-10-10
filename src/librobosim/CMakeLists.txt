@@ -5,9 +5,8 @@ project(librobosim)
 cmake_minimum_required(VERSION 2.8)
 
 # Set the version number
-set(librobosim_VERSION_MAJOR 0)
-set(librobosim_VERSION_MINOR 1)
-set(librobosim_VERSION_PATCH 0)
+set(LIBROBOSIM_VERSION 1.7.70)
+set(LIBROBOSIM_SOVERSION 0)
 
 # Supress developer warnings
 cmake_policy(SET CMP0015 NEW)
@@ -143,4 +142,7 @@ add_library(robosim SHARED ${SRCS})
 
 # Link library against dependencies
 target_link_libraries(robosim ${EXTRA_LIBS})
+
+# set target version properties
+set_target_properties(robosim PROPERTIES VERSION ${LIBROBOSIM_VERSION} SOVERSION ${LIBROBOSIM_SOVERSION})
 

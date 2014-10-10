@@ -4,11 +4,6 @@ project(nxtdemos)
 # set minimum cmake version
 cmake_minimum_required(VERSION 2.8)
 
-# set the version number
-set(nxtdemos_VERSION_MAJOR 0)
-set(nxtdemos_VERSION_MINOR 1)
-set(nxtdemos_VERSION_PATCH 0)
-
 # supress developer warnings
 cmake_policy(SET CMP0015 NEW)
 
