@@ -786,20 +786,21 @@ int RoboSim::init_viz(void) {
 
 	// get texture file path
 #ifdef _WIN32
-	DWORD size;
+	DWORD size = 128;
 	HKEY key;
 #if defined(_WIN64)
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\Wow6432Node\\SoftIntegration"), 0, KEY_QUERY_VALUE, &key);
 #else
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\SoftIntegration"), 0, KEY_QUERY_VALUE, &key);
 #endif
-	char path[1024];
+	char path[128];
 	RegQueryValueEx(key, TEXT("CHHOME"), NULL, NULL, (LPBYTE)path, &size);
 	path[size] = '\0';
 	if (path[0] == '\0')
 		_tex_path = "C:/Ch";
 	else
 		_tex_path = path;
+	_tex_path += "/package/chrobosim/data/";
 #else
 	_tex_path = "/usr/local/ch/package/chrobosim/data/";
 #endif
@@ -1445,7 +1446,7 @@ void* RoboSim::graphics_thread(void *arg) {
 	t_stateset->setAttributeAndModes(t_depth, osg::StateAttribute::ON);
 	t_stateset->setRenderBinDetails(-1, "RenderBin");
 	t_stateset->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	osg::ref_ptr<osg::Node> t_geode = osgDB::readNodeFile(g_sim->_tex_path + "ground/terrain.3ds");
+	osg::ref_ptr<osg::Node> t_geode = osgDB::readNodeFile(sim->_tex_path + "ground/terrain.3ds");
 	t_geode->setCullingActive(false);
 	t_geode->setStateSet(t_stateset);
 	osg::ref_ptr<osg::PositionAttitudeTransform> t_transform = new osg::PositionAttitudeTransform();
@@ -1755,12 +1756,12 @@ void* RoboSim::graphics_thread(void *arg) {
 	osg::ref_ptr<osg::TexMat> tm = new osg::TexMat;
 	stateset->setTextureAttribute(0, tm);
 	osg::ref_ptr<osg::TextureCubeMap> skymap = new osg::TextureCubeMap;
-	osg::Image* imagePosX = osgDB::readImageFile(g_sim->_tex_path + "ground/checkered/checkered_right.png");
-	osg::Image* imageNegX = osgDB::readImageFile(g_sim->_tex_path + "ground/checkered/checkered_left.png");
-	osg::Image* imagePosY = osgDB::readImageFile(g_sim->_tex_path + "ground/checkered/checkered_top.png");
-	osg::Image* imageNegY = osgDB::readImageFile(g_sim->_tex_path + "ground/checkered/checkered_top.png");
-	osg::Image* imagePosZ = osgDB::readImageFile(g_sim->_tex_path + "ground/checkered/checkered_front.png");
-	osg::Image* imageNegZ = osgDB::readImageFile(g_sim->_tex_path + "ground/checkered/checkered_back.png");
+	osg::Image* imagePosX = osgDB::readImageFile(sim->_tex_path + "ground/checkered/checkered_right.png");
+	osg::Image* imageNegX = osgDB::readImageFile(sim->_tex_path + "ground/checkered/checkered_left.png");
+	osg::Image* imagePosY = osgDB::readImageFile(sim->_tex_path + "ground/checkered/checkered_top.png");
+	osg::Image* imageNegY = osgDB::readImageFile(sim->_tex_path + "ground/checkered/checkered_top.png");
+	osg::Image* imagePosZ = osgDB::readImageFile(sim->_tex_path + "ground/checkered/checkered_front.png");
+	osg::Image* imageNegZ = osgDB::readImageFile(sim->_tex_path + "ground/checkered/checkered_back.png");
 	if (imagePosX && imageNegX && imagePosY && imageNegY && imagePosZ && imageNegZ) {
 		skymap->setImage(osg::TextureCubeMap::POSITIVE_X, imagePosX);
 		skymap->setImage(osg::TextureCubeMap::NEGATIVE_X, imageNegX);
