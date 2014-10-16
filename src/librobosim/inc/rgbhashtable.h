@@ -19,31 +19,28 @@ extern "C" {
 
 #define MAX_TABLE_SIZE 150
 #define MAX_KEYLEN 25
-#define RGB_LEN 3
 
-//One entry in the table
 struct rgbNode{
-  char * key;
-  int values[RGB_LEN];
-  struct rgbNode *next;
+	char *key;
+	int values[3];
+	struct rgbNode *next;
 };
 
-//The table itself
-typedef struct rgbHashTable rgbHashTable;
-struct rgbHashTable{
-  struct rgbNode **table;
-  int size;
-};
+typedef struct rgbHashTable {
+	struct rgbNode **table;
+	int size;
+} rgbHashTable;
 
-rgbHashTable * HT_Create(); //Allocate memory for the table
-void HT_Destroy(rgbHashTable * rgbHT); //Deallocate the memory
-int HT_Get(rgbHashTable * rgbHT, char * key, int * rgbArray);            // retrieve entry
-void HT_Add(rgbHashTable * rgbHT, char * key, int values[]);  // store entry
-void HT_Remove(rgbHashTable * rgbHT, char * key);          // remove entry
-int HT_GetKey(rgbHashTable * rgbHT, int values[], char color[]); //reverse look-up
+rgbHashTable* HT_Create(void);						// create the table
+void HT_Destroy(rgbHashTable*);						// destroy the table
+int HT_Get(rgbHashTable*, char*, int*);				// retrieve entry
+void HT_Add(rgbHashTable*, char*, int, int, int);	// store entry
+void HT_Remove(rgbHashTable*, char*);				// remove entry
+int HT_GetKey(rgbHashTable*, int[], char[]);		// reverse look-up
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* RGBHASHTABLE_H */
+#endif // RGBHASHTABLE_H_
+
