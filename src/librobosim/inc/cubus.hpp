@@ -3,12 +3,12 @@
 
 #include "config.h"
 #include "robosim.hpp"
-#ifdef ENABLE_GRAPHICS
-#include "graphics.hpp"
-#endif // ENABLE_GRAPHICS
 
 class DLLIMPORT Cubus : public ModularRobot {
 		friend class cubusNodeCallback;
+#ifdef ENABLE_GRAPHICS
+		friend int Graphics::draw(Cubus*, int);
+#endif // ENABLE_GRAPHICS
 
 	// public api
 	public:
@@ -35,9 +35,6 @@ class DLLIMPORT Cubus : public ModularRobot {
 	private:
 		virtual int addConnector(int, int, double);
 		virtual int build(XMLRobot*, dMatrix3, double*, dBodyID, XMLConn*);
-#ifdef ENABLE_GRAPHICS
-		virtual int drawConnector(Connector*, osg::Group*);
-#endif // ENABLE_GRAPHICS
 		virtual int fixBodyToConnector(dBodyID, int);
 		virtual int fixConnectorToBody(int, dBodyID, int = -1);
 		virtual int getConnectorParams(int, int, dMatrix3, double*);
@@ -47,9 +44,6 @@ class DLLIMPORT Cubus : public ModularRobot {
 	private:
 		virtual int build(XMLRobot*);
 		virtual int buildIndividual(double, double, double, dMatrix3, double*);
-#ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group*, int);
-#endif // ENABLE_GRAPHICS
 		virtual double getAngle(int);
 		virtual int initParams(int, int);
 		virtual int initDims(void);

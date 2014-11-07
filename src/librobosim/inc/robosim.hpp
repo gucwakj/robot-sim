@@ -19,6 +19,10 @@ struct Ground {
 };
 
 class DLLIMPORT RoboSim {
+#ifdef ENABLE_GRAPHICS
+		friend int Graphics::drawGround(RoboSim*);
+#endif // ENABLE_GRAPHICS
+
 	// public api
 	public:
 		RoboSim(char*, int);
@@ -27,6 +31,7 @@ class DLLIMPORT RoboSim {
 		int addRobot(Robot*);
 		int addRobot(ModularRobot*);
 		int deleteRobot(int);
+		void done(void);
 		double getClock(void);
 		int getCOR(double&, double&);
 		int getMu(double&, double&);
@@ -39,12 +44,6 @@ class DLLIMPORT RoboSim {
 		int setMu(double, double);
 		int setPause(int);
 
-	// public data
-	public:
-#ifdef ENABLE_GRAPHICS
-		std::string _tex_path;
-#endif // ENABLE_GRAPHICS
-
 	// private functions
 	private:
 		int init_ode(void);								// init function for ode variables
@@ -52,10 +51,6 @@ class DLLIMPORT RoboSim {
 		int init_xml(char*);							// init function to read xml config file
 		static void collision(void*, dGeomID, dGeomID);	// wrapper function for nearCallback to work in class
 		static void* simulation_thread(void*);			// simulation thread function
-#ifdef ENABLE_GRAPHICS
-		int init_viz(void);								// visualization initialization function
-		static void* graphics_thread(void*);			// thread for graphics objects
-#endif // ENABLE_GRAPHICS
 
 	// private data
 	private:
@@ -65,25 +60,13 @@ class DLLIMPORT RoboSim {
 			int node;
 			THREAD_T thread;
 		};
-#ifdef ENABLE_GRAPHICS
-		// enumeration of drawing objects
-		typedef enum drawing_objects_e {
-			DOT,
-			LINE,
-			TEXT,
-			NUM_TYPES
-		} drawingObjects_t;
-		// graphics objects
-		struct Drawing {
-			double p1[3], p2[3], c[4];
-			int i, type;
-			std::string str;
-		};
-#endif // ENABLE_GRAPHICS
 
 		dWorldID _world;				// world in which simulation occurs
 		dSpaceID _space;				// space for robots in which to live
 		dJointGroupID _group;			// group to store joints
+#ifdef ENABLE_GRAPHICS
+		Graphics *_graphics;			// graphics object
+#endif // ENABLE_GRAPHICS
 		std::vector<Ground*> _ground;	// ground (static) objects
 		std::vector<Robots*> _robots;	// all robots in simulation
 		std::vector<XMLRobot*> _xmlbot;	// robots read from config file
@@ -104,19 +87,6 @@ class DLLIMPORT RoboSim {
 		MUTEX_T _running_mutex;			// mutex for actively running program
 		MUTEX_T _step_mutex;			// mutex for getting the step value
 		THREAD_T _simulation;			// simulation thread
-#ifdef ENABLE_GRAPHICS
-		std::vector<Drawing*> _drawings;	// all graphics objects
-		double _grid[7];					// grid spacing (tics, major, total)
-		int _ending;						// temp variable for deleting robots
-		int _graphics;						// flag for graphics
-		int _viewer;						// flag for viewer
-		osgShadow::ShadowedScene *_shadowed;// root node to hold graphics
-		osg::Group *_staging;				// temp variable for adding robots
-		COND_T _graphics_cond;				// condition for graphics
-		MUTEX_T _graphics_mutex;			// mutex for graphics existence
-		MUTEX_T _viewer_mutex;				// mutex for viewer running state
-		THREAD_T _osgThread;				// thread to hold graphics
-#endif // ENABLE_GRAPHICS
 };
 
 #endif	// ROBOSIM_HPP_

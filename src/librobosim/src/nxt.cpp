@@ -216,21 +216,22 @@ int CNXT::build(XMLRobot *robot) {
 
 int CNXT::buildIndividual(double x, double y, double z, dMatrix3 R, double *rot) {
 	// init body parts
-	for ( int i = 0; i < NUM_PARTS; i++ ) { _body[i] = dBodyCreate(_world); }
+	for (int i = 0; i < NUM_PARTS; i++) { _body[i] = dBodyCreate(_world); }
 	_geom[BODY] = new dGeomID[1];
 	_geom[WHEEL1] = new dGeomID[1];
 	_geom[WHEEL2] = new dGeomID[1];
 
 	// adjust input height by body height
-	if (fabs(z) < (_body_radius-EPSILON)) { z += _body_height/2; }
+	if (fabs(z) < (_body_radius - EPSILON)) {
+		x += R[2]*_body_height/2;
+		y += R[6]*_body_height/2;
+		z += R[10]*_body_height/2;
+	}
 
-    // convert input angles to radians
-    _motor[JOINT1].theta = DEG2RAD(rot[JOINT1]);
-    _motor[JOINT2].theta = DEG2RAD(rot[JOINT2]);
-
-	// set goal to current angle
-	_motor[JOINT1].goal = _motor[JOINT1].theta;
-	_motor[JOINT2].goal = _motor[JOINT2].theta;
+    // input angles to radians
+	for (int i = 0; i < _dof; i++) {
+		_motor[i].goal = _motor[i].theta = DEG2RAD(rot[i]);
+	}
 
 	// offset values for each body part[0-2] and joint[3-5] from center
 	double f1[6] = {-_body_width/2 - _wheel_depth/2, 0, 0, -_body_width/2, 0, 0};
@@ -306,132 +307,6 @@ int CNXT::buildIndividual(double x, double y, double z, dMatrix3 R, double *rot)
 	// success
 	return 0;
 }
-
-#ifdef ENABLE_GRAPHICS
-int CNXT::draw(osg::Group *root, int tracking) {
-	// initialize variables
-	_robot = new osg::Group();
-	osg::ref_ptr<osg::Geode> body[NUM_PARTS];
-	osg::ref_ptr<osg::PositionAttitudeTransform> pat[NUM_PARTS];
-	osg::ref_ptr<osg::Texture2D> tex;
-	const double *pos;
-	dQuaternion quat;
-	osg::Box *box;
-	osg::Cylinder *cyl;
-	for (int i = 0; i < NUM_PARTS; i++) {
-		body[i] = new osg::Geode;
-	}
-
-	// body
-	pos = dGeomGetOffsetPosition(_geom[BODY][0]);
-	dGeomGetOffsetQuaternion(_geom[BODY][0], quat);
-	box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), _body_width, _body_length, _body_height);
-	box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[BODY]->addDrawable(new osg::ShapeDrawable(box));
-	{ // 'led'
-		cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]+0.0001), 0.01, _body_height);
-		cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-		_led = new osg::ShapeDrawable(cyl);
-		body[BODY]->addDrawable(_led);
-		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1));
-	}
-
-	// wheel1
-	pos = dGeomGetOffsetPosition(_geom[WHEEL1][0]);
-	dGeomGetOffsetQuaternion(_geom[WHEEL1][0], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _wheel_radius, _wheel_depth);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[WHEEL1]->addDrawable(new osg::ShapeDrawable(cyl));
-
-	// wheel2
-	pos = dGeomGetOffsetPosition(_geom[WHEEL2][0]);
-	dGeomGetOffsetQuaternion(_geom[WHEEL2][0], quat);
-	cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), _wheel_radius, _wheel_depth);
-	cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-	body[WHEEL2]->addDrawable(new osg::ShapeDrawable(cyl));
-
-	// apply texture to robot
-	tex = new osg::Texture2D(osgDB::readImageFile(g_sim->_tex_path + "linkbot/textures/body.png"));
-	tex->setFilter(osg::Texture2D::MIN_FILTER,osg::Texture2D::LINEAR_MIPMAP_LINEAR);
-	tex->setFilter(osg::Texture2D::MAG_FILTER,osg::Texture2D::LINEAR);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-
-	for (int i = 0; i < NUM_PARTS; i++) {
-		// set rendering properties
-		body[i]->getOrCreateStateSet()->setTextureAttributeAndModes(0, tex.get(), osg::StateAttribute::ON);
-		body[i]->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-		body[i]->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-		// position in robot
-		pat[i] = new osg::PositionAttitudeTransform;
-		pat[i]->addChild(body[i].get());
-		_robot->addChild(pat[i].get());
-	}
-
-	// set update callback for robot
-	_robot->setUpdateCallback(new nxtNodeCallback(this));
-
-	// set masks
-	//robot->setNodeMask(CASTS_SHADOW_MASK);
-	//robot->setNodeMask(IS_PICKABLE_MASK);
-
-	// draw HUD
-	osgText::Text *label = new osgText::Text();
-	osg::Geode *label_geode = new osg::Geode();
-	label_geode->addDrawable(label);
-	label_geode->setNodeMask(NOT_VISIBLE_MASK);
-	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	label_geode->getOrCreateStateSet()->setRenderBinDetails(22, "RenderBin");
-	label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	label->setAlignment(osgText::Text::CENTER_CENTER);
-	label->setAxisAlignment(osgText::Text::SCREEN);
-	label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	label->setCharacterSize(30);
-	label->setColor(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	label->setBoundingBoxColor(osg::Vec4(0.0f, 0.0f, 0.0f, 0.9f));
-	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	label->setDrawMode(osgText::Text::TEXT | osgText::Text::FILLEDBOUNDINGBOX);
-	_robot->insertChild(0, label_geode);
-
-	// draw tracking node
-	_trace = tracking;
-	osg::Geode *trackingGeode = new osg::Geode();
-	osg::Geometry *trackingLine = new osg::Geometry();
-	osg::Vec3Array *trackingVertices = new osg::Vec3Array();
-	trackingGeode->setNodeMask((tracking) ? VISIBLE_MASK : NOT_VISIBLE_MASK);
-	trackingLine->setVertexArray(trackingVertices);
-	trackingLine->insertPrimitiveSet(0, new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, 1, 1));
-	trackingLine->setDataVariance(osg::Object::DYNAMIC);
-	trackingLine->setUseDisplayList(false);
-	osg::Vec4Array *colors = new osg::Vec4Array;
-	colors->push_back(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0f) );
-	trackingLine->setColorArray(colors);
-	trackingLine->setColorBinding(osg::Geometry::BIND_OVERALL);
-	osg::Point *point = new osg::Point();
-	point->setSize(4.0f);
-	trackingGeode->getOrCreateStateSet()->setAttributeAndModes(point, osg::StateAttribute::ON);
-	trackingGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	trackingGeode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	trackingGeode->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	trackingGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	trackingGeode->addDrawable(trackingLine);
-	_robot->insertChild(1, trackingGeode);
-
-	// set user properties of node
-	_robot->setName("robot");
-
-	// optimize robot
-	osgUtil::Optimizer optimizer;
-	optimizer.optimize(_robot);
-
-	// add to scenegraph
-	root->addChild(_robot);
-
-	// return position of robot in root node
-	return (root->getChildIndex(_robot));
-}
-#endif // ENABLE_GRAPHICS
 
 double CNXT::getAngle(int id) {
 	_motor[id].theta = mod_angle(_motor[id].theta, dJointGetHingeAngle(_joint[id]), dJointGetHingeAngleRate(_joint[id])) - _motor[id].offset;

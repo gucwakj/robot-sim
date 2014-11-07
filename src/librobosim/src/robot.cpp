@@ -1,5 +1,5 @@
-#include "robot.hpp"
 #include "robosim.hpp"
+#include "robot.hpp"
 
 Robot::Robot(robotJointId_t leftWheel, robotJointId_t rightWheel) {
 	_leftWheel = leftWheel;
@@ -40,20 +40,21 @@ Robot::~Robot(void) {
 }
 
 int Robot::blinkLED(double delay, int num) {
-#ifdef ENABLE_GRAPHICS
+	// store original led color
+	double rgb[3] = {_rgb[0], _rgb[1], _rgb[2]};
+
 	// blink num-1 full times
 	for (int i = 0; i < num-1; i++) {
-		_led->setColor(osg::Vec4(1, 1, 1, 1));
+		_rgb[0] = 1; _rgb[1] = 1; _rgb[2] = 1;
 		this->doze(delay);
-		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
+		_rgb[0] = rgb[0]; _rgb[1] = rgb[1]; _rgb[2] = rgb[2];
 		this->doze(delay);
 	}
 
 	// one last off before resetting to original color
-	_led->setColor(osg::Vec4(1, 1, 1, 1));
+	_rgb[0] = 1; _rgb[1] = 1; _rgb[2] = 1;
 	this->doze(delay);
-	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
-#endif // ENABLE_GRAPHICS
+	_rgb[0] = rgb[0]; _rgb[1] = rgb[1]; _rgb[2] = rgb[2];
 
 	// success
 	return 0;
@@ -1286,10 +1287,6 @@ int Robot::setLEDColor(char *color) {
 		_rgb[1] = getRGB[1]/255.0;
 		_rgb[2] = getRGB[2]/255.0;
 
-#ifdef ENABLE_GRAPHICS
-		_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
-#endif // ENABLE_GRAPHICS
-
 		// success
 		return 0;
 	}
@@ -1302,9 +1299,6 @@ int Robot::setLEDColorRGB(int r, int g, int b) {
 	_rgb[0] = r/255.0;
 	_rgb[1] = g/255.0;
 	_rgb[2] = b/255.0;
-#ifdef ENABLE_GRAPHICS
-	_led->setColor(osg::Vec4(_rgb[0], _rgb[1], _rgb[2], 1.0));
-#endif // ENABLE_GRAPHICS
 
 	// success
 	return 0;
@@ -1376,13 +1370,6 @@ int Robot::traceOff(void) {
 }
 
 int Robot::traceOn(void) {
-#ifdef ENABLE_GRAPHICS
-	// show trace
-	osg::Geode *trace = dynamic_cast<osg::Geode *>(_robot->getChild(1));
-	trace->setNodeMask(VISIBLE_MASK);
-#endif // ENABLE_GRAPHICS
-
-	// set trace on
 	_trace = 1;
 
 	// success
@@ -1550,6 +1537,17 @@ int Robot::addToSim(dWorldID &world, dSpaceID &space, int id, int pos) {
 	return 0;
 }
 
+double Robot::convert(double value, int tometer) {
+	double tmp = 0;
+
+	if (tometer)
+		tmp = ((g_sim->getUnits()) ? value/39.370 : value/100);
+	else
+		tmp = ((g_sim->getUnits()) ? value*39.370 : value*100);
+
+	return tmp;
+}
+
 int Robot::doze(double ms) {
 #ifdef _WIN32
 	Sleep(ms);
@@ -1707,17 +1705,6 @@ void* Robot::simPostCollisionThreadEntry(void *arg) {
 /**********************************************************
 	private functions
  **********************************************************/
-double Robot::convert(double value, int tometer) {
-	double tmp = 0;
-
-	if (tometer)
-		tmp = ((g_sim->getUnits()) ? value/39.370 : value/100);
-	else
-		tmp = ((g_sim->getUnits()) ? value*39.370 : value*100);
-
-	return tmp;
-}
-
 bool Robot::is_shift_enabled(void) {
 	if(_shift_data && !_g_shift_data_en)
 		return 1;

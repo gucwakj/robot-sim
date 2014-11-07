@@ -28,7 +28,6 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 		int addNeighbor(ModularRobot*, int, int);
 		int addSensor(int, int);
 		static void collideSensor(void*, dGeomID, dGeomID);
-		int drawSensor(int, osg::Group*);
 		dBodyID getConnectorBodyID(int);
 		int getNeighborCount(int = -1, int = 0);
 		double getNeighborForce(int, int = 0);
@@ -38,9 +37,6 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 	protected:
 		virtual int addConnector(int, int, double) = 0;
 		virtual int build(XMLRobot*, dMatrix3, double*, dBodyID, XMLConn*) = 0;
-#ifdef ENABLE_GRAPHICS
-		virtual int drawConnector(Connector*, osg::Group*) = 0;
-#endif // ENABLE_GRAPHICS
 		virtual int fixBodyToConnector(dBodyID, int) = 0;
 		virtual int fixConnectorToBody(int, dBodyID, int = -1) = 0;
 		virtual int getConnectorParams(int, int, dMatrix3, double*) = 0;
@@ -50,9 +46,6 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 	protected:
 		virtual int build(XMLRobot*) { return 0; };
 		virtual int buildIndividual(double, double, double, dMatrix3, double*) { return 0; };
-#ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group*, int) { return 0; };
-#endif // ENABLE_GRAPHICS
 		virtual double getAngle(int) { return 0; };
 		virtual int initParams(int, int) { return 0; };
 		virtual int initDims(void) { return 0; };

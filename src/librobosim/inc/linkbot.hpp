@@ -3,12 +3,12 @@
 
 #include "config.h"
 #include "robosim.hpp"
-#ifdef ENABLE_GRAPHICS
-#include "graphics.hpp"
-#endif // ENABLE_GRAPHICS
 
 class DLLIMPORT CLinkbotT : public ModularRobot {
 		friend class linkbotNodeCallback;
+#ifdef ENABLE_GRAPHICS
+		friend int Graphics::draw(CLinkbotT*, int);
+#endif // ENABLE_GRAPHICS
 
 	// public api
 	public:
@@ -59,9 +59,6 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 	private:
 		virtual int addConnector(int, int, double);
 		virtual int build(XMLRobot*, dMatrix3, double*, dBodyID, XMLConn*);
-#ifdef ENABLE_GRAPHICS
-		virtual int drawConnector(Connector*, osg::Group*);
-#endif // ENABLE_GRAPHICS
 		virtual int fixBodyToConnector(dBodyID, int);
 		virtual int fixConnectorToBody(int, dBodyID, int = -1);
 		virtual int getConnectorParams(int, int, dMatrix3, double*);
@@ -71,9 +68,6 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 	private:
 		virtual int build(XMLRobot*);
 		virtual int buildIndividual(double, double, double, dMatrix3, double*);
-#ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group*, int);
-#endif // ENABLE_GRAPHICS
 		virtual double getAngle(int);
 		virtual int initParams(int, int);
 		virtual int initDims(void);
@@ -92,13 +86,10 @@ class DLLIMPORT CLinkbotT : public ModularRobot {
 		int build_faceplate(Connector*, int, int = -1, int = -1);		// build faceplate connector
 		int build_gripper(Connector*, int);								// build gripper connector
 		int build_omnidrive(Connector*, int, int = -1, int = -1);		// build omnidrive connector
-		int build_simple(Connector*, int face, int = -1, int = -1);		// build simple connector
+		int build_simple(Connector*, int, int = -1, int = -1);			// build simple connector
 		int build_smallwheel(Connector*, int, int = -1, int = -1);		// build small wheel connector
 		int build_tinywheel(Connector*, int, int = -1, int = -1);		// build tiny wheel connector
 		int build_wheel(Connector*, int, double, int = -1, int = -1);	// build custom wheel connector
-#ifdef ENABLE_GRAPHICS
-		int draw_custom_caster(Connector* conn, osg::Group *robot);		// draw custom sized caster
-#endif // ENABLE_GRAPHICS
 		static void* closeGripperNBThread(void*);						// thread to close gripper
 
 	// private data

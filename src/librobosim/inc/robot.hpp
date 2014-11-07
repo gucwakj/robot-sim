@@ -18,17 +18,10 @@
 #include <cstdarg>
 #include <ctime>
 #include <vector>
-#ifdef ENABLE_GRAPHICS
-#include <osg/Group>
-#include <osg/ShapeDrawable>
-#endif // ENABLE_GRAPHICS
 
 #include "config.h"
 #include "macros.hpp"
 #include "rgbhashtable.h"
-#ifdef ENABLE_GRAPHICS
-#include "graphics.hpp"
-#endif // ENABLE_GRAPHICS
 
 // forward declare friends
 class RoboSim;
@@ -150,6 +143,7 @@ class DLLIMPORT Robot {
 	// utility functions for inherited and friend classes
 	protected:
 		int addToSim(dWorldID&, dSpaceID&, int, int);
+		double convert(double, int);
 		int doze(double);
 		int fixBodyToGround(dBodyID);
 		dBodyID getBodyID(int);
@@ -164,9 +158,6 @@ class DLLIMPORT Robot {
 	protected:
 		virtual int build(XMLRobot*) { return 0; };
 		virtual int buildIndividual(double, double, double, dMatrix3, double*) { return 0; };
-#ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group*, int) { return 0; };
-#endif // ENABLE_GRAPHICS
 		virtual double getAngle(int) { return 0; };
 		virtual int initParams(int, int) { return 0; };
 		virtual int initDims(void) { return 0; };
@@ -270,10 +261,6 @@ class DLLIMPORT Robot {
 		int _g_shift_data_en;		// globally shift data for robot enable/disable flag
 		int _trace;					// tracing on or off
 		int _type;					// type of robot
-#ifdef ENABLE_GRAPHICS
-		osg::Group *_robot;			// all graphical objects for drawing
-		osg::ShapeDrawable *_led;	// led object
-#endif // ENABLE_GRAPHICS
 		MUTEX_T _active_mutex;		// active recording
 		COND_T _active_cond;		// active recording
 		MUTEX_T _goal_mutex;		// goal value being written
@@ -288,7 +275,6 @@ class DLLIMPORT Robot {
 	// private functions
 	private:
 		bool is_shift_enabled(void);
-		double convert(double, int);
 		double normal(double);
 		double uniform(void);
 		static void* driveTimeNBThread(void*);
@@ -390,6 +376,9 @@ struct RobotMove {
 	double (*func)(double x);
 	int i;
 };
+
+// simulation
+extern RoboSim *g_sim;
 
 #endif // ROBOT_HPP_
 

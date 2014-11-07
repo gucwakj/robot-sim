@@ -3,12 +3,12 @@
 
 #include "config.h"
 #include "robosim.hpp"
-#ifdef ENABLE_GRAPHICS
-#include "graphics.hpp"
-#endif // ENABLE_GRAPHICS
 
 class DLLIMPORT CMobot : public ModularRobot {
 		friend class mobotNodeCallback;
+#ifdef ENABLE_GRAPHICS
+		friend int Graphics::draw(CMobot*, int);
+#endif // ENABLE_GRAPHICS
 
 	// public api
 	public:
@@ -62,9 +62,6 @@ class DLLIMPORT CMobot : public ModularRobot {
 	private:
 		virtual int addConnector(int, int, double);
 		virtual int build(XMLRobot*, dMatrix3, double*, dBodyID, XMLConn*);
-#ifdef ENABLE_GRAPHICS
-		virtual int drawConnector(Connector*, osg::Group*);
-#endif // ENABLE_GRAPHICS
 		virtual int fixBodyToConnector(dBodyID, int);
 		virtual int fixConnectorToBody(int, dBodyID, int = -1);
 		virtual int getConnectorParams(int, int, dMatrix3, double*);
@@ -74,9 +71,6 @@ class DLLIMPORT CMobot : public ModularRobot {
 	private:
 		virtual int build(XMLRobot*);
 		virtual int buildIndividual(double, double, double, dMatrix3, double*);
-#ifdef ENABLE_GRAPHICS
-		virtual int draw(osg::Group*, int);
-#endif // ENABLE_GRAPHICS
 		virtual double getAngle(int);
 		virtual int initParams(int, int);
 		virtual int initDims(void);
@@ -95,15 +89,6 @@ class DLLIMPORT CMobot : public ModularRobot {
 		int build_square(Connector*, int);								// build square connector
 		int build_tank(Connector*, int);								// build tank connector
 		int build_wheel(Connector*, int, double);						// build custom wheel connector
-#ifdef ENABLE_GRAPHICS
-		void draw_bigwheel(Connector*, osg::Group*);					// draw big wheel
-		void draw_caster(Connector*, osg::Group*);						// draw caster
-		void draw_simple(Connector*, osg::Group*);						// draw simple
-		void draw_smallwheel(Connector*, osg::Group*);					// draw small wheel
-		void draw_square(Connector*, osg::Group*);						// draw square
-		void draw_tank(Connector*, osg::Group*);						// draw tank
-		void draw_wheel(Connector*, osg::Group*);						// draw custom wheel
-#endif // ENABLE_GRAPHICS
 		static void* motionArchThread(void*);							// thread for arching
 		static void* motionDistanceThread(void*);						// thread for driving a distance
 		static void* motionInchwormLeftThread(void*);					// thread for inchworming left

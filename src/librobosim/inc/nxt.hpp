@@ -3,12 +3,12 @@
 
 #include "config.h"
 #include "robosim.hpp"
-#ifdef ENABLE_GRAPHICS
-#include "graphics.hpp"
-#endif // ENABLE_GRAPHICS
 
 class DLLIMPORT CNXT : virtual public Robot {
 		friend class nxtNodeCallback;
+#ifdef ENABLE_GRAPHICS
+		friend int Graphics::draw(CNXT*, int);
+#endif // ENABLE_GRAPHICS
 
 	// public api
 	public:
@@ -35,9 +35,6 @@ class DLLIMPORT CNXT : virtual public Robot {
     private:
 		int build(XMLRobot*);
 		int buildIndividual(double, double, double, dMatrix3, double*);
-#ifdef ENABLE_GRAPHICS
-		int draw(osg::Group*, int);
-#endif // ENABLE_GRAPHICS
 		double getAngle(int);
 		int initParams(int, int);
 		int initDims(void);

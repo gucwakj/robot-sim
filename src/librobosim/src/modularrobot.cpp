@@ -1,5 +1,5 @@
-#include "modularrobot.hpp"
 #include "robosim.hpp"
+#include "modularrobot.hpp"
 
 ModularRobot::ModularRobot(void) : Robot(JOINT1, JOINT1) { }
 
@@ -66,9 +66,8 @@ int ModularRobot::addSensor(int type, int face) {
 void ModularRobot::collideSensor(void *data, dGeomID o1, dGeomID o2) {
 	// cast void pointer to pointer to class
 	ModularRobot *ptr = (ModularRobot *)data;
-char str[300];
-sprintf(str, "id: %d\t", ptr->_id);
-
+	char str[300];
+	sprintf(str, "id: %d\t", ptr->_id);
 	// get bodies of geoms
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);
@@ -92,7 +91,7 @@ sprintf(str, "id: %d\t", ptr->_id);
 	}
 }
 
-int ModularRobot::drawSensor(int i, osg::Group *robot) {
+/*int ModularRobot::drawSensor(int i, osg::Group *robot) {
 	// get sensor location
 	dQuaternion Q;
 	dVector3 dims;
@@ -131,7 +130,7 @@ int ModularRobot::drawSensor(int i, osg::Group *robot) {
 
 	// success
 	return 0;
-}
+}*/
 
 dBodyID ModularRobot::getConnectorBodyID(int face) {
 	for (int i = 0; i < _conn.size(); i++) {

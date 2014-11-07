@@ -1,38 +1,25 @@
 #include "robosim.hpp"
-using namespace std;
 
 // global robot simulation object
 RoboSim *g_sim = NULL;
 
 RoboSim::RoboSim(char *name, int pause) {
-	// initialize ode
-	init_ode();
-
-	// initialize xml config file
-	init_xml(name);
-
-	// initialize simulation
-	init_sim(pause);
-
 #ifdef ENABLE_GRAPHICS
-	// initialize graphics
-	init_viz();
-#endif
+	_graphics = new Graphics();
+#endif // ENABLE_GRAPHICS
+	init_ode();
+	init_xml(name);
+	init_sim(pause);
+#ifdef ENABLE_GRAPHICS
+	_graphics->start(_pause);
+	_graphics->drawGround(this);
+#endif // ENABLE_GRAPHICS
 }
 
 RoboSim::~RoboSim(void) {
 #ifdef ENABLE_GRAPHICS
-	// remove graphics
-	if (_osgThread) {
-		MUTEX_LOCK(&_viewer_mutex);
-		_viewer = 0;
-		MUTEX_UNLOCK(&_viewer_mutex);
-		THREAD_JOIN(_osgThread);
-		COND_DESTROY(&_graphics_cond);
-		MUTEX_DESTROY(&_graphics_mutex);
-		MUTEX_DESTROY(&_viewer_mutex);
-	}
-#endif
+	delete _graphics;
+#endif // ENABLE_GRAPHICS
 
 	// remove simulation
 	MUTEX_LOCK(&_running_mutex);
@@ -55,11 +42,6 @@ RoboSim::~RoboSim(void) {
 	// remove ground
 	for (int i = 0; i < _ground.size(); i++) {
 		delete _ground[i];
-	}
-
-	// remove drawings
-	for (int i = 0; i < _drawings.size(); i++) {
-		delete _drawings[i];
 	}
 
 	// remove robots
@@ -123,7 +105,7 @@ int RoboSim::init_sim(int pause) {
 	else if (_pause == 3 && pause == 2) { _pause = 0; }
 #else
 	_pause = 0;				// do not start paused w/o graphics
-#endif
+#endif // ENABLE_GRAPHICS
     _step = 0.004;			// initial time step
 	_clock = 0;				// start clock
 	_collision = true;		// perform inter-robot collisions
@@ -390,115 +372,8 @@ int RoboSim::init_xml(char *name) {
 	}
 
 #ifdef ENABLE_GRAPHICS
-	// read in grid line configuration
-	if ( (node = doc.FirstChildElement("graphics")->FirstChildElement("grid")) ) {
-		node->QueryIntAttribute("units", &_us);
-		node->QueryDoubleAttribute("tics", &_grid[0]);
-		node->QueryDoubleAttribute("major", &_grid[1]);
-		node->QueryDoubleAttribute("minx", &_grid[2]);
-		node->QueryDoubleAttribute("maxx", &_grid[3]);
-		node->QueryDoubleAttribute("miny", &_grid[4]);
-		node->QueryDoubleAttribute("maxy", &_grid[5]);
-		node->QueryDoubleAttribute("enabled", &_grid[6]);
-	}
-	else {
-		_us = 1;			// customary units
-		_grid[0] = 1;		// 1 inch per tic
-		_grid[1] = 12;		// 12 inches per hash
-		_grid[2] = -24;		// min x
-		_grid[3] = 24;		// max x
-		_grid[4] = -24;		// min y
-		_grid[5] = 24;		// max y
-		_grid[6] = 1;		// enabled or not
-	}
-	for (int i = 0; i < 6; i++) {
-		if (_us)
-			_grid[i] /= 39.37;
-		else
-			_grid[i] /= 100;
-	}
-
-	// check for existence of graphics node
-	if ( (node = doc.FirstChildElement("graphics")) ) {
-		node = node->FirstChildElement();
-	}
-
-	// loop over all graphics nodes ignoring grid
-	while (node) {
-		if ( !strcmp(node->Value(), "line") ) {
-			// store default variables
-			_drawings.push_back(new Drawing());
-			_drawings.back()->type = LINE;
-
-			// get user defined values from xml
-			if (node->QueryIntAttribute("width", &_drawings.back()->i)) {
-				_drawings.back()->i = 1;
-			}
-			if ( (ele = node->FirstChildElement("start")) ) {
-				ele->QueryDoubleAttribute("x", &_drawings.back()->p1[0]);
-				ele->QueryDoubleAttribute("y", &_drawings.back()->p1[1]);
-				ele->QueryDoubleAttribute("z", &_drawings.back()->p1[2]);
-			}
-			if ( (ele = node->FirstChildElement("end")) ) {
-				ele->QueryDoubleAttribute("x", &_drawings.back()->p2[0]);
-				ele->QueryDoubleAttribute("y", &_drawings.back()->p2[1]);
-				ele->QueryDoubleAttribute("z", &_drawings.back()->p2[2]);
-			}
-			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryDoubleAttribute("r", &_drawings.back()->c[0]);
-				ele->QueryDoubleAttribute("g", &_drawings.back()->c[1]);
-				ele->QueryDoubleAttribute("b", &_drawings.back()->c[2]);
-				ele->QueryDoubleAttribute("alpha", &_drawings.back()->c[3]);
-			}
-		}
-		else if ( !strcmp(node->Value(), "point") ) {
-			// store default variables
-			_drawings.push_back(new Drawing());
-			_drawings.back()->type = DOT;
-
-			// get user defined values from xml
-			if (node->QueryIntAttribute("size", &_drawings.back()->i)) {
-				_drawings.back()->i = 1;
-			}
-			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &_drawings.back()->p1[0]);
-				ele->QueryDoubleAttribute("y", &_drawings.back()->p1[1]);
-				ele->QueryDoubleAttribute("z", &_drawings.back()->p1[2]);
-			}
-			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryDoubleAttribute("r", &_drawings.back()->c[0]);
-				ele->QueryDoubleAttribute("g", &_drawings.back()->c[1]);
-				ele->QueryDoubleAttribute("b", &_drawings.back()->c[2]);
-				ele->QueryDoubleAttribute("alpha", &_drawings.back()->c[3]);
-			}
-		}
-		else if ( !strcmp(node->Value(), "grid") ) {}
-		else if ( !strcmp(node->Value(), "tracking") ) {
-			node->QueryIntAttribute("val", &tracking);
-		}
-		else {
-			// store default variables
-			_drawings.push_back(new Drawing());
-			_drawings.back()->type = TEXT;
-
-			// get user defined values from xml
-			_drawings.back()->str = node->Value();
-			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &_drawings.back()->p1[0]);
-				ele->QueryDoubleAttribute("y", &_drawings.back()->p1[1]);
-				ele->QueryDoubleAttribute("z", &_drawings.back()->p1[2]);
-			}
-			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryDoubleAttribute("r", &_drawings.back()->c[0]);
-				ele->QueryDoubleAttribute("g", &_drawings.back()->c[1]);
-				ele->QueryDoubleAttribute("b", &_drawings.back()->c[2]);
-				ele->QueryDoubleAttribute("alpha", &_drawings.back()->c[3]);
-			}
-		}
-		// go to next node
-		node = node->NextSiblingElement();
-	}
-#endif
+	_graphics->readXML(&doc);
+#endif // ENABLE_GRAPHICS
 
 	// get root node of xml file
 	node = doc.FirstChildElement("sim")->FirstChildElement();
@@ -860,60 +735,6 @@ int RoboSim::init_xml(char *name) {
 	return 0;
 }
 
-#ifdef ENABLE_GRAPHICS
-int RoboSim::init_viz(void) {
-	// set notification level to no output
-	osg::setNotifyLevel(osg::ALWAYS);
-
-    // build the viewer
-	MUTEX_INIT(&_viewer_mutex);
-	_viewer = 1;
-
-	// separate viewer and inserting into scenegraph
-	_staging = new osg::Group;
-	_ending = 0;
-
-	// get texture file path
-#ifdef _WIN32
-	DWORD size = 128;
-	HKEY key;
-#if defined(_WIN64)
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\Wow6432Node\\SoftIntegration"), 0, KEY_QUERY_VALUE, &key);
-#else
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\SoftIntegration"), 0, KEY_QUERY_VALUE, &key);
-#endif
-	char path[128];
-	RegQueryValueEx(key, TEXT("CHHOME"), NULL, NULL, (LPBYTE)path, &size);
-	path[size] = '\0';
-	if (path[0] == '\0')
-		_tex_path = "C:/Ch";
-	else
-		_tex_path = path;
-	_tex_path += "/package/chrobosim/data/";
-#else
-	_tex_path = "/usr/local/ch/package/chrobosim/data/";
-#endif
-
-	// graphics haven't started yet
-	COND_INIT(&_graphics_cond);
-	MUTEX_INIT(&_graphics_mutex);
-	_graphics = 0;
-
-	// create graphics thread
-	THREAD_CREATE(&_osgThread, (void* (*)(void *))&RoboSim::graphics_thread, (void *)this);
-
-	// wait for graphics to be ready
-	MUTEX_LOCK(&_graphics_mutex);
-	while (!_graphics) {
-		COND_WAIT(&_graphics_cond, &_graphics_mutex);
-	}
-	MUTEX_UNLOCK(&_graphics_mutex);
-
-	// success
-	return 0;
-}
-#endif
-
 /**********************************************************
 	Public member functions
  **********************************************************/
@@ -968,8 +789,7 @@ int RoboSim::addRobot(Robot *robot) {
 	_xmlbot[i]->connected = 1;
 
 #ifdef ENABLE_GRAPHICS
-	// draw robot
-	_robots.back()->node = robot->draw(_staging, _xmlbot[i]->tracking);
+	_graphics->drawRobot(robot, form, _xmlbot[i]->tracking);
 #endif // ENABLE_GRAPHICS
 
 	// unlock robot data
@@ -1066,8 +886,7 @@ int RoboSim::addRobot(ModularRobot *robot) {
 	_xmlbot[i]->connected = 1;
 
 #ifdef ENABLE_GRAPHICS
-	// draw robot
-	_robots.back()->node = robot->draw(_staging, _xmlbot[i]->tracking);
+	_graphics->drawRobot(robot, form, _xmlbot[i]->tracking);
 #endif // ENABLE_GRAPHICS
 
 	// unlock robot data
@@ -1087,9 +906,7 @@ int RoboSim::deleteRobot(int loc) {
 		MUTEX_UNLOCK(&(_pause_mutex));
 
 		// get HUD and set message
-		osg::Geode *geode = _shadowed->getParent(0)->getChild(1)->asGroup()->getChild(0)->asTransform()->getChild(0)->asGeode();
-		osgText::Text *txt = dynamic_cast<osgText::Text *>(geode->getDrawable(0));
-		txt->setText("Paused: Press any key to end");
+		_graphics->getHUDText()->setText("Paused: Press any key to end");
 
 		// sleep until pausing halted by user
 		MUTEX_LOCK(&(_pause_mutex));
@@ -1111,9 +928,8 @@ int RoboSim::deleteRobot(int loc) {
 	MUTEX_LOCK(&_robot_mutex);
 
 #ifdef ENABLE_GRAPHICS
-	// save node location to delete later
-	_ending = _robots[loc]->node;
-#endif
+	_graphics->stageForDelete(_robots[loc]->node);
+#endif // ENABLE_GRAPHICS
 
 	// remove robot
 	_robots.erase(_robots.begin()+loc);
@@ -1126,6 +942,10 @@ int RoboSim::deleteRobot(int loc) {
 		return 0;
 	else
 		return 1;
+}
+
+void RoboSim::done(void) {
+	SIGNAL(&_running_cond, &_running_mutex, _running = 0);
 }
 
 double RoboSim::getClock(void) {
@@ -1166,7 +986,7 @@ double RoboSim::getStep(void) {
 }
 
 int RoboSim::getUnits(void) {
-	return _us;
+	return _graphics->getUnits();
 }
 
 int RoboSim::runSimulation(void) {
@@ -1425,682 +1245,3 @@ void RoboSim::collision(void *data, dGeomID o1, dGeomID o2) {
 	}
 }
 
-#ifdef ENABLE_GRAPHICS
-void* RoboSim::graphics_thread(void *arg) {
-	// cast viewer
-	RoboSim *sim = (RoboSim *)arg;
-
-	// initialize variables
-	unsigned int width, height;
-
-	// window interface
-	osg::GraphicsContext::WindowingSystemInterface *wsi = osg::GraphicsContext::getWindowingSystemInterface();
-	if (!wsi) {
-		osg::notify(osg::NOTICE) << "osg: cannot create windows." << endl;
-		return NULL;
-	}
-	wsi->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), width, height);
-
-	// window traits
-	osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
-	traits->width = width/2;
-	traits->height = 3*width/8;
-	traits->x = width - traits->width - 10;
-	traits->y = height - traits->height - 50;
-	traits->windowDecoration = true;
-	traits->doubleBuffer = true;
-	traits->vsync = false;
-	traits->sharedContext = 0;
-
-	// graphics context
-	osg::ref_ptr<osg::GraphicsContext> gc = osg::GraphicsContext::createGraphicsContext(traits.get());
-	if (gc.valid()) {
-		gc->setClearColor(osg::Vec4f(0.f,0.f,0.f,0.f));
-		gc->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-	else {
-		osg::notify(osg::NOTICE) << "osg: cannot create graphics." << endl;
-		return NULL;
-	}
-
-    // creating the viewer
-	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer;
-
-	// set threading model
-	viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
-
-	// camera properties
-	osg::ref_ptr<osg::Camera> camera = new osg::Camera;
-	camera->setGraphicsContext(gc.get());
-	camera->setViewport(new osg::Viewport(0,0, traits->width, traits->height));
-	GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
-	camera->setDrawBuffer(buffer);
-	camera->setReadBuffer(buffer);
-	viewer->addSlave(camera.get());
-	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 0), osg::Vec3f(0, 0, 1));
-	viewer->getCamera()->setComputeNearFarMode(osgUtil::CullVisitor::COMPUTE_NEAR_FAR_USING_PRIMITIVES);
-	viewer->getCamera()->setCullingMode(osgUtil::CullVisitor::NO_CULLING);
-	viewer->getCamera()->setNearFarRatio(0.00001);
-
-	// viewer camera properties
-	osg::ref_ptr<osgGA::OrbitManipulator> cameraManipulator = new osgGA::OrbitManipulator();
-	cameraManipulator->setDistance(0.1);
-	cameraManipulator->setAllowThrow(false);
-	cameraManipulator->setWheelZoomFactor(0);
-	cameraManipulator->setVerticalAxisFixed(true);
-	cameraManipulator->setElevation(0.5);
-	viewer->setCameraManipulator(cameraManipulator);
-	viewer->getCameraManipulator()->setHomePosition(osg::Vec3f(0.6, -0.8, 0.5), osg::Vec3f(0.1, 0.3, 0), osg::Vec3f(0, 0, 1));
-
-	// Creating the root node
-	osg::ref_ptr<osg::Group> root = new osg::Group;
-
-	// add shadows
-	osg::ref_ptr<osgShadow::ShadowedScene> shadowedScene = new osgShadow::ShadowedScene;
-	sim->_shadowed = shadowedScene;
-	root->addChild(shadowedScene);
-	shadowedScene->setReceivesShadowTraversalMask(RECEIVES_SHADOW_MASK);
-	shadowedScene->setCastsShadowTraversalMask(CASTS_SHADOW_MASK);
-	//osg::ref_ptr<osgShadow::ShadowMap> sm = new osgShadow::ShadowMap;
-	//sm->setTextureSize(osg::Vec2s(1024, 1024));
-	//shadowedScene->setShadowTechnique(sm.get());
-
-	// add light source
-	osg::ref_ptr<osg::LightSource> ls = new osg::LightSource;
-	ls->getLight()->setPosition(osg::Vec4(0.5, 1.0, 1.0, 0.0));
-	ls->getLight()->setAmbient(osg::Vec4(0.2,0.2,0.2,1.0));
-	ls->getLight()->setAmbient(osg::Vec4(1, 1, 1, 1.0));
-	ls->getLight()->setConstantAttenuation(0.05);
-	ls->getLight()->setQuadraticAttenuation(0.05);
-	shadowedScene->addChild(ls.get());
-
-	// load terrain node
-	osg::ref_ptr<osg::Depth> t_depth = new osg::Depth;
-	t_depth->setFunction(osg::Depth::LEQUAL);
-	t_depth->setRange(1.0, 1.0);
-	osg::ref_ptr<osg::StateSet> t_stateset = new osg::StateSet();
-	t_stateset->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-	t_stateset->setMode(GL_CULL_FACE, osg::StateAttribute::ON);
-	t_stateset->setAttributeAndModes(t_depth, osg::StateAttribute::ON);
-	t_stateset->setRenderBinDetails(-1, "RenderBin");
-	t_stateset->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	osg::ref_ptr<osg::Node> t_geode = osgDB::readNodeFile(sim->_tex_path + "ground/terrain.3ds");
-	t_geode->setCullingActive(false);
-	t_geode->setStateSet(t_stateset);
-	osg::ref_ptr<osg::PositionAttitudeTransform> t_transform = new osg::PositionAttitudeTransform();
-	t_transform->setScale(osg::Vec3d(2, 2, 0.001));
-	t_transform->setCullingActive(false);
-	t_transform->addChild(t_geode);
-	osg::ref_ptr<osgUtil::LineSegmentIntersector> r_segment = new osgUtil::LineSegmentIntersector(osg::Vec3d(0, 0, 999), osg::Vec3d(0, 0, -999));
-	osgUtil::IntersectionVisitor r_visitor(r_segment);
-	t_transform->accept(r_visitor);
-	osgUtil::LineSegmentIntersector::Intersection r_hits = r_segment->getFirstIntersection();
-	osg::Vec3d r_pos = r_hits.getWorldIntersectPoint();
-	t_transform->setPosition(osg::Vec3d(r_pos[0], r_pos[1], -r_pos[2]));
-	//t_transform->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
-	t_transform->setNodeMask(~IS_PICKABLE_MASK);
-	shadowedScene->addChild(t_transform);
-
-	// set up HUD
-	osg::ref_ptr<osg::Geode> HUDGeode = new osg::Geode();
-	osg::ref_ptr<osgText::Text> textHUD = new osgText::Text();
-	osg::ref_ptr<osg::Projection> HUDProjectionMatrix = new osg::Projection;
-	osg::ref_ptr<osg::MatrixTransform> HUDModelViewMatrix = new osg::MatrixTransform;
-	osg::ref_ptr<osg::StateSet> HUDStateSet = new osg::StateSet();
-	HUDProjectionMatrix->setMatrix(osg::Matrix::ortho2D(0,traits->width,0,traits->height));
-	HUDProjectionMatrix->addChild(HUDModelViewMatrix);
-	HUDModelViewMatrix->setMatrix(osg::Matrix::identity());
-	HUDModelViewMatrix->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
-	HUDModelViewMatrix->addChild(HUDGeode);
-	HUDGeode->setStateSet(HUDStateSet);
-	HUDStateSet->setMode(GL_BLEND,osg::StateAttribute::ON);
-	HUDStateSet->setMode(GL_DEPTH_TEST,osg::StateAttribute::OFF);
-	HUDStateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	HUDStateSet->setRenderBinDetails(11, "RenderBin");
-	HUDGeode->addDrawable(textHUD);
-	textHUD->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	textHUD->setMaximumWidth(traits->width);
-	textHUD->setCharacterSize(15);
-	if (sim->_pause) textHUD->setText("Paused: Press any key to start");
-	textHUD->setAxisAlignment(osgText::Text::SCREEN);
-	textHUD->setAlignment(osgText::Text::CENTER_CENTER);
-	textHUD->setPosition(osg::Vec3(traits->width/2, 50, -1.5));
-	textHUD->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	textHUD->setBackdropColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	textHUD->setBackdropOffset(0.1);
-	root->addChild(HUDProjectionMatrix);
-
-	// grid
-	if ( (int)(sim->_grid[6]) ) {
-		// grid lines for each sub-foot
-		double minx = (int)((sim->_grid[2]*1.01)/sim->_grid[0])*sim->_grid[0];
-		double miny = (int)((sim->_grid[4]*1.01)/sim->_grid[0])*sim->_grid[0];
-		int numx = (int)((sim->_grid[3] - minx)/sim->_grid[0]+1);
-		int numy = (int)((sim->_grid[5] - miny)/sim->_grid[0]+1);
-		int numVertices = 2*numx + 2*numy;
-		osg::Geode *gridGeode = new osg::Geode();
-		osg::Geometry *gridLines = new osg::Geometry();
-		osg::Vec3 *myCoords = new osg::Vec3[numVertices]();
-		// draw x lines
-		for (int i = 0, j = 0; i < numx; i++) {
-			myCoords[j++] = osg::Vec3(minx + i*sim->_grid[0], sim->_grid[4], 0.0);
-			myCoords[j++] = osg::Vec3(minx + i*sim->_grid[0], sim->_grid[5], 0.0);
-		}
-		// draw y lines
-		for (int i = 0, j = 2*numx; i < numy; i++) {
-			myCoords[j++] = osg::Vec3(sim->_grid[2], miny + i*sim->_grid[0], 0.0);
-			myCoords[j++] = osg::Vec3(sim->_grid[3], miny + i*sim->_grid[0], 0.0);
-		}
-		// add vertices
-		osg::Vec3Array *vertices = new osg::Vec3Array(numVertices, myCoords);
-		gridLines->setVertexArray(vertices);
-		gridLines->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, numVertices));
-		// set color
-		osg::Vec4Array *colors = new osg::Vec4Array;
-		colors->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f) );	// white
-		gridLines->setColorArray(colors);
-		gridLines->setColorBinding(osg::Geometry::BIND_OVERALL);
-		// set line width
-		osg::LineWidth *linewidth = new osg::LineWidth();
-		linewidth->setWidth(1.0f);
-		gridGeode->getOrCreateStateSet()->setAttributeAndModes(linewidth, osg::StateAttribute::ON);
-		// set rendering properties
-		gridGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-		gridGeode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-		gridGeode->getOrCreateStateSet()->setRenderBinDetails(-1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-		gridGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-		// enable shadowing
-		//gridGeode->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
-		// add to scene
-		gridGeode->addDrawable(gridLines);
-		shadowedScene->addChild(gridGeode);
-
-		// grid lines for each foot
-		double minx2 = (int)((sim->_grid[2]*1.01)/sim->_grid[1])*sim->_grid[1];
-		double miny2 = (int)((sim->_grid[4]*1.01)/sim->_grid[1])*sim->_grid[1];
-		int numx2 = (int)((sim->_grid[3] - minx2)/sim->_grid[1]+1);
-		int numy2 = (int)((sim->_grid[5] - miny2)/sim->_grid[1]+1);
-		int numVertices2 = 2*numx2 + 2*numy2;
-		osg::Geode *gridGeode2 = new osg::Geode();
-		osg::Geometry *gridLines2 = new osg::Geometry();
-		osg::Vec3 *myCoords2 = new osg::Vec3[numVertices2]();
-		// draw x lines
-		for (int i = 0, j = 0; i < numx2; i++) {
-			myCoords2[j++] = osg::Vec3(minx2 + i*sim->_grid[1], sim->_grid[4], 0.0);
-			myCoords2[j++] = osg::Vec3(minx2 + i*sim->_grid[1], sim->_grid[5], 0.0);
-		}
-		// draw y lines
-		for (int i = 0, j = 2*numx2; i < numy2; i++) {
-			myCoords2[j++] = osg::Vec3(sim->_grid[2], miny2 + i*sim->_grid[1], 0.0);
-			myCoords2[j++] = osg::Vec3(sim->_grid[3], miny2 + i*sim->_grid[1], 0.0);
-		}
-		// add vertices
-		osg::Vec3Array *vertices2 = new osg::Vec3Array(numVertices2, myCoords2);
-		gridLines2->setVertexArray(vertices2);
-		gridLines2->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, numVertices2));
-		// set color
-		osg::Vec4Array *colors2 = new osg::Vec4Array;
-		colors2->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f) );	// red
-		gridLines2->setColorArray(colors2);
-		gridLines2->setColorBinding(osg::Geometry::BIND_OVERALL);
-		// set line width
-		osg::LineWidth *linewidth2 = new osg::LineWidth();
-		linewidth2->setWidth(2.0f);
-		gridGeode2->getOrCreateStateSet()->setAttributeAndModes(linewidth2, osg::StateAttribute::ON);
-		// set rendering properties
-		gridGeode2->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-		gridGeode2->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-		gridGeode2->getOrCreateStateSet()->setRenderBinDetails(0, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-		gridGeode2->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-		// enable shadowing
-		//gridGeode2->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
-		// add to scene
-		gridGeode2->addDrawable(gridLines2);
-		shadowedScene->addChild(gridGeode2);
-
-		// x- and y-axis lines
-		osg::Geode *gridGeode3 = new osg::Geode();
-		osg::Geometry *gridLines3 = new osg::Geometry();
-		osg::Vec3 myCoords3[4];
-		if ( fabs(sim->_grid[3]) > fabs(sim->_grid[2]) ) {
-			if (sim->_grid[2] < -EPSILON)
-				myCoords3[0] = osg::Vec3(-sim->_grid[3], 0, 0);
-			else
-				myCoords3[0] = osg::Vec3(0, 0, 0);
-			myCoords3[1] = osg::Vec3(sim->_grid[3], 0, 0);
-		}
-		else {
-			if (sim->_grid[3] < -EPSILON)
-				myCoords3[1] = osg::Vec3(0, 0, 0);
-			else
-				myCoords3[1] = osg::Vec3(sim->_grid[3], 0, 0);
-			myCoords3[0] = osg::Vec3(sim->_grid[2], 0, 0);
-		}
-		if ( fabs(sim->_grid[5]) > fabs(sim->_grid[4]) ) {
-			if (sim->_grid[4] < -EPSILON)
-				myCoords3[2] = osg::Vec3(-sim->_grid[5], 0, 0);
-			else
-				myCoords3[2] = osg::Vec3(0, 0, 0);
-			myCoords3[3] = osg::Vec3(0, sim->_grid[5], 0);
-		}
-		else {
-			if (sim->_grid[5] < -EPSILON)
-				myCoords3[3] = osg::Vec3(0, 0, 0);
-			else
-				myCoords3[3] = osg::Vec3(0, sim->_grid[5], 0);
-			myCoords3[2] = osg::Vec3(0, sim->_grid[4], 0);
-		}
-		// add vertices
-		osg::Vec3Array *vertices3 = new osg::Vec3Array(4, myCoords3);
-		gridLines3->setVertexArray(vertices3);
-		gridLines3->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 4));
-		// set color
-		osg::Vec4Array *colors3 = new osg::Vec4Array;
-		colors3->push_back(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f) );
-		gridLines3->setColorArray(colors3);
-		gridLines3->setColorBinding(osg::Geometry::BIND_OVERALL);
-		// set line width
-		osg::LineWidth *linewidth3 = new osg::LineWidth();
-		linewidth3->setWidth(3.0f);
-		gridGeode3->getOrCreateStateSet()->setAttributeAndModes(linewidth3, osg::StateAttribute::ON);
-		// set rendering properties
-		gridGeode3->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-		gridGeode3->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-		gridGeode3->getOrCreateStateSet()->setRenderBinDetails(-1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-		gridGeode3->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-		// enable shadowing
-		//gridGeode3->setNodeMask( (RECEIVES_SHADOW_MASK & ~IS_PICKABLE_MASK) );
-		// add to scene
-		gridGeode3->addDrawable(gridLines3);
-		shadowedScene->addChild(gridGeode3);
-
-		// x-axis label
-		osg::ref_ptr<osg::Billboard> xbillboard = new osg::Billboard();
-		osg::ref_ptr<osgText::Text> xtext = new osgText::Text();
-		xtext->setText("x");
-		xtext->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-		xtext->setAlignment(osgText::Text::CENTER_BASE_LINE);
-		xtext->setRotation(osg::Quat(-1.57, osg::Vec3(0, 0, 1)));
-		xtext->setCharacterSize(50);
-		xtext->setColor(osg::Vec4(0, 0, 0, 1));
-		xtext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		if ( fabs(sim->_grid[3]) > fabs(sim->_grid[2]) ) {
-			if (sim->_grid[3] < EPSILON)
-				xbillboard->addDrawable(xtext, osg::Vec3d(0.05, 0.0, 0.0));
-			else
-				xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[3] + 0.05, 0.0, 0.0));
-		}
-		else {
-			if (sim->_grid[2] < -EPSILON)
-				xbillboard->addDrawable(xtext, osg::Vec3d(sim->_grid[3] + 0.05, 0.0, 0.0));
-			else
-				xbillboard->addDrawable(xtext, osg::Vec3d(0.05, 0.0, 0.0));
-		}
-		xbillboard->setMode(osg::Billboard::AXIAL_ROT);
-		xbillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
-		xbillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
-		xbillboard->setNodeMask(~IS_PICKABLE_MASK);
-		root->addChild(xbillboard);
-
-		// y-axis label
-		osg::ref_ptr<osg::Billboard> ybillboard = new osg::Billboard();
-		osg::ref_ptr<osgText::Text> ytext = new osgText::Text();
-		ytext->setText("y");
-		ytext->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-		ytext->setAlignment(osgText::Text::CENTER_BASE_LINE);
-		ytext->setCharacterSize(50);
-		ytext->setColor(osg::Vec4(0, 0, 0, 1));
-		ytext->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		if ( fabs(sim->_grid[5]) > fabs(sim->_grid[4]) ) {
-			if (sim->_grid[5] < EPSILON)
-				xbillboard->addDrawable(ytext, osg::Vec3d(0.0, 0.05, 0.0));
-			else
-				xbillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[5] + 0.05, 0.0));
-		}
-		else {
-			if (sim->_grid[4] < -EPSILON)
-				xbillboard->addDrawable(ytext, osg::Vec3d(0.0, sim->_grid[5] + 0.05, 0.0));
-			else
-				xbillboard->addDrawable(ytext, osg::Vec3d(0.0, 0.05, 0.0));
-		}
-		ybillboard->setMode(osg::Billboard::AXIAL_ROT);
-		ybillboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
-		ybillboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
-		ybillboard->setNodeMask(~IS_PICKABLE_MASK);
-		root->addChild(ybillboard);
-
-		// x grid numbering
-		osg::ref_ptr<osg::Billboard> xnum_billboard = new osg::Billboard();
-		char text[50];
-		osg::ref_ptr<osgText::Text> xzero_text = new osgText::Text();
-		xzero_text->setText("0");
-		xzero_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-		xzero_text->setAlignment(osgText::Text::CENTER_CENTER);
-		xzero_text->setCharacterSize(30);
-		xzero_text->setColor(osg::Vec4(0, 0, 0, 1));
-		xzero_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		xnum_billboard->addDrawable(xzero_text, osg::Vec3d(-0.5*sim->_grid[0], -0.5*sim->_grid[0], 0.0));
-		// positive
-		for (int i = 1; i < (int)(sim->_grid[3]/sim->_grid[1]+1); i++) {
-			osg::ref_ptr<osgText::Text> xnumpos_text = new osgText::Text();
-			if (sim->_us) sprintf(text, "   %.0lf", 39.37*i*sim->_grid[1]);
-			else sprintf(text, "   %.0lf", 100*i*sim->_grid[1]);
-			xnumpos_text->setText(text);
-			xnumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-			xnumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
-			xnumpos_text->setCharacterSize(30);
-			xnumpos_text->setColor(osg::Vec4(0, 0, 0, 1));
-			xnumpos_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-			xnum_billboard->addDrawable(xnumpos_text, osg::Vec3d(i*sim->_grid[1], -0.5*sim->_grid[0], 0.0));
-		}
-		// negative
-		for (int i = 1; i < (int)(fabs(sim->_grid[2])/sim->_grid[1]+1); i++) {
-			osg::ref_ptr<osgText::Text> xnumneg_text = new osgText::Text();
-			if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i*sim->_grid[1]);
-			else sprintf(text, "%.0lf   ", -100*i*sim->_grid[1]);
-			xnumneg_text->setText(text);
-			xnumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-			xnumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
-			xnumneg_text->setCharacterSize(30);
-			xnumneg_text->setColor(osg::Vec4(0, 0, 0, 1));
-			xnumneg_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-			xnum_billboard->addDrawable(xnumneg_text, osg::Vec3d(-i*sim->_grid[1], -0.5*sim->_grid[0], 0.0));
-		}
-		xnum_billboard->setMode(osg::Billboard::AXIAL_ROT);
-		xnum_billboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
-		xnum_billboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
-		xnum_billboard->setNodeMask(~IS_PICKABLE_MASK);
-		xnum_billboard->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-		xnum_billboard->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-		xnum_billboard->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-		xnum_billboard->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-		root->addChild(xnum_billboard);
-
-		// y grid numbering
-		osg::ref_ptr<osg::Billboard> ynum_billboard = new osg::Billboard();
-		// positive
-		for (int i = 1; i < (int)(sim->_grid[5]/sim->_grid[1]+1); i++) {
-			osg::ref_ptr<osgText::Text> ynumpos_text = new osgText::Text();
-			if (sim->_us) sprintf(text, "%.0lf   ", 39.37*i*sim->_grid[1]);
-			else sprintf(text, "%.0lf   ", 100*i*sim->_grid[1]);
-			ynumpos_text->setText(text);
-			ynumpos_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-			ynumpos_text->setAlignment(osgText::Text::CENTER_CENTER);
-			ynumpos_text->setCharacterSize(30);
-			ynumpos_text->setColor(osg::Vec4(0, 0, 0, 1));
-			ynumpos_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-			ynum_billboard->addDrawable(ynumpos_text, osg::Vec3d(0, i*sim->_grid[1] + 0.5*sim->_grid[0], 0.0));
-		}
-		// negative
-		for (int i = 1; i < (int)(fabs(sim->_grid[4])/sim->_grid[1]+1); i++) {
-			osg::ref_ptr<osgText::Text> ynumneg_text = new osgText::Text();
-			if (sim->_us) sprintf(text, "%.0lf   ", -39.37*i*sim->_grid[1]);
-			else sprintf(text, "%.0lf   ", -100*i*sim->_grid[1]);
-			ynumneg_text->setText(text);
-			ynumneg_text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-			ynumneg_text->setAlignment(osgText::Text::CENTER_CENTER);
-			ynumneg_text->setCharacterSize(30);
-			ynumneg_text->setColor(osg::Vec4(0, 0, 0, 1));
-			ynumneg_text->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-			ynum_billboard->addDrawable(ynumneg_text, osg::Vec3d(0, -i*sim->_grid[1] - 0.5*sim->_grid[0], 0.0));
-		}
-		ynum_billboard->setMode(osg::Billboard::AXIAL_ROT);
-		ynum_billboard->setAxis(osg::Vec3d(0.0, 0.0, 1.0));
-		ynum_billboard->setNormal(osg::Vec3d(0.0, 0.0, 1.0));
-		ynum_billboard->setNodeMask(~IS_PICKABLE_MASK);
-		ynum_billboard->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-		ynum_billboard->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-		ynum_billboard->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-		ynum_billboard->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-		root->addChild(ynum_billboard);
-	}
-
-	// skybox
-	osg::ref_ptr<osg::StateSet> stateset = new osg::StateSet();
-	osg::ref_ptr<osg::TexEnv> te = new osg::TexEnv;
-	te->setMode(osg::TexEnv::REPLACE);
-	stateset->setTextureAttributeAndModes(0, te, osg::StateAttribute::ON);
-	osg::ref_ptr<osg::TexGen> tg = new osg::TexGen;
-	tg->setMode(osg::TexGen::NORMAL_MAP);
-	stateset->setTextureAttributeAndModes(0, tg, osg::StateAttribute::ON);
-	osg::ref_ptr<osg::TexMat> tm = new osg::TexMat;
-	stateset->setTextureAttribute(0, tm);
-	osg::ref_ptr<osg::TextureCubeMap> skymap = new osg::TextureCubeMap;
-	osg::Image* imagePosX = osgDB::readImageFile(sim->_tex_path + "ground/checkered/checkered_right.png");
-	osg::Image* imageNegX = osgDB::readImageFile(sim->_tex_path + "ground/checkered/checkered_left.png");
-	osg::Image* imagePosY = osgDB::readImageFile(sim->_tex_path + "ground/checkered/checkered_top.png");
-	osg::Image* imageNegY = osgDB::readImageFile(sim->_tex_path + "ground/checkered/checkered_top.png");
-	osg::Image* imagePosZ = osgDB::readImageFile(sim->_tex_path + "ground/checkered/checkered_front.png");
-	osg::Image* imageNegZ = osgDB::readImageFile(sim->_tex_path + "ground/checkered/checkered_back.png");
-	if (imagePosX && imageNegX && imagePosY && imageNegY && imagePosZ && imageNegZ) {
-		skymap->setImage(osg::TextureCubeMap::POSITIVE_X, imagePosX);
-		skymap->setImage(osg::TextureCubeMap::NEGATIVE_X, imageNegX);
-		skymap->setImage(osg::TextureCubeMap::POSITIVE_Y, imagePosY);
-		skymap->setImage(osg::TextureCubeMap::NEGATIVE_Y, imageNegY);
-		skymap->setImage(osg::TextureCubeMap::POSITIVE_Z, imagePosZ);
-		skymap->setImage(osg::TextureCubeMap::NEGATIVE_Z, imageNegZ);
-		skymap->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
-		skymap->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
-		skymap->setWrap(osg::Texture::WRAP_R, osg::Texture::CLAMP_TO_EDGE);
-		skymap->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
-		skymap->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
-	}
-	stateset->setTextureAttributeAndModes(0, skymap, osg::StateAttribute::ON);
-	stateset->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-	stateset->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
-	osg::ref_ptr<osg::Depth> depth = new osg::Depth;
-	depth->setFunction(osg::Depth::ALWAYS);
-	depth->setRange(1.0,1.0);
-	stateset->setAttributeAndModes(depth, osg::StateAttribute::ON);
-	stateset->setRenderBinDetails(-1, "RenderBin");
-	stateset->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	osg::ref_ptr<osg::Drawable> drawable = new osg::ShapeDrawable(new osg::Sphere(osg::Vec3(0.0f,0.0f,0.0f),1));
-	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-	geode->setCullingActive(false);
-	geode->setStateSet(stateset);
-	geode->addDrawable(drawable);
-	osg::ref_ptr<osg::Transform> transform = new MoveEarthySkyWithEyePointTransform;
-	transform->setCullingActive(false);
-	transform->addChild(geode);
-	osg::ref_ptr<osg::ClearNode> clearNode = new osg::ClearNode;
-	clearNode->setRequiresClear(false);
-	clearNode->setCullCallback(new TexMatCallback(*tm));
-	clearNode->addChild(transform);
-	clearNode->setNodeMask(~IS_PICKABLE_MASK);
-	root->addChild(clearNode);
-
-	// ground objects
-	const double *pos;
-	double radius, length;
-	dQuaternion quat;
-	dVector3 dims;
-	osg::Box *box;
-	osg::Cylinder *cyl;
-	osg::Sphere *sph;
-	for (int i = 1; i < sim->_ground.size(); i++) {
-		osg::ref_ptr<osg::Group> ground = new osg::Group();
-		osg::ref_ptr<osg::Geode> body = new osg::Geode;
-		osg::ref_ptr<osg::ShapeDrawable> shape;
-		pos = dGeomGetOffsetPosition(sim->_ground[i]->geom);
-		dGeomGetOffsetQuaternion(sim->_ground[i]->geom, quat);
-		switch (dGeomGetClass(sim->_ground[i]->geom)) {
-			case dBoxClass:
-				dGeomBoxGetLengths(sim->_ground[i]->geom, dims);
-				box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), dims[0], dims[1], dims[2]);
-				box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-				shape = new osg::ShapeDrawable(box);
-				shape->setColor(osg::Vec4(sim->_ground[i]->r, sim->_ground[i]->g, sim->_ground[i]->b, sim->_ground[i]->alpha));
-				body->addDrawable(shape);
-				break;
-			case dCylinderClass:
-				dGeomCylinderGetParams(sim->_ground[i]->geom, &radius, &length);
-				cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), radius, length);
-				cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-				shape = new osg::ShapeDrawable(cyl);
-				shape->setColor(osg::Vec4(sim->_ground[i]->r, sim->_ground[i]->g, sim->_ground[i]->b, sim->_ground[i]->alpha));
-				body->addDrawable(shape);
-				break;
-			case dSphereClass:
-				radius = dGeomSphereGetRadius(sim->_ground[i]->geom);
-				sph = new osg::Sphere(osg::Vec3d(pos[0], pos[1], pos[2]), radius);
-				shape = new osg::ShapeDrawable(sph);
-				shape->setColor(osg::Vec4(sim->_ground[i]->r, sim->_ground[i]->g, sim->_ground[i]->b, sim->_ground[i]->alpha));
-				body->addDrawable(shape);
-				break;
-		}
-
-		// set rendering properties
-		body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-		body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-		body->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-		body->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-		body->getOrCreateStateSet()->setMode(GL_ALPHA_TEST, osg::StateAttribute::ON);
-		body->setCullingActive(false);
-
-		// add positioning capability
-		osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-		pat->addChild(body.get());
-		ground->addChild(pat.get());
-
-		// add update callback
-		ground->setUpdateCallback(new groundNodeCallback(sim->_ground[i]));
-
-		// set user properties of node
-		ground->setName("ground");
-
-		// optimize object
-		osgUtil::Optimizer optimizer;
-		optimizer.optimize(ground);
-
-		// add to scenegraph
-		shadowedScene->addChild(ground);
-	}
-
-	// drawing objects
-	for (int i = 0; i < sim->_drawings.size(); i++) {
-		if (sim->_drawings[i]->type == DOT) {
-			// create sphere
-			osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(sim->_drawings[i]->p1[0], sim->_drawings[i]->p1[1], sim->_drawings[i]->p1[2]), sim->_drawings[i]->i/500.0);
-			osg::Geode *point = new osg::Geode;
-			osg::ShapeDrawable *pointDrawable = new osg::ShapeDrawable(sphere);
-			point->addDrawable(pointDrawable);
-			pointDrawable->setColor(osg::Vec4(sim->_drawings[i]->c[0], sim->_drawings[i]->c[1], sim->_drawings[i]->c[2], sim->_drawings[i]->c[3]));
-
-			// set rendering properties
-			point->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-			point->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-			// optimize object
-			osgUtil::Optimizer optimizer;
-			optimizer.optimize(point);
-
-			// add to scenegraph
-			shadowedScene->addChild(point);
-		}
-		else if (sim->_drawings[i]->type == LINE) {
-			// draw line
-			osg::Geode *line = new osg::Geode();
-			osg::Geometry *geom = new osg::Geometry();
-			osg::Vec3Array *vert = new osg::Vec3Array();
-			vert->push_back(osg::Vec3(sim->_drawings[i]->p1[0], sim->_drawings[i]->p1[1], sim->_drawings[i]->p1[2]));
-			vert->push_back(osg::Vec3(sim->_drawings[i]->p2[0], sim->_drawings[i]->p2[1], sim->_drawings[i]->p2[2]));
-			geom->setVertexArray(vert);
-			geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 2));
-			osg::Vec4Array *colors = new osg::Vec4Array;
-			colors->push_back(osg::Vec4(sim->_drawings[i]->c[0], sim->_drawings[i]->c[1], sim->_drawings[i]->c[2], sim->_drawings[i]->c[3]));
-			geom->setColorArray(colors);
-			geom->setColorBinding(osg::Geometry::BIND_OVERALL);
-			line->addDrawable(geom);
-
-			// set line width
-			osg::LineWidth *width = new osg::LineWidth();
-			width->setWidth(sim->_drawings[i]->i*3.0f);
-			line->getOrCreateStateSet()->setAttributeAndModes(width, osg::StateAttribute::ON);
-
-			// set rendering properties
-			line->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-			line->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-			// optimize object
-			osgUtil::Optimizer optimizer;
-			optimizer.optimize(line);
-
-			// add to scenegraph
-			shadowedScene->addChild(line);
-		}
-		else if (sim->_drawings[i]->type == TEXT) {
-			// generate text node
-			osgText::Text *label = new osgText::Text();
-			osg::Geode *label_geode = new osg::Geode();
-			label_geode->addDrawable(label);
-			label->setAlignment(osgText::Text::CENTER_CENTER);
-			label->setAxisAlignment(osgText::Text::SCREEN);
-			label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-			label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-			label->setCharacterSize(25);
-			label->setColor(osg::Vec4(sim->_drawings[i]->c[0], sim->_drawings[i]->c[1], sim->_drawings[i]->c[2], sim->_drawings[i]->c[3]));
-			label->setDrawMode(osgText::Text::TEXT);
-			label->setPosition(osg::Vec3(sim->_drawings[i]->p1[0], sim->_drawings[i]->p1[1], sim->_drawings[i]->p1[2]));
-			label->setText(sim->_drawings[i]->str);
-
-			// set rendering properties
-			label_geode->getOrCreateStateSet()->setRenderBinDetails(22, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-			label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-			// optimize object
-			osgUtil::Optimizer optimizer;
-			optimizer.optimize(label_geode);
-
-			// add to scenegraph
-			shadowedScene->addChild(label_geode);
-		}
-	}
-
-	// optimize the scene graph, remove redundant nodes and state etc.
-	osgUtil::Optimizer optimizer;
-	optimizer.optimize(root);
-
-	// viewer event handlers
-	viewer->addEventHandler(new keyboardEventHandler(textHUD));
-	viewer->addEventHandler(new osgGA::StateSetManipulator(camera->getOrCreateStateSet()));
-	viewer->addEventHandler(new osgViewer::WindowSizeHandler);
-	viewer->addEventHandler(new pickHandler());
-
-	// set viewable
-	viewer->setSceneData(root);
-
-	// signal connection functions that graphics are set up
-	SIGNAL(&(sim->_graphics_cond), &(sim->_graphics_mutex), sim->_graphics = 1);
-
-	// run viewer
-	MUTEX_LOCK(&(sim->_viewer_mutex));
-	while (sim->_viewer && !viewer->done()) {
-		MUTEX_UNLOCK(&(sim->_viewer_mutex));
-
-		viewer->frame();
-		if (sim->_staging->getNumChildren()) {
-			sim->_shadowed->addChild(sim->_staging->getChild(0));
-			sim->_staging->removeChild(0, 1);
-		}
-		if (sim->_ending) {
-			sim->_shadowed->removeChild(sim->_shadowed->getChild(sim->_ending));
-			sim->_ending = 0;
-		}
-
-		MUTEX_LOCK(&(sim->_viewer_mutex));
-	}
-	MUTEX_UNLOCK(&(sim->_viewer_mutex));
-
-	// clean up viewer & root
-	viewer->setSceneData(NULL);
-#ifdef _WIN32_
-	delete viewer;
-#endif
-
-	// trigger end of code when graphics window is closed
-	SIGNAL(&(sim->_running_cond), &(sim->_running_mutex), sim->_running = 0);
-
-	// return
-	return arg;
-}
-#endif // ENABLE_GRAPHICS
