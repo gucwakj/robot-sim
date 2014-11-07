@@ -5,9 +5,9 @@
 #include "robosim.hpp"
 
 class DLLIMPORT CLinkbotT : public ModularRobot {
-		friend class linkbotNodeCallback;
 #ifdef ENABLE_GRAPHICS
-		friend int Graphics::draw(CLinkbotT*, int);
+		friend class linkbotNodeCallback;
+		friend class Graphics;
 #endif // ENABLE_GRAPHICS
 
 	// public api

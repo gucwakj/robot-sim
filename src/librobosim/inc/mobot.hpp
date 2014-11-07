@@ -5,9 +5,9 @@
 #include "robosim.hpp"
 
 class DLLIMPORT CMobot : public ModularRobot {
-		friend class mobotNodeCallback;
 #ifdef ENABLE_GRAPHICS
-		friend int Graphics::draw(CMobot*, int);
+		friend class mobotNodeCallback;
+		friend class Graphics;
 #endif // ENABLE_GRAPHICS
 
 	// public api

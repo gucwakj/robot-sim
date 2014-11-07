@@ -5,9 +5,9 @@
 #include "robosim.hpp"
 
 class DLLIMPORT CNXT : virtual public Robot {
-		friend class nxtNodeCallback;
 #ifdef ENABLE_GRAPHICS
-		friend int Graphics::draw(CNXT*, int);
+		friend class nxtNodeCallback;
+		friend class Graphics;
 #endif // ENABLE_GRAPHICS
 
 	// public api

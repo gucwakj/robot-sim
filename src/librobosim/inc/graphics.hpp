@@ -72,10 +72,6 @@ class Graphics {
 		Graphics(void);
 		~Graphics(void);
 
-		int draw(Cubus*, int);
-		int draw(CLinkbotT*, int);
-		int draw(CMobot*, int);
-		int draw(CNXT*, int);
 		int drawGround(RoboSim*);
 		int drawMarker(Drawing*);
 		int drawRobot(Robot*, int, int);
@@ -88,6 +84,10 @@ class Graphics {
 
 	// private functions
 	private:
+		int draw(Cubus*, int, double*);			// draw cubus
+		int draw(CLinkbotT*, int, double*);		// draw linkbot
+		int draw(CMobot*, int, double*);		// draw mobot
+		int draw(CNXT*, int, double*);			// draw nxt
 		static void* graphics_thread(void*);	// thread for graphics objects
 
 	// private data

@@ -789,7 +789,7 @@ int RoboSim::addRobot(Robot *robot) {
 	_xmlbot[i]->connected = 1;
 
 #ifdef ENABLE_GRAPHICS
-	_graphics->drawRobot(robot, form, _xmlbot[i]->tracking);
+	_robots.back()->node = _graphics->drawRobot(robot, form, _xmlbot[i]->tracking);
 #endif // ENABLE_GRAPHICS
 
 	// unlock robot data

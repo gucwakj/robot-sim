@@ -59,10 +59,385 @@ Graphics::~Graphics(void) {
 	}
 }
 
-int Graphics::draw(Cubus *robot, int tracking) {
-	// initialize variables
+int Graphics::drawGround(RoboSim *sim) {
+	const double *pos;
+	double radius, length;
+	dQuaternion quat;
+	dVector3 dims;
+	osg::Box *box;
+	osg::Cylinder *cyl;
+	osg::Sphere *sph;
+
+	for (int i = 1; i < sim->_ground.size(); i++) {
+		osg::ref_ptr<osg::Group> ground = new osg::Group();
+		osg::ref_ptr<osg::Geode> body = new osg::Geode;
+		osg::ref_ptr<osg::ShapeDrawable> shape;
+		pos = dGeomGetOffsetPosition(sim->_ground[i]->geom);
+		dGeomGetOffsetQuaternion(sim->_ground[i]->geom, quat);
+		switch (dGeomGetClass(sim->_ground[i]->geom)) {
+			case dBoxClass:
+				dGeomBoxGetLengths(sim->_ground[i]->geom, dims);
+				box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), dims[0], dims[1], dims[2]);
+				box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+				shape = new osg::ShapeDrawable(box);
+				shape->setColor(osg::Vec4(sim->_ground[i]->r, sim->_ground[i]->g, sim->_ground[i]->b, sim->_ground[i]->alpha));
+				body->addDrawable(shape);
+				break;
+			case dCylinderClass:
+				dGeomCylinderGetParams(sim->_ground[i]->geom, &radius, &length);
+				cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), radius, length);
+				cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
+				shape = new osg::ShapeDrawable(cyl);
+				shape->setColor(osg::Vec4(sim->_ground[i]->r, sim->_ground[i]->g, sim->_ground[i]->b, sim->_ground[i]->alpha));
+				body->addDrawable(shape);
+				break;
+			case dSphereClass:
+				radius = dGeomSphereGetRadius(sim->_ground[i]->geom);
+				sph = new osg::Sphere(osg::Vec3d(pos[0], pos[1], pos[2]), radius);
+				shape = new osg::ShapeDrawable(sph);
+				shape->setColor(osg::Vec4(sim->_ground[i]->r, sim->_ground[i]->g, sim->_ground[i]->b, sim->_ground[i]->alpha));
+				body->addDrawable(shape);
+				break;
+		}
+
+		// set rendering properties
+		body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+		body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+		body->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+		body->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+		body->getOrCreateStateSet()->setMode(GL_ALPHA_TEST, osg::StateAttribute::ON);
+		body->setCullingActive(false);
+
+		// add positioning capability
+		osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
+		pat->addChild(body.get());
+		ground->addChild(pat.get());
+
+		// add update callback
+		ground->setUpdateCallback(new groundNodeCallback(sim->_ground[i]));
+
+		// set user properties of node
+		ground->setName("ground");
+
+		// optimize object
+		osgUtil::Optimizer optimizer;
+		optimizer.optimize(ground);
+
+		// add to scenegraph
+		_staging->addChild(ground);
+	}
+	return 0;
+}
+
+int Graphics::drawMarker(Drawing *marker) {
+	// create geode
+	osg::Geode *geode = new osg::Geode();
+
+	// draw specific marker
+	if (marker->type == DOT) {
+		osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(marker->p1[0], marker->p1[1], marker->p1[2]), marker->i/500.0);
+		osg::ShapeDrawable *pointDrawable = new osg::ShapeDrawable(sphere);
+		pointDrawable->setColor(osg::Vec4(marker->c[0], marker->c[1], marker->c[2], marker->c[3]));
+		geode->addDrawable(pointDrawable);
+	}
+	else if (marker->type == LINE) {
+		osg::Geometry *geom = new osg::Geometry();
+		osg::Vec3Array *vert = new osg::Vec3Array();
+		vert->push_back(osg::Vec3(marker->p1[0], marker->p1[1], marker->p1[2]));
+		vert->push_back(osg::Vec3(marker->p2[0], marker->p2[1], marker->p2[2]));
+		geom->setVertexArray(vert);
+		geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 2));
+		osg::Vec4Array *colors = new osg::Vec4Array;
+		colors->push_back(osg::Vec4(marker->c[0], marker->c[1], marker->c[2], marker->c[3]));
+		geom->setColorArray(colors);
+		geom->setColorBinding(osg::Geometry::BIND_OVERALL);
+		osg::LineWidth *width = new osg::LineWidth();
+		width->setWidth(marker->i*3.0f);
+		geode->addDrawable(geom);
+		geode->getOrCreateStateSet()->setAttributeAndModes(width, osg::StateAttribute::ON);
+	}
+	else if (marker->type == TEXT) {
+		osgText::Text *label = new osgText::Text();
+		label->setAlignment(osgText::Text::CENTER_CENTER);
+		label->setAxisAlignment(osgText::Text::SCREEN);
+		label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+		label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+		label->setCharacterSize(25);
+		label->setColor(osg::Vec4(marker->c[0], marker->c[1], marker->c[2], marker->c[3]));
+		label->setDrawMode(osgText::Text::TEXT);
+		label->setPosition(osg::Vec3(marker->p1[0], marker->p1[1], marker->p1[2]));
+		label->setText(marker->str);
+		geode->addDrawable(label);
+	}
+
+	// set rendering properties
+	geode->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+	// optimize object
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(geode);
+
+	// add to scenegraph
+	_staging->addChild(geode);
+
+	return 0;
+}
+
+int Graphics::drawRobot(Robot *robot, int type, int tracking) {
 	_robots.push_back(new GRobot);
 	_robots.back()->robot = new osg::Group();
+	double rgb[4] = {0};
+
+	switch (type) {
+		case CUBUS:
+			this->draw(dynamic_cast<Cubus*>(robot), tracking, rgb);
+			break;
+		case LINKBOTI:
+			this->draw(dynamic_cast<CLinkbotI*>(robot), tracking, rgb);
+			break;
+		case LINKBOTL:
+			this->draw(dynamic_cast<CLinkbotL*>(robot), tracking, rgb);
+			break;
+		case LINKBOTT:
+			this->draw(dynamic_cast<CLinkbotT*>(robot), tracking, rgb);
+			break;
+		case MOBOT:
+			this->draw(dynamic_cast<CMobot*>(robot), tracking, rgb);
+			break;
+		case NXT:
+			this->draw(dynamic_cast<CNXT*>(robot), tracking, rgb);
+			break;
+	}
+
+	// set masks
+	//robot->setNodeMask(CASTS_SHADOW_MASK);
+	//robot->setNodeMask(IS_PICKABLE_MASK);
+
+	// draw HUD
+	osgText::Text *label = new osgText::Text();
+	osg::Geode *label_geode = new osg::Geode();
+	label_geode->addDrawable(label);
+	label_geode->setNodeMask(NOT_VISIBLE_MASK);
+	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+	label_geode->getOrCreateStateSet()->setRenderBinDetails(22, "RenderBin");
+	label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	label->setAlignment(osgText::Text::CENTER_CENTER);
+	label->setAxisAlignment(osgText::Text::SCREEN);
+	label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+	label->setCharacterSize(30);
+	label->setColor(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	label->setBoundingBoxColor(osg::Vec4(0.0f, 0.0f, 0.0f, 0.9f));
+	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
+	label->setDrawMode(osgText::Text::TEXT | osgText::Text::FILLEDBOUNDINGBOX);
+	_robots.back()->robot->insertChild(0, label_geode);
+
+	// draw tracking node
+	osg::Geode *trackingGeode = new osg::Geode();
+	osg::Geometry *trackingLine = new osg::Geometry();
+	osg::Vec3Array *trackingVertices = new osg::Vec3Array();
+	trackingGeode->setNodeMask((tracking) ? VISIBLE_MASK : NOT_VISIBLE_MASK);
+	trackingLine->setVertexArray(trackingVertices);
+	trackingLine->insertPrimitiveSet(0, new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, 1, 1));
+	trackingLine->setDataVariance(osg::Object::DYNAMIC);
+	trackingLine->setUseDisplayList(false);
+	osg::Vec4Array *colors = new osg::Vec4Array;
+	colors->push_back(osg::Vec4(rgb[0], rgb[1], rgb[2], rgb[3]));
+	trackingLine->setColorArray(colors);
+	trackingLine->setColorBinding(osg::Geometry::BIND_OVERALL);
+	osg::Point *point = new osg::Point();
+	point->setSize(4.0f);
+	trackingGeode->getOrCreateStateSet()->setAttributeAndModes(point, osg::StateAttribute::ON);
+	trackingGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+	trackingGeode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+	trackingGeode->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
+	trackingGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
+	trackingGeode->addDrawable(trackingLine);
+	_robots.back()->robot->insertChild(1, trackingGeode);
+
+	// set user properties of node
+	_robots.back()->robot->setName("robot");
+
+	// optimize robot
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(_robots.back()->robot);
+
+	// add to scenegraph
+	_staging->addChild(_robots.back()->robot);
+
+	// return position of robot in root node
+	return (_staging->getChildIndex(_robots.back()->robot));
+
+	//return 0;
+}
+
+osgText::Text* Graphics::getHUDText(void) {
+	osg::Geode *geode = _scene->getParent(0)->getChild(1)->asGroup()->getChild(0)->asTransform()->getChild(0)->asGeode();
+	return dynamic_cast<osgText::Text *>(geode->getDrawable(0));
+}
+
+std::string Graphics::getTexPath(void) {
+	std::string path;
+#ifdef _WIN32
+	DWORD size = 128;
+	HKEY key;
+#if defined(_WIN64)
+	RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\Wow6432Node\\SoftIntegration"), 0, KEY_QUERY_VALUE, &key);
+#else
+	RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\SoftIntegration"), 0, KEY_QUERY_VALUE, &key);
+#endif
+	char path[128];
+	RegQueryValueEx(key, TEXT("CHHOME"), NULL, NULL, (LPBYTE)path, &size);
+	path[size] = '\0';
+	if (path[0] == '\0')
+		path = "C:/Ch";
+	else
+		path = path;
+	path += "/package/chrobosim/data/";
+#else
+	path = "/usr/local/ch/package/chrobosim/data/";
+#endif
+	_tex_path = path;
+	return path;
+}
+
+int Graphics::getUnits(void) {
+	return _us;
+}
+
+void Graphics::readXML(tinyxml2::XMLDocument *doc) {
+	tinyxml2::XMLElement *node = NULL;
+	tinyxml2::XMLElement *ele = NULL;
+	tinyxml2::XMLElement *side = NULL;
+	int tracking = 0;
+
+	// check for existence of graphics node
+	if ( (node = doc->FirstChildElement("graphics")) ) {
+		node = node->FirstChildElement();
+	}
+
+	// loop over all graphics nodes ignoring grid
+	while (node) {
+		if ( !strcmp(node->Value(), "line") ) {
+			// store default variables
+			_drawings.push_back(new Drawing());
+			_drawings.back()->type = LINE;
+
+			// get user defined values from xml
+			if (node->QueryIntAttribute("width", &_drawings.back()->i)) {
+				_drawings.back()->i = 1;
+			}
+			if ( (ele = node->FirstChildElement("start")) ) {
+				ele->QueryDoubleAttribute("x", &_drawings.back()->p1[0]);
+				ele->QueryDoubleAttribute("y", &_drawings.back()->p1[1]);
+				ele->QueryDoubleAttribute("z", &_drawings.back()->p1[2]);
+			}
+			if ( (ele = node->FirstChildElement("end")) ) {
+				ele->QueryDoubleAttribute("x", &_drawings.back()->p2[0]);
+				ele->QueryDoubleAttribute("y", &_drawings.back()->p2[1]);
+				ele->QueryDoubleAttribute("z", &_drawings.back()->p2[2]);
+			}
+			if ( (ele = node->FirstChildElement("color")) ) {
+				ele->QueryDoubleAttribute("r", &_drawings.back()->c[0]);
+				ele->QueryDoubleAttribute("g", &_drawings.back()->c[1]);
+				ele->QueryDoubleAttribute("b", &_drawings.back()->c[2]);
+				ele->QueryDoubleAttribute("alpha", &_drawings.back()->c[3]);
+			}
+		}
+		else if ( !strcmp(node->Value(), "point") ) {
+			// store default variables
+			_drawings.push_back(new Drawing());
+			_drawings.back()->type = DOT;
+
+			// get user defined values from xml
+			if (node->QueryIntAttribute("size", &_drawings.back()->i)) {
+				_drawings.back()->i = 1;
+			}
+			if ( (ele = node->FirstChildElement("position")) ) {
+				ele->QueryDoubleAttribute("x", &_drawings.back()->p1[0]);
+				ele->QueryDoubleAttribute("y", &_drawings.back()->p1[1]);
+				ele->QueryDoubleAttribute("z", &_drawings.back()->p1[2]);
+			}
+			if ( (ele = node->FirstChildElement("color")) ) {
+				ele->QueryDoubleAttribute("r", &_drawings.back()->c[0]);
+				ele->QueryDoubleAttribute("g", &_drawings.back()->c[1]);
+				ele->QueryDoubleAttribute("b", &_drawings.back()->c[2]);
+				ele->QueryDoubleAttribute("alpha", &_drawings.back()->c[3]);
+			}
+		}
+		else if ( !strcmp(node->Value(), "grid") ) {
+			node->QueryIntAttribute("units", &_us);
+			node->QueryDoubleAttribute("tics", &_grid[0]);
+			node->QueryDoubleAttribute("major", &_grid[1]);
+			node->QueryDoubleAttribute("minx", &_grid[2]);
+			node->QueryDoubleAttribute("maxx", &_grid[3]);
+			node->QueryDoubleAttribute("miny", &_grid[4]);
+			node->QueryDoubleAttribute("maxy", &_grid[5]);
+			node->QueryDoubleAttribute("enabled", &_grid[6]);
+			for (int i = 0; i < 6; i++) {
+				if (_us)_grid[i] /= 39.37;
+				else _grid[i] /= 100;
+			}
+		}
+		else if ( !strcmp(node->Value(), "tracking") ) {
+			node->QueryIntAttribute("val", &tracking);
+		}
+		else {
+			// store default variables
+			_drawings.push_back(new Drawing());
+			_drawings.back()->type = TEXT;
+
+			// get user defined values from xml
+			_drawings.back()->str = node->Value();
+			if ( (ele = node->FirstChildElement("position")) ) {
+				ele->QueryDoubleAttribute("x", &_drawings.back()->p1[0]);
+				ele->QueryDoubleAttribute("y", &_drawings.back()->p1[1]);
+				ele->QueryDoubleAttribute("z", &_drawings.back()->p1[2]);
+			}
+			if ( (ele = node->FirstChildElement("color")) ) {
+				ele->QueryDoubleAttribute("r", &_drawings.back()->c[0]);
+				ele->QueryDoubleAttribute("g", &_drawings.back()->c[1]);
+				ele->QueryDoubleAttribute("b", &_drawings.back()->c[2]);
+				ele->QueryDoubleAttribute("alpha", &_drawings.back()->c[3]);
+			}
+		}
+		// go to next node
+		node = node->NextSiblingElement();
+	}
+}
+
+int Graphics::stageForDelete(int id) {
+	_ending = id;
+
+	// success
+	return 0;
+}
+
+void Graphics::start(int pause) {
+	// graphics haven't started yet
+	COND_INIT(&_graphics_cond);
+	MUTEX_INIT(&_graphics_mutex);
+	_graphics = 0;
+	_ending = pause;
+
+	// create graphics thread
+	THREAD_CREATE(&_osgThread, (void* (*)(void *))&Graphics::graphics_thread, (void *)this);
+
+	// wait for graphics to be ready
+	MUTEX_LOCK(&_graphics_mutex);
+	while (!_graphics) {
+		COND_WAIT(&_graphics_cond, &_graphics_mutex);
+	}
+	MUTEX_UNLOCK(&_graphics_mutex);
+	_ending = 0;
+}
+
+/**********************************************************
+	private functions
+ **********************************************************/
+int Graphics::draw(Cubus *robot, int tracking, double *rgb) {
+	// initialize variables
 	osg::ref_ptr<osg::Geode> body[robot->NUM_PARTS];
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat[robot->NUM_PARTS];
 	osg::ref_ptr<osg::Texture2D> tex[2];
@@ -215,71 +590,21 @@ int Graphics::draw(Cubus *robot, int tracking) {
 	// set update callback for robot
 	_robots.back()->robot->setUpdateCallback(new cubusNodeCallback(robot, _robots.back()->led));
 
-	// set masks
-	//robot->setNodeMask(CASTS_SHADOW_MASK);
-	//robot->setNodeMask(IS_PICKABLE_MASK);
-
-	// draw HUD
-	osgText::Text *label = new osgText::Text();
-	osg::Geode *label_geode = new osg::Geode();
-	label_geode->addDrawable(label);
-	label_geode->setNodeMask(NOT_VISIBLE_MASK);
-	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	label_geode->getOrCreateStateSet()->setRenderBinDetails(22, "RenderBin");
-	label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	label->setAlignment(osgText::Text::CENTER_CENTER);
-	label->setAxisAlignment(osgText::Text::SCREEN);
-	label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	label->setCharacterSize(30);
-	label->setColor(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	label->setBoundingBoxColor(osg::Vec4(0.0f, 0.0f, 0.0f, 0.9f));
-	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	label->setDrawMode(osgText::Text::TEXT | osgText::Text::FILLEDBOUNDINGBOX);
-	_robots.back()->robot->insertChild(0, label_geode);
-
-	// draw tracking node
+	// set tracking
 	robot->_trace = tracking;
-	osg::Geode *trackingGeode = new osg::Geode();
-	osg::Geometry *trackingLine = new osg::Geometry();
-	osg::Vec3Array *trackingVertices = new osg::Vec3Array();
-	trackingGeode->setNodeMask((tracking) ? VISIBLE_MASK : NOT_VISIBLE_MASK);
-	trackingLine->setVertexArray(trackingVertices);
-	trackingLine->insertPrimitiveSet(0, new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, 1, 1));
-	trackingLine->setDataVariance(osg::Object::DYNAMIC);
-	trackingLine->setUseDisplayList(false);
-	osg::Vec4Array *colors = new osg::Vec4Array;
-	colors->push_back(osg::Vec4(robot->_rgb[0], robot->_rgb[1], robot->_rgb[2], 1.0));
-	trackingLine->setColorArray(colors);
-	trackingLine->setColorBinding(osg::Geometry::BIND_OVERALL);
-	osg::Point *point = new osg::Point();
-	point->setSize(4.0f);
-	trackingGeode->getOrCreateStateSet()->setAttributeAndModes(point, osg::StateAttribute::ON);
-	trackingGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	trackingGeode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	trackingGeode->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	trackingGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	trackingGeode->addDrawable(trackingLine);
-	_robots.back()->robot->insertChild(1, trackingGeode);
 
-	// set user properties of node
-	_robots.back()->robot->setName("robot");
+	// send back rgb
+	rgb[0] = robot->_rgb[0];
+	rgb[1] = robot->_rgb[1];
+	rgb[2] = robot->_rgb[2];
+	rgb[3] = 1;
 
-	// optimize robot
-	osgUtil::Optimizer optimizer;
-	optimizer.optimize(_robots.back()->robot);
-
-	// add to scenegraph
-	_staging->addChild(_robots.back()->robot);
-
-	// return position of robot in root node
-	return (_staging->getChildIndex(_robots.back()->robot));
+	// success
+	return 0;
 }
 
-int Graphics::draw(CLinkbotT *robot, int tracking) {
+int Graphics::draw(CLinkbotT *robot, int tracking, double *rgb) {
 	// initialize variables
-	_robots.push_back(new GRobot);
-	_robots.back()->robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[4];
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat[4];
 	osg::ref_ptr<osg::Texture2D> tex[2];
@@ -500,71 +825,21 @@ int Graphics::draw(CLinkbotT *robot, int tracking) {
 	// set update callback for robot
 	_robots.back()->robot->setUpdateCallback(new linkbotNodeCallback(robot, _robots.back()->led));
 
-	// set masks
-	//robot->setNodeMask(CASTS_SHADOW_MASK);
-	//robot->setNodeMask(IS_PICKABLE_MASK);
-
-	// draw HUD
-	osgText::Text *label = new osgText::Text();
-	osg::Geode *label_geode = new osg::Geode();
-	label_geode->addDrawable(label);
-	label_geode->setNodeMask(NOT_VISIBLE_MASK);
-	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	label_geode->getOrCreateStateSet()->setRenderBinDetails(22, "RenderBin");
-	label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	label->setAlignment(osgText::Text::CENTER_CENTER);
-	label->setAxisAlignment(osgText::Text::SCREEN);
-	label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	label->setCharacterSize(30);
-	label->setColor(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	label->setBoundingBoxColor(osg::Vec4(0.0f, 0.0f, 0.0f, 0.9f));
-	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	label->setDrawMode(osgText::Text::TEXT | osgText::Text::FILLEDBOUNDINGBOX);
-	_robots.back()->robot->insertChild(0, label_geode);
-
-	// draw tracking node
+	// set tracking
 	robot->_trace = tracking;
-	osg::Geode *trackingGeode = new osg::Geode();
-	osg::Geometry *trackingLine = new osg::Geometry();
-	osg::Vec3Array *trackingVertices = new osg::Vec3Array();
-	trackingGeode->setNodeMask((tracking) ? VISIBLE_MASK : NOT_VISIBLE_MASK);
-	trackingLine->setVertexArray(trackingVertices);
-	trackingLine->insertPrimitiveSet(0, new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, 1, 1));
-	trackingLine->setDataVariance(osg::Object::DYNAMIC);
-	trackingLine->setUseDisplayList(false);
-	osg::Vec4Array *colors = new osg::Vec4Array;
-	colors->push_back(osg::Vec4(robot->_rgb[0], robot->_rgb[1], robot->_rgb[2], 1.0f));
-	trackingLine->setColorArray(colors);
-	trackingLine->setColorBinding(osg::Geometry::BIND_OVERALL);
-	osg::Point *point = new osg::Point();
-	point->setSize(4.0f);
-	trackingGeode->getOrCreateStateSet()->setAttributeAndModes(point, osg::StateAttribute::ON);
-	trackingGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	trackingGeode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	trackingGeode->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	trackingGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	trackingGeode->addDrawable(trackingLine);
-	_robots.back()->robot->insertChild(1, trackingGeode);
 
-	// set user properties of node
-	_robots.back()->robot->setName("robot");
+	// send back rgb
+	rgb[0] = robot->_rgb[0];
+	rgb[1] = robot->_rgb[1];
+	rgb[2] = robot->_rgb[2];
+	rgb[3] = 1;
 
-	// optimize robot
-	osgUtil::Optimizer optimizer;
-	optimizer.optimize(_robots.back()->robot);
-
-	// add to scenegraph
-	_staging->addChild(_robots.back()->robot);
-
-	// return position of robot in root node
-	return (_staging->getChildIndex(_robots.back()->robot));
+	// success
+	return 0;
 }
 
-int Graphics::draw(CMobot *robot, int tracking) {
+int Graphics::draw(CMobot *robot, int tracking, double *rgb) {
 	// initialize variables
-	_robots.push_back(new GRobot);
-	_robots.back()->robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[5];
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat[5];
 	const double *pos;
@@ -926,71 +1201,21 @@ int Graphics::draw(CMobot *robot, int tracking) {
 	// set update callback for robot
 	_robots.back()->robot->setUpdateCallback(new mobotNodeCallback(robot, _robots.back()->led));
 
-	// set shadow mask
-	//robot->setNodeMask(CASTS_SHADOW_MASK);
-	//robot->setNodeMask(IS_PICKABLE_MASK);
-
-	// draw HUD
-	osgText::Text *label = new osgText::Text();
-	osg::Geode *label_geode = new osg::Geode();
-	label_geode->addDrawable(label);
-	label_geode->setNodeMask(NOT_VISIBLE_MASK);
-	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	label_geode->getOrCreateStateSet()->setRenderBinDetails(22, "RenderBin");
-	label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	label->setAlignment(osgText::Text::CENTER_CENTER);
-	label->setAxisAlignment(osgText::Text::SCREEN);
-	label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	label->setCharacterSize(30);
-	label->setColor(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	label->setBoundingBoxColor(osg::Vec4(0.0f, 0.0f, 0.0f, 0.9f));
-	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	label->setDrawMode(osgText::Text::TEXT | osgText::Text::FILLEDBOUNDINGBOX);
-	_robots.back()->robot->insertChild(0, label_geode);
-
-	// draw tracking node
+	// set tracking
 	robot->_trace = tracking;
-	osg::Geode *trackingGeode = new osg::Geode();
-	osg::Geometry *trackingLine = new osg::Geometry();
-	osg::Vec3Array *trackingVertices = new osg::Vec3Array();
-	trackingGeode->setNodeMask((tracking) ? VISIBLE_MASK : NOT_VISIBLE_MASK);
-	trackingLine->setVertexArray(trackingVertices);
-	trackingLine->insertPrimitiveSet(0, new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, 1, 1));
-	trackingLine->setDataVariance(osg::Object::DYNAMIC);
-	trackingLine->setUseDisplayList(false);
-	osg::Vec4Array *colors = new osg::Vec4Array;
-	colors->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f) );	// green
-	trackingLine->setColorArray(colors);
-	trackingLine->setColorBinding(osg::Geometry::BIND_OVERALL);
-	osg::Point *point = new osg::Point();
-	point->setSize(4.0f);
-	trackingGeode->getOrCreateStateSet()->setAttributeAndModes(point, osg::StateAttribute::ON);
-	trackingGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	trackingGeode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	trackingGeode->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	trackingGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	trackingGeode->addDrawable(trackingLine);
-	_robots.back()->robot->insertChild(1, trackingGeode);
 
-	// set user properties of node
-	_robots.back()->robot->setName("robot");
+	// send back rgb
+	rgb[0] = robot->_rgb[0];
+	rgb[1] = robot->_rgb[1];
+	rgb[2] = robot->_rgb[2];
+	rgb[3] = 1;
 
-	// optimize robot
-	osgUtil::Optimizer optimizer;
-	optimizer.optimize(_robots.back()->robot);
-
-	// add to scenegraph
-	_staging->addChild(_robots.back()->robot);
-
-	// return position of robot in root node
-	return (_staging->getChildIndex(_robots.back()->robot));
+	// success
+	return 0;
 }
 
-int Graphics::draw(CNXT *robot, int tracking) {
+int Graphics::draw(CNXT *robot, int tracking, double *rgb) {
 	// initialize variables
-	_robots.push_back(new GRobot);
-	_robots.back()->robot = new osg::Group();
 	osg::ref_ptr<osg::Geode> body[robot->NUM_PARTS];
 	osg::ref_ptr<osg::PositionAttitudeTransform> pat[robot->NUM_PARTS];
 	osg::ref_ptr<osg::Texture2D> tex;
@@ -1051,380 +1276,19 @@ int Graphics::draw(CNXT *robot, int tracking) {
 	// set update callback for robot
 	_robots.back()->robot->setUpdateCallback(new nxtNodeCallback(robot, _robots.back()->led));
 
-	// set masks
-	//robot->setNodeMask(CASTS_SHADOW_MASK);
-	//robot->setNodeMask(IS_PICKABLE_MASK);
-
-	// draw HUD
-	osgText::Text *label = new osgText::Text();
-	osg::Geode *label_geode = new osg::Geode();
-	label_geode->addDrawable(label);
-	label_geode->setNodeMask(NOT_VISIBLE_MASK);
-	label_geode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	label_geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	label_geode->getOrCreateStateSet()->setRenderBinDetails(22, "RenderBin");
-	label_geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	label->setAlignment(osgText::Text::CENTER_CENTER);
-	label->setAxisAlignment(osgText::Text::SCREEN);
-	label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-	label->setCharacterSize(30);
-	label->setColor(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	label->setBoundingBoxColor(osg::Vec4(0.0f, 0.0f, 0.0f, 0.9f));
-	label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-	label->setDrawMode(osgText::Text::TEXT | osgText::Text::FILLEDBOUNDINGBOX);
-	_robots.back()->robot->insertChild(0, label_geode);
-
-	// draw tracking node
+	// set tracking
 	robot->_trace = tracking;
-	osg::Geode *trackingGeode = new osg::Geode();
-	osg::Geometry *trackingLine = new osg::Geometry();
-	osg::Vec3Array *trackingVertices = new osg::Vec3Array();
-	trackingGeode->setNodeMask((tracking) ? VISIBLE_MASK : NOT_VISIBLE_MASK);
-	trackingLine->setVertexArray(trackingVertices);
-	trackingLine->insertPrimitiveSet(0, new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, 1, 1));
-	trackingLine->setDataVariance(osg::Object::DYNAMIC);
-	trackingLine->setUseDisplayList(false);
-	osg::Vec4Array *colors = new osg::Vec4Array;
-	colors->push_back(osg::Vec4(robot->_rgb[0], robot->_rgb[1], robot->_rgb[2], 1.0f) );
-	trackingLine->setColorArray(colors);
-	trackingLine->setColorBinding(osg::Geometry::BIND_OVERALL);
-	osg::Point *point = new osg::Point();
-	point->setSize(4.0f);
-	trackingGeode->getOrCreateStateSet()->setAttributeAndModes(point, osg::StateAttribute::ON);
-	trackingGeode->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	trackingGeode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	trackingGeode->getOrCreateStateSet()->setRenderBinDetails(1, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	trackingGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN);
-	trackingGeode->addDrawable(trackingLine);
-	_robots.back()->robot->insertChild(1, trackingGeode);
 
-	// set user properties of node
-	_robots.back()->robot->setName("robot");
-
-	// optimize robot
-	osgUtil::Optimizer optimizer;
-	optimizer.optimize(_robots.back()->robot);
-
-	// add to scenegraph
-	_staging->addChild(_robots.back()->robot);
-
-	// return position of robot in root node
-	return (_staging->getChildIndex(_robots.back()->robot));
-}
-
-int Graphics::drawGround(RoboSim *sim) {
-	const double *pos;
-	double radius, length;
-	dQuaternion quat;
-	dVector3 dims;
-	osg::Box *box;
-	osg::Cylinder *cyl;
-	osg::Sphere *sph;
-
-	for (int i = 1; i < sim->_ground.size(); i++) {
-		osg::ref_ptr<osg::Group> ground = new osg::Group();
-		osg::ref_ptr<osg::Geode> body = new osg::Geode;
-		osg::ref_ptr<osg::ShapeDrawable> shape;
-		pos = dGeomGetOffsetPosition(sim->_ground[i]->geom);
-		dGeomGetOffsetQuaternion(sim->_ground[i]->geom, quat);
-		switch (dGeomGetClass(sim->_ground[i]->geom)) {
-			case dBoxClass:
-				dGeomBoxGetLengths(sim->_ground[i]->geom, dims);
-				box = new osg::Box(osg::Vec3d(pos[0], pos[1], pos[2]), dims[0], dims[1], dims[2]);
-				box->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-				shape = new osg::ShapeDrawable(box);
-				shape->setColor(osg::Vec4(sim->_ground[i]->r, sim->_ground[i]->g, sim->_ground[i]->b, sim->_ground[i]->alpha));
-				body->addDrawable(shape);
-				break;
-			case dCylinderClass:
-				dGeomCylinderGetParams(sim->_ground[i]->geom, &radius, &length);
-				cyl = new osg::Cylinder(osg::Vec3d(pos[0], pos[1], pos[2]), radius, length);
-				cyl->setRotation(osg::Quat(quat[1], quat[2], quat[3], quat[0]));
-				shape = new osg::ShapeDrawable(cyl);
-				shape->setColor(osg::Vec4(sim->_ground[i]->r, sim->_ground[i]->g, sim->_ground[i]->b, sim->_ground[i]->alpha));
-				body->addDrawable(shape);
-				break;
-			case dSphereClass:
-				radius = dGeomSphereGetRadius(sim->_ground[i]->geom);
-				sph = new osg::Sphere(osg::Vec3d(pos[0], pos[1], pos[2]), radius);
-				shape = new osg::ShapeDrawable(sph);
-				shape->setColor(osg::Vec4(sim->_ground[i]->r, sim->_ground[i]->g, sim->_ground[i]->b, sim->_ground[i]->alpha));
-				body->addDrawable(shape);
-				break;
-		}
-
-		// set rendering properties
-		body->getOrCreateStateSet()->setRenderBinDetails(33, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-		body->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-		body->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-		body->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-		body->getOrCreateStateSet()->setMode(GL_ALPHA_TEST, osg::StateAttribute::ON);
-		body->setCullingActive(false);
-
-		// add positioning capability
-		osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
-		pat->addChild(body.get());
-		ground->addChild(pat.get());
-
-		// add update callback
-		ground->setUpdateCallback(new groundNodeCallback(sim->_ground[i]));
-
-		// set user properties of node
-		ground->setName("ground");
-
-		// optimize object
-		osgUtil::Optimizer optimizer;
-		optimizer.optimize(ground);
-
-		// add to scenegraph
-		_staging->addChild(ground);
-	}
-	return 0;
-}
-
-int Graphics::drawMarker(Drawing *marker) {
-	// create geode
-	osg::Geode *geode = new osg::Geode();
-
-	// draw specific marker
-	if (marker->type == DOT) {
-		osg::Sphere *sphere = new osg::Sphere(osg::Vec3d(marker->p1[0], marker->p1[1], marker->p1[2]), marker->i/500.0);
-		osg::ShapeDrawable *pointDrawable = new osg::ShapeDrawable(sphere);
-		pointDrawable->setColor(osg::Vec4(marker->c[0], marker->c[1], marker->c[2], marker->c[3]));
-		geode->addDrawable(pointDrawable);
-	}
-	else if (marker->type == LINE) {
-		osg::Geometry *geom = new osg::Geometry();
-		osg::Vec3Array *vert = new osg::Vec3Array();
-		vert->push_back(osg::Vec3(marker->p1[0], marker->p1[1], marker->p1[2]));
-		vert->push_back(osg::Vec3(marker->p2[0], marker->p2[1], marker->p2[2]));
-		geom->setVertexArray(vert);
-		geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, 2));
-		osg::Vec4Array *colors = new osg::Vec4Array;
-		colors->push_back(osg::Vec4(marker->c[0], marker->c[1], marker->c[2], marker->c[3]));
-		geom->setColorArray(colors);
-		geom->setColorBinding(osg::Geometry::BIND_OVERALL);
-		osg::LineWidth *width = new osg::LineWidth();
-		width->setWidth(marker->i*3.0f);
-		geode->addDrawable(geom);
-		geode->getOrCreateStateSet()->setAttributeAndModes(width, osg::StateAttribute::ON);
-	}
-	else if (marker->type == TEXT) {
-		osgText::Text *label = new osgText::Text();
-		label->setAlignment(osgText::Text::CENTER_CENTER);
-		label->setAxisAlignment(osgText::Text::SCREEN);
-		label->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_CENTER);
-		label->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
-		label->setCharacterSize(25);
-		label->setColor(osg::Vec4(marker->c[0], marker->c[1], marker->c[2], marker->c[3]));
-		label->setDrawMode(osgText::Text::TEXT);
-		label->setPosition(osg::Vec3(marker->p1[0], marker->p1[1], marker->p1[2]));
-		label->setText(marker->str);
-		geode->addDrawable(label);
-	}
-
-	// set rendering properties
-	geode->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin", osg::StateSet::OVERRIDE_RENDERBIN_DETAILS);
-	geode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-	// optimize object
-	osgUtil::Optimizer optimizer;
-	optimizer.optimize(geode);
-
-	// add to scenegraph
-	_staging->addChild(geode);
-
-	return 0;
-}
-
-int Graphics::drawRobot(Robot *robot, int type, int tracking) {
-	switch (type) {
-		case MOBOT:
-			this->draw(dynamic_cast<CMobot*>(robot), tracking);
-			break;
-		case LINKBOTI:
-			this->draw(dynamic_cast<CLinkbotI*>(robot), tracking);
-			break;
-		case LINKBOTL:
-			this->draw(dynamic_cast<CLinkbotL*>(robot), tracking);
-			break;
-		case LINKBOTT:
-			this->draw(dynamic_cast<CLinkbotT*>(robot), tracking);
-			break;
-		case NXT:
-			this->draw(dynamic_cast<CNXT*>(robot), tracking);
-			break;
-		case CUBUS:
-			this->draw(dynamic_cast<Cubus*>(robot), tracking);
-			break;
-	}
-	return 0;
-}
-
-osgText::Text* Graphics::getHUDText(void) {
-	osg::Geode *geode = _scene->getParent(0)->getChild(1)->asGroup()->getChild(0)->asTransform()->getChild(0)->asGeode();
-	return dynamic_cast<osgText::Text *>(geode->getDrawable(0));
-}
-
-std::string Graphics::getTexPath(void) {
-	std::string path;
-#ifdef _WIN32
-	DWORD size = 128;
-	HKEY key;
-#if defined(_WIN64)
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\Wow6432Node\\SoftIntegration"), 0, KEY_QUERY_VALUE, &key);
-#else
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\SoftIntegration"), 0, KEY_QUERY_VALUE, &key);
-#endif
-	char path[128];
-	RegQueryValueEx(key, TEXT("CHHOME"), NULL, NULL, (LPBYTE)path, &size);
-	path[size] = '\0';
-	if (path[0] == '\0')
-		path = "C:/Ch";
-	else
-		path = path;
-	path += "/package/chrobosim/data/";
-#else
-	path = "/usr/local/ch/package/chrobosim/data/";
-#endif
-	_tex_path = path;
-	return path;
-}
-
-int Graphics::getUnits(void) {
-	return _us;
-}
-
-void Graphics::readXML(tinyxml2::XMLDocument *doc) {
-	tinyxml2::XMLElement *node = NULL;
-	tinyxml2::XMLElement *ele = NULL;
-	tinyxml2::XMLElement *side = NULL;
-	int tracking = 0;
-
-	// check for existence of graphics node
-	if ( (node = doc->FirstChildElement("graphics")) ) {
-		node = node->FirstChildElement();
-	}
-
-	// loop over all graphics nodes ignoring grid
-	while (node) {
-		if ( !strcmp(node->Value(), "line") ) {
-			// store default variables
-			_drawings.push_back(new Drawing());
-			_drawings.back()->type = LINE;
-
-			// get user defined values from xml
-			if (node->QueryIntAttribute("width", &_drawings.back()->i)) {
-				_drawings.back()->i = 1;
-			}
-			if ( (ele = node->FirstChildElement("start")) ) {
-				ele->QueryDoubleAttribute("x", &_drawings.back()->p1[0]);
-				ele->QueryDoubleAttribute("y", &_drawings.back()->p1[1]);
-				ele->QueryDoubleAttribute("z", &_drawings.back()->p1[2]);
-			}
-			if ( (ele = node->FirstChildElement("end")) ) {
-				ele->QueryDoubleAttribute("x", &_drawings.back()->p2[0]);
-				ele->QueryDoubleAttribute("y", &_drawings.back()->p2[1]);
-				ele->QueryDoubleAttribute("z", &_drawings.back()->p2[2]);
-			}
-			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryDoubleAttribute("r", &_drawings.back()->c[0]);
-				ele->QueryDoubleAttribute("g", &_drawings.back()->c[1]);
-				ele->QueryDoubleAttribute("b", &_drawings.back()->c[2]);
-				ele->QueryDoubleAttribute("alpha", &_drawings.back()->c[3]);
-			}
-		}
-		else if ( !strcmp(node->Value(), "point") ) {
-			// store default variables
-			_drawings.push_back(new Drawing());
-			_drawings.back()->type = DOT;
-
-			// get user defined values from xml
-			if (node->QueryIntAttribute("size", &_drawings.back()->i)) {
-				_drawings.back()->i = 1;
-			}
-			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &_drawings.back()->p1[0]);
-				ele->QueryDoubleAttribute("y", &_drawings.back()->p1[1]);
-				ele->QueryDoubleAttribute("z", &_drawings.back()->p1[2]);
-			}
-			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryDoubleAttribute("r", &_drawings.back()->c[0]);
-				ele->QueryDoubleAttribute("g", &_drawings.back()->c[1]);
-				ele->QueryDoubleAttribute("b", &_drawings.back()->c[2]);
-				ele->QueryDoubleAttribute("alpha", &_drawings.back()->c[3]);
-			}
-		}
-		else if ( !strcmp(node->Value(), "grid") ) {
-			node->QueryIntAttribute("units", &_us);
-			node->QueryDoubleAttribute("tics", &_grid[0]);
-			node->QueryDoubleAttribute("major", &_grid[1]);
-			node->QueryDoubleAttribute("minx", &_grid[2]);
-			node->QueryDoubleAttribute("maxx", &_grid[3]);
-			node->QueryDoubleAttribute("miny", &_grid[4]);
-			node->QueryDoubleAttribute("maxy", &_grid[5]);
-			node->QueryDoubleAttribute("enabled", &_grid[6]);
-			for (int i = 0; i < 6; i++) {
-				if (_us)_grid[i] /= 39.37;
-				else _grid[i] /= 100;
-			}
-		}
-		else if ( !strcmp(node->Value(), "tracking") ) {
-			node->QueryIntAttribute("val", &tracking);
-		}
-		else {
-			// store default variables
-			_drawings.push_back(new Drawing());
-			_drawings.back()->type = TEXT;
-
-			// get user defined values from xml
-			_drawings.back()->str = node->Value();
-			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &_drawings.back()->p1[0]);
-				ele->QueryDoubleAttribute("y", &_drawings.back()->p1[1]);
-				ele->QueryDoubleAttribute("z", &_drawings.back()->p1[2]);
-			}
-			if ( (ele = node->FirstChildElement("color")) ) {
-				ele->QueryDoubleAttribute("r", &_drawings.back()->c[0]);
-				ele->QueryDoubleAttribute("g", &_drawings.back()->c[1]);
-				ele->QueryDoubleAttribute("b", &_drawings.back()->c[2]);
-				ele->QueryDoubleAttribute("alpha", &_drawings.back()->c[3]);
-			}
-		}
-		// go to next node
-		node = node->NextSiblingElement();
-	}
-}
-
-int Graphics::stageForDelete(int id) {
-	_ending = id;
+	// send back rgb
+	rgb[0] = robot->_rgb[0];
+	rgb[1] = robot->_rgb[1];
+	rgb[2] = robot->_rgb[2];
+	rgb[3] = 1;
 
 	// success
 	return 0;
 }
 
-void Graphics::start(int pause) {
-	// graphics haven't started yet
-	COND_INIT(&_graphics_cond);
-	MUTEX_INIT(&_graphics_mutex);
-	_graphics = 0;
-	_ending = pause;
-
-	// create graphics thread
-	THREAD_CREATE(&_osgThread, (void* (*)(void *))&Graphics::graphics_thread, (void *)this);
-
-	// wait for graphics to be ready
-	MUTEX_LOCK(&_graphics_mutex);
-	while (!_graphics) {
-		COND_WAIT(&_graphics_cond, &_graphics_mutex);
-	}
-	MUTEX_UNLOCK(&_graphics_mutex);
-	_ending = 0;
-}
-
-/**********************************************************
-	private functions
- **********************************************************/
 void* Graphics::graphics_thread(void *arg) {
 	// cast viewer
 	Graphics *sim = (Graphics *)arg;
