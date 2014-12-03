@@ -1,24 +1,30 @@
 #include "robosim.hpp"
 
 // global robot simulation object
-RoboSim *g_sim = NULL;
+//RoboSim *g_sim = NULL;
 
-RoboSim::RoboSim(char *name, int pause) {
+RoboSim::RoboSim(char *name, int pause, int lib) {
+	_lib = lib;
 #ifdef ENABLE_GRAPHICS
-	_graphics = new Graphics();
+	//if (_lib) _graphics = new Graphics(this);
 #endif // ENABLE_GRAPHICS
 	init_ode();
-	init_xml(name);
+	//init_xml(name);
 	init_sim(pause);
 #ifdef ENABLE_GRAPHICS
-	_graphics->start(_pause);
-	_graphics->drawGround(this);
+	if (_lib) {
+		//_graphics->start(_pause);
+		for (int i = 1; i < _ground.size(); i++) {
+			//_graphics->drawGround(_ground[i]);
+			i = i;
+		}
+	}
 #endif // ENABLE_GRAPHICS
 }
 
 RoboSim::~RoboSim(void) {
 #ifdef ENABLE_GRAPHICS
-	delete _graphics;
+	//if (_lib) delete _graphics;
 #endif // ENABLE_GRAPHICS
 
 	// remove simulation
@@ -114,7 +120,7 @@ int RoboSim::init_sim(int pause) {
 	return 0;
 }
 
-int RoboSim::init_xml(char *name) {
+/*int RoboSim::init_xml(char *name) {
 	// initialize variables
 	int *rtmp, *ftmp, *ntmp, *atmp, ctype = 0, cnum = 0;
 	int tracking = 0;
@@ -188,6 +194,7 @@ int RoboSim::init_xml(char *name) {
 		if ( !strcmp(node->Value(), "box") ) {
 			// store default variables
 			_ground.push_back(new Ground());
+			_ground.back()->type = BOX;
 			_ground.back()->r = 0;
 			_ground.back()->g = 0;
 			_ground.back()->b = 0;
@@ -205,9 +212,9 @@ int RoboSim::init_xml(char *name) {
 				ele->QueryDoubleAttribute("alpha", &_ground.back()->alpha);
 			}
 			if ( (ele = node->FirstChildElement("position")) ) {
-				ele->QueryDoubleAttribute("x", &px);
-				ele->QueryDoubleAttribute("y", &py);
-				ele->QueryDoubleAttribute("z", &pz);
+				ele->QueryDoubleAttribute("x", &(_ground.back()->x));
+				ele->QueryDoubleAttribute("y", &(_ground.back()->y));
+				ele->QueryDoubleAttribute("z", &(_ground.back()->z));
 			}
 			if ( (ele = node->FirstChildElement("rotation")) ) {
 				ele->QueryDoubleAttribute("psi", &psi);
@@ -215,9 +222,9 @@ int RoboSim::init_xml(char *name) {
 				ele->QueryDoubleAttribute("phi", &phi);
 			}
 			if ( (ele = node->FirstChildElement("size")) ) {
-				ele->QueryDoubleAttribute("x", &lx);
-				ele->QueryDoubleAttribute("y", &ly);
-				ele->QueryDoubleAttribute("z", &lz);
+				ele->QueryDoubleAttribute("x", &(_ground.back()->l1));
+				ele->QueryDoubleAttribute("y", &(_ground.back()->l2));
+				ele->QueryDoubleAttribute("z", &(_ground.back()->l3));
 			}
 
 			// set rotation of object
@@ -227,6 +234,7 @@ int RoboSim::init_xml(char *name) {
 			dRFromAxisAndAngle(R_z, 0, 0, 1, phi);
 			dMultiply0(R_xy, R_x, R_y, 3, 3, 3);
 			dMultiply0(R, R_xy, R_z, 3, 3, 3);
+			dRtoQ(R, _ground.back()->q);
 
 			// create body
 			dMass m;
@@ -372,7 +380,7 @@ int RoboSim::init_xml(char *name) {
 	}
 
 #ifdef ENABLE_GRAPHICS
-	_graphics->readXML(&doc);
+	//if (_lib) _graphics->readXML(&doc);
 #endif // ENABLE_GRAPHICS
 
 	// get root node of xml file
@@ -711,7 +719,7 @@ int RoboSim::init_xml(char *name) {
 			delete [] ntmp;
 			delete [] atmp;
 		}
-
+*/
 		// debug printing
 		/*for (int i = 0; i < _xmlbot.size(); i++) {
 			printf("type = %d, id = %d\n", _xmlbot[i]->type, _xmlbot[i]->id);
@@ -726,14 +734,14 @@ int RoboSim::init_xml(char *name) {
 			}
 			printf("\n");
 		}*/
-
+/*
 		// go to next node
 		node = node->NextSiblingElement();
 	}
 
 	// success
 	return 0;
-}
+}*/
 
 /**********************************************************
 	Public member functions
@@ -772,7 +780,7 @@ int RoboSim::addRobot(Robot *robot) {
 	}
 
 	// give simulation data to robot
-	robot->addToSim(_world, _space, _xmlbot[i]->id, _robots.size()-1);
+	robot->addToSim(_world, _space, _xmlbot[i]->id, _robots.size()-1, this);
 
 	// check if robot is colliding with others
 	for (int j = 0; j < _robots.size() - 1; j++) {
@@ -789,7 +797,69 @@ int RoboSim::addRobot(Robot *robot) {
 	_xmlbot[i]->connected = 1;
 
 #ifdef ENABLE_GRAPHICS
-	_robots.back()->node = _graphics->drawRobot(robot, form, _xmlbot[i]->tracking);
+	//if (_lib) _robots.back()->node = _graphics->drawRobot(robot, _xmlbot[i], form, _xmlbot[i]->tracking);
+#endif // ENABLE_GRAPHICS
+
+	// unlock robot data
+	MUTEX_UNLOCK(&_robot_mutex);
+
+	// success
+	return 0;
+}
+
+int RoboSim::addRobot2(ModularRobot *robot, XMLRobot *bot) {
+	// lock robot data to insert a new one into simulation
+	MUTEX_LOCK(&_robot_mutex);
+
+	// create new robot
+	_robots.push_back(new Robots());
+	_robots.back()->robot = robot;
+
+	// get form of new robot
+	int form = 0;
+	robot->getFormFactor(form);
+
+	// give simulation data to robot
+	robot->addToSim(_world, _space, bot->id, _robots.size()-1, this);
+
+	// build
+	robot->build(bot);
+
+#ifdef ENABLE_GRAPHICS
+	//_robots.back()->node = _graphics->drawRobot(robot, bot, form, bot->tracking);
+#endif // ENABLE_GRAPHICS
+
+	// unlock robot data
+	MUTEX_UNLOCK(&_robot_mutex);
+
+	// success
+	return 0;
+}
+
+int RoboSim::addRobot2(ModularRobot *robot, XMLRobot *bot, ModularRobot *base) {
+	// lock robot data to insert a new one into simulation
+	MUTEX_LOCK(&_robot_mutex);
+
+	// create new robot
+	_robots.push_back(new Robots());
+	_robots.back()->robot = robot;
+
+	// get form of new robot
+	int form = 0;
+	robot->getFormFactor(form);
+
+	// give simulation data to robot
+	robot->addToSim(_world, _space, bot->id, _robots.size()-1, this);
+
+	// build
+	dBodyID body = base->getConnectorBodyID(bot->conn[0]->face1);
+	dMatrix3 R;
+	double m[3] = {0};
+	base->getFaceParams(bot->conn[0]->face1, R, m);
+	robot->build(bot, R, m, body, bot->conn[0]);
+
+#ifdef ENABLE_GRAPHICS
+	//_robots.back()->node = _graphics->drawRobot(robot, bot, form, bot->tracking);
 #endif // ENABLE_GRAPHICS
 
 	// unlock robot data
@@ -845,7 +915,7 @@ int RoboSim::addRobot(ModularRobot *robot) {
 	}
 
 	// give simulation data to robot
-	robot->addToSim(_world, _space, _xmlbot[i]->id, _robots.size()-1);
+	robot->addToSim(_world, _space, _xmlbot[i]->id, _robots.size()-1, this);
 
 	// find if robot is connected to another one
 	int j;
@@ -874,8 +944,8 @@ int RoboSim::addRobot(ModularRobot *robot) {
 		// check if robot is colliding with others
 		for (int k = 0; k < _robots.size() - 1; k++) {
 			if ( (fabs(_robots[k]->robot->getCenter(0) - _xmlbot[i]->x) < 0.1) && (fabs(_robots[k]->robot->getCenter(1) - _xmlbot[i]->y) < 0.1) ) {
-				fprintf(stderr, "Warning: Robot %d and Robot %d are possibly colliding.\n", _robots[k]->robot->getID() + 1, _xmlbot[i]->id + 1);
-				fprintf(stderr, "         Please check RoboSim GUI for x and y positions that may be too close.\n");
+				std::cerr << "WARNING: Robot " << _robots[k]->robot->getID() + 1 << "and Robot " << _xmlbot[i]->id + 1 << " are possibly colliding." << std::endl;
+				std::cerr << "         Please check RoboSim GUI for x and y positions that may be too close." << std::endl;
 			}
 		}
 		// build
@@ -886,7 +956,7 @@ int RoboSim::addRobot(ModularRobot *robot) {
 	_xmlbot[i]->connected = 1;
 
 #ifdef ENABLE_GRAPHICS
-	_graphics->drawRobot(robot, form, _xmlbot[i]->tracking);
+	//if (_lib) _robots.back()->node = _graphics->drawRobot(robot, _xmlbot[i], form, _xmlbot[i]->tracking);
 #endif // ENABLE_GRAPHICS
 
 	// unlock robot data
@@ -906,7 +976,7 @@ int RoboSim::deleteRobot(int loc) {
 		MUTEX_UNLOCK(&(_pause_mutex));
 
 		// get HUD and set message
-		_graphics->getHUDText()->setText("Paused: Press any key to end");
+		//if (_lib) _graphics->getHUDText()->setText("Paused: Press any key to end");
 
 		// sleep until pausing halted by user
 		MUTEX_LOCK(&(_pause_mutex));
@@ -928,7 +998,7 @@ int RoboSim::deleteRobot(int loc) {
 	MUTEX_LOCK(&_robot_mutex);
 
 #ifdef ENABLE_GRAPHICS
-	_graphics->stageForDelete(_robots[loc]->node);
+	//if (_lib) _graphics->stageForDelete(_robots[loc]->node);
 #endif // ENABLE_GRAPHICS
 
 	// remove robot
@@ -986,7 +1056,10 @@ double RoboSim::getStep(void) {
 }
 
 int RoboSim::getUnits(void) {
-	return _graphics->getUnits();
+#ifdef ENABLE_GRAPHICS
+	//return _graphics->getUnits();
+#endif // ENABLE_GRAPHICS
+return 0;
 }
 
 int RoboSim::runSimulation(void) {
@@ -1025,6 +1098,13 @@ int RoboSim::setCOR(double robot, double ground) {
 	return 0;
 }
 
+int RoboSim::setLib(int lib) {
+	_lib = lib;
+
+	// success
+	return 0;
+}
+
 int RoboSim::setMu(double robot, double ground) {
 	_mu[0] = robot;
 	_mu[1] = ground;
@@ -1054,6 +1134,11 @@ int RoboSim::setPause(int mode) {
 	MUTEX_UNLOCK(&_pause_mutex);
 
 	// success
+	return 0;
+}
+
+int RoboSim::xmlNewRobot(XMLRobot *bot) {
+	_xmlbot.push_back(bot);
 	return 0;
 }
 

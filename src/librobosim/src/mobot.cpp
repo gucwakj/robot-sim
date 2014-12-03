@@ -10,8 +10,8 @@ CMobot::CMobot(void) : Robot(JOINT1, JOINT4) {
 
 CMobot::~CMobot(void) {
 	// remove robot from simulation
-	if ( g_sim != NULL && !(g_sim->deleteRobot(_pos)) )
-		delete g_sim;
+	if ( _sim != NULL && !(_sim->deleteRobot(_pos)) )
+		delete _sim;
 
 	// delete mutexes
 	for (int i = 0; i < _dof; i++) {
@@ -866,7 +866,7 @@ int CMobot::addConnector(int type, int face, double size) {
 	return 0;
 }
 
-int CMobot::build(XMLRobot *robot) {
+int CMobot::build(XMLRobot *robot, int really) {
 	// create rotation matrix
 	double	sphi = sin(DEG2RAD(robot->phi)),		cphi = cos(DEG2RAD(robot->phi)),
 			stheta = sin(DEG2RAD(robot->theta)),	ctheta = cos(DEG2RAD(robot->theta)),

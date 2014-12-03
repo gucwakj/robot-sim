@@ -1,7 +1,6 @@
 #ifndef MODULARROBOT_HPP_
 #define MODULARROBOT_HPP_
 
-#include "config.h"
 #include "robot.hpp"
 
 // connector
@@ -44,7 +43,7 @@ class DLLIMPORT ModularRobot : virtual public Robot {
 
 	// virtual functions from Robot class
 	protected:
-		virtual int build(XMLRobot*) { return 0; };
+		virtual int build(XMLRobot*, int = 1) { return 0; };
 		virtual int buildIndividual(double, double, double, dMatrix3, double*) { return 0; };
 		virtual double getAngle(int) { return 0; };
 		virtual int initParams(int, int) { return 0; };

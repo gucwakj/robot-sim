@@ -1,7 +1,6 @@
 #ifndef GRAPHICS_HPP_
 #define GRAPHICS_HPP_
 
-#include "config.h"
 #include "robot.hpp"
 
 #include <ode/ode.h>
@@ -41,7 +40,7 @@
 #include <osgViewer/Viewer>
 #include <osgViewer/ViewerEventHandlers>
 #include <OpenThreads/Thread>
-#include <tinyxml2.h>
+//#include <tinyxml2.h>
 
 extern osg::Node::NodeMask NOT_VISIBLE_MASK;
 extern osg::Node::NodeMask RECEIVES_SHADOW_MASK;
@@ -55,7 +54,7 @@ class CMobot;
 class CLinkbotT;
 class CNXT;
 class Cubus;
-extern RoboSim *g_sim;
+//extern RoboSim *g_sim;
 
 struct Drawing {
 	double p1[3], p2[3], c[4];
@@ -69,23 +68,27 @@ struct Drawing {
 class Graphics {
 	// public api
 	public:
-		Graphics(void);
+		Graphics(RoboSim*);
 		~Graphics(void);
 
-		int drawGround(RoboSim*);
+		int addChild(void);
+		int drawGround(Ground*);
 		int drawMarker(Drawing*);
-		int drawRobot(Robot*, int, int);
+		int drawRobot(Robot*, XMLRobot*, int, int);
 		osgText::Text* getHUDText(void);
 		std::string getTexPath(void);
 		int getUnits(void);
-		void readXML(tinyxml2::XMLDocument*);
+		//void readXML(tinyxml2::XMLDocument*);
+		int setupCamera(osg::GraphicsContext*, osgViewer::Viewer*, double, double);
+		int setupScene(osgViewer::Viewer*, double, double);
+		int setupViewer(osgViewer::Viewer*);
 		int stageForDelete(int);
 		void start(int);
 
 	// private functions
 	private:
 		int draw(Cubus*, int, double*);			// draw cubus
-		int draw(CLinkbotT*, int, double*);		// draw linkbot
+		int draw(CLinkbotT*, XMLRobot*, int, double*);		// draw linkbot
 		int draw(CMobot*, int, double*);		// draw mobot
 		int draw(CNXT*, int, double*);			// draw nxt
 		static void* graphics_thread(void*);	// thread for graphics objects
@@ -105,6 +108,7 @@ class Graphics {
 			osg::ShapeDrawable *led;
 		};
 
+		RoboSim *_sim;						// RoboSim instance
 		std::vector<Drawing*> _drawings;	// all graphics objects
 		std::vector<GRobot*> _robots;		// all robot objects
 		double _grid[7];					// grid spacing (tics, major, total)
@@ -113,8 +117,11 @@ class Graphics {
 		int _viewer;						// flag for viewer
 		int _us;							// us units or not
 		std::string _tex_path;				// texture path
-		osgShadow::ShadowedScene *_scene;	// root node to hold graphics
+		osg::Camera *_camera;				// camera to view scene
+		osg::Group *_root;					// root node of scene
 		osg::Group *_staging;				// temp variable for adding robots
+		osgViewer::Viewer *_view;			// viewer
+		osgShadow::ShadowedScene *_scene;	// shadow root of scene
 		COND_T _graphics_cond;				// condition for graphics
 		MUTEX_T _graphics_mutex;			// mutex for graphics existence
 		MUTEX_T _viewer_mutex;				// mutex for viewer running state
@@ -233,3 +240,4 @@ class cubusNodeCallback : public osg::NodeCallback {
 };
 
 #endif // GRAPHICS_HPP_
+

@@ -1,7 +1,6 @@
 #ifndef NXT_HPP_
 #define NXT_HPP_
 
-#include "config.h"
 #include "robosim.hpp"
 
 class DLLIMPORT CNXT : virtual public Robot {
@@ -33,7 +32,7 @@ class DLLIMPORT CNXT : virtual public Robot {
 
 	// inherited functions from Robot class
     private:
-		int build(XMLRobot*);
+		int build(XMLRobot*, int = 1);
 		int buildIndividual(double, double, double, dMatrix3, double*);
 		double getAngle(int);
 		int initParams(int, int);
@@ -74,7 +73,7 @@ class DLLIMPORT CNXTGroup : public Group<CNXT> {
 #include "nxtgroup.tpp"
 
 // simulation
-extern RoboSim *g_sim;
+//extern RoboSim *g_sim;
 
 #endif // NXT_HPP_
 

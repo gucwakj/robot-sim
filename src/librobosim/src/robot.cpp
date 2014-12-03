@@ -62,8 +62,8 @@ int Robot::blinkLED(double delay, int num) {
 
 int Robot::connect(char *name, int pause) {
 	// create simulation object if necessary
-	if (!g_sim)
-		g_sim = new RoboSim(name, pause);
+	//if (!g_sim)
+	//	g_sim = new RoboSim(name, pause);
 
 	// set initial 'led' color
 	_rgb[0] = 0;
@@ -71,7 +71,7 @@ int Robot::connect(char *name, int pause) {
 	_rgb[2] = 0;
 
 	// add to simulation
-	g_sim->addRobot(this);
+	//g_sim->addRobot(this);
 
 	// and we are connected
 	_connected = 1;
@@ -82,10 +82,12 @@ int Robot::connect(char *name, int pause) {
 
 int Robot::delay(double milliseconds) {
 	// set ending time
-	double end = g_sim->getClock() + milliseconds/1000;
+	//double end = g_sim->getClock() + milliseconds/1000;
+	double end = _sim->getClock() + milliseconds/1000;
 
 	// while clock hasn't reached ending time
-	while ((end - g_sim->getClock()) >= EPSILON)
+	//while ((end - g_sim->getClock()) >= EPSILON)
+	while ((end - _sim->getClock()) >= EPSILON)
 		this->doze(50);
 
 	// success
@@ -1356,7 +1358,8 @@ int Robot::setSpeed(double speed, double radius) {
 
 int Robot::systemTime(double &time) {
 	// get time
-	time = g_sim->getClock();
+	//time = g_sim->getClock();
+	time = _sim->getClock();
 
 	// success
 	return 0;
@@ -1526,12 +1529,13 @@ int Robot::recordAnglesBegin(robotRecordData_t &time, robotRecordData_t *&angle,
 /**********************************************************
 	protected functions for inherited classes
  **********************************************************/
-int Robot::addToSim(dWorldID &world, dSpaceID &space, int id, int pos) {
+int Robot::addToSim(dWorldID &world, dSpaceID &space, int id, int pos, RoboSim *sim) {
 	_world = world;
 	_space = dHashSpaceCreate(space);
-	_wspace = space;
+	//_wspace = space;
 	_id = id;
 	_pos = pos;
+	_sim = sim;
 
 	// success
 	return 0;
@@ -1540,10 +1544,14 @@ int Robot::addToSim(dWorldID &world, dSpaceID &space, int id, int pos) {
 double Robot::convert(double value, int tometer) {
 	double tmp = 0;
 
-	if (tometer)
+	/*if (tometer)
 		tmp = ((g_sim->getUnits()) ? value/39.370 : value/100);
 	else
-		tmp = ((g_sim->getUnits()) ? value*39.370 : value*100);
+		tmp = ((g_sim->getUnits()) ? value*39.370 : value*100);*/
+	if (tometer)
+		tmp = ((_sim->getUnits()) ? value/39.370 : value/100);
+	else
+		tmp = ((_sim->getUnits()) ? value*39.370 : value*100);
 
 	return tmp;
 }
@@ -1842,7 +1850,8 @@ void* Robot::recordAngleThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)(g_sim->getClock()*1000);
+	//int time = (int)(g_sim->getClock()*1000);
+	int time = (int)(rec->robot->_sim->getClock()*1000);
 
 	// is robot moving
 	int *moving = new int[rec->num];
@@ -1850,7 +1859,8 @@ void* Robot::recordAngleThread(void *arg) {
 	// get 'num' data points
 	for (int i = 0; i < rec->num; i++) {
 		// store time of data point
-		rec->time[i] = g_sim->getClock()*1000;
+		//rec->time[i] = g_sim->getClock()*1000;
+		rec->time[i] = rec->robot->_sim->getClock()*1000;
 		if (i == 0) { start_time = rec->time[i]; }
 		rec->time[i] = (rec->time[i] - start_time) / 1000;
 
@@ -1864,8 +1874,10 @@ void* Robot::recordAngleThread(void *arg) {
 		time += rec->msecs;
 
 		// pause until next step
-		if ( (int)(g_sim->getClock()*1000) < time )
-			rec->robot->doze(time - (int)(g_sim->getClock()*1000));
+		//if ( (int)(g_sim->getClock()*1000) < time )
+		if ( (int)(rec->robot->_sim->getClock()*1000) < time )
+			rec->robot->doze(time - (int)(rec->robot->_sim->getClock()*1000));
+			//rec->robot->doze(time - (int)(g_sim->getClock()*1000));
 	}
 
 	// shift time to start of movement
@@ -1907,7 +1919,8 @@ void* Robot::recordAngleBeginThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)((g_sim->getClock())*1000);
+	//int time = (int)((g_sim->getClock())*1000);
+	int time = (int)((rec->robot->_sim->getClock())*1000);
 
 	// is robot moving
 	int moving;
@@ -1943,7 +1956,8 @@ void* Robot::recordAngleBeginThread(void *arg) {
 		moving = (int)(dJointGetAMotorParam(rec->robot->_motor[rec->id].id, dParamVel)*1000);
 
 		// store time of data point
-		(*rec->ptime)[i] = g_sim->getClock()*1000;
+		//(*rec->ptime)[i] = g_sim->getClock()*1000;
+		(*rec->ptime)[i] = rec->robot->_sim->getClock()*1000;
 		if (i == 0) { start_time = (*rec->ptime)[i]; }
 		(*rec->ptime)[i] = ((*rec->ptime)[i] - start_time) / 1000;
 
@@ -1951,8 +1965,10 @@ void* Robot::recordAngleBeginThread(void *arg) {
 		time += rec->msecs;
 
 		// pause until next step
-		if ( (int)(g_sim->getClock()*1000) < time )
-			rec->robot->doze(time - (int)(g_sim->getClock()*1000));
+		//if ( (int)(g_sim->getClock()*1000) < time )
+		if ( (int)(rec->robot->_sim->getClock()*1000) < time )
+			rec->robot->doze(time - (int)(rec->robot->_sim->getClock()*1000));
+			//rec->robot->doze(time - (int)(g_sim->getClock()*1000));
 
 		// wait until movement to start recording
 		if( !moving && rec->robot->is_shift_enabled() ) {
@@ -1979,7 +1995,8 @@ void* Robot::recordAnglesThread(void *arg) {
 
 	// create initial time points
     double start_time = 0;
-	int time = (int)(g_sim->getClock()*1000);
+	//int time = (int)(g_sim->getClock()*1000);
+	int time = (int)(rec->robot->_sim->getClock()*1000);
 
 	// is robot moving
 	int *moving = new int[rec->num];
@@ -1987,7 +2004,8 @@ void* Robot::recordAnglesThread(void *arg) {
 	// get 'num' data points
     for (int i = 0; i < rec->num; i++) {
 		// store time of data point
-		rec->time[i] = g_sim->getClock()*1000;
+		//rec->time[i] = g_sim->getClock()*1000;
+		rec->time[i] = rec->robot->_sim->getClock()*1000;
         if (i == 0) { start_time = rec->time[i]; }
         rec->time[i] = (rec->time[i] - start_time) / 1000;
 
@@ -2006,8 +2024,10 @@ void* Robot::recordAnglesThread(void *arg) {
 		time += rec->msecs;
 
 		// pause until next step
-		if ( (int)(g_sim->getClock()*1000) < time )
-			rec->robot->doze(time - (int)(g_sim->getClock()*1000));
+		//if ( (int)(g_sim->getClock()*1000) < time )
+		if ( (int)(rec->robot->_sim->getClock()*1000) < time )
+			rec->robot->doze(time - (int)(rec->robot->_sim->getClock()*1000));
+			//rec->robot->doze(time - (int)(g_sim->getClock()*1000));
     }
 
 	// shift time to start of movement
@@ -2056,7 +2076,8 @@ void* Robot::recordAnglesBeginThread(void *arg) {
 
 	// create initial time points
 	double start_time = 0;
-	int time = (int)((g_sim->getClock())*1000);
+	//int time = (int)((g_sim->getClock())*1000);
+	int time = (int)((rec->robot->_sim->getClock())*1000);
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rec->robot->_active_mutex);
@@ -2093,7 +2114,8 @@ void* Robot::recordAnglesBeginThread(void *arg) {
 		}
 
 		// store time of data point
-		(*rec->ptime)[i] = g_sim->getClock()*1000;
+		//(*rec->ptime)[i] = g_sim->getClock()*1000;
+		(*rec->ptime)[i] = rec->robot->_sim->getClock()*1000;
 		if (i == 0) { start_time = (*rec->ptime)[i]; }
 		(*rec->ptime)[i] = ((*rec->ptime)[i] - start_time) / 1000;
 
@@ -2101,8 +2123,10 @@ void* Robot::recordAnglesBeginThread(void *arg) {
 		time += rec->msecs;
 
 		// pause until next step
-		if ( (int)(g_sim->getClock()*1000) < time )
-			rec->robot->doze(time - (int)(g_sim->getClock()*1000));
+		//if ( (int)(g_sim->getClock()*1000) < time )
+		if ( (int)(rec->robot->_sim->getClock()*1000) < time )
+			rec->robot->doze(time - (int)(rec->robot->_sim->getClock()*1000));
+			//rec->robot->doze(time - (int)(g_sim->getClock()*1000));
 	}
 
 	// signal completion of recording
@@ -2125,7 +2149,8 @@ void* Robot::recordxyBeginThread(void *arg) {
 	Recording *rec = (Recording *)arg;
 
 	// create initial time points
-	int time = (int)((g_sim->getClock())*1000);
+	//int time = (int)((g_sim->getClock())*1000);
+	int time = (int)((rec->robot->_sim->getClock())*1000);
 
 	// actively taking a new data point
 	MUTEX_LOCK(&rec->robot->_active_mutex);
@@ -2167,8 +2192,10 @@ void* Robot::recordxyBeginThread(void *arg) {
 		time += rec->msecs;
 
 		// pause until next step
-		if ( (int)(g_sim->getClock()*1000) < time )
-			rec->robot->doze(time - (int)(g_sim->getClock()*1000));
+		//if ( (int)(g_sim->getClock()*1000) < time )
+		if ( (int)(rec->robot->_sim->getClock()*1000) < time )
+			rec->robot->doze(time - (int)(rec->robot->_sim->getClock()*1000));
+			//rec->robot->doze(time - (int)(g_sim->getClock()*1000));
 	}
 
 	// signal completion of recording

@@ -10,8 +10,9 @@ CLinkbotT::CLinkbotT(int disabled, int type) : Robot(JOINT1, JOINT3) {
 
 CLinkbotT::~CLinkbotT(void) {
 	// remove robot from simulation
-	if ( g_sim != NULL && !(g_sim->deleteRobot(_pos)) )
-		delete g_sim;
+	//if ( g_sim != NULL && !(g_sim->deleteRobot(_pos)) )
+	if ( _sim != NULL && !(_sim->deleteRobot(_pos)) )
+		delete _sim;
 
 	// delete mutexes
 	for (int i = 0; i < _dof; i++) {
@@ -45,7 +46,8 @@ int CLinkbotT::accelJointCycloidalNB(robotJointId_t id, double angle, double t) 
 	}
 
 	// set timeout
-	_motor[id].timeout = t/g_sim->getStep();
+	//_motor[id].timeout = t/g_sim->getStep();
+	_motor[id].timeout = t/_sim->getStep();
 
 	// set acceleration parameters
 	_motor[id].mode = ACCEL_CYCLOIDAL;
@@ -87,7 +89,8 @@ int CLinkbotT::accelJointHarmonicNB(robotJointId_t id, double angle, double t) {
 	}
 
 	// set timeout
-	_motor[id].timeout = t/g_sim->getStep();
+	//_motor[id].timeout = t/g_sim->getStep();
+	_motor[id].timeout = t/_sim->getStep();
 
 	// set acceleration parameters
 	_motor[id].mode = ACCEL_HARMONIC;
@@ -137,7 +140,8 @@ int CLinkbotT::accelJointTimeNB(robotJointId_t id, double a, double t) {
 	}
 
 	// set timeout
-	double step = g_sim->getStep();
+	//double step = g_sim->getStep();
+	double step = _sim->getStep();
 	if (t == 0)
 		_motor[id].timeout = fabs((_motor[id].omega_max-fabs(_motor[id].omega))/DEG2RAD(a)/step);
 	else
@@ -662,7 +666,7 @@ int CLinkbotT::addConnector(int type, int face, double size) {
 	return 0;
 }
 
-int CLinkbotT::build(XMLRobot *robot) {
+int CLinkbotT::build(XMLRobot *robot, int really) {
 	// check for wheels
 	for (int i = 0; i < robot->conn.size(); i++) {
 		if (robot->conn[i]->conn == BIGWHEEL) {
@@ -688,9 +692,8 @@ int CLinkbotT::build(XMLRobot *robot) {
 		}
 	}
 	for (int i = 0; i < robot->conn.size(); i++) {
-		if (robot->conn[i]->conn == CASTER && !static_cast<int>(robot->conn[i]->size)) {
+		if (robot->conn[i]->conn == CASTER && !static_cast<int>(robot->conn[i]->size))
 			robot->psi += RAD2DEG(atan2(_radius - _smallwheel_radius, 0.08575));
-		}
 	}
 
 	// create rotation matrix
@@ -700,6 +703,14 @@ int CLinkbotT::build(XMLRobot *robot) {
 	dMatrix3 R = {cphi*ctheta,	-cphi*stheta*spsi - sphi*cpsi,	-cphi*stheta*cpsi + sphi*spsi,	0,
 				  sphi*ctheta,	-sphi*stheta*spsi + cphi*cpsi,	-sphi*stheta*cpsi - cphi*spsi,	0,
 				  stheta,		ctheta*spsi,					ctheta*cpsi,					0};
+	dRtoQ(R, robot->q);
+
+	// adjust input height by body height
+	if (fabs(robot->z) < (_body_radius - EPSILON)) {
+		robot->x += R[2]*_body_height/2;
+		robot->y += R[6]*_body_height/2;
+		robot->z += R[10]*_body_height/2;
+	}
 
 	// build robot
 	double rot[3] = {robot->angle1, robot->angle2, robot->angle3};
@@ -814,13 +825,6 @@ int CLinkbotT::buildIndividual(double x, double y, double z, dMatrix3 R, double 
 	_geom[FACE1] = new dGeomID[1];
 	_geom[FACE2] = new dGeomID[1];
 	_geom[FACE3] = new dGeomID[1];
-
-	// adjust input height by body height
-	if (fabs(z) < (_body_radius - EPSILON)) {
-		x += R[2]*_body_height/2;
-		y += R[6]*_body_height/2;
-		z += R[10]*_body_height/2;
-	}
 
     // input angles to radians
 	for (int i = 0; i < _dof; i++) {
@@ -1133,6 +1137,7 @@ int CLinkbotT::initParams(int disabled, int type) {
 	_rgb[1] = 0;
 	_rgb[2] = 1;
 	_shift_data = 0;
+	_sim = NULL;
 	_speed = 2;
 	_trace = 1;
 	_type = type;
@@ -1148,7 +1153,6 @@ int CLinkbotT::initDims(void) {
 	_body_radius = 0.03625;
 	_face_depth = 0.00200;
 	_face_radius = 0.03060;
-	//_conn_depth = 0.00380;
 	_conn_depth = 0.00570;
 	_conn_height = 0.03715;
 	_bigwheel_radius = 0.05080;
@@ -1160,6 +1164,11 @@ int CLinkbotT::initDims(void) {
 	_tinywheel_radius = 0.04128;
 	_wheel_depth = 0.00140;
 	_wheel_radius = 0.04445;
+	_offset.push_back(Vec3(0, 0, 0));									// body
+	_offset.push_back(Vec3(-_body_width/2 - _face_depth/2, 0, 0));		// face1
+	_offset.push_back(Vec3(0, -_body_length - _face_depth/2, 0));		// face2
+	_offset.push_back(Vec3(_body_width/2 + _face_depth/2, 0, 0));		// face3
+
 
 	// success
 	return 0;
@@ -1196,7 +1205,8 @@ void CLinkbotT::simPreCollisionThread(void) {
 		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
 		// engage motor depending upon motor mode
 		double t = 0, angle = 0, h = 0, dt = 0;
-		double step = g_sim->getStep();
+		//double step = g_sim->getStep();
+		double step = _sim->getStep();
 		switch (_motor[i].mode) {
 			case ACCEL_CONSTANT:
 				// check if done with acceleration
@@ -1231,14 +1241,16 @@ void CLinkbotT::simPreCollisionThread(void) {
 				// init params on first run
 				if (_motor[i].accel.run == 0) {
 					_motor[i].accel.init = _motor[i].theta;
-					_motor[i].accel.start = g_sim->getClock();
+					//_motor[i].accel.start = g_sim->getClock();
+					_motor[i].accel.start = _sim->getClock();
 					_motor[i].accel.run = 1;
 					break;
 				}
 
 				// calculate new angle
 				h = _motor[i].goal - _motor[i].accel.init;
-				t = g_sim->getClock();
+				//t = g_sim->getClock();
+				t = _sim->getClock();
 				dt = (t - _motor[i].accel.start)/_motor[i].accel.period;
 				if (_motor[i].mode == ACCEL_CYCLOIDAL)
 					angle = h*(dt - sin(2*M_PI*dt)/2/M_PI) + _motor[i].accel.init;

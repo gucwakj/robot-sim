@@ -1,7 +1,6 @@
 #ifndef MOBOT_HPP_
 #define MOBOT_HPP_
 
-#include "config.h"
 #include "robosim.hpp"
 
 class DLLIMPORT CMobot : public ModularRobot {
@@ -69,7 +68,7 @@ class DLLIMPORT CMobot : public ModularRobot {
 
 	// inherited functions from Robot class
 	private:
-		virtual int build(XMLRobot*);
+		virtual int build(XMLRobot*, int = 1);
 		virtual int buildIndividual(double, double, double, dMatrix3, double*);
 		virtual double getAngle(int);
 		virtual int initParams(int, int);
@@ -206,7 +205,7 @@ struct MobotMove {
 };
 
 // simulation
-extern RoboSim *g_sim;
+//extern RoboSim *g_sim;
 
 #endif  // MOBOT_HPP_
 

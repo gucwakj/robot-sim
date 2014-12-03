@@ -10,8 +10,8 @@ CNXT::CNXT(void) : Robot(JOINT1, JOINT2) {
 
 CNXT::~CNXT(void) {
 	// remove robot from simulation
-	if ( g_sim != NULL && !(g_sim->deleteRobot(_pos)) )
-		delete g_sim;
+	if ( _sim != NULL && !(_sim->deleteRobot(_pos)) )
+		delete _sim;
 
 	// delete mutexes
 	for (int i = 0; i < _dof; i++) {
@@ -184,7 +184,7 @@ int CNXT::setJointSpeedRatios(double ratio1, double ratio2) {
 /**********************************************************
 	inherited functions
  **********************************************************/
-int CNXT::build(XMLRobot *robot) {
+int CNXT::build(XMLRobot *robot, int really) {
 	// adjust height for wheels
 	robot->z += (_wheel_radius - _body_height/2);
 	_radius = _wheel_radius;
@@ -409,7 +409,8 @@ void CNXT::simPreCollisionThread(void) {
 		dJointSetAMotorAngle(_motor[i].id, 0, _motor[i].theta);
 		// engage motor depending upon motor mode
 		double t = 0, angle = 0, h = 0, dt = 0;
-		double step = g_sim->getStep();
+		//double step = g_sim->getStep();
+		double step = _sim->getStep();
 		switch (_motor[i].mode) {
 			case ACCEL_CONSTANT:
 				// check if done with acceleration
@@ -444,14 +445,16 @@ void CNXT::simPreCollisionThread(void) {
 				// init params on first run
 				if (_motor[i].accel.run == 0) {
 					_motor[i].accel.init = _motor[i].theta;
-					_motor[i].accel.start = g_sim->getClock();
+					//_motor[i].accel.start = g_sim->getClock();
+					_motor[i].accel.start = _sim->getClock();
 					_motor[i].accel.run = 1;
 					break;
 				}
 
 				// calculate new angle
 				h = _motor[i].goal - _motor[i].accel.init;
-				t = g_sim->getClock();
+				//t = g_sim->getClock();
+				t = _sim->getClock();
 				dt = (t - _motor[i].accel.start)/_motor[i].accel.period;
 				if (_motor[i].mode == ACCEL_CYCLOIDAL)
 					angle = h*(dt - sin(2*M_PI*dt)/2/M_PI) + _motor[i].accel.init;

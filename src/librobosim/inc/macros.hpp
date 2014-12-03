@@ -8,6 +8,7 @@
 #define angle2distance(radius, angle) ((radius) * (angle * 0.01745329251994329547))
 #define distance2angle(radius, distance) (((distance)/(radius))*57.29577951308232286465)
 #define DEPRECATED(from, to) fprintf(_stderr, "Warning: The function \"%s()\" is deprecated. Please use \"%s()\"\n" , from, to)
+#define ENABLE_GRAPHICS 0
 
 #ifdef _WIN32
 #define DLLIMPORT __declspec(dllexport)
@@ -127,6 +128,12 @@ enum drawing_objects_e {
 	TEXT
 };
 
+// 3 dimensional vector
+struct Vec3 {
+	Vec3(double x, double y, double z) : x(x), y(y), z(z) {}
+	double x, y, z;
+};
+
 // xml connectors
 struct XMLConn {
 	double size;
@@ -143,6 +150,8 @@ struct XMLRobot {
 	double x, y, z;
 	double psi, theta, phi;
 	double angle1, angle2, angle3, angle4, angle5, angle6;
+	double p[3];
+	double q[4];
 	std::vector<XMLConn*> conn;
 };
 

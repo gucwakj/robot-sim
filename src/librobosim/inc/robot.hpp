@@ -19,15 +19,16 @@
 #include <ctime>
 #include <vector>
 
-#include "config.h"
 #include "macros.hpp"
 #include "rgbhashtable.h"
 
 // forward declare friends
 class RoboSim;
+class RSGUI;
 
 class DLLIMPORT Robot {
 		friend class RoboSim;
+		friend class RSGUI;
 
 	// common public api
 	public:
@@ -142,7 +143,7 @@ class DLLIMPORT Robot {
 
 	// utility functions for inherited and friend classes
 	protected:
-		int addToSim(dWorldID&, dSpaceID&, int, int);
+		int addToSim(dWorldID&, dSpaceID&, int, int, RoboSim*);
 		double convert(double, int);
 		int doze(double);
 		int fixBodyToGround(dBodyID);
@@ -156,7 +157,7 @@ class DLLIMPORT Robot {
 
 	// virual functions for inherited classes
 	protected:
-		virtual int build(XMLRobot*) { return 0; };
+		virtual int build(XMLRobot*, int = 0) { return 0; };
 		virtual int buildIndividual(double, double, double, dMatrix3, double*) { return 0; };
 		virtual double getAngle(int) { return 0; };
 		virtual int initParams(int, int) { return 0; };
@@ -232,9 +233,10 @@ class DLLIMPORT Robot {
 		dGeomID **_geom;			// geometries of each body part
 		dJointID *_joint;			// joints between body parts
 		dSpaceID _space;			// space for this robot
-		dSpaceID _wspace;
 		dWorldID _world;			// world for all robots
+		RoboSim *_sim;				// simulation instance
 		std::vector<Motor> _motor;	// motors
+		std::vector<Vec3> _offset;	// body position offsets from center
 		bool _motion;				// motion in progress
 		double _accel[3];			// accelerometer data
 		double _body_length;		// dimension: body length
@@ -378,7 +380,7 @@ struct RobotMove {
 };
 
 // simulation
-extern RoboSim *g_sim;
+//extern RoboSim *g_sim;
 
 #endif // ROBOT_HPP_
 

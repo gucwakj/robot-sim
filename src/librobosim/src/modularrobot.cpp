@@ -12,8 +12,8 @@ ModularRobot::~ModularRobot(void) {
 
 int ModularRobot::connect(char *name, int pause) {
 	// create simulation object if necessary
-	if (!g_sim)
-		g_sim = new RoboSim(name, pause);
+	//if (!g_sim)
+	//	g_sim = new RoboSim(name, pause);
 
 	// set initial 'led' color
 	_rgb[0] = 0;
@@ -21,7 +21,7 @@ int ModularRobot::connect(char *name, int pause) {
 	_rgb[2] = 0;
 
 	// add to simulation
-	g_sim->addRobot(this);
+	//g_sim->addRobot(this);
 
 	// and we are connected
 	_connected = 1;
