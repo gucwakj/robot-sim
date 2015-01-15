@@ -1,3 +1,6 @@
+Version 1.7.3 - January 14, 2015
+	*) non-default path exe installer bugfix
+
 Version 1.7.2 - October 10, 2014
 	*) fix crash when installing in non-default path
 
