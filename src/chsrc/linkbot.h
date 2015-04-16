@@ -138,8 +138,8 @@ class DLLIMPORT CLinkbotT {
 		int recordAngles(double time[:], double angle1[:], double angle2[:], double angle3[:], int num, double seconds, ...);
 		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &angle1, robotRecordData_t &angle2, robotRecordData_t &angle3, double seconds, ...);
 		int recordAnglesEnd(int &num);
-		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, ...);
-		int recordDistanceEnd(robotJointId_t id, int &num);
+		int recordDistanceBegin(robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds);
+		int recordDistanceEnd(int &num);
 		int recordDistanceOffset(double distance);
 		int recordDistancesBegin(robotRecordData_t &t, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, double radius, double seconds, ...);
 		int recordDistancesEnd(int &num);
@@ -392,8 +392,8 @@ class DLLIMPORT CLinkbotI {
 		int recordAngles(double time[:], double angle1[:], double angle2[:], double angle3[:], int num, double seconds, ...);
 		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &a1, robotRecordData_t &a2, robotRecordData_t &a3, double seconds, ...);
 		int recordAnglesEnd(int &num);
-		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, ...);
-		int recordDistanceEnd(robotJointId_t id, int &num);
+		int recordDistanceBegin(robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds);
+		int recordDistanceEnd(int &num);
 		int recordDistanceOffset(double distance);
 		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, double radius, double seconds, ...);
 		int recordDistancesEnd(int &num);
@@ -647,8 +647,8 @@ class DLLIMPORT CLinkbotL {
 		int recordAngles(double time[:], double angle1[:], double angle2[:], double angle3[:], int num, double seconds, ...);
 		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &a1, robotRecordData_t &a2, robotRecordData_t &a3, double seconds, ...);
 		int recordAnglesEnd(int &num);
-		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, ...);
-		int recordDistanceEnd(robotJointId_t id, int &num);
+		int recordDistanceBegin(robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds);
+		int recordDistanceEnd(int &num);
 		int recordDistanceOffset(double distance);
 		int recordDistancesBegin(robotRecordData_t &time, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, double radius, double seconds, ...);
 		int recordDistancesEnd(int &num);

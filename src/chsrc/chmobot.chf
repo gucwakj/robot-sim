@@ -1360,32 +1360,25 @@ int CMobot::recordAnglesEnd(int &num) {
     return retval;
 }
 
-int CMobot::recordDistanceBegin(int id, double* &time, double* &distance, double radius, double seconds, ...) {
+int CMobot::recordDistanceBegin(double* &time, double* &distance, double radius, double seconds) {
     void *fptr;
     int retval;
-    va_list ap;
+	int id = ROBOT_JOINT1;
     int shiftData = 1;
-    va_start(ap, seconds);
 
     fptr = dlsym(RoboSim::_dlhandle, "CMobot_recordDistanceBegin_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    if(va_count(ap) == 1) {
-		shiftData = va_arg(ap, int);
-		dlrunfun(fptr, &retval, NULL, this, id, &time, &distance, radius, seconds, shiftData);
-    }
-	else {
-		dlrunfun(fptr, &retval, NULL, this, id, &time, &distance, radius, seconds);
-    }
-    va_end(ap);
+	dlrunfun(fptr, &retval, NULL, this, id, &time, &distance, radius, seconds, shiftData);
     return retval;
 }
 
-int CMobot::recordDistanceEnd(int id, int &num) {
+int CMobot::recordDistanceEnd(int &num) {
     void *fptr;
     int retval;
+	int id = ROBOT_JOINT1;
 
     fptr = dlsym(RoboSim::_dlhandle, "CMobot_recordDistanceEnd_chdl");
     if(fptr == NULL) {

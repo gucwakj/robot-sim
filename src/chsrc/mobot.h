@@ -143,8 +143,8 @@ class DLLIMPORT CMobot {
 		int recordAngles(double time[:], double angle1[:], double angle2[:], double angle3[:], double angle4[:], int num, double seconds, ...);
 		int recordAnglesBegin(robotRecordData_t &time, robotRecordData_t &a1, robotRecordData_t &a2, robotRecordData_t &a3, robotRecordData_t &a4, double seconds, ...);
 		int recordAnglesEnd(int &num);
-		int recordDistanceBegin(robotJointId_t id, robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds, ...);
-		int recordDistanceEnd(robotJointId_t id, int &num);
+		int recordDistanceBegin(robotRecordData_t &time, robotRecordData_t &distance, double radius, double seconds);
+		int recordDistanceEnd(int &num);
 		int recordDistancesBegin(robotRecordData_t &t, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, robotRecordData_t &d4, double radius, double seconds, ...);
 		int recordDistanceOffset(double distance);
 		int recordDistancesEnd(int &num);
