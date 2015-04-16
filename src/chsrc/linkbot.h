@@ -206,6 +206,8 @@ class DLLIMPORT CLinkbotTGroup {
 		int driveDistance(double distance, double radius);
 		int driveDistanceNB(double distance, double radius);
 		int driveForeverNB(void);
+		int driveForward(double angle);
+		int driveForwardNB(double angle);
 		int driveTime(double seconds);
 		int driveTimeNB(double seconds);
 		int holdJoint(robotJointId_t id);
