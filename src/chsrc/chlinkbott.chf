@@ -216,16 +216,11 @@ int CLinkbotT::delaySeconds(double seconds) {
 }
 
 int CLinkbotT::disableRecordDataShift(void) {
-	void *fptr;
-	int retval;
+	DEPRECATED("disableRecordDataShift", "recordNoDataShift");
+	recordNoDataShift();
 
-	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_disableRecordDataShift_chdl");
-	if(fptr == NULL) {
-		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-		return -1;
-	}
-	dlrunfun(fptr, &retval, NULL, this);
-	return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotT::disconnect(void) {
@@ -1451,6 +1446,19 @@ int CLinkbotT::recordDistancesEnd(int &num) {
     }
     dlrunfun(fptr, &retval, NULL, this, &num);
     return retval;
+}
+
+int CLinkbotT::recordNoDataShift(void) {
+	void *fptr;
+	int retval;
+
+	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_disableRecordDataShift_chdl");
+	if(fptr == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr, &retval, NULL, this);
+	return retval;
 }
 
 int CLinkbotT::recordWait(void) {

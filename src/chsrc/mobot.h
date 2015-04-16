@@ -45,7 +45,7 @@ class DLLIMPORT CMobot {
 		int connect(...);
 		int delay(double milliseconds);
 		int delaySeconds(double seconds);
-		int disableRecordDataShift(void);
+		int disableRecordDataShift(void);		// deprecated
 		int disconnect(void);
 		int driveAngle(double angle);
 		int driveAngleNB(double angle);
@@ -148,6 +148,7 @@ class DLLIMPORT CMobot {
 		int recordDistancesBegin(robotRecordData_t &t, robotRecordData_t &d1, robotRecordData_t &d2, robotRecordData_t &d3, robotRecordData_t &d4, double radius, double seconds, ...);
 		int recordDistanceOffset(double distance);
 		int recordDistancesEnd(int &num);
+		int recordNoDataShift(void);
 		int recordWait(void);
 		int recordxyBegin(robotRecordData_t &x, robotRecordData_t &y, double seconds, ...);
 		int recordxyEnd(int &num);
