@@ -18,15 +18,6 @@ CLinkbotI::CLinkbotI(void) {
 	}
 	dlrunfun(fptr, NULL, NULL);
 	RoboSim::_dlcount++;
-
-	// connect
-	int retval;
-	void *fptr2 = dlsym(RoboSim::_dlhandle, "CLinkbotI_connect_chdl");
-	if (fptr2 == NULL) {
-		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-		return -1;
-	}
-	dlrunfun(fptr2, &retval, NULL, this, NULL);
 }
 
 CLinkbotI::~CLinkbotI(void) {

@@ -66,6 +66,8 @@ class DLLIMPORT CLinkbotT {
 		int driveDistance(double distance, double radius);
 		int driveDistanceNB(double distance, double radius);
 		int driveForeverNB(void);
+		int driveForward(double angle);		// deprecated
+		int driveForwardNB(double angle);		// deprecated
 		int driveTime(double seconds);
 		int driveTimeNB(double seconds);
 		int drivexy(double x, double y, double radius, double trackwidth);
