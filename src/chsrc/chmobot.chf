@@ -18,6 +18,15 @@ CMobot::CMobot(void) {
 	}
 	dlrunfun(fptr, NULL, NULL);
 	RoboSim::_dlcount++;
+
+	// connect
+	int retval;
+	void *fptr2 = dlsym(RoboSim::_dlhandle, "CMobot_connect_chdl");
+	if (fptr2 == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr2, &retval, NULL, this, NULL);
 }
 
 CMobot::~CMobot(void) {
@@ -48,28 +57,8 @@ int CMobot::blinkLED(double delay, int numBlinks) {
 }
 
 int CMobot::connect(...) {
-	void *fptr;
-	int retval;
-	va_list ap;
-	char *name;
-	va_start(ap, VA_NOARG);
-
-	fptr = dlsym(RoboSim::_dlhandle, "CMobot_connect_chdl");
-	if(fptr == NULL) {
-		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-		return -1;
-	}
-
-	if (va_count(ap) == 1) {
-		name = va_arg(ap, char *);
-		dlrunfun(fptr, &retval, NULL, this, name);
-	}
-	else {
-		dlrunfun(fptr, &retval, NULL, this, NULL);
-	}
-
-	va_end(ap);
-	return retval;
+	// success
+	return 0;
 }
 
 int CMobot::delay(double milliseconds) {
@@ -1910,16 +1899,8 @@ int CMobotGroup::blinkLED(double delay, int numBlinks) {
 }
 
 int CMobotGroup::connect(void) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CMG_connect_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, NULL, this);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobotGroup::driveAngle(double angle) {

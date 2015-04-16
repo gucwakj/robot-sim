@@ -18,6 +18,15 @@ CLinkbotT::CLinkbotT(void) {
 	}
 	dlrunfun(fptr, NULL, NULL);
 	RoboSim::_dlcount++;
+
+	// connect
+	int retval;
+	void *fptr2 = dlsym(RoboSim::_dlhandle, "CLinkbotT_connect_chdl");
+	if (fptr2 == NULL) {
+		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
+		return -1;
+	}
+	dlrunfun(fptr2, &retval, NULL, this, NULL);
 }
 
 CLinkbotT::~CLinkbotT(void) {
@@ -165,28 +174,8 @@ int CLinkbotT::closeGripperNB(void) {
 }
 
 int CLinkbotT::connect(...) {
-	void *fptr;
-	int retval;
-	va_list ap;
-	char *name;
-	va_start(ap, VA_NOARG);
-
-	fptr = dlsym(RoboSim::_dlhandle, "CLinkbotT_connect_chdl");
-	if(fptr == NULL) {
-		fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-		return -1;
-	}
-
-	if (va_count(ap) == 1) {
-		name = va_arg(ap, char *);
-		dlrunfun(fptr, &retval, NULL, this, name);
-	}
-	else {
-		dlrunfun(fptr, &retval, NULL, this, NULL);
-	}
-
-	va_end(ap);
-	return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotT::delay(double milliseconds) {
@@ -2034,16 +2023,8 @@ int CLinkbotTGroup::closeGripperNB(void) {
 }
 
 int CLinkbotTGroup::connect(void) {
-    void *fptr;
-    int retval;
-
-    fptr = dlsym(RoboSim::_dlhandle, "CLTG_connect_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, NULL, this);
-    return retval;
+	// success
+	return 0;
 }
 
 int CLinkbotTGroup::driveAccelCycloidalNB(double radius, double distance, double time) {
