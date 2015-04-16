@@ -47,13 +47,15 @@ class DLLIMPORT CMobot {
 		int delaySeconds(double seconds);
 		int disableRecordDataShift(void);
 		int disconnect(void);
-		int driveBackward(double angle);
-		int driveBackwardNB(double angle);
+		int driveAngle(double angle);
+		int driveAngleNB(double angle);
+		int driveBackward(double angle);		// deprecated
+		int driveBackwardNB(double angle);		// deprecated
 		int driveDistance(double distance, double radius);
 		int driveDistanceNB(double distance, double radius);
 		int driveForeverNB(void);
-		int driveForward(double angle);
-		int driveForwardNB(double angle);
+		int driveForward(double angle);		// deprecated
+		int driveForwardNB(double angle);		// deprecated
 		int driveTime(double seconds);
 		int driveTimeNB(double seconds);
 		int drivexy(double x, double y, double radius, double trackwidth);
@@ -186,13 +188,15 @@ class CMobotGroup {
 		int addRobots(array CMobot robots[], ...);
 		int blinkLED(double delay, int num);
 		int connect(void);
-		int driveBackward(double angle);
-		int driveBackwardNB(double angle);
+		int driveAngle(double angle);
+		int driveAngleNB(double angle);
+		int driveBackward(double angle);		// deprecated
+		int driveBackwardNB(double angle);		// deprecated
 		int driveDistance(double distance, double radius);
 		int driveDistanceNB(double distance, double radius);
 		int driveForeverNB(void);
-		int driveForward(double angle);
-		int driveForwardNB(double angle);
+		int driveForward(double angle);		// deprecated
+		int driveForwardNB(double angle);		// deprecated
 		int driveTime(double seconds);
 		int driveTimeNB(double seconds);
 		int holdJoint(robotJointId_t id);

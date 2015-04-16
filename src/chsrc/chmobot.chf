@@ -124,30 +124,46 @@ int CMobot::disconnect(void) {
     return retval;
 }
 
-int CMobot::driveBackward(double angle) {
+int CMobot::driveAngle(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_driveBackward_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_driveForward_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, driveBackward, this, angle);
+    dlrunfun(fptr, &retval, driveForward, this, angle);
     return retval;
 }
 
-int CMobot::driveBackwardNB(double angle) {
+int CMobot::driveAngleNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_driveBackwardNB_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CMobot_driveForwardNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, driveBackwardNB, this, angle);
+    dlrunfun(fptr, &retval, driveForwardNB, this, angle);
     return retval;
+}
+
+int CMobot::driveBackward(double angle) {
+	DEPRECATED("driveBackward", "driveAngle");
+	driveAngle(-angle);
+
+	// success
+	return 0;
+}
+
+int CMobot::driveBackwardNB(double angle) {
+	DEPRECATED("driveBackwardNB", "driveAngleNB");
+	driveAngleNB(-angle);
+
+	// success
+	return 0;
 }
 
 int CMobot::driveDistance(double distance, double radius) {
@@ -190,29 +206,19 @@ int CMobot::driveForeverNB(void) {
 }
 
 int CMobot::driveForward(double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("driveForward", "driveAngle");
+	driveAngle(angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_driveForward_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveForward, this, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobot::driveForwardNB(double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("driveForwardNB", "driveAngleNB");
+	driveAngleNB(angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CMobot_driveForwardNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveForwardNB, this, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobot::driveTime(double seconds) {
@@ -1915,30 +1921,46 @@ int CMobotGroup::connect(void) {
     return retval;
 }
 
-int CMobotGroup::driveBackward(double angle) {
+int CMobotGroup::driveAngle(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveBackward_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveForward_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, driveBackward, this, angle);
+    dlrunfun(fptr, &retval, driveForward, this, angle);
     return retval;
 }
 
-int CMobotGroup::driveBackwardNB(double angle) {
+int CMobotGroup::driveAngleNB(double angle) {
     void *fptr;
     int retval;
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveBackwardNB_chdl");
+    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveForwardNB_chdl");
     if(fptr == NULL) {
         fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
         return -1;
     }
-    dlrunfun(fptr, &retval, driveBackwardNB, this, angle);
+    dlrunfun(fptr, &retval, driveForwardNB, this, angle);
     return retval;
+}
+
+int CMobotGroup::driveBackward(double angle) {
+	DEPRECATED("driveBackward", "driveAngle");
+	driveAngle(-angle);
+
+	// success
+	return 0;
+}
+
+int CMobotGroup::driveBackwardNB(double angle) {
+	DEPRECATED("driveBackwardNB", "driveAngleNB");
+	driveAngleNB(-angle);
+
+	// success
+	return 0;
 }
 
 int CMobotGroup::driveDistance(double distance, double radius) {
@@ -1981,29 +2003,19 @@ int CMobotGroup::driveForeverNB(void) {
 }
 
 int CMobotGroup::driveForward(double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("driveForward", "driveAngle");
+	driveAngle(angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveForward_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveForward, this, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobotGroup::driveForwardNB(double angle) {
-    void *fptr;
-    int retval;
+	DEPRECATED("driveForwardNB", "driveAngleNB");
+	driveAngleNB(angle);
 
-    fptr = dlsym(RoboSim::_dlhandle, "CLIG_driveForwardNB_chdl");
-    if(fptr == NULL) {
-        fprintf(_stderr, "Error: %s(): dlsym(): %s\n", __func__,  dlerror());
-        return -1;
-    }
-    dlrunfun(fptr, &retval, driveForwardNB, this, angle);
-    return retval;
+	// success
+	return 0;
 }
 
 int CMobotGroup::driveTime(double seconds) {
