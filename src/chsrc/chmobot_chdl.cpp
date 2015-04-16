@@ -19,7 +19,7 @@ EXPORTCH void CMobot_CMobot_chdl(void *varg) {
 	Ch_CppChangeThisPointer(interp, c, sizeof(CMobot));
 	Ch_VaEnd(interp, ap);
 	// connect
-	c->connect(NULL, 0);
+	c->connect(NULL, 1);
 }
 
 EXPORTCH void CMobot_dCMobot_chdl(void *varg) {

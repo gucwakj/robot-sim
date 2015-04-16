@@ -19,7 +19,7 @@ EXPORTCH void CLinkbotT_CLinkbotT_chdl(void *varg) {
 	Ch_CppChangeThisPointer(interp, c, sizeof(CLinkbotT));
 	Ch_VaEnd(interp, ap);
 	// connect
-	c->connect(NULL, 0);
+	c->connect(NULL, 1);
 }
 
 EXPORTCH void CLinkbotT_dCLinkbotT_chdl(void *varg) {
